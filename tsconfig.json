@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "lib": ["ES2023"],
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "moduleResolution": "nodenext",
+    "isolatedModules": true,    
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*"]
+    },
+    "types": ["node", "mongodb", "jest"],
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmitOnError": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "suppressImplicitAnyIndexErrors": false,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

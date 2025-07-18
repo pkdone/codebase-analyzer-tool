@@ -1,0 +1,78 @@
+# Simplify `LLMRouter`
+
+Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block.
+
+Identify how the LLMRouter could be refactored to be less complex, with clean lines of responsibility whilst maintaing all of the current functionality and behaviour as-is.
+
+For example, two code reviwers have already made the follwing suggestions which you could consider in whole are part as you come up with the new simpler solution:
+
+---------
+
+1. Overloaded LLM Router
+
+*   **Current State:** The `LLMRouter` class in `src/llm/core/llm-router.ts` is a central hub with many responsibilities. It manages model selection, retry logic, prompt adaptation (cropping), statistics tracking, and the overall LLM invocation flow. This makes the class large and complex, violating the Single Responsibility Principle.
+*   **Suggestion for Improvement:** Decompose `LLMRouter` into a set of collaborating strategy objects. The core logic for retries, model switching, and prompt adaptation should be extracted into their own strategy classes (e.g., `RetryStrategy`, `ModelFallbackStrategy`). The `LLMRouter` would then be simplified to an orchestrator that injects and uses these strategies. This would make the individual components easier to test and maintain, and allow for more flexible combinations of behaviors.
+*   **Affected Files:**
+    *   `src/llm/core/llm-router.ts`
+    *   `src/llm/processing/prompting/prompt-adapter.ts` (could be evolved into a broader strategy)
+ 
+ 
+2. Refactor Complex Conditional Logic in `LLMRouter`
+
+**Observation:**
+The `LLMRouter.executeCompletion` method has grown complex due to handling multiple concerns: structured vs. regular completion, JSON mode support, and model quality overrides. This leads to nested conditional logic that can be difficult to follow and maintain.
+
+**Suggestion:**
+Refactor the completion logic to better separate these concerns. The primary responsibility of `invokeLLMWithRetriesAndAdaptation` should be the retry/fallback loop. The logic for handling JSON output and schema validation could be extracted into a separate helper or wrapper function. This would simplify the main execution path and make the code more modular.
+
+**Affected Files:**
+*   `src/llm/core/llm-router.ts`
+
+**Example Improvement (conceptual):**
+
+```typescript
+// In LLMRouter.ts
+
+// The main public method becomes a dispatcher
+public async executeCompletion<T>(...): Promise<T | null> {
+  if (options.jsonSchema) {
+    return this.executeStructuredCompletion<T>(...);
+  }
+  return this.executeRegularCompletion(...) as Promise<T | null>;
+}
+
+// This method focuses ONLY on the retry/fallback loop
+private async executeRegularCompletion(...): Promise<LLMGeneratedContent | null> {
+  // ... existing logic to select candidates and call invokeLLMWithRetriesAndAdaptation
+  // This method no longer needs to know about JSON schemas.
+  const contentResponse = await this.invokeLLMWithRetriesAndAdaptation(...);
+  // ... validation of response type (string/object)
+  return contentResponse;
+}
+
+// This method wraps the regular completion and adds JSON parsing/validation
+private async executeStructuredCompletion<T>(...): Promise<T> {
+  const llmManifest = this.llmService.getLLMManifest();
+  const nativeJsonSupport = llmManifest.jsonModeSupport !== LLMJsonModeSupport.NONE;
+
+  // Ask for JSON if supported, otherwise ask for text
+  const outputFormat = nativeJsonSupport ? LLMOutputFormat.JSON : LLMOutputFormat.TEXT;
+  
+  const llmResponse = await this.executeRegularCompletion(
+    resourceName,
+    prompt,
+    { ...options, outputFormat },
+    modelQualityOverride
+  );
+
+  // Post-process and validate the response
+  const validatedData = this.processAndValidateJsonResponse<T>(llmResponse, options.jsonSchema, resourceName);
+  if (!validatedData) {
+    throw new Error(`Failed to get a valid structured response for '${resourceName}'.`);
+  }
+  return validatedData;
+}
+```
+---------
+
+Produce a detailed implementation plan which a senior developer would follow to execute the solution changes you are recommending. Also, identify any places in the code that would benefit from unit test coverage and/or integration test coverage, relating to this solution. Provide references to the specific part(s) of the code that needs these improvements with suggestions on how to improve. Include the list or relative file paths of each source file affected.

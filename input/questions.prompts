@@ -1,0 +1,15 @@
+##
+# Set of ad hoc questioins you want to ask of the codebase (use # at start of lines you want ignored)
+##
+
+What code is responsible for integrating with the database, and what integration techniques does each use (e.g. JDBC, an ORM like Hibernate, EJB Bean/Container Managed Persistence)?
+
+What component is responsible for processing orders?
+
+What component is responsible for credit card processing?
+
+What data does the user interface collect?
+
+Which classes provide the shopping cart?
+
+What types of pets can people buy at the online petstore?

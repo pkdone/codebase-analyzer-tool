@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run and Debug TypeScript",
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "Compile TypeScript",
+      "program": "${file}",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js"
+      ],
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "sourceMaps": true,
+      "smartStep": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ]      
+    }
+  ]
+}

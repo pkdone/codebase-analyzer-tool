@@ -1,0 +1,51 @@
+**Objective:** Analyze the provided source code in its entirety to infer and document (using the Markdown format) the project's implicit coding standards, architectural patterns, and formatting conventions. Your goal is to produce a comprehensive coding standards document that a new developer could use to contribute to this project with a consistent style.
+
+**Your Persona:** You are an expert senior software architect and code quality analyst with deep experience in identifying and documenting software development best practices.
+
+**Instructions:**
+
+Based on the source code I am providing below, please perform a thorough analysis and generate a detailed report. Structure your report in Markdown format with the following sections:
+
+**1. Language(s) and Framework(s) Identification:**
+   - Identify the primary programming languages, frameworks, and major libraries used in this project.
+
+**2. Formatting and Style Conventions:**
+   - **Indentation:** Is it tabs or spaces? How many spaces?
+   - **Line Endings & Spacing:** Analyze the use of blank lines, line length limits (if any), and trailing commas.
+   - **Braces and Parentheses:** Describe the style for braces (e.g., same line or new line for functions/classes/control structures).
+   - **Import/Module Ordering:** Is there a discernible pattern for ordering imports (e.g., standard library, third-party, local modules)?
+   - ** Commenting:** Describe the style of comments used for things like functions, classes, etc.
+
+**3. Naming Conventions:**
+   - **Variables:** (e.g., `camelCase`, `snake_case`, `PascalCase`).
+   - **Functions/Methods:** (e.g., `camelCase`, `snake_case`).
+   - **Classes/Components:** (e.g., `PascalCase`).
+   - **Constants:** (e.g., `UPPER_SNAKE_CASE`).
+   - **Files and Directories:** Describe any patterns in how files and folders are named.
+
+**4. Architectural Patterns and Code Structure:**
+   - **Overall Architecture:** Infer the high-level pattern (e.g., Monolith, Microservices, Model-View-Controller (MVC), Component-Based, Layered Architecture). Provide a brief rationale for your choice.
+   - **Directory Structure:** Explain the purpose of the key directories (e.g., `src`, `components`, `utils`, `services`, `tests`, `constants`, `types`).
+   - **Database Use:** If the code uses a database, describe the databasee and the preferred patterns the code uses to call the database's APIs.
+   - **State Management:** If applicable, describe the approach to managing application state (e.g., Redux, Vuex, React Context, services).
+   - **Data Fetching & API Interaction:** Describe how the application interacts with APIs (e.g., RESTful services with `fetch`/`axios`, GraphQL).
+
+**5. Language-Specific Idioms and Best Practices:**
+   - **Functions:** Is there a preference for arrow functions vs. traditional function declarations (JavaScript)? Are type hints used (Python/TypeScript)?
+   - **Object-Oriented vs. Functional:** Does the code favor classes and inheritance, or does it lean more towards a functional style with pure functions and immutability?
+   - **Error Handling:** Describe the common pattern for handling errors (e.g., `try...catch` blocks, promises `.catch()`, middleware).
+   - **Asynchronous Programming:** Is asynchronous programming prefered and, if so, where there is a choice of asynchronous idioms that can be used, describe the idiom prefered by this code.
+   - **Language Standards Versions:** If the code tends to use newer language features and standards, describe the language version prefered by the code and provide examples specific new features often used.
+
+**6. Dependency and Configuration Management:**
+   - **Dependencies:** How are dependencies managed (e.g., `package.json`, `requirements.txt`)? Is there a philosophy of using minimal dependencies or preferring specific utility libraries (e.g., `lodash`, `date-fns`)?
+   - **Configuration:** How is configuration handled (e.g., environment variables, `.env` files, config objects)?
+
+**7. Testing and Documentation:**
+   - **Testing Philosophy:** Infer the testing approach. Are there unit tests, integration tests, or end-to-end tests? What testing frameworks or libraries are used (e.g., Jest, Pytest, Mocha)? What command is used to run the tests.
+   - **Documentation Style:** Analyze comments and docstrings. Is there a consistent format (e.g., JSDoc, reStructuredText)?
+
+**8. Validation:**
+   - **Compiling/Building:** Infer the way the proect is built and the code compiled, including what commands to run.
+   - **Linting:** If Linting is used in the project, describe the Linting framework used and what command to execute to run the link checks.
+---

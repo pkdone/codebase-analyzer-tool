@@ -1,0 +1,45 @@
+<% if (data && data.length > 0) { %>
+  <p><table>
+    <thead>
+      <tr>
+        <% Object.keys(data[0]).forEach(key => { %>
+          <th><%= convertToDisplayName(key) %></th>
+        <% }); %>
+      </tr>
+    </thead>
+    <tbody>
+      <% data.forEach(row => { %>
+        <tr>
+          <% Object.keys(row).forEach(key => { %>
+            <% const value = row[key]; %>
+            <% if (key === 'link') { %>
+              <td><a href="<%= value %>" target="_blank">Link</a></td>
+            <% } else if (key === 'codeExample') { %>
+              <td><pre><code><%- value %></code></pre></td>
+            <% } else if (value && typeof value === 'object' && value.constructor === Array && value.length > 0) { %>
+              <td>
+                <ul>
+                  <% value.forEach(function(item) { %>
+                    <% if (item && typeof item === 'object' && item.constructor === Object) { %>
+                      <li>
+                        <% var keys = Object.keys(item); %>
+                        <% keys.forEach(function(itemKey, index) { %>
+                                                     <% if (index > 0) { %> | <% } %>
+                          <strong><%= convertToDisplayName(itemKey) %>:</strong> <%- item[itemKey] %>
+                        <% }); %>
+                      </li>
+                    <% } else { %>
+                      <li><%- item %></li>
+                    <% } %>
+                  <% }); %>
+                </ul>
+              </td>
+            <% } else { %>
+              <td><%- value %></td>
+            <% } %>
+          <% }); %>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table></p>
+<% } %> 

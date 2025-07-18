@@ -1,0 +1,6 @@
+<h2>File Types Summary <a href="<%= jsonFilesConfig.dataFiles.fileTypes %>" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h2>
+<% if (fileTypesData && fileTypesData.length > 0) { %>
+  <%- include('table', { data: fileTypesData.map(item => ({ 'File Type': item.fileType, 'Files Count': item.files, 'Lines Count': item.lines })), convertToDisplayName: convertToDisplayName }) %>
+<% } else { %>
+  <p>No file type data available</p>
+<% } %> 
