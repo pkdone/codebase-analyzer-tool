@@ -38,11 +38,11 @@ You can also [view an example of a full report generated](https://pkdone.github.
     ```
 
     Edit the `.env` file to:
-    - Set your `LLM` provider (e.g., "OpenAI", "VertexAIGemini", etc.) - more info in section [Demonstrated LLM Capabilities For This Project]()
+    - Set your `LLM` provider (e.g., "OpenAI", "VertexAIGemini", etc.) - more info in section [Demonstrated LLM Capabilities For This Project](#demonstrated-llm-capabilities-for-this-project)
     - Set your MongoDB URL and codebase directory path
     - Add the specific environment variables required for your chosen LLM provider
     
-    The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [Application to LLM Authentication And URN Notes](#demonstrated-llm-capabilities-for-this-project) for help on determing the correct URNs for you to specify in the `.env` file.
+    The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [Application to LLM Authentication And URN Notes](#application-to-llm-authentication-and-urn-notes) for help on determing the correct URNs for you to specify in the `.env` file.
 
 1. Ensure you have a running MongoDB [Atlas](https://www.mongodb.com/atlas) version 7.0 or greater dedicated cluster of any size/tier. You can even use an 'M0' free-tier version, although for some uses cases, the free-tier storage limit of 512MB may be insufficient. Ensure the approprate network and database access rights are configured. Optional because some use cases won't neeed a database. 
 
