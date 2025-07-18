@@ -1,0 +1,668 @@
+[
+  {
+    "path": "dbstuff/forall-values-of.sql",
+    "mechanism": "DML",
+    "description": "The script uses DML operations to update the employees table. Specifically, it employs the UPDATE statement within a FORALL loop to modify the salary of employees whose IDs are indirectly referenced through associative arrays. This approach ensures efficient batch processing of updates.",
+    "codeExample": "UPDATE employees SET salary = 10000 WHERE employee_id = l_employees (l_index);"
+  },
+  {
+    "path": "dbstuff/forall-bulk-rowcount.sql",
+    "mechanism": "DML",
+    "description": "The script primarily uses DML operations such as INSERT, UPDATE, and dynamic SQL to interact with the database. It demonstrates bulk processing with FORALL and SQL%BULK_ROWCOUNT, which are efficient mechanisms for handling large datasets. The script also includes a RETURNING BULK COLLECT clause to retrieve affected rows and store them in a nested table.",
+    "codeExample": "FORALL indx IN 1 .. ename_filter.COUNT UPDATE employees SET salary = salary * 1.1 WHERE UPPER (last_name) LIKE ename_filter (indx) RETURNING employee_id BULK COLLECT INTO empnos"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.address.ejb.AddressEJB",
+    "mechanism": "EJB",
+    "description": "The AddressEJB class integrates with a database using container-managed persistence (CMP) as part of the EJB framework. The container automatically handles the mapping of the entity bean's fields to the database columns, and the developer only needs to define the abstract getter and setter methods for these fields. The class also includes lifecycle methods to manage the entity's state and persistence context.",
+    "codeExample": "public abstract String getStreetName1();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.address.ejb.AddressLocal",
+    "mechanism": "EJB",
+    "description": "The AddressLocal interface is part of an Enterprise Java Bean (EJB) module, which typically integrates with a database to manage persistent address data. The interface itself does not contain direct database interaction code but is designed to be implemented by an EJB that interacts with a database.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.address.ejb.AddressLocalHome",
+    "mechanism": "EJB",
+    "description": "The AddressLocalHome interface integrates with a database using the EJB framework. It relies on the EJB container to manage the lifecycle of Address entity beans and perform database operations such as creation and retrieval. The container handles the underlying SQL queries and database connections, abstracting these details from the developer. The primary database tables involved are likely related to storing address information, although the specific table names are not provided in the code.",
+    "codeExample": "AddressLocal address = addressLocalHome.create('123 Main St', 'Apt 4B', 'Springfield', 'IL', '62704', 'USA');"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.admin.web.AdminRequestBD",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It interacts with the OPCAdminFacade EJB to perform operations such as retrieving orders and fetching chart details. The EJBs handle the database interactions internally, abstracting the details from the AdminRequestBD class.",
+    "codeExample": "OPCAdminFacadeHome home = (OPCAdminFacadeHome) ServiceLocator.getInstance().getRemoteHome(OPC_ADMIN_NAME, OPCAdminFacadeHome.class); opcAdminEJB = home.create();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.admin.web.ApplRequestProcessor",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using an Enterprise Java Bean (EJB) mechanism. It interacts with the AdminRequestBD business delegate, which likely communicates with EJBs to perform database operations such as retrieving orders, updating order statuses, and fetching chart information. The database tables involved include orders and related entities.",
+    "codeExample": "AdminRequestBD bd = new AdminRequestBD(); OrdersTO orders = bd.getOrdersByStatus(status);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.cart.ejb.ShoppingCartLocal",
+    "mechanism": "EJB",
+    "description": "The interface is designed to be implemented by an Enterprise Java Bean (EJB), which may interact with a database to persist the state of the shopping cart. The EJB container would manage transactions and ensure data consistency.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.catalog.ejb.CatalogEJB",
+    "mechanism": "EJB",
+    "description": "The class integrates with the database using an Enterprise Java Bean (EJB) architecture. It relies on a CatalogDAO instance to perform database operations, which are abstracted away from the EJB itself. The DAO handles the actual SQL queries and database interactions, while the EJB provides a business logic layer for clients to interact with.",
+    "codeExample": "dao = CatalogDAOFactory.getDAO();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.catalog.ejb.CatalogLocal",
+    "mechanism": "EJB",
+    "description": "The CatalogLocal interface is part of an Enterprise Java Bean (EJB) implementation, which typically interacts with a database to retrieve and manage catalog data. The actual database interaction is abstracted away by the EJB container, and the interface provides methods to access the data in a localized and paginated manner.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.contactinfo.ejb.ContactInfoEJB",
+    "mechanism": "EJB",
+    "description": "The ContactInfoEJB class integrates with a database using container-managed persistence (CMP) provided by the EJB container. The CMP fields, such as family name, given name, telephone, and email, are automatically mapped to database columns by the container. Additionally, the class uses container-managed relationships (CMR) to manage its association with the AddressLocal entity, which represents the address data. The ServiceLocator pattern is used to look up the AddressLocalHome interface and create instances of the AddressLocal entity.",
+    "codeExample": "AddressLocalHome adh = (AddressLocalHome) serviceLocator.getLocalHome(JNDINames.ADDR_EJB); AddressLocal address = adh.create(); setAddress(address);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.contactinfo.ejb.ContactInfoLocal",
+    "mechanism": "EJB",
+    "description": "The interface uses Enterprise Java Beans (EJB) for database integration. It is designed as a local EJB component, which means it interacts with the database indirectly through the EJB container. The container manages the persistence and retrieval of data, ensuring transactional integrity and scalability.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.contactinfo.ejb.ContactInfoLocalHome",
+    "mechanism": "EJB",
+    "description": "The ContactInfoLocalHome interface integrates with a database using Enterprise Java Beans (EJB). It relies on the EJB container to manage the persistence and lifecycle of ContactInfo entities. The container handles database operations such as creation, retrieval, and updates of ContactInfo records.",
+    "codeExample": "public ContactInfoLocal findByPrimaryKey(Object key) throws FinderException;"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.creditcard.ejb.CreditCardEJB",
+    "mechanism": "EJB",
+    "description": "The CreditCardEJB class uses container-managed persistence (CMP) to interact with a database. The EJB container automatically handles the mapping of the entity's fields to database columns and manages the persistence lifecycle. The class defines abstract getter and setter methods for the fields, which the container implements to perform database operations.",
+    "codeExample": "public abstract String getCardNumber();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.creditcard.ejb.CreditCardLocal",
+    "mechanism": "EJB",
+    "description": "The interface is part of an Enterprise Java Bean (EJB) implementation, which likely integrates with a database to persist and retrieve credit card information. The EJB container manages the database interactions, ensuring transactional integrity and scalability. The methods in this interface are designed to interact with the EJB implementation, which handles the actual database operations.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.creditcard.ejb.CreditCardLocalHome",
+    "mechanism": "EJB",
+    "description": "The interface integrates with a database using the EJB framework. It relies on the EJB container to manage database interactions, including creating, finding, and persisting CreditCardLocal instances. The actual database operations are abstracted away by the container, ensuring transactional consistency and resource management.",
+    "codeExample": "CreditCardLocal creditCard = creditCardLocalHome.create(cardNumber, cardType, expiryDate);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.customer.account.ejb.AccountEJB",
+    "mechanism": "EJB",
+    "description": "The AccountEJB class uses container-managed persistence (CMP) to interact with the database. It relies on the EJB container to manage the persistence of its fields and relationships. The class also uses JNDI lookups to retrieve and create related entities such as ContactInfoLocal and CreditCardLocal.",
+    "codeExample": "InitialContext ic = new InitialContext(); ContactInfoLocalHome cih = (ContactInfoLocalHome) ic.lookup(java:comp/env/ejb/ContactInfo); ContactInfoLocal contactInfo = cih.create();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.customer.account.ejb.AccountLocal",
+    "mechanism": "EJB",
+    "description": "The interface is part of an Enterprise Java Bean (EJB) module and interacts with the database indirectly through entity beans or other EJB components. It does not contain direct SQL code but relies on the EJB container to manage persistence and database interactions. The associated entity beans handle the actual database operations, ensuring data consistency and transaction management.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.customer.account.ejb.AccountLocalHome",
+    "mechanism": "EJB",
+    "description": "The interface integrates with a database using Enterprise Java Beans (EJB). It relies on the EJB container to manage the persistence and lifecycle of Account EJB instances. The container handles database interactions, such as creating, updating, and retrieving account data, based on the methods defined in this interface. The database tables involved are not explicitly mentioned in the code but are likely related to customer accounts.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.customer.ejb.CustomerEJB",
+    "mechanism": "EJB",
+    "description": "The CustomerEJB class integrates with a database using container-managed persistence (CMP) and container-managed relationships (CMR). The EJB container manages the storage and retrieval of customer data, as well as the relationships between the customer, account, and profile entities. The class uses JNDI lookups to locate and interact with other EJBs, such as AccountLocalHome and ProfileLocalHome, which are responsible for managing account and profile data in the database.",
+    "codeExample": "InitialContext ic = new InitialContext(); AccountLocalHome alh = (AccountLocalHome) ic.lookup(java:comp/env/ejb/Account); AccountLocal account = alh.create(AccountLocalHome.Active); setAccount(account);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.customer.ejb.CustomerLocal",
+    "mechanism": "EJB",
+    "description": "The CustomerLocal interface is part of an EJB-based architecture, which typically integrates with a database through container-managed persistence (CMP) or bean-managed persistence (BMP). The actual database interaction is handled by the EJB implementation classes, which may use JNDI to look up data sources and execute SQL queries or use an ORM framework. The interface itself does not directly interact with the database but provides a contract for accessing customer-related data managed by the EJBs.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.customer.ejb.CustomerLocalHome",
+    "mechanism": "EJB",
+    "description": "The interface integrates with a database using the EJB framework. It relies on the EJB container to manage the persistence and retrieval of customer data. The methods defined in the interface interact with the database indirectly through the EJB container, ensuring secure and efficient data access.",
+    "codeExample": "CustomerLocal customer = customerLocalHome.create(userId);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.customer.profile.ejb.ProfileEJB",
+    "mechanism": "EJB",
+    "description": "The ProfileEJB class uses container-managed persistence (CMP) to interact with the database. The EJB container automatically maps the abstract getter and setter methods to corresponding database columns. This approach simplifies database integration by delegating persistence logic to the container.",
+    "codeExample": "public abstract String getPreferredLanguage();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.customer.profile.ejb.ProfileLocalHome",
+    "mechanism": "EJB",
+    "description": "The ProfileLocalHome interface integrates with a database using Enterprise Java Beans (EJB). It relies on the EJB container to manage the persistence and retrieval of ProfileLocal entity beans. The container handles the database interactions, including SQL generation and execution, based on the bean's configuration.",
+    "codeExample": "ProfileLocal profile = profileLocalHome.create('en_US', 'Books', true, true);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.lineitem.ejb.LineItemEJB",
+    "mechanism": "EJB",
+    "description": "The LineItemEJB class integrates with a database using the Entity Bean mechanism provided by the EJB framework. The container manages the persistence of the entity's attributes, mapping them to the corresponding database table. The class relies on the container to handle database operations such as creation, retrieval, update, and deletion.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.lineitem.ejb.LineItemLocal",
+    "mechanism": "EJB",
+    "description": "The interface is part of an Enterprise Java Bean (EJB) implementation, specifically a local interface for the LineItemEJB. It does not directly interact with the database but serves as a contract for the EJB, which may perform database operations. The EJB is likely responsible for persisting and retrieving line item data from the database.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.lineitem.ejb.LineItemLocalHome",
+    "mechanism": "EJB",
+    "description": "The LineItemLocalHome interface integrates with a database using the EJB container's persistence mechanism. It relies on container-managed persistence (CMP) or bean-managed persistence (BMP) to handle database operations. The EJB container manages the lifecycle of LineItem instances, including their creation, retrieval, and deletion, by interacting with the underlying database.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.opc.admin.ejb.OPCAdminFacadeEJB",
+    "mechanism": "EJB",
+    "description": "The class integrates with the database using Enterprise Java Beans (EJBs). It interacts with the PurchaseOrderLocal and ProcessManagerLocal EJBs to retrieve and manipulate data related to purchase orders and process management. The integration is achieved through dependency injection and service locators, which provide access to the required EJBs. The class also uses SQL-like methods provided by the EJBs to filter and retrieve data based on specific criteria, such as date ranges and order statuses.",
+    "codeExample": "PurchaseOrderLocalHome pohome = getPO(); Collection poColl = pohome.findPOBetweenDates(start.getTime(), end.getTime());"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.opc.customerrelations.ejb.MailCompletedOrderMDB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses the PurchaseOrderLocalHome to retrieve PurchaseOrder entities based on their primary keys. These entities are used to fetch order details, such as email addresses and order data, which are then used to generate email notifications.",
+    "codeExample": "PurchaseOrder poData = poHome.findByPrimaryKey(orderId).getData();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.opc.customerrelations.ejb.MailInvoiceMDB",
+    "mechanism": "EJB",
+    "description": "The MailInvoiceMDB class integrates with a database using Enterprise Java Beans (EJB). It uses the PurchaseOrderLocalHome interface to access order details stored in the database. The findByPrimaryKey method is used to retrieve specific orders based on their primary key. This integration allows the class to fetch customer email addresses and locale information for generating email messages.",
+    "codeExample": "PurchaseOrderLocal po = poHome.findByPrimaryKey(invoiceXDE.getOrderId());"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.opc.customerrelations.ejb.MailOrderApprovalMDB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses the PurchaseOrderLocalHome and PurchaseOrderLocal interfaces to interact with the database. The doWork method retrieves order details from the database using the findByPrimaryKey method of the PurchaseOrderLocalHome interface. The database tables involved are not explicitly mentioned in the code.",
+    "codeExample": "po = poHome.findByPrimaryKey(co.getOrderId());"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.opc.ejb.InvoiceMDB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses local home interfaces such as PurchaseOrderLocalHome and ProcessManagerLocalHome to interact with the database. The integration involves updating the status of purchase orders and managing process statuses. The class also uses a Service Locator to retrieve EJB references.",
+    "codeExample": "PurchaseOrderLocal po = poHome.findByPrimaryKey(invoiceXDE.getOrderId()); processManager.updateStatus(invoiceXDE.getOrderId(), OrderStatusNames.COMPLETED);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.opc.ejb.OrderApprovalMDB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses local interfaces such as PurchaseOrderLocal and ProcessManagerLocal to interact with the database. The doWork method updates the database with order statuses and retrieves purchase order data. The integration relies on EJB container-managed persistence to handle database operations.",
+    "codeExample": "po = poHome.findByPrimaryKey(co.getOrderId()); processManager.updateStatus(co.getOrderId(), co.getOrderStatus());"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.opc.ejb.PurchaseOrderMDB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses local home interfaces to create and manage PurchaseOrder and ProcessManager entities. The integration involves creating purchase order records and updating workflow statuses in the database. The table names are not explicitly mentioned in the code.",
+    "codeExample": "poHome.create(purchaseOrder);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.ejb.ShoppingClientFacadeLocal",
+    "mechanism": "EJB",
+    "description": "The interface uses Enterprise Java Beans (EJB) for database integration. It relies on local EJB objects to interact with the shopping cart and customer entities. These entities are likely backed by a database, and the EJB framework handles the persistence and retrieval of data. The use of EJB ensures efficient and scalable database operations within the application.",
+    "codeExample": "CustomerLocal customer = customerHome.create(userId);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.ejb.ShoppingClientFacadeLocalEJB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJBs). It interacts with the CustomerLocal and ShoppingCartLocal EJBs, which are responsible for managing customer and shopping cart data, respectively. These EJBs likely perform database operations such as creating, retrieving, and updating records in the underlying database tables.",
+    "codeExample": "ServiceLocator sl = new ServiceLocator(); CustomerLocalHome home = (CustomerLocalHome)sl.getLocalHome(JNDINames.CUSTOMER_EJBHOME); customer = home.findByPrimaryKey(userId);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.ejb.ShoppingControllerEJB",
+    "mechanism": "EJB",
+    "description": "The ShoppingControllerEJB class integrates with the database using Enterprise Java Beans (EJB). It interacts with the ShoppingClientFacade EJB, which likely performs database operations related to the shopping process. The integration is achieved through the use of JNDI names and the ServiceLocator pattern to locate and create the EJB instances.",
+    "codeExample": "ServiceLocator sl = new ServiceLocator(); ShoppingClientFacadeLocalHome home = (ShoppingClientFacadeLocalHome)sl.getLocalHome(JNDINames.SHOPPING_CLIENT_FACADE_EJBHOME); clientFacade = home.create();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.ejb.actions.CreateUserEJBAction",
+    "mechanism": "EJB",
+    "description": "The class integrates with the database using Enterprise Java Beans (EJB). It interacts with the SignOn EJB to create a new user in the database. The SignOn EJB encapsulates the database operations required for user creation, such as inserting a new record into the user table. The class also uses the ServiceLocator pattern to locate the EJB and manage its lifecycle.",
+    "codeExample": "ServiceLocator sl = new ServiceLocator(); SignOnLocalHome home = (SignOnLocalHome)sl.getLocalHome(JNDINames.SIGN_ON_EJBHOME); SignOnLocal signOn = home.create(); signOn.createUser(userName, password);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.ejb.actions.CustomerEJBAction",
+    "mechanism": "EJB",
+    "description": "The CustomerEJBAction class integrates with the database using Enterprise Java Beans (EJBs). It interacts with various local EJBs, such as CustomerLocal, AccountLocal, ContactInfoLocal, AddressLocal, CreditCardLocal, and ProfileLocal, to perform CRUD operations on customer-related data. The class uses these EJBs to retrieve and update customer information, ensuring that the data is persisted in the database. The integration is achieved through the use of EJB lookups and method calls, which abstract the underlying database operations.",
+    "codeExample": "CustomerLocal customer = scf.getCustomer(); AccountLocal account = customer.getAccount(); ContactInfoLocal contactInfoLocal = account.getContactInfo(); contactInfoLocal.setFamilyName(contactInfo.getFamilyName());"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.ejb.actions.OrderEJBAction",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJBs). It uses the UniqueIdGeneratorLocal EJB to generate unique order IDs and the AsyncSenderLocalHome EJB to send order details for further processing. The integration relies on the ServiceLocator pattern to look up and interact with these EJBs. Additionally, the class interacts with the shopping cart and user information, which are likely stored in a database.",
+    "codeExample": "ServiceLocator sl = new ServiceLocator(); UniqueIdGeneratorLocalHome home = (UniqueIdGeneratorLocalHome)sl.getLocalHome(JNDINames.UIDG_EJBHOME); UniqueIdGeneratorLocal uidgen = home.create(); String orderIdString = uidgen.getUniqueId('1001');"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.ejb.actions.SignOnEJBAction",
+    "mechanism": "EJB",
+    "description": "The class integrates with the database using Enterprise Java Beans (EJB). It interacts with several EJB components, such as ProfileLocal and ShoppingCartLocal, to retrieve and update user-specific data. These components abstract the underlying database operations, providing a high-level interface for managing user profiles and shopping cart information. The integration ensures that user data is consistently stored and retrieved across the application.",
+    "codeExample": "ProfileLocal profile = scf.getCustomer().getProfile();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.web.PetstoreComponentManager",
+    "mechanism": "EJB",
+    "description": "The class integrates with the database using Enterprise Java Beans (EJB). It interacts with EJB components like ShoppingControllerLocal, ShoppingCartLocal, and CustomerLocal to perform operations related to shopping and customer management. These EJB components handle the underlying database interactions.",
+    "codeExample": "ShoppingControllerLocalHome scEjbHome = (ShoppingControllerLocalHome)serviceLocator.getLocalHome(JNDINames.SHOPPING_CONTROLLER_EJBHOME); ShoppingControllerLocal scEjb = scEjbHome.create();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.web.ShoppingWebController",
+    "mechanism": "EJB",
+    "description": "The ShoppingWebController class integrates with the database through the use of an Enterprise Java Bean (EJB). Specifically, it interacts with the ShoppingControllerLocal EJB, which is a stateful session bean responsible for processing business logic and database operations. The integration is achieved by delegating event processing to the EJB, which handles the necessary database interactions.",
+    "codeExample": "ShoppingControllerLocal scEjb = pcm.getShoppingController(session); scEjb.processEvent(ev);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.controller.web.SignOnNotifier",
+    "mechanism": "EJB",
+    "description": "The class integrates with the database using Enterprise Java Beans (EJB). It interacts with the CustomerLocal and ProfileLocal EJBs to retrieve customer and profile information. The integration ensures that user account details and preferences are loaded into the session during the sign-on process.",
+    "codeExample": "CustomerLocal customer = sl.getCustomer(session);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.AccountPopulator",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses the AccountLocalHome and AccountLocal interfaces to interact with the database and create account entities. The integration is achieved through JNDI lookups and EJB methods for creating and managing account data.",
+    "codeExample": "InitialContext context = new InitialContext(); accountHome = (AccountLocalHome) context.lookup(JNDI_ACCOUNT_HOME); accountHome.create(AccountLocalHome.Active, contactInfo, creditCard);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.AddressPopulator",
+    "mechanism": "EJB",
+    "description": "The AddressPopulator class integrates with the database using Enterprise Java Beans (EJB). It uses JNDI to look up the AddressLocalHome interface and create AddressLocal entities. These entities are then populated with data extracted from XML and persisted in the database. The class interacts with the Address EJB to manage the lifecycle of Address objects.",
+    "codeExample": "InitialContext context = new InitialContext(); addressHome = (AddressLocalHome) context.lookup(JNDI_ADDRESS_HOME); AddressLocal address = addressHome.create(); address.setStreetName1(streetName1); address.setStreetName2(streetName2); address.setCity(city); address.setState(state); address.setZipCode(zipCode); address.setCountry(country);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.ContactInfoPopulator",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses JNDI to look up the ContactInfoLocalHome interface and create ContactInfoLocal entities. These entities represent contact information records in the database. The integration relies on the EJB container to manage database interactions and transactions.",
+    "codeExample": "InitialContext context = new InitialContext(); contactInfoHome = (ContactInfoLocalHome) context.lookup(JNDI_CONTACT_INFO_HOME); contactInfoHome.create(givenName, familyName, phone, email, address);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.CreditCardPopulator",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using an Enterprise Java Bean (EJB). It uses the CreditCardLocalHome interface to create credit card entries and the CreditCardLocal interface to represent individual credit card records. The integration relies on JNDI to look up the EJB and uses the create method of the CreditCardLocalHome interface to insert data into the database. The class interacts with the database indirectly through the EJB, ensuring a clean separation of concerns.",
+    "codeExample": "InitialContext context = new InitialContext(); creditCardHome = (CreditCardLocalHome) context.lookup(JNDI_CREDIT_CARD_HOME); creditCardHome.create(cardNumber, cardType, expiryDate);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.CustomerPopulator",
+    "mechanism": "EJB",
+    "description": "The class integrates with the database using Enterprise Java Beans (EJB). It uses JNDI to look up the CustomerLocalHome interface, which provides methods for managing customer entities. The class interacts with the database to create, update, and check customer records. It also integrates with related account and profile entities through their respective EJB interfaces.",
+    "codeExample": "InitialContext context = new InitialContext(); CustomerLocalHome customerHome = (CustomerLocalHome) context.lookup(JNDI_CUSTOMER_HOME); CustomerLocal customer = customerHome.create(id);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.ProfilePopulator",
+    "mechanism": "EJB",
+    "description": "The ProfilePopulator class integrates with a database using Enterprise Java Beans (EJB). It employs the ProfileLocalHome and ProfileLocal EJBs to create and manage user profiles. The class uses JNDI to look up the ProfileLocalHome EJB and calls its create method to persist user profile data. This integration allows the class to interact with the database in a standardized and transactional manner.",
+    "codeExample": "InitialContext context = new InitialContext(); profileHome = (ProfileLocalHome) context.lookup(JNDI_PROFILE_HOME); profileHome.create(preferredLanguage, favoriteCategory, myListPreference, bannerPreference);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.UserPopulator",
+    "mechanism": "EJB",
+    "description": "The UserPopulator class integrates with a database using Enterprise Java Beans (EJB). It uses the UserLocalHome and UserLocal interfaces to perform database operations such as creating and finding user entries. The integration relies on JNDI for looking up the EJB components.",
+    "codeExample": "InitialContext context = new InitialContext(); UserLocalHome userHome = (UserLocalHome) context.lookup(JNDI_USER_HOME); UserLocal user = userHome.create(id, password);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.util.JNDINames",
+    "mechanism": "EJB",
+    "description": "The class indirectly integrates with a database through the use of Enterprise Java Beans (EJBs). The JNDI names defined in this class are used to locate EJB home objects, which may interact with the database to perform various operations. These EJBs handle the business logic and database interactions, abstracting the details from this utility class.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.processmanager.ejb.ProcessManagerEJB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses the ManagerLocal and ManagerLocalHome interfaces to interact with the database indirectly. The ManagerLocal EJB handles the actual database operations, such as creating, updating, and retrieving orders. The ProcessManagerEJB class acts as a mediator, providing business logic and delegating data operations to the ManagerLocal EJB.",
+    "codeExample": "ManagerLocal manager = mlh.create(orderId, status);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.processmanager.ejb.ProcessManagerLocal",
+    "mechanism": "EJB",
+    "description": "The interface is designed to be implemented by an Enterprise Java Bean (EJB), which will handle the database interactions required for managing order workflows. The EJB will use the underlying database to store and retrieve order information, including their statuses and workflows. The use of EJB ensures that the database interactions are managed in a transactional and secure manner.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.processmanager.manager.ejb.ManagerEJB",
+    "mechanism": "EJB",
+    "description": "The ManagerEJB class uses container-managed persistence (CMP) to interact with the database. The EJB container automatically handles the persistence of the order ID and status fields, mapping them to corresponding columns in the database. The class does not contain explicit SQL code or database interaction logic, as these responsibilities are delegated to the container.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.processmanager.manager.ejb.ManagerLocal",
+    "mechanism": "EJB",
+    "description": "The ManagerLocal interface is part of an Enterprise Java Bean (EJB) architecture, which typically involves database integration through container-managed persistence (CMP) or bean-managed persistence (BMP). While the interface itself does not directly interact with the database, it is expected to be implemented by a session bean that handles database operations. The database integration would involve retrieving and updating order-related data, such as order IDs and statuses, in a relational database.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.processmanager.manager.ejb.ManagerLocalHome",
+    "mechanism": "EJB",
+    "description": "The ManagerLocalHome interface integrates with the database using the EJB container. The container manages the lifecycle of the entity beans and handles all database interactions, including creating, retrieving, and querying entities. The methods defined in this interface rely on the container to execute SQL queries and manage transactions transparently. The database tables involved are not explicitly mentioned in the code but are mapped to the ManagerLocal entity bean.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.purchaseorder.ejb.PurchaseOrderEJB",
+    "mechanism": "EJB",
+    "description": "The PurchaseOrderEJB class integrates with a database using container-managed persistence (CMP) provided by the EJB framework. It defines abstract methods for accessing and modifying entity attributes, which are automatically mapped to database columns by the EJB container. Relationships with other entities, such as ContactInfoLocal and LineItemLocal, are managed using container-managed relationships (CMR). The class also uses the ServiceLocator pattern to look up and interact with related EJBs.",
+    "codeExample": "ContactInfoLocalHome cinforef = (ContactInfoLocalHome) serviceLocator.getLocalHome(JNDINames.CINFO_EJB); ContactInfoLocal cinfoloc = (ContactInfoLocal) cinforef.create(purchaseOrder.getShippingInfo()); setContactInfo(cinfoloc);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.purchaseorder.ejb.PurchaseOrderHelper",
+    "mechanism": "EJB",
+    "description": "The class integrates with the database using Enterprise Java Beans (EJB). It interacts with local EJB interfaces such as PurchaseOrderLocal and LineItemLocal to retrieve and update data related to purchase orders and line items. These EJBs abstract the underlying database operations, allowing the class to focus on business logic without directly handling SQL or database connections.",
+    "codeExample": "PurchaseOrderLocal po = ...; Collection liColl = po.getLineItems();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.purchaseorder.ejb.PurchaseOrderLocal",
+    "mechanism": "EJB",
+    "description": "The PurchaseOrderLocal interface is part of an Enterprise Java Bean (EJB) implementation, specifically a container-managed entity bean. The EJB container handles the persistence of the purchase order data, including interactions with the underlying database. The methods defined in this interface correspond to fields and relationships that are mapped to database tables.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.purchaseorder.ejb.PurchaseOrderLocalHome",
+    "mechanism": "EJB",
+    "description": "The PurchaseOrderLocalHome interface integrates with a database using Enterprise Java Beans (EJB). It relies on container-managed persistence (CMP) or bean-managed persistence (BMP) to handle database operations. The methods defined in this interface, such as create and findByPrimaryKey, interact with the database to manage PurchaseOrder entities. The EJB container handles the underlying database connections and transactions, ensuring efficient and reliable data access.",
+    "codeExample": "PurchaseOrderLocal po = purchaseOrderLocalHome.create(new PurchaseOrder());"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.signon.ejb.SignOnEJB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses the UserLocal and UserLocalHome interfaces to interact with user data stored in the database. The integration is achieved through JNDI lookups and EJB methods for creating and finding user records.",
+    "codeExample": "UserLocal user = ulh.findByPrimaryKey(userName);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+    "mechanism": "EJB",
+    "description": "The interface is part of an Enterprise Java Bean (EJB) module, which typically involves database interaction for user authentication and account creation. The methods defined in this interface are expected to interact with a database to validate user credentials and store new user information. The EJB container manages the lifecycle and transaction boundaries, ensuring secure and efficient database operations.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.signon.user.ejb.UserEJB",
+    "mechanism": "EJB",
+    "description": "The UserEJB class integrates with a database using the Enterprise Java Bean (EJB) container-managed persistence (CMP) mechanism. The EJB container automatically handles the mapping of the entity's fields, such as username and password, to the corresponding database columns. This approach abstracts the database interaction details from the developer, allowing them to focus on business logic. The class relies on the EJB container to manage database operations like create, update, delete, and query.",
+    "codeExample": "public abstract String getUserName();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.signon.user.ejb.UserLocalHome",
+    "mechanism": "EJB",
+    "description": "The UserLocalHome interface integrates with a database using Enterprise Java Beans (EJB). It relies on the EJB container to manage the persistence and lifecycle of the UserLocal entity. The container handles database interactions, such as creating, finding, and retrieving user entities, based on the methods defined in this interface.",
+    "codeExample": "UserLocal user = userLocalHome.create(userName, password);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
+    "mechanism": "EJB",
+    "description": "The CreateUserServlet class integrates with a database indirectly through the SignOn EJB. The EJB is responsible for performing database operations such as creating a new user. The servlet interacts with the EJB using its local interface, and the EJB handles the underlying database logic.",
+    "codeExample": "SignOnLocal signOn = getSignOnEjb(); signOn.createUser(userName, password);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
+    "mechanism": "EJB",
+    "description": "The SignOnFilter class integrates with a database using an Enterprise Java Bean (EJB) for user authentication. It uses the SignOnLocal EJB to validate user credentials against a backend database. The EJB is accessed via JNDI lookup, and its authenticate method is called to perform the validation.",
+    "codeExample": "InitialContext ic = new InitialContext(); Object o = ic.lookup(java:comp/env/ejb/SignOn); SignOnLocalHome home = (SignOnLocalHome)o; SignOnLocal signOn = home.create(); boolean authenticated = signOn.authenticate(userName, password);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.inventory.ejb.InventoryEJB",
+    "mechanism": "EJB",
+    "description": "The InventoryEJB class integrates with a database using the Enterprise Java Bean (EJB) framework. It relies on container-managed persistence (CMP) to map the itemId and quantity fields to corresponding columns in a database table. The EJB container handles all database interactions, including querying, updating, and persisting the bean's state. This approach simplifies the development process by abstracting the database access logic.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.inventory.ejb.InventoryLocal",
+    "mechanism": "EJB",
+    "description": "The InventoryLocal interface is part of an EJB-based architecture and interacts with the Inventory CMP Bean for database integration. The CMP Bean handles persistence automatically, allowing the application to focus on business logic without directly managing database operations. The EJB container manages the database interactions, including CRUD operations, based on the bean's configuration.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.inventory.ejb.InventoryLocalHome",
+    "mechanism": "EJB",
+    "description": "The InventoryLocalHome interface integrates with a database using the EJB framework's Container-Managed Persistence (CMP) mechanism. This allows the EJB container to handle all database interactions, such as creating, reading, and updating inventory records. The interface defines methods for creating and finding inventory items, while the EJB container manages the underlying SQL queries and transactions. This approach ensures that database operations are performed in a secure and efficient manner, with minimal developer intervention.",
+    "codeExample": "InventoryLocal inventory = inventoryLocalHome.create('item123', 50);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.inventory.web.DisplayInventoryBean",
+    "mechanism": "EJB",
+    "description": "The DisplayInventoryBean class integrates with a database using Enterprise Java Beans (EJB). It interacts with the InventoryLocalHome interface to fetch inventory data. The EJB layer abstracts the database operations, providing a seamless way to access inventory items and their quantities. The class uses a ServiceLocator pattern to obtain a reference to the InventoryLocalHome interface, which is then used to call methods that interact with the database.",
+    "codeExample": "ServiceLocator serviceLocator = new ServiceLocator(); inventoryHomeRef = (InventoryLocalHome) serviceLocator.getLocalHome(JNDINames.INV_EJB); invColl = inventoryHomeRef.findAllInventoryItems();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.inventory.web.JNDINames",
+    "mechanism": "EJB",
+    "description": "The class references JNDI names that are associated with Enterprise Java Beans (EJBs) and a UserTransaction. These references suggest that the application integrates with a database through EJBs, which are likely used for managing inventory, order fulfillment, and user transactions. The JNDI names provide the necessary bindings to access these EJBs and perform database-related operations.",
+    "codeExample": "java:comp/env/ejb/Inventory"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.inventory.web.RcvrRequestProcessor",
+    "mechanism": "EJB",
+    "description": "The RcvrRequestProcessor class integrates with a database using Enterprise Java Beans (EJB). It uses local home interfaces such as InventoryLocalHome and OrderFulfillmentFacadeLocalHome to interact with the database. The updateInventory method updates inventory quantities, while the processPendingPO method retrieves and processes pending purchase orders. Transactions are managed using UserTransaction to ensure atomicity.",
+    "codeExample": "ut = (UserTransaction) ic.lookup(JNDINames.USER_TRANSACTION); ut.begin(); updateInventory(req); Collection invoices = procPO.processPendingPO(); ut.commit();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.orderfulfillment.ejb.JNDINames",
+    "mechanism": "EJB",
+    "description": "The class references JNDI names that are likely associated with Enterprise Java Beans (EJBs) such as SupplierOrder, LineItem, and Inventory. These JNDI names suggest that the application integrates with a database through EJBs, which may involve container-managed persistence (CMP) or bean-managed persistence (BMP). However, the class itself does not directly interact with the database but serves as a utility for managing JNDI references.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.orderfulfillment.ejb.OrderFulfillmentFacadeEJB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses local home interfaces such as SupplierOrderLocalHome and InventoryLocalHome to interact with the database. The class persists purchase orders, retrieves inventory data, and updates order statuses through these EJBs. The integration relies on the JNDI names defined in the application to locate the EJBs.",
+    "codeExample": "order = supplierOrderLocalHome.create(supplierOrder);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.orderfulfillment.ejb.OrderFulfillmentFacadeLocal",
+    "mechanism": "EJB",
+    "description": "The interface integrates with a database using Enterprise Java Beans (EJB). It relies on the EJBLocalObject to ensure that the methods are executed within the same application context. The processPO and processPendingPO methods likely interact with the database indirectly through other EJB components or services to retrieve and update order data. This integration ensures transactional consistency and scalability in the order fulfillment process.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.orderfulfillment.ejb.OrderFulfillmentFacadeLocalHome",
+    "mechanism": "EJB",
+    "description": "The interface is part of an Enterprise Java Bean implementation, which may involve database integration through container-managed persistence (CMP) or bean-managed persistence (BMP). However, this specific interface does not directly interact with the database. Instead, it provides a local factory method for creating EJB instances that may perform database operations.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.processpo.ejb.SupplierOrderMDB",
+    "mechanism": "EJB",
+    "description": "The SupplierOrderMDB class integrates with a database using an Enterprise Java Bean (EJB). It uses the OrderFulfillmentFacadeLocal EJB to process purchase orders, which likely involves database operations such as retrieving and updating order information. The class does not directly interact with the database but relies on the EJB to handle database interactions.",
+    "codeExample": "OrderFulfillmentFacadeLocalHome ref = (OrderFulfillmentFacadeLocalHome) serviceLocator.getLocalHome(JNDINames.ORDERFACADE_EJB); poProcessor = ref.create();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplier.tools.populate.InventoryPopulator",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database using Enterprise Java Beans (EJB). It uses the InventoryLocalHome and InventoryLocal interfaces to perform database operations such as creating, updating, and retrieving inventory records. The integration relies on JNDI for looking up the EJB interfaces and interacting with the database.",
+    "codeExample": "InitialContext context = new InitialContext(); inventoryHome = (InventoryLocalHome) context.lookup(JNDI_INVENTORY_HOME); InventoryLocal inventory = inventoryHome.create(id, quantity);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplierpo.ejb.SupplierOrderEJB",
+    "mechanism": "EJB",
+    "description": "The class uses Enterprise Java Beans (EJB) for database integration. It employs container-managed persistence (CMP) to automatically handle the persistence of its properties and relationships. The ejbCreate and ejbPostCreate methods are used to initialize and set up the entity in the database, while container-managed relationships (CMR) are used to manage associations with other entities like ContactInfoLocal and LineItemLocal.",
+    "codeExample": "ContactInfoLocalHome cinforef = (ContactInfoLocalHome) serviceLocator.getLocalHome(JNDINames.CINFO_EJB); ContactInfoLocal cinfoloc = (ContactInfoLocal) cinforef.create(supplierOrder.getShippingInfo()); setContactInfo(cinfoloc);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplierpo.ejb.SupplierOrderLocal",
+    "mechanism": "EJB",
+    "description": "The SupplierOrderLocal interface uses Enterprise Java Beans (EJB) with container-managed persistence (CMP) to interact with the database. The EJB container handles the persistence of PO data, shipping information, and line items, abstracting the database operations from the business logic. This approach ensures efficient and reliable database integration while adhering to the EJB specification.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.supplierpo.ejb.SupplierOrderLocalHome",
+    "mechanism": "EJB",
+    "description": "The SupplierOrderLocalHome interface integrates with the database using Enterprise Java Beans (EJB). It relies on the EJB container to manage database interactions, including creating and querying SupplierOrderLocal instances. The EJB container abstracts the underlying database operations, providing a seamless integration with the database.",
+    "codeExample": "SupplierOrderLocal order = supplierOrderLocalHome.create(new SupplierOrder());"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.uidgen.counter.ejb.CounterEJB",
+    "mechanism": "EJB",
+    "description": "The CounterEJB class uses container-managed persistence (CMP) to interact with a database. The EJB container automatically handles the persistence of the counter and name fields, mapping them to corresponding database columns. The bean's lifecycle methods and abstract getter and setter methods are used to manage the state and behavior of the entity.",
+    "codeExample": "public abstract int getCounter();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.uidgen.counter.ejb.CounterLocal",
+    "mechanism": "EJB",
+    "description": "The CounterLocal interface is part of an EJB component, which is likely to interact with a database to manage the sequence of unique identifiers. The implementation of the getNextValue method would typically involve querying a database table to retrieve the current value of the sequence, incrementing it, and updating the table with the new value. This ensures that the sequence remains consistent and unique across multiple calls. The use of EJBs provides a robust and scalable mechanism for managing database interactions in a Java EE application.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.uidgen.counter.ejb.CounterLocalHome",
+    "mechanism": "EJB",
+    "description": "The CounterLocalHome interface indirectly integrates with a database through the use of Enterprise Java Beans (EJBs). The EJB container manages the persistence of CounterLocal instances, including creating, retrieving, and updating records in the underlying database. This integration is achieved using the EJB framework, which abstracts the complexity of database interactions and provides features such as transaction management and scalability. The primary database operations are performed when the create and findByPrimaryKey methods are called, with the container handling the necessary SQL queries and object mapping.",
+    "codeExample": "CounterLocal counter = counterLocalHome.create('exampleCounter');"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.uidgen.ejb.UniqueIdGeneratorEJB",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database indirectly through the Counter EJB, which is responsible for managing counters. The Counter EJB likely interacts with a database to persist and retrieve counter values. The UniqueIdGeneratorEJB uses JNDI to look up the Counter EJB and invokes its methods to manage counters.",
+    "codeExample": "ic = new InitialContext(); clh = (CounterLocalHome) ic.lookup(java:comp/env/ejb/Counter);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.waf.controller.ejb.StateMachine",
+    "mechanism": "EJB",
+    "description": "The StateMachine class integrates with a database indirectly through the use of EJBs. Specifically, it interacts with the EJBControllerLocalEJB, which is likely responsible for managing database operations. The class itself does not contain any direct database interaction code, but it relies on the EJB framework to handle persistence and data access.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.waf.controller.web.DefaultComponentManager",
+    "mechanism": "EJB",
+    "description": "The class integrates with a database indirectly through EJBs. It uses the ServiceLocator pattern to retrieve the EJBControllerLocalHome instance and calls its create method to obtain an EJBControllerLocal instance. This instance is used to interact with the database via the EJB layer.",
+    "codeExample": "EJBControllerLocalHome home = (EJBControllerLocalHome)sl.getLocalHome(JNDINames.EJB_CONTROLLER_EJBHOME); EJBControllerLocal ccEjb = home.create();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.waf.controller.web.DefaultWebController",
+    "mechanism": "EJB",
+    "description": "The DefaultWebController class integrates with the database indirectly through the EJB tier. It uses the EJBControllerLocal interface to interact with the EJB tier, which is responsible for executing business logic and performing database operations. The class itself does not contain any direct database interaction code, as it delegates all such responsibilities to the EJB tier.",
+    "codeExample": "EJBControllerLocal controllerEJB = cm.getEJBController(session); controllerEJB.processEvent(ev);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.waf.controller.web.WebController",
+    "mechanism": "EJB",
+    "description": "The WebController interface integrates with the database indirectly through the EJB tier, specifically using the ShoppingClientControllerEJB object. This integration relies on Enterprise Java Beans to manage business logic and database interactions. The EJB tier handles the actual database operations, abstracting them from the web tier. This design promotes a clean separation of concerns and simplifies the web tier's responsibilities.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.waf.view.template.TemplateServlet",
+    "mechanism": "EJB",
+    "description": "The TemplateServlet integrates with a database using an Enterprise Java Bean (EJB) mechanism. It utilizes the UserTransaction API to manage transactions, ensuring efficient local EJB access. The servlet attempts to start a transaction before forwarding requests to templates, enabling transactional consistency for operations involving EJBs.",
+    "codeExample": "InitialContext ic = new InitialContext(); UserTransaction ut = (UserTransaction) ic.lookup(java:comp/UserTransaction); ut.begin();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.catalog.client.CatalogHelper",
+    "mechanism": "JDBC",
+    "description": "The CatalogHelper class integrates with a database using a DAO-based approach. It uses the CatalogDAO and CatalogDAOFactory classes to perform database operations such as searching for items, retrieving categories, and fetching products. The DAO classes handle the actual JDBC interactions, including executing SQL queries and mapping results to model objects.",
+    "codeExample": "CatalogDAO dao = CatalogDAOFactory.getDAO(); Page results = dao.searchItems(searchQuery, start, count, locale);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.catalog.dao.CloudscapeCatalogDAO",
+    "mechanism": "JDBC",
+    "description": "The class uses JDBC for database integration. It employs DataSource objects to establish connections to the database and uses prepared statements to execute SQL queries. The class encapsulates SQL queries in constants and provides methods to interact with the database. It handles exceptions and ensures proper resource management by closing connections, prepared statements, and result sets after use.",
+    "codeExample": "Connection c = getDataSource().getConnection(); PreparedStatement ps = c.prepareStatement(GET_CATEGORY_STATEMENT); ps.setString(1, locale.toString()); ps.setString(2, categoryID); ResultSet rs = ps.executeQuery();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.catalog.dao.GenericCatalogDAO",
+    "mechanism": "JDBC",
+    "description": "The GenericCatalogDAO class uses JDBC for database integration. It establishes connections to the database using a DataSource obtained via JNDI lookups. SQL statements are dynamically loaded from an XML configuration file and executed using PreparedStatement objects. The class provides methods for retrieving and manipulating data related to categories, products, and items in the database.",
+    "codeExample": "Connection connection = getDataSource().getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet resultSet = statement.executeQuery();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.CatalogPopulator",
+    "mechanism": "JDBC",
+    "description": "The CatalogPopulator class integrates with a database using JDBC. It uses a Connection object to perform operations such as creating, dropping, and checking tables. The class delegates specific database operations to the CategoryPopulator, ProductPopulator, and ItemPopulator classes, which execute SQL statements to interact with the database.",
+    "codeExample": "Connection connection = DriverManager.getConnection(url, USER, PASSWORD); categoryPopulator.createTables(connection);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.ItemDetailsPopulator",
+    "mechanism": "JDBC",
+    "description": "The class integrates with a database using JDBC. It uses a Connection object to execute SQL statements for creating, checking, and dropping tables, as well as for inserting data. The integration is facilitated by the PopulateUtils class, which handles the execution of SQL statements.",
+    "codeExample": "PopulateUtils.executeSQLStatement(connection, sqlStatements, PopulateUtils.makeSQLStatementKey(PopulateUtils.INSERT_OPERATION, item_details), PARAMETER_NAMES, this);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.ItemPopulator",
+    "mechanism": "JDBC",
+    "description": "The class integrates with a database using JDBC. It uses SQL statements to perform operations such as creating, checking, and dropping tables. The integration is achieved through the PopulateUtils class, which provides utility methods for executing SQL statements. The class also processes item data from XML files and stores it in the database using JDBC connections.",
+    "codeExample": "PopulateUtils.executeSQLStatement(connection, sqlStatements, PopulateUtils.makeSQLStatementKey(PopulateUtils.INSERT_OPERATION, item), PARAMETER_NAMES, this);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.PopulateServlet",
+    "mechanism": "JDBC",
+    "description": "The PopulateServlet class integrates with a database using JDBC. It uses JNDI to look up a DataSource and obtain a database connection. SQL statements for creating, dropping, and populating tables are read from XML files and executed using the JDBC API. The class also includes logic to check if the database is already populated and performs the necessary operations to set up the database if required.",
+    "codeExample": "Connection connection = ((DataSource) new InitialContext().lookup(JNDINames.CATALOG_DATASOURCE)).getConnection();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.PopulateUtils",
+    "mechanism": "JDBC",
+    "description": "The PopulateUtils class integrates with a database using the JDBC API. It uses a Connection object to establish a connection to the database and PreparedStatement objects to execute parameterized SQL queries. The class supports various SQL operations, including create, insert, drop, and check, which are dynamically executed based on provided templates and parameters. The integration is designed to be flexible and secure, leveraging parameterized queries to prevent SQL injection. The class also includes methods for printing SQL statements, which can be useful for debugging or logging purposes.",
+    "codeExample": "PreparedStatement statement = connection.prepareStatement(sqlStatement); statement.setString(1, handler.getValue(parameterNames[0])); statement.execute();"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.servicelocator.ejb.ServiceLocator",
+    "mechanism": "JDBC",
+    "description": "The ServiceLocator class integrates with a database by providing a method to retrieve a DataSource object via JNDI lookup. This DataSource can be used to obtain database connections for executing SQL queries or updates. The integration relies on the javax.sql.DataSource interface, which is a standard JDBC API for connection pooling.",
+    "codeExample": "DataSource dataSource = serviceLocator.getDataSource('jdbc/myDataSource');"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.servicelocator.web.ServiceLocator",
+    "mechanism": "JDBC",
+    "description": "The ServiceLocator class integrates with databases by providing a method to retrieve DataSource objects via JNDI lookups. These DataSource objects can be used to obtain database connections for executing SQL queries or updates.",
+    "codeExample": "DataSource dataSource = ServiceLocator.getInstance().getDataSource(dataSourceName);"
+  },
+  {
+    "path": "dbstuff/cursor-for-loop.sql",
+    "mechanism": "SQL",
+    "description": "The code integrates with the database using SQL queries embedded in PL/SQL blocks. It demonstrates the use of SELECT statements to fetch data from the employees table and process it using cursors. The integration is achieved through both inline queries and reusable cursors defined at the package level.",
+    "codeExample": "FOR rec IN (SELECT * FROM employees) LOOP DBMS_OUTPUT.put_line(rec.last_name); END LOOP;"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.catalog.dao.CatalogDAO",
+    "mechanism": "SQL",
+    "description": "The CatalogDAO interface is designed to encapsulate SQL calls for interacting with the database. It provides methods for retrieving and searching for categories, products, and items, as well as for paginated data retrieval. The actual SQL queries are implemented in the database-specific classes that implement this interface.",
+    "codeExample": "n/a"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.CategoryDetailsPopulator",
+    "mechanism": "SQL",
+    "description": "The class integrates with a database using SQL statements. It performs operations such as creating, checking, and dropping tables, as well as inserting data into the category_details table. The SQL statements are stored in a map and executed using PopulateUtils.",
+    "codeExample": "PopulateUtils.executeSQLStatement(connection, sqlStatements, PopulateUtils.makeSQLStatementKey(PopulateUtils.INSERT_OPERATION, category_details), PARAMETER_NAMES, this);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.CategoryPopulator",
+    "mechanism": "SQL",
+    "description": "The class integrates with a database using SQL statements. It uses a Map to store SQL statements and relies on PopulateUtils to execute these statements. The integration involves creating, checking, and dropping tables, as well as inserting category data into the database. The class interacts with a category table and delegates some operations to the CategoryDetailsPopulator.",
+    "codeExample": "PopulateUtils.executeSQLStatement(connection, sqlStatements, PopulateUtils.makeSQLStatementKey(PopulateUtils.INSERT_OPERATION, category), PARAMETER_NAMES, this);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.ProductDetailsPopulator",
+    "mechanism": "SQL",
+    "description": "The class integrates with a database using SQL statements. It uses PopulateUtils to execute SQL operations like creating, dropping, and checking tables, as well as inserting data into the product details table. The SQL statements are dynamically constructed based on the operation and parameters provided.",
+    "codeExample": "PopulateUtils.executeSQLStatement(connection, sqlStatements, PopulateUtils.makeSQLStatementKey(PopulateUtils.INSERT_OPERATION, product_details), PARAMETER_NAMES, this);"
+  },
+  {
+    "path": "com.sun.j2ee.blueprints.petstore.tools.populate.ProductPopulator",
+    "mechanism": "SQL",
+    "description": "The class integrates with a database using SQL statements executed through a Connection object. It supports operations such as inserting, checking, creating, and dropping product-related tables. The SQL statements are dynamically constructed using utility methods from PopulateUtils.",
+    "codeExample": "PopulateUtils.executeSQLStatement(connection, sqlStatements, PopulateUtils.makeSQLStatementKey(PopulateUtils.INSERT_OPERATION, product), PARAMETER_NAMES, this);"
+  },
+  {
+    "path": "dbstuff/cursors-in-plsql.sql",
+    "mechanism": "STORED-PROCEDURE",
+    "description": "The file primarily employs stored procedures and PL/SQL blocks to interact with the database. It demonstrates the use of cursors, both implicit and explicit, as well as dynamic SQL using DBMS_SQL. These techniques are used to fetch, manipulate, and display data from the database in various ways.",
+    "codeExample": "BEGIN show_common_names ('ENDANGERED_SPECIES'); END;"
+  },
+  {
+    "path": "dbstuff/forall-inserts-comparison.sql",
+    "mechanism": "STORED-PROCEDURE",
+    "description": "The database integration is achieved through the use of a stored procedure that performs various data insertion operations on the parts and parts2 tables. The procedure uses PL/SQL constructs like FOR loops, FORALL, and bulk collect to interact with the database. It also employs rollback and truncate commands to reset the state of the tables during testing.",
+    "codeExample": "INSERT INTO parts VALUES (pnums (indx), pnames (indx));"
+  },
+  {
+    "path": "dbstuff/cursor-for-loop-optimization.sql",
+    "mechanism": "STORED-PROCEDURE",
+    "description": "The script primarily uses a stored procedure to perform database operations, including cursor processing and performance measurement. The procedure interacts with the database by executing a query to generate rows and iterating through them using different cursor techniques. It also uses PL/SQL-specific features like DBMS_OUTPUT for logging and REGEXP_SUBSTR for time calculations.",
+    "codeExample": "CREATE OR REPLACE PROCEDURE test_cursor_performance (approach IN VARCHAR2) IS CURSOR cur IS SELECT * FROM dual CONNECT BY LEVEL < 100001;"
+  },
+  {
+    "path": "dbstuff/trigger-predicates.sql",
+    "mechanism": "TRIGGER",
+    "description": "The script primarily employs triggers for database integration. Triggers are used to automatically execute the show_trigger_event procedure in response to specific DML events (INSERT, UPDATE, DELETE) on the employees table. This integration ensures that event-specific logic is executed without requiring manual intervention.",
+    "codeExample": "CREATE OR REPLACE TRIGGER employee_changes_after AFTER UPDATE OR INSERT ON employees BEGIN show_trigger_event; END;"
+  }
+]

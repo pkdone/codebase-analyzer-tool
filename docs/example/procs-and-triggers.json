@@ -1,0 +1,81 @@
+{
+  "procs": {
+    "total": 5,
+    "low": 1,
+    "medium": 1,
+    "high": 3,
+    "list": [
+      {
+        "path": "dbstuff/cursors-in-plsql.sql",
+        "type": "STORED PROCEDURE",
+        "functionName": "show_common_names",
+        "complexity": "HIGH",
+        "complexityReason": "The procedure uses dynamic SQL with DBMS_SQL, which involves multiple steps such as parsing, defining columns, executing, fetching rows, and closing the cursor, making it more complex than standard SQL operations.",
+        "linesOfCode": 24,
+        "purpose": "This procedure demonstrates the use of DBMS_SQL to dynamically execute a query and fetch results. It takes a table name as input, dynamically constructs a query to fetch common names from the specified table, and iterates through the results using a cursor handle. This approach is useful for scenarios where the query structure or table name is not known at compile time."
+      },
+      {
+        "path": "dbstuff/forall-inserts-comparison.sql",
+        "type": "STORED PROCEDURE",
+        "functionName": "compare_inserting",
+        "complexity": "HIGH",
+        "complexityReason": "The procedure involves multiple nested loops, dynamic SQL execution, and the use of advanced PL/SQL features like nested tables and bulk operations.",
+        "linesOfCode": 94,
+        "purpose": "The purpose of this stored procedure is to compare the performance of different data insertion methods in Oracle PL/SQL. It evaluates row-by-row insertion, bulk insertion using FORALL, and direct path insertion using nested tables. The procedure also measures the performance of bulk collect and FORALL operations for transferring data between tables. It provides detailed timing results for each method to help identify the most efficient approach."
+      },
+      {
+        "path": "dbstuff/cursor-for-loop-optimization.sql",
+        "type": "STORED PROCEDURE",
+        "functionName": "test_cursor_performance",
+        "complexity": "HIGH",
+        "complexityReason": "The procedure involves multiple nested loops, dynamic cursor operations, and conditional logic to handle different approaches, making it complex to understand and maintain.",
+        "linesOfCode": 63,
+        "purpose": "The test_cursor_performance procedure is designed to evaluate and compare the performance of three cursor processing techniques: implicit cursor FOR loops, explicit open-fetch-close loops, and BULK COLLECT. It generates a large dataset of 100,000 rows and iterates through them using the specified approach, measuring the execution time for each method. The procedure aims to demonstrate the impact of PL/SQL optimization levels on the performance of these techniques, providing developers with practical insights into writing efficient PL/SQL code."
+      },
+      {
+        "path": "dbstuff/forall-bulk-rowcount.sql",
+        "type": "STORED PROCEDURE",
+        "functionName": "put_in_table",
+        "complexity": "MEDIUM",
+        "complexityReason": "The procedure involves dynamic SQL, exception handling, and the use of an autonomous transaction, which adds moderate complexity.",
+        "linesOfCode": 20,
+        "purpose": "The put_in_table procedure is designed to dynamically create a temporary table named empno_temp and insert a list of employee IDs into it. It uses dynamic SQL to drop the table if it already exists and then recreate it. The procedure ensures that the data is committed to the database, and it includes exception handling to rollback the transaction and re-raise the error if any issues occur."
+      },
+      {
+        "path": "dbstuff/trigger-predicates.sql",
+        "type": "STORED PROCEDURE",
+        "functionName": "show_trigger_event",
+        "complexity": "LOW",
+        "complexityReason": "The procedure is straightforward, with a single CASE statement to handle the logic.",
+        "linesOfCode": 10,
+        "purpose": "The purpose of this procedure is to determine and display the type of DML event that triggered its execution. It uses conditional predicates to check whether the event was an INSERT, UPDATE, or DELETE, and also checks if a specific column (last_name) was updated. This procedure is designed to be called from within triggers to provide a clear indication of the event type."
+      }
+    ]
+  },
+  "trigs": {
+    "total": 2,
+    "low": 2,
+    "medium": 0,
+    "high": 0,
+    "list": [
+      {
+        "path": "dbstuff/trigger-predicates.sql",
+        "type": "TRIGGER",
+        "functionName": "employee_changes_after",
+        "complexity": "LOW",
+        "complexityReason": "The trigger simply calls a procedure without additional logic.",
+        "linesOfCode": 5,
+        "purpose": "This trigger is executed after an UPDATE or INSERT operation on the employees table. Its purpose is to call the show_trigger_event procedure to display the type of event that occurred. This helps in tracking and logging changes made to the table."
+      },
+      {
+        "path": "dbstuff/trigger-predicates.sql",
+        "type": "TRIGGER",
+        "functionName": "employee_changes_before",
+        "complexity": "LOW",
+        "complexityReason": "The trigger simply calls a procedure without additional logic.",
+        "linesOfCode": 5,
+        "purpose": "This trigger is executed before a DELETE operation on the employees table. Its purpose is to call the show_trigger_event procedure to display the type of event that occurred. This helps in tracking and logging deletions from the table."
+      }
+    ]
+  }
+}

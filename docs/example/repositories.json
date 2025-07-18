@@ -1,0 +1,47 @@
+[
+  {
+    "name": "ShoppingCartRepository",
+    "description": "The ShoppingCartRepository is responsible for managing the persistence and retrieval of shopping cart data in the application. It encapsulates the logic for adding, updating, and removing items from the cart, as well as calculating the subtotal and total item count. The repository interacts with the ShoppingCartLocal EJB to ensure transactional consistency and scalability. It also supports localization by allowing the cart to adapt to different regional settings, enhancing the user experience. By abstracting the underlying database operations, the repository promotes modularity and reusability across the application.",
+    "aggregate": "ShoppingCart"
+  },
+  {
+    "name": "PurchaseOrderRepository",
+    "description": "The PurchaseOrderRepository is designed to handle the persistence and lifecycle management of purchase orders within the application. It provides methods to create, update, and retrieve purchase orders, ensuring that all associated data, such as line items, billing, and shipping information, is consistently managed. The repository leverages container-managed relationships to maintain associations with related entities like ContactInfo and CreditCard. It also includes utility methods for processing invoices and checking order fulfillment status. By centralizing purchase order logic, the repository ensures data integrity and simplifies integration with other components.",
+    "aggregate": "PurchaseOrder"
+  },
+  {
+    "name": "SupplierOrderRepository",
+    "description": "The SupplierOrderRepository is responsible for managing supplier orders, including their creation, modification, and retrieval. It ensures that all order details, such as line items and shipping information, are accurately persisted and accessible. The repository interacts with the SupplierOrderLocal EJB to handle database operations and maintain transactional integrity. It also supports XML serialization and deserialization, enabling seamless integration with external systems that rely on XML-based data exchange. By encapsulating supplier order logic, the repository promotes modularity and simplifies the management of supplier-related workflows.",
+    "aggregate": "SupplierOrder"
+  },
+  {
+    "name": "ProcessManagerRepository",
+    "description": "The ProcessManagerRepository is designed to manage the workflow and status of orders within the application. It provides methods to update order statuses, retrieve orders by their status, and initiate workflows for new orders. The repository interacts with the ManagerLocal EJB to handle the underlying persistence and business logic. It ensures that all workflow transitions are consistent and adheres to the application's business rules. By centralizing workflow management, the repository simplifies the integration of order processing with other components and ensures scalability in handling large volumes of orders.",
+    "aggregate": "OrderWorkflow"
+  },
+  {
+    "name": "InventoryRepository",
+    "description": "The InventoryRepository is responsible for managing the persistence and retrieval of inventory data in the supplier system. It provides methods to access and modify inventory quantities, ensuring that stock levels are accurately maintained. The repository interacts with the InventoryLocal EJB to handle database operations and supports transactional consistency. It also includes business logic for reducing inventory quantities during order fulfillment. By abstracting inventory management, the repository promotes modularity and simplifies the integration of inventory data with other components of the application.",
+    "aggregate": "Inventory"
+  },
+  {
+    "name": "AccountRepository",
+    "description": "The AccountRepository manages the persistence and lifecycle of customer account data, including contact information, credit card details, and account status. It provides methods to create, update, and retrieve account entities, ensuring that all associated data is consistently managed. The repository leverages container-managed relationships to maintain associations with related aggregates like ContactInfo and CreditCard. It also supports the initialization of accounts with detailed data, promoting a seamless user experience. By centralizing account management, the repository ensures data integrity and simplifies integration with other components of the application.",
+    "aggregate": "Account"
+  },
+  {
+    "name": "CatalogRepository",
+    "description": "The CatalogRepository is responsible for managing the persistence and retrieval of catalog data, including categories, products, and items. It provides methods to search, retrieve, and manipulate catalog entities, ensuring that all data is consistently managed. The repository supports localization by allowing data to be retrieved in different languages and formats. It also integrates with the CatalogDAO to handle database operations efficiently. By centralizing catalog management, the repository promotes modularity and simplifies the integration of catalog data with other components of the application.",
+    "aggregate": "Catalog"
+  },
+  {
+    "name": "LineItemRepository",
+    "description": "The LineItemRepository manages the persistence and lifecycle of line items within orders. It provides methods to create, update, and retrieve line items, ensuring that all associated data, such as quantities and unit prices, is consistently managed. The repository interacts with the LineItemLocal EJB to handle database operations and supports container-managed relationships for seamless integration with parent aggregates like PurchaseOrder. By centralizing line item management, the repository ensures data integrity and simplifies the processing of order details.",
+    "aggregate": "LineItem"
+  },
+  {
+    "name": "CustomerRepository",
+    "description": "The CustomerRepository is designed to manage the persistence and lifecycle of customer data, including profiles, accounts, and preferences. It provides methods to create, update, and retrieve customer entities, ensuring that all associated data is consistently managed. The repository leverages container-managed relationships to maintain associations with related aggregates like Account and Profile. It also supports localization by allowing customer preferences to be tailored to different regions. By centralizing customer management, the repository ensures data integrity and simplifies the integration of customer data with other components of the application.",
+    "aggregate": "Customer"
+  }
+]

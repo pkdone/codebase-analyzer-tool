@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Java EE (Jakarta EE)",
+    "description": "Java EE is a robust enterprise-level framework for building distributed, scalable, and secure applications. It provides a set of APIs and specifications for developing multi-tiered applications, including support for EJBs, servlets, JSPs, and JMS. The application heavily relies on Java EE components such as stateless and stateful session beans, entity beans with container-managed persistence, and message-driven beans for asynchronous processing. Additionally, it uses Java EE's dependency injection, JNDI for resource lookups, and transaction management to ensure modularity and maintainability. The framework's integration with web technologies like JSP and servlets enables seamless interaction between the web and business logic layers."
+  },
+  {
+    "name": "XML Processing (DOM, SAX, XSLT)",
+    "description": "XML processing is a critical component of the application, enabling structured data exchange and manipulation. The application uses DOM and SAX parsers for reading and writing XML documents, ensuring compatibility with various XML schemas and DTDs. XSLT is employed for transforming XML documents into other formats, such as HTML or text, facilitating integration with external systems. Utility classes like XMLDocumentUtils provide methods for serializing, deserializing, and validating XML data. Custom entity resolvers and schema validation mechanisms ensure that XML documents conform to predefined standards, enhancing data integrity and interoperability."
+  },
+  {
+    "name": "Java Message Service (JMS)",
+    "description": "JMS is used extensively in the application for asynchronous communication between components. Message-driven beans (MDBs) process incoming messages from JMS queues and topics, enabling decoupled and scalable interactions. The application uses JMS for tasks such as order processing, inventory updates, and customer notifications. By leveraging JMS, the system ensures reliable message delivery, even in the event of failures. The use of helper classes like QueueHelper and TopicSender abstracts the complexities of JMS operations, simplifying integration and improving maintainability."
+  },
+  {
+    "name": "JavaServer Pages (JSP) and Custom Tag Libraries",
+    "description": "JSP is utilized for rendering dynamic web content, providing a seamless user interface for the application. Custom tag libraries, such as those in the 'smart' package, extend JSP functionality by encapsulating common UI patterns like forms, dropdowns, and caching. These tags simplify the development of complex web pages by abstracting repetitive tasks and promoting reusability. The application also integrates JSP with backend logic through tag handlers that interact with EJBs and other components, ensuring a cohesive user experience. Additionally, JSP's support for internationalization and localization is leveraged to provide a globalized interface."
+  },
+  {
+    "name": "Java Naming and Directory Interface (JNDI)",
+    "description": "JNDI is a core technology used for resource lookup and dependency injection in the application. It provides a standardized way to access EJBs, JMS resources, data sources, and environment entries. The application centralizes JNDI name definitions in utility classes like JNDINames, ensuring consistency and ease of maintenance. By abstracting resource lookups through the ServiceLocator pattern, the application reduces boilerplate code and improves modularity. JNDI's integration with the Java EE container enables seamless resource management and lifecycle handling."
+  },
+  {
+    "name": "Java Transaction API (JTA)",
+    "description": "JTA is employed to manage transactions across multiple resources, ensuring data consistency and integrity. The application uses container-managed transactions for EJBs, simplifying the implementation of business logic while adhering to ACID principles. UserTransaction is used in specific scenarios, such as inventory updates and order processing, to provide fine-grained control over transaction boundaries. JTA's integration with the Java EE container ensures that transactions are automatically committed or rolled back based on the outcome of operations, reducing the risk of data corruption."
+  },
+  {
+    "name": "Java Database Connectivity (JDBC)",
+    "description": "JDBC is used for direct database interactions, particularly in the data population and DAO layers. The application employs prepared statements for executing parameterized SQL queries, ensuring security against SQL injection attacks. Utility classes like PopulateUtils abstract common JDBC operations, such as executing queries and managing connections, promoting code reuse. The use of connection pooling and data sources, configured via JNDI, enhances performance and scalability. JDBC's integration with the EJB container allows for seamless persistence management in entity beans."
+  },
+  {
+    "name": "Java Internationalization (I18n)",
+    "description": "The application incorporates internationalization features to support multiple languages and regional settings. Utility classes like I18nUtil provide methods for locale parsing, currency formatting, and number formatting, ensuring a consistent user experience across different locales. JSP pages and backend components dynamically adapt to user preferences by leveraging locale-specific configurations. The application's design ensures that text, dates, and other locale-sensitive data are displayed appropriately, enhancing its global usability."
+  },
+  {
+    "name": "Java Servlet API",
+    "description": "The Java Servlet API is used to handle HTTP requests and responses, forming the backbone of the web tier. Servlets like MainServlet and PopulateServlet manage request routing, screen flow, and data population tasks. Filters, such as SignOnFilter, provide pre-processing and post-processing capabilities, enabling features like authentication and request validation. The integration of servlets with JSP and custom tag libraries ensures a cohesive and efficient web application architecture. The use of session management and request attributes facilitates stateful interactions between the client and server."
+  },
+  {
+    "name": "Java Swing (Client-Side GUI)",
+    "description": "Java Swing is utilized for building graphical user interfaces in the administrative client application. Components like BarChartPanel and PieChartPanel provide interactive visualizations for sales and order data. The application employs custom panels and renderers to enhance the user experience, offering features like sorting, filtering, and dynamic updates. Swing's event-driven programming model is leveraged to handle user interactions, ensuring responsiveness and interactivity. The use of Java2D APIs for rendering charts and animations further enriches the visual appeal of the client application."
+  },
+  {
+    "name": "JavaMail API",
+    "description": "The JavaMail API is used for email communication within the application, enabling features like order confirmations and customer notifications. Classes like MailHelper and MailerMDB handle the creation and sending of emails, integrating seamlessly with the Java EE environment. The application supports MIME-compliant messages, allowing for rich content and attachments. By leveraging JavaMail, the system ensures reliable and scalable email delivery, enhancing customer engagement and operational efficiency."
+  }
+]

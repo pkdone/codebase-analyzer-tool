@@ -1,0 +1,78 @@
+[
+  {
+    "name": "ShoppingCart",
+    "description": "The ShoppingCart aggregate is responsible for managing the lifecycle and state of a user's shopping cart in the e-commerce application. It encapsulates business rules such as adding, updating, and removing items, as well as calculating the subtotal and total item count. The aggregate ensures that the cart's state remains consistent, even in scenarios involving concurrent updates or session persistence. It also integrates with other domain entities like products and user accounts to validate item availability and pricing. By centralizing cart-related operations, it simplifies the checkout process and ensures a seamless user experience.",
+    "entities": [
+      "CartItem",
+      "ShoppingCartModel"
+    ],
+    "repository": "ShoppingCartLocal"
+  },
+  {
+    "name": "Order",
+    "description": "The Order aggregate is responsible for managing the lifecycle of customer orders, from creation to fulfillment. It encapsulates business rules such as validating order details, calculating totals, and managing order statuses like pending, approved, and completed. The aggregate ensures consistency by coordinating with related entities such as billing and shipping information, line items, and payment details. It also integrates with external systems for order processing, invoicing, and inventory updates. By centralizing order-related operations, it provides a robust framework for handling complex workflows and ensuring data integrity.",
+    "entities": [
+      "PurchaseOrder",
+      "LineItem",
+      "ContactInfo",
+      "CreditCard"
+    ],
+    "repository": "PurchaseOrderLocal"
+  },
+  {
+    "name": "CustomerAccount",
+    "description": "The CustomerAccount aggregate manages the lifecycle of customer accounts, including registration, profile updates, and account status changes. It enforces business rules such as validating user credentials, managing associated contact and payment information, and ensuring secure access to account data. The aggregate integrates with related entities like profiles, credit cards, and addresses to provide a comprehensive view of the customer. By centralizing account-related operations, it ensures consistency and simplifies interactions with other parts of the system, such as order management and authentication services.",
+    "entities": [
+      "Account",
+      "Profile",
+      "ContactInfo",
+      "CreditCard"
+    ],
+    "repository": "AccountLocal"
+  },
+  {
+    "name": "Catalog",
+    "description": "The Catalog aggregate is responsible for managing the product catalog, including categories, products, and items. It enforces business rules such as ensuring product availability, managing hierarchical relationships between categories and products, and supporting localized data for internationalization. The aggregate provides a unified interface for retrieving and searching catalog data, optimizing performance through caching and efficient database queries. By centralizing catalog-related operations, it ensures consistency and simplifies integration with other aggregates like shopping carts and orders.",
+    "entities": [
+      "Category",
+      "Product",
+      "Item"
+    ],
+    "repository": "CatalogLocal"
+  },
+  {
+    "name": "Inventory",
+    "description": "The Inventory aggregate manages the state and availability of items in the supplier's inventory. It enforces business rules such as reducing quantities during order fulfillment, validating stock levels, and handling restocking operations. The aggregate integrates with related entities like supplier orders and invoices to ensure accurate tracking of inventory changes. By centralizing inventory-related operations, it provides a reliable framework for maintaining stock consistency and supporting order processing workflows.",
+    "entities": [
+      "InventoryItem"
+    ],
+    "repository": "InventoryLocal"
+  },
+  {
+    "name": "ProcessManager",
+    "description": "The ProcessManager aggregate orchestrates the workflow for managing order statuses and transitions in the application. It enforces business rules such as updating order statuses, handling approvals, and coordinating with external systems for fulfillment and notifications. The aggregate integrates with related entities like purchase orders and transition delegates to ensure smooth execution of workflows. By centralizing process management, it provides a scalable and maintainable framework for handling complex business processes.",
+    "entities": [
+      "OrderStatus",
+      "Manager"
+    ],
+    "repository": "ProcessManagerLocal"
+  },
+  {
+    "name": "SupplierOrder",
+    "description": "The SupplierOrder aggregate manages the lifecycle of supplier purchase orders, including creation, fulfillment, and invoicing. It enforces business rules such as validating order details, managing supplier-specific workflows, and ensuring accurate tracking of shipped items. The aggregate integrates with related entities like line items and contact information to provide a comprehensive view of supplier orders. By centralizing supplier order operations, it ensures consistency and simplifies integration with external systems for order processing and inventory updates.",
+    "entities": [
+      "SupplierOrder",
+      "LineItem",
+      "ContactInfo"
+    ],
+    "repository": "SupplierOrderLocal"
+  },
+  {
+    "name": "UniqueIdGenerator",
+    "description": "The UniqueIdGenerator aggregate is responsible for generating unique identifiers for various entities in the application. It enforces business rules such as ensuring sequential or prefix-based ID generation and avoiding collisions in distributed environments. The aggregate integrates with related entities like counters to manage ID sequences efficiently. By centralizing ID generation, it provides a reliable and scalable mechanism for maintaining uniqueness across the system.",
+    "entities": [
+      "Counter"
+    ],
+    "repository": "CounterLocal"
+  }
+]
