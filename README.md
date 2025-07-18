@@ -31,6 +31,8 @@ You can also [view an example of a full report generated](https://pkdone.github.
     -  __Text completions 'primate'model, typically with a small token limit__ for generating text and JSON content for dealing with text inputs 
     -  __Text completions 'secondary' model, typically with a large token limit__ for generating text and JSON content for dealing with text inputs (acting as a backup in case the primary model errors for a particular piece of cotent)
 
+For an idea of what LLM to run, see section [Demonstrated LLM Capabilities](#demonstrated-llm-capabilities)
+
 1. From the root folder of this project, run the following command to copy an example environment configuration file to a new file into the same root folder called `.env`:
 
     ```console
@@ -38,11 +40,11 @@ You can also [view an example of a full report generated](https://pkdone.github.
     ```
 
     Edit the `.env` file to:
-    - Set your `LLM` provider (e.g., "OpenAI", "VertexAIGemini", etc.) - more info in section [Demonstrated LLM Capabilities For This Project](#demonstrated-llm-capabilities-for-this-project)
+    - Set your `LLM` provider (e.g., "OpenAI", "VertexAIGemini", etc.)
     - Set your MongoDB URL and codebase directory path
     - Add the specific environment variables required for your chosen LLM provider
     
-    The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [Application to LLM Authentication And URN Notes](#application-to-llm-authentication-and-urn-notes) for help on determing the correct URNs for you to specify in the `.env` file.
+    The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on determing the correct URNs for you to specify in the `.env` file.
 
 1. Ensure you have a running MongoDB [Atlas](https://www.mongodb.com/atlas) version 7.0 or greater dedicated cluster of any size/tier. You can even use an 'M0' free-tier version, although for some uses cases, the free-tier storage limit of 512MB may be insufficient. Ensure the approprate network and database access rights are configured. Optional because some use cases won't neeed a database. 
 
@@ -77,7 +79,7 @@ Alternatively, you also run the `./dist/src/cli/c*.js` JavaScript files (first c
     node ./dist/src/cli/capture-codebase.js
     ```
 
-    Note 1. If you are getting LLM provider authentication/authorisaton errors when you executed the task, see the section [Application to LLM Authentication And URN Notes](#application-to-llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
+    Note 1. If you are getting LLM provider authentication/authorisaton errors when you executed the task, see the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
 
     Note 2. The taks will take around 10 minutes or more to execute, depending on the complexity of the source project. This tool employs asynchronous IO and concurrency, but inevitably, the LLM you provide to the tool will take time to respond to requests and often apply throttling, which will be the main causes of slowdown. If you see messages with the character `?` in the tool's output, this indicates that the LLM is returning an "overloaded" response, and hence, the tool will transparently pause each affected LLM request job and then retry after a short wait.
 
@@ -175,9 +177,9 @@ The `capture-codebase` tool captures metadata about all the files in the codebas
 Using metadata about the source files that was captued the `sources` collection, the subsequent `capture-insights` tool uses an LLM to generate insights of various aspects of the application persisted into the database collection `appsummaries`. This captured information includes an outline of the application's purpose plus a list its technologies, business processes, DDD bounded contexts, DDD aggregates, DDD entities,, DDD repositories, and potential microservices.
 
 
-## Demonstrated LLM Capabilities For This Project
+## Demonstrated LLM Capabilities
 
-Tested on 17-July-2025 with the legacy Java Petstore J2EE application:
+The following table shows the results of using this project with various LLMs against the codebase of the legacy Sun/Oracle Java Petstore J2EE application (tested on 17-July-2025):
 
 | LLM Hosting/API Provider | LLMs | Insight Quality <sup>1</sup> | Speed <sup>2</sup> | Average Error Rate <sup>3</sup> |
 | :---- | :---- | :---: | :---: | :---: |
