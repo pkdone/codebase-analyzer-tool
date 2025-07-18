@@ -38,11 +38,11 @@ You can also [view an example of a full report generated](https://pkdone.github.
     ```
 
     Edit the `.env` file to:
-    - Set your `LLM` provider (e.g., "OpenAI", "VertexAIGemini", etc.)
+    - Set your `LLM` provider (e.g., "OpenAI", "VertexAIGemini", etc.) - more info in section [Demonstrated LLM Capabilities For This Project]()
     - Set your MongoDB URL and codebase directory path
     - Add the specific environment variables required for your chosen LLM provider
     
-    The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [Application to LLM Authentication And URN Notes](#application-to-llm-authentication-and-urn-notes) for help on determing the correct URNs for you to specify in the `.env` file.
+    The system uses a **manifest-driven approach** - you only need to configure environment variables for your selected LLM provider. The application will automatically validate only the variables required for your chosen provider and provide clear error messages if any are missing. See the section [Application to LLM Authentication And URN Notes](#demonstrated-llm-capabilities-for-this-project) for help on determing the correct URNs for you to specify in the `.env` file.
 
 1. Ensure you have a running MongoDB [Atlas](https://www.mongodb.com/atlas) version 7.0 or greater dedicated cluster of any size/tier. You can even use an 'M0' free-tier version, although for some uses cases, the free-tier storage limit of 512MB may be insufficient. Ensure the approprate network and database access rights are configured. Optional because some use cases won't neeed a database. 
 
@@ -105,7 +105,7 @@ Alternatively, you also run the `./dist/src/cli/c*.js` JavaScript files (first c
 1. **OTHER TOOLS**: You wil notice other tools are also provided in the "src/cli" folder which you can explore and run. These are currently undocumented and may disappear in the future are primarily for use by the project's developers.
 
 
-## Running The Project's Full Build Process Including RUnning Unit And Integration Tests
+## Running The Project's Full Build Process Including Unit And Integration Tests
 
 Execute the following command from the project's root folder:
 
@@ -114,7 +114,7 @@ Execute the following command from the project's root folder:
   ```
 
 
-## Application to LLM Authentication And URN Notes
+## LLM Authentication And URN Notes
 
 In all cases, first ensure you have enabled the required model for the requried cloud region using the cloud provider's LLM configuration tool.
 
