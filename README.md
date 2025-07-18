@@ -31,7 +31,7 @@ You can also [view an example of a full report generated](https://pkdone.github.
     -  __Text completions 'primate'model, typically with a small token limit__ for generating text and JSON content for dealing with text inputs 
     -  __Text completions 'secondary' model, typically with a large token limit__ for generating text and JSON content for dealing with text inputs (acting as a backup in case the primary model errors for a particular piece of cotent)
 
-For an idea of what LLM to run, see section [Demonstrated LLM Capabilities](#demonstrated-llm-capabilities)
+    For an idea of what LLM to run, see section [Demonstrated LLM Capabilities](#demonstrated-llm-capabilities)
 
 1. From the root folder of this project, run the following command to copy an example environment configuration file to a new file into the same root folder called `.env`:
 
