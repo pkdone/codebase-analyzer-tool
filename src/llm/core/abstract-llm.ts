@@ -18,7 +18,7 @@ import {
   LLMProviderSpecificConfig,
 } from "../providers/llm-provider.types";
 import { getErrorText, logErrorMsg } from "../../common/utils/error-utils";
-import { convertTextToJSONAndOptionallyValidate } from "../processing/msgProcessing/content-tools";
+import { convertTextToJSONAndOptionallyValidate } from "../processing/msgProcessing/json-tools";
 import { extractTokensAmountAndLimitFromErrorMsg } from "../processing/msgProcessing/response-error-pattern-parser";
 import { BadConfigurationLLMError } from "../errors/llm-errors.types";
 

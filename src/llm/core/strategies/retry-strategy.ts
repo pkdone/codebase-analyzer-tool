@@ -1,6 +1,5 @@
 import { injectable } from "tsyringe";
-import { withRetry } from "../../../common/control/control-utils";
-import { RetryFunc } from "../../../common/control/control.types";
+import pRetry, { FailedAttemptError } from "p-retry";
 import type {
   LLMFunction,
   LLMFunctionResponse,
@@ -9,8 +8,7 @@ import type {
 } from "../../llm.types";
 import { LLMResponseStatus } from "../../llm.types";
 import type { LLMRetryConfig } from "../../providers/llm-provider.types";
-import { getRetryConfiguration } from "../../processing/msgProcessing/request-configurer";
-import { FailedAttemptError } from "p-retry";
+import { llmConfig } from "../../llm.config";
 import type LLMStats from "../../processing/routerTracking/llm-stats";
 
 // Custom error class with status field
@@ -42,22 +40,48 @@ export class RetryStrategy {
     providerRetryConfig: LLMRetryConfig,
     completionOptions?: LLMCompletionOptions,
   ): Promise<LLMFunctionResponse | null> {
-    const retryConfig = getRetryConfiguration(providerRetryConfig);
+    const retryConfig = this.getRetryConfiguration(providerRetryConfig);
 
-    const result = await withRetry<
-      [string, LLMContext, LLMCompletionOptions?],
-      LLMFunctionResponse,
-      LLMResponseStatus.OVERLOADED | LLMResponseStatus.INVALID
-    >(
-      llmFunction as RetryFunc<[string, LLMContext, LLMCompletionOptions?], LLMFunctionResponse>,
-      [prompt, context, completionOptions],
-      this.checkResultThrowIfRetryFunc.bind(this),
-      this.logRetryOrInvalidEvent.bind(this),
-      retryConfig.maxAttempts,
-      retryConfig.minRetryDelayMillis,
-    );
+    try {
+      return await pRetry(
+        async () => {
+          const result = await llmFunction(prompt, context, completionOptions);
+          this.checkResultThrowIfRetryFunc(result);
+          return result;
+        },
+        {
+          retries: retryConfig.maxAttempts - 1, // p-retry uses `retries` (number of retries, not total attempts)
+          minTimeout: retryConfig.minRetryDelayMillis,
+          onFailedAttempt: (error: FailedAttemptError) => {
+            this.logRetryOrInvalidEvent(
+              error as FailedAttemptError & {
+                status?: LLMResponseStatus.OVERLOADED | LLMResponseStatus.INVALID;
+              },
+            );
+          },
+        } as pRetry.Options,
+      );
+    } catch {
+      // p-retry throws if all attempts fail - we catch it and return null
+      return null;
+    }
+  }
 
-    return result;
+  /**
+   * Get retry configuration from provider-specific config with fallbacks to global config.
+   */
+  private getRetryConfiguration(providerRetryConfig: LLMRetryConfig) {
+    return {
+      maxAttempts:
+        providerRetryConfig.maxRetryAttempts ?? llmConfig.DEFAULT_INVOKE_LLM_NUM_ATTEMPTS,
+      minRetryDelayMillis:
+        providerRetryConfig.minRetryDelayMillis ?? llmConfig.DEFAULT_MIN_RETRY_DELAY_MILLIS,
+      maxRetryAdditionalDelayMillis:
+        providerRetryConfig.maxRetryAdditionalDelayMillis ??
+        llmConfig.DEFAULT_MAX_RETRY_ADDITIONAL_MILLIS,
+      requestTimeoutMillis:
+        providerRetryConfig.requestTimeoutMillis ?? llmConfig.DEFAULT_REQUEST_WAIT_TIMEOUT_MILLIS,
+    };
   }
 
   /**

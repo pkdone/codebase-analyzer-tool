@@ -24,7 +24,6 @@ import { FallbackStrategy } from "../../../src/llm/core/strategies/fallback-stra
 import type { EnvVars } from "../../../src/lifecycle/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
-import { getRetryConfiguration } from "../../../src/llm/processing/msgProcessing/request-configurer";
 
 // Mock the dependencies
 // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
@@ -637,49 +636,6 @@ describe("LLM Router tests", () => {
       expect(consoleTableSpy).toHaveBeenCalledWith(expect.any(Object));
 
       consoleTableSpy.mockRestore();
-    });
-  });
-
-  describe("getRetryConfiguration method", () => {
-    test("should use default config when no retry config provided", () => {
-      const result = getRetryConfiguration({});
-
-      // Should use defaults from llmConfig (mocked values in test environment)
-      expect(result).toHaveProperty("maxAttempts");
-      expect(result).toHaveProperty("minRetryDelayMillis");
-      expect(result).toHaveProperty("maxRetryAdditionalDelayMillis");
-      expect(result).toHaveProperty("requestTimeoutMillis");
-    });
-
-    test("should use provided retry config values", () => {
-      const customRetryConfig = {
-        maxRetryAttempts: 10,
-        minRetryDelayMillis: 200,
-        maxRetryAdditionalDelayMillis: 1000,
-        requestTimeoutMillis: 60000,
-      };
-
-      const result = getRetryConfiguration(customRetryConfig);
-
-      expect(result.maxAttempts).toBe(10);
-      expect(result.minRetryDelayMillis).toBe(200);
-      expect(result.maxRetryAdditionalDelayMillis).toBe(1000);
-      expect(result.requestTimeoutMillis).toBe(60000);
-    });
-
-    test("should use partial retry config with defaults for missing values", () => {
-      const partialRetryConfig = {
-        maxRetryAttempts: 8,
-        requestTimeoutMillis: 45000,
-        // minRetryDelayMillis and maxRetryAdditionalDelayMillis not provided
-      };
-
-      const result = getRetryConfiguration(partialRetryConfig);
-
-      expect(result.maxAttempts).toBe(8);
-      expect(result.requestTimeoutMillis).toBe(45000);
-      expect(result).toHaveProperty("minRetryDelayMillis");
-      expect(result).toHaveProperty("maxRetryAdditionalDelayMillis");
     });
   });
 

@@ -27,8 +27,8 @@ import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strateg
 import {
   getOverridenCompletionCandidates,
   buildCompletionCandidates,
-} from "../processing/msgProcessing/request-configurer";
-import { validateSchemaIfNeededAndReturnResponse } from "../processing/msgProcessing/content-tools";
+} from "../processing/msgProcessing/completions-models-retriever";
+import { validateSchemaIfNeededAndReturnResponse } from "../processing/msgProcessing/json-tools";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
