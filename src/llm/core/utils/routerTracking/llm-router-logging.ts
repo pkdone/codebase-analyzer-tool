@@ -12,7 +12,7 @@ export function log(text: string): void {
  * Log both the error content and also any context associated with work being done when the
  * error occurred, add the context to the error object and then throw the augmented error.
  */
-export function logErrWithContext(error: unknown, context: LLMContext): void {
+export function logErrorWithContext(error: unknown, context: LLMContext): void {
   logErrorDetail(error);
   logContext(context);
 }

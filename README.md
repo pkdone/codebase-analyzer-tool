@@ -28,7 +28,7 @@ You can also [view an example of a full report generated](https://pkdone.github.
 1. Ensure you have can leverage LLMs from OpenAI/Azure GPT, GCP Vertex AI or AWS Bedrock API, with the following three models types available to use, along with appropriate API keys / credentials:
 
     -  __Embeddings model__ for generating vector embeddings 
-    -  __Text completions 'primate'model, typically with a small token limit__ for generating text and JSON content for dealing with text inputs 
+    -  __Text completions 'primaary' model, typically with a small token limit__ for generating text and JSON content for dealing with text inputs 
     -  __Text completions 'secondary' model, typically with a large token limit__ for generating text and JSON content for dealing with text inputs (acting as a backup in case the primary model errors for a particular piece of cotent)
 
     For an idea of what LLM to run, see section [Demonstrated LLM Capabilities](#demonstrated-llm-capabilities)

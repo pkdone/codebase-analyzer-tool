@@ -23,15 +23,15 @@ export class PromptAdaptationStrategy {
     llmResponse: LLMFunctionResponse,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
   ): string {
-    if (!llmResponse.tokensUage) {
+    if (!llmResponse.tokensUsage) {
       throw new BadResponseMetadataLLMError(
-        "LLM response indicated token limit exceeded but `tokensUage` is not present",
+        "LLM response indicated token limit exceeded but `tokensUsage` is not present",
         llmResponse,
       );
     }
 
     if (prompt.trim() === "") return prompt;
-    const { promptTokens, completionTokens, maxTotalTokens } = llmResponse.tokensUage;
+    const { promptTokens, completionTokens, maxTotalTokens } = llmResponse.tokensUsage;
     const maxCompletionTokensLimit = modelsMetadata[llmResponse.modelKey].maxCompletionTokens;
     let reductionRatio = 1;
 

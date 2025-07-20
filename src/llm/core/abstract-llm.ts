@@ -191,7 +191,7 @@ export default abstract class AbstractLLM implements LLMProvider {
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.EXCEEDED,
-          tokensUage: this.extractTokensAmountFromMetadataDefaultingMissingValues(
+          tokensUsage: this.extractTokensAmountFromMetadataDefaultingMissingValues(
             modelKey,
             tokenUsage,
             this.llmModelsMetadata,
@@ -217,7 +217,7 @@ export default abstract class AbstractLLM implements LLMProvider {
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.EXCEEDED,
-          tokensUage: extractTokensAmountAndLimitFromErrorMsg(
+          tokensUsage: extractTokensAmountAndLimitFromErrorMsg(
             modelKey,
             request,
             getErrorText(error),
@@ -276,7 +276,7 @@ export default abstract class AbstractLLM implements LLMProvider {
           generated: generatedContent,
         };
       } catch (error: unknown) {
-        context.resoponseContentParseError = getErrorText(error);
+        context.responseContentParseError = getErrorText(error);
         if (doWarnOnError) logErrorMsg(getErrorText(error));
         return { ...skeletonResult, status: LLMResponseStatus.INVALID };
       }

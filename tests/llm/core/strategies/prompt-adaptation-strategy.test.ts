@@ -41,7 +41,7 @@ describe("PromptAdaptationStrategy", () => {
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-      tokensUage: {
+      tokensUsage: {
         promptTokens: 5000,
         completionTokens: 4000,
         maxTotalTokens: 8192,
@@ -60,11 +60,11 @@ describe("PromptAdaptationStrategy", () => {
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-      // tokensUage is missing
+      // tokensUsage is missing
     };
 
     expect(() => strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata)).toThrow(
-      "LLM response indicated token limit exceeded but `tokensUage` is not present",
+      "LLM response indicated token limit exceeded but `tokensUsage` is not present",
     );
   });
 
@@ -75,7 +75,7 @@ describe("PromptAdaptationStrategy", () => {
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-      tokensUage: {
+      tokensUsage: {
         promptTokens: 100,
         completionTokens: 50,
         maxTotalTokens: 8192,
@@ -93,7 +93,7 @@ describe("PromptAdaptationStrategy", () => {
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-      tokensUage: {
+      tokensUsage: {
         promptTokens: 100,
         completionTokens: 50,
         maxTotalTokens: 8192,
@@ -111,7 +111,7 @@ describe("PromptAdaptationStrategy", () => {
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-      tokensUage: {
+      tokensUsage: {
         promptTokens: 3000,
         completionTokens: 4050, // Near the 4096 limit
         maxTotalTokens: 8192,
@@ -131,7 +131,7 @@ describe("PromptAdaptationStrategy", () => {
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-      tokensUage: {
+      tokensUsage: {
         promptTokens: 5000,
         completionTokens: 4000,
         maxTotalTokens: 8192, // Total exceeds limit
@@ -150,7 +150,7 @@ describe("PromptAdaptationStrategy", () => {
       request: prompt,
       modelKey: "GPT_COMPLETIONS_GPT4",
       context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-      tokensUage: {
+      tokensUsage: {
         promptTokens: 100,
         completionTokens: 50,
         maxTotalTokens: 8192,

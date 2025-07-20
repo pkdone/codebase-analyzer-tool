@@ -67,7 +67,7 @@ describe("FallbackStrategy", () => {
           request: "test prompt",
           modelKey: "GPT_COMPLETIONS_GPT4",
           context: {},
-          tokensUage: {
+          tokensUsage: {
             promptTokens: 5000,
             completionTokens: 3500,
             maxTotalTokens: 8192,
@@ -88,7 +88,7 @@ describe("FallbackStrategy", () => {
           request: "test prompt",
           modelKey: "GPT_COMPLETIONS_GPT4",
           context: {},
-          tokensUage: {
+          tokensUsage: {
             promptTokens: 5000,
             completionTokens: 3500,
             maxTotalTokens: 8192,

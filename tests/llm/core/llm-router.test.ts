@@ -678,7 +678,7 @@ describe("LLM Router tests", () => {
         request: "test prompt",
         modelKey: "GPT_COMPLETIONS_GPT4",
         context: {},
-        tokensUage: {
+        tokensUsage: {
           promptTokens: 8000,
           completionTokens: 500,
           maxTotalTokens: 8192,
@@ -806,7 +806,7 @@ describe("LLM Router tests", () => {
         request: "test prompt",
         modelKey: "GPT_COMPLETIONS_GPT4",
         context: {},
-        tokensUage: {
+        tokensUsage: {
           promptTokens: 8000,
           completionTokens: 500,
           maxTotalTokens: 8192,

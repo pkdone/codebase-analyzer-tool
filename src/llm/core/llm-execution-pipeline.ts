@@ -14,7 +14,7 @@ import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
 import { validateSchemaIfNeededAndReturnResponse } from "./utils/msgProcessing/json-tools";
-import { log, logErrWithContext, logWithContext } from "./utils/routerTracking/llm-router-logging";
+import { log, logErrorWithContext, logWithContext } from "./utils/routerTracking/llm-router-logging";
 import type LLMStats from "./utils/routerTracking/llm-stats";
 
 /**
@@ -76,7 +76,7 @@ export class LLMExecutionPipeline {
       log(
         `Unable to process the following resource with an LLM due to a non-recoverable error for the following resource: '${resourceName}'`,
       );
-      logErrWithContext(error, context);
+      logErrorWithContext(error, context);
     }
 
     this.llmStats.recordFailure();
@@ -115,7 +115,7 @@ export class LLMExecutionPipeline {
         this.llmStats.recordSuccess();
         return llmResponse.generated ?? null;
       } else if (llmResponse?.status === LLMResponseStatus.ERRORED) {
-        logErrWithContext(llmResponse.error, context);
+        logErrorWithContext(llmResponse.error, context);
         break;
       }
 

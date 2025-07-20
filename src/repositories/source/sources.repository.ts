@@ -28,7 +28,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
    */
   constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient) {
     const db = mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
-    this.collection = db.collection<SourceRecord>(databaseConfig.SOURCES_COLLCTN_NAME);
+    this.collection = db.collection<SourceRecord>(databaseConfig.SOURCES_COLLECTION_NAME);
   }
 
   /**
@@ -185,7 +185,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
         .toArray();
     } catch (error: unknown) {
       logErrorMsgAndDetail(
-        `Problem performing Atlas Vector Search aggregation - ensure the vector index is defined for the '${databaseConfig.SOURCES_COLLCTN_NAME}' collection`,
+        `Problem performing Atlas Vector Search aggregation - ensure the vector index is defined for the '${databaseConfig.SOURCES_COLLECTION_NAME}' collection`,
         error,
       );
       throw error;

@@ -23,7 +23,7 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
    */
   constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient) {
     const db = mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
-    this.collection = db.collection<AppSummaryRecord>(databaseConfig.SUMMARIES_COLLCTN_NAME);
+    this.collection = db.collection<AppSummaryRecord>(databaseConfig.SUMMARIES_COLLECTION_NAME);
   }
 
   /**

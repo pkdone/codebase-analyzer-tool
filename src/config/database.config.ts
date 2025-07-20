@@ -2,10 +2,10 @@
  * Database configuration
  */
 export const databaseConfig = {
-  DEFAULT_MONGO_SVC: "default",
+  DEFAULT_MONGO_SERVICE_id: "default",
   CODEBASE_DB_NAME: "codebase-analyzed",
-  SOURCES_COLLCTN_NAME: "sources",
-  SUMMARIES_COLLCTN_NAME: "appsummaries",
+  SOURCES_COLLECTION_NAME: "sources",
+  SUMMARIES_COLLECTION_NAME: "appsummaries",
   CONTENT_VECTOR_FIELD: "contentVector",
   SUMMARY_VECTOR_FIELD: "summaryVector",
   CONTENT_VECTOR_INDEX_NAME: "contentVector_vector_index",

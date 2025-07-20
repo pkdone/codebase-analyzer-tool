@@ -116,7 +116,7 @@ export interface LLMContext {
   /** The desired output format */
   outputFormat?: LLMOutputFormat;
   /** Error text when JSON parsing / validating fails during response processing */
-  resoponseContentParseError?: string;
+  responseContentParseError?: string;
 }
 
 /**
@@ -154,7 +154,7 @@ export interface LLMFunctionResponse {
   readonly modelKey: string;
   readonly context: LLMContext;
   readonly generated?: LLMGeneratedContent;
-  readonly tokensUage?: LLMResponseTokensUsage;
+  readonly tokensUsage?: LLMResponseTokensUsage;
   readonly error?: unknown;
 }
 

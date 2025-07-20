@@ -112,7 +112,7 @@ describe("Abstract LLM Token Extraction", () => {
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext);
 
-      expect(result.tokensUage).toStrictEqual({
+      expect(result.tokensUsage).toStrictEqual({
         completionTokens: 0,
         promptTokens: 200,
         maxTotalTokens: 32768,
@@ -129,7 +129,7 @@ describe("Abstract LLM Token Extraction", () => {
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext);
 
-      expect(result.tokensUage).toStrictEqual({
+      expect(result.tokensUsage).toStrictEqual({
         completionTokens: 0,
         promptTokens: 32760,
         maxTotalTokens: 32768,
@@ -146,7 +146,7 @@ describe("Abstract LLM Token Extraction", () => {
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext);
 
-      expect(result.tokensUage).toStrictEqual({
+      expect(result.tokensUsage).toStrictEqual({
         completionTokens: 200,
         promptTokens: 32569,
         maxTotalTokens: 32768,
@@ -209,7 +209,7 @@ describe("Abstract LLM Token Extraction", () => {
 
       const result = await llamaLLM.executeCompletionPrimary("test prompt", testContext);
 
-      expect(result.tokensUage).toStrictEqual({
+      expect(result.tokensUsage).toStrictEqual({
         completionTokens: 0,
         promptTokens: 243,
         maxTotalTokens: 128000,

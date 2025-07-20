@@ -24,8 +24,8 @@ export class DBInitializerService implements Service {
    */
   constructor(@inject(TOKENS.MongoClient) private readonly mongoClient: MongoClient) {
     this.db = this.mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
-    this.sourcesCollection = this.db.collection(databaseConfig.SOURCES_COLLCTN_NAME);
-    this.appSummariesCollection = this.db.collection(databaseConfig.SUMMARIES_COLLCTN_NAME);
+    this.sourcesCollection = this.db.collection(databaseConfig.SOURCES_COLLECTION_NAME);
+    this.appSummariesCollection = this.db.collection(databaseConfig.SUMMARIES_COLLECTION_NAME);
   }
 
   /**

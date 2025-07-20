@@ -46,7 +46,7 @@ export class RetryStrategy {
       return await pRetry(
         async () => {
           const result = await llmFunction(prompt, context, completionOptions);
-          this.checkResultThrowIfRetryFunc(result);
+          this.throwIfRetryable(result);
           return result;
         },
         {
@@ -87,7 +87,7 @@ export class RetryStrategy {
   /**
    * Check the result and throw an error if the LLM is overloaded or the response is invalid
    */
-  private checkResultThrowIfRetryFunc(result: LLMFunctionResponse) {
+  private throwIfRetryable(result: LLMFunctionResponse) {
     if (result.status === LLMResponseStatus.OVERLOADED)
       throw new RetryStatusError("LLM is overloaded", LLMResponseStatus.OVERLOADED);
     if (result.status === LLMResponseStatus.INVALID)

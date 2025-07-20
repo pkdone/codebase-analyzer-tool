@@ -8,7 +8,7 @@ import {
 } from "../llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "../llm.types";
 import { BadConfigurationLLMError } from "../errors/llm-errors.types";
-import { log, logErrWithContext } from "./utils/routerTracking/llm-router-logging";
+import { log, logWithContext } from "./utils/routerTracking/llm-router-logging";
 import type LLMStats from "./utils/routerTracking/llm-stats";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMService } from "./llm-service";
@@ -121,7 +121,7 @@ export default class LLMRouter {
     if (
       !(Array.isArray(contentResponse) && contentResponse.every((item) => typeof item === "number"))
     ) {
-      logErrWithContext("LLM response for embeddings was not an array of numbers", context);
+      logWithContext("LLM response for embeddings was not an array of numbers", context);
       return null;
     }
 
