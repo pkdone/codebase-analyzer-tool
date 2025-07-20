@@ -10,7 +10,7 @@ import type { PartialAppSummaryRecord } from "../../repositories/app-summary/app
 import { TOKENS } from "../../di/tokens";
 import { SummaryCategory, summaryCategoriesConfig } from "../../config/summary-categories.config";
 import { AppSummaryCategoryEnum } from "../../schemas/app-summary-categories.schema";
-import { createPromptFromConfig } from "../../llm/processing/prompting/prompt-templator";
+import { createPromptFromConfig } from "../../llm/processing/msgProcessing/prompt-templator";
 
 /**
  * Generates metadata in database collections to capture application information,

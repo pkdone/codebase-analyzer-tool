@@ -16,7 +16,7 @@ export const jsonFilesConfig = {
     dbInteractions: "db-interactions.json",
     procsAndTriggers: "procs-and-triggers.json",
   },
-  
+
   /**
    * Generate category filename from category key
    */
@@ -26,4 +26,4 @@ export const jsonFilesConfig = {
 /**
  * Type for JSON file config to ensure type safety
  */
-export type JsonFilesConfig = typeof jsonFilesConfig; 
+export type JsonFilesConfig = typeof jsonFilesConfig;

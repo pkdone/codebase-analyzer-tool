@@ -5,15 +5,12 @@ import {
   LLMPurpose,
   LLMResponseStatus,
   LLMGeneratedContent,
-  LLMFunctionResponse,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
 } from "../llm.types";
 import type { LLMProviderImpl, LLMCandidateFunction } from "../llm.types";
 import { BadConfigurationLLMError } from "../errors/llm-errors.types";
-import { withRetry } from "../../common/control/control-utils";
-import { RetryFunc } from "../../common/control/control.types";
-import type { PromptAdapter } from "../processing/prompting/prompt-adapter";
+
 import {
   log,
   logErrWithContext,
@@ -23,25 +20,15 @@ import type LLMStats from "../processing/routerTracking/llm-stats";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMService } from "./llm-service";
 import type { EnvVars } from "../../lifecycle/env.types";
+import { RetryStrategy } from "./strategies/retry-strategy";
+import { FallbackStrategy } from "./strategies/fallback-strategy";
+import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
 
 import {
   getOverridenCompletionCandidates,
   buildCompletionCandidates,
-  getRetryConfiguration,
 } from "../processing/msgProcessing/request-configurer";
-import { FailedAttemptError } from "p-retry";
 import { validateSchemaIfNeededAndReturnResponse } from "../processing/msgProcessing/content-tools";
-
-// Custom error class with status field
-export class RetryStatusError extends Error {
-  constructor(
-    message: string,
-    readonly status: LLMResponseStatus.OVERLOADED | LLMResponseStatus.INVALID,
-  ) {
-    super(message);
-    this.name = "RetryStatusError";
-  }
-}
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -63,13 +50,17 @@ export default class LLMRouter {
    * @param llmService The LLM service for provider management
    * @param envVars Environment variables
    * @param llmStats The LLM statistics tracker
-   * @param promptAdapter The prompt adapter for handling token limits
+   * @param retryStrategy Strategy for handling retries
+   * @param fallbackStrategy Strategy for handling unsuccessful calls
+   * @param promptAdaptationStrategy Strategy for adapting prompts when token limits are exceeded
    */
   constructor(
     private readonly llmService: LLMService,
     private readonly envVars: EnvVars,
     private readonly llmStats: LLMStats,
-    private readonly promptAdapter: PromptAdapter,
+    private readonly retryStrategy: RetryStrategy,
+    private readonly fallbackStrategy: FallbackStrategy,
+    private readonly promptAdaptationStrategy: PromptAdaptationStrategy,
   ) {
     this.llm = this.llmService.getLLMProvider(this.envVars);
     this.modelsMetadata = this.llm.getModelsMetadata();
@@ -208,18 +199,6 @@ export default class LLMRouter {
   }
 
   /**
-   * Crops the prompt to fit within token limits when the current LLM exceeds capacity.
-   */
-  private cropPromptForTokenLimit(currentPrompt: string, llmResponse: LLMFunctionResponse): string {
-    this.llmStats.recordCrop();
-    return this.promptAdapter.adaptPromptFromResponse(
-      currentPrompt,
-      llmResponse,
-      this.modelsMetadata,
-    );
-  }
-
-  /**
    * Executes an LLM function applying a series of before and after non-functional aspects (e.g.
    * retries, switching LLM qualities, truncating large prompts)..
    *
@@ -235,12 +214,11 @@ export default class LLMRouter {
     completionOptions?: LLMCompletionOptions,
   ) {
     let result: LLMGeneratedContent | null = null;
-    const currentPrompt = prompt;
 
     try {
       result = await this.iterateOverLLMFunctions(
         resourceName,
-        currentPrompt,
+        prompt,
         context,
         llmFunctions,
         candidateModels,
@@ -282,10 +260,11 @@ export default class LLMRouter {
     // Don't want to increment 'llmFuncIndex' before looping again, if going to crop prompt
     // (to enable us to try cropped prompt with same size LLM as last iteration)
     while (llmFunctionIndex < llmFunctions.length) {
-      const llmResponse = await this.executeLLMFuncWithRetries(
+      const llmResponse = await this.retryStrategy.executeWithRetries(
         llmFunctions[llmFunctionIndex],
         currentPrompt,
         context,
+        this.providerRetryConfig,
         completionOptions,
       );
 
@@ -297,17 +276,23 @@ export default class LLMRouter {
         break;
       }
 
-      const nextAction = this.determineUnsuccessfulLLMCallOutcomeAction(
+      const nextAction = this.fallbackStrategy.determineNextAction(
         llmResponse,
         llmFunctionIndex,
         llmFunctions.length,
         context,
         resourceName,
       );
+
       if (nextAction.shouldTerminate) break;
 
       if (nextAction.shouldCropPrompt && llmResponse) {
-        currentPrompt = this.cropPromptForTokenLimit(currentPrompt, llmResponse);
+        currentPrompt = this.promptAdaptationStrategy.adaptPromptFromResponse(
+          currentPrompt,
+          llmResponse,
+          this.modelsMetadata,
+        );
+        this.llmStats.recordCrop();
 
         if (currentPrompt.trim() === "") {
           logWithContext(
@@ -317,7 +302,7 @@ export default class LLMRouter {
           break;
         }
 
-        continue; // Try again with same LLM function but cropped prompt
+        continue; // Try again with same LLM eeeeeefunction but cropped prompt
       }
 
       if (nextAction.shouldSwitchToNextLLM) {
@@ -331,113 +316,5 @@ export default class LLMRouter {
     }
 
     return null;
-  }
-
-  /**
-   * Send a prompt to an LLM for completion, retrying a number of times if the LLM is overloaded.
-   */
-  private async executeLLMFuncWithRetries(
-    llmFunction: LLMFunction,
-    prompt: string,
-    context: LLMContext,
-    completionOptions?: LLMCompletionOptions,
-  ) {
-    const retryConfig = getRetryConfiguration(this.providerRetryConfig);
-    const result = await withRetry<
-      [string, LLMContext, LLMCompletionOptions?],
-      LLMFunctionResponse,
-      LLMResponseStatus.OVERLOADED | LLMResponseStatus.INVALID
-    >(
-      llmFunction as RetryFunc<[string, LLMContext, LLMCompletionOptions?], LLMFunctionResponse>,
-      [prompt, context, completionOptions],
-      this.checkResultThrowIfRetryFunc.bind(this),
-      this.logRetryOrInvalidEvent.bind(this),
-      retryConfig.maxAttempts,
-      retryConfig.minRetryDelayMillis,
-    );
-    return result;
-  }
-
-  /**
-   * Check the result and throw an error if the LLM is overloaded or the response is invalid
-   */
-  private checkResultThrowIfRetryFunc(result: LLMFunctionResponse) {
-    if (result.status === LLMResponseStatus.OVERLOADED)
-      throw new RetryStatusError("LLM is overloaded", LLMResponseStatus.OVERLOADED);
-    if (result.status === LLMResponseStatus.INVALID)
-      throw new RetryStatusError("LLM response is invalid", LLMResponseStatus.INVALID);
-  }
-
-  /**
-   * Log retry events with status-specific handling
-   */
-  private logRetryOrInvalidEvent(
-    error: FailedAttemptError & {
-      status?: LLMResponseStatus.OVERLOADED | LLMResponseStatus.INVALID;
-    },
-  ) {
-    if (error.status === LLMResponseStatus.INVALID) {
-      this.llmStats.recordInvalidRetry();
-    } else {
-      this.llmStats.recordOverloadRetry();
-    }
-  }
-
-  /**
-   * Handles the outcome of an LLM call and determines the next action to take.
-   */
-  private determineUnsuccessfulLLMCallOutcomeAction(
-    llmResponse: LLMFunctionResponse | null,
-    currentLlmFunctionIndex: number,
-    totalLLMCount: number,
-    context: LLMContext,
-    resourceName: string,
-  ): { shouldTerminate: boolean; shouldCropPrompt: boolean; shouldSwitchToNextLLM: boolean } {
-    const isInvalidResponse = llmResponse?.status === LLMResponseStatus.INVALID;
-    const isOverloaded = !llmResponse || llmResponse.status === LLMResponseStatus.OVERLOADED;
-    const isExceeded = llmResponse?.status === LLMResponseStatus.EXCEEDED;
-    const canSwitchModel = currentLlmFunctionIndex + 1 < totalLLMCount;
-
-    if (isInvalidResponse) {
-      logWithContext(
-        `Unable to extract a valid response from the current LLM model - invalid JSON being received even after retries `,
-        context,
-      );
-      return {
-        shouldTerminate: !canSwitchModel,
-        shouldCropPrompt: false,
-        shouldSwitchToNextLLM: canSwitchModel,
-      };
-    } else if (isOverloaded) {
-      logWithContext(
-        `LLM problem processing prompt with current LLM model because it is overloaded, or timing out, even after retries `,
-        context,
-      );
-      return {
-        shouldTerminate: !canSwitchModel,
-        shouldCropPrompt: false,
-        shouldSwitchToNextLLM: canSwitchModel,
-      };
-    } else if (isExceeded) {
-      logWithContext(
-        `LLM prompt tokens used ${llmResponse.tokensUage?.promptTokens ?? 0} plus completion tokens used ${llmResponse.tokensUage?.completionTokens ?? 0} exceeded EITHER: 1) the model's total token limit of ${llmResponse.tokensUage?.maxTotalTokens ?? 0}, or: 2) the model's completion tokens limit`,
-        context,
-      );
-      return {
-        shouldTerminate: false,
-        shouldCropPrompt: !canSwitchModel,
-        shouldSwitchToNextLLM: canSwitchModel,
-      };
-    } else {
-      logWithContext(
-        `An unknown error occurred while LLMRouter attempted to process the LLM invocation and response for resource '${resourceName}' - terminating response processing - response status received: '${llmResponse.status}'`,
-        context,
-      );
-      return {
-        shouldTerminate: true,
-        shouldCropPrompt: false,
-        shouldSwitchToNextLLM: false,
-      };
-    }
   }
 }

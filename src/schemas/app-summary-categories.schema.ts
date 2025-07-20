@@ -186,10 +186,14 @@ export const microserviceEntitySchema = z
 export const entitySchema = z
   .object({
     name: z.string().describe("The name of the domain-driven design entity."),
-    description: z.string().describe("A detailed description of the entity in at least 5 sentences."),
+    description: z
+      .string()
+      .describe("A detailed description of the entity in at least 5 sentences."),
     relatedEntities: z
       .array(z.string())
-      .describe("A list of names of other entities that this entity would be linked to in an entity-relationship style model.")
+      .describe(
+        "A list of names of other entities that this entity would be linked to in an entity-relationship style model.",
+      )
       .optional(),
   })
   .passthrough();

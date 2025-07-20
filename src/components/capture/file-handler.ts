@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { SourceSummaryType } from "../../schemas/source-summaries.schema";
-import { DynamicPromptReplaceVars } from "../../llm/processing/prompting/prompt-templator";
-import { createPromptFromConfig } from "../../llm/processing/prompting/prompt-templator";
+import { DynamicPromptReplaceVars } from "../../llm/processing/msgProcessing/prompt-templator";
+import { createPromptFromConfig } from "../../llm/processing/msgProcessing/prompt-templator";
 
 // Base template for detailed file summary prompts
 const SOURCES_SUMMARY_CAPTURE_TEMPLATE = `Act as a programmer. Take the {{fileContentDesc}} shown below in the section marked 'CODE' and based on its content, return a JSON response containing data that includes the following:

@@ -4,7 +4,9 @@ import { LLMService } from "../../llm/core/llm-service";
 import LLMRouter from "../../llm/core/llm-router";
 import { EnvVars } from "../../lifecycle/env.types";
 import LLMStats from "../../llm/processing/routerTracking/llm-stats";
-import { PromptAdapter } from "../../llm/processing/prompting/prompt-adapter";
+import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
+import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
+import { FallbackStrategy } from "../../llm/core/strategies/fallback-strategy";
 
 /**
  * Registers the LLM utility services in the container.
@@ -13,7 +15,8 @@ import { PromptAdapter } from "../../llm/processing/prompting/prompt-adapter";
 export function registerLLMServices(): void {
   // Register LLM utility classes
   container.registerSingleton(TOKENS.LLMStats, LLMStats);
-  container.registerSingleton(TOKENS.PromptAdapter, PromptAdapter);
+  container.registerSingleton(TOKENS.PromptAdaptationStrategy, PromptAdaptationStrategy);
+  // RetryStrategy and FallbackStrategy are created manually in initializeAndRegisterLLMRouter
 
   console.log("LLM utility services registered");
 }
@@ -40,8 +43,19 @@ export async function initializeAndRegisterLLMRouter(modelFamily?: string): Prom
   // Create LLMRouter with its dependencies
   const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
   const llmStats = container.resolve<LLMStats>(TOKENS.LLMStats);
-  const promptAdapter = container.resolve<PromptAdapter>(TOKENS.PromptAdapter);
-  const router = new LLMRouter(service, envVars, llmStats, promptAdapter);
+  const promptAdaptationStrategy = container.resolve<PromptAdaptationStrategy>(
+    TOKENS.PromptAdaptationStrategy,
+  );
+  const retryStrategy = new RetryStrategy(llmStats);
+  const fallbackStrategy = new FallbackStrategy();
+  const router = new LLMRouter(
+    service,
+    envVars,
+    llmStats,
+    retryStrategy,
+    fallbackStrategy,
+    promptAdaptationStrategy,
+  );
 
   // Register the initialized LLMRouter as a singleton
   container.registerInstance(TOKENS.LLMRouter, router);

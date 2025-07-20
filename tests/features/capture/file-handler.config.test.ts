@@ -6,7 +6,7 @@ import {
   sourceFileSummarySchema,
 } from "../../../src/schemas/source-summaries.schema";
 import { FileHandler } from "../../../src/components/capture/file-handler";
-import { DynamicPromptReplaceVars } from "../../../src/llm/processing/prompting/prompt-templator";
+import { DynamicPromptReplaceVars } from "../../../src/llm/processing/msgProcessing/prompt-templator";
 
 describe("File Handler Configuration", () => {
   beforeEach(() => {

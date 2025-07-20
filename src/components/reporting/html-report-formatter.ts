@@ -39,7 +39,13 @@ export class HtmlReportFormatter {
     dbInteractions: DatabaseIntegrationInfo[],
     procsAndTriggers: ProcsAndTriggers,
   ): Promise<string> {
-    await this.writeAllJSONFiles(categorizedData, appStats, fileTypesData, dbInteractions, procsAndTriggers);
+    await this.writeAllJSONFiles(
+      categorizedData,
+      appStats,
+      fileTypesData,
+      dbInteractions,
+      procsAndTriggers,
+    );
     const templatePath = path.join(
       __dirname,
       appConfig.HTML_TEMPLATES_DIR,
@@ -79,20 +85,30 @@ export class HtmlReportFormatter {
     };
 
     // Prepare all JSON files to write
-    const jsonFiles: { 
-      filename: string; 
-      data: AppSummaryNameDescArray | AppStatistics | ProjectedFileTypesCountAndLines[] | DatabaseIntegrationInfo[] | ProcsAndTriggers | { appDescription: string } | typeof completeReportData
+    const jsonFiles: {
+      filename: string;
+      data:
+        | AppSummaryNameDescArray
+        | AppStatistics
+        | ProjectedFileTypesCountAndLines[]
+        | DatabaseIntegrationInfo[]
+        | ProcsAndTriggers
+        | { appDescription: string }
+        | typeof completeReportData;
     }[] = [
       // Complete report file
       { filename: jsonFilesConfig.dataFiles.completeReport, data: completeReportData },
       // Category data files
-      ...categorizedData.map(categoryData => ({
+      ...categorizedData.map((categoryData) => ({
         filename: jsonFilesConfig.getCategoryFilename(categoryData.category),
-        data: categoryData.data
+        data: categoryData.data,
       })),
       // Additional data files
       { filename: jsonFilesConfig.dataFiles.appStats, data: appStats },
-      { filename: jsonFilesConfig.dataFiles.appDescription, data: { appDescription: appStats.appDescription } },
+      {
+        filename: jsonFilesConfig.dataFiles.appDescription,
+        data: { appDescription: appStats.appDescription },
+      },
       { filename: jsonFilesConfig.dataFiles.fileTypes, data: fileTypesData },
       { filename: jsonFilesConfig.dataFiles.dbInteractions, data: dbInteractions },
       { filename: jsonFilesConfig.dataFiles.procsAndTriggers, data: procsAndTriggers },

@@ -106,7 +106,7 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
   },
 }));
 
-jest.mock("../../../src/llm/processing/prompting/prompt-templator", () => ({
+jest.mock("../../../src/llm/processing/msgProcessing/prompt-templator", () => ({
   createPromptFromConfig: jest.fn(
     (_template: string, config: { fileContentDesc: string }, content: string) => {
       return `Mock prompt for ${config.fileContentDesc} with content: ${content}`;

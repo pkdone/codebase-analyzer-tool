@@ -7,8 +7,6 @@ import "reflect-metadata";
 import {
   LLMPurpose,
   LLMResponseStatus,
-  LLMFunctionResponse,
-  LLMContext,
   LLMProviderImpl,
   LLMModelQuality,
   ResolvedLLMModelMetadata,
@@ -19,8 +17,10 @@ import {
 import { z } from "zod";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import LLMStats from "../../../src/llm/processing/routerTracking/llm-stats";
-import { PromptAdapter } from "../../../src/llm/processing/prompting/prompt-adapter";
+import { PromptAdaptationStrategy } from "../../../src/llm/core/strategies/prompt-adaptation-strategy";
 import { LLMService } from "../../../src/llm/core/llm-service";
+import { RetryStrategy } from "../../../src/llm/core/strategies/retry-strategy";
+import { FallbackStrategy } from "../../../src/llm/core/strategies/fallback-strategy";
 import type { EnvVars } from "../../../src/lifecycle/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
@@ -49,14 +49,6 @@ jest.mock("../../../src/llm/processing/routerTracking/llm-stats", () => {
     ]),
   }));
 });
-
-jest.mock("../../../src/llm/processing/prompting/prompt-adapter", () => ({
-  PromptAdapter: jest.fn().mockImplementation(() => ({
-    adaptPromptFromResponse: jest.fn((prompt: string) => {
-      return prompt.substring(0, Math.floor(prompt.length * 0.5));
-    }),
-  })),
-}));
 
 // Zod schema for LLMModelMetadata validation
 const llmModelMetadataSchema = z
@@ -189,12 +181,16 @@ describe("LLM Router tests", () => {
 
     // Create real instances for dependency injection testing
     const mockLLMStats = new LLMStats();
-    const mockPromptAdapter = new PromptAdapter();
+    const mockPromptAdaptationStrategy = new PromptAdaptationStrategy();
+    const mockRetryStrategy = new RetryStrategy(mockLLMStats);
+    const mockFallbackStrategy = new FallbackStrategy();
     const router = new LLMRouter(
       mockLLMService as LLMService,
       mockEnvVars as EnvVars,
       mockLLMStats,
-      mockPromptAdapter,
+      mockRetryStrategy,
+      mockFallbackStrategy,
+      mockPromptAdaptationStrategy,
     );
     return { router, mockProvider };
   };
@@ -644,314 +640,6 @@ describe("LLM Router tests", () => {
     });
   });
 
-  describe("determineUnsuccessfulLLMCallOutcomeAction method", () => {
-    const determineUnsuccessfulLLMCallOutcomeActionTestData = [
-      {
-        description: "overloaded response with ability to switch models",
-        llmResponse: {
-          status: LLMResponseStatus.OVERLOADED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-        } as LLMFunctionResponse,
-        currentLLMIndex: 0,
-        totalLLMCount: 2,
-        context: {
-          resource: "test-resource",
-          purpose: LLMPurpose.COMPLETIONS,
-          test: "context",
-        } as LLMContext,
-        resourceName: "test-resource",
-        expected: {
-          shouldTerminate: false,
-          shouldCropPrompt: false,
-          shouldSwitchToNextLLM: true,
-        },
-      },
-      {
-        description: "overloaded response with no ability to switch models",
-        llmResponse: {
-          status: LLMResponseStatus.OVERLOADED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-        } as LLMFunctionResponse,
-        currentLLMIndex: 1,
-        totalLLMCount: 2,
-        context: {
-          resource: "test-resource",
-          purpose: LLMPurpose.COMPLETIONS,
-          test: "context",
-        } as LLMContext,
-        resourceName: "test-resource",
-        expected: {
-          shouldTerminate: true,
-          shouldCropPrompt: false,
-          shouldSwitchToNextLLM: false,
-        },
-      },
-      {
-        description: "exceeded tokens with ability to switch models",
-        llmResponse: {
-          status: LLMResponseStatus.EXCEEDED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-          tokensUage: {
-            promptTokens: 5000,
-            completionTokens: 3500,
-            maxTotalTokens: 8192,
-          } as LLMResponseTokensUsage,
-        } as LLMFunctionResponse,
-        currentLLMIndex: 0,
-        totalLLMCount: 2,
-        context: {
-          resource: "test-resource",
-          purpose: LLMPurpose.COMPLETIONS,
-          test: "context",
-        } as LLMContext,
-        resourceName: "test-resource",
-        expected: {
-          shouldTerminate: false,
-          shouldCropPrompt: false,
-          shouldSwitchToNextLLM: true,
-        },
-      },
-    ];
-
-    test.each(determineUnsuccessfulLLMCallOutcomeActionTestData)(
-      "$description",
-      ({ llmResponse, currentLLMIndex, totalLLMCount, context, resourceName, expected }) => {
-        const { router } = createLLMRouter();
-        const result = (
-          router as unknown as {
-            determineUnsuccessfulLLMCallOutcomeAction: (...args: unknown[]) => any;
-          }
-        ).determineUnsuccessfulLLMCallOutcomeAction(
-          llmResponse,
-          currentLLMIndex,
-          totalLLMCount,
-          context,
-          resourceName,
-        );
-
-        expect(result).toEqual(expected);
-      },
-    );
-
-    // Test cases for errors
-    const determineUnsuccessfulLLMCallOutcomeActionErrorTestData = [
-      {
-        description: "null response (treated as overloaded) with no ability to switch",
-        llmResponse: null,
-        currentLLMIndex: 1,
-        totalLLMCount: 2,
-        context: {
-          resource: "test-resource",
-          purpose: LLMPurpose.COMPLETIONS,
-          test: "context",
-        } as LLMContext,
-        resourceName: "test-resource",
-        expected: {
-          shouldTerminate: true,
-          shouldCropPrompt: false,
-          shouldSwitchToNextLLM: false,
-        },
-      },
-      {
-        description: "exceeded tokens with no ability to switch models (should crop)",
-        llmResponse: {
-          status: LLMResponseStatus.EXCEEDED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-          tokensUage: {
-            promptTokens: 5000,
-            completionTokens: 3500,
-            maxTotalTokens: 8192,
-          } as LLMResponseTokensUsage,
-        } as LLMFunctionResponse,
-        currentLLMIndex: 1,
-        totalLLMCount: 2,
-        context: {
-          resource: "test-resource",
-          purpose: LLMPurpose.COMPLETIONS,
-          test: "context",
-        } as LLMContext,
-        resourceName: "test-resource",
-        expected: {
-          shouldTerminate: false,
-          shouldCropPrompt: true,
-          shouldSwitchToNextLLM: false,
-        },
-      },
-      {
-        description: "unknown status should return shouldTerminate true",
-        llmResponse: {
-          status: LLMResponseStatus.UNKNOWN,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-        } as LLMFunctionResponse,
-        currentLLMIndex: 0,
-        totalLLMCount: 2,
-        context: {
-          resource: "test-resource",
-          purpose: LLMPurpose.COMPLETIONS,
-          test: "context",
-        } as LLMContext,
-        resourceName: "test-resource",
-        expected: {
-          shouldTerminate: true,
-          shouldCropPrompt: false,
-          shouldSwitchToNextLLM: false,
-        },
-      },
-    ];
-
-    test.each(determineUnsuccessfulLLMCallOutcomeActionErrorTestData)(
-      "$description",
-      ({ llmResponse, currentLLMIndex, totalLLMCount, context, resourceName, expected }) => {
-        const { router } = createLLMRouter();
-        const result = (
-          router as unknown as {
-            determineUnsuccessfulLLMCallOutcomeAction: (...args: unknown[]) => any;
-          }
-        ).determineUnsuccessfulLLMCallOutcomeAction(
-          llmResponse,
-          currentLLMIndex,
-          totalLLMCount,
-          context,
-          resourceName,
-        );
-        expect(result).toEqual(expected);
-      },
-    );
-  });
-
-  describe("cropPromptForTokenLimit method", () => {
-    const cropPromptForTokenLimitTestData = [
-      {
-        description: "valid token usage data should crop prompt",
-        currentPrompt:
-          "This is a very long prompt that needs to be cropped because of token limits",
-        llmResponse: {
-          status: LLMResponseStatus.EXCEEDED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-          tokensUage: {
-            promptTokens: 5000,
-            completionTokens: 3500,
-            maxTotalTokens: 8192,
-          } as LLMResponseTokensUsage,
-        } as LLMFunctionResponse,
-        expectedResult: "This is a very long prompt that needs", // Cropped to 50% of original length
-      },
-      {
-        description: "short prompt with valid token usage should still be processed",
-        currentPrompt: "Short prompt",
-        llmResponse: {
-          status: LLMResponseStatus.EXCEEDED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-          tokensUage: {
-            promptTokens: 100,
-            completionTokens: 50,
-            maxTotalTokens: 8192,
-          } as LLMResponseTokensUsage,
-        } as LLMFunctionResponse,
-        expectedResult: "Short ", // Cropped to 50% of original length
-      },
-      {
-        description: "medium length prompt with high token usage",
-        currentPrompt:
-          "This is a medium length prompt for testing purposes and should be cropped appropriately",
-        llmResponse: {
-          status: LLMResponseStatus.EXCEEDED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-          tokensUage: {
-            promptTokens: 8000,
-            completionTokens: 500,
-            maxTotalTokens: 8192,
-          } as LLMResponseTokensUsage,
-        } as LLMFunctionResponse,
-        expectedResult: "This is a medium length prompt for testing ", // Cropped to 50% of original length
-      },
-    ];
-
-    test.each(cropPromptForTokenLimitTestData)(
-      "$description",
-      ({ currentPrompt, llmResponse, expectedResult }) => {
-        const { router } = createLLMRouter();
-
-        // Access private method using TypeScript casting
-        const result = (
-          router as unknown as { cropPromptForTokenLimit: (...args: unknown[]) => string }
-        ).cropPromptForTokenLimit(currentPrompt, llmResponse);
-
-        expect(result).toBe(expectedResult);
-      },
-    );
-
-    // Test error cases - Note: The actual error checking happens in PromptAdapter.adaptPromptFromResponse
-    // which is mocked in these tests, so these tests verify the method can be called but won't
-    // actually throw the expected errors due to mocking
-    const cropPromptForTokenLimitErrorTestData = [
-      {
-        description: "missing token usage - behavior depends on PromptAdapter implementation",
-        currentPrompt: "Test prompt",
-        llmResponse: {
-          status: LLMResponseStatus.EXCEEDED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-          // tokensUage is missing
-        } as LLMFunctionResponse,
-        expectedResult: "Test ", // Mocked PromptAdapter crops to 50%
-      },
-      {
-        description: "undefined token usage - behavior depends on PromptAdapter implementation",
-        currentPrompt: "Test prompt",
-        llmResponse: {
-          status: LLMResponseStatus.EXCEEDED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-          tokensUage: undefined,
-        } as LLMFunctionResponse,
-        expectedResult: "Test ", // Mocked PromptAdapter crops to 50%
-      },
-      {
-        description: "null token usage - behavior depends on PromptAdapter implementation",
-        currentPrompt: "Test prompt",
-        llmResponse: {
-          status: LLMResponseStatus.EXCEEDED,
-          request: "test prompt",
-          modelKey: "GPT_COMPLETIONS_GPT4",
-          context: {},
-          tokensUage: undefined,
-        } as LLMFunctionResponse,
-        expectedResult: "Test ", // Mocked PromptAdapter crops to 50%
-      },
-    ];
-
-    test.each(cropPromptForTokenLimitErrorTestData)(
-      "$description",
-      ({ currentPrompt, llmResponse, expectedResult }) => {
-        const { router } = createLLMRouter();
-
-        const result = (
-          router as unknown as { cropPromptForTokenLimit: (...args: unknown[]) => string }
-        ).cropPromptForTokenLimit(currentPrompt, llmResponse);
-        expect(result).toBe(expectedResult);
-      },
-    );
-  });
-
   describe("getRetryConfiguration method", () => {
     test("should use default config when no retry config provided", () => {
       const result = getRetryConfiguration({});
@@ -1039,8 +727,10 @@ describe("LLM Router tests", () => {
         context: {},
       });
 
-      // Mock the prompt adapter to return empty string after cropping
-      (router as any).promptAdapter.adaptPromptFromResponse = jest.fn().mockReturnValue("");
+      // Mock the prompt adaptation strategy to return empty string after adaptation
+      jest
+        .spyOn((router as any).promptAdaptationStrategy, "adaptPromptFromResponse")
+        .mockReturnValue("");
 
       const result = await router.executeCompletion(
         "test-resource",

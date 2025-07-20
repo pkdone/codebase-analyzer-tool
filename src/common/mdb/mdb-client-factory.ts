@@ -72,10 +72,10 @@ export class MongoDBClientFactory {
       try {
         await client.close();
         console.log(`Closed MongoDB connection for id '${id}'.`);
-        return { status: 'fulfilled', id };
+        return { status: "fulfilled", id };
       } catch (error: unknown) {
         logErrorMsgAndDetail(`Error closing MongoDB client '${id}'`, error);
-        return { status: 'rejected', id, reason: error };
+        return { status: "rejected", id, reason: error };
       }
     });
 
