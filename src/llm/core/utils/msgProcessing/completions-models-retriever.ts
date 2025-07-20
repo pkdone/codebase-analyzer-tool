@@ -35,7 +35,7 @@ export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunctio
 /**
  * Get completion candidates based on model quality override.
  */
-export function getOverridenCompletionCandidates(
+export function getOverriddenCompletionCandidates(
   completionCandidates: LLMCandidateFunction[],
   modelQualityOverride: LLMModelQuality | null,
 ): {

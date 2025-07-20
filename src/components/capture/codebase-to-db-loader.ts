@@ -18,7 +18,7 @@ import { TOKENS } from "../../di/tokens";
 @injectable()
 export default class CodebaseToDBLoader {
   // Private fields
-  private doneCheckingAlreadyCapturedFiles = false;
+  private hasLoggedAlreadyCapturedMessage = false;
 
   /**
    * Constructor.
@@ -104,17 +104,17 @@ export default class CodebaseToDBLoader {
   ) {
     const type = getFileSuffix(fullFilepath).toLowerCase();
     const filepath = fullFilepath.replace(`${srcDirPath}/`, "");
-    if ((appConfig.BINARY_FILE_SUFFIX_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
+    if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
 
     if (
       ignoreIfAlreadyCaptured &&
       (await this.sourcesRepository.doesProjectSourceExist(projectName, filepath))
     ) {
-      if (!this.doneCheckingAlreadyCapturedFiles) {
+      if (!this.hasLoggedAlreadyCapturedMessage) {
         console.log(
           `Not capturing some of the metadata files into the database because they've already been captured by a previous run - change env var 'IGNORE_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
         );
-        this.doneCheckingAlreadyCapturedFiles = true;
+        this.hasLoggedAlreadyCapturedMessage = true;
       }
 
       return;

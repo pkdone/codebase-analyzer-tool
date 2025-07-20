@@ -3,7 +3,7 @@ import {
   databaseIntegrationSchema,
 } from "../../schemas/source-summaries.schema";
 import { z } from "zod";
-import { DynamicPromptReplaceVars } from "../../llm/core/utils/msgProcessing/prompt-templator";
+import { DynamicPromptConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 
 /**
  * Common instruction phrases used across multiple file type templates
@@ -26,7 +26,7 @@ const COMMON_INSTRUCTIONS = {
 /**
  * Data-driven mapping of prompt types to their templates and schemas
  */
-export const filesTypeMetatadataConfig: Record<string, DynamicPromptReplaceVars> = {
+export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
   java: {
     fileContentDesc: "Java code",
     instructions: `* The name of the main public class/interface of the file

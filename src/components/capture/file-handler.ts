@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { SourceSummaryType } from "../../schemas/source-summaries.schema";
-import { DynamicPromptReplaceVars } from "../../llm/core/utils/msgProcessing/prompt-templator";
+import { DynamicPromptConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 
 // Base template for detailed file summary prompts
@@ -22,9 +22,9 @@ CODE:
  * Represents a file handler that can create prompts and validate responses for a specific file type.
  */
 export class FileHandler<T extends SourceSummaryType = SourceSummaryType> {
-  private readonly config: DynamicPromptReplaceVars;
+  private readonly config: DynamicPromptConfig;
 
-  constructor(config: DynamicPromptReplaceVars) {
+  constructor(config: DynamicPromptConfig) {
     this.config = config;
   }
 

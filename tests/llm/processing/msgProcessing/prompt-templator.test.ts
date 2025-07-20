@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   createPromptFromConfig,
-  DynamicPromptReplaceVars,
+  DynamicPromptConfig,
 } from "../../../../src/llm/core/utils/msgProcessing/prompt-templator";
 
 describe("prompt-utils", () => {
@@ -9,7 +9,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with simple string schema", () => {
       const template =
         "Generate JSON following this schema: {{jsonSchema}}\n\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.string(),
         fileContentDesc: "text file",
         instructions: "process this text",
@@ -26,7 +26,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with object schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.object({
           name: z.string(),
           age: z.number(),
@@ -46,7 +46,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with array schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.array(z.string()),
         fileContentDesc: "list file",
         instructions: "create list",
@@ -63,7 +63,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with union schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.union([z.string(), z.number()]),
         fileContentDesc: "mixed file",
         instructions: "process mixed data",
@@ -81,7 +81,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with enum schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.enum(["option1", "option2", "option3"]),
         fileContentDesc: "choice file",
         instructions: "select option",
@@ -98,7 +98,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with literal schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.literal("exactValue"),
         fileContentDesc: "literal file",
         instructions: "match exact value",
@@ -114,7 +114,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with optional schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.object({
           required: z.string(),
           optional: z.string().optional(),
@@ -133,7 +133,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with nested schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.object({
           user: z.object({
             profile: z.object({
@@ -158,7 +158,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with complex schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.object({
           data: z.array(
             z.object({
@@ -189,7 +189,7 @@ describe("prompt-utils", () => {
         Content: {{codeContent}}
         Force: {{forceJSON}}
       `;
-      const config: DynamicPromptReplaceVars = {
+      const config: DynamicPromptConfig = {
         schema: z.string(),
         fileContentDesc: "test file",
         instructions: "test instructions",

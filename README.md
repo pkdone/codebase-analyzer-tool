@@ -87,7 +87,7 @@ Alternatively, you also run the `./dist/src/cli/c*.js` JavaScript files (first c
 1. **GENERATE INSIGHTS**: Run the following command to generate insight (e.g. identifid technology stack, business processes, DDD aggregates, potential microserices, etc.) based on the previously database captured sources files metadata.
 
     ```console
-    node ./dist/src/cli/capture-insights.js
+    node ./dist/src/cli/generate-insights-from-db.js
     ```
 
 1. **CREATE REPORT**: Run the following command to generate a static HTML-based report summarising the application from the previously captured source metadata and aggregated insights. 
@@ -174,7 +174,7 @@ The `capture-codebase` tool captures metadata about all the files in the codebas
 
     ![Generated Example Record](docs/readme/record.png)
 
-Using metadata about the source files that was captued the `sources` collection, the subsequent `capture-insights` tool uses an LLM to generate insights of various aspects of the application persisted into the database collection `appsummaries`. This captured information includes an outline of the application's purpose plus a list its technologies, business processes, DDD bounded contexts, DDD aggregates, DDD entities,, DDD repositories, and potential microservices.
+Using metadata about the source files that was captued the `sources` collection, the subsequent `generate-insights-from-db` tool uses an LLM to generate insights of various aspects of the application persisted into the database collection `appsummaries`. This captured information includes an outline of the application's purpose plus a list its technologies, business processes, DDD bounded contexts, DDD aggregates, DDD entities,, DDD repositories, and potential microservices.
 
 
 ## Demonstrated LLM Capabilities

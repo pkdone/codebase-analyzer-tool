@@ -12,7 +12,7 @@ ONLY provide an RFC8259 compliant JSON response that strictly follows the provid
 /**
  * Configuration for prompts that need file type and instructions
  */
-export interface DynamicPromptReplaceVars {
+export interface DynamicPromptConfig {
   schema: z.ZodType;
   fileContentDesc: string;
   instructions: string;
@@ -24,7 +24,7 @@ export interface DynamicPromptReplaceVars {
  */
 export function createPromptFromConfig(
   template: string,
-  config: DynamicPromptReplaceVars,
+  config: DynamicPromptConfig,
   codeContent: string,
 ): string {
   return fillPrompt(template, {

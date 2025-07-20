@@ -15,7 +15,7 @@ import { LLMService } from "./llm-service";
 import type { EnvVars } from "../../lifecycle/env.types";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
-  getOverridenCompletionCandidates,
+  getOverriddenCompletionCandidates,
   buildCompletionCandidates,
 } from "./utils/msgProcessing/completions-models-retriever";
 
@@ -146,7 +146,7 @@ export default class LLMRouter {
     options: LLMCompletionOptions,
     modelQualityOverride: LLMModelQuality | null = null,
   ): Promise<T | null> {
-    const { candidatesToUse, candidateFunctions } = getOverridenCompletionCandidates(
+    const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,
     );

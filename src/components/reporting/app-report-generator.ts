@@ -11,12 +11,13 @@ import type {
 import { appSummaryNameDescArraySchema } from "../../repositories/app-summary/app-summaries.model";
 import { TOKENS } from "../../di/tokens";
 import { HtmlReportFormatter } from "./html-report-formatter";
+import { JsonReportWriter } from "./json-report-writer";
 import type { AppStatistics, ProcsAndTriggers, DatabaseIntegrationInfo } from "./report-gen.types";
 import { Complexity, isComplexity } from "./report-gen.types";
 
 /**
  * Class responsible for aggregating data for HTML report generation.
- * Data formatting is handled by HtmlReportFormatter.
+ * Data formatting is handled by HtmlReportFormatter and JSON output by JsonReportWriter.
  */
 @injectable()
 export default class AppReportGenerator {
@@ -31,12 +32,13 @@ export default class AppReportGenerator {
     @inject(TOKENS.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
     @inject(TOKENS.HtmlReportFormatter) private readonly htmlFormatter: HtmlReportFormatter,
+    @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
   ) {
     this.currentDate = new Date().toLocaleString();
   }
 
   /**
-   * Generate the HTML static file report using the HtmlReportFormatter.
+   * Generate the HTML static file report using the HtmlReportFormatter and write JSON files using JsonReportWriter.
    */
   async generateHTMLReport(projectName: string): Promise<string> {
     const appStats = await this.getAppStatistics(projectName);
@@ -45,6 +47,13 @@ export default class AppReportGenerator {
     const categorizedData = await this.buildCategoriesData(projectName);
     const dbInteractions = await this.buildDBInteractionList(projectName);
     const procsAndTriggers = await this.buildDBStoredProcsTriggersSummaryList(projectName);
+    await this.jsonWriter.writeAllJSONFiles(
+      categorizedData,
+      appStats,
+      fileTypesData,
+      dbInteractions,
+      procsAndTriggers,
+    );
     return await this.htmlFormatter.generateCompleteHTMLReport(
       appStats,
       fileTypesData,
@@ -59,7 +68,7 @@ export default class AppReportGenerator {
    */
   async buildDBInteractionList(projectName: string): Promise<DatabaseIntegrationInfo[]> {
     const records = await this.sourcesRepository.getProjectDatabaseIntegrations(projectName, [
-      ...appConfig.SOURCE_FILES_FOR_CODE,
+      ...appConfig.CODE_FILE_EXTENSIONS,
     ]);
 
     return records.map((record) => {
@@ -89,7 +98,7 @@ export default class AppReportGenerator {
 
     const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(
       projectName,
-      [...appConfig.SOURCE_FILES_FOR_CODE],
+      [...appConfig.CODE_FILE_EXTENSIONS],
     );
 
     for (const record of records) {
@@ -102,35 +111,14 @@ export default class AppReportGenerator {
         continue;
       }
 
-      // Process stored procedures
-      for (const sp of summary.storedProcedures ?? []) {
-        procsAndTriggers.procs.total++;
-        this.incrementComplexityCount(procsAndTriggers.procs, sp.complexity);
-        procsAndTriggers.procs.list.push({
-          path: record.filepath,
-          type: "STORED PROCEDURE",
-          functionName: sp.name,
-          complexity: isComplexity(sp.complexity) ? sp.complexity : Complexity.LOW,
-          complexityReason: sp.complexityReason || "N/A",
-          linesOfCode: sp.linesOfCode,
-          purpose: sp.purpose,
-        });
-      }
-
-      // Process triggers
-      for (const trig of summary.triggers ?? []) {
-        procsAndTriggers.trigs.total++;
-        this.incrementComplexityCount(procsAndTriggers.trigs, trig.complexity);
-        procsAndTriggers.trigs.list.push({
-          path: record.filepath,
-          type: "TRIGGER",
-          functionName: trig.name,
-          complexity: isComplexity(trig.complexity) ? trig.complexity : Complexity.LOW,
-          complexityReason: trig.complexityReason || "N/A",
-          linesOfCode: trig.linesOfCode,
-          purpose: trig.purpose,
-        });
-      }
+      // Process stored procedures and triggers using the helper method
+      this.processDbObjects(
+        summary.storedProcedures,
+        procsAndTriggers.procs,
+        "STORED PROCEDURE",
+        record.filepath,
+      );
+      this.processDbObjects(summary.triggers, procsAndTriggers.trigs, "TRIGGER", record.filepath);
     }
 
     return procsAndTriggers;
@@ -190,6 +178,38 @@ export default class AppReportGenerator {
     }
 
     return categorizedData;
+  }
+
+  /**
+   * Process database objects (stored procedures or triggers) and populate target section
+   */
+  private processDbObjects(
+    items:
+      | {
+          name: string;
+          complexity: unknown;
+          complexityReason?: string;
+          linesOfCode: number;
+          purpose: string;
+        }[]
+      | undefined,
+    target: ProcsAndTriggers["procs"] | ProcsAndTriggers["trigs"],
+    type: "STORED PROCEDURE" | "TRIGGER",
+    filepath: string,
+  ) {
+    for (const item of items ?? []) {
+      target.total++;
+      this.incrementComplexityCount(target, item.complexity);
+      target.list.push({
+        path: filepath,
+        type: type,
+        functionName: item.name,
+        complexity: isComplexity(item.complexity) ? item.complexity : Complexity.LOW,
+        complexityReason: item.complexityReason ?? "N/A",
+        linesOfCode: item.linesOfCode,
+        purpose: item.purpose,
+      });
+    }
   }
 
   /**

@@ -27,4 +27,4 @@ export async function runApplication(serviceToken: symbol): Promise<void> {
     clearInterval(keepAlive);
     process.exit();
   }
-} 
+}

@@ -5,7 +5,7 @@ import type LLMRouter from "../llm/core/llm-router";
 import { Service } from "../lifecycle/service.types";
 import type { EnvVars } from "../lifecycle/env.types";
 import type { DBInitializerService } from "./db-initializer.service";
-import { appConfig } from "../config/app.config";
+import { databaseConfig } from "../config/database.config";
 import { TOKENS } from "../di/tokens";
 
 /**
@@ -41,7 +41,7 @@ export class CodebaseCaptureService implements Service {
   ): Promise<void> {
     console.log(`Processing source files for project: ${this.projectName}`);
     const numDimensions =
-      this.llmRouter.getEmbeddedModelDimensions() ?? appConfig.DEFAULT_VECTOR_DIMENSIONS_AMOUNT;
+      this.llmRouter.getEmbeddedModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.dbInitializerService.ensureCollectionsReady(numDimensions);
     this.llmRouter.displayLLMStatusSummary();
     await this.codebaseToDBLoader.loadIntoDB(this.projectName, srcDirPath, ignoreIfAlreadyCaptured);

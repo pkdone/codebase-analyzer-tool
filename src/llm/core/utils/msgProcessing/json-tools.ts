@@ -1,4 +1,8 @@
-import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm.types";
+import {
+  LLMGeneratedContent,
+  LLMCompletionOptions,
+  LLMOutputFormat,
+} from "../../../types/llm.types";
 import { logErrorMsg } from "../../../../common/utils/error-utils";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
@@ -15,7 +19,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
 ): T {
   if (typeof content !== "string") {
     throw new BadResponseContentLLMError(
-      "LLM response for resource '${resourceName}' is not a string, content",
+      `LLM response for resource '${resourceName}' is not a string, content`,
       JSON.stringify(content),
     );
   }

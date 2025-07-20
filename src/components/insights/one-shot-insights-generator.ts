@@ -93,7 +93,8 @@ export class RawCodeToInsightsFileGenerator {
     for (const filepath of filepaths) {
       const relativeFilepath = filepath.replace(`${srcDirPath}/`, "");
       const type = getFileSuffix(filepath).toLowerCase();
-      if ((appConfig.BINARY_FILE_SUFFIX_IGNORE_LIST as readonly string[]).includes(type)) continue; // Skip file if it has binary content
+      if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type))
+        continue; // Skip file if it has binary content
       const content = await readFile(filepath);
       contentParts.push(`\n\`\`\` ${relativeFilepath}\n${content.trim()}\n\`\`\`\n`);
     }

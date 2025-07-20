@@ -49,7 +49,6 @@ export enum LLMPurpose {
 export enum LLMOutputFormat {
   JSON = "json",
   TEXT = "text",
-  STRUCTURED = "structured",
 }
 
 /**

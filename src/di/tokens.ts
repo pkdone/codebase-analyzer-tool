@@ -35,6 +35,7 @@ export const TOKENS = {
   RetryStrategy: Symbol.for("RetryStrategy"),
   FallbackStrategy: Symbol.for("FallbackStrategy"),
   HtmlReportFormatter: Symbol.for("HtmlReportFormatter"),
+  JsonReportWriter: Symbol.for("JsonReportWriter"),
   AppReportGenerator: Symbol.for("AppReportGenerator"),
   CodebaseToDBLoader: Symbol.for("CodebaseToDBLoader"),
   CodeQuestioner: Symbol.for("CodeQuestioner"),

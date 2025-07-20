@@ -6,7 +6,7 @@ import {
   sourceFileSummarySchema,
 } from "../../../src/schemas/source-summaries.schema";
 import { FileHandler } from "../../../src/components/capture/file-handler";
-import { DynamicPromptReplaceVars } from "../../../src/llm/core/utils/msgProcessing/prompt-templator";
+import { DynamicPromptConfig } from "../../../src/llm/core/utils/msgProcessing/prompt-templator";
 
 describe("File Handler Configuration", () => {
   beforeEach(() => {
@@ -61,7 +61,7 @@ describe("File Handler Configuration", () => {
 
   describe("FileHandler class", () => {
     test("should enforce correct structure", () => {
-      const testConfig: DynamicPromptReplaceVars = {
+      const testConfig: DynamicPromptConfig = {
         fileContentDesc: "test content",
         instructions: "test instructions",
         schema: sourceFileSummarySchema,
@@ -76,7 +76,7 @@ describe("File Handler Configuration", () => {
 
     test("should work with type compatibility", () => {
       // Test that FileHandler can work with inline schema types
-      const typedConfig: DynamicPromptReplaceVars = {
+      const typedConfig: DynamicPromptConfig = {
         fileContentDesc: "test content",
         instructions: "test instructions",
         schema: sourceFileSummarySchema.pick({ purpose: true, implementation: true }),

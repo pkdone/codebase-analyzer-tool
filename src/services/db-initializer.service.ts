@@ -32,7 +32,7 @@ export class DBInitializerService implements Service {
    * Execute the service - initializes database schema.
    */
   async execute(): Promise<void> {
-    await this.ensureCollectionsReady(databaseConfig.DEFAULT_VECTOR_DIMENSIONS_AMOUNT);
+    await this.ensureCollectionsReady(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);
   }
 
   /**

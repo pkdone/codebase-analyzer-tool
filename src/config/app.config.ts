@@ -13,7 +13,7 @@ export const appConfig = {
     "output",
   ] as const,
   FILENAME_PREFIX_IGNORE: "test-",
-  BINARY_FILE_SUFFIX_IGNORE_LIST: [
+  BINARY_FILE_EXTENSION_IGNORE_LIST: [
     "aac",
     "abw",
     "arc",
@@ -81,7 +81,7 @@ export const appConfig = {
     "gz",
     "tgz",
   ] as const,
-  SOURCE_FILES_FOR_CODE: ["js", "ts", "java", "py", "sql"] as const,
+  CODE_FILE_EXTENSIONS: ["js", "ts", "java", "py", "sql"] as const,
   FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
     ["java", "java"],
     ["js", "javascript"],
@@ -111,7 +111,6 @@ export const appConfig = {
   SAMPLE_PROMPT_FILEPATH: "./input/sample.prompt",
   QUESTIONS_PROMPTS_FILEPATH: "./input/questions.prompts",
   MAX_CONCURRENCY: 50,
-  DEFAULT_VECTOR_DIMENSIONS_AMOUNT: 1536,
   VECTOR_SEARCH_NUM_CANDIDATES: 150,
   VECTOR_SEARCH_NUM_LIMIT: 6,
   OUTPUT_SUMMARY_FILENAME: "codebase-report",

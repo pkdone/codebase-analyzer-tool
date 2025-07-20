@@ -101,7 +101,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     context: LLMContext,
     options?: LLMCompletionOptions,
   ): Promise<LLMFunctionResponse> => {
-    return this.executeLLMImplFunction(
+    return this.executeProviderFunction(
       this.modelsKeys.embeddingsModelKey,
       LLMPurpose.EMBEDDINGS,
       content,
@@ -119,7 +119,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     context: LLMContext,
     options?: LLMCompletionOptions,
   ): Promise<LLMFunctionResponse> => {
-    return this.executeLLMImplFunction(
+    return this.executeProviderFunction(
       this.modelsKeys.primaryCompletionModelKey,
       LLMPurpose.COMPLETIONS,
       prompt,
@@ -142,7 +142,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       throw new BadConfigurationLLMError(
         `'Secondary' text model for ${this.constructor.name} was not defined`,
       );
-    return this.executeLLMImplFunction(
+    return this.executeProviderFunction(
       secondaryCompletion,
       LLMPurpose.COMPLETIONS,
       prompt,
@@ -172,7 +172,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   /**
    * Executes the LLM function for the given model key and task type.
    */
-  private async executeLLMImplFunction(
+  private async executeProviderFunction(
     modelKey: string,
     taskType: LLMPurpose,
     request: string,

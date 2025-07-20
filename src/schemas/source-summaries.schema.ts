@@ -155,11 +155,6 @@ export const sourceFileSummarySchema = z
       .describe("A list of stored procedures defined."),
     triggers: z.array(procedureTriggerSchema).optional().describe("A list of triggers defined."),
     tables: z.array(tablesSchema).optional().describe("A list of tables defined."),
-    externalSystemActivities: z
-      .array(z.string())
-      .optional()
-      .describe("A list of external system activities."),
-    deployableModules: z.array(z.string()).optional().describe("A list of deployable modules."),
     publicConstants: z
       .array(publicConstantSchema)
       .optional()

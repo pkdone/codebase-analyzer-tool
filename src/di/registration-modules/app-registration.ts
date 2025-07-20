@@ -11,6 +11,7 @@ import { AppSummariesRepository } from "../../repositories/app-summary/app-summa
 import { FileSummarizer } from "../../components/capture/file-summarizer";
 import { FileHandlerFactory } from "../../components/capture/file-handler-factory";
 import { HtmlReportFormatter } from "../../components/reporting/html-report-formatter";
+import { JsonReportWriter } from "../../components/reporting/json-report-writer";
 import { RawCodeToInsightsFileGenerator } from "../../components/insights/one-shot-insights-generator";
 import CodeQuestioner from "../../components/querying/code-questioner";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
@@ -65,6 +66,7 @@ function registerComponents(): void {
   // Register components that don't depend on LLMRouter as regular singletons
   container.registerSingleton(TOKENS.FileHandlerFactory, FileHandlerFactory);
   container.registerSingleton(TOKENS.HtmlReportFormatter, HtmlReportFormatter);
+  container.registerSingleton(TOKENS.JsonReportWriter, JsonReportWriter);
   container.registerSingleton(TOKENS.AppReportGenerator, AppReportGenerator);
   container.registerSingleton(
     TOKENS.RawCodeToInsightsFileGenerator,

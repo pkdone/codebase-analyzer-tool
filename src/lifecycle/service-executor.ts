@@ -57,4 +57,4 @@ export async function runService(serviceToken: symbol): Promise<void> {
     console.log(`END: ${new Date().toISOString()}`);
     await gracefulShutdown(llmRouter, mongoDBClientFactory);
   }
-} 
+}
