@@ -4,21 +4,21 @@ import { appConfig } from "../config/app.config";
 import { readFile } from "../common/utils/fs-utils";
 import { LLMModelQuality, LLMOutputFormat } from "../llm/types/llm.types";
 import LLMRouter from "../llm/core/llm-router";
-import { Service } from "../lifecycle/service.types";
+import { Task } from "../lifecycle/task.types";
 import { TOKENS } from "../di/tokens";
 
 /**
- * Service to test the LLM functionality.
+ * Task to test the LLM functionality.
  */
 @injectable()
-export class PluggableLLMsTestService implements Service {
+export class PluggableLLMsTestTask implements Task {
   /**
    * Constructor with dependency injection.
    */
   constructor(@inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter) {}
 
   /**
-   * Execute the service - tests the LLM functionality.
+   * Execute the task - tests the LLM functionality.
    */
   async execute(): Promise<void> {
     await this.testPluggableLLMs();

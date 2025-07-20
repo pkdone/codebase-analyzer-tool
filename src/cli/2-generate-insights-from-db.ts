@@ -1,4 +1,4 @@
 import { runApplication } from "../lifecycle/application-runner";
 import { TOKENS } from "../di/tokens";
 
-runApplication(TOKENS.CodebaseCaptureService).catch(console.error);
+runApplication(TOKENS.InsightsFromDBGenerationTask).catch(console.error);

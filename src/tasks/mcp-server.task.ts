@@ -1,14 +1,14 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import McpHttpServer from "../components/api/mcpServing/mcp-http-server";
-import { Service } from "../lifecycle/service.types";
+import { Task } from "../lifecycle/task.types";
 import { TOKENS } from "../di/tokens";
 
 /**
- * Service to run the MCP insights server.
+ * Task to run the MCP insights server.
  */
 @injectable()
-export class McpServerService implements Service {
+export class McpServerTask implements Task {
   private shutdownResolve?: () => void;
 
   /**
@@ -24,7 +24,7 @@ export class McpServerService implements Service {
     await this.mcpHttpServer.start();
 
     // Create a promise that only resolves when shutdown is requested
-    // This keeps the service alive until explicitly stopped
+    // This keeps the task alive until explicitly stopped
     return new Promise<void>((resolve) => {
       this.shutdownResolve = resolve;
 

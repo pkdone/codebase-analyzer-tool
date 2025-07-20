@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { ServiceRunnerConfig } from "../lifecycle/service.types";
+import { TaskRunnerConfig } from "../lifecycle/task.types";
 import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
@@ -10,10 +10,10 @@ import {
 } from "./registration-modules";
 
 /**
- * Bootstrap the DI container based on service configuration.
+ * Bootstrap the DI container based on task configuration.
  * Leverages tsyringe's built-in singleton management and isRegistered checks.
  */
-export async function bootstrapContainer(config: ServiceRunnerConfig): Promise<void> {
+export async function bootstrapContainer(config: TaskRunnerConfig): Promise<void> {
   if (config.requiresLLM) {
     await registerLlmEnvDependencies();
     registerLLMServices();

@@ -5,16 +5,16 @@ import { TOKENS } from "../di/tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/error-utils";
 import { createVectorSearchIndexDefinition } from "../common/mdb/mdb-utils";
-import { Service } from "../lifecycle/service.types";
+import { Task } from "../lifecycle/task.types";
 import * as sourceSchema from "../repositories/source/sources.model";
 import * as appSummarySchema from "../repositories/app-summary/app-summaries.model";
 
 /**
- * Service responsible for database schema initialization and management.
+ * Task responsible for database schema initialization and management.
  * Handles all DDL operations including index creation for both collections.
  */
 @injectable()
-export class DBInitializerService implements Service {
+export class DBInitializerTask implements Task {
   private readonly db: Db;
   private readonly sourcesCollection: Collection;
   private readonly appSummariesCollection: Collection;
@@ -29,7 +29,7 @@ export class DBInitializerService implements Service {
   }
 
   /**
-   * Execute the service - initializes database schema.
+   * Execute the task - initializes database schema.
    */
   async execute(): Promise<void> {
     await this.ensureCollectionsReady(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);

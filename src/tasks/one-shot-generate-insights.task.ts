@@ -4,15 +4,15 @@ import { appConfig } from "../config/app.config";
 import { clearDirectory, findFilesRecursively } from "../common/utils/fs-utils";
 import { RawCodeToInsightsFileGenerator } from "../components/insights/one-shot-insights-generator";
 import type LLMRouter from "../llm/core/llm-router";
-import { Service } from "../lifecycle/service.types";
+import { Task } from "../lifecycle/task.types";
 import type { EnvVars } from "../lifecycle/env.types";
 import { TOKENS } from "../di/tokens";
 
 /**
- * Service to generate inline insights.
+ * Task to generate inline insights.
  */
 @injectable()
-export class OneShotGenerateInsightsService implements Service {
+export class OneShotGenerateInsightsTask implements Task {
   /**
    * Constructor with dependency injection.
    */
@@ -24,7 +24,7 @@ export class OneShotGenerateInsightsService implements Service {
   ) {}
 
   /**
-   * Execute the service - generates inline insights.
+   * Execute the task - generates inline insights.
    */
   async execute(): Promise<void> {
     await this.generateInlineInsights(this.env.CODEBASE_DIR_PATH, this.env.LLM);

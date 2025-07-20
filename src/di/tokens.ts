@@ -16,16 +16,16 @@ export const TOKENS = {
   SourcesRepository: Symbol.for("SourcesRepository"),
   AppSummariesRepository: Symbol.for("AppSummariesRepository"),
 
-  // Services
-  CodebaseCaptureService: Symbol.for("CodebaseCaptureService"),
-  CodebaseQueryService: Symbol.for("CodebaseQueryService"),
-  InsightsFromDBGenerationService: Symbol.for("InsightsFromDBGenerationService"),
-  OneShotGenerateInsightsService: Symbol.for("OneShotGenerateInsightsService"),
-  PluggableLLMsTestService: Symbol.for("PluggableLLMsTestService"),
-  MDBConnectionTestService: Symbol.for("MDBConnectionTestService"),
-  McpServerService: Symbol.for("McpServerService"),
-  ReportGenerationService: Symbol.for("ReportGenerationService"),
-  DBInitializerService: Symbol.for("DBInitializerService"),
+  // Tasks (formerly Services - these are top-level orchestrators for CLI commands)
+  CodebaseCaptureTask: Symbol.for("CodebaseCaptureTask"),
+  CodebaseQueryTask: Symbol.for("CodebaseQueryTask"),
+  InsightsFromDBGenerationTask: Symbol.for("InsightsFromDBGenerationTask"),
+  OneShotGenerateInsightsTask: Symbol.for("OneShotGenerateInsightsTask"),
+  PluggableLLMsTestTask: Symbol.for("PluggableLLMsTestTask"),
+  MDBConnectionTestTask: Symbol.for("MDBConnectionTestTask"),
+  McpServerTask: Symbol.for("McpServerTask"),
+  ReportGenerationTask: Symbol.for("ReportGenerationTask"),
+  DBInitializerTask: Symbol.for("DBInitializerTask"),
 
   // Internal Helper Components
   FileSummarizer: Symbol.for("FileSummarizer"),

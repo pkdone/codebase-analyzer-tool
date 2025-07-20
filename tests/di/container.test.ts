@@ -1,5 +1,5 @@
 import { bootstrapContainer, container } from "../../src/di/container";
-import { ServiceRunnerConfig } from "../../src/lifecycle/service.types";
+import { TaskRunnerConfig } from "../../src/lifecycle/task.types";
 import { TOKENS } from "../../src/di/tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests
@@ -41,17 +41,17 @@ describe("Dependency Registration", () => {
 
   describe("bootstrapContainer function", () => {
     it("should register basic dependencies without LLM or MongoDB", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: false,
       };
 
       await bootstrapContainer(config);
 
-      // Verify that environment variables and services are registered
+      // Verify that environment variables and tasks are registered
       expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
-      expect(container.isRegistered(TOKENS.CodebaseQueryService)).toBe(true);
-      expect(container.isRegistered(TOKENS.InsightsFromDBGenerationService)).toBe(true);
+      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
+      expect(container.isRegistered(TOKENS.InsightsFromDBGenerationTask)).toBe(true);
 
       // Verify that LLM and MongoDB dependencies are not registered
       expect(container.isRegistered(TOKENS.LLMService)).toBe(false);
@@ -59,7 +59,7 @@ describe("Dependency Registration", () => {
     });
 
     it("should register MongoDB dependencies when required", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: true,
       };
@@ -70,14 +70,14 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
       expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
       expect(container.isRegistered(TOKENS.MongoClient)).toBe(true);
-      expect(container.isRegistered(TOKENS.CodebaseQueryService)).toBe(true);
+      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
 
       // Verify that LLM dependencies are not registered
       expect(container.isRegistered(TOKENS.LLMService)).toBe(false);
     });
 
     it("should handle multiple calls without errors (idempotent)", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: false,
       };
@@ -90,11 +90,11 @@ describe("Dependency Registration", () => {
 
       // Dependencies should still be registered
       expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
-      expect(container.isRegistered(TOKENS.CodebaseQueryService)).toBe(true);
+      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
     });
 
     it("should handle multiple calls with MongoDB without errors", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: true,
       };
@@ -114,7 +114,7 @@ describe("Dependency Registration", () => {
 
   describe("tsyringe singleton behavior", () => {
     it("should provide access to registered environment variables", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: false,
       };
@@ -129,7 +129,7 @@ describe("Dependency Registration", () => {
     });
 
     it("should resolve MongoDB dependencies when registered", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: true,
       };
@@ -145,21 +145,21 @@ describe("Dependency Registration", () => {
     });
 
     it("should resolve MongoDB-dependent services when all dependencies are registered", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: true,
       };
 
       await bootstrapContainer(config);
 
-      // Should be able to resolve MongoDB-dependent service
-      const mongoConnectionTestService = container.resolve(TOKENS.MDBConnectionTestService);
+      // Should be able to resolve MongoDB-dependent task
+      const mongoConnectionTestTask = container.resolve(TOKENS.MDBConnectionTestTask);
 
-      expect(mongoConnectionTestService).toBeDefined();
+      expect(mongoConnectionTestTask).toBeDefined();
     });
 
     it("should maintain singleton behavior across multiple resolutions", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: true,
       };
@@ -180,7 +180,7 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
       expect(container.isRegistered(TOKENS.LLMService)).toBe(false);
 
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: true,
       };
@@ -196,27 +196,27 @@ describe("Dependency Registration", () => {
 
   describe("conditional registration behavior", () => {
     it("should only register services once even with multiple registerAppDependencies calls", async () => {
-      const config: ServiceRunnerConfig = {
+      const config: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: false,
       };
 
       // First registration
       await bootstrapContainer(config);
-      expect(container.isRegistered(TOKENS.CodebaseQueryService)).toBe(true);
+      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
 
       // Second registration should not cause issues
       await bootstrapContainer(config);
-      expect(container.isRegistered(TOKENS.CodebaseQueryService)).toBe(true);
+      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
 
-      // Test that registration is idempotent - verify service tokens are registered
-      expect(container.isRegistered(TOKENS.InsightsFromDBGenerationService)).toBe(true);
-      expect(container.isRegistered(TOKENS.PluggableLLMsTestService)).toBe(true);
+      // Test that registration is idempotent - verify task tokens are registered
+      expect(container.isRegistered(TOKENS.InsightsFromDBGenerationTask)).toBe(true);
+      expect(container.isRegistered(TOKENS.PluggableLLMsTestTask)).toBe(true);
     });
 
     it("should handle mixed dependency scenarios", async () => {
       // First register without MongoDB
-      const config1: ServiceRunnerConfig = {
+      const config1: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: false,
       };
@@ -226,7 +226,7 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
 
       // Then register with MongoDB
-      const config2: ServiceRunnerConfig = {
+      const config2: TaskRunnerConfig = {
         requiresLLM: false,
         requiresMongoDB: true,
       };

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { Service } from "../lifecycle/service.types";
+import { Task } from "../lifecycle/task.types";
 import type { EnvVars } from "../lifecycle/env.types";
 import { TOKENS } from "../di/tokens";
 import { appConfig } from "../config/app.config";
@@ -9,10 +9,10 @@ import path from "path";
 import AppReportGenerator from "../components/reporting/app-report-generator";
 
 /**
- * Service to generate a report of an application's composition.
+ * Task to generate a report of an application's composition.
  */
 @injectable()
-export class ReportGenerationService implements Service {
+export class ReportGenerationTask implements Task {
   /**
    * Constructor with dependency injection.
    */
@@ -33,7 +33,7 @@ export class ReportGenerationService implements Service {
    * Generate a report from the codebase in the specified directory.
    */
   private async generateReport(srcDirPath: string): Promise<void> {
-    console.log(`ReportGenerationService: Generating report for source directory: ${srcDirPath}`);
+    console.log(`ReportGenerationTask: Generating report for source directory: ${srcDirPath}`);
     const cleanSrcDirPath = srcDirPath.replace(appConfig.TRAILING_SLASH_PATTERN, "");
     console.log(cleanSrcDirPath);
     await clearDirectory(appConfig.OUTPUT_DIR);

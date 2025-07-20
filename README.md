@@ -76,7 +76,7 @@ Alternatively, you also run the `./dist/src/cli/c*.js` JavaScript files (first c
 1. **CAPTURE SOURCES**: To capture LLM-generated metadata about every source file into the database, execute the the following commands (builds the project first) from a terminal (or select the corresponding "src/cli/*.ts" file in your VS Code and choose to "Run and Debug).
 
     ```console
-    node ./dist/src/cli/capture-codebase.js
+    node ./dist/src/cli/1-capture-codebase.js
     ```
 
     Note 1. If you are getting LLM provider authentication/authorisaton errors when you executed the task, see the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
@@ -87,13 +87,13 @@ Alternatively, you also run the `./dist/src/cli/c*.js` JavaScript files (first c
 1. **GENERATE INSIGHTS**: Run the following command to generate insight (e.g. identifid technology stack, business processes, DDD aggregates, potential microserices, etc.) based on the previously database captured sources files metadata.
 
     ```console
-    node ./dist/src/cli/generate-insights-from-db.js
+    node ./dist/src/cli/2-generate-insights-from-db.js
     ```
 
 1. **CREATE REPORT**: Run the following command to generate a static HTML-based report summarising the application from the previously captured source metadata and aggregated insights. 
 
     ```console
-    node ./dist/src/cli/create-report.js
+    node ./dist/src/cli/3-create-report.js
     ```
 
 ## OPTIONAL: How To Run Any Additional Tasks

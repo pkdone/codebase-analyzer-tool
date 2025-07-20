@@ -3,14 +3,14 @@ import { injectable, inject } from "tsyringe";
 import { getTextLines } from "../common/utils/fs-utils";
 import CodeQuestioner from "../components/querying/code-questioner";
 import { appConfig } from "../config/app.config";
-import { Service } from "../lifecycle/service.types";
+import { Task } from "../lifecycle/task.types";
 import { TOKENS } from "../di/tokens";
 
 /**
- * Service to query the codebase.
+ * Task to query the codebase.
  */
 @injectable()
-export class CodebaseQueryService implements Service {
+export class CodebaseQueryTask implements Task {
   /**
    * Constructor with dependency injection.
    */
@@ -20,7 +20,7 @@ export class CodebaseQueryService implements Service {
   ) {}
 
   /**
-   * Execute the service - queries the codebase.
+   * Execute the task - queries the codebase.
    */
   async execute(): Promise<void> {
     await this.queryCodebase();

@@ -1,4 +1,4 @@
 import { runApplication } from "../lifecycle/application-runner";
 import { TOKENS } from "../di/tokens";
 
-runApplication(TOKENS.McpServerService).catch(console.error);
+runApplication(TOKENS.McpServerTask).catch(console.error);

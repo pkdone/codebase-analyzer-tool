@@ -2,30 +2,30 @@ import "reflect-metadata";
 import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
 import { gracefulShutdown } from "./shutdown";
 import LLMRouter from "../llm/core/llm-router";
-import { Service } from "./service.types";
+import { Task } from "./task.types";
 import { container } from "../di/container";
 import { TOKENS } from "../di/tokens";
-import { getServiceConfiguration } from "../di/registration-modules/service-config-registration";
+import { getTaskConfiguration } from "../di/registration-modules/task-config-registration";
 import { initializeAndRegisterLLMRouter } from "../di/registration-modules/llm-registration";
 
 /**
- * Generic service runner function that handles service execution:
- * 1. Resolve service configuration from DI container based on service token
+ * Generic task runner function that handles task execution:
+ * 1. Resolve task configuration from DI container based on task token
  * 2. Initialize and register LLMRouter if required (isolating async logic)
  * 3. Resolve required resources from the pre-bootstrapped DI container
- * 4. Create and execute service using DI container
+ * 4. Create and execute task using DI container
  * 5. Handle graceful shutdown
  *
  * Note: This function assumes the DI container has already been bootstrapped.
  * Use bootstrapContainer() before calling this function.
  */
-export async function runService(serviceToken: symbol): Promise<void> {
+export async function runTask(taskToken: symbol): Promise<void> {
   let mongoDBClientFactory: MongoDBClientFactory | undefined;
   let llmRouter: LLMRouter | undefined;
 
   try {
     console.log(`START: ${new Date().toISOString()}`);
-    const config = getServiceConfiguration(serviceToken);
+    const config = getTaskConfiguration(taskToken);
 
     if (config.requiresMongoDB) {
       mongoDBClientFactory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
@@ -40,15 +40,15 @@ export async function runService(serviceToken: symbol): Promise<void> {
       }
     }
 
-    // Resolve service (await handles both sync and async resolution)
-    const service = await container.resolve<Service | Promise<Service>>(serviceToken);
+    // Resolve task (await handles both sync and async resolution)
+    const task = await container.resolve<Task | Promise<Task>>(taskToken);
 
     try {
-      await service.execute();
+      await task.execute();
     } catch (error) {
       if (error instanceof TypeError && error.message.includes("execute")) {
         throw new Error(
-          `Service for token '${serviceToken.toString()}' could not be resolved or does not have a valid execute method.`,
+          `Task for token '${taskToken.toString()}' could not be resolved or does not have a valid execute method.`,
         );
       }
       throw error;

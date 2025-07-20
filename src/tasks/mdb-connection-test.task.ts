@@ -1,14 +1,14 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { Service } from "../lifecycle/service.types";
+import { Task } from "../lifecycle/task.types";
 import type { SourcesRepository } from "../repositories/source/sources.repository.interface";
 import { TOKENS } from "../di/tokens";
 
 /**
- * Service to test the MongoDB connection.
+ * Task to test the MongoDB connection.
  */
 @injectable()
-export class MDBConnectionTestService implements Service {
+export class MDBConnectionTestTask implements Task {
   /**
    * Constructor with dependency injection.
    */
@@ -18,7 +18,7 @@ export class MDBConnectionTestService implements Service {
   ) {}
 
   /**
-   * Execute the service - tests the MongoDB connection.
+   * Execute the task - tests the MongoDB connection.
    */
   async execute(): Promise<void> {
     await this.testConnection();

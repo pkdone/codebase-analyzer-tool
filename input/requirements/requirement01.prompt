@@ -1,1 +1,15 @@
 Architecture Improvements: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. Identify up to 10 key sub-optimal aspects of the software's architecture that would benefit from structural change to improve the clarity of the project and ease of maintenance and subsequent change. Provide a brief description of the current state and a suggestion for improvement. Provide references to the specific part(s) of the code that needs improvement with suggestions on how to improve. Include the list or relative file paths of each source file affected.
+
+Do NOT inlude any of the following topics in your recommendations:
+
+ * Monolithic and Unwieldy Environment Configuration
+ * Inconsistent and Cumbersome CLI Entry Points
+ * Redundancy in Bedrock LLM Provider Implementations
+ * Hardcoded Provider-Specific Logic in Core Lifecycle Code
+ * Overly Granular and Manual Dependency Injection Registration
+ * Fragmented and Overlapping Configuration
+ * Manual HTTP Server Implementation
+ * Mixing of Data Transformation and Presentation Logic in Reporting
+ * Inconsistent Strategy for Defining Constants
+ * Scattered and Inconsistent Type Definitions
+ * Tightly Coupled Repository Implementations to MongoDB Driver
