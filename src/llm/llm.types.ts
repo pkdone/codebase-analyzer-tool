@@ -5,7 +5,7 @@ import { z } from "zod";
 /**
  * Interface for LLM implementation provider
  */
-export interface LLMProviderImpl {
+export interface LLMProvider {
   generateEmbeddings: LLMFunction;
   executeCompletionPrimary: LLMFunction;
   executeCompletionSecondary: LLMFunction;

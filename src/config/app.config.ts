@@ -107,7 +107,7 @@ export const appConfig = {
   PROVIDERS_FOLDER_PATH: "../providers",
   TRAILING_SLASH_PATTERN: /\/$/, //Regex pattern to match trailing slash at end of string
   REQUIREMENTS_PROMPTS_FOLDERPATH: "./input/requirements",
-  REQS_FILE_REGEX: /requirement\d+\.prompt$/i,
+  REQUIREMENTS_FILE_REGEX: /requirement\d+\.prompt$/i,
   SAMPLE_PROMPT_FILEPATH: "./input/sample.prompt",
   QUESTIONS_PROMPTS_FILEPATH: "./input/questions.prompts",
   MAX_CONCURRENCY: 50,

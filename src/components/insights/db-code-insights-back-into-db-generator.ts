@@ -8,9 +8,9 @@ import type { AppSummariesRepository } from "../../repositories/app-summary/app-
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { PartialAppSummaryRecord } from "../../repositories/app-summary/app-summaries.model";
 import { TOKENS } from "../../di/tokens";
-import { SummaryCategory, summaryCategoriesConfig } from "../../config/summary-categories.config";
+import { SummaryCategory, summaryCategoriesConfig } from "./summary-categories.config";
 import { AppSummaryCategoryEnum } from "../../schemas/app-summary-categories.schema";
-import { createPromptFromConfig } from "../../llm/processing/msgProcessing/prompt-templator";
+import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 
 /**
  * Generates metadata in database collections to capture application information,

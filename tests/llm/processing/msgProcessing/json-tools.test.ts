@@ -2,7 +2,7 @@ import { LLMOutputFormat } from "../../../../src/llm/llm.types";
 import {
   convertTextToJSONAndOptionallyValidate,
   validateSchemaIfNeededAndReturnResponse,
-} from "../../../../src/llm/processing/msgProcessing/json-tools";
+} from "../../../../src/llm/core/utils/msgProcessing/json-tools";
 
 describe("json-tools", () => {
   // Note: extractTokensAmountFromMetadataDefaultingMissingValues and

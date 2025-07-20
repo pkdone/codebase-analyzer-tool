@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { appConfig } from "../config/app.config";
-import { clearDirectory, buildDirDescendingListOfFiles } from "../common/utils/fs-utils";
+import { clearDirectory, findFilesRecursively } from "../common/utils/fs-utils";
 import { RawCodeToInsightsFileGenerator } from "../components/insights/one-shot-insights-generator";
 import type LLMRouter from "../llm/core/llm-router";
 import { Service } from "../lifecycle/service.types";
@@ -35,7 +35,7 @@ export class OneShotGenerateInsightsService implements Service {
    */
   private async generateInlineInsights(srcDirPath: string, llmName: string): Promise<void> {
     const cleanSrcDirPath = srcDirPath.replace(appConfig.TRAILING_SLASH_PATTERN, "");
-    const srcFilepaths = await buildDirDescendingListOfFiles(
+    const srcFilepaths = await findFilesRecursively(
       cleanSrcDirPath,
       appConfig.FOLDER_IGNORE_LIST,
       appConfig.FILENAME_PREFIX_IGNORE,

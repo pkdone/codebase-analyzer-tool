@@ -2,14 +2,14 @@ import {
   LLMModelQuality,
   LLMCandidateFunction,
   LLMFunction,
-  LLMProviderImpl,
-} from "../../llm.types";
-import { BadConfigurationLLMError } from "../../errors/llm-errors.types";
+  LLMProvider,
+} from "../../../llm.types";
+import { BadConfigurationLLMError } from "../../../errors/llm-errors.types";
 
 /**
  * Build completion candidates from the LLM provider.
  */
-export function buildCompletionCandidates(llm: LLMProviderImpl): LLMCandidateFunction[] {
+export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunction[] {
   const candidates: LLMCandidateFunction[] = [];
 
   // Add primary completion model as first candidate

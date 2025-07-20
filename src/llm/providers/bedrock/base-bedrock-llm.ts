@@ -118,7 +118,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   /**
    * Extract the relevant information from the LLM specific response.
    */
-  protected extractEmbeddingModelSpecificResponse(llmResponse: TitanEmbeddingsLLMSpecificResponse) {
+  protected extractEmbeddingModelSpecificResponse(llmResponse: BedrockEmbeddingsResponse) {
     const responseContent = llmResponse.embedding ?? [];
     const isIncompleteResponse = !responseContent; // If no content assume prompt maxed out total tokens available
     const promptTokens = llmResponse.inputTextTokenCount ?? -1;
@@ -184,7 +184,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
 /**
  * Type definitions for the Titan specific embeddings LLM response usage.
  */
-interface TitanEmbeddingsLLMSpecificResponse {
+interface BedrockEmbeddingsResponse {
   embedding?: number[];
   inputTextTokenCount?: number;
   results?: {

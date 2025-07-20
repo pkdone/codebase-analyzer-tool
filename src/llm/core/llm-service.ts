@@ -3,7 +3,7 @@ import { injectable, inject } from "tsyringe";
 import path from "path";
 import { appConfig } from "../../config/app.config";
 import {
-  LLMProviderImpl,
+  LLMProvider,
   LLMModelKeysSet as LLMModelsKeysSet,
   LLMModelMetadata,
   ResolvedLLMModelMetadata,
@@ -149,7 +149,7 @@ export class LLMService {
   /**
    * Get an LLM provider instance using the loaded manifest and environment
    */
-  getLLMProvider(env: EnvVars): LLMProviderImpl {
+  getLLMProvider(env: EnvVars): LLMProvider {
     const manifest = this.getInitializedManifest();
     const modelsKeysSet = this.buildModelsKeysSet(manifest);
     const modelsMetadata = this.buildModelsMetadata(manifest, env);

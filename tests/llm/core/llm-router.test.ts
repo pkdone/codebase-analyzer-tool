@@ -7,7 +7,7 @@ import "reflect-metadata";
 import {
   LLMPurpose,
   LLMResponseStatus,
-  LLMProviderImpl,
+  LLMProvider,
   LLMModelQuality,
   ResolvedLLMModelMetadata,
   LLMResponseTokensUsage,
@@ -16,11 +16,12 @@ import {
 
 import { z } from "zod";
 import LLMRouter from "../../../src/llm/core/llm-router";
-import LLMStats from "../../../src/llm/processing/routerTracking/llm-stats";
+import LLMStats from "../../../src/llm/core/utils/routerTracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../../src/llm/core/strategies/prompt-adaptation-strategy";
 import { LLMService } from "../../../src/llm/core/llm-service";
 import { RetryStrategy } from "../../../src/llm/core/strategies/retry-strategy";
 import { FallbackStrategy } from "../../../src/llm/core/strategies/fallback-strategy";
+import { LLMExecutionPipeline } from "../../../src/llm/core/llm-execution-pipeline";
 import type { EnvVars } from "../../../src/lifecycle/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
@@ -29,13 +30,13 @@ import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provide
 // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
 // postProcessAsJSONIfNeededGeneratingNewResult have been moved to AbstractLLM class
 
-jest.mock("../../../src/llm/processing/routerTracking/llm-router-logging", () => ({
+jest.mock("../../../src/llm/core/utils/routerTracking/llm-router-logging", () => ({
   log: jest.fn(),
   logErrWithContext: jest.fn(),
   logWithContext: jest.fn(),
 }));
 
-jest.mock("../../../src/llm/processing/routerTracking/llm-stats", () => {
+jest.mock("../../../src/llm/core/utils/routerTracking/llm-stats", () => {
   return jest.fn().mockImplementation(() => ({
     recordSuccess: jest.fn(),
     recordFailure: jest.fn(),
@@ -99,7 +100,7 @@ describe("LLM Router tests", () => {
   };
 
   // Helper function to create a mock LLM provider with proper typing
-  const createMockLLMProvider = (): LLMProviderImpl => {
+  const createMockLLMProvider = (): LLMProvider => {
     const mockProvider = {
       generateEmbeddings: jest.fn(),
       executeCompletionPrimary: jest.fn(),
@@ -117,7 +118,7 @@ describe("LLM Router tests", () => {
       })),
       getProviderSpecificConfig: jest.fn().mockReturnValue({}),
       close: jest.fn(),
-    } as unknown as LLMProviderImpl;
+    } as unknown as LLMProvider;
 
     // Set up default mock return values with proper typing
     (mockProvider.generateEmbeddings as any).mockResolvedValue({
@@ -163,7 +164,7 @@ describe("LLM Router tests", () => {
     // Create mock LLMService
     const mockLLMService: Partial<LLMService> = {
       getLLMProvider: jest.fn().mockReturnValue(mockProvider) as jest.MockedFunction<
-        (env: EnvVars) => LLMProviderImpl
+        (env: EnvVars) => LLMProvider
       >,
       getLLMManifest: jest.fn().mockReturnValue({
         modelFamily: "OpenAI",
@@ -183,13 +184,20 @@ describe("LLM Router tests", () => {
     const mockPromptAdaptationStrategy = new PromptAdaptationStrategy();
     const mockRetryStrategy = new RetryStrategy(mockLLMStats);
     const mockFallbackStrategy = new FallbackStrategy();
+
+    // Create execution pipeline with strategies
+    const mockExecutionPipeline = new LLMExecutionPipeline(
+      mockRetryStrategy,
+      mockFallbackStrategy,
+      mockPromptAdaptationStrategy,
+      mockLLMStats,
+    );
+
     const router = new LLMRouter(
       mockLLMService as LLMService,
       mockEnvVars as EnvVars,
       mockLLMStats,
-      mockRetryStrategy,
-      mockFallbackStrategy,
-      mockPromptAdaptationStrategy,
+      mockExecutionPipeline,
     );
     return { router, mockProvider };
   };
@@ -683,10 +691,8 @@ describe("LLM Router tests", () => {
         context: {},
       });
 
-      // Mock the prompt adaptation strategy to return empty string after adaptation
-      jest
-        .spyOn((router as any).promptAdaptationStrategy, "adaptPromptFromResponse")
-        .mockReturnValue("");
+      // Mock the execution pipeline to return null when prompt becomes empty after cropping
+      jest.spyOn((router as any).executionPipeline, "executeWithPipeline").mockResolvedValue(null);
 
       const result = await router.executeCompletion(
         "test-resource",

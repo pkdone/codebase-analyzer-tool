@@ -1,34 +1,23 @@
 import {
   LLMContext,
-  LLMFunction,
   LLMModelQuality,
   LLMPurpose,
-  LLMResponseStatus,
   LLMGeneratedContent,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
 } from "../llm.types";
-import type { LLMProviderImpl, LLMCandidateFunction } from "../llm.types";
+import type { LLMProvider, LLMCandidateFunction } from "../llm.types";
 import { BadConfigurationLLMError } from "../errors/llm-errors.types";
-
-import {
-  log,
-  logErrWithContext,
-  logWithContext,
-} from "../processing/routerTracking/llm-router-logging";
-import type LLMStats from "../processing/routerTracking/llm-stats";
+import { log, logErrWithContext } from "./utils/routerTracking/llm-router-logging";
+import type LLMStats from "./utils/routerTracking/llm-stats";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMService } from "./llm-service";
 import type { EnvVars } from "../../lifecycle/env.types";
-import { RetryStrategy } from "./strategies/retry-strategy";
-import { FallbackStrategy } from "./strategies/fallback-strategy";
-import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
-
+import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
   getOverridenCompletionCandidates,
   buildCompletionCandidates,
-} from "../processing/msgProcessing/completions-models-retriever";
-import { validateSchemaIfNeededAndReturnResponse } from "../processing/msgProcessing/json-tools";
+} from "./utils/msgProcessing/completions-models-retriever";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -39,7 +28,7 @@ import { validateSchemaIfNeededAndReturnResponse } from "../processing/msgProces
  */
 export default class LLMRouter {
   // Private fields
-  private readonly llm: LLMProviderImpl;
+  private readonly llm: LLMProvider;
   private readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   private readonly completionCandidates: LLMCandidateFunction[];
   private readonly providerRetryConfig: LLMRetryConfig;
@@ -50,17 +39,13 @@ export default class LLMRouter {
    * @param llmService The LLM service for provider management
    * @param envVars Environment variables
    * @param llmStats The LLM statistics tracker
-   * @param retryStrategy Strategy for handling retries
-   * @param fallbackStrategy Strategy for handling unsuccessful calls
-   * @param promptAdaptationStrategy Strategy for adapting prompts when token limits are exceeded
+   * @param executionPipeline The execution pipeline for orchestrating LLM calls
    */
   constructor(
     private readonly llmService: LLMService,
     private readonly envVars: EnvVars,
     private readonly llmStats: LLMStats,
-    private readonly retryStrategy: RetryStrategy,
-    private readonly fallbackStrategy: FallbackStrategy,
-    private readonly promptAdaptationStrategy: PromptAdaptationStrategy,
+    private readonly executionPipeline: LLMExecutionPipeline,
   ) {
     this.llm = this.llmService.getLLMProvider(this.envVars);
     this.modelsMetadata = this.llm.getModelsMetadata();
@@ -119,19 +104,18 @@ export default class LLMRouter {
    * Send the content to the LLM for it to generate and return the content's embedding.
    */
   async generateEmbeddings(resourceName: string, content: string): Promise<number[] | null> {
-    // Construct context internally using available information
     const context: LLMContext = {
       resource: resourceName,
       purpose: LLMPurpose.EMBEDDINGS,
     };
-
-    const contentResponse = await this.invokeLLMWithRetriesAndAdaptation(
+    const contentResponse = await this.executionPipeline.executeWithPipeline(
       resourceName,
       content,
       context,
       [this.llm.generateEmbeddings.bind(this.llm)],
+      this.providerRetryConfig,
+      this.modelsMetadata,
     );
-
     if (contentResponse === null) return null;
 
     if (
@@ -172,15 +156,16 @@ export default class LLMRouter {
       modelQuality: candidatesToUse[0].modelQuality,
       outputFormat: options.outputFormat,
     };
-    const llmResponse = await this.invokeLLMWithRetriesAndAdaptation(
+    return await this.executionPipeline.executeWithPipeline<T>(
       resourceName,
       prompt,
       context,
       candidateFunctions,
+      this.providerRetryConfig,
+      this.modelsMetadata,
       candidatesToUse,
       options,
     );
-    return validateSchemaIfNeededAndReturnResponse(llmResponse, options, resourceName);
   }
 
   /**
@@ -196,125 +181,5 @@ export default class LLMRouter {
    */
   displayLLMStatusDetails(): void {
     console.table(this.llmStats.getStatusTypesStatistics(true));
-  }
-
-  /**
-   * Executes an LLM function applying a series of before and after non-functional aspects (e.g.
-   * retries, switching LLM qualities, truncating large prompts)..
-   *
-   * Context is just an optional object of key value pairs which will be retained with the LLM
-   * request and subsequent response for convenient debugging and error logging context.
-   */
-  private async invokeLLMWithRetriesAndAdaptation(
-    resourceName: string,
-    prompt: string,
-    context: LLMContext,
-    llmFunctions: LLMFunction[],
-    candidateModels?: LLMCandidateFunction[],
-    completionOptions?: LLMCompletionOptions,
-  ) {
-    let result: LLMGeneratedContent | null = null;
-
-    try {
-      result = await this.iterateOverLLMFunctions(
-        resourceName,
-        prompt,
-        context,
-        llmFunctions,
-        candidateModels,
-        completionOptions,
-      );
-
-      if (!result) {
-        log(
-          `Given-up on trying to fulfill the current prompt with an LLM for the following resource: '${resourceName}'`,
-        );
-        this.llmStats.recordFailure();
-      }
-    } catch (error: unknown) {
-      log(
-        `Unable to process the following resource with an LLM due to a non-recoverable error for the following resource: '${resourceName}'`,
-      );
-      logErrWithContext(error, context);
-      this.llmStats.recordFailure();
-    }
-
-    return result;
-  }
-
-  /**
-   * Iterates through available LLM functions, attempting each until successful completion
-   * or all options are exhausted.
-   */
-  private async iterateOverLLMFunctions(
-    resourceName: string,
-    initialPrompt: string,
-    context: LLMContext,
-    llmFunctions: LLMFunction[],
-    candidateModels?: LLMCandidateFunction[],
-    completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMGeneratedContent | null> {
-    let currentPrompt = initialPrompt;
-    let llmFunctionIndex = 0;
-
-    // Don't want to increment 'llmFuncIndex' before looping again, if going to crop prompt
-    // (to enable us to try cropped prompt with same size LLM as last iteration)
-    while (llmFunctionIndex < llmFunctions.length) {
-      const llmResponse = await this.retryStrategy.executeWithRetries(
-        llmFunctions[llmFunctionIndex],
-        currentPrompt,
-        context,
-        this.providerRetryConfig,
-        completionOptions,
-      );
-
-      if (llmResponse?.status === LLMResponseStatus.COMPLETED) {
-        this.llmStats.recordSuccess();
-        return llmResponse.generated ?? null;
-      } else if (llmResponse?.status === LLMResponseStatus.ERRORED) {
-        logErrWithContext(llmResponse.error, context);
-        break;
-      }
-
-      const nextAction = this.fallbackStrategy.determineNextAction(
-        llmResponse,
-        llmFunctionIndex,
-        llmFunctions.length,
-        context,
-        resourceName,
-      );
-
-      if (nextAction.shouldTerminate) break;
-
-      if (nextAction.shouldCropPrompt && llmResponse) {
-        currentPrompt = this.promptAdaptationStrategy.adaptPromptFromResponse(
-          currentPrompt,
-          llmResponse,
-          this.modelsMetadata,
-        );
-        this.llmStats.recordCrop();
-
-        if (currentPrompt.trim() === "") {
-          logWithContext(
-            `Prompt became empty after cropping for resource '${resourceName}', terminating attempts.`,
-            context,
-          );
-          break;
-        }
-
-        continue; // Try again with same LLM eeeeeefunction but cropped prompt
-      }
-
-      if (nextAction.shouldSwitchToNextLLM) {
-        if (candidateModels && llmFunctionIndex + 1 < candidateModels.length) {
-          context.modelQuality = candidateModels[llmFunctionIndex + 1].modelQuality;
-        }
-
-        this.llmStats.recordSwitch();
-        llmFunctionIndex++;
-      }
-    }
-
-    return null;
   }
 }

@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { appConfig } from "../../config/app.config";
-import { summaryCategoriesConfig } from "../../config/summary-categories.config";
+import { summaryCategoriesConfig } from "../insights/summary-categories.config";
 import { AppSummaryCategoryEnum } from "../../schemas/app-summary-categories.schema";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";

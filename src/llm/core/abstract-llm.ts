@@ -2,7 +2,7 @@ import {
   LLMModelQuality,
   LLMContext,
   LLMPurpose,
-  LLMProviderImpl,
+  LLMProvider,
   LLMResponseStatus,
   LLMModelKeysSet,
   LLMFunctionResponse,
@@ -18,15 +18,15 @@ import {
   LLMProviderSpecificConfig,
 } from "../providers/llm-provider.types";
 import { getErrorText, logErrorMsg } from "../../common/utils/error-utils";
-import { convertTextToJSONAndOptionallyValidate } from "../processing/msgProcessing/json-tools";
-import { extractTokensAmountAndLimitFromErrorMsg } from "../processing/msgProcessing/response-error-pattern-parser";
+import { convertTextToJSONAndOptionallyValidate } from "./utils/msgProcessing/json-tools";
+import { extractTokensAmountAndLimitFromErrorMsg } from "./utils/msgProcessing/response-error-pattern-parser";
 import { BadConfigurationLLMError } from "../errors/llm-errors.types";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
  * implemented by an extended class that implements a specific LLM integration.
  */
-export default abstract class AbstractLLM implements LLMProviderImpl {
+export default abstract class AbstractLLM implements LLMProvider {
   // Fields
   protected readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;
@@ -198,7 +198,7 @@ export default abstract class AbstractLLM implements LLMProviderImpl {
           ),
         };
       } else {
-        return this.postProcessAsJSONIfNeededGeneratingNewResult(
+        return this.formatAndValidateResponse(
           skeletonResponse,
           taskType,
           responseContent,
@@ -251,7 +251,7 @@ export default abstract class AbstractLLM implements LLMProviderImpl {
    * Post-process the LLM response, converting it to JSON if necessary, and build the
    * response metadaat object.
    */
-  private postProcessAsJSONIfNeededGeneratingNewResult(
+  private formatAndValidateResponse(
     skeletonResult: LLMFunctionResponse,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   LLMModelKeysSet,
-  LLMProviderImpl,
+  LLMProvider,
   LLMModelMetadata,
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
@@ -70,7 +70,7 @@ export interface LLMProviderManifest {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     providerSpecificConfig?: LLMProviderSpecificConfig,
-  ) => LLMProviderImpl;
+  ) => LLMProvider;
 }
 
 /**

@@ -67,7 +67,7 @@ export class RawCodeToInsightsFileGenerator {
     try {
       await fs.mkdir(inputDir, { recursive: true });
       const files = await readDirContents(inputDir);
-      const promptFiles = files.filter((file) => appConfig.REQS_FILE_REGEX.test(file.name));
+      const promptFiles = files.filter((file) => appConfig.REQUIREMENTS_FILE_REGEX.test(file.name));
 
       for (const file of promptFiles) {
         const filePath = path.join(inputDir, file.name);

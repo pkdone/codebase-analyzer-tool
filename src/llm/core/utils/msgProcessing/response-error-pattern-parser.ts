@@ -2,8 +2,8 @@ import {
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
   LLMResponseTokensUsage,
-} from "../../llm.types";
-import { llmConfig } from "../../llm.config";
+} from "../../../llm.types";
+import { llmConfig } from "../../../llm.config";
 
 /**
  * Extract token usage information from LLM error message.

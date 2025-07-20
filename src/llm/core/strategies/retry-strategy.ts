@@ -9,7 +9,7 @@ import type {
 import { LLMResponseStatus } from "../../llm.types";
 import type { LLMRetryConfig } from "../../providers/llm-provider.types";
 import { llmConfig } from "../../llm.config";
-import type LLMStats from "../../processing/routerTracking/llm-stats";
+import type LLMStats from "../utils/routerTracking/llm-stats";
 
 // Custom error class with status field
 export class RetryStatusError extends Error {

@@ -1,6 +1,6 @@
-import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../../llm.types";
-import { logErrorMsg } from "../../../common/utils/error-utils";
-import { BadResponseContentLLMError } from "../../errors/llm-errors.types";
+import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../../../llm.types";
+import { logErrorMsg } from "../../../../common/utils/error-utils";
+import { BadResponseContentLLMError } from "../../../errors/llm-errors.types";
 
 /**
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally

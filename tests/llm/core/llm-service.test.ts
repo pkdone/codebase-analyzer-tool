@@ -1,6 +1,6 @@
 import { LLMService } from "../../../src/llm/core/llm-service";
 import { EnvVars } from "../../../src/lifecycle/env.types";
-import { LLMPurpose, LLMProviderImpl, LLMModelQuality } from "../../../src/llm/llm.types";
+import { LLMPurpose, LLMProvider, LLMModelQuality } from "../../../src/llm/llm.types";
 import { BadConfigurationLLMError } from "../../../src/llm/errors/llm-errors.types";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 import { z } from "zod";
@@ -72,7 +72,7 @@ describe("LLM Service tests", () => {
   };
 
   // Mock LLM Provider
-  const mockLLMProvider: LLMProviderImpl = {
+  const mockLLMProvider: LLMProvider = {
     generateEmbeddings: jest.fn(),
     executeCompletionPrimary: jest.fn(),
     executeCompletionSecondary: jest.fn(),

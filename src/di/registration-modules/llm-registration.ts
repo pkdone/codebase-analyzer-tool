@@ -3,10 +3,11 @@ import { TOKENS } from "../tokens";
 import { LLMService } from "../../llm/core/llm-service";
 import LLMRouter from "../../llm/core/llm-router";
 import { EnvVars } from "../../lifecycle/env.types";
-import LLMStats from "../../llm/processing/routerTracking/llm-stats";
+import LLMStats from "../../llm/core/utils/routerTracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
 import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
 import { FallbackStrategy } from "../../llm/core/strategies/fallback-strategy";
+import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
 
 /**
  * Registers the LLM utility services in the container.
@@ -48,14 +49,17 @@ export async function initializeAndRegisterLLMRouter(modelFamily?: string): Prom
   );
   const retryStrategy = new RetryStrategy(llmStats);
   const fallbackStrategy = new FallbackStrategy();
-  const router = new LLMRouter(
-    service,
-    envVars,
-    llmStats,
+
+  // Create the execution pipeline with the strategies
+  const executionPipeline = new LLMExecutionPipeline(
     retryStrategy,
     fallbackStrategy,
     promptAdaptationStrategy,
+    llmStats,
   );
+
+  // Create LLMRouter with the pipeline
+  const router = new LLMRouter(service, envVars, llmStats, executionPipeline);
 
   // Register the initialized LLMRouter as a singleton
   container.registerInstance(TOKENS.LLMRouter, router);

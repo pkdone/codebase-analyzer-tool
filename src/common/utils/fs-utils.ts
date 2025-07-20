@@ -86,7 +86,7 @@ export async function getTextLines(filePath: string): Promise<string[]> {
  * If `orderByLargestSizeFileFirst` is true, the files are sorted by size, largest first, otherwise
  * they are just ordered in the natural (abitrary) order they are discovered by glob.
  */
-export async function buildDirDescendingListOfFiles(
+export async function findFilesRecursively(
   srcDirPath: string,
   folderIgnoreList: readonly string[],
   filenameIgnorePrefix: string,

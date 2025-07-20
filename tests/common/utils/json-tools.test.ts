@@ -1,4 +1,4 @@
-import { convertTextToJSONAndOptionallyValidate } from "../../../src/llm/processing/msgProcessing/json-tools";
+import { convertTextToJSONAndOptionallyValidate } from "../../../src/llm/core/utils/msgProcessing/json-tools";
 import { LLMOutputFormat } from "../../../src/llm/llm.types";
 
 // Test interfaces for generic type testing

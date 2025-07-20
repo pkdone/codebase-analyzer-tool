@@ -3,7 +3,7 @@ import {
   databaseIntegrationSchema,
 } from "../../schemas/source-summaries.schema";
 import { z } from "zod";
-import { DynamicPromptReplaceVars } from "../../llm/processing/msgProcessing/prompt-templator";
+import { DynamicPromptReplaceVars } from "../../llm/core/utils/msgProcessing/prompt-templator";
 
 /**
  * Common instruction phrases used across multiple file type templates

@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../llm/core/llm-router";
 import path from "path";
 import { appConfig } from "../../config/app.config";
-import { readFile, buildDirDescendingListOfFiles } from "../../common/utils/fs-utils";
+import { readFile, findFilesRecursively } from "../../common/utils/fs-utils";
 import { getFileSuffix } from "../../common/utils/path-utils";
 import { countLines } from "../../common/utils/text-utils";
 import pLimit from "p-limit";
@@ -37,13 +37,13 @@ export default class CodebaseToDBLoader {
     srcDirPath: string,
     ignoreIfAlreadyCaptured: boolean,
   ): Promise<void> {
-    const srcFilepaths = await buildDirDescendingListOfFiles(
+    const srcFilepaths = await findFilesRecursively(
       srcDirPath,
       appConfig.FOLDER_IGNORE_LIST,
       appConfig.FILENAME_PREFIX_IGNORE,
       true,
     );
-    await this.insertSourceContentIntoDB(
+    await this.processAndStoreSourceFilesIntoDB(
       srcFilepaths,
       projectName,
       srcDirPath,
@@ -54,7 +54,7 @@ export default class CodebaseToDBLoader {
   /**
    * Loops through a list of file paths, loads each file's content, and prints the content.
    */
-  private async insertSourceContentIntoDB(
+  private async processAndStoreSourceFilesIntoDB(
     filepaths: string[],
     projectName: string,
     srcDirPath: string,
@@ -72,7 +72,6 @@ export default class CodebaseToDBLoader {
     }
 
     const limit = pLimit(appConfig.MAX_CONCURRENCY);
-
     const tasks = filepaths.map(async (filepath) => {
       return limit(async () => {
         try {
