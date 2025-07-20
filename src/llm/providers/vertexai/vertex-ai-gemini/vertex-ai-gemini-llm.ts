@@ -18,14 +18,14 @@ import {
   LLMErrorMsgRegExPattern,
   LLMCompletionOptions,
   LLMOutputFormat,
-} from "../../../llm.types";
+} from "../../../types/llm.types";
 import { getErrorText, logErrorMsgAndDetail } from "../../../../common/utils/error-utils";
 import AbstractLLM from "../../../core/abstract-llm";
 import {
   BadConfigurationLLMError,
   BadResponseContentLLMError,
   RejectionResponseLLMError,
-} from "../../../errors/llm-errors.types";
+} from "../../../types/llm-errors.types";
 import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { zodToJsonSchema } from "zod-to-json-schema";

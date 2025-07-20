@@ -1,4 +1,4 @@
-import { LLMErrorMsgRegExPattern } from "../../llm.types";
+import { LLMErrorMsgRegExPattern } from "../../types/llm.types";
 
 /**
  * Common error patterns for OpenAI model providers

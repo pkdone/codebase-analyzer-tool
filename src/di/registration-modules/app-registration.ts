@@ -29,7 +29,7 @@ import { MDBConnectionTestService } from "../../services/mdb-connection-test.ser
 import { PluggableLLMsTestService } from "../../services/test-pluggable-llms.service";
 import { McpServerService } from "../../services/mcp-server.service";
 import { ReportGenerationService } from "../../services/report-generation-service";
-import { DBInitializerService } from "../../lifecycle/db-initializer.service";
+import { DBInitializerService } from "../../services/db-initializer.service";
 
 /**
  * Register all application-level dependencies (repositories, components, and services).

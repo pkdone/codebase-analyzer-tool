@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../llm/core/llm-router";
-import { LLMOutputFormat } from "../../llm/llm.types";
+import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appConfig } from "../../config/app.config";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { joinArrayWithSeparators } from "../../common/utils/text-utils";

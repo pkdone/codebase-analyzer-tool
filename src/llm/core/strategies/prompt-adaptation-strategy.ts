@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { llmConfig } from "../../llm.config";
-import { LLMFunctionResponse, ResolvedLLMModelMetadata } from "../../llm.types";
-import { BadResponseMetadataLLMError } from "../../errors/llm-errors.types";
+import { LLMFunctionResponse, ResolvedLLMModelMetadata } from "../../types/llm.types";
+import { BadResponseMetadataLLMError } from "../../types/llm-errors.types";
 
 /**
  * Strategy class responsible for handling prompt adaptation.

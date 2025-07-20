@@ -1,7 +1,7 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_CLAUDE } from "./bedrock-claude.manifest";
-import { LLMCompletionOptions } from "../../../llm.types";
+import { LLMCompletionOptions } from "../../../types/llm.types";
 
 /**
  * Class for the AWS Bedrock [Anthropic] Claude LLMs.

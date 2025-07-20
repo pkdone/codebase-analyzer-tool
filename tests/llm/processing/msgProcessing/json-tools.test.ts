@@ -1,4 +1,4 @@
-import { LLMOutputFormat } from "../../../../src/llm/llm.types";
+import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
 import {
   convertTextToJSONAndOptionallyValidate,
   validateSchemaIfNeededAndReturnResponse,

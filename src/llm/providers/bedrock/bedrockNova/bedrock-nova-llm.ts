@@ -1,7 +1,7 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_NOVA } from "./bedrock-nova.manifest";
-import { LLMCompletionOptions } from "../../../llm.types";
+import { LLMCompletionOptions } from "../../../types/llm.types";
 
 /**
  * Class for the AWS Bedrock Nova LLMs.

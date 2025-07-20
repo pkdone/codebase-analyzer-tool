@@ -5,9 +5,9 @@ import {
   LLMGeneratedContent,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
-} from "../llm.types";
-import type { LLMProvider, LLMCandidateFunction } from "../llm.types";
-import { BadConfigurationLLMError } from "../errors/llm-errors.types";
+} from "../types/llm.types";
+import type { LLMProvider, LLMCandidateFunction } from "../types/llm.types";
+import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { log, logWithContext } from "./utils/routerTracking/llm-router-logging";
 import type LLMStats from "./utils/routerTracking/llm-stats";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";

@@ -8,11 +8,11 @@ import {
   registerLlmEnvDependencies,
 } from "../../../src/di/registration-modules/env-registration";
 import { LLMService } from "../../../src/llm/core/llm-service";
-import { BadConfigurationLLMError } from "../../../src/llm/errors/llm-errors.types";
+import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.types";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 import { getProjectNameFromPath } from "../../../src/common/utils/path-utils";
 import { loadBaseEnvVarsOnly } from "../../../src/lifecycle/env";
-import { LLMPurpose } from "../../../src/llm/llm.types";
+import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import dotenv from "dotenv";
 
 // Mock dependencies

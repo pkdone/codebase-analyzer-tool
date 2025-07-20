@@ -1,4 +1,4 @@
-import { runApplication } from "../lifecycle/service-runner";
+import { runApplication } from "../lifecycle/application-runner";
 import { TOKENS } from "../di/tokens";
 
 runApplication(TOKENS.CodebaseQueryService).catch(console.error);

@@ -7,7 +7,7 @@ import {
   LLMErrorMsgRegExPattern,
   LLMGeneratedContent,
   LLMResponseTokensUsage,
-} from "../llm.types";
+} from "../types/llm.types";
 import { EnvVars } from "../../lifecycle/env.types";
 
 /**

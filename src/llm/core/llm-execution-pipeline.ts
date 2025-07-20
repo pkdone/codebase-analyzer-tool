@@ -8,7 +8,7 @@ import {
   LLMCompletionOptions,
   LLMCandidateFunction,
   LLMOutputFormat,
-} from "../llm.types";
+} from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";

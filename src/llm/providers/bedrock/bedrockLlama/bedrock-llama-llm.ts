@@ -1,7 +1,7 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_LLAMA, AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT } from "./bedrock-llama.manifest";
-import { LLMCompletionOptions } from "../../../llm.types";
+import { LLMCompletionOptions } from "../../../types/llm.types";
 
 /**
  * Class for the AWS Bedrock Llama LLMs.

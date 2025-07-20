@@ -1,7 +1,7 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_MISTRAL } from "./bedrock-mistral.manifest";
-import { LLMCompletionOptions } from "../../../llm.types";
+import { LLMCompletionOptions } from "../../../types/llm.types";
 
 /**
  * Class for the AWS Bedrock Mistral LLMs.

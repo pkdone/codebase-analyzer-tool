@@ -7,7 +7,7 @@ import {
   LLMErrorMsgRegExPattern,
   LLMCompletionOptions,
   LLMOutputFormat,
-} from "../../../llm.types";
+} from "../../../types/llm.types";
 import BaseOpenAILLM from "../base-openai-llm";
 import { OPENAI } from "./openai.manifest";
 

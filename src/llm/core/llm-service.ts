@@ -7,9 +7,9 @@ import {
   LLMModelKeysSet as LLMModelsKeysSet,
   LLMModelMetadata,
   ResolvedLLMModelMetadata,
-} from "../llm.types";
+} from "../types/llm.types";
 import { EnvVars } from "../../lifecycle/env.types";
-import { BadConfigurationLLMError } from "../errors/llm-errors.types";
+import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { readDirContents } from "../../common/utils/fs-utils";

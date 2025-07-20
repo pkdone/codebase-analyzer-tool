@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { runService } from "../../src/lifecycle/service-runner";
+import { runService } from "../../src/lifecycle/service-executor";
 import { container } from "../../src/di/container";
 import { TOKENS } from "../../src/di/tokens";
 import { Service } from "../../src/lifecycle/service.types";

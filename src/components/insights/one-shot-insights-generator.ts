@@ -8,7 +8,7 @@ import { getFileSuffix } from "../../common/utils/path-utils";
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail, getErrorText } from "../../common/utils/error-utils";
 import LLMRouter from "../../llm/core/llm-router";
-import { LLMOutputFormat } from "../../llm/llm.types";
+import { LLMOutputFormat } from "../../llm/types/llm.types";
 
 /**
  * Interface to define the filename and question of a file requirement prompt

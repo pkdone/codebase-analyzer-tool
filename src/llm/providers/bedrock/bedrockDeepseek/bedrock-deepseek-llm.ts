@@ -1,7 +1,7 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_DEEPSEEK } from "./bedrock-deepseek.manifest";
-import { LLMCompletionOptions } from "../../../llm.types";
+import { LLMCompletionOptions } from "../../../types/llm.types";
 
 /**
  * Class for the AWS Bedrock [Anthropic] Claude LLMs.

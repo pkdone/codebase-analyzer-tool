@@ -12,7 +12,7 @@ import {
   LLMResponseTokensUsage,
   LLMGeneratedContent,
   LLMOutputFormat,
-} from "../llm.types";
+} from "../types/llm.types";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderSpecificConfig,
@@ -20,7 +20,7 @@ import {
 import { getErrorText, logErrorMsg } from "../../common/utils/error-utils";
 import { convertTextToJSONAndOptionallyValidate } from "./utils/msgProcessing/json-tools";
 import { extractTokensAmountAndLimitFromErrorMsg } from "./utils/msgProcessing/response-error-pattern-parser";
-import { BadConfigurationLLMError } from "../errors/llm-errors.types";
+import { BadConfigurationLLMError } from "../types/llm-errors.types";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be

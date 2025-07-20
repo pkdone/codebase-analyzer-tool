@@ -1,4 +1,4 @@
-import { LLMContext } from "../../../llm.types";
+import { LLMContext } from "../../../types/llm.types";
 import { logErrorDetail } from "../../../../common/utils/error-utils";
 
 /**

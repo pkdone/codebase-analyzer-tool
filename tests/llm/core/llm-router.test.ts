@@ -12,7 +12,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMResponseTokensUsage,
   LLMOutputFormat,
-} from "../../../src/llm/llm.types";
+} from "../../../src/llm/types/llm.types";
 
 import { z } from "zod";
 import LLMRouter from "../../../src/llm/core/llm-router";

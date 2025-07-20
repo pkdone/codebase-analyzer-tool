@@ -3,7 +3,7 @@ import { getErrorText, logErrorMsgAndDetail } from "../../common/utils/error-uti
 import type LLMRouter from "../../llm/core/llm-router";
 import { TOKENS } from "../../di/tokens";
 import { SourceSummaryType } from "../../schemas/source-summaries.schema";
-import { LLMOutputFormat } from "../../llm/llm.types";
+import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { FileHandlerFactory } from "./file-handler-factory";
 
 // Result type for better error handling

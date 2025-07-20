@@ -4,7 +4,7 @@ import CodebaseToDBLoader from "../components/capture/codebase-to-db-loader";
 import type LLMRouter from "../llm/core/llm-router";
 import { Service } from "../lifecycle/service.types";
 import type { EnvVars } from "../lifecycle/env.types";
-import type { DBInitializerService } from "../lifecycle/db-initializer.service";
+import type { DBInitializerService } from "./db-initializer.service";
 import { appConfig } from "../config/app.config";
 import { TOKENS } from "../di/tokens";
 

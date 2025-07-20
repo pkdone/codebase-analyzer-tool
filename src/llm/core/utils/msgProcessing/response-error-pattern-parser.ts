@@ -2,7 +2,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
   LLMResponseTokensUsage,
-} from "../../../llm.types";
+} from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
 
 /**

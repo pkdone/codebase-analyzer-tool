@@ -5,8 +5,8 @@ import type {
   LLMFunctionResponse,
   LLMContext,
   LLMCompletionOptions,
-} from "../../llm.types";
-import { LLMResponseStatus } from "../../llm.types";
+} from "../../types/llm.types";
+import { LLMResponseStatus } from "../../types/llm.types";
 import type { LLMRetryConfig } from "../../providers/llm-provider.types";
 import { llmConfig } from "../../llm.config";
 import type LLMStats from "../utils/routerTracking/llm-stats";

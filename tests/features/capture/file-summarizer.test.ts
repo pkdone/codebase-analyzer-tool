@@ -4,7 +4,7 @@ import { FileSummarizer, SummaryResult } from "../../../src/components/capture/f
 import { FileHandlerFactory } from "../../../src/components/capture/file-handler-factory";
 import { FileHandler } from "../../../src/components/capture/file-handler";
 import LLMRouter from "../../../src/llm/core/llm-router";
-import { LLMOutputFormat } from "../../../src/llm/llm.types";
+import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import * as errorUtils from "../../../src/common/utils/error-utils";
 
 // Mock dependencies

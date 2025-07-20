@@ -12,7 +12,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
   LLMCompletionOptions,
-} from "../../llm.types";
+} from "../../types/llm.types";
 import { llmConfig } from "../../llm.config";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "../llm-provider.types";
 import { getErrorText, logErrorMsgAndDetail } from "../../../common/utils/error-utils";

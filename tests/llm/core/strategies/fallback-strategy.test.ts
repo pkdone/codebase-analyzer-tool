@@ -6,7 +6,7 @@ import {
   LLMResponseStatus,
   LLMPurpose,
   LLMResponseTokensUsage,
-} from "../../../../src/llm/llm.types";
+} from "../../../../src/llm/types/llm.types";
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 
 // Mock the logging module

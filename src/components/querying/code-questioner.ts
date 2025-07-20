@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../llm/core/llm-router";
-import { LLMOutputFormat } from "../../llm/llm.types";
+import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appConfig } from "../../config/app.config";
 import { convertArrayOfNumbersToArrayOfDoubles } from "../../common/mdb/mdb-utils";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";

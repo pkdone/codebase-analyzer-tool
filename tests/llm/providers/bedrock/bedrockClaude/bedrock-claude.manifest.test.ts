@@ -2,7 +2,7 @@ import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
-} from "../../../../../src/llm/llm.types";
+} from "../../../../../src/llm/types/llm.types";
 import { extractTokensAmountAndLimitFromErrorMsg } from "../../../../../src/llm/core/utils/msgProcessing/response-error-pattern-parser";
 import { bedrockClaudeProviderManifest } from "../../../../../src/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../src/lifecycle/env";

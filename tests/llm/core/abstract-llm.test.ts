@@ -5,7 +5,7 @@ import {
   LLMErrorMsgRegExPattern,
   LLMResponseTokensUsage,
   LLMContext,
-} from "../../../src/llm/llm.types";
+} from "../../../src/llm/types/llm.types";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderSpecificConfig,
