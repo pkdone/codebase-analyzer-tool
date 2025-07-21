@@ -8,7 +8,6 @@ import type {
   AppSummaryRecord,
   AppSummaryNameDescArray,
 } from "../../repositories/app-summary/app-summaries.model";
-import { appSummaryNameDescArraySchema } from "../../repositories/app-summary/app-summaries.model";
 import { TOKENS } from "../../di/tokens";
 import { HtmlReportWriter } from "./html-report-writer";
 import { JsonReportWriter } from "./json-report-writer";
@@ -172,8 +171,7 @@ export default class AppReportGenerator {
         projectName,
         category as keyof AppSummaryRecord,
       );
-      const parsed = appSummaryNameDescArraySchema.safeParse(result);
-      const data = parsed.success ? parsed.data : [];
+      const data = result ? (result as AppSummaryNameDescArray) : [];
       categorizedData.push({
         category,
         label,

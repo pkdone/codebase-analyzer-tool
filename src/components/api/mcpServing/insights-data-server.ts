@@ -1,8 +1,9 @@
 import { injectable, inject } from "tsyringe";
 import type { AppSummariesRepository } from "../../../repositories/app-summary/app-summaries.repository.interface";
-import type { AppSummaryNameDescArray } from "../../../repositories/app-summary/app-summaries.model";
 import { TOKENS } from "../../../di/tokens";
-import { appSummaryNameDescArraySchema } from "../../../repositories/app-summary/app-summaries.model";
+import { AppSummaryRecord } from "../../../repositories/app-summary/app-summaries.model";
+
+const BUSINESS_PROCESSES_FIELD = "businessProcesses" as const;
 
 /**
  * Class to handle analysis data server operations.
@@ -21,12 +22,10 @@ export default class InsightsDataServer {
   /**
    * Retrieves a list of business processes from the database.
    */
-  async getBusinessProcesses(): Promise<AppSummaryNameDescArray> {
-    const busProcesses = await this.appSummariesRepository.getProjectAppSummaryField(
+  async getBusinessProcesses(): Promise<AppSummaryRecord[typeof BUSINESS_PROCESSES_FIELD] | null> {
+    return await this.appSummariesRepository.getProjectAppSummaryField(
       this.projectName,
-      "businessProcesses" as const,
+      BUSINESS_PROCESSES_FIELD,
     );
-    const parsed = appSummaryNameDescArraySchema.safeParse(busProcesses);
-    return parsed.success ? parsed.data : [];
   }
 }

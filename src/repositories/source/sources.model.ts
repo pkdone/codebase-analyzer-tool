@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
 import { sourceFileSummarySchema } from "../../schemas/source-summaries.schema";
-// Note, `.passthrough()` sets "additionalProperties": true
 
 /**
  * Schema for source file record in the database

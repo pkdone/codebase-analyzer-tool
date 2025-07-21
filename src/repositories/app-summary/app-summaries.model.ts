@@ -9,14 +9,9 @@ import { zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
 export type AppSummaryRecord = z.infer<typeof fullAppSummarySchema>;
 
 /**
- * Schema for arrays of name-description pairs used in app summaries
- */
-export const appSummaryNameDescArraySchema = z.array(nameDescSchema);
-
-/**
  * Type for arrays of name-description pairs used in app summaries
  */
-export type AppSummaryNameDescArray = z.infer<typeof appSummaryNameDescArraySchema>;
+export type AppSummaryNameDescArray = z.infer<typeof nameDescSchema>[];
 
 /**
  * Type for arrays of name-description pairs used in app summaries

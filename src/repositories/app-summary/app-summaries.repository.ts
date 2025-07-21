@@ -67,21 +67,6 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
 
   /**
    * Retrieves the value of a specific field from an app summary record for the given project.
-   *
-   * The return type is inferred based on the requested field name, and will be the exact type
-   * of that field (including undefined if applicable) or `null` if the record is not found.
-   *
-   * - If the field exists but is `undefined`, `undefined` is returned.
-   * - If the record does not exist, `null` is returned.
-   *
-   * Usage examples:
-   *   getProjectAppSummaryField(projectName, 'llmProvider') // Promise<string | null>
-   *   getProjectAppSummaryField(projectName, 'businessProcesses') // Promise<AppSummaryNameDescArray | null>
-   *   getProjectAppSummaryField(projectName, 'appDescription') // Promise<string | null>
-   *
-   * @param projectName - The name of the project.
-   * @param fieldName - The field to retrieve from the app summary record.
-   * @returns The value of the requested field, or null if the record is not found.
    */
   async getProjectAppSummaryField<K extends keyof AppSummaryRecord>(
     projectName: string,
@@ -92,8 +77,6 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
       projection: { _id: 0, [fieldName]: 1 },
     };
     const record = await this.collection.findOne<Pick<AppSummaryRecord, K>>(query, options);
-    // Use optional chaining and nullish coalescing to correctly handle missing records or fields.
-    // This returns the field's value (which could be undefined) or null if the record/field doesn't exist.
     return record?.[fieldName] ?? null;
   }
 }
