@@ -141,7 +141,6 @@ export default class AppReportGenerator {
       throw new Error(
         "Unable to generate app statistics for a report because no app summary data exists - ensure you first run the scripts to process the source data and generate insights",
       );
-
     return {
       projectName: projectName,
       currentDate: this.currentDate,

@@ -241,7 +241,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
         },
       },
       { $set: { fileType: "$_id" } },
-      { $sort: { files: -1 } },
+      { $sort: { files: -1, lines: -1 } },
     ];
     return await this.collection.aggregate<ProjectedFileTypesCountAndLines>(pipeline).toArray();
   }
