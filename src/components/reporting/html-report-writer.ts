@@ -5,6 +5,7 @@ import { jsonFilesConfig } from "./json-files.config";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
 import type { AppStatistics, ProcsAndTriggers, DatabaseIntegrationInfo } from "./report-gen.types";
 import { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
+import { writeFile } from "../../common/utils/fs-utils";
 
 interface EjsTemplateData {
   appStats: AppStatistics;
@@ -26,17 +27,18 @@ const ejs = require("ejs") as {
  * This class takes aggregated data structures and converts them to HTML using template files.
  */
 @injectable()
-export class HtmlReportFormatter {
+export class HtmlReportWriter {
   /**
-   * Generate complete HTML report from all data sections using EJS templates.
+   * Generate complete HTML report from all data sections using EJS templates and write it to file.
    */
-  async generateCompleteHTMLReport(
+  async writeHTMLReportFile(
     appStats: AppStatistics,
     fileTypesData: ProjectedFileTypesCountAndLines[],
     categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[],
     dbInteractions: DatabaseIntegrationInfo[],
     procsAndTriggers: ProcsAndTriggers,
-  ): Promise<string> {
+    htmlFilePath: string,
+  ): Promise<void> {
     const templatePath = path.join(
       __dirname,
       appConfig.HTML_TEMPLATES_DIR,
@@ -51,7 +53,9 @@ export class HtmlReportFormatter {
       jsonFilesConfig,
       convertToDisplayName: this.convertToDisplayName.bind(this),
     };
-    return await ejs.renderFile(templatePath, data);
+    const htmlContent = await ejs.renderFile(templatePath, data);
+    await writeFile(htmlFilePath, htmlContent);
+    console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
   }
 
   /**

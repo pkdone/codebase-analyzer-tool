@@ -10,13 +10,13 @@ import { AppSummariesRepository } from "../../repositories/app-summary/app-summa
 // Component imports
 import { FileSummarizer } from "../../components/capture/file-summarizer";
 import { FileHandlerFactory } from "../../components/capture/file-handler-factory";
-import { HtmlReportFormatter } from "../../components/reporting/html-report-formatter";
+import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
-import { RawCodeToInsightsFileGenerator } from "../../components/insights/one-shot-insights-generator";
+import { RawCodeToInsightsFileGenerator } from "../../components/insights/raw-code-to-insights-file-generator";
 import CodeQuestioner from "../../components/querying/code-questioner";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
-import DBCodeInsightsBackIntoDBGenerator from "../../components/insights/db-code-insights-back-into-db-generator";
+import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
 import InsightsDataServer from "../../components/api/mcpServing/insights-data-server";
 import McpDataServer from "../../components/api/mcpServing/mcp-data-server";
 import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
@@ -65,7 +65,7 @@ function registerRepositories(): void {
 function registerComponents(): void {
   // Register components that don't depend on LLMRouter as regular singletons
   container.registerSingleton(TOKENS.FileHandlerFactory, FileHandlerFactory);
-  container.registerSingleton(TOKENS.HtmlReportFormatter, HtmlReportFormatter);
+  container.registerSingleton(TOKENS.HtmlReportFormatter, HtmlReportWriter);
   container.registerSingleton(TOKENS.JsonReportWriter, JsonReportWriter);
   container.registerSingleton(TOKENS.AppReportGenerator, AppReportGenerator);
   container.registerSingleton(
@@ -89,10 +89,7 @@ function registerLLMDependentComponents(): void {
   container.registerSingleton(TOKENS.FileSummarizer, FileSummarizer);
   container.registerSingleton(TOKENS.CodebaseToDBLoader, CodebaseToDBLoader);
   container.registerSingleton(TOKENS.CodeQuestioner, CodeQuestioner);
-  container.registerSingleton(
-    TOKENS.DBCodeInsightsBackIntoDBGenerator,
-    DBCodeInsightsBackIntoDBGenerator,
-  );
+  container.registerSingleton(TOKENS.InsightsFromDBGenerator, InsightsFromDBGenerator);
 }
 
 /**

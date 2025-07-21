@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { appConfig } from "../config/app.config";
-import { clearDirectory, findFilesRecursively } from "../common/utils/fs-utils";
-import { RawCodeToInsightsFileGenerator } from "../components/insights/one-shot-insights-generator";
+import { clearDirectory } from "../common/utils/fs-utils";
+import { RawCodeToInsightsFileGenerator } from "../components/insights/raw-code-to-insights-file-generator";
 import type LLMRouter from "../llm/core/llm-router";
 import { Task } from "../lifecycle/task.types";
 import type { EnvVars } from "../lifecycle/env.types";
@@ -34,20 +34,12 @@ export class OneShotGenerateInsightsTask implements Task {
    * Generates inline insights.
    */
   private async generateInlineInsights(srcDirPath: string, llmName: string): Promise<void> {
-    const cleanSrcDirPath = srcDirPath.replace(appConfig.TRAILING_SLASH_PATTERN, "");
-    const srcFilepaths = await findFilesRecursively(
-      cleanSrcDirPath,
-      appConfig.FOLDER_IGNORE_LIST,
-      appConfig.FILENAME_PREFIX_IGNORE,
-    );
+    const normalisedSrcDirPath = srcDirPath.replace(appConfig.TRAILING_SLASH_PATTERN, "");
     this.llmRouter.displayLLMStatusSummary();
-    const prompts = await this.insightProcessor.loadPrompts();
     await clearDirectory(appConfig.OUTPUT_DIR);
-    await this.insightProcessor.processSourceFilesWithPrompts(
+    await this.insightProcessor.generateInsightsToFiles(
       this.llmRouter,
-      srcFilepaths,
-      cleanSrcDirPath,
-      prompts,
+      normalisedSrcDirPath,
       llmName,
     );
     this.llmRouter.displayLLMStatusDetails();

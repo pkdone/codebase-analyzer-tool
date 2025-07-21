@@ -10,10 +10,11 @@ import type {
 } from "../../repositories/app-summary/app-summaries.model";
 import { appSummaryNameDescArraySchema } from "../../repositories/app-summary/app-summaries.model";
 import { TOKENS } from "../../di/tokens";
-import { HtmlReportFormatter } from "./html-report-formatter";
+import { HtmlReportWriter } from "./html-report-writer";
 import { JsonReportWriter } from "./json-report-writer";
 import type { AppStatistics, ProcsAndTriggers, DatabaseIntegrationInfo } from "./report-gen.types";
 import { Complexity, isComplexity } from "./report-gen.types";
+import path from "path";
 
 /**
  * Class responsible for aggregating data for HTML report generation.
@@ -31,7 +32,7 @@ export default class AppReportGenerator {
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
     @inject(TOKENS.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
-    @inject(TOKENS.HtmlReportFormatter) private readonly htmlFormatter: HtmlReportFormatter,
+    @inject(TOKENS.HtmlReportFormatter) private readonly htmlWriter: HtmlReportWriter,
     @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
   ) {
     this.currentDate = new Date().toLocaleString();
@@ -40,7 +41,11 @@ export default class AppReportGenerator {
   /**
    * Generate the HTML static file report using the HtmlReportFormatter and write JSON files using JsonReportWriter.
    */
-  async generateHTMLReport(projectName: string): Promise<string> {
+  async generateReport(
+    projectName: string,
+    outputDir: string,
+    outputFilename: string,
+  ): Promise<void> {
     const appStats = await this.getAppStatistics(projectName);
     const fileTypesData =
       await this.sourcesRepository.getProjectFileTypesCountAndLines(projectName);
@@ -54,12 +59,14 @@ export default class AppReportGenerator {
       dbInteractions,
       procsAndTriggers,
     );
-    return await this.htmlFormatter.generateCompleteHTMLReport(
+    const htmlFilePath = path.join(outputDir, outputFilename);
+    await this.htmlWriter.writeHTMLReportFile(
       appStats,
       fileTypesData,
       categorizedData,
       dbInteractions,
       procsAndTriggers,
+      htmlFilePath,
     );
   }
 
@@ -157,7 +164,6 @@ export default class AppReportGenerator {
     const categoryKeys = AppSummaryCategoryEnum.options.filter(
       (key) => key !== appConfig.APP_DESCRIPTION_KEY,
     );
-
     const categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[] =
       [];
 

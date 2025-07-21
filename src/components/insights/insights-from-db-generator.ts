@@ -17,8 +17,7 @@ import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/promp
  * such as entities and processes, for a given project.
  */
 @injectable()
-export default class DBCodeInsightsBackIntoDBGenerator {
-  // Base template for all insights generation prompts
+export default class InsightsFromDBGenerator {
   private readonly APP_CATEGORY_SUMMARIZER_TEMPLATE =
     "Act as a senior developer analyzing the code in a legacy application. Take the list of paths and descriptions of its {{fileContentDesc}} shown below in the section marked 'SOURCES', and based on their content, return a JSON response that contains {{specificInstructions}}.\n\nThe JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";
   private readonly llmProviderDescription: string;
@@ -41,7 +40,7 @@ export default class DBCodeInsightsBackIntoDBGenerator {
    * the entities and processes for the application, storing the results
    * in the database.
    */
-  async generateSummariesDataInDB(): Promise<void> {
+  async generateSummariesDataIntoDB(): Promise<void> {
     const sourceFileSummaries = await this.buildSourceFileListSummaryList();
 
     if (sourceFileSummaries.length === 0) {
@@ -123,7 +122,6 @@ export default class DBCodeInsightsBackIntoDBGenerator {
       const schema = summaryCategoriesConfig[category].schema;
       const content = joinArrayWithSeparators(sourceFileSummaries);
       const prompt = this.createInsightsPrompt(category, content);
-
       // Note: The explicit 'unknown' typing is needed to avoid unsafe assignment lint errors
       // because the schema config uses generic z.ZodType which resolves to 'any'
       const llmResponse = await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import os from "os";
 import { injectable } from "tsyringe";
 import { appConfig } from "../../config/app.config";
-import { readFile, writeFile, readDirContents } from "../../common/utils/fs-utils";
+import { readFile, writeFile, readDirContents, findFilesRecursively } from "../../common/utils/fs-utils";
 import { getFileSuffix } from "../../common/utils/path-utils";
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail, getErrorText } from "../../common/utils/error-utils";
@@ -26,17 +26,20 @@ export class RawCodeToInsightsFileGenerator {
   /**
    * Process source files with prompts and write individual output files.
    */
-  async processSourceFilesWithPrompts(
+  async generateInsightsToFiles(
     llmRouter: LLMRouter,
-    srcFilepaths: string[],
     srcDirPath: string,
-    prompts: FileRequirementPrompt[],
     llmName: string,
   ): Promise<string[]> {
+    const srcFilepaths = await findFilesRecursively(
+      srcDirPath,
+      appConfig.FOLDER_IGNORE_LIST,
+      appConfig.FILENAME_PREFIX_IGNORE,
+    );
+    const prompts = await this.loadPrompts();    
     const codeBlocksContent = await this.mergeSourceFilesContent(srcFilepaths, srcDirPath);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const limit = pLimit(appConfig.MAX_CONCURRENCY);
-
     const tasks = prompts.map(async (prompt) => {
       return limit(async () => {
         const result = await this.executePromptAgainstCodebase(
@@ -60,7 +63,7 @@ export class RawCodeToInsightsFileGenerator {
   /**
    * Load prompts from files in the input folder
    */
-  async loadPrompts(): Promise<FileRequirementPrompt[]> {
+  private async loadPrompts(): Promise<FileRequirementPrompt[]> {
     const inputDir = appConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 

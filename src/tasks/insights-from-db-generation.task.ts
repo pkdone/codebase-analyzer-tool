@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import DBCodeInsightsBackIntoDBGenerator from "../components/insights/db-code-insights-back-into-db-generator";
+import InsightsFromDBGenerator from "../components/insights/insights-from-db-generator";
 import type LLMRouter from "../llm/core/llm-router";
 import { Task } from "../lifecycle/task.types";
 import { TOKENS } from "../di/tokens";
@@ -16,8 +16,8 @@ export class InsightsFromDBGenerationTask implements Task {
   constructor(
     @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(TOKENS.ProjectName) private readonly projectName: string,
-    @inject(TOKENS.DBCodeInsightsBackIntoDBGenerator)
-    private readonly summariesGenerator: DBCodeInsightsBackIntoDBGenerator,
+    @inject(TOKENS.InsightsFromDBGenerator)
+    private readonly insightsFromDBGenerator: InsightsFromDBGenerator,
   ) {}
 
   /**
@@ -33,7 +33,7 @@ export class InsightsFromDBGenerationTask implements Task {
   private async generateInsights(): Promise<void> {
     console.log(`Generating insights for project: ${this.projectName}`);
     this.llmRouter.displayLLMStatusSummary();
-    await this.summariesGenerator.generateSummariesDataInDB();
+    await this.insightsFromDBGenerator.generateSummariesDataIntoDB();
     console.log("Finished generating insights for the project");
     console.log("Summary of LLM invocations outcomes:");
     this.llmRouter.displayLLMStatusDetails();

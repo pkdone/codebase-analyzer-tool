@@ -4,8 +4,7 @@ import { Task } from "../lifecycle/task.types";
 import type { EnvVars } from "../lifecycle/env.types";
 import { TOKENS } from "../di/tokens";
 import { appConfig } from "../config/app.config";
-import { clearDirectory, writeFile } from "../common/utils/fs-utils";
-import path from "path";
+import { clearDirectory } from "../common/utils/fs-utils";
 import AppReportGenerator from "../components/reporting/app-report-generator";
 
 /**
@@ -38,14 +37,10 @@ export class ReportGenerationTask implements Task {
     console.log(cleanSrcDirPath);
     await clearDirectory(appConfig.OUTPUT_DIR);
     console.log(`Creating report for project: ${this.projectName}`);
-
-    // Generate HTML report (also generates JSON files for each category)
-    const htmlFilePath = path.join(appConfig.OUTPUT_DIR, appConfig.OUTPUT_SUMMARY_HTML_FILE);
-    await writeFile(
-      htmlFilePath,
-      await this.appReportGenerator.generateHTMLReport(this.projectName),
+    await this.appReportGenerator.generateReport(
+      this.projectName,
+      appConfig.OUTPUT_DIR,
+      appConfig.OUTPUT_SUMMARY_HTML_FILE,
     );
-
-    console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
   }
 }
