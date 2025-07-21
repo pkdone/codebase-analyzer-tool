@@ -17,7 +17,7 @@ describe("prompt-utils", () => {
       };
       const content = "test content";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(typeof result).toBe("string");
       expect(result).toContain('"type": "string"');
@@ -37,7 +37,7 @@ describe("prompt-utils", () => {
       };
       const content = "sample data";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain('"type": "object"');
       expect(result).toContain('"properties"');
@@ -54,7 +54,7 @@ describe("prompt-utils", () => {
       };
       const content = "item1, item2, item3";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain('"type": "array"');
       expect(result).toContain('"items"');
@@ -71,7 +71,7 @@ describe("prompt-utils", () => {
       };
       const content = "mixed content";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain('"type": [');
       expect(result).toContain('"string"');
@@ -89,7 +89,7 @@ describe("prompt-utils", () => {
       };
       const content = "selection data";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain('"enum"');
       expect(result).toContain("option1");
@@ -106,7 +106,7 @@ describe("prompt-utils", () => {
       };
       const content = "exact match test";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain('"const": "exactValue"');
       expect(result).toContain("exact match test");
@@ -125,7 +125,7 @@ describe("prompt-utils", () => {
       };
       const content = "optional data";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain('"required"');
       expect(result).toContain("optional data");
@@ -150,7 +150,7 @@ describe("prompt-utils", () => {
       };
       const content = "nested content";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain('"type": "object"');
       expect(result).toContain("nested content");
@@ -174,7 +174,7 @@ describe("prompt-utils", () => {
       };
       const content = "complex data";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain('"type": "object"');
       expect(result).toContain('"type": "array"');
@@ -197,7 +197,7 @@ describe("prompt-utils", () => {
       };
       const content = "test content";
 
-      const result = createPromptFromConfig(template, config, content);
+      const result = createPromptFromConfig(template, config.contentDesc, config.instructions, config.schema, content);
 
       expect(result).toContain("File: test file");
       expect(result).toContain("Instructions: test instructions");

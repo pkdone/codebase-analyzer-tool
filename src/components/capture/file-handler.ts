@@ -60,6 +60,12 @@ export class FileHandler<T extends SourceSummaryType = SourceSummaryType> {
    * Creates a prompt for the given file content.
    */
   createPrompt(content: string): string {
-    return createPromptFromConfig(SOURCES_SUMMARY_CAPTURE_TEMPLATE, this.config, content);
+    return createPromptFromConfig(
+      SOURCES_SUMMARY_CAPTURE_TEMPLATE, 
+      this.config.contentDesc, 
+      this.config.instructions, 
+      this.config.schema, 
+      content
+    );
   }
 }

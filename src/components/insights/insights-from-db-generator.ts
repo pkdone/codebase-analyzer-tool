@@ -157,12 +157,9 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
     const config = summaryCategoriesConfig[type];
     return createPromptFromConfig(
       this.APP_CATEGORY_SUMMARIZER_TEMPLATE,
-      {
-        instructions: config.description,
-        schema: config.schema,
-        contentDesc: "source files",
-        trickySchema: IS_TRICKY_SCHEMA,
-      },
+      "source files",
+      config.description,
+      config.schema,
       codeContent,
     );
   }

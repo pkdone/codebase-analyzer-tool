@@ -24,14 +24,16 @@ export interface DynamicPromptConfig {
  */
 export function createPromptFromConfig(
   template: string,
-  config: DynamicPromptConfig,
+  contentDesc: string,
+  specificInstructions: string,
+  schema: z.ZodType,
   codeContent: string,
 ): string {
   return fillPrompt(template, {
-    contentDesc: config.contentDesc,
-    specificInstructions: config.instructions,
+    contentDesc,
+    specificInstructions,
     forceJSON: FORCE_JSON_RESPONSE_TEXT,
-    jsonSchema: JSON.stringify(zodToJsonSchema(config.schema), null, 2),
-    codeContent: codeContent,
+    jsonSchema: JSON.stringify(zodToJsonSchema(schema), null, 2),
+    codeContent,
   });
 }

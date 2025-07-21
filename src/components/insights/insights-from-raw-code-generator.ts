@@ -118,12 +118,9 @@ export default class InsightsFromRawCodeGenerator implements InsightsGenerator {
   ): string {
     return createPromptFromConfig(
       this.APP_CATEGORIES_SUMMARIZER_TEMPLATE,
-      {
-        instructions,
-        schema: appSummaryRecordCategoriesSchema,
-        contentDesc: "codebase codeblock",
-        trickySchema: IS_TRICKY_SCHEMA,
-      },
+      "codebase codeblock",
+      instructions,
+      appSummaryRecordCategoriesSchema,
       codeBlocksContent,
     );
   }
