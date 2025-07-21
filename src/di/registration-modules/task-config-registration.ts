@@ -8,7 +8,7 @@ const TASK_CONFIGURATIONS = new Map<symbol, TaskRunnerConfig>([
   // Main application tasks that require both MongoDB and LLM
   [TOKENS.CodebaseCaptureTask, { requiresMongoDB: true, requiresLLM: true }],
   [TOKENS.CodebaseQueryTask, { requiresMongoDB: true, requiresLLM: true }],
-  [TOKENS.InsightsFromDBGenerationTask, { requiresMongoDB: true, requiresLLM: true }],
+  [TOKENS.InsightsGenerationTask, { requiresMongoDB: true, requiresLLM: true }],
   [TOKENS.McpServerTask, { requiresMongoDB: true, requiresLLM: true }],
 
   // Tasks with specific requirements

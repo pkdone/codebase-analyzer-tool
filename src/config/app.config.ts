@@ -82,7 +82,7 @@ export const appConfig = {
     "tgz",
   ] as const,
   CODE_FILE_EXTENSIONS: ["js", "ts", "java", "py", "sql"] as const,
-  FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+  FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
     ["java", "java"],
     ["js", "javascript"],
     ["ts", "javascript"],

@@ -3,12 +3,17 @@ import { promises as fs } from "fs";
 import os from "os";
 import { injectable } from "tsyringe";
 import { appConfig } from "../../config/app.config";
-import { readFile, writeFile, readDirContents, findFilesRecursively } from "../../common/utils/fs-utils";
-import { getFileSuffix } from "../../common/utils/path-utils";
+import {
+  readFile,
+  writeFile,
+  readDirContents,
+  findFilesRecursively,
+} from "../../common/utils/fs-utils";
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail, getErrorText } from "../../common/utils/error-utils";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
+import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -36,9 +41,9 @@ export class RawCodeToInsightsFileGenerator {
       appConfig.FOLDER_IGNORE_LIST,
       appConfig.FILENAME_PREFIX_IGNORE,
     );
-    const prompts = await this.loadPrompts();    
-    const codeBlocksContent = await this.mergeSourceFilesContent(srcFilepaths, srcDirPath);
+    const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(srcFilepaths, srcDirPath);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
+    const prompts = await this.loadPrompts();
     const limit = pLimit(appConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {
       return limit(async () => {
@@ -85,24 +90,6 @@ export class RawCodeToInsightsFileGenerator {
     }
 
     return prompts;
-  }
-
-  /**
-   * Merge the content of all source files.
-   */
-  private async mergeSourceFilesContent(filepaths: string[], srcDirPath: string): Promise<string> {
-    const contentParts: string[] = [];
-
-    for (const filepath of filepaths) {
-      const relativeFilepath = filepath.replace(`${srcDirPath}/`, "");
-      const type = getFileSuffix(filepath).toLowerCase();
-      if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type))
-        continue; // Skip file if it has binary content
-      const content = await readFile(filepath);
-      contentParts.push(`\n\`\`\` ${relativeFilepath}\n${content.trim()}\n\`\`\`\n`);
-    }
-
-    return contentParts.join("").trim();
   }
 
   /**

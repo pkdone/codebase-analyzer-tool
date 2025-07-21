@@ -1,4 +1,5 @@
 import { injectable, inject } from "tsyringe";
+import { z } from "zod";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appConfig } from "../../config/app.config";
@@ -6,20 +7,27 @@ import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { joinArrayWithSeparators } from "../../common/utils/text-utils";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { PartialAppSummaryRecord } from "../../repositories/app-summary/app-summaries.model";
 import { TOKENS } from "../../di/tokens";
 import { SummaryCategory, summaryCategoriesConfig } from "./summary-categories.config";
-import { AppSummaryCategoryEnum } from "../../schemas/app-summary-categories.schema";
+import { AppSummaryCategoryEnum, partialAppSummarySchema } from "../../schemas/app-summary-categories.schema";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
+import type { InsightsGenerator } from "./insights-generator.interface";
+
+// Type for validating the LLM response for a specific category
+type PartialAppSummaryRecord = Partial<z.infer<typeof partialAppSummarySchema>>;
+
+// Mark schema as being easy for LLMs to digest
+const IS_TRICKY_SCHEMA = false;
 
 /**
  * Generates metadata in database collections to capture application information,
  * such as entities and processes, for a given project.
  */
 @injectable()
-export default class InsightsFromDBGenerator {
+export default class InsightsFromDBGenerator implements InsightsGenerator {
+  // Private fields
   private readonly APP_CATEGORY_SUMMARIZER_TEMPLATE =
-    "Act as a senior developer analyzing the code in a legacy application. Take the list of paths and descriptions of its {{fileContentDesc}} shown below in the section marked 'SOURCES', and based on their content, return a JSON response that contains {{specificInstructions}}.\n\nThe JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";
+    "Act as a senior developer analyzing the code in a legacy application. Take the list of paths and descriptions of its {{contentDesc}} shown below in the section marked 'SOURCES', and based on their content, return a JSON response that contains {{specificInstructions}}.\n\nThe JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";
   private readonly llmProviderDescription: string;
 
   /**
@@ -95,14 +103,16 @@ export default class InsightsFromDBGenerator {
     sourceFileSummaries: string[],
   ): Promise<void> {
     const categoryLabel = summaryCategoriesConfig[category].label;
-    let validatedData: PartialAppSummaryRecord | null = null;
 
     try {
       console.log(`Processing ${categoryLabel}`);
-      validatedData = await this.getCategorySummaryAsJSON(category, sourceFileSummaries);
-      if (!validatedData) return;
-      await this.appSummariesRepository.updateAppSummary(this.projectName, validatedData);
-      console.log(`Captured main ${categoryLabel} details into database`);
+      const categorySummaryData = await this.getCategorySummaryAsValidatedJSON(
+        category,
+        sourceFileSummaries,
+      );
+      if (!categorySummaryData) return;
+      await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
+      console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
       logErrorMsgAndDetail(`Unable to generate ${categoryLabel} details into database`, error);
     }
@@ -112,7 +122,7 @@ export default class InsightsFromDBGenerator {
    * Calls an LLM to summarize a specific set of data (i.e., one category), and then saves the
    * dataset under a named field of the main application summary record.
    */
-  private async getCategorySummaryAsJSON(
+  private async getCategorySummaryAsValidatedJSON(
     category: SummaryCategory,
     sourceFileSummaries: string[],
   ): Promise<PartialAppSummaryRecord | null> {
@@ -121,18 +131,16 @@ export default class InsightsFromDBGenerator {
     try {
       const schema = summaryCategoriesConfig[category].schema;
       const content = joinArrayWithSeparators(sourceFileSummaries);
-      const prompt = this.createInsightsPrompt(category, content);
-      // Note: The explicit 'unknown' typing is needed to avoid unsafe assignment lint errors
-      // because the schema config uses generic z.ZodType which resolves to 'any'
+      const prompt = this.createInsightsForCateogryPrompt(category, content);
       const llmResponse = await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
         category,
         prompt,
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
+          trickySchema: IS_TRICKY_SCHEMA,          
         },
       );
-
       return llmResponse;
     } catch (error) {
       console.warn(
@@ -143,17 +151,17 @@ export default class InsightsFromDBGenerator {
   }
 
   /**
-   * Generic function to create any insights prompt using the data-driven approach
+   * Create a prompt for the LLM to generate insights for a specific categories
    */
-  private createInsightsPrompt(type: SummaryCategory, codeContent: string): string {
+  private createInsightsForCateogryPrompt(type: SummaryCategory, codeContent: string): string {
     const config = summaryCategoriesConfig[type];
     return createPromptFromConfig(
       this.APP_CATEGORY_SUMMARIZER_TEMPLATE,
       {
         instructions: config.description,
         schema: config.schema,
-        fileContentDesc: "source files",
-        trickySchema: false,
+        contentDesc: "source files",
+        trickySchema: IS_TRICKY_SCHEMA,
       },
       codeContent,
     );

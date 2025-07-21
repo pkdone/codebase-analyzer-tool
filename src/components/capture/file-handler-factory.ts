@@ -40,9 +40,9 @@ export class FileHandlerFactory {
       return canonicalType;
     }
 
-    // Use the suffix-based mapping to determine the canonical type
+    // Use the extension-based mapping to determine the canonical type
     return (
-      appConfig.FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase()) ??
+      appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase()) ??
       appConfig.DEFAULT_FILE_TYPE
     );
   }

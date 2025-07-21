@@ -19,7 +19,7 @@ export const TOKENS = {
   // Tasks (formerly Services - these are top-level orchestrators for CLI commands)
   CodebaseCaptureTask: Symbol.for("CodebaseCaptureTask"),
   CodebaseQueryTask: Symbol.for("CodebaseQueryTask"),
-  InsightsFromDBGenerationTask: Symbol.for("InsightsFromDBGenerationTask"),
+  InsightsGenerationTask: Symbol.for("InsightsGenerationTask"),
   OneShotGenerateInsightsTask: Symbol.for("OneShotGenerateInsightsTask"),
   PluggableLLMsTestTask: Symbol.for("PluggableLLMsTestTask"),
   MDBConnectionTestTask: Symbol.for("MDBConnectionTestTask"),
@@ -39,6 +39,7 @@ export const TOKENS = {
   AppReportGenerator: Symbol.for("AppReportGenerator"),
   CodebaseToDBLoader: Symbol.for("CodebaseToDBLoader"),
   CodeQuestioner: Symbol.for("CodeQuestioner"),
+  InsightsGenerator: Symbol.for("InsightsGenerator"),
   InsightsFromDBGenerator: Symbol.for("InsightsFromDBGenerator"),
   RawCodeToInsightsFileGenerator: Symbol.for("RawCodeToInsightsFileGenerator"),
 

@@ -48,7 +48,7 @@ jest.mock("../../../src/config/app.config", () => ({
 jest.mock("../../../src/components/capture/files-types-metadata.config", () => ({
   filesTypeMetatadataConfig: {
     java: {
-      fileContentDesc: "Java code",
+      contentDesc: "Java code",
       instructions: "Java instructions",
       schema: {
         parse: jest.fn().mockReturnValue({}),
@@ -56,7 +56,7 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
       },
     },
     javascript: {
-      fileContentDesc: "JavaScript/TypeScript code",
+      contentDesc: "JavaScript/TypeScript code",
       instructions: "JavaScript instructions",
       schema: {
         parse: jest.fn().mockReturnValue({}),
@@ -64,7 +64,7 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
       },
     },
     default: {
-      fileContentDesc: "project file content",
+      contentDesc: "project file content",
       instructions: "Default instructions",
       schema: {
         parse: jest.fn().mockReturnValue({}),
@@ -72,7 +72,7 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
       },
     },
     sql: {
-      fileContentDesc: "database DDL/DML/SQL code",
+      contentDesc: "database DDL/DML/SQL code",
       instructions: "SQL instructions",
       schema: {
         parse: jest.fn().mockReturnValue({}),
@@ -80,7 +80,7 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
       },
     },
     xml: {
-      fileContentDesc: "XML code",
+      contentDesc: "XML code",
       instructions: "XML instructions",
       schema: {
         parse: jest.fn().mockReturnValue({}),
@@ -88,7 +88,7 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
       },
     },
     jsp: {
-      fileContentDesc: "JSP code",
+      contentDesc: "JSP code",
       instructions: "JSP instructions",
       schema: {
         parse: jest.fn().mockReturnValue({}),
@@ -96,7 +96,7 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
       },
     },
     markdown: {
-      fileContentDesc: "Markdown content",
+      contentDesc: "Markdown content",
       instructions: "Markdown instructions",
       schema: {
         parse: jest.fn().mockReturnValue({}),
@@ -108,8 +108,8 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
 
 jest.mock("../../../src/llm/core/utils/msgProcessing/prompt-templator", () => ({
   createPromptFromConfig: jest.fn(
-    (_template: string, config: { fileContentDesc: string }, content: string) => {
-      return `Mock prompt for ${config.fileContentDesc} with content: ${content}`;
+    (_template: string, config: { contentDesc: string }, content: string) => {
+      return `Mock prompt for ${config.contentDesc} with content: ${content}`;
     },
   ),
   promptConfig: {

@@ -48,12 +48,12 @@ describe("File Handler Configuration", () => {
       });
     });
 
-    test("should have fileContentDesc and instructions for each type", () => {
+    test("should have contentDesc and instructions for each type", () => {
       Object.entries(filesTypeMetatadataConfig).forEach(([, config]) => {
-        expect(config).toHaveProperty("fileContentDesc");
+        expect(config).toHaveProperty("contentDesc");
         expect(config).toHaveProperty("instructions");
         expect(config).toHaveProperty("schema");
-        expect(typeof config.fileContentDesc).toBe("string");
+        expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("string");
       });
     });
@@ -62,7 +62,7 @@ describe("File Handler Configuration", () => {
   describe("FileHandler class", () => {
     test("should enforce correct structure", () => {
       const testConfig: DynamicPromptConfig = {
-        fileContentDesc: "test content",
+        contentDesc: "test content",
         instructions: "test instructions",
         schema: sourceFileSummarySchema,
         trickySchema: false,
@@ -77,7 +77,7 @@ describe("File Handler Configuration", () => {
     test("should work with type compatibility", () => {
       // Test that FileHandler can work with inline schema types
       const typedConfig: DynamicPromptConfig = {
-        fileContentDesc: "test content",
+        contentDesc: "test content",
         instructions: "test instructions",
         schema: sourceFileSummarySchema.pick({ purpose: true, implementation: true }),
         trickySchema: false,
@@ -130,7 +130,7 @@ describe("File Handler Configuration", () => {
 
   describe("Integration between file suffix mappings and prompt templates", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
-      const canonicalTypes = new Set(appConfig.FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS.values());
+      const canonicalTypes = new Set(appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values());
 
       canonicalTypes.forEach((canonicalType) => {
         expect(filesTypeMetatadataConfig).toHaveProperty(canonicalType);
@@ -141,7 +141,7 @@ describe("File Handler Configuration", () => {
       // Test that unknown suffix maps to default
       const unknownSuffix = "unknown";
       const canonicalType =
-        appConfig.FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ?? "default";
+        appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ?? "default";
 
       expect(canonicalType).toBe("default");
       expect(filesTypeMetatadataConfig).toHaveProperty("default");

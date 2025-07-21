@@ -11,7 +11,7 @@ describe("prompt-utils", () => {
         "Generate JSON following this schema: {{jsonSchema}}\n\nContent: {{codeContent}}";
       const config: DynamicPromptConfig = {
         schema: z.string(),
-        fileContentDesc: "text file",
+        contentDesc: "text file",
         instructions: "process this text",
         trickySchema: false,
       };
@@ -31,7 +31,7 @@ describe("prompt-utils", () => {
           name: z.string(),
           age: z.number(),
         }),
-        fileContentDesc: "data file",
+        contentDesc: "data file",
         instructions: "extract data",
         trickySchema: false,
       };
@@ -48,7 +48,7 @@ describe("prompt-utils", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: DynamicPromptConfig = {
         schema: z.array(z.string()),
-        fileContentDesc: "list file",
+        contentDesc: "list file",
         instructions: "create list",
         trickySchema: false,
       };
@@ -65,7 +65,7 @@ describe("prompt-utils", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: DynamicPromptConfig = {
         schema: z.union([z.string(), z.number()]),
-        fileContentDesc: "mixed file",
+        contentDesc: "mixed file",
         instructions: "process mixed data",
         trickySchema: false,
       };
@@ -83,7 +83,7 @@ describe("prompt-utils", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: DynamicPromptConfig = {
         schema: z.enum(["option1", "option2", "option3"]),
-        fileContentDesc: "choice file",
+        contentDesc: "choice file",
         instructions: "select option",
         trickySchema: false,
       };
@@ -100,7 +100,7 @@ describe("prompt-utils", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: DynamicPromptConfig = {
         schema: z.literal("exactValue"),
-        fileContentDesc: "literal file",
+        contentDesc: "literal file",
         instructions: "match exact value",
         trickySchema: false,
       };
@@ -119,7 +119,7 @@ describe("prompt-utils", () => {
           required: z.string(),
           optional: z.string().optional(),
         }),
-        fileContentDesc: "optional file",
+        contentDesc: "optional file",
         instructions: "handle optional fields",
         trickySchema: false,
       };
@@ -144,7 +144,7 @@ describe("prompt-utils", () => {
             }),
           }),
         }),
-        fileContentDesc: "nested file",
+        contentDesc: "nested file",
         instructions: "handle nested structure",
         trickySchema: false,
       };
@@ -168,7 +168,7 @@ describe("prompt-utils", () => {
             }),
           ),
         }),
-        fileContentDesc: "complex file",
+        contentDesc: "complex file",
         instructions: "handle complex structure",
         trickySchema: false,
       };
@@ -183,7 +183,7 @@ describe("prompt-utils", () => {
 
     it("should replace all template variables", () => {
       const template = `
-        File: {{fileContentDesc}}
+        File: {{contentDesc}}
         Instructions: {{specificInstructions}}
         Schema: {{jsonSchema}}
         Content: {{codeContent}}
@@ -191,7 +191,7 @@ describe("prompt-utils", () => {
       `;
       const config: DynamicPromptConfig = {
         schema: z.string(),
-        fileContentDesc: "test file",
+        contentDesc: "test file",
         instructions: "test instructions",
         trickySchema: false,
       };

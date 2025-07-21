@@ -17,6 +17,8 @@ import CodeQuestioner from "../../components/querying/code-questioner";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
+import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
+import { createInsightsGenerator } from "../../components/insights/insights-generator.factory";
 import InsightsDataServer from "../../components/api/mcpServing/insights-data-server";
 import McpDataServer from "../../components/api/mcpServing/mcp-data-server";
 import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
@@ -24,7 +26,7 @@ import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
 // Task imports (these are top-level orchestrators for CLI commands)
 import { CodebaseCaptureTask } from "../../tasks/codebase-capture.task";
 import { CodebaseQueryTask } from "../../tasks/code-query.task";
-import { InsightsFromDBGenerationTask } from "../../tasks/insights-from-db-generation.task";
+import { InsightsGenerationTask } from "../../tasks/insights-generation.task";
 import { OneShotGenerateInsightsTask } from "../../tasks/one-shot-generate-insights.task";
 import { MDBConnectionTestTask } from "../../tasks/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/test-pluggable-llms.task";
@@ -90,6 +92,15 @@ function registerLLMDependentComponents(): void {
   container.registerSingleton(TOKENS.CodebaseToDBLoader, CodebaseToDBLoader);
   container.registerSingleton(TOKENS.CodeQuestioner, CodeQuestioner);
   container.registerSingleton(TOKENS.InsightsFromDBGenerator, InsightsFromDBGenerator);
+
+  // Register both insights generator implementations
+  container.registerSingleton(InsightsFromDBGenerator);
+  container.registerSingleton(InsightsFromRawCodeGenerator);
+
+  // Register the InsightsGenerator interface with factory
+  container.register(TOKENS.InsightsGenerator, {
+    useFactory: () => createInsightsGenerator(),
+  });
 }
 
 /**
@@ -115,7 +126,7 @@ function registerLLMDependentTasks(): void {
   // Simplified registrations using tsyringe's automatic dependency injection
   container.registerSingleton(TOKENS.CodebaseQueryTask, CodebaseQueryTask);
   container.registerSingleton(TOKENS.CodebaseCaptureTask, CodebaseCaptureTask);
-  container.registerSingleton(TOKENS.InsightsFromDBGenerationTask, InsightsFromDBGenerationTask);
+  container.registerSingleton(TOKENS.InsightsGenerationTask, InsightsGenerationTask);
   container.registerSingleton(TOKENS.OneShotGenerateInsightsTask, OneShotGenerateInsightsTask);
   container.registerSingleton(TOKENS.PluggableLLMsTestTask, PluggableLLMsTestTask);
   console.log("LLM-dependent tasks registered with simplified singleton registrations");

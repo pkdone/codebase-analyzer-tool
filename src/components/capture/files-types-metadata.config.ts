@@ -28,7 +28,7 @@ const COMMON_INSTRUCTIONS = {
  */
 export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
   java: {
-    fileContentDesc: "Java code",
+    contentDesc: "Java code",
     instructions: `* The name of the main public class/interface of the file
  * Its class type ('class' or 'interface')
  * Its classpath
@@ -73,7 +73,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     trickySchema: false,
   },
   javascript: {
-    fileContentDesc: "JavaScript/TypeScript code",
+    contentDesc: "JavaScript/TypeScript code",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
  * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JS}
@@ -89,7 +89,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     trickySchema: false,
   },
   default: {
-    fileContentDesc: "project file content",
+    contentDesc: "project file content",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}.`,
     schema: sourceFileSummarySchema.pick({
@@ -99,7 +99,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     trickySchema: false,
   },
   sql: {
-    fileContentDesc: "database DDL/DML/SQL code",
+    contentDesc: "database DDL/DML/SQL code",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
  * A list of the tables (if any) it defines - for each table, include the table's name and a copy of the command that creates the file used to create the table
@@ -132,7 +132,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     trickySchema: true,
   },
   xml: {
-    fileContentDesc: "XML code",
+    contentDesc: "XML code",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
     schema: sourceFileSummarySchema.pick({
@@ -142,7 +142,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     trickySchema: false,
   },
   jsp: {
-    fileContentDesc: "JSP code",
+    contentDesc: "JSP code",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JAVA}
@@ -158,7 +158,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     trickySchema: false,
   },
   markdown: {
-    fileContentDesc: "Markdown content",
+    contentDesc: "Markdown content",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
     schema: sourceFileSummarySchema.pick({

@@ -3,7 +3,7 @@ import { appConfig } from "../../src/config/app.config";
 describe("App Configuration", () => {
   describe("appConfig.FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS", () => {
     test("should be a Map instance", () => {
-      expect(appConfig.FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS).toBeInstanceOf(Map);
+      expect(appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS).toBeInstanceOf(Map);
     });
 
     test("should contain expected file suffix mappings", () => {
@@ -22,7 +22,7 @@ describe("App Configuration", () => {
       ];
 
       expectedMappings.forEach(([suffix, expected]) => {
-        expect(appConfig.FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS.get(suffix)).toBe(expected);
+        expect(appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(suffix)).toBe(expected);
       });
     });
   });

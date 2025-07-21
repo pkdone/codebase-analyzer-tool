@@ -14,7 +14,7 @@ ONLY provide an RFC8259 compliant JSON response that strictly follows the provid
  */
 export interface DynamicPromptConfig {
   schema: z.ZodType;
-  fileContentDesc: string;
+  contentDesc: string;
   instructions: string;
   trickySchema: boolean;
 }
@@ -28,7 +28,7 @@ export function createPromptFromConfig(
   codeContent: string,
 ): string {
   return fillPrompt(template, {
-    fileContentDesc: config.fileContentDesc,
+    contentDesc: config.contentDesc,
     specificInstructions: config.instructions,
     forceJSON: FORCE_JSON_RESPONSE_TEXT,
     jsonSchema: JSON.stringify(zodToJsonSchema(config.schema), null, 2),

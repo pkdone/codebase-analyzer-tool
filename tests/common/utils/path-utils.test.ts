@@ -1,4 +1,4 @@
-import { getFileSuffix } from "../../../src/common/utils/path-utils";
+import { getFileExtension } from "../../../src/common/utils/path-utils";
 
 describe("File system utilities", () => {
   // Test data for getFileSuffix function
@@ -9,6 +9,6 @@ describe("File system utilities", () => {
   ];
 
   test.each(fileSuffixTestData)("getFileSuffix $description", ({ input, expected }) => {
-    expect(getFileSuffix(input)).toBe(expected);
+    expect(getFileExtension(input)).toBe(expected);
   });
 });

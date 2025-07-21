@@ -51,7 +51,7 @@ describe("Dependency Registration", () => {
       // Verify that environment variables and tasks are registered
       expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
       expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
-      expect(container.isRegistered(TOKENS.InsightsFromDBGenerationTask)).toBe(true);
+      expect(container.isRegistered(TOKENS.InsightsGenerationTask)).toBe(true);
 
       // Verify that LLM and MongoDB dependencies are not registered
       expect(container.isRegistered(TOKENS.LLMService)).toBe(false);
@@ -210,7 +210,7 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
 
       // Test that registration is idempotent - verify task tokens are registered
-      expect(container.isRegistered(TOKENS.InsightsFromDBGenerationTask)).toBe(true);
+      expect(container.isRegistered(TOKENS.InsightsGenerationTask)).toBe(true);
       expect(container.isRegistered(TOKENS.PluggableLLMsTestTask)).toBe(true);
     });
 

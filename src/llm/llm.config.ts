@@ -20,5 +20,6 @@ export const llmConfig = {
   LLM_UTF8_ENCODING: "utf8",
   LLM_RESPONSE_JSON_CONTENT_TYPE: "application/json",
   LLM_RESPONSE_ANY_CONTENT_TYPE: "*/*",
+  LARGE_CONTEXT_LLMS: ["VertexAIGemini"],
   PROBLEMATIC_SHUTDOWN_LLM_PROVIDER: "VertexAIGemini",
 } as const;

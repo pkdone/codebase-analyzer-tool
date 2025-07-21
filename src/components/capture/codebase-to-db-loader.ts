@@ -3,7 +3,7 @@ import type LLMRouter from "../../llm/core/llm-router";
 import path from "path";
 import { appConfig } from "../../config/app.config";
 import { readFile, findFilesRecursively } from "../../common/utils/fs-utils";
-import { getFileSuffix } from "../../common/utils/path-utils";
+import { getFileExtension } from "../../common/utils/path-utils";
 import { countLines } from "../../common/utils/text-utils";
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
@@ -102,7 +102,7 @@ export default class CodebaseToDBLoader {
     srcDirPath: string,
     ignoreIfAlreadyCaptured: boolean,
   ) {
-    const type = getFileSuffix(fullFilepath).toLowerCase();
+    const type = getFileExtension(fullFilepath).toLowerCase();
     const filepath = fullFilepath.replace(`${srcDirPath}/`, "");
     if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
 

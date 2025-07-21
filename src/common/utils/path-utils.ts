@@ -9,8 +9,8 @@ export function getProjectNameFromPath(filePath: string): string {
 }
 
 /**
- * Returns the suffix of a filename from a full file path.
+ * Returns the extension of a filename from a full file path.
  */
-export function getFileSuffix(filepath: string): string {
+export function getFileExtension(filepath: string): string {
   return path.extname(filepath).slice(1); // .slice(1) to remove the leading dot
 }

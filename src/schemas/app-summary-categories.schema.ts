@@ -287,3 +287,32 @@ export const potentialMicroservicesSchema = z.object({
       "A list of recommended potential applicable microservices to modernize the monolithic application, each following the Single Responsibility Principle with defined CRUD operations, REST API endpoints, and domain-driven design entities.",
     ),
 });
+
+/**
+ * Schema for full application summary of categories
+ */
+export const fullAppSummarySchema = z
+  .object({
+    projectName: z.string(),
+    llmProvider: z.string(),
+    appDescription: appDescriptionSchema.shape.appDescription.optional(),
+    businessProcesses: businessProcessesSchema.shape.businessProcesses.optional(),
+    technologies: technologiesSchema.shape.technologies.optional(),
+    boundedContexts: boundedContextsSchema.shape.boundedContexts.optional(),
+    aggregates: aggregatesSchema.shape.aggregates.optional(),
+    entities: entitiesSchema.shape.entities.optional(),
+    repositories: repositoriesSchema.shape.repositories.optional(),
+    potentialMicroservices: potentialMicroservicesSchema.shape.potentialMicroservices.optional(),
+  })
+  .passthrough();
+
+
+/**
+ * Schema for arrays of name-description pairs used in app summaries
+ */
+export const partialAppSummarySchema = fullAppSummarySchema.partial();
+
+/**
+ * Schema for all category fields of app summary (so excluding 'projectName' and 'llmProvider')
+ */
+export const appSummaryRecordCategoriesSchema = fullAppSummarySchema.omit({ projectName: true, llmProvider: true });

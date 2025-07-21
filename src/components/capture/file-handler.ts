@@ -4,7 +4,7 @@ import { DynamicPromptConfig } from "../../llm/core/utils/msgProcessing/prompt-t
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 
 // Base template for detailed file summary prompts
-const SOURCES_SUMMARY_CAPTURE_TEMPLATE = `Act as a programmer. Take the {{fileContentDesc}} shown below in the section marked 'CODE' and based on its content, return a JSON response containing data that includes the following:
+const SOURCES_SUMMARY_CAPTURE_TEMPLATE = `Act as a programmer. Take the {{contentDesc}} shown below in the section marked 'CODE' and based on its content, return a JSON response containing data that includes the following:
 
 {{specificInstructions}}
 
@@ -38,8 +38,8 @@ export class FileHandler<T extends SourceSummaryType = SourceSummaryType> {
   /**
    * Gets the file content description.
    */
-  get fileContentDescription(): string {
-    return this.config.fileContentDesc;
+  get contentDescription(): string {
+    return this.config.contentDesc;
   }
 
   /**
