@@ -61,11 +61,11 @@ export class FileHandler<T extends SourceSummaryType = SourceSummaryType> {
    */
   createPrompt(content: string): string {
     return createPromptFromConfig(
-      SOURCES_SUMMARY_CAPTURE_TEMPLATE, 
-      this.config.contentDesc, 
-      this.config.instructions, 
-      this.config.schema, 
-      content
+      SOURCES_SUMMARY_CAPTURE_TEMPLATE,
+      this.config.contentDesc,
+      this.config.instructions,
+      this.config.schema,
+      content,
     );
   }
 }

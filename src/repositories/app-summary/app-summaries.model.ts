@@ -11,7 +11,7 @@ export type AppSummaryRecordNoId = z.infer<typeof fullAppSummarySchema>;
 /**
  * Type for app summary record without _id
  */
-export type AppSummaryRecord = AppSummaryRecordNoId & { _id: z.infer<typeof zBsonObjectId> }; 
+export type AppSummaryRecord = AppSummaryRecordNoId & { _id: z.infer<typeof zBsonObjectId> };
 
 /**
  * Type for arrays of name-description pairs used in app summaries

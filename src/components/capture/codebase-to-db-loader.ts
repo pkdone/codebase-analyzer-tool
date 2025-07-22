@@ -9,8 +9,9 @@ import pLimit from "p-limit";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { SourceRecord } from "../../repositories/source/sources.model";
+import type { SourceRecordNoId } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
+import type { SourceSummaryType } from "../../schemas/source-summaries.schema";
 
 /**
  * Loads each source file into a class to represent it.
@@ -126,7 +127,7 @@ export default class CodebaseToDBLoader {
     const filename = path.basename(filepath);
     const linesCount = countLines(content);
     const summaryResult = await this.fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
-    let summary: object | undefined;
+    let summary: SourceSummaryType | undefined;
     let summaryError: string | undefined;
     let summaryVector: number[] | undefined;
 
@@ -143,7 +144,7 @@ export default class CodebaseToDBLoader {
 
     const contentVectorResult = await this.getContentEmbeddings(filepath, content);
     const contentVector = contentVectorResult ?? undefined;
-    const sourceFileRecord: SourceRecord = {
+    const sourceFileRecord: SourceRecordNoId = {
       projectName: projectName,
       filename,
       filepath,

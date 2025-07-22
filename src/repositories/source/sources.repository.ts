@@ -9,6 +9,7 @@ import {
   ProjectedDatabaseIntegrationFields,
   ProjectedFilePath,
   ProjectedFileTypesCountAndLines,
+  SourceRecordNoId,
 } from "./sources.model";
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
@@ -34,9 +35,9 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
   /**
    * Insert a source file record into the database
    */
-  async insertSource(sourceFileData: SourceRecord): Promise<void> {
+  async insertSource(sourceFileData: SourceRecordNoId): Promise<void> {
     try {
-      await this.collection.insertOne(sourceFileData);
+      await this.collection.insertOne(sourceFileData as SourceRecord);
     } catch (error: unknown) {
       logMongoValidationErrorIfPresent(error);
       throw error;

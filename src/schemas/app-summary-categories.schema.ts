@@ -306,7 +306,6 @@ export const fullAppSummarySchema = z
   })
   .passthrough();
 
-
 /**
  * Schema for arrays of name-description pairs used in app summaries
  */
@@ -315,4 +314,7 @@ export const partialAppSummarySchema = fullAppSummarySchema.partial();
 /**
  * Schema for all category fields of app summary (so excluding 'projectName' and 'llmProvider')
  */
-export const appSummaryRecordCategoriesSchema = fullAppSummarySchema.omit({ projectName: true, llmProvider: true });
+export const appSummaryRecordCategoriesSchema = fullAppSummarySchema.omit({
+  projectName: true,
+  llmProvider: true,
+});

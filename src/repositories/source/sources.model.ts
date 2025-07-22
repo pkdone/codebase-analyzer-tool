@@ -7,7 +7,6 @@ import { sourceFileSummarySchema } from "../../schemas/source-summaries.schema";
  */
 export const sourceRecordSchema = z
   .object({
-    _id: zBsonObjectId,
     projectName: z.string(),
     filename: z.string(),
     filepath: z.string(),
@@ -22,11 +21,14 @@ export const sourceRecordSchema = z
   .passthrough();
 
 /**
- * Interface representing a source file record in the database
- * (making it optional for _id)
+ * Type for source record without _id
  */
-export type SourceRecord = Omit<z.infer<typeof sourceRecordSchema>, "_id"> &
-  Partial<Pick<z.infer<typeof sourceRecordSchema>, "_id">>;
+export type SourceRecordNoId = z.infer<typeof sourceRecordSchema>;
+
+/**
+ * Type for source record without _id
+ */
+export type SourceRecord = SourceRecordNoId & { _id: z.infer<typeof zBsonObjectId> };
 
 /**
  * Note: For non-simple projects, and especially for partial projections of nested fields, we need
@@ -127,5 +129,5 @@ export interface ProjectedFileTypesCountAndLines {
  * Generate JSON schema for source file records
  */
 export function getJSONSchema() {
-  return zodToJsonSchemaForMDB(sourceRecordSchema);
+  return zodToJsonSchemaForMDB(sourceRecordSchema.extend({ _id: zBsonObjectId }));
 }

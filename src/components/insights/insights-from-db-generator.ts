@@ -9,7 +9,10 @@ import type { AppSummariesRepository } from "../../repositories/app-summary/app-
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../di/tokens";
 import { SummaryCategory, summaryCategoriesConfig } from "./summary-categories.config";
-import { AppSummaryCategoryEnum, partialAppSummarySchema } from "../../schemas/app-summary-categories.schema";
+import {
+  AppSummaryCategoryEnum,
+  partialAppSummarySchema,
+} from "../../schemas/app-summary-categories.schema";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import type { InsightsGenerator } from "./insights-generator.interface";
 
@@ -138,7 +141,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
-          trickySchema: IS_TRICKY_SCHEMA,          
+          trickySchema: IS_TRICKY_SCHEMA,
         },
       );
       return llmResponse;

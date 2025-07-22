@@ -40,9 +40,7 @@ describe("AnalysisDataServer", () => {
 
     // Handle case where array exists but is empty
     if (result.length === 0) {
-      console.log(
-        "Business processes field exists but is empty - this is acceptable",
-      );
+      console.log("Business processes field exists but is empty - this is acceptable");
       return;
     }
 

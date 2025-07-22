@@ -1,11 +1,11 @@
 import { Double } from "mongodb";
 import {
-  SourceRecord,
   ProjectedSourceMetataContentAndSummary,
   ProjectedSourceFilePathAndSummary,
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
   ProjectedFileTypesCountAndLines,
+  SourceRecordNoId,
 } from "./sources.model";
 
 /**
@@ -15,7 +15,7 @@ export interface SourcesRepository {
   /**
    * Insert a source file record into the database
    */
-  insertSource(sourceFileData: SourceRecord): Promise<void>;
+  insertSource(sourceFileData: SourceRecordNoId): Promise<void>;
 
   /**
    * Delete all source files for a specific project
