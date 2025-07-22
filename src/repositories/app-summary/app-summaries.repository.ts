@@ -5,6 +5,7 @@ import {
   AppSummaryRecord,
   ProjectedAppSummaryDescAndLLMProvider,
   PartialAppSummaryRecord,
+  AppSummaryRecordNoId,
 } from "./app-summaries.model";
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
@@ -29,7 +30,7 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
   /**
    * Create or replace an app summary record
    */
-  async createOrReplaceAppSummary(record: AppSummaryRecord): Promise<void> {
+  async createOrReplaceAppSummary(record: AppSummaryRecordNoId): Promise<void> {
     try {
       await this.collection.replaceOne({ projectName: record.projectName }, record, {
         upsert: true,

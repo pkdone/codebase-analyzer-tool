@@ -4,9 +4,14 @@ import { nameDescSchema, fullAppSummarySchema } from "../../schemas/app-summary-
 import { zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
 
 /**
- * Type for full app summary record
+ * Type for app summary record without _id
  */
-export type AppSummaryRecord = z.infer<typeof fullAppSummarySchema>;
+export type AppSummaryRecordNoId = z.infer<typeof fullAppSummarySchema>;
+
+/**
+ * Type for app summary record without _id
+ */
+export type AppSummaryRecord = AppSummaryRecordNoId & { _id: z.infer<typeof zBsonObjectId> }; 
 
 /**
  * Type for arrays of name-description pairs used in app summaries

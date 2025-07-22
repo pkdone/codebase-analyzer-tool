@@ -2,6 +2,7 @@ import {
   AppSummaryRecord,
   ProjectedAppSummaryDescAndLLMProvider,
   PartialAppSummaryRecord,
+  AppSummaryRecordNoId,
 } from "./app-summaries.model";
 
 /**
@@ -11,7 +12,7 @@ export interface AppSummariesRepository {
   /**
    * Create or replace an app summary record
    */
-  createOrReplaceAppSummary(record: AppSummaryRecord): Promise<void>;
+  createOrReplaceAppSummary(record: AppSummaryRecordNoId): Promise<void>;
 
   /**
    * Update an existing app summary record
