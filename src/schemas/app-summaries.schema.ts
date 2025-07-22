@@ -4,7 +4,7 @@ import { z } from "zod";
  * Zod schema for application summary categories
  * This is used to validate the category names in app summaries
  */
-export const AppSummaryCategoryEnum = z.enum([
+export const AppSummaryCategories = z.enum([
   "appDescription",
   "technologies",
   "businessProcesses",
@@ -305,16 +305,3 @@ export const appSummarySchema = z
     potentialMicroservices: potentialMicroservicesSchema.shape.potentialMicroservices.optional(),
   })
   .passthrough();
-
-/**
- * Schema for arrays of name-description pairs used in app summaries
- */
-export const partialAppSummarySchema = appSummarySchema.partial();
-
-/**
- * Schema for all category fields of app summary (so excluding 'projectName' and 'llmProvider')
- */
-export const appSummaryRecordCategoriesSchema = appSummarySchema.omit({
-  projectName: true,
-  llmProvider: true,
-});

@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import { appConfig } from "../../config/app.config";
-import { summaryCategoriesConfig } from "../insights/summary-categories.config";
-import { AppSummaryCategoryEnum } from "../../schemas/app-summaries.schema";
+import { summaryCategoriesConfig } from "../insights/insights.config";
+import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type {
@@ -159,7 +159,7 @@ export default class AppReportGenerator {
   private async buildCategoriesData(
     projectName: string,
   ): Promise<{ category: string; label: string; data: AppSummaryNameDescArray }[]> {
-    const categoryKeys = AppSummaryCategoryEnum.options.filter(
+    const categoryKeys = AppSummaryCategories.options.filter(
       (key) => key !== appConfig.APP_DESCRIPTION_KEY,
     );
     const categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[] =

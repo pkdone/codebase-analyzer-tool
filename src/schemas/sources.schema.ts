@@ -121,9 +121,7 @@ export const publicMethodSchema = z
   .passthrough();
 
 /**
- * Canonical schema for source file summaries
- * This is the single source of truth for what a file summary can contain
- * All other summary schemas should be derived from this one
+ * Schema for source file summaries
  */
 export const sourceSummarySchema = z
   .object({
@@ -174,7 +172,7 @@ export const sourceSummarySchema = z
   .passthrough();
 
 /**
- * Schema for source file record in the database
+ * Schema for source file records
  */
 export const sourceSchema = z
   .object({

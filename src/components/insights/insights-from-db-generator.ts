@@ -1,5 +1,4 @@
 import { injectable, inject } from "tsyringe";
-import { z } from "zod";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appConfig } from "../../config/app.config";
@@ -8,16 +7,11 @@ import { joinArrayWithSeparators } from "../../common/utils/text-utils";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../di/tokens";
-import { SummaryCategory, summaryCategoriesConfig } from "./summary-categories.config";
-import {
-  AppSummaryCategoryEnum,
-  partialAppSummarySchema,
-} from "../../schemas/app-summaries.schema";
+import { summaryCategoriesConfig } from "./insights.config";
+import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import type { InsightsGenerator } from "./insights-generator.interface";
-
-// Type for validating the LLM response for a specific category
-type PartialAppSummaryRecord = Partial<z.infer<typeof partialAppSummarySchema>>;
+import { PartialAppSummaryRecord, AppSummaryCategoryEnum } from "./insights.types";
 
 // Mark schema as being easy for LLMs to digest
 const IS_TRICKY_SCHEMA = false;
@@ -65,7 +59,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
       projectName: this.projectName,
       llmProvider: this.llmProviderDescription,
     });
-    const categories: SummaryCategory[] = AppSummaryCategoryEnum.options;
+    const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
     await Promise.all(
       categories.map(async (category) =>
         this.generateAndRecordDataForCategory(category, sourceFileSummaries),
@@ -102,7 +96,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
    * dataset under a named field of the main application summary record.
    */
   private async generateAndRecordDataForCategory(
-    category: SummaryCategory,
+    category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
   ): Promise<void> {
     const categoryLabel = summaryCategoriesConfig[category].label;
@@ -126,7 +120,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
    * dataset under a named field of the main application summary record.
    */
   private async getCategorySummaryAsValidatedJSON(
-    category: SummaryCategory,
+    category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
   ): Promise<PartialAppSummaryRecord | null> {
     const categoryLabel = summaryCategoriesConfig[category].label;
@@ -156,7 +150,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
   /**
    * Create a prompt for the LLM to generate insights for a specific categories
    */
-  private createInsightsForCateogryPrompt(type: SummaryCategory, codeContent: string): string {
+  private createInsightsForCateogryPrompt(type: AppSummaryCategoryEnum, codeContent: string): string {
     const config = summaryCategoriesConfig[type];
     return createPromptFromConfig(
       this.APP_CATEGORY_SUMMARIZER_TEMPLATE,

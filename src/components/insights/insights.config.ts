@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   appDescriptionSchema,
-  AppSummaryCategoryEnum,
   boundedContextsSchema,
   entitiesSchema,
   businessProcessesSchema,
@@ -10,11 +9,10 @@ import {
   repositoriesSchema,
   potentialMicroservicesSchema,
 } from "../../schemas/app-summaries.schema";
-
-export type SummaryCategory = z.infer<typeof AppSummaryCategoryEnum>;
+import { AppSummaryCategoryEnum } from "./insights.types";
 
 export const summaryCategoriesConfig: Record<
-  SummaryCategory,
+  AppSummaryCategoryEnum,
   {
     label: string;
     description: string;

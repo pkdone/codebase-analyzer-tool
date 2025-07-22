@@ -12,7 +12,7 @@ import { FileSummarizer } from "../../components/capture/file-summarizer";
 import { FileHandlerFactory } from "../../components/capture/file-handler-factory";
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
-import { RawCodeToInsightsFileGenerator } from "../../components/insights/raw-code-to-insights-file-generator";
+import { RawCodeToInsightsFileGenerator } from "../../components/insights/insights-from-raw-code-to-local-files";
 import CodeQuestioner from "../../components/querying/code-questioner";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
