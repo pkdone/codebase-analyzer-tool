@@ -1,29 +1,11 @@
 import { z } from "zod";
 import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
-import { sourceFileSummarySchema } from "../../schemas/source-summaries.schema";
-
-/**
- * Schema for source file record in the database
- */
-export const sourceRecordSchema = z
-  .object({
-    projectName: z.string(),
-    filename: z.string(),
-    filepath: z.string(),
-    type: z.string(),
-    linesCount: z.number(),
-    summary: sourceFileSummarySchema.optional(),
-    summaryError: z.string().optional(),
-    summaryVector: z.array(z.number()).optional(),
-    content: z.string(),
-    contentVector: z.array(z.number()).optional(),
-  })
-  .passthrough();
+import { sourceSchema } from "../../schemas/source-summaries.schema";
 
 /**
  * Type for source record without _id
  */
-export type SourceRecordNoId = z.infer<typeof sourceRecordSchema>;
+export type SourceRecordNoId = z.infer<typeof sourceSchema>;
 
 /**
  * Type for source record without _id
@@ -40,14 +22,14 @@ export type SourceRecord = SourceRecordNoId & { _id: z.infer<typeof zBsonObjectI
  * Type for MongoDB projected document with just filepath
  */
 export type ProjectedFilePath = z.infer<
-  ReturnType<typeof sourceRecordSchema.pick<{ filepath: true }>>
+  ReturnType<typeof sourceSchema.pick<{ filepath: true }>>
 >;
 
 /**
  * Type for MongoDB projected document with filepath and summary fields
  */
 export type ProjectedSourceFilePathAndSummary = z.infer<
-  ReturnType<typeof sourceRecordSchema.pick<{ filepath: true; summary: true }>>
+  ReturnType<typeof sourceSchema.pick<{ filepath: true; summary: true }>>
 >;
 
 /**
@@ -55,7 +37,7 @@ export type ProjectedSourceFilePathAndSummary = z.infer<
  */
 export type ProjectedSourceMetataContentAndSummary = z.infer<
   ReturnType<
-    typeof sourceRecordSchema.pick<{
+    typeof sourceSchema.pick<{
       projectName: true;
       type: true;
       filepath: true;
@@ -129,5 +111,5 @@ export interface ProjectedFileTypesCountAndLines {
  * Generate JSON schema for source file records
  */
 export function getJSONSchema() {
-  return zodToJsonSchemaForMDB(sourceRecordSchema.extend({ _id: zBsonObjectId }));
+  return zodToJsonSchemaForMDB(sourceSchema.extend({ _id: zBsonObjectId }));
 }

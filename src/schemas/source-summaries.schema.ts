@@ -125,7 +125,7 @@ export const publicMethodSchema = z
  * This is the single source of truth for what a file summary can contain
  * All other summary schemas should be derived from this one
  */
-export const sourceFileSummarySchema = z
+export const sourceSummarySchema = z
   .object({
     purpose: z
       .string()
@@ -174,7 +174,25 @@ export const sourceFileSummarySchema = z
   .passthrough();
 
 /**
- * Union type for all possible summary types
- * This represents the canonical type for source summaries
+ * Schema for source file record in the database
  */
-export type SourceSummaryType = z.infer<typeof sourceFileSummarySchema>;
+export const sourceSchema = z
+  .object({
+    projectName: z.string(),
+    filename: z.string(),
+    filepath: z.string(),
+    type: z.string(),
+    linesCount: z.number(),
+    summary: sourceSummarySchema.optional(),
+    summaryError: z.string().optional(),
+    summaryVector: z.array(z.number()).optional(),
+    content: z.string(),
+    contentVector: z.array(z.number()).optional(),
+  })
+  .passthrough();
+
+/**
+ * Type for source summary
+ */
+export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
+

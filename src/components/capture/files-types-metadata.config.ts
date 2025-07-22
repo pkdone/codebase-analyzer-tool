@@ -1,5 +1,5 @@
 import {
-  sourceFileSummarySchema,
+  sourceSummarySchema,
   databaseIntegrationSchema,
 } from "../../schemas/source-summaries.schema";
 import { z } from "zod";
@@ -48,7 +48,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     - Code uses a 3rd party framework/library for database access (set mechanism: 'OTHER')
     - Otherwise, if the code does not use a database, then set mechanism: 'NONE'
     (note, JMS and JNDI are not related to interacting with a dataase)`,
-    schema: sourceFileSummarySchema
+    schema: sourceSummarySchema
       .pick({
         classname: true,
         classType: true,
@@ -79,7 +79,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
  * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JS}
  * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JS}
  * ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
-    schema: sourceFileSummarySchema.pick({
+    schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       internalReferences: true,
@@ -92,7 +92,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     contentDesc: "project file content",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}.`,
-    schema: sourceFileSummarySchema.pick({
+    schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
     }),
@@ -106,7 +106,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
  * A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose in detail, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a reason for the chosen complexity score.
  * A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose in detail, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a reason for the chosen complexity score.
  * The most prominent type of database integration it employs (if any), stating the mechanism used ('NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), a description of the integration and an example code snippet that performs the database integration`,
-    schema: sourceFileSummarySchema
+    schema: sourceSummarySchema
       .pick({
         purpose: true,
         implementation: true,
@@ -135,7 +135,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     contentDesc: "XML code",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
-    schema: sourceFileSummarySchema.pick({
+    schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
     }),
@@ -148,7 +148,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
 * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JAVA}
 * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JAVA}    
 * A list of data input fields it contains (if any). For each field, provide its name (or an approximate name), its type (e.g., 'text', 'hidden', 'password'), and a detailed description of its purpose.`,
-    schema: sourceFileSummarySchema.pick({
+    schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       internalReferences: true,
@@ -161,7 +161,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
     contentDesc: "Markdown content",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
-    schema: sourceFileSummarySchema.pick({
+    schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
     }),

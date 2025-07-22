@@ -3,7 +3,7 @@ import { filesTypeMetatadataConfig } from "../../../src/components/capture/files
 import { appConfig } from "../../../src/config/app.config";
 import {
   SourceSummaryType,
-  sourceFileSummarySchema,
+  sourceSummarySchema,
 } from "../../../src/schemas/source-summaries.schema";
 import { FileHandler } from "../../../src/components/capture/file-handler";
 import { DynamicPromptConfig } from "../../../src/llm/core/utils/msgProcessing/prompt-templator";
@@ -64,7 +64,7 @@ describe("File Handler Configuration", () => {
       const testConfig: DynamicPromptConfig = {
         contentDesc: "test content",
         instructions: "test instructions",
-        schema: sourceFileSummarySchema,
+        schema: sourceSummarySchema,
         trickySchema: false,
       };
       const testHandler = new FileHandler(testConfig);
@@ -79,7 +79,7 @@ describe("File Handler Configuration", () => {
       const typedConfig: DynamicPromptConfig = {
         contentDesc: "test content",
         instructions: "test instructions",
-        schema: sourceFileSummarySchema.pick({ purpose: true, implementation: true }),
+        schema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         trickySchema: false,
       };
       const typedHandler = new FileHandler(typedConfig);

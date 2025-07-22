@@ -291,7 +291,7 @@ export const potentialMicroservicesSchema = z.object({
 /**
  * Schema for full application summary of categories
  */
-export const fullAppSummarySchema = z
+export const appSummarySchema = z
   .object({
     projectName: z.string(),
     llmProvider: z.string(),
@@ -309,12 +309,12 @@ export const fullAppSummarySchema = z
 /**
  * Schema for arrays of name-description pairs used in app summaries
  */
-export const partialAppSummarySchema = fullAppSummarySchema.partial();
+export const partialAppSummarySchema = appSummarySchema.partial();
 
 /**
  * Schema for all category fields of app summary (so excluding 'projectName' and 'llmProvider')
  */
-export const appSummaryRecordCategoriesSchema = fullAppSummarySchema.omit({
+export const appSummaryRecordCategoriesSchema = appSummarySchema.omit({
   projectName: true,
   llmProvider: true,
 });
