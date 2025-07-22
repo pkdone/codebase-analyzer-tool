@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zodToJsonSchemaForMDB } from "../../common/mdb/zod-to-mdb-json-schema";
-import { nameDescSchema, appSummarySchema } from "../../schemas/app-summary-categories.schema";
+import { nameDescSchema, appSummarySchema } from "../../schemas/app-summaries.schema";
 import { zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
 
 /**

@@ -4,7 +4,7 @@ import { appConfig } from "../../../src/config/app.config";
 import {
   SourceSummaryType,
   sourceSummarySchema,
-} from "../../../src/schemas/source-summaries.schema";
+} from "../../../src/schemas/sources.schema";
 import { FileHandler } from "../../../src/components/capture/file-handler";
 import { DynamicPromptConfig } from "../../../src/llm/core/utils/msgProcessing/prompt-templator";
 

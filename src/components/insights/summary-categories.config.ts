@@ -9,7 +9,7 @@ import {
   aggregatesSchema,
   repositoriesSchema,
   potentialMicroservicesSchema,
-} from "../../schemas/app-summary-categories.schema";
+} from "../../schemas/app-summaries.schema";
 
 export type SummaryCategory = z.infer<typeof AppSummaryCategoryEnum>;
 

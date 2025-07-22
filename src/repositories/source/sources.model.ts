@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
-import { sourceSchema } from "../../schemas/source-summaries.schema";
+import { sourceSchema } from "../../schemas/sources.schema";
 
 /**
  * Type for source record without _id

@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { getErrorText, logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import type LLMRouter from "../../llm/core/llm-router";
 import { TOKENS } from "../../di/tokens";
-import { SourceSummaryType } from "../../schemas/source-summaries.schema";
+import { SourceSummaryType } from "../../schemas/sources.schema";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { FileHandlerFactory } from "./file-handler-factory";
 

@@ -1,7 +1,7 @@
 import {
   sourceSummarySchema,
   databaseIntegrationSchema,
-} from "../../schemas/source-summaries.schema";
+} from "../../schemas/sources.schema";
 import { z } from "zod";
 import { DynamicPromptConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 

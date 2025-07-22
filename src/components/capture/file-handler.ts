@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SourceSummaryType } from "../../schemas/source-summaries.schema";
+import { SourceSummaryType } from "../../schemas/sources.schema";
 import { DynamicPromptConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 

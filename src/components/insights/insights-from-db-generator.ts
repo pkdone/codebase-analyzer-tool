@@ -12,7 +12,7 @@ import { SummaryCategory, summaryCategoriesConfig } from "./summary-categories.c
 import {
   AppSummaryCategoryEnum,
   partialAppSummarySchema,
-} from "../../schemas/app-summary-categories.schema";
+} from "../../schemas/app-summaries.schema";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import type { InsightsGenerator } from "./insights-generator.interface";
 

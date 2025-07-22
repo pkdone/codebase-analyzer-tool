@@ -8,7 +8,7 @@ import { appConfig } from "../../config/app.config";
 import { findFilesRecursively } from "../../common/utils/fs-utils";
 import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
 import type { EnvVars } from "../../lifecycle/env.types";
-import { appSummaryRecordCategoriesSchema } from "../../schemas/app-summary-categories.schema";
+import { appSummaryRecordCategoriesSchema } from "../../schemas/app-summaries.schema";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
