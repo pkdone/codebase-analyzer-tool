@@ -1,6 +1,11 @@
+/**
+ * Note: For non-simple MQL projectionss, and especially for partial projections of nested fields, 
+ * we need to create schemas inline using sourceRecordSchema.pick() or z.object() since MongoDB 
+ * projections revert to returning field types of 'unknown'.
+ */
 import { z } from "zod";
 import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
-import { sourceSchema } from "../../schemas/sources.schema";
+import { sourceSchema, SourceSummaryType } from "../../schemas/sources.schema";
 
 /**
  * Type for source record without _id
@@ -11,12 +16,6 @@ export type SourceRecordNoId = z.infer<typeof sourceSchema>;
  * Type for source record without _id
  */
 export type SourceRecord = SourceRecordNoId & { _id: z.infer<typeof zBsonObjectId> };
-
-/**
- * Note: For non-simple projects, and especially for partial projections of nested fields, we need
- * to create schemas inline using sourceRecordSchema.pick() or z.object() since MongoDB projections
- * revert to returning field types of 'unknown'.
- */
 
 /**
  * Type for MongoDB projected document with just filepath
@@ -48,55 +47,22 @@ export type ProjectedSourceMetataContentAndSummary = z.infer<
 >;
 
 /**
- * Schema for MongoDB projected document with filepath and specific summary fields
- * This schema ensures type safety for source summaries projection
- * Reflects the actual projection structure where nested fields are selected
- */
-export const projectedSourceSummaryFieldsSchema = z.object({
-  filepath: z.string(),
-  summary: z
-    .object({
-      classpath: z.string().optional(),
-      purpose: z.string().optional(),
-      implementation: z.string().optional(),
-    })
-    .optional(),
-});
-
-/**
  * Type for MongoDB projected document with filepath and partial summary fields
- * Uses precise Zod schema instead of interface with optional fields
+ * Derived from source schemas to maintain consistency
  */
-export type ProjectedSourceSummaryFields = z.infer<typeof projectedSourceSummaryFieldsSchema>;
-
-/**
- * Schema for MongoDB projected document with database integration fields
- * This schema ensures type safety for database integration projection
- * Reflects the actual projection structure where nested fields are selected
- */
-export const projectedDatabaseIntegrationFieldsSchema = z.object({
-  filepath: z.string(),
-  summary: z
-    .object({
-      classpath: z.string().optional(),
-      databaseIntegration: z
-        .object({
-          mechanism: z.string().optional(),
-          description: z.string().optional(),
-          codeExample: z.string().optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-});
+export interface ProjectedSourceSummaryFields {
+  filepath: SourceRecordNoId['filepath'];
+  summary?: Pick<SourceSummaryType, 'classpath' | 'purpose' | 'implementation'>;
+}
 
 /**
  * Type for MongoDB projected document with database integration fields
- * Uses precise Zod schema instead of interface with optional fields
+ * Derived from source schemas to maintain consistency
  */
-export type ProjectedDatabaseIntegrationFields = z.infer<
-  typeof projectedDatabaseIntegrationFieldsSchema
->;
+export interface ProjectedDatabaseIntegrationFields {
+  filepath: SourceRecordNoId['filepath'];
+  summary?: Pick<SourceSummaryType, 'classpath' | 'databaseIntegration'>;
+}
 
 /**
  * Interface representing

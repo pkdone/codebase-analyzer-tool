@@ -83,9 +83,9 @@ export default class AppReportGenerator {
       if (summary && databaseIntegration) {
         return {
           path: summary.classpath ?? filepath,
-          mechanism: databaseIntegration.mechanism ?? "UNKNOWN",
-          description: databaseIntegration.description ?? "No description available",
-          codeExample: databaseIntegration.codeExample ?? "No code example available",
+          mechanism: databaseIntegration.mechanism,
+          description: databaseIntegration.description,
+          codeExample: databaseIntegration.codeExample,
         };
       }
       // This should not happen due to the filter above, but satisfies TypeScript

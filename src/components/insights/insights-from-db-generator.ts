@@ -89,8 +89,8 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
       }
 
       const fileLabel = record.summary.classpath ?? record.filepath;
-      const purpose = record.summary.purpose ?? "No purpose available";
-      const implementation = record.summary.implementation ?? "No implementation details available";
+      const purpose = record.summary.purpose;
+      const implementation = record.summary.implementation;
       srcFilesList.push(`* ${fileLabel}: ${purpose} ${implementation}`);
     }
 

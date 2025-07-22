@@ -1,3 +1,8 @@
+/**
+ * Note: For non-simple projects, and especially for partial projections of nested fields, we need
+ * to create schemas inline using sourceRecordSchema.pick() or z.object() since MongoDB projections
+ * revert to returning field types of 'unknown'.
+ */
 import { z } from "zod";
 import { zodToJsonSchemaForMDB } from "../../common/mdb/zod-to-mdb-json-schema";
 import { nameDescSchema, appSummarySchema } from "../../schemas/app-summaries.schema";
