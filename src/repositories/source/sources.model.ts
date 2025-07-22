@@ -1,6 +1,6 @@
 /**
- * Note: For non-simple MQL projectionss, and especially for partial projections of nested fields, 
- * we need to create schemas inline using sourceRecordSchema.pick() or z.object() since MongoDB 
+ * Note: For non-simple MQL projectionss, and especially for partial projections of nested fields,
+ * we need to create schemas inline using sourceRecordSchema.pick() or z.object() since MongoDB
  * projections revert to returning field types of 'unknown'.
  */
 import { z } from "zod";
@@ -20,9 +20,7 @@ export type SourceRecord = SourceRecordNoId & { _id: z.infer<typeof zBsonObjectI
 /**
  * Type for MongoDB projected document with just filepath
  */
-export type ProjectedFilePath = z.infer<
-  ReturnType<typeof sourceSchema.pick<{ filepath: true }>>
->;
+export type ProjectedFilePath = z.infer<ReturnType<typeof sourceSchema.pick<{ filepath: true }>>>;
 
 /**
  * Type for MongoDB projected document with filepath and summary fields
@@ -54,8 +52,8 @@ export type SourceSummaryTypeTMP = z.infer<typeof sourceSummarySchema>;
  * Derived from source schemas to maintain consistency
  */
 export interface ProjectedSourceSummaryFields {
-  filepath: SourceRecordNoId['filepath'];
-  summary?: Pick<SourceSummaryTypeTMP, 'classpath' | 'purpose' | 'implementation'>;
+  filepath: SourceRecordNoId["filepath"];
+  summary?: Pick<SourceSummaryTypeTMP, "classpath" | "purpose" | "implementation">;
 }
 
 /**
@@ -63,8 +61,8 @@ export interface ProjectedSourceSummaryFields {
  * Derived from source schemas to maintain consistency
  */
 export interface ProjectedDatabaseIntegrationFields {
-  filepath: SourceRecordNoId['filepath'];
-  summary?: Pick<SourceSummaryTypeTMP, 'classpath' | 'databaseIntegration'>;
+  filepath: SourceRecordNoId["filepath"];
+  summary?: Pick<SourceSummaryTypeTMP, "classpath" | "databaseIntegration">;
 }
 
 /**

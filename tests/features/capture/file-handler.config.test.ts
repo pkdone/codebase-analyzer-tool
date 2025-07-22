@@ -1,9 +1,7 @@
 import "reflect-metadata";
 import { filesTypeMetatadataConfig } from "../../../src/components/capture/files-types-metadata.config";
 import { appConfig } from "../../../src/config/app.config";
-import {
-  sourceSummarySchema,
-} from "../../../src/schemas/sources.schema";
+import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-handler";
 import { FileHandler } from "../../../src/components/capture/file-handler";
 import { DynamicPromptConfig } from "../../../src/llm/core/utils/msgProcessing/prompt-templator";
