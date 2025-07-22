@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
-import { sourceSchema, SourceSummaryType } from "../../schemas/sources.schema";
+import { sourceSchema, sourceSummarySchema } from "../../schemas/sources.schema";
 
 /**
  * Type for source record without _id
@@ -46,13 +46,16 @@ export type ProjectedSourceMetataContentAndSummary = z.infer<
   >
 >;
 
+// TODO: remove need for this type - remove it
+export type SourceSummaryTypeTMP = z.infer<typeof sourceSummarySchema>;
+
 /**
  * Type for MongoDB projected document with filepath and partial summary fields
  * Derived from source schemas to maintain consistency
  */
 export interface ProjectedSourceSummaryFields {
   filepath: SourceRecordNoId['filepath'];
-  summary?: Pick<SourceSummaryType, 'classpath' | 'purpose' | 'implementation'>;
+  summary?: Pick<SourceSummaryTypeTMP, 'classpath' | 'purpose' | 'implementation'>;
 }
 
 /**
@@ -61,7 +64,7 @@ export interface ProjectedSourceSummaryFields {
  */
 export interface ProjectedDatabaseIntegrationFields {
   filepath: SourceRecordNoId['filepath'];
-  summary?: Pick<SourceSummaryType, 'classpath' | 'databaseIntegration'>;
+  summary?: Pick<SourceSummaryTypeTMP, 'classpath' | 'databaseIntegration'>;
 }
 
 /**

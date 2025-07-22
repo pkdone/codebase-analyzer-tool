@@ -11,7 +11,7 @@ import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { SourceRecordNoId } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
-import type { SourceSummaryType } from "../../schemas/sources.schema";
+import type { SourceSummaryType } from "./file-handler";
 
 /**
  * Loads each source file into a class to represent it.

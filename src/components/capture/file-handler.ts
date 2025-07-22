@@ -1,7 +1,12 @@
 import { z } from "zod";
-import { SourceSummaryType } from "../../schemas/sources.schema";
 import { DynamicPromptConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
+import { sourceSummarySchema } from "../../schemas/sources.schema";
+
+/**
+ * Type for source summary
+ */
+export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
 
 // Base template for detailed file summary prompts
 const SOURCES_SUMMARY_CAPTURE_TEMPLATE = `Act as a programmer. Take the {{contentDesc}} shown below in the section marked 'CODE' and based on its content, return a JSON response containing data that includes the following:

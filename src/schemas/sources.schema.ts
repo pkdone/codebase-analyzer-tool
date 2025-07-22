@@ -190,9 +190,3 @@ export const sourceSchema = z
     contentVector: z.array(z.number()).optional(),
   })
   .passthrough();
-
-/**
- * Type for source summary
- */
-export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
-
