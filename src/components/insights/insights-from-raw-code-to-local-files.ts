@@ -41,7 +41,7 @@ export class RawCodeToInsightsFileGenerator {
       appConfig.FOLDER_IGNORE_LIST,
       appConfig.FILENAME_PREFIX_IGNORE,
     );
-    const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(srcFilepaths, srcDirPath);
+    const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(srcFilepaths, srcDirPath, appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const prompts = await this.loadPrompts();
     const limit = pLimit(appConfig.MAX_CONCURRENCY);

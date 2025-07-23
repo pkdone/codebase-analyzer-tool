@@ -53,7 +53,7 @@ export default class InsightsFromRawCodeGenerator implements InsightsGenerator {
       appConfig.FOLDER_IGNORE_LIST,
       appConfig.FILENAME_PREFIX_IGNORE,
     );
-    const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(srcFilepaths, srcDirPath);
+    const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(srcFilepaths, srcDirPath, appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST);
     await this.generateDataForAllCategories(codeBlocksContent);
   }
 
