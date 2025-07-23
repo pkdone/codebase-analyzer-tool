@@ -53,6 +53,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: [] as const, // VertexAI has no specific error patterns defined
+  supportsFullCodebaseAnalysis: true, // Gemini has large context window support
   providerSpecificConfig: {
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,

@@ -49,6 +49,7 @@ export const bedrockNovaProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
+  supportsFullCodebaseAnalysis: false, // Bedrock Nova doesn't support full codebase analysis
   providerSpecificConfig: {
     requestTimeoutMillis: 9 * 60 * 1000, // 9 minutes - Nova models can be slower
     maxRetryAttempts: 4, // More retries for newer models

@@ -105,7 +105,7 @@ function registerLLMDependentComponents(): void {
 
   // Register the InsightsGenerator interface with factory
   container.register(TOKENS.InsightsGenerator, {
-    useFactory: () => createInsightsGenerator(),
+    useFactory: async () => await createInsightsGenerator(),
   });
 }
 

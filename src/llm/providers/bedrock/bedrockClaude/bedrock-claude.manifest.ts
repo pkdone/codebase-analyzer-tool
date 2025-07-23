@@ -59,6 +59,7 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
+  supportsFullCodebaseAnalysis: false, // Bedrock Claude doesn't support full codebase analysis
   providerSpecificConfig: {
     apiVersion: "bedrock-2023-05-31",
     temperature: llmConfig.DEFAULT_ZERO_TEMP,

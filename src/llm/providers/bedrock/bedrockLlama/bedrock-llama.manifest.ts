@@ -55,6 +55,7 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
+  supportsFullCodebaseAnalysis: false, // Bedrock Llama doesn't support full codebase analysis
   providerSpecificConfig: {
     requestTimeoutMillis: 10 * 60 * 1000, // 10 minutes - Llama models can be very slow for large requests
     maxRetryAttempts: 4, // More retries for large models that may have capacity issues

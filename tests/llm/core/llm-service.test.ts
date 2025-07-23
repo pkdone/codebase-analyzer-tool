@@ -67,6 +67,7 @@ describe("LLM Service tests", () => {
       { pattern: /overloaded|rate limit/i, units: "requests", isMaxFirst: false },
       { pattern: /token limit|context length/i, units: "tokens", isMaxFirst: true },
     ],
+    supportsFullCodebaseAnalysis: false,
     envSchema: z.object({}),
     providerSpecificConfig: {},
   };
@@ -444,6 +445,7 @@ describe("LLM Service tests", () => {
           primaryCompletion: mockProviderManifest.models.primaryCompletion,
         },
         errorPatterns: mockProviderManifest.errorPatterns,
+        supportsFullCodebaseAnalysis: false,
         envSchema: z.object({}),
         providerSpecificConfig: {},
       };

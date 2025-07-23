@@ -62,6 +62,7 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: OPENAI_COMMON_ERROR_PATTERNS,
+  supportsFullCodebaseAnalysis: false, // Azure OpenAI doesn't support full codebase analysis
   providerSpecificConfig: {
     apiVersion: "2025-01-01-preview",
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
