@@ -9,7 +9,6 @@ Do NOT inlude any of the following topics in your recommendations:
  * Overly Granular and Manual Dependency Injection Registration
  * Fragmented and Overlapping Configuration
  * Manual HTTP Server Implementation
- * Mixing of Data Transformation and Presentation Logic in Reporting
  * Inconsistent Strategy for Defining Constants
  * Scattered and Inconsistent Type Definitions
  * Tightly Coupled Repository Implementations to MongoDB Driver

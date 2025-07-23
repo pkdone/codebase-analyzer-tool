@@ -2,7 +2,6 @@ import { z } from "zod";
 
 /**
  * Schema for database integration information
- * Used across multiple file summary types and database storage
  */
 export const databaseIntegrationSchema = z
   .object({
@@ -172,8 +171,9 @@ export const sourceSummarySchema = z
   .passthrough();
 
 /**
- * Schema for source file records
+ * Schema for source file metadata
  */
+// TODO: Add describes for each of these
 export const sourceSchema = z
   .object({
     projectName: z.string(),

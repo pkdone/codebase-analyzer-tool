@@ -150,7 +150,10 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
   /**
    * Create a prompt for the LLM to generate insights for a specific categories
    */
-  private createInsightsForCateogryPrompt(type: AppSummaryCategoryEnum, codeContent: string): string {
+  private createInsightsForCateogryPrompt(
+    type: AppSummaryCategoryEnum,
+    codeContent: string,
+  ): string {
     const config = summaryCategoriesConfig[type];
     return createPromptFromConfig(
       this.APP_CATEGORY_SUMMARIZER_TEMPLATE,

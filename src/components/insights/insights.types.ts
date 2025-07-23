@@ -1,5 +1,5 @@
 import { z } from "zod";
-import {  AppSummaryCategories, appSummarySchema } from "../../schemas/app-summaries.schema";
+import { AppSummaryCategories, appSummarySchema } from "../../schemas/app-summaries.schema";
 
 // TODO: remove need for this variable
 const partialAppSummarySchemaTMP = appSummarySchema.partial();
