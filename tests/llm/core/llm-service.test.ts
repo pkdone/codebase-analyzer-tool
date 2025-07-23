@@ -77,7 +77,11 @@ describe("LLM Service tests", () => {
     generateEmbeddings: jest.fn(),
     executeCompletionPrimary: jest.fn(),
     executeCompletionSecondary: jest.fn(),
-    getModelsNames: jest.fn(() => ["text-embedding-ada-002", "gpt-4", "gpt-3.5-turbo"]),
+    getModelsNames: jest.fn(() => ({
+      embeddings: "text-embedding-ada-002",
+      primaryCompletion: "gpt-4",
+      secondaryCompletion: "gpt-3.5-turbo",
+    })),
     getAvailableCompletionModelQualities: jest.fn(() => [
       LLMModelQuality.PRIMARY,
       LLMModelQuality.SECONDARY,

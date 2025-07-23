@@ -76,13 +76,13 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Get the model key for the embeddings model.
    */
   getModelsNames() {
-    return [
-      this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey].urn,
-      this.llmModelsMetadata[this.modelsKeys.primaryCompletionModelKey].urn,
-      this.modelsKeys.secondaryCompletionModelKey
-        ? this.llmModelsMetadata[this.modelsKeys.secondaryCompletionModelKey].urn
-        : "n/a",
-    ];
+    return {
+      embeddings: this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey].urn,
+      primaryCompletion: this.llmModelsMetadata[this.modelsKeys.primaryCompletionModelKey].urn,
+      ...(this.modelsKeys.secondaryCompletionModelKey && {
+        secondaryCompletion: this.llmModelsMetadata[this.modelsKeys.secondaryCompletionModelKey].urn,
+      })
+    };
   }
 
   /**

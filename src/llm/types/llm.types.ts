@@ -9,7 +9,11 @@ export interface LLMProvider {
   generateEmbeddings: LLMFunction;
   executeCompletionPrimary: LLMFunction;
   executeCompletionSecondary: LLMFunction;
-  getModelsNames(): string[];
+  getModelsNames(): {
+    embeddings: string;
+    primaryCompletion: string;
+    secondaryCompletion?: string;
+  };
   getAvailableCompletionModelQualities(): LLMModelQuality[];
   getEmbeddedModelDimensions(): number | undefined;
   getModelFamily(): string;

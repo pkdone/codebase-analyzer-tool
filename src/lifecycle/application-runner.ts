@@ -11,7 +11,7 @@ import { runTask } from "./task-executor";
 export async function runApplication(taskToken: symbol): Promise<void> {
   const keepAlive = setInterval(() => {
     // Prevent process from exiting prematurely by keeping the event loop active
-    // See comment in finally block below
+    // See the comment in the finally block below
   }, 30000); // Empty timer every 30 seconds
 
   try {
@@ -25,6 +25,5 @@ export async function runApplication(taskToken: symbol): Promise<void> {
     // Known Node.js + AWS SDK pattern - many AWS SDK applications need this keep-alive pattern to
     // prevent premature termination during long-running cloud operations
     clearInterval(keepAlive);
-    process.exit();
   }
 }
