@@ -175,35 +175,22 @@ export const sourceSummarySchema = z
  */
 export const sourceSchema = z
   .object({
-    projectName: z
-      .string()
-      .describe("The name of the project this source file belongs to."),
-    filename: z
-      .string()
-      .describe("The name of the source file (without path)."),
-    filepath: z
-      .string()
-      .describe("The full path to the source file within the project."),
-    type: z
-      .string()
-      .describe("The type of the source file (e.g., 'java', 'js', 'sql', etc.)."),
-    linesCount: z
-      .number()
-      .describe("The total number of lines in the source file."),
+    projectName: z.string().describe("The name of the project this source file belongs to."),
+    filename: z.string().describe("The name of the source file (without path)."),
+    filepath: z.string().describe("The full path to the source file within the project."),
+    type: z.string().describe("The type of the source file (e.g., 'java', 'js', 'sql', etc.)."),
+    linesCount: z.number().describe("The total number of lines in the source file."),
     summary: sourceSummarySchema
       .optional()
-      .describe("A detailed summary of the source file, including purpose, implementation, and structure."),
-    summaryError: z
-      .string()
-      .optional()
-      .describe("Error message if summary generation failed."),
+      .describe(
+        "A detailed summary of the source file, including purpose, implementation, and structure.",
+      ),
+    summaryError: z.string().optional().describe("Error message if summary generation failed."),
     summaryVector: z
       .array(z.number())
       .optional()
       .describe("Vector embedding representing the summary for semantic search."),
-    content: z
-      .string()
-      .describe("The full text content of the source file."),
+    content: z.string().describe("The full text content of the source file."),
     contentVector: z
       .array(z.number())
       .optional()
