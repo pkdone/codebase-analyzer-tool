@@ -44,16 +44,13 @@ export type ProjectedSourceMetataContentAndSummary = z.infer<
   >
 >;
 
-// TODO: remove need for this type - remove it
-export type SourceSummaryTypeTMP = z.infer<typeof sourceSummarySchema>;
-
 /**
  * Type for MongoDB projected document with filepath and partial summary fields
  * Derived from source schemas to maintain consistency
  */
 export interface ProjectedSourceSummaryFields {
   filepath: SourceRecordNoId["filepath"];
-  summary?: Pick<SourceSummaryTypeTMP, "classpath" | "purpose" | "implementation">;
+  summary?: Pick<z.infer<typeof sourceSummarySchema>, "classpath" | "purpose" | "implementation">;
 }
 
 /**
@@ -62,7 +59,7 @@ export interface ProjectedSourceSummaryFields {
  */
 export interface ProjectedDatabaseIntegrationFields {
   filepath: SourceRecordNoId["filepath"];
-  summary?: Pick<SourceSummaryTypeTMP, "classpath" | "databaseIntegration">;
+  summary?: Pick<z.infer<typeof sourceSummarySchema>, "classpath" | "databaseIntegration">;
 }
 
 /**
