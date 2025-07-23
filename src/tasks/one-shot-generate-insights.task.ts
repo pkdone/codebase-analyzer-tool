@@ -37,10 +37,15 @@ export class OneShotGenerateInsightsTask implements Task {
     const normalisedSrcDirPath = srcDirPath.replace(appConfig.TRAILING_SLASH_PATTERN, "");
     this.llmRouter.displayLLMStatusSummary();
     await clearDirectory(appConfig.OUTPUT_DIR);
+    
+    // Load prompts from file system and pass them to the generator
+    const prompts = await RawCodeToInsightsFileGenerator.loadPrompts();
+    
     await this.insightProcessor.generateInsightsToFiles(
       this.llmRouter,
       normalisedSrcDirPath,
       llmName,
+      prompts,
     );
     this.llmRouter.displayLLMStatusDetails();
     console.log(`View generated results in the 'file://${appConfig.OUTPUT_DIR}' folder`);

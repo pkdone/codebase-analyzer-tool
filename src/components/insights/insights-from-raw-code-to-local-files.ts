@@ -29,46 +29,9 @@ export interface FileRequirementPrompt {
 @injectable()
 export class RawCodeToInsightsFileGenerator {
   /**
-   * Process source files with prompts and write individual output files.
-   */
-  async generateInsightsToFiles(
-    llmRouter: LLMRouter,
-    srcDirPath: string,
-    llmName: string,
-  ): Promise<string[]> {
-    const srcFilepaths = await findFilesRecursively(
-      srcDirPath,
-      appConfig.FOLDER_IGNORE_LIST,
-      appConfig.FILENAME_PREFIX_IGNORE,
-    );
-    const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(srcFilepaths, srcDirPath, appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST);
-    await this.dumpCodeBlocksToTempFile(codeBlocksContent);
-    const prompts = await this.loadPrompts();
-    const limit = pLimit(appConfig.MAX_CONCURRENCY);
-    const tasks = prompts.map(async (prompt) => {
-      return limit(async () => {
-        const result = await this.executePromptAgainstCodebase(
-          prompt,
-          codeBlocksContent,
-          llmRouter,
-        );
-        const outputFileName = `${prompt.filename}.result`;
-        const outputFilePath = path.join(process.cwd(), appConfig.OUTPUT_DIR, outputFileName);
-        await writeFile(
-          outputFilePath,
-          `GENERATED-BY: ${llmName}\n\nREQUIREMENT: ${prompt.question}\n\nRECOMENDATIONS:\n\n${result.trim()}\n`,
-        );
-        return outputFilePath;
-      });
-    });
-
-    return Promise.all(tasks);
-  }
-
-  /**
    * Load prompts from files in the input folder
    */
-  private async loadPrompts(): Promise<FileRequirementPrompt[]> {
+  static async loadPrompts(): Promise<FileRequirementPrompt[]> {
     const inputDir = appConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 
@@ -90,6 +53,43 @@ export class RawCodeToInsightsFileGenerator {
     }
 
     return prompts;
+  }
+
+  /**
+   * Process source files with prompts and write individual output files.
+   */
+  async generateInsightsToFiles(
+    llmRouter: LLMRouter,
+    srcDirPath: string,
+    llmName: string,
+    prompts: FileRequirementPrompt[],
+  ): Promise<string[]> {
+    const srcFilepaths = await findFilesRecursively(
+      srcDirPath,
+      appConfig.FOLDER_IGNORE_LIST,
+      appConfig.FILENAME_PREFIX_IGNORE,
+    );
+    const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(srcFilepaths, srcDirPath, appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST);
+    await this.dumpCodeBlocksToTempFile(codeBlocksContent);
+    const limit = pLimit(appConfig.MAX_CONCURRENCY);
+    const tasks = prompts.map(async (prompt) => {
+      return limit(async () => {
+        const result = await this.executePromptAgainstCodebase(
+          prompt,
+          codeBlocksContent,
+          llmRouter,
+        );
+        const outputFileName = `${prompt.filename}.result`;
+        const outputFilePath = path.join(process.cwd(), appConfig.OUTPUT_DIR, outputFileName);
+        await writeFile(
+          outputFilePath,
+          `GENERATED-BY: ${llmName}\n\nREQUIREMENT: ${prompt.question}\n\nRECOMENDATIONS:\n\n${result.trim()}\n`,
+        );
+        return outputFilePath;
+      });
+    });
+
+    return Promise.all(tasks);
   }
 
   /**
