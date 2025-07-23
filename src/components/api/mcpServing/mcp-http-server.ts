@@ -45,16 +45,7 @@ export default class McpHttpServer {
         mcpHandler(req, res).catch((error: unknown) => {
           logErrorMsgAndDetail("Error handling MCP request", error);
           if (!res.headersSent) {
-            res.writeHead(mcpConfig.HTTP_STATUS_INTERNAL_ERROR, {
-              [mcpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
-            });
-            res.end(
-              JSON.stringify({
-                jsonrpc: mcpConfig.JSONRPC_VERSION,
-                error: { code: mcpConfig.JSONRPC_INTERNAL_ERROR, message: "Internal Server Error" },
-                id: null,
-              }),
-            );
+            this.sendJsonRpcError(res, mcpConfig.HTTP_STATUS_INTERNAL_ERROR, mcpConfig.JSONRPC_INTERNAL_ERROR, "Internal Server Error");
           }
         });
       } else {
@@ -142,19 +133,7 @@ export default class McpHttpServer {
             transport = existingTransport;
             body = await this.parseRequestBody(req);
           } else {
-            res.writeHead(mcpConfig.HTTP_STATUS_BAD_REQUEST, {
-              [mcpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
-            });
-            res.end(
-              JSON.stringify({
-                jsonrpc: mcpConfig.JSONRPC_VERSION,
-                error: {
-                  code: mcpConfig.JSONRPC_SERVER_ERROR,
-                  message: "Bad Request: Invalid session ID",
-                },
-                id: null,
-              }),
-            );
+            this.sendJsonRpcError(res, mcpConfig.HTTP_STATUS_BAD_REQUEST, mcpConfig.JSONRPC_SERVER_ERROR, "Bad Request: Invalid session ID");
             return;
           }
         } else {
@@ -183,19 +162,7 @@ export default class McpHttpServer {
             await this.mcpServer.connect(transport);
           } else {
             // Invalid request - no session ID or not initialization request
-            res.writeHead(mcpConfig.HTTP_STATUS_BAD_REQUEST, {
-              [mcpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
-            });
-            res.end(
-              JSON.stringify({
-                jsonrpc: mcpConfig.JSONRPC_VERSION,
-                error: {
-                  code: mcpConfig.JSONRPC_SERVER_ERROR,
-                  message: "Bad Request: No valid session ID provided",
-                },
-                id: null,
-              }),
-            );
+            this.sendJsonRpcError(res, mcpConfig.HTTP_STATUS_BAD_REQUEST, mcpConfig.JSONRPC_SERVER_ERROR, "Bad Request: No valid session ID provided");
             return;
           }
         }
@@ -205,19 +172,38 @@ export default class McpHttpServer {
       } catch (error: unknown) {
         logErrorMsgAndDetail("Error in MCP request handler", error);
         if (!res.headersSent) {
-          res.writeHead(mcpConfig.HTTP_STATUS_INTERNAL_ERROR, {
-            [mcpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
-          });
-          res.end(
-            JSON.stringify({
-              jsonrpc: mcpConfig.JSONRPC_VERSION,
-              error: { code: mcpConfig.JSONRPC_INTERNAL_ERROR, message: "Internal Server Error" },
-              id: null,
-            }),
-          );
+          this.sendJsonRpcError(res, mcpConfig.HTTP_STATUS_INTERNAL_ERROR, mcpConfig.JSONRPC_INTERNAL_ERROR, "Internal Server Error");
         }
       }
     };
+  }
+
+  /**
+   * Sends a standardized JSON-RPC error response.
+   * 
+   * @param res - The HTTP response object
+   * @param httpStatusCode - The HTTP status code to set
+   * @param jsonRpcErrorCode - The JSON-RPC error code
+   * @param message - The error message
+   * @param id - The request ID (defaults to null for protocol errors)
+   */
+  private sendJsonRpcError(
+    res: ServerResponse,
+    httpStatusCode: number,
+    jsonRpcErrorCode: number,
+    message: string,
+    id: string | number | null = null
+  ): void {
+    res.writeHead(httpStatusCode, {
+      [mcpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
+    });
+    res.end(
+      JSON.stringify({
+        jsonrpc: mcpConfig.JSONRPC_VERSION,
+        error: { code: jsonRpcErrorCode, message },
+        id,
+      }),
+    );
   }
 
   /**
