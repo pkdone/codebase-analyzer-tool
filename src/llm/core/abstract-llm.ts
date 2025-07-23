@@ -80,8 +80,9 @@ export default abstract class AbstractLLM implements LLMProvider {
       embeddings: this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey].urn,
       primaryCompletion: this.llmModelsMetadata[this.modelsKeys.primaryCompletionModelKey].urn,
       ...(this.modelsKeys.secondaryCompletionModelKey && {
-        secondaryCompletion: this.llmModelsMetadata[this.modelsKeys.secondaryCompletionModelKey].urn,
-      })
+        secondaryCompletion:
+          this.llmModelsMetadata[this.modelsKeys.secondaryCompletionModelKey].urn,
+      }),
     };
   }
 

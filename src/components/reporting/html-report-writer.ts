@@ -5,7 +5,9 @@ import { jsonFilesConfig } from "./json-files.config";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
 import type { AppStatistics, ProcsAndTriggers, DatabaseIntegrationInfo } from "./report-gen.types";
 import { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
+
 import { writeFile } from "../../common/utils/fs-utils";
+import { convertToDisplayName } from "../../common/utils/text-utils";
 
 interface EjsTemplateData {
   appStats: AppStatistics;
@@ -51,18 +53,12 @@ export class HtmlReportWriter {
       dbInteractions,
       procsAndTriggers,
       jsonFilesConfig,
-      convertToDisplayName: this.convertToDisplayName.bind(this),
+      convertToDisplayName,
     };
     const htmlContent = await ejs.renderFile(templatePath, data);
     await writeFile(htmlFilePath, htmlContent);
     console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
   }
 
-  /**
-   * Convert camelCase or compound words to space-separated words with proper capitalization.
-   */
-  private convertToDisplayName(text: string): string {
-    const spacedText = text.replace(/([a-z])([A-Z])/g, "$1 $2");
-    return spacedText.replace(/\b\w/g, (char) => char.toUpperCase());
-  }
+  // ...existing code...
 }

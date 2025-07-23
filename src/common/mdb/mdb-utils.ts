@@ -2,6 +2,10 @@ import { Double } from "bson";
 import { logErrorMsg, logErrorMsgAndDetail } from "../utils/error-utils";
 import { MongoServerError } from "mongodb";
 
+// Exported constants
+export const REDACTED_URL = "REDACTED_URL";
+export const REDACTED_CREDENTIALS = "REDACTED";
+
 /**
  * Logs a warning if the error is a MongoServerError for document validation failure.
  *
@@ -19,8 +23,6 @@ export function logMongoValidationErrorIfPresent(error: unknown, doLog = true): 
     );
   }
 }
-export const REDACTED_URL = "REDACTED_URL";
-export const REDACTED_CREDENTIALS = "REDACTED";
 
 /**
  * Iterates through the numbers in the array and converts each one explicitly to a BSON Double.

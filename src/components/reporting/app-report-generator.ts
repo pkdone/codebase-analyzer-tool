@@ -22,9 +22,12 @@ export default class AppReportGenerator {
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
     @inject(TOKENS.HtmlReportFormatter) private readonly htmlWriter: HtmlReportWriter,
     @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
-    @inject(TOKENS.DatabaseReportDataProvider) private readonly databaseDataProvider: DatabaseReportDataProvider,
-    @inject(TOKENS.AppStatisticsDataProvider) private readonly appStatsDataProvider: AppStatisticsDataProvider,
-    @inject(TOKENS.CategoriesDataProvider) private readonly categoriesDataProvider: CategoriesDataProvider,
+    @inject(TOKENS.DatabaseReportDataProvider)
+    private readonly databaseDataProvider: DatabaseReportDataProvider,
+    @inject(TOKENS.AppStatisticsDataProvider)
+    private readonly appStatsDataProvider: AppStatisticsDataProvider,
+    @inject(TOKENS.CategoriesDataProvider)
+    private readonly categoriesDataProvider: CategoriesDataProvider,
   ) {}
 
   /**
@@ -40,7 +43,8 @@ export default class AppReportGenerator {
       await this.sourcesRepository.getProjectFileTypesCountAndLines(projectName);
     const categorizedData = await this.categoriesDataProvider.getCategorizedData(projectName);
     const dbInteractions = await this.databaseDataProvider.getDatabaseInteractions(projectName);
-    const procsAndTriggers = await this.databaseDataProvider.getStoredProceduresAndTriggers(projectName);
+    const procsAndTriggers =
+      await this.databaseDataProvider.getStoredProceduresAndTriggers(projectName);
     await this.jsonWriter.writeAllJSONFiles(
       categorizedData,
       appStats,
@@ -58,5 +62,4 @@ export default class AppReportGenerator {
       htmlFilePath,
     );
   }
-
 }

@@ -45,7 +45,12 @@ export default class McpHttpServer {
         mcpHandler(req, res).catch((error: unknown) => {
           logErrorMsgAndDetail("Error handling MCP request", error);
           if (!res.headersSent) {
-            this.sendJsonRpcError(res, mcpConfig.HTTP_STATUS_INTERNAL_ERROR, mcpConfig.JSONRPC_INTERNAL_ERROR, "Internal Server Error");
+            this.sendJsonRpcError(
+              res,
+              mcpConfig.HTTP_STATUS_INTERNAL_ERROR,
+              mcpConfig.JSONRPC_INTERNAL_ERROR,
+              "Internal Server Error",
+            );
           }
         });
       } else {
@@ -133,7 +138,12 @@ export default class McpHttpServer {
             transport = existingTransport;
             body = await this.parseRequestBody(req);
           } else {
-            this.sendJsonRpcError(res, mcpConfig.HTTP_STATUS_BAD_REQUEST, mcpConfig.JSONRPC_SERVER_ERROR, "Bad Request: Invalid session ID");
+            this.sendJsonRpcError(
+              res,
+              mcpConfig.HTTP_STATUS_BAD_REQUEST,
+              mcpConfig.JSONRPC_SERVER_ERROR,
+              "Bad Request: Invalid session ID",
+            );
             return;
           }
         } else {
@@ -162,7 +172,12 @@ export default class McpHttpServer {
             await this.mcpServer.connect(transport);
           } else {
             // Invalid request - no session ID or not initialization request
-            this.sendJsonRpcError(res, mcpConfig.HTTP_STATUS_BAD_REQUEST, mcpConfig.JSONRPC_SERVER_ERROR, "Bad Request: No valid session ID provided");
+            this.sendJsonRpcError(
+              res,
+              mcpConfig.HTTP_STATUS_BAD_REQUEST,
+              mcpConfig.JSONRPC_SERVER_ERROR,
+              "Bad Request: No valid session ID provided",
+            );
             return;
           }
         }
@@ -172,7 +187,12 @@ export default class McpHttpServer {
       } catch (error: unknown) {
         logErrorMsgAndDetail("Error in MCP request handler", error);
         if (!res.headersSent) {
-          this.sendJsonRpcError(res, mcpConfig.HTTP_STATUS_INTERNAL_ERROR, mcpConfig.JSONRPC_INTERNAL_ERROR, "Internal Server Error");
+          this.sendJsonRpcError(
+            res,
+            mcpConfig.HTTP_STATUS_INTERNAL_ERROR,
+            mcpConfig.JSONRPC_INTERNAL_ERROR,
+            "Internal Server Error",
+          );
         }
       }
     };
@@ -180,7 +200,7 @@ export default class McpHttpServer {
 
   /**
    * Sends a standardized JSON-RPC error response.
-   * 
+   *
    * @param res - The HTTP response object
    * @param httpStatusCode - The HTTP status code to set
    * @param jsonRpcErrorCode - The JSON-RPC error code
@@ -192,7 +212,7 @@ export default class McpHttpServer {
     httpStatusCode: number,
     jsonRpcErrorCode: number,
     message: string,
-    id: string | number | null = null
+    id: string | number | null = null,
   ): void {
     res.writeHead(httpStatusCode, {
       [mcpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,

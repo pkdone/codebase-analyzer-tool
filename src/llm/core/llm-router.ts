@@ -86,7 +86,7 @@ export default class LLMRouter {
         const modelId =
           candidate.modelQuality === LLMModelQuality.PRIMARY
             ? models.primaryCompletion
-            : models.secondaryCompletion ?? "n/a";
+            : (models.secondaryCompletion ?? "n/a");
         return `${candidate.modelQuality}: ${modelId}`;
       })
       .join(", ");

@@ -48,4 +48,4 @@ export class CategoriesDataProvider {
 
     return categorizedData;
   }
-} 
+}

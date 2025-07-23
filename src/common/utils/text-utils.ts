@@ -1,4 +1,12 @@
 /**
+ * Convert camelCase or compound words to space-separated words with proper capitalization.
+ * Example: "camelCaseString" -> "Camel Case String"
+ */
+export function convertToDisplayName(text: string): string {
+  const spacedText = text.replace(/([a-z])([A-Z])/g, "$1 $2");
+  return spacedText.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+/**
  * Count the lines in a piece of text.
  */
 export function countLines(text: string): number {

@@ -41,4 +41,4 @@ export class AppStatisticsDataProvider {
           : "No description available",
     };
   }
-} 
+}

@@ -137,4 +137,4 @@ export class DatabaseReportDataProvider {
       // No default needed due to exhaustive check
     }
   }
-} 
+}

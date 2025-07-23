@@ -89,12 +89,12 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   container.registerSingleton(TOKENS.InsightsDataServer, InsightsDataServer);
   container.registerSingleton(TOKENS.McpDataServer, McpDataServer);
   container.registerSingleton(TOKENS.McpHttpServer, McpHttpServer);
-  
+
   // Register components that depend on LLMRouter with simplified singleton registrations
   if (config.requiresLLM) {
     await registerLLMDependentComponents();
   }
-  
+
   console.log("Internal helper components registered");
 }
 
