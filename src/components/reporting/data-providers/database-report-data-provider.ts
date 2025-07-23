@@ -4,6 +4,7 @@ import type { SourcesRepository } from "../../../repositories/source/sources.rep
 import { TOKENS } from "../../../di/tokens";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
 import { Complexity, isComplexity } from "../report-gen.types";
+import { logWarningMsg } from "../../../common/utils/error-utils";
 
 /**
  * Data provider responsible for aggregating database-related information for reports.
@@ -116,7 +117,7 @@ export class DatabaseReportDataProvider {
     complexity: unknown, // Accept unknown for robust checking
   ) {
     if (!isComplexity(complexity)) {
-      console.warn(
+      logWarningMsg(
         `Unexpected or missing complexity value encountered: ${String(complexity)}. Defaulting to LOW.`,
       );
       section.low++; // Default to LOW to maintain consistency

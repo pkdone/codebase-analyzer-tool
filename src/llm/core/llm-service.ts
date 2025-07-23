@@ -11,7 +11,7 @@ import {
 import { EnvVars } from "../../lifecycle/env.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
-import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";
 import { readDirContents } from "../../common/utils/fs-utils";
 import { TOKENS } from "../../di/tokens";
 
@@ -127,7 +127,7 @@ export class LLMService {
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.warn("LLMService is already initialized.");
+      logWarningMsg("LLMService is already initialized.");
       return;
     }
 

@@ -24,6 +24,13 @@ export function logErrorMsg(errMsg: string): void {
 }
 
 /**
+ * Log an string msg flagged as an warning.
+ */
+export function logWarningMsg(wrnMsg: string): void {
+  console.warn(wrnMsg);
+}
+
+/**
  * Get the error text from a thrown variable which may or may not be an Error object.
  */
 export function getErrorText(error: unknown): string {

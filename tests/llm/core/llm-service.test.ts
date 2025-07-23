@@ -3,11 +3,13 @@ import { EnvVars } from "../../../src/lifecycle/env.types";
 import { LLMPurpose, LLMProvider, LLMModelQuality } from "../../../src/llm/types/llm.types";
 import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.types";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
+import { logWarningMsg } from "../../../src/common/utils/error-utils";
 import { z } from "zod";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/error-utils", () => ({
   logErrorMsgAndDetail: jest.fn(),
+  logWarningMsg: jest.fn(),
 }));
 
 jest.mock("../../../src/common/utils/fs-utils", () => ({
@@ -182,16 +184,14 @@ describe("LLM Service tests", () => {
       const service = new LLMService("OpenAI");
 
       jest.spyOn(LLMService, "loadManifestForModelFamily").mockResolvedValue(mockProviderManifest);
-      const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+      const mockLogWarning = logWarningMsg as jest.MockedFunction<typeof logWarningMsg>;
 
       await service.initialize();
       await service.initialize(); // Second call
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(LLMService.loadManifestForModelFamily).toHaveBeenCalledTimes(1);
-      expect(consoleSpy).toHaveBeenCalledWith("LLMService is already initialized.");
-
-      consoleSpy.mockRestore();
+      expect(mockLogWarning).toHaveBeenCalledWith("LLMService is already initialized.");
     });
 
     test("should throw error if manifest loading fails", async () => {

@@ -1,6 +1,6 @@
 import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
 import { injectable } from "tsyringe";
-import { logErrorMsgAndDetail } from "../utils/error-utils";
+import { logErrorMsgAndDetail, logWarningMsg } from "../utils/error-utils";
 import { redactUrl } from "./mdb-utils";
 
 /**
@@ -21,7 +21,7 @@ export class MongoDBClientFactory {
    */
   async connect(id: string, url: string, options?: MongoClientOptions): Promise<MongoClient> {
     if (this.clients.has(id)) {
-      console.warn(`MongoDB client with id '${id}' is already connected.`);
+      logWarningMsg(`MongoDB client with id '${id}' is already connected.`);
       const client = this.clients.get(id);
       if (!client) throw new MongoError(`No active connection found for id '${id}'.`);
       return client;

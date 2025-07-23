@@ -19,7 +19,11 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
 } from "../../../types/llm.types";
-import { getErrorText, logErrorMsgAndDetail } from "../../../../common/utils/error-utils";
+import {
+  getErrorText,
+  logErrorMsgAndDetail,
+  logWarningMsg,
+} from "../../../../common/utils/error-utils";
 import AbstractLLM from "../../../core/abstract-llm";
 import {
   BadConfigurationLLMError,
@@ -28,7 +32,9 @@ import {
 } from "../../../types/llm-errors.types";
 import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { zodToJsonSchemaNormalized } from "../../../../common/utils/json-schema-utils";
+
+// Constant for the finish reasons that are considered terminal and should be rejected
 const VERTEXAI_TERMINAL_FINISH_REASONS = [
   FinishReason.BLOCKLIST,
   FinishReason.PROHIBITED_CONTENT,
@@ -178,14 +184,8 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   protected isLLMOverloaded(error: unknown) {
     if (error instanceof Error) {
       const errMsg = getErrorText(error).toLowerCase() || "";
-
-      if (error instanceof GoogleApiError && error.code === 429) {
-        return true;
-      }
-
-      if (error instanceof ClientError && errMsg.includes("429 too many requests")) {
-        return true;
-      }
+      if (error instanceof GoogleApiError && error.code === 429) return true;
+      if (error instanceof ClientError && errMsg.includes("429 too many requests")) return true;
 
       if (
         errMsg.includes("reason given: recitation") ||
@@ -242,10 +242,16 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       // schema definiton elements that the Vertex AI API chokes on - otherwise VertexAI throws
       // ClientError - INVALID_ARGUMENT - fieldViolations errors
       if (options.jsonSchema && !options.trickySchema) {
-        const jsonSchema = zodToJsonSchema(options.jsonSchema);
-        delete jsonSchema.$schema;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-        generationConfig.responseSchema = jsonSchema as any;
+        const jsonSchema = zodToJsonSchemaNormalized(options.jsonSchema);
+
+        if (isVertexAICompatibleSchema(jsonSchema)) {
+          generationConfig.responseSchema = jsonSchema as Record<string, unknown>;
+        } else {
+          logWarningMsg(
+            "Generated JSON schema is not compatible with VertexAI SDK's Schema type. " +
+              "Proceeding without schema enforcement to avoid runtime errors.",
+          );
+        }
       }
     }
 
@@ -315,4 +321,19 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
 
     return embeddings;
   }
+}
+
+/**
+ * Type guard to check if a JSON schema is compatible with VertexAI's Schema type.
+ * This is a structural compatibility check since the exact Schema interface may not be directly
+ * accessible. VertexAI expects schemas to have type information and properties structure.
+ */
+function isVertexAICompatibleSchema(schema: unknown): schema is Record<string, unknown> {
+  if (!schema || typeof schema !== "object") return false;
+  const schemaObj = schema as Record<string, unknown>;
+  return (
+    "type" in schemaObj &&
+    typeof schemaObj.type === "string" &&
+    (schemaObj.type === "object" ? "properties" in schemaObj : true)
+  );
 }

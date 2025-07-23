@@ -8,7 +8,7 @@ import { appConfig } from "../../config/app.config";
 import { findFilesRecursively } from "../../common/utils/fs-utils";
 import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
 import type { EnvVars } from "../../lifecycle/env.types";
-import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { summaryCategoriesConfig } from "./insights.config";
@@ -106,7 +106,7 @@ export default class InsightsFromRawCodeGenerator implements InsightsGenerator {
       );
       return llmResponse;
     } catch (error) {
-      console.warn(
+      logWarningMsg(
         `${error instanceof Error ? error.message : "Unknown error"} for getting summary data for all categories`,
       );
       return null;

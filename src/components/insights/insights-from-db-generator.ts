@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appConfig } from "../../config/app.config";
-import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";
 import { joinArrayWithSeparators } from "../../common/utils/text-utils";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
@@ -140,7 +140,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
       );
       return llmResponse;
     } catch (error) {
-      console.warn(
+      logWarningMsg(
         `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,
       );
       return null;
