@@ -12,6 +12,9 @@ import { FileSummarizer } from "../../components/capture/file-summarizer";
 import { FileHandlerFactory } from "../../components/capture/file-handler-factory";
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
+import { DatabaseReportDataProvider } from "../../components/reporting/data-providers/database-report-data-provider";
+import { AppStatisticsDataProvider } from "../../components/reporting/data-providers/app-statistics-data-provider";
+import { CategoriesDataProvider } from "../../components/reporting/data-providers/categories-data-provider";
 import { RawCodeToInsightsFileGenerator } from "../../components/insights/insights-from-raw-code-to-local-files";
 import CodeQuestioner from "../../components/querying/code-questioner";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
@@ -69,6 +72,9 @@ function registerComponents(): void {
   container.registerSingleton(TOKENS.FileHandlerFactory, FileHandlerFactory);
   container.registerSingleton(TOKENS.HtmlReportFormatter, HtmlReportWriter);
   container.registerSingleton(TOKENS.JsonReportWriter, JsonReportWriter);
+  container.registerSingleton(TOKENS.DatabaseReportDataProvider, DatabaseReportDataProvider);
+  container.registerSingleton(TOKENS.AppStatisticsDataProvider, AppStatisticsDataProvider);
+  container.registerSingleton(TOKENS.CategoriesDataProvider, CategoriesDataProvider);
   container.registerSingleton(TOKENS.AppReportGenerator, AppReportGenerator);
   container.registerSingleton(
     TOKENS.RawCodeToInsightsFileGenerator,
