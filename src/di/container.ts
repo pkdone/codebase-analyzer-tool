@@ -25,7 +25,7 @@ export async function bootstrapContainer(config: TaskRunnerConfig): Promise<void
     await registerMongoDBDependencies();
   }
 
-  registerAppDependencies();
+  await registerAppDependencies(config);
 }
 
 export { container };

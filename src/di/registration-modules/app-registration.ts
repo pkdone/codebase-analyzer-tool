@@ -21,7 +21,6 @@ import AppReportGenerator from "../../components/reporting/app-report-generator"
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
-import { createInsightsGenerator } from "../../components/insights/insights-generator.factory";
 import InsightsDataServer from "../../components/api/mcpServing/insights-data-server";
 import McpDataServer from "../../components/api/mcpServing/mcp-data-server";
 import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
@@ -37,13 +36,18 @@ import { McpServerTask } from "../../tasks/mcp-server.task";
 import { ReportGenerationTask } from "../../tasks/report-generation.task";
 import { DBInitializerTask } from "../../tasks/db-initializer.task";
 
+// Additional imports for the insights generator registration
+import { EnvVars } from "../../lifecycle/env.types";
+import { LLMService } from "../../llm/core/llm-service";
+import { TaskRunnerConfig } from "../../lifecycle/task.types";
+
 /**
  * Register all application-level dependencies (repositories, components, and tasks).
  * This consolidated registration function handles the core business logic dependencies.
  */
-export function registerAppDependencies(): void {
+export async function registerAppDependencies(config: TaskRunnerConfig): Promise<void> {
   registerRepositories();
-  registerComponents();
+  await registerComponents(config);
   registerTasks();
 }
 
@@ -64,12 +68,14 @@ function registerRepositories(): void {
 }
 
 /**
- * Register internal helper components.
- * Components that depend on LLMRouter use simplified singleton registrations.
+ * Register component implementations that other parts of the system depend on.
+ * These are internal helper components used to compose higher-level functionality.
  */
-function registerComponents(): void {
-  // Register components that don't depend on LLMRouter as regular singletons
+async function registerComponents(config: TaskRunnerConfig): Promise<void> {
+  // Register file handling components
   container.registerSingleton(TOKENS.FileHandlerFactory, FileHandlerFactory);
+
+  // Register report generation components
   container.registerSingleton(TOKENS.HtmlReportFormatter, HtmlReportWriter);
   container.registerSingleton(TOKENS.JsonReportWriter, JsonReportWriter);
   container.registerSingleton(TOKENS.DatabaseReportDataProvider, DatabaseReportDataProvider);
@@ -83,8 +89,12 @@ function registerComponents(): void {
   container.registerSingleton(TOKENS.InsightsDataServer, InsightsDataServer);
   container.registerSingleton(TOKENS.McpDataServer, McpDataServer);
   container.registerSingleton(TOKENS.McpHttpServer, McpHttpServer);
+  
   // Register components that depend on LLMRouter with simplified singleton registrations
-  registerLLMDependentComponents();
+  if (config.requiresLLM) {
+    await registerLLMDependentComponents();
+  }
+  
   console.log("Internal helper components registered");
 }
 
@@ -92,7 +102,7 @@ function registerComponents(): void {
  * Register components that depend on LLMRouter using simplified singleton registrations.
  * Since these classes use @injectable(), tsyringe will automatically handle dependency injection.
  */
-function registerLLMDependentComponents(): void {
+async function registerLLMDependentComponents(): Promise<void> {
   // Simplified registrations using tsyringe's automatic dependency injection
   container.registerSingleton(TOKENS.FileSummarizer, FileSummarizer);
   container.registerSingleton(TOKENS.CodebaseToDBLoader, CodebaseToDBLoader);
@@ -103,9 +113,19 @@ function registerLLMDependentComponents(): void {
   container.registerSingleton(InsightsFromDBGenerator);
   container.registerSingleton(InsightsFromRawCodeGenerator);
 
-  // Register the InsightsGenerator interface with factory
+  // Pre-load manifest to determine which InsightsGenerator implementation to use
+  const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
+  const manifest = await LLMService.loadManifestForModelFamily(envVars.LLM);
+
+  // Register the InsightsGenerator interface with synchronous factory based on manifest data
   container.register(TOKENS.InsightsGenerator, {
-    useFactory: async () => await createInsightsGenerator(),
+    useFactory: () => {
+      if (manifest.supportsFullCodebaseAnalysis) {
+        return container.resolve(InsightsFromRawCodeGenerator);
+      } else {
+        return container.resolve(InsightsFromDBGenerator);
+      }
+    },
   });
 }
 
