@@ -11,17 +11,6 @@ import type { LLMRetryConfig } from "../../providers/llm-provider.types";
 import { llmConfig } from "../../llm.config";
 import type LLMStats from "../utils/routerTracking/llm-stats";
 
-// Custom error class with status field
-export class RetryStatusError extends Error {
-  constructor(
-    message: string,
-    readonly status: LLMResponseStatus.OVERLOADED | LLMResponseStatus.INVALID,
-  ) {
-    super(message);
-    this.name = "RetryStatusError";
-  }
-}
-
 /**
  * Strategy class responsible for handling LLM function retries.
  * Encapsulates retry logic that was previously embedded in LLMRouter.
@@ -46,7 +35,21 @@ export class RetryStrategy {
       return await pRetry(
         async () => {
           const result = await llmFunction(prompt, context, completionOptions);
-          this.throwIfRetryable(result);
+
+          if (result.status === LLMResponseStatus.OVERLOADED) {
+            const error = new Error("LLM is overloaded") as Error & {
+              retryableStatus: LLMResponseStatus;
+            };
+            error.retryableStatus = LLMResponseStatus.OVERLOADED;
+            throw error;
+          } else if (result.status === LLMResponseStatus.INVALID) {
+            const error = new Error("LLM response is invalid") as Error & {
+              retryableStatus: LLMResponseStatus;
+            };
+            error.retryableStatus = LLMResponseStatus.INVALID;
+            throw error;
+          }
+
           return result;
         },
         {
@@ -54,9 +57,7 @@ export class RetryStrategy {
           minTimeout: retryConfig.minRetryDelayMillis,
           onFailedAttempt: (error: FailedAttemptError) => {
             this.logRetryOrInvalidEvent(
-              error as FailedAttemptError & {
-                status?: LLMResponseStatus.OVERLOADED | LLMResponseStatus.INVALID;
-              },
+              error as FailedAttemptError & { retryableStatus?: LLMResponseStatus },
             );
           },
         } as pRetry.Options,
@@ -85,27 +86,16 @@ export class RetryStrategy {
   }
 
   /**
-   * Check the result and throw an error if the LLM is overloaded or the response is invalid
-   */
-  private throwIfRetryable(result: LLMFunctionResponse) {
-    if (result.status === LLMResponseStatus.OVERLOADED)
-      throw new RetryStatusError("LLM is overloaded", LLMResponseStatus.OVERLOADED);
-    if (result.status === LLMResponseStatus.INVALID)
-      throw new RetryStatusError("LLM response is invalid", LLMResponseStatus.INVALID);
-  }
-
-  /**
    * Log retry events with status-specific handling
    */
   private logRetryOrInvalidEvent(
-    error: FailedAttemptError & {
-      status?: LLMResponseStatus.OVERLOADED | LLMResponseStatus.INVALID;
-    },
+    error: FailedAttemptError & { retryableStatus?: LLMResponseStatus },
   ) {
-    if (error.status === LLMResponseStatus.INVALID) {
+    if (error.retryableStatus === LLMResponseStatus.INVALID) {
       this.llmStats.recordHopefulRetry();
-    } else {
+    } else if (error.retryableStatus === LLMResponseStatus.OVERLOADED) {
       this.llmStats.recordOverloadRetry();
     }
+    // For other errors (non-retryable status errors), we don't log specific retry types
   }
 }

@@ -33,6 +33,7 @@ export class CategoriesDataProvider {
 
     for (const category of categoryKeys) {
       const label = summaryCategoriesConfig[category].label;
+      // TODO: Could call new repo method which gets all categories in one go
       const result = await this.appSummariesRepository.getProjectAppSummaryField(
         projectName,
         category as keyof AppSummaryRecord,
