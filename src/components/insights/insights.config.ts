@@ -16,7 +16,7 @@ export const summaryCategoriesConfig: Record<
   {
     label: string;
     description: string;
-    schema: z.ZodType;
+    schema: z.ZodObject<z.ZodRawShape>;
   }
 > = {
   appDescription: {
