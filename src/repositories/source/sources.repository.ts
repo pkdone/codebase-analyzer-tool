@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { MongoClient, Double, Sort, Document, Collection } from "mongodb";
+import { MongoClient, Double, Sort, Document, Collection, OptionalId } from "mongodb";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
   SourceRecord,
@@ -37,7 +37,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
    */
   async insertSource(sourceFileData: SourceRecordNoId): Promise<void> {
     try {
-      await this.collection.insertOne(sourceFileData as SourceRecord);
+      await this.collection.insertOne(sourceFileData as OptionalId<SourceRecord>);
     } catch (error: unknown) {
       logMongoValidationErrorIfPresent(error);
       throw error;
