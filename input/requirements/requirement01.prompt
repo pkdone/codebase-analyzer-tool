@@ -12,3 +12,5 @@ Do NOT inlude any of the following topics in your recommendations:
  * Inconsistent Strategy for Defining Constants
  * Scattered and Inconsistent Type Definitions
  * Tightly Coupled Repository Implementations to MongoDB Driver
+ * Decentralized and Inflexible Prompt Management
+ * Low Cohesion in Utility Modules
