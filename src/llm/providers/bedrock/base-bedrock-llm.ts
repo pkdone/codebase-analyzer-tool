@@ -143,24 +143,22 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   /**
    * Check to see if error code indicates potential token limit has been exceeded.
    */
-  protected isTokenLimitExceeded(error: unknown) {
-    if (error instanceof ValidationException) {
-      const lowercaseContent = getErrorText(error).toLowerCase();
-
-      if (
-        lowercaseContent.includes("too many input tokens") ||
-        lowercaseContent.includes("expected maxlength") ||
-        lowercaseContent.includes("input is too long") ||
-        lowercaseContent.includes("input length") ||
-        lowercaseContent.includes("too large for model") ||
-        lowercaseContent.includes("please reduce the length of the prompt")
-      ) {
-        // Llama
-        return true;
-      }
+  protected isTokenLimitExceeded(error: unknown): boolean {
+    if (!(error instanceof ValidationException)) {
+      return false;
     }
 
-    return false;
+    const errorKeywords = [
+      "too many input tokens",
+      "expected maxlength",
+      "input is too long",
+      "input length",
+      "too large for model",
+      "please reduce the length of the prompt",
+    ];
+
+    const lowercaseContent = getErrorText(error).toLowerCase();
+    return errorKeywords.some((keyword) => lowercaseContent.includes(keyword));
   }
 
   /**
