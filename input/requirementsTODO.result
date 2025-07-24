@@ -633,21 +633,3 @@ async getDatabaseInteractions(projectName: string): Promise<DatabaseIntegrationI
 
 
 
-#### Bug 4: Incorrect JSON Report Filename
-*   **File:** `src/components/reporting/json-report-writer.ts`
-*   **The Bug:** The `writeAllJSONFiles` method prepares a `completeReportData` object to be written to a file. The filename is taken from `jsonFilesConfig.dataFiles.completeReport`, which is `"codebase-report"`. The code does not append a `.json` extension, resulting in a file named `codebase-report` instead of `codebase-report.json`.
-*   **How toFix:** Append the `.json` extension when defining the file to be written.
-
-    **In `src/components/reporting/json-report-writer.ts`:**
-    ```typescript
-    // ...
-    const jsonFiles: { /* ... */ }[] = [
-      // Complete report file
-      { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },
-      // ... rest of the array
-    ];
-    // ...
-    ```
-
-
-
