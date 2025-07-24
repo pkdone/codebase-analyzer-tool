@@ -45,8 +45,8 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
    * the entities and processes for the application, storing the results
    * in the database.
    */
-  async generateSummariesDataIntoDB(): Promise<void> {
-    const sourceFileSummaries = await this.buildSourceFileListSummaryList();
+  async generateSummariesBackIntoDB(): Promise<void> {
+    const sourceFileSummaries = await this.getSourceFileSummaries();
 
     if (sourceFileSummaries.length === 0) {
       throw new Error(
@@ -70,7 +70,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
   /**
    * Returns a list of source file summaries with basic info.
    */
-  private async buildSourceFileListSummaryList(): Promise<string[]> {
+  private async getSourceFileSummaries(): Promise<string[]> {
     const srcFilesList: string[] = [];
     const records = await this.sourcesRepository.getProjectSourcesSummaries(this.projectName, [
       ...appConfig.CODE_FILE_EXTENSIONS,
@@ -128,14 +128,14 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
     try {
       const schema = summaryCategoriesConfig[category].schema;
       const content = joinArrayWithSeparators(sourceFileSummaries);
-      const prompt = this.createInsightsForCateogryPrompt(category, content);
+      const prompt = this.createInsightsForCategoryPrompt(category, content);
       const llmResponse = await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
         category,
         prompt,
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
-          trickySchema: IS_TRICKY_SCHEMA,
+          hasComplexSchema: IS_TRICKY_SCHEMA,
         },
       );
       return llmResponse;
@@ -150,7 +150,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
   /**
    * Create a prompt for the LLM to generate insights for a specific categories
    */
-  private createInsightsForCateogryPrompt(
+  private createInsightsForCategoryPrompt(
     type: AppSummaryCategoryEnum,
     codeContent: string,
   ): string {

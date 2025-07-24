@@ -1,7 +1,7 @@
 import path from "path";
 import { injectable } from "tsyringe";
 import { FileHandler } from "./file-handler";
-import { filesTypeMetatadataConfig } from "./files-types-metadata.config";
+import { fileTypeMetadataConfig } from "./files-types-metadata.config";
 import { appConfig } from "../../config/app.config";
 
 /**
@@ -54,6 +54,6 @@ export class FileHandlerFactory {
    * @returns The configuration object for the file type
    */
   private getConfigForFileType(fileType: string) {
-    return filesTypeMetatadataConfig[fileType] ?? filesTypeMetatadataConfig.default;
+    return fileTypeMetadataConfig[fileType] ?? fileTypeMetadataConfig.default;
   }
 }

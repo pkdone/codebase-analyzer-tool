@@ -23,7 +23,7 @@ const COMMON_INSTRUCTIONS = {
 /**
  * Data-driven mapping of prompt types to their templates and schemas
  */
-export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
+export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
   java: {
     contentDesc: "Java code",
     instructions: `* The name of the main public class/interface of the file
@@ -67,7 +67,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
           .array(z.string())
           .describe("A list of third-party classpaths referenced."),
       }),
-    trickySchema: false,
+    hasComplexSchema: false,
   },
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
@@ -83,7 +83,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
       externalReferences: true,
       databaseIntegration: true,
     }),
-    trickySchema: false,
+    hasComplexSchema: false,
   },
   default: {
     contentDesc: "project file content",
@@ -93,7 +93,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
       purpose: true,
       implementation: true,
     }),
-    trickySchema: false,
+    hasComplexSchema: false,
   },
   sql: {
     contentDesc: "database DDL/DML/SQL code",
@@ -126,7 +126,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
           ]),
         }),
       }),
-    trickySchema: true,
+    hasComplexSchema: true,
   },
   xml: {
     contentDesc: "XML code",
@@ -136,7 +136,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
       purpose: true,
       implementation: true,
     }),
-    trickySchema: false,
+    hasComplexSchema: false,
   },
   jsp: {
     contentDesc: "JSP code",
@@ -152,7 +152,7 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
       externalReferences: true,
       dataInputFields: true,
     }),
-    trickySchema: false,
+    hasComplexSchema: false,
   },
   markdown: {
     contentDesc: "Markdown content",
@@ -162,6 +162,6 @@ export const filesTypeMetatadataConfig: Record<string, DynamicPromptConfig> = {
       purpose: true,
       implementation: true,
     }),
-    trickySchema: false,
+    hasComplexSchema: false,
   },
 } as const;

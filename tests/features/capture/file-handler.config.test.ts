@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { filesTypeMetatadataConfig } from "../../../src/components/capture/files-types-metadata.config";
+import { fileTypeMetadataConfig } from "../../../src/components/capture/files-types-metadata.config";
 import { appConfig } from "../../../src/config/app.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-handler";
@@ -13,8 +13,8 @@ describe("File Handler Configuration", () => {
 
   describe("fileTypeMetataDataAndPromptTemplate", () => {
     test("should be a Record with expected file types", () => {
-      expect(typeof filesTypeMetatadataConfig).toBe("object");
-      expect(filesTypeMetatadataConfig).not.toBeNull();
+      expect(typeof fileTypeMetadataConfig).toBe("object");
+      expect(fileTypeMetadataConfig).not.toBeNull();
     });
 
     test("should contain expected prompt template keys", () => {
@@ -29,16 +29,16 @@ describe("File Handler Configuration", () => {
       ];
 
       expectedPromptTypes.forEach((type) => {
-        expect(filesTypeMetatadataConfig).toHaveProperty(type);
+        expect(fileTypeMetadataConfig).toHaveProperty(type);
       });
     });
 
     test("should have correct number of mappings", () => {
-      expect(Object.keys(filesTypeMetatadataConfig).length).toBe(7);
+      expect(Object.keys(fileTypeMetadataConfig).length).toBe(7);
     });
 
     test("should have valid Zod schemas for each file type", () => {
-      Object.entries(filesTypeMetatadataConfig).forEach(([, config]) => {
+      Object.entries(fileTypeMetadataConfig).forEach(([, config]) => {
         expect(config.schema).toBeDefined();
         expect(config.schema._def).toBeDefined();
         // Schema should have a parse method indicating it's a Zod schema
@@ -47,7 +47,7 @@ describe("File Handler Configuration", () => {
     });
 
     test("should have contentDesc and instructions for each type", () => {
-      Object.entries(filesTypeMetatadataConfig).forEach(([, config]) => {
+      Object.entries(fileTypeMetadataConfig).forEach(([, config]) => {
         expect(config).toHaveProperty("contentDesc");
         expect(config).toHaveProperty("instructions");
         expect(config).toHaveProperty("schema");
@@ -63,7 +63,7 @@ describe("File Handler Configuration", () => {
         contentDesc: "test content",
         instructions: "test instructions",
         schema: sourceSummarySchema,
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const testHandler = new FileHandler(testConfig);
 
@@ -78,7 +78,7 @@ describe("File Handler Configuration", () => {
         contentDesc: "test content",
         instructions: "test instructions",
         schema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const typedHandler = new FileHandler(typedConfig);
 
@@ -131,7 +131,7 @@ describe("File Handler Configuration", () => {
       const canonicalTypes = new Set(appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values());
 
       canonicalTypes.forEach((canonicalType) => {
-        expect(filesTypeMetatadataConfig).toHaveProperty(canonicalType);
+        expect(fileTypeMetadataConfig).toHaveProperty(canonicalType);
       });
     });
 
@@ -142,7 +142,7 @@ describe("File Handler Configuration", () => {
         appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ?? "default";
 
       expect(canonicalType).toBe("default");
-      expect(filesTypeMetatadataConfig).toHaveProperty("default");
+      expect(fileTypeMetadataConfig).toHaveProperty("default");
     });
   });
 });

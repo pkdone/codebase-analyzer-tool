@@ -19,7 +19,7 @@ import {
 } from "../providers/llm-provider.types";
 import { getErrorText, logErrorMsg } from "../../common/utils/error-utils";
 import { convertTextToJSONAndOptionallyValidate } from "./utils/msgProcessing/json-tools";
-import { extractTokensAmountAndLimitFromErrorMsg } from "./utils/msgProcessing/response-error-pattern-parser";
+import { extractTokensAmountAndLimitFromErrorMsg } from "./utils/msgProcessing/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 
 /**
@@ -162,7 +162,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   /**
    * Used for debugging purposes - prints the error type and message to the console.
    */
-  protected debugCurrentlyNonCheckedErrorTypes(error: unknown, modelKey: string) {
+  protected debugUnhandledError(error: unknown, modelKey: string) {
     if (error instanceof Error) {
       console.log(
         `${error.constructor.name}: ${getErrorText(error)} - LLM: ${this.llmModelsMetadata[modelKey].urn}`,
@@ -209,7 +209,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       }
     } catch (error: unknown) {
       // Explicitly type error as unknown
-      // OPTIONAL: this.debugCurrentlyNonCheckedErrorTypes(error, modelKey);
+      // OPTIONAL: this.debugUnhandledError(error, modelKey);
 
       if (this.isLLMOverloaded(error)) {
         return { ...skeletonResponse, status: LLMResponseStatus.OVERLOADED };

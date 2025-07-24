@@ -42,7 +42,7 @@ export class FileSummarizer {
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: handler.schema,
-          trickySchema: handler.trickySchema,
+          hasComplexSchema: handler.hasComplexSchema,
         },
       );
       if (llmResponse === null) return { success: false, error: "LLM returned null response" };

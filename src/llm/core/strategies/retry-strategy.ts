@@ -103,7 +103,7 @@ export class RetryStrategy {
     },
   ) {
     if (error.status === LLMResponseStatus.INVALID) {
-      this.llmStats.recordInvalidRetry();
+      this.llmStats.recordHopefulRetry();
     } else {
       this.llmStats.recordOverloadRetry();
     }

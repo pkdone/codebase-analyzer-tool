@@ -1,5 +1,5 @@
 import { LLMPurpose } from "../../../../src/llm/types/llm.types";
-import { parseTokenUsageFromLLMError } from "../../../../src/llm/core/utils/msgProcessing/response-error-pattern-parser";
+import { parseTokenUsageFromLLMError } from "../../../../src/llm/core/utils/msgProcessing/error-parser";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "../../../../src/llm/providers/bedrock/bedrock-error-patterns";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../../../../src/llm/providers/openai/openai-error-patterns";
 

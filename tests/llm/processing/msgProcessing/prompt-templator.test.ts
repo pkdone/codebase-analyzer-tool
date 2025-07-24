@@ -13,7 +13,7 @@ describe("prompt-utils", () => {
         schema: z.string(),
         contentDesc: "text file",
         instructions: "process this text",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "test content";
 
@@ -39,7 +39,7 @@ describe("prompt-utils", () => {
         }),
         contentDesc: "data file",
         instructions: "extract data",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "sample data";
 
@@ -62,7 +62,7 @@ describe("prompt-utils", () => {
         schema: z.array(z.string()),
         contentDesc: "list file",
         instructions: "create list",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "item1, item2, item3";
 
@@ -85,7 +85,7 @@ describe("prompt-utils", () => {
         schema: z.union([z.string(), z.number()]),
         contentDesc: "mixed file",
         instructions: "process mixed data",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "mixed content";
 
@@ -109,7 +109,7 @@ describe("prompt-utils", () => {
         schema: z.enum(["option1", "option2", "option3"]),
         contentDesc: "choice file",
         instructions: "select option",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "selection data";
 
@@ -132,7 +132,7 @@ describe("prompt-utils", () => {
         schema: z.literal("exactValue"),
         contentDesc: "literal file",
         instructions: "match exact value",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "exact match test";
 
@@ -157,7 +157,7 @@ describe("prompt-utils", () => {
         }),
         contentDesc: "optional file",
         instructions: "handle optional fields",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "optional data";
 
@@ -188,7 +188,7 @@ describe("prompt-utils", () => {
         }),
         contentDesc: "nested file",
         instructions: "handle nested structure",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "nested content";
 
@@ -218,7 +218,7 @@ describe("prompt-utils", () => {
         }),
         contentDesc: "complex file",
         instructions: "handle complex structure",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "complex data";
 
@@ -247,7 +247,7 @@ describe("prompt-utils", () => {
         schema: z.string(),
         contentDesc: "test file",
         instructions: "test instructions",
-        trickySchema: false,
+        hasComplexSchema: false,
       };
       const content = "test content";
 

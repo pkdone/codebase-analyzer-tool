@@ -241,7 +241,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       // Only force Vertex AI to use the JSON schema if the schema shape does not contain some
       // schema definiton elements that the Vertex AI API chokes on - otherwise VertexAI throws
       // ClientError - INVALID_ARGUMENT - fieldViolations errors
-      if (options.jsonSchema && !options.trickySchema) {
+      if (options.jsonSchema && !options.hasComplexSchema) {
         const jsonSchema = zodToJsonSchemaNormalized(options.jsonSchema);
 
         if (isVertexAICompatibleSchema(jsonSchema)) {

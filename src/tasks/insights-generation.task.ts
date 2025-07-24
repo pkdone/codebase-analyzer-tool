@@ -33,7 +33,7 @@ export class InsightsGenerationTask implements Task {
   private async generateInsights(): Promise<void> {
     console.log(`Generating insights for project: ${this.projectName}`);
     this.llmRouter.displayLLMStatusSummary();
-    await this.insightsGenerator.generateSummariesDataIntoDB();
+    await this.insightsGenerator.generateSummariesBackIntoDB();
     console.log("Finished generating insights for the project");
     console.log("Summary of LLM invocations outcomes:");
     this.llmRouter.displayLLMStatusDetails();

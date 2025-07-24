@@ -12,8 +12,8 @@ import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 jest.mock("../../../../src/llm/llm.config", () => ({
   llmConfig: {
     COMPLETION_MAX_TOKENS_LIMIT_BUFFER: 50,
-    COMPLETION_TOKENS_REDUCE_MIN_RATIO: 0.5,
-    PROMPT_TOKENS_REDUCE_MIN_RATIO: 0.7,
+    MAX_COMPLETION_REDUCTION_RATIO: 0.75,
+    MAX_PROMPT_REDUCTION_RATIO: 0.85,
   },
 }));
 
@@ -158,9 +158,9 @@ describe("PromptAdaptationStrategy", () => {
     };
 
     const result = strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
-    // The algorithm applies the minimum reduction ratio (0.7) when total tokens check is triggered
-    // Expected reduction: 8192 / (100 + 50 + 1) = ~54.2, but capped at 0.7 minimum
-    const expectedLength = Math.floor(prompt.length * 0.7);
+    // The algorithm applies the maximum reduction ratio (0.85) when total tokens check is triggered
+    // Expected reduction: 8192 / (100 + 50 + 1) = ~54.2, but capped at 0.85 maximum
+    const expectedLength = Math.floor(prompt.length * 0.85);
     expect(result).toBe(prompt.substring(0, expectedLength));
     expect(result.length).toBe(expectedLength);
   });

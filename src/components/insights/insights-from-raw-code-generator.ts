@@ -46,7 +46,7 @@ export default class InsightsFromRawCodeGenerator implements InsightsGenerator {
   /**
    * Generate insights from raw code and store in the database
    */
-  async generateSummariesDataIntoDB(): Promise<void> {
+  async generateSummariesBackIntoDB(): Promise<void> {
     const srcDirPath = this.env.CODEBASE_DIR_PATH.replace(appConfig.TRAILING_SLASH_PATTERN, "");
     const srcFilepaths = await findFilesRecursively(
       srcDirPath,
@@ -101,7 +101,7 @@ export default class InsightsFromRawCodeGenerator implements InsightsGenerator {
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: appSummaryRecordCategoriesSchema,
-          trickySchema: IS_TRICKY_SCHEMA,
+          hasComplexSchema: IS_TRICKY_SCHEMA,
         },
       );
       return llmResponse;

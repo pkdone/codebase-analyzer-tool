@@ -16,7 +16,7 @@ export interface DynamicPromptConfig {
   schema: z.ZodType;
   contentDesc: string;
   instructions: string;
-  trickySchema: boolean;
+  hasComplexSchema: boolean;
 }
 
 /**

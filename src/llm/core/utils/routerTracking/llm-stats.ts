@@ -75,7 +75,7 @@ export default class LLMStats {
   /**
    * Log LLM invalid JSON retry event occurrence and print its symbol
    */
-  recordInvalidRetry() {
+  recordHopefulRetry() {
     this.record(this.statusTypes.HOPEFUL_RETRY);
   }
 

@@ -42,7 +42,7 @@ export class PromptAdaptationStrategy {
     ) {
       reductionRatio = Math.min(
         maxCompletionTokensLimit / (completionTokens + 1),
-        llmConfig.COMPLETION_TOKENS_REDUCE_MIN_RATIO,
+        llmConfig.MAX_COMPLETION_REDUCTION_RATIO,
       );
     }
 
@@ -50,7 +50,7 @@ export class PromptAdaptationStrategy {
     if (reductionRatio >= 1) {
       reductionRatio = Math.min(
         maxTotalTokens / (promptTokens + completionTokens + 1),
-        llmConfig.PROMPT_TOKENS_REDUCE_MIN_RATIO,
+        llmConfig.MAX_PROMPT_REDUCTION_RATIO,
       );
     }
 
