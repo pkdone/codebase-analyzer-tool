@@ -23,20 +23,26 @@ export class DatabaseReportDataProvider {
     const records = await this.sourcesRepository.getProjectDatabaseIntegrations(projectName, [
       ...appConfig.CODE_FILE_EXTENSIONS,
     ]);
-
-    return records.map((record) => {
-      const { summary, filepath } = record;
+    const validRecords = records.filter((record) => record.summary?.databaseIntegration);
+    return validRecords.map((record) => {
+      const summary = record.summary;
       const databaseIntegration = summary?.databaseIntegration;
+
       if (summary && databaseIntegration) {
         return {
-          path: summary.classpath ?? filepath,
+          path: summary.classpath ?? record.filepath,
           mechanism: databaseIntegration.mechanism,
           description: databaseIntegration.description,
           codeExample: databaseIntegration.codeExample,
         };
+      } else {
+        return {
+          path: record.filepath,
+          mechanism: "UNKNOWN",
+          description: "Unknown database integration",
+          codeExample: "N/A",
+        };
       }
-      // This should not happen due to the filter above, but satisfies TypeScript
-      throw new Error("Record missing required summary or databaseIntegration");
     });
   }
 
@@ -71,7 +77,12 @@ export class DatabaseReportDataProvider {
         "STORED PROCEDURE",
         record.filepath,
       );
-      this.tallyProcedureOrTriggerStats(summary.triggers, procsAndTriggers.trigs, "TRIGGER", record.filepath);
+      this.tallyProcedureOrTriggerStats(
+        summary.triggers,
+        procsAndTriggers.trigs,
+        "TRIGGER",
+        record.filepath,
+      );
     }
 
     return procsAndTriggers;

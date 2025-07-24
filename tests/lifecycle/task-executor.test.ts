@@ -391,4 +391,4 @@ describe("Service Runner Integration Tests", () => {
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
     });
   });
-}); 
+});

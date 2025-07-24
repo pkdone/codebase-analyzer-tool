@@ -13,7 +13,14 @@ import { TOKENS } from "../../../di/tokens";
  * Type guard to check if a value is an AppSummaryNameDescArray
  */
 function isAppSummaryNameDescArray(value: unknown): value is AppSummaryNameDescArray {
-  return Array.isArray(value) && (value.length === 0 || (typeof value[0] === 'object' && value[0] !== null && 'name' in value[0] && 'description' in value[0]));
+  return (
+    Array.isArray(value) &&
+    (value.length === 0 ||
+      (typeof value[0] === "object" &&
+        value[0] !== null &&
+        "name" in value[0] &&
+        "description" in value[0]))
+  );
 }
 
 /**
@@ -45,7 +52,7 @@ export class CategoriesDataProvider {
         projectName,
         category as keyof AppSummaryRecord,
       );
-      
+
       // Use the type guard instead of unsafe assertion
       const data = isAppSummaryNameDescArray(result) ? result : [];
       categorizedData.push({

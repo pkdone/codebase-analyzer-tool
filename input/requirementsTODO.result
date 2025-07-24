@@ -496,38 +496,3 @@ async getDatabaseInteractions(projectName: string): Promise<DatabaseIntegrationI
 
 
 
-### Unsafe Type Assertion on Database Query Results
-
--   **File(s) Affected**:
-    -   `src/components/insights/insights-from-db-generator.ts`
-    -   `src/components/reporting/data-providers/categories-data-provider.ts`
-
--   **Code Reference**:
-    ```typescript
-    // src/components/reporting/data-providers/categories-data-provider.ts
-    const result = await this.appSummariesRepository.getProjectAppSummaryField(
-      projectName,
-      category as keyof AppSummaryRecord,
-    );
-    const data = result ? (result as AppSummaryNameDescArray) : [];
-    ```
-
--   **Analysis**: The `getProjectAppSummaryField` method returns a value of type `AppSummaryRecord[K]`, which is a specific property from the summary record. However, the calling code casts this result to `AppSummaryNameDescArray`. This assertion is unsafe because not all fields on `AppSummaryRecord` are of this type. It works because the code logic ensures only array-like fields are requested, but the type system doesn't enforce this.
-
--   **Suggestion**: Refine the repository method or use a type guard to ensure type safety. A type guard is a clean solution.
-
-    ```typescript
-    // Create a type guard
-    function isAppSummaryNameDescArray(value: unknown): value is AppSummaryNameDescArray {
-      return Array.isArray(value) && (value.length === 0 || (typeof value[0] === 'object' && 'name' in value[0] && 'description' in value[0]));
-    }
-    
-    // In src/components/reporting/data-providers/categories-data-provider.ts
-    const result = await this.appSummariesRepository.getProjectAppSummaryField(/*...*/);
-    
-    // Use the type guard instead of assertion
-    const data = isAppSummaryNameDescArray(result) ? result : [];
-    ```
-
-
-
