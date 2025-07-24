@@ -19,7 +19,7 @@ import {
 } from "../providers/llm-provider.types";
 import { getErrorText, logErrorMsg } from "../../common/utils/error-utils";
 import { convertTextToJSONAndOptionallyValidate } from "./utils/msgProcessing/json-tools";
-import { extractTokensAmountAndLimitFromErrorMsg } from "./utils/msgProcessing/error-parser";
+import { calculateTokenUsageFromError } from "./utils/msgProcessing/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 
 /**
@@ -218,7 +218,7 @@ export default abstract class AbstractLLM implements LLMProvider {
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.EXCEEDED,
-          tokensUsage: extractTokensAmountAndLimitFromErrorMsg(
+          tokensUsage: calculateTokenUsageFromError(
             modelKey,
             request,
             getErrorText(error),

@@ -3,7 +3,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
-import { extractTokensAmountAndLimitFromErrorMsg } from "../../../../../src/llm/core/utils/msgProcessing/error-parser";
+import { calculateTokenUsageFromError } from "../../../../../src/llm/core/utils/msgProcessing/error-parser";
 import { azureOpenAIProviderManifest } from "../../../../../src/llm/providers/openai/azureOpenai/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../src/lifecycle/env";
 
@@ -92,7 +92,7 @@ describe("Azure OpenAI Provider Tests", () => {
       const errorMsg =
         "This model's maximum context length is 8191 tokens, however you requested 10346 tokens (10346 in your prompt; 5 for the completion). Please reduce your prompt; or completion length.";
       expect(
-        extractTokensAmountAndLimitFromErrorMsg(
+        calculateTokenUsageFromError(
           "GPT_COMPLETIONS_GPT4",
           "dummy prompt",
           errorMsg,
@@ -110,7 +110,7 @@ describe("Azure OpenAI Provider Tests", () => {
       const errorMsg =
         "This model's maximum context length is 8192 tokens. However, your messages resulted in 8545 tokens. Please reduce the length of the messages.";
       expect(
-        extractTokensAmountAndLimitFromErrorMsg(
+        calculateTokenUsageFromError(
           "GPT_COMPLETIONS_GPT4",
           "dummy prompt",
           errorMsg,

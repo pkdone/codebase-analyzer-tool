@@ -123,10 +123,10 @@ function calculateTokensFromChars(
 }
 
 /**
- * Extract token usage information and limit from LLM error message. Derives values
+ * Calculate token usage information and limit from LLM error message. Derives values
  * for all prompt/completions/maxTokens if not found in the error message.
  */
-export function extractTokensAmountAndLimitFromErrorMsg(
+export function calculateTokenUsageFromError(
   modelKey: string,
   prompt: string,
   errorMsg: string,

@@ -684,30 +684,9 @@ async getDatabaseInteractions(projectName: string): Promise<DatabaseIntegrationI
       promptTokens = Math.max(estimatedPromptTokensConsumed, assumedMaxTotalTokens + 1);
     }
     ```
--   **Suggested Name:** `resolveTokenUsageFromError` or `calculateTokenUsageFromError`
--   **Reasoning:** Using a verb like "resolve" or "calculate" more accurately communicates that the function may perform computations or estimations to determine the final values, rather than just extracting them.
+-   **Suggested Name:** `calculateTokenUsageFromError`
+-   **Reasoning:** Using a verb like "calculate" more accurately communicates that the function may perform computations or estimations to determine the final values, rather than just extracting them.
 
-
-
-
-
-### Vague and Generic Function Name
-
--   **File:** `src/components/reporting/data-providers/database-report-data-provider.ts`
--   **Function:** `processDbObjects`
--   **Problem:** The name `processDbObjects` is too generic. "DbObjects" could refer to tables, views, users, or any other database artifact. This function has a very specific purpose: to iterate through arrays of stored procedures or triggers and update a statistics object (`procsAndTriggers`) with counts and lists.
--   **Code Reference:**
-    ```typescript
-    // src/components/reporting/data-providers/database-report-data-provider.ts
-    private processDbObjects(
-      items: /* ... */,
-      target: ProcsAndTriggers["procs"] | ProcsAndTriggers["trigs"],
-      type: "STORED PROCEDURE" | "TRIGGER",
-      filepath: string,
-    ) { /* ... */ }
-    ```
--   **Suggested Name:** `tallyProcedureOrTriggerStats`
--   **Reasoning:** This name is more specific and active. "Tally" clearly indicates that it's counting/aggregating statistics, and "ProcedureOrTrigger" specifies the exact type of objects it operates on.
 
 
 

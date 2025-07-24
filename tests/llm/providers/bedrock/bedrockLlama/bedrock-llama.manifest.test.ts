@@ -3,7 +3,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
-import { extractTokensAmountAndLimitFromErrorMsg } from "../../../../../src/llm/core/utils/msgProcessing/error-parser";
+import { calculateTokenUsageFromError } from "../../../../../src/llm/core/utils/msgProcessing/error-parser";
 import {
   bedrockLlamaProviderManifest,
   AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT,
@@ -95,7 +95,7 @@ describe("Bedrock Llama Provider Tests", () => {
       const errorMsg =
         "ValidationException: This model's maximum context length is 8192 tokens. Please reduce the length of the prompt.";
       expect(
-        extractTokensAmountAndLimitFromErrorMsg(
+        calculateTokenUsageFromError(
           "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
           "dummy prompt",
           errorMsg,
@@ -113,7 +113,7 @@ describe("Bedrock Llama Provider Tests", () => {
       const errorMsg =
         "ValidationException: This model's maximum context length is 128000 tokens. Please reduce the length of the prompt.";
       expect(
-        extractTokensAmountAndLimitFromErrorMsg(
+        calculateTokenUsageFromError(
           "AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT",
           "dummy prompt",
           errorMsg,
