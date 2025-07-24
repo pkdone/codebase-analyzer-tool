@@ -21,13 +21,13 @@ export class PluggableLLMsTestTask implements Task {
    * Execute the task - tests the LLM functionality.
    */
   async execute(): Promise<void> {
-    await this.testPluggableLLMs();
+    await this.runPluggableLLMs();
   }
 
   /**
    * Tests the LLM functionality.
    */
-  private async testPluggableLLMs(): Promise<void> {
+  private async runPluggableLLMs(): Promise<void> {
     const prompt = await readFile(appConfig.SAMPLE_PROMPT_FILEPATH);
     console.log("\n---PROMPT---");
     console.log(prompt);
