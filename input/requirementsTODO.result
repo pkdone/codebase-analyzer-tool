@@ -711,36 +711,3 @@ async getDatabaseInteractions(projectName: string): Promise<DatabaseIntegrationI
 
 
 
-
-
-### Typo and Imprecision in Function Name from Notes
-
--   **File:** `NOTES.txt`
--   **Function:** `#getDeepDependenciesForTopLevelClassses`
--   **Problem:** This function, intended for future porting, has two issues. First, there is a typo: `Classses` should be `Classes`. Second, the name implies it works only on "Top Level" classes, but the implementation shows it finds dependencies for any class provided in the `classpathList` argument, which may or may not be top-level.
--   **Code Reference:**
-    ```
-    // NOTES.txt
-    // For a set classses, build the list of classes each depends on both directly and indirectly.
-    //
-    async #getDeepDependenciesForTopLevelClassses(classpathList) {
-      // ...
-    }
-    ```
--   **Suggested Name:** `getDeepDependenciesForClasses`
--   **Reasoning:** This corrected name is more accurate and concise. It removes the potentially incorrect "TopLevel" qualifier and fixes the typo, making it clearer and ready for a clean implementation in the main codebase.
-
-
-
-### Cyclic Dependency Between `lifecycle` and `di`
-**Problem:** There is a cyclic dependency between the `src/lifecycle` and `src/di` folders.
-*   `src/di/registration-modules/env-registration.ts` imports from `src/lifecycle/env.ts`.
-*   `src/lifecycle/application-runner.ts` imports from `src/di/container.ts`.
-Cyclic dependencies between folders are an architectural anti-pattern that can lead to complex bugs and make the system harder to reason about and refactor.
-
-**Suggestion:** Break the cycle by implementing suggestion #4 (Scattered Environment Variable Logic). By creating a dedicated `src/env` folder, both `src/di` and `src/lifecycle` would depend on `src/env`, but they would no longer depend on each other, thus resolving the cycle.
-
-**Affected Files:**
-*   `src/di/registration-modules/env-registration.ts`
-*   `src/lifecycle/application-runner.ts`
-*   `src/lifecycle/env.ts`

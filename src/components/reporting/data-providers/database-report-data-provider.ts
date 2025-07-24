@@ -65,22 +65,22 @@ export class DatabaseReportDataProvider {
       }
 
       // Process stored procedures and triggers using the helper method
-      this.processDbObjects(
+      this.tallyProcedureOrTriggerStats(
         summary.storedProcedures,
         procsAndTriggers.procs,
         "STORED PROCEDURE",
         record.filepath,
       );
-      this.processDbObjects(summary.triggers, procsAndTriggers.trigs, "TRIGGER", record.filepath);
+      this.tallyProcedureOrTriggerStats(summary.triggers, procsAndTriggers.trigs, "TRIGGER", record.filepath);
     }
 
     return procsAndTriggers;
   }
 
   /**
-   * Process database objects (stored procedures or triggers) and populate target section
+   * Tally statistics for stored procedures or triggers and populate target section
    */
-  private processDbObjects(
+  private tallyProcedureOrTriggerStats(
     items:
       | {
           name: string;
