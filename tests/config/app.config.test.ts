@@ -1,7 +1,7 @@
 import { appConfig } from "../../src/config/app.config";
 
 describe("App Configuration", () => {
-  describe("appConfig.FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS", () => {
+  describe("appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS", () => {
     test("should be a Map instance", () => {
       expect(appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS).toBeInstanceOf(Map);
     });
