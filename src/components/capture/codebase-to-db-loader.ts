@@ -104,7 +104,7 @@ export default class CodebaseToDBLoader {
     ignoreIfAlreadyCaptured: boolean,
   ) {
     const type = getFileExtension(fullFilepath).toLowerCase();
-    const filepath = fullFilepath.replace(`${srcDirPath}/`, "");
+    const filepath = path.relative(srcDirPath, fullFilepath);
     if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
 
     if (
