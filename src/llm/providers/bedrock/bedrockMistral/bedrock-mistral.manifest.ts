@@ -1,12 +1,12 @@
 import { LLMProviderManifest } from "../../llm-provider.types";
 import BedrockMistralLLM from "./bedrock-mistral-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { BEDROCK_COMMON_ERROR_PATTERNS } from "../bedrock-error-patterns";
+import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
 import { z } from "zod";
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
-} from "../bedrock-models.constants";
+} from "../common/bedrock-models.constants";
 
 // Environment variable name constants
 const BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY";

@@ -2,11 +2,11 @@ import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
 import BedrockClaudeLLM from "./bedrock-claude-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { BEDROCK_COMMON_ERROR_PATTERNS } from "../bedrock-error-patterns";
+import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
-} from "../bedrock-models.constants";
+} from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../llm.config";
 
 // Environment variable name constants

@@ -744,18 +744,3 @@ Cyclic dependencies between folders are an architectural anti-pattern that can l
 *   `src/di/registration-modules/env-registration.ts`
 *   `src/lifecycle/application-runner.ts`
 *   `src/lifecycle/env.ts`
-
-
-
-### Misplaced LLM Provider Constants
-**Problem:** The file `src/llm/providers/bedrock/bedrock-models.constants.ts` defines constants used across multiple Bedrock provider manifests (Claude, Llama, etc.). While this avoids duplication, these constants and the `bedrock-error-patterns.ts` file are common to the Bedrock platform, not just one specific model family. Placing them at the root of the `bedrock` folder mixes platform-level concerns with model-family-specific folders.
-
-**Suggestion:** Create a `src/llm/providers/bedrock/common/` sub-directory to house shared assets.
-1.  Move `bedrock-models.constants.ts` to `src/llm/providers/bedrock/common/bedrock-models.constants.ts`.
-2.  Move `bedrock-error-patterns.ts` to `src/llm/providers/bedrock/common/bedrock-error-patterns.ts`.
-This better organizes shared assets within the Bedrock provider group, making it clear what is common to all Bedrock models versus what is specific to a model family like Claude or Llama.
-
-**Affected Files:**
-*   `src/llm/providers/bedrock/bedrock-models.constants.ts`
-*   `src/llm/providers/bedrock/bedrock-error-patterns.ts`
-*   All manifest files in `src/llm/providers/bedrock/` that import these files.
