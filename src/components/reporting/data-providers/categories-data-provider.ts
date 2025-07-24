@@ -10,6 +10,13 @@ import type {
 import { TOKENS } from "../../../di/tokens";
 
 /**
+ * Type guard to check if a value is an AppSummaryNameDescArray
+ */
+function isAppSummaryNameDescArray(value: unknown): value is AppSummaryNameDescArray {
+  return Array.isArray(value) && (value.length === 0 || (typeof value[0] === 'object' && value[0] !== null && 'name' in value[0] && 'description' in value[0]));
+}
+
+/**
  * Data provider responsible for aggregating categorized data for reports.
  */
 @injectable()
@@ -38,7 +45,9 @@ export class CategoriesDataProvider {
         projectName,
         category as keyof AppSummaryRecord,
       );
-      const data = result ? (result as AppSummaryNameDescArray) : [];
+      
+      // Use the type guard instead of unsafe assertion
+      const data = isAppSummaryNameDescArray(result) ? result : [];
       categorizedData.push({
         category,
         label,
