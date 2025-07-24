@@ -47,7 +47,7 @@ export class JsonReportWriter {
         | typeof completeReportData;
     }[] = [
       // Complete report file
-      { filename: jsonFilesConfig.dataFiles.completeReport, data: completeReportData },
+      { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },
       // Category data files
       ...categorizedData.map((categoryData) => ({
         filename: jsonFilesConfig.getCategoryFilename(categoryData.category),
