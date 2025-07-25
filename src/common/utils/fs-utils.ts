@@ -117,9 +117,8 @@ export async function findFilesRecursively(
         }
       }),
     );
-
     return filesWithSizes
-      .sort((a, b) => b.size - a.size) // Sort by size, largest first
+      .toSorted((a, b) => b.size - a.size)
       .map(({ file }) => file);
   }
 
