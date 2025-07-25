@@ -50,103 +50,62 @@ export class DatabaseReportDataProvider {
    * Returns an aggregated summary of stored procedures and triggers.
    */
   async getStoredProceduresAndTriggers(projectName: string): Promise<ProcsAndTriggers> {
-    const procsAndTriggers: ProcsAndTriggers = {
-      procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-      trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-    };
-
     const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(
       projectName,
       [...appConfig.CODE_FILE_EXTENSIONS],
     );
-
-    for (const record of records) {
-      const summary = record.summary;
-
-      if (!summary) {
-        console.log(
-          `No stored procs / triggers summary exists for file: ${record.filepath}. Skipping.`,
-        );
-        continue;
-      }
-
-      // Process stored procedures and triggers using the helper method
-      this.tallyProcedureOrTriggerStats(
-        summary.storedProcedures,
-        procsAndTriggers.procs,
-        "STORED PROCEDURE",
-        record.filepath,
-      );
-      this.tallyProcedureOrTriggerStats(
-        summary.triggers,
-        procsAndTriggers.trigs,
-        "TRIGGER",
-        record.filepath,
-      );
-    }
-
-    return procsAndTriggers;
+    const allProcs = records.flatMap(record => 
+      record.summary?.storedProcedures?.map(proc => ({ ...proc, filepath: record.filepath })) ?? []
+    );    
+    const allTrigs = records.flatMap(record => 
+      record.summary?.triggers?.map(trig => ({ ...trig, filepath: record.filepath })) ?? []
+    );
+    const procs = this.aggregateDbObjects(allProcs, "STORED PROCEDURE");
+    const trigs = this.aggregateDbObjects(allTrigs, "TRIGGER");
+    return { procs, trigs };
   }
 
   /**
-   * Tally statistics for stored procedures or triggers and populate target section
+   * Aggregate database objects (procedures or triggers) using functional programming approach
    */
-  private tallyProcedureOrTriggerStats(
-    items:
-      | {
-          name: string;
-          complexity: unknown;
-          complexityReason?: string;
-          linesOfCode: number;
-          purpose: string;
-        }[]
-      | undefined,
-    target: ProcsAndTriggers["procs"] | ProcsAndTriggers["trigs"],
-    type: "STORED PROCEDURE" | "TRIGGER",
-    filepath: string,
-  ) {
-    for (const item of items ?? []) {
-      target.total++;
-      this.incrementComplexityCount(target, item.complexity);
-      target.list.push({
-        path: filepath,
-        type: type,
-        functionName: item.name,
-        complexity: isComplexity(item.complexity) ? item.complexity : Complexity.LOW,
-        complexityReason: item.complexityReason ?? "N/A",
-        linesOfCode: item.linesOfCode,
-        purpose: item.purpose,
-      });
-    }
-  }
-
-  /**
-   * Increment the complexity count on a procs/trigs section.
-   */
-  private incrementComplexityCount(
-    section: ProcsAndTriggers["procs"] | ProcsAndTriggers["trigs"],
-    complexity: unknown, // Accept unknown for robust checking
-  ) {
-    if (!isComplexity(complexity)) {
-      logWarningMsg(
-        `Unexpected or missing complexity value encountered: ${String(complexity)}. Defaulting to LOW.`,
-      );
-      section.low++; // Default to LOW to maintain consistency
-      return;
-    }
-
-    // 'complexity' is now safely typed as Complexity
-    switch (complexity) {
-      case Complexity.LOW:
-        section.low++;
-        break;
-      case Complexity.MEDIUM:
-        section.medium++;
-        break;
-      case Complexity.HIGH:
-        section.high++;
-        break;
-      // No default needed due to exhaustive check
-    }
+  private aggregateDbObjects(
+    items: {
+      name: string;
+      complexity: unknown;
+      complexityReason?: string;
+      linesOfCode: number;
+      purpose: string;
+      filepath: string;
+    }[],
+    type: "STORED PROCEDURE" | "TRIGGER"
+  ): ProcsAndTriggers["procs"] {
+    return items.reduce<ProcsAndTriggers["procs"]>(
+      (acc, item) => {
+        const validComplexity = isComplexity(item.complexity) ? item.complexity : Complexity.LOW;        
+        if (!isComplexity(item.complexity))
+          logWarningMsg(
+            `Unexpected or missing complexity value encountered: ${String(item.complexity)}. Defaulting to LOW.`,
+          );
+        return {
+          total: acc.total + 1,
+          low: acc.low + (validComplexity === Complexity.LOW ? 1 : 0),
+          medium: acc.medium + (validComplexity === Complexity.MEDIUM ? 1 : 0),
+          high: acc.high + (validComplexity === Complexity.HIGH ? 1 : 0),
+          list: [
+            ...acc.list,
+            {
+              path: item.filepath,
+              type: type,
+              functionName: item.name,
+              complexity: validComplexity,
+              complexityReason: item.complexityReason ?? "N/A",
+              linesOfCode: item.linesOfCode,
+              purpose: item.purpose,
+            }
+          ]
+        };
+      },
+      { total: 0, low: 0, medium: 0, high: 0, list: [] }
+    );
   }
 }
