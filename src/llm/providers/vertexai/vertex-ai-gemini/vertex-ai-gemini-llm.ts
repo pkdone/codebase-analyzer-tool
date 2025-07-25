@@ -296,30 +296,23 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     predictions: aiplatform.protos.google.protobuf.IValue[] | null | undefined,
   ) {
     if (!predictions) throw new BadResponseContentLLMError("Predictions are null or undefined");
-    const embeddings = predictions.map((p) => {
-      if (!p.structValue?.fields)
-        throw new BadResponseContentLLMError("structValue or fields is null or undefined");
-      const embeddingsProto = p.structValue.fields.embeddings;
-      if (!embeddingsProto.structValue?.fields)
+    return predictions.map((p) => {
+      const embeddings = p.structValue?.fields?.embeddings;
+      if (!embeddings?.structValue?.fields)
         throw new BadResponseContentLLMError(
-          "embeddingsProto.structValue or embeddingsProto.structValue.fields is null or undefined",
+          "Could not extract embedding values from prediction response",
         );
-      const valuesProto = embeddingsProto.structValue.fields.values;
-      if (!valuesProto.listValue?.values)
+      const values = embeddings.structValue.fields.values.listValue?.values;
+      if (!values)
         throw new BadResponseContentLLMError(
-          "valuesProto.listValue or valuesProto.listValue.values is null or undefined",
+          "Could not extract embedding values from prediction response",
         );
-      return valuesProto.listValue.values.map((v) => {
+      return values.map((v) => {
         if (typeof v.numberValue !== "number")
-          throw new BadResponseContentLLMError(
-            "Embedding value is not a number or is missing",
-            v.numberValue,
-          );
+          throw new BadResponseContentLLMError("Embedding value is not a number or is missing", v);
         return v.numberValue;
       });
     });
-
-    return embeddings;
   }
 }
 
