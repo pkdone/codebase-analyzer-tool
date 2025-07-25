@@ -1,7 +1,8 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
 import { APIError } from "openai/error";
-import { LLMPurpose, LLMCompletionOptions } from "../../types/llm.types";
+import { LLMPurpose, LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
 import AbstractLLM from "../../core/abstract-llm";
+import { llmConfig } from "../../llm.config";
 
 /**
  * Abstract base class for all OpenAI-based LLM providers.
@@ -101,17 +102,48 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
   }
 
   /**
+   * Method to build the full LLM parameters for the given model and prompt.
+   * This contains the common logic shared between OpenAI and Azure OpenAI providers.
+   */
+  protected buildFullLLMParameters(
+    taskType: LLMPurpose,
+    modelKey: string,
+    prompt: string,
+    options?: LLMCompletionOptions,
+  ): OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams {
+    const modelIdentifier = this.getModelIdentifier(modelKey);
+
+    if (taskType === LLMPurpose.EMBEDDINGS) {
+      const params: OpenAI.EmbeddingCreateParams = {
+        model: modelIdentifier,
+        input: prompt,
+      };
+      return params;
+    } else {
+      const params: OpenAI.Chat.ChatCompletionCreateParams = {
+        model: modelIdentifier,
+        temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
+        messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
+        max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
+      };
+
+      if (options?.outputFormat === LLMOutputFormat.JSON) {
+        params.response_format = { type: "json_object" };
+      }
+
+      return params;
+    }
+  }
+
+  /**
    * Abstract method to get the client object for the specific LLM provider.
    */
   protected abstract getClient(): OpenAI;
 
   /**
-   * Abstract method to build the full LLM parameters for the given model and prompt.
+   * Abstract method to get the model identifier for the specific LLM provider.
+   * For OpenAI, this would be the model URN.
+   * For Azure OpenAI, this would be the deployment name.
    */
-  protected abstract buildFullLLMParameters(
-    taskType: LLMPurpose,
-    modelKey: string,
-    prompt: string,
-    options?: LLMCompletionOptions,
-  ): OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams;
+  protected abstract getModelIdentifier(modelKey: string): string;
 }

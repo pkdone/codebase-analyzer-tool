@@ -1,12 +1,8 @@
 import { OpenAI } from "openai";
-import { llmConfig } from "../../../llm.config";
 import {
   LLMModelKeysSet,
-  LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
-  LLMCompletionOptions,
-  LLMOutputFormat,
 } from "../../../types/llm.types";
 import BaseOpenAILLM from "../base-openai-llm";
 import { OPENAI } from "./openai.manifest";
@@ -46,33 +42,10 @@ export default class OpenAILLM extends BaseOpenAILLM {
   }
 
   /**
-   * Method to assemble the OpenAI API parameters structure for the given model and prompt.
+   * Get the model identifier for OpenAI provider.
+   * For OpenAI, this is the model URN from the metadata.
    */
-  protected buildFullLLMParameters(
-    taskType: LLMPurpose,
-    modelKey: string,
-    prompt: string,
-    options?: LLMCompletionOptions,
-  ) {
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      const params: OpenAI.EmbeddingCreateParams = {
-        model: this.llmModelsMetadata[modelKey].urn,
-        input: prompt,
-      };
-      return params;
-    } else {
-      const params: OpenAI.Chat.ChatCompletionCreateParams = {
-        model: this.llmModelsMetadata[modelKey].urn,
-        temperature: llmConfig.DEFAULT_ZERO_TEMP,
-        messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
-        max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
-      };
-
-      if (options?.outputFormat === LLMOutputFormat.JSON) {
-        params.response_format = { type: "json_object" };
-      }
-
-      return params;
-    }
+  protected getModelIdentifier(modelKey: string): string {
+    return this.llmModelsMetadata[modelKey].urn;
   }
 }

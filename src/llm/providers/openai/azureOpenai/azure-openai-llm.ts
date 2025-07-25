@@ -1,12 +1,8 @@
 import { AzureOpenAI, OpenAI } from "openai";
-import { llmConfig } from "../../../llm.config";
 import {
   LLMModelKeysSet,
-  LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
-  LLMCompletionOptions,
-  LLMOutputFormat,
 } from "../../../types/llm.types";
 import BaseOpenAILLM from "../base-openai-llm";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
@@ -43,11 +39,8 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
       primaryCompletionsDeployment,
     );
     const secondaryCompletion = modelsKeys.secondaryCompletionModelKey;
-
-    if (secondaryCompletion) {
+    if (secondaryCompletion)
       this.modelToDeploymentMappings.set(secondaryCompletion, secondaryCompletionsDeployment);
-    }
-
     const apiVersion = providerSpecificConfig.apiVersion ?? "2025-01-01-preview";
     this.client = new AzureOpenAI({ endpoint, apiKey, apiVersion });
   }
@@ -67,40 +60,15 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
   }
 
   /**
-   * Method to assemble the OpenAI API parameters structure for the given model and prompt.
+   * Get the model identifier for Azure OpenAI provider.
+   * For Azure OpenAI, this is the deployment name mapped to the model key.
    */
-  protected buildFullLLMParameters(
-    taskType: LLMPurpose,
-    modelKey: string,
-    prompt: string,
-    options?: LLMCompletionOptions,
-  ) {
+  protected getModelIdentifier(modelKey: string): string {
     const deployment = this.modelToDeploymentMappings.get(modelKey);
     if (!deployment)
       throw new BadConfigurationLLMError(
         `Model key ${modelKey} not found for ${this.constructor.name}`,
       );
-
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      const params: OpenAI.EmbeddingCreateParams = {
-        model: deployment,
-        input: prompt,
-      };
-      return params;
-    } else {
-      const config = this.providerSpecificConfig;
-      const params: OpenAI.Chat.ChatCompletionCreateParams = {
-        model: deployment,
-        temperature: config.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
-        messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
-        max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
-      };
-
-      if (options?.outputFormat === LLMOutputFormat.JSON) {
-        params.response_format = { type: "json_object" };
-      }
-
-      return params;
-    }
+    return deployment;
   }
 }
