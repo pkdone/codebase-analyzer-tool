@@ -12,14 +12,9 @@ import { TOKENS } from "../../../di/tokens";
 /**
  * Type guard to check if a value is an AppSummaryNameDescArray
  */
-function isAppSummaryNameDescArray(value: unknown): value is AppSummaryNameDescArray {
-  return (
-    Array.isArray(value) &&
-    (value.length === 0 ||
-      (typeof value[0] === "object" &&
-        value[0] !== null &&
-        "name" in value[0] &&
-        "description" in value[0]))
+function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
+  return Array.isArray(data) && data.every(item => 
+    typeof item === 'object' && item !== null && 'name' in item && 'description' in item
   );
 }
 
