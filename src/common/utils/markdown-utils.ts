@@ -9,15 +9,13 @@ export async function mergeSourceFilesIntoMarkdownCodeblock(
   srcDirPath: string,
   ignoreList: readonly string[],
 ): Promise<string> {
-  const contentParts: string[] = [];
-
-  for (const filepath of filepaths) {
+  const contentPromises = filepaths.map(async (filepath) => {
     const relativeFilepath = filepath.replace(`${srcDirPath}/`, "");
     const type = getFileExtension(filepath).toLowerCase();
-    if (ignoreList.includes(type)) continue; // Skip file if it has binary content
+    if (ignoreList.includes(type)) return ""; // Skip file if it has binary content
     const content = await readFile(filepath);
-    contentParts.push(`\n\`\`\` ${relativeFilepath}\n${content.trim()}\n\`\`\`\n`);
-  }
-
-  return contentParts.join("").trim();
+    return `\n\`\`\` ${relativeFilepath}\n${content.trim()}\n\`\`\`\n`;
+  });
+  const contentParts = await Promise.all(contentPromises);
+  return contentParts.filter(part => part !== "").join("").trim();
 }

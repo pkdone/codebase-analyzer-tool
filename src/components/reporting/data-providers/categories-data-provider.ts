@@ -42,27 +42,22 @@ export class CategoriesDataProvider {
     const categoryKeys = AppSummaryCategories.options.filter(
       (key) => key !== appConfig.APP_DESCRIPTION_KEY,
     );
-    const categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[] =
-      [];
-
-    for (const category of categoryKeys) {
+    const categoryPromises = categoryKeys.map(async (category) => {
       const label = summaryCategoriesConfig[category].label;
       // TODO: Could call new repo method which gets all categories in one go
       const result = await this.appSummariesRepository.getProjectAppSummaryField(
         projectName,
         category as keyof AppSummaryRecord,
       );
-
-      // Use the type guard instead of unsafe assertion
       const data = isAppSummaryNameDescArray(result) ? result : [];
-      categorizedData.push({
+      console.log(`Generated ${label} table`);      
+      return {
         category,
         label,
         data,
-      });
-      console.log(`Generated ${label} table`);
-    }
+      };
+    });
 
-    return categorizedData;
+    return await Promise.all(categoryPromises);
   }
 }
