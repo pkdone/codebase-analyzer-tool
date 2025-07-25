@@ -45,7 +45,7 @@ export async function runTask(taskToken: symbol): Promise<void> {
 
     try {
       await task.execute();
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof TypeError && error.message.includes("execute")) {
         throw new Error(
           `Task for token '${taskToken.toString()}' could not be resolved or does not have a valid execute method.`,

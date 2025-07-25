@@ -112,7 +112,7 @@ describe("MongoDBClientFactory", () => {
       try {
         await factory.connect(id, url);
         fail("Expected MongoError to be thrown");
-      } catch (error) {
+      } catch (error: unknown) {
         expect(error).toBeInstanceOf(MongoError);
         // The important part is that a MongoError is thrown when connection fails
       }
@@ -359,7 +359,7 @@ describe("MongoDBClientFactory", () => {
       try {
         await factory.connect("bad", badUrl);
         fail("Expected MongoError to be thrown");
-      } catch (error) {
+      } catch (error: unknown) {
         expect(error).toBeInstanceOf(MongoError);
       }
       expect(() => factory.getClient("bad")).toThrow(MongoError);

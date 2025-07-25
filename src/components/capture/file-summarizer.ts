@@ -47,7 +47,7 @@ export class FileSummarizer {
       );
       if (llmResponse === null) return { success: false, error: "LLM returned null response" };
       return { success: true, data: llmResponse };
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMsg = `Failed to generate summary for '${filepath}'`;
       logErrorMsgAndDetail(errorMsg, error);
       return { success: false, error: `${errorMsg}: ${getErrorText(error)}` };

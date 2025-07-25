@@ -105,7 +105,7 @@ export default class InsightsFromRawCodeGenerator implements InsightsGenerator {
         },
       );
       return llmResponse;
-    } catch (error) {
+    } catch (error: unknown) {
       logWarningMsg(
         `${error instanceof Error ? error.message : "Unknown error"} for getting summary data for all categories`,
       );

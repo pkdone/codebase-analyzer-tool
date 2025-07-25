@@ -46,7 +46,7 @@ export class McpServerTask implements Task {
     try {
       await this.mcpHttpServer.stop();
       console.log("MCP server stopped successfully");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error stopping MCP server:", error);
     } finally {
       // Resolve the promise to complete the service execution

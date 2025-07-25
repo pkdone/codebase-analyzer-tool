@@ -139,7 +139,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
         },
       );
       return llmResponse;
-    } catch (error) {
+    } catch (error: unknown) {
       logWarningMsg(
         `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,
       );

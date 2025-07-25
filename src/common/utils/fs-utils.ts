@@ -110,7 +110,7 @@ export async function findFilesRecursively(
         try {
           const stats = await fs.stat(file);
           return { file, size: stats.size };
-        } catch (error) {
+        } catch (error: unknown) {
           // If we can't get the file size, treat it as size 0
           logErrorMsgAndDetail(`Unable to get file size for: ${file}`, error);
           return { file, size: 0 };

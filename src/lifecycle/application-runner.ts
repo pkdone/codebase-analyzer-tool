@@ -18,7 +18,7 @@ export async function runApplication(taskToken: symbol): Promise<void> {
     const config = getTaskConfiguration(taskToken);
     await bootstrapContainer(config);
     await runTask(taskToken);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Application error:", error);
     process.exitCode = 1;
   } finally {

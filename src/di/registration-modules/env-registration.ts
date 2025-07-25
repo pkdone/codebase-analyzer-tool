@@ -74,7 +74,7 @@ async function loadEnvIncludingLLMVars(): Promise<EnvVars> {
     }
 
     return parsedEnv as EnvVars;
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof BadConfigurationLLMError) throw error;
 
     if (error instanceof z.ZodError) {
