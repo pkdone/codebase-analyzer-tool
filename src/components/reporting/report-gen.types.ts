@@ -1,3 +1,6 @@
+import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
+import type { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
+
 // Enum for stored procedure complexity levels
 export enum Complexity {
   LOW = "LOW",
@@ -65,4 +68,16 @@ export interface DatabaseIntegrationInfo {
   readonly mechanism: string;
   readonly description: string;
   readonly codeExample: string;
+}
+
+/**
+ * Unified data model for report generation.
+ * Contains all the data needed to generate both HTML and JSON reports.
+ */
+export interface ReportData {
+  appStats: AppStatistics;
+  fileTypesData: ProjectedFileTypesCountAndLines[];
+  categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[];
+  dbInteractions: DatabaseIntegrationInfo[];
+  procsAndTriggers: ProcsAndTriggers;
 }

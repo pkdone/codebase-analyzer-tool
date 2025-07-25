@@ -3,7 +3,12 @@ import path from "path";
 import { appConfig } from "../../config/app.config";
 import { jsonFilesConfig } from "./json-files.config";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
-import type { AppStatistics, ProcsAndTriggers, DatabaseIntegrationInfo } from "./report-gen.types";
+import type {
+  ReportData,
+  AppStatistics,
+  ProcsAndTriggers,
+  DatabaseIntegrationInfo,
+} from "./report-gen.types";
 import { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
 import { writeFile } from "../../common/utils/fs-utils";
 
@@ -16,22 +21,16 @@ export class JsonReportWriter {
   /**
    * Write JSON files for all data types including categories and additional data sections.
    */
-  async writeAllJSONFiles(
-    categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[],
-    appStats: AppStatistics,
-    fileTypesData: ProjectedFileTypesCountAndLines[],
-    dbInteractions: DatabaseIntegrationInfo[],
-    procsAndTriggers: ProcsAndTriggers,
-  ): Promise<void> {
+  async writeAllJSONFiles(reportData: ReportData): Promise<void> {
     console.log("Generating JSON files for all data sections...");
 
     // Prepare complete report data
     const completeReportData = {
-      appStats,
-      fileTypesData,
-      categorizedData,
-      dbInteractions,
-      procsAndTriggers,
+      appStats: reportData.appStats,
+      fileTypesData: reportData.fileTypesData,
+      categorizedData: reportData.categorizedData,
+      dbInteractions: reportData.dbInteractions,
+      procsAndTriggers: reportData.procsAndTriggers,
     };
 
     // Prepare all JSON files to write
@@ -49,19 +48,19 @@ export class JsonReportWriter {
       // Complete report file
       { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },
       // Category data files
-      ...categorizedData.map((categoryData) => ({
+      ...reportData.categorizedData.map((categoryData) => ({
         filename: jsonFilesConfig.getCategoryFilename(categoryData.category),
         data: categoryData.data,
       })),
       // Additional data files
-      { filename: jsonFilesConfig.dataFiles.appStats, data: appStats },
+      { filename: jsonFilesConfig.dataFiles.appStats, data: reportData.appStats },
       {
         filename: jsonFilesConfig.dataFiles.appDescription,
-        data: { appDescription: appStats.appDescription },
+        data: { appDescription: reportData.appStats.appDescription },
       },
-      { filename: jsonFilesConfig.dataFiles.fileTypes, data: fileTypesData },
-      { filename: jsonFilesConfig.dataFiles.dbInteractions, data: dbInteractions },
-      { filename: jsonFilesConfig.dataFiles.procsAndTriggers, data: procsAndTriggers },
+      { filename: jsonFilesConfig.dataFiles.fileTypes, data: reportData.fileTypesData },
+      { filename: jsonFilesConfig.dataFiles.dbInteractions, data: reportData.dbInteractions },
+      { filename: jsonFilesConfig.dataFiles.procsAndTriggers, data: reportData.procsAndTriggers },
     ];
 
     // Write all JSON files in parallel

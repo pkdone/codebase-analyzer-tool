@@ -13,8 +13,12 @@ import { TOKENS } from "../../../di/tokens";
  * Type guard to check if a value is an AppSummaryNameDescArray
  */
 function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
-  return Array.isArray(data) && data.every(item => 
-    typeof item === 'object' && item !== null && 'name' in item && 'description' in item
+  return (
+    Array.isArray(data) &&
+    data.every(
+      (item) =>
+        typeof item === "object" && item !== null && "name" in item && "description" in item,
+    )
   );
 }
 
@@ -45,7 +49,7 @@ export class CategoriesDataProvider {
         category as keyof AppSummaryRecord,
       );
       const data = isAppSummaryNameDescArray(result) ? result : [];
-      console.log(`Generated ${label} table`);      
+      console.log(`Generated ${label} table`);
       return {
         category,
         label,

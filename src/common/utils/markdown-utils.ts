@@ -17,5 +17,8 @@ export async function mergeSourceFilesIntoMarkdownCodeblock(
     return `\n\`\`\` ${relativeFilepath}\n${content.trim()}\n\`\`\`\n`;
   });
   const contentParts = await Promise.all(contentPromises);
-  return contentParts.filter(part => part !== "").join("").trim();
+  return contentParts
+    .filter((part) => part !== "")
+    .join("")
+    .trim();
 }

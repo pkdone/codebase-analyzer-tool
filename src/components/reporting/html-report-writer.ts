@@ -2,19 +2,17 @@ import { injectable } from "tsyringe";
 import path from "path";
 import { appConfig } from "../../config/app.config";
 import { jsonFilesConfig } from "./json-files.config";
-import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
-import type { AppStatistics, ProcsAndTriggers, DatabaseIntegrationInfo } from "./report-gen.types";
-import { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
+import type { ReportData } from "./report-gen.types";
 
 import { writeFile } from "../../common/utils/fs-utils";
 import { convertToDisplayName } from "../../common/utils/text-utils";
 
 interface EjsTemplateData {
-  appStats: AppStatistics;
-  fileTypesData: ProjectedFileTypesCountAndLines[];
-  categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[];
-  dbInteractions: DatabaseIntegrationInfo[];
-  procsAndTriggers: ProcsAndTriggers;
+  appStats: ReportData["appStats"];
+  fileTypesData: ReportData["fileTypesData"];
+  categorizedData: ReportData["categorizedData"];
+  dbInteractions: ReportData["dbInteractions"];
+  procsAndTriggers: ReportData["procsAndTriggers"];
   jsonFilesConfig: typeof jsonFilesConfig;
   convertToDisplayName: (text: string) => string;
 }
@@ -33,25 +31,18 @@ export class HtmlReportWriter {
   /**
    * Generate complete HTML report from all data sections using EJS templates and write it to file.
    */
-  async writeHTMLReportFile(
-    appStats: AppStatistics,
-    fileTypesData: ProjectedFileTypesCountAndLines[],
-    categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[],
-    dbInteractions: DatabaseIntegrationInfo[],
-    procsAndTriggers: ProcsAndTriggers,
-    htmlFilePath: string,
-  ): Promise<void> {
+  async writeHTMLReportFile(reportData: ReportData, htmlFilePath: string): Promise<void> {
     const templatePath = path.join(
       __dirname,
       appConfig.HTML_TEMPLATES_DIR,
       appConfig.HTML_MAIN_TEMPLATE_FILE,
     );
     const data: EjsTemplateData = {
-      appStats,
-      fileTypesData,
-      categorizedData,
-      dbInteractions,
-      procsAndTriggers,
+      appStats: reportData.appStats,
+      fileTypesData: reportData.fileTypesData,
+      categorizedData: reportData.categorizedData,
+      dbInteractions: reportData.dbInteractions,
+      procsAndTriggers: reportData.procsAndTriggers,
       jsonFilesConfig,
       convertToDisplayName,
     };
