@@ -30,7 +30,7 @@ export function logMongoValidationErrorIfPresent(error: unknown, doLog = true): 
  * @param numbers The array of numbers to convert.
  * @returns The array of BSON Doubles.
  */
-export function convertArrayOfNumbersToArrayOfDoubles(numbers: number[]): Double[] {
+export function numbersToBsonDoubles(numbers: number[]): Double[] {
   return numbers.map((number) => new Double(number));
 }
 

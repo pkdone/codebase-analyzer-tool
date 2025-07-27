@@ -46,7 +46,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
    * in the database.
    */
   async generateSummariesBackIntoDB(): Promise<void> {
-    const sourceFileSummaries = await this.getSourceFileSummaries();
+    const sourceFileSummaries = await this.buildSourceFileSummaryList();
 
     if (sourceFileSummaries.length === 0) {
       throw new Error(
@@ -68,9 +68,9 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
   }
 
   /**
-   * Returns a list of source file summaries with basic info.
+   * Builds a formatted list of source file summaries for LLM prompt consumption.
    */
-  private async getSourceFileSummaries(): Promise<string[]> {
+  private async buildSourceFileSummaryList(): Promise<string[]> {
     const srcFilesList: string[] = [];
     const records = await this.sourcesRepository.getProjectSourcesSummaries(this.projectName, [
       ...appConfig.CODE_FILE_EXTENSIONS,

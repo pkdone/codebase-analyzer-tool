@@ -76,7 +76,7 @@ export default class CodebaseToDBLoader {
     const tasks = filepaths.map(async (filepath) => {
       return limit(async () => {
         try {
-          await this.captureSrcFileMetadataToRepository(
+          await this.processAndStoreSourceFile(
             filepath,
             projectName,
             srcDirPath,
@@ -95,9 +95,9 @@ export default class CodebaseToDBLoader {
   }
 
   /**
-   * Capture metadata for a file using the LLM.
+   * Processes a source file by reading content, generating summaries and embeddings, then stores the complete record.
    */
-  private async captureSrcFileMetadataToRepository(
+  private async processAndStoreSourceFile(
     fullFilepath: string,
     projectName: string,
     srcDirPath: string,

@@ -1,6 +1,6 @@
 import { Double } from "bson";
 import {
-  convertArrayOfNumbersToArrayOfDoubles,
+  numbersToBsonDoubles,
   redactUrl,
   createVectorSearchIndexDefinition,
   REDACTED_URL,
@@ -19,10 +19,10 @@ describe("mdb-utils", () => {
     jest.clearAllMocks();
   });
 
-  describe("convertArrayOfNumbersToArrayOfDoubles", () => {
-    test("converts array of numbers to BSON Doubles", () => {
-      const numbers = [1, 2.5, 3.14, 0, -5.7];
-      const result = convertArrayOfNumbersToArrayOfDoubles(numbers);
+  describe("numbersToBsonDoubles", () => {
+          test("converts array of numbers to BSON Doubles", () => {
+        const numbers = [1, 2.5, 3.14, 0, -5.7];
+        const result = numbersToBsonDoubles(numbers);
 
       expect(result).toHaveLength(numbers.length);
       result.forEach((double, index) => {
@@ -32,12 +32,12 @@ describe("mdb-utils", () => {
     });
 
     test("handles empty array", () => {
-      const result = convertArrayOfNumbersToArrayOfDoubles([]);
+      const result = numbersToBsonDoubles([]);
       expect(result).toEqual([]);
     });
 
     test("handles single number", () => {
-      const result = convertArrayOfNumbersToArrayOfDoubles([42]);
+      const result = numbersToBsonDoubles([42]);
       expect(result).toHaveLength(1);
       expect(result[0]).toBeInstanceOf(Double);
       expect(result[0].valueOf()).toBe(42);
@@ -45,7 +45,7 @@ describe("mdb-utils", () => {
 
     test("handles negative numbers", () => {
       const numbers = [-1, -3.14, -100];
-      const result = convertArrayOfNumbersToArrayOfDoubles(numbers);
+      const result = numbersToBsonDoubles(numbers);
 
       result.forEach((double, index) => {
         expect(double).toBeInstanceOf(Double);
@@ -55,7 +55,7 @@ describe("mdb-utils", () => {
 
     test("handles very large numbers", () => {
       const numbers = [Number.MAX_SAFE_INTEGER, 1e15];
-      const result = convertArrayOfNumbersToArrayOfDoubles(numbers);
+      const result = numbersToBsonDoubles(numbers);
 
       result.forEach((double, index) => {
         expect(double).toBeInstanceOf(Double);

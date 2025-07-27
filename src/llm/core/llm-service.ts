@@ -91,7 +91,7 @@ export class LLMService {
       const module: unknown = await import(manifestPath);
       if (!module || typeof module !== "object") return undefined;
       const manifestKey = Object.keys(module).find((key) =>
-        key.endsWith(appConfig.PROVIDER_MANIFEST_KEY),
+        key.endsWith(appConfig.PROVIDER_MANIFEST_EXPORT_SUFFIX),
       );
       if (!manifestKey || !(manifestKey in module)) return undefined;
       const manifestValue = (module as Record<string, unknown>)[manifestKey];

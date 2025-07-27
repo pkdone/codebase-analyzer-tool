@@ -103,7 +103,7 @@ export const appConfig = {
   DEFAULT_FILE_TYPE: "default",
   JAVA_FILE_TYPE: "java",
   MANIFEST_FILE_SUFFIX: ".manifest.js",
-  PROVIDER_MANIFEST_KEY: "ProviderManifest",
+  PROVIDER_MANIFEST_EXPORT_SUFFIX: "ProviderManifest",
   PROVIDERS_FOLDER_PATH: "../providers",
   TRAILING_SLASH_PATTERN: /\/$/, //Regex pattern to match trailing slash at end of string
   REQUIREMENTS_PROMPTS_FOLDERPATH: "./input/requirements",
