@@ -12,7 +12,7 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
    *
    * Execute the prompt against the LLM and return the relevant sumamry of the LLM's answer.
    */
-  protected async invokeImplementationSpecificLLM(
+  protected async invokeProvider(
     taskType: LLMPurpose,
     modelKey: string,
     prompt: string,

@@ -63,15 +63,15 @@ export class DatabaseReportDataProvider {
       (record) =>
         record.summary?.triggers?.map((trig) => ({ ...trig, filepath: record.filepath })) ?? [],
     );
-    const procs = this.aggregateDbObjects(allProcs, "STORED PROCEDURE");
-    const trigs = this.aggregateDbObjects(allTrigs, "TRIGGER");
+    const procs = this.aggregateProcsOrTriggersForReport(allProcs, "STORED PROCEDURE");
+    const trigs = this.aggregateProcsOrTriggersForReport(allTrigs, "TRIGGER");
     return { procs, trigs };
   }
 
   /**
    * Aggregate database objects (procedures or triggers) using functional programming approach
    */
-  private aggregateDbObjects(
+  private aggregateProcsOrTriggersForReport(
     items: {
       name: string;
       complexity: unknown;

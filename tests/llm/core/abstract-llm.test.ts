@@ -72,7 +72,7 @@ class TestLLM extends AbstractLLM {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  protected async invokeImplementationSpecificLLM(): Promise<LLMImplSpecificResponseSummary> {
+  protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
     return {
       isIncompleteResponse: true, // This triggers the private method we want to test
       responseContent: "test response",
@@ -182,7 +182,7 @@ describe("Abstract LLM Token Extraction", () => {
         }
 
         // eslint-disable-next-line @typescript-eslint/require-await
-        protected async invokeImplementationSpecificLLM(): Promise<LLMImplSpecificResponseSummary> {
+        protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
           return {
             isIncompleteResponse: true,
             responseContent: "test response",
