@@ -10,7 +10,7 @@ import {
   AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT,
   AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT,
 } from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
-import { loadBaseEnvVarsOnly } from "../../../../../src/lifecycle/env";
+import { loadBaseEnvVarsOnly } from "../../../../../src/env/env";
 
 // Load environment variables (including MongoDB URL) from .env file
 const baseEnv = loadBaseEnvVarsOnly();

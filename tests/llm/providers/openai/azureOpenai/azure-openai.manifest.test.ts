@@ -5,7 +5,7 @@ import {
 } from "../../../../../src/llm/types/llm.types";
 import { calculateTokenUsageFromError } from "../../../../../src/llm/core/utils/msgProcessing/error-parser";
 import { azureOpenAIProviderManifest } from "../../../../../src/llm/providers/openai/azureOpenai/azure-openai.manifest";
-import { loadBaseEnvVarsOnly } from "../../../../../src/lifecycle/env";
+import { loadBaseEnvVarsOnly } from "../../../../../src/env/env";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4 = "GPT_COMPLETIONS_GPT4";

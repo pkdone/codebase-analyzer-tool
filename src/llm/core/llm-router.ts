@@ -13,7 +13,7 @@ import { log, logWithContext } from "./utils/routerTracking/llm-router-logging";
 import LLMStats from "./utils/routerTracking/llm-stats";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMService } from "./llm-service";
-import type { EnvVars } from "../../lifecycle/env.types";
+import type { EnvVars } from "../../env/env.types";
 import { TOKENS } from "../../di/tokens";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {

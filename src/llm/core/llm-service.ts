@@ -8,7 +8,7 @@ import {
   LLMModelMetadata,
   ResolvedLLMModelMetadata,
 } from "../types/llm.types";
-import { EnvVars } from "../../lifecycle/env.types";
+import { EnvVars } from "../../env/env.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";

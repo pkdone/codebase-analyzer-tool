@@ -5,7 +5,7 @@ import { clearDirectory } from "../common/utils/fs-utils";
 import { RawCodeToInsightsFileGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
 import type LLMRouter from "../llm/core/llm-router";
 import { Task } from "../lifecycle/task.types";
-import type { EnvVars } from "../lifecycle/env.types";
+import type { EnvVars } from "../env/env.types";
 import { TOKENS } from "../di/tokens";
 
 /**

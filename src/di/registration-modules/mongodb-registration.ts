@@ -2,7 +2,7 @@ import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
 import { MongoDBClientFactory } from "../../common/mdb/mdb-client-factory";
 import { databaseConfig } from "../../config/database.config";
-import type { EnvVars } from "../../lifecycle/env.types";
+import type { EnvVars } from "../../env/env.types";
 
 /**
  * Register MongoDB-related dependencies.

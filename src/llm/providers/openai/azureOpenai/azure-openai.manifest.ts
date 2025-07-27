@@ -3,7 +3,7 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import AzureOpenAILLM from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../openai-error-patterns";
-import { BaseEnvVars } from "../../../../lifecycle/env.types";
+import { BaseEnvVars } from "../../../../env/env.types";
 import { llmConfig } from "../../../llm.config";
 
 // Environment variable name constants

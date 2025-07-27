@@ -1,8 +1,8 @@
 import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
-import { EnvVars, baseEnvVarsSchema } from "../../lifecycle/env.types";
+import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
 import { LLMService } from "../../llm/core/llm-service";
-import { loadBaseEnvVarsOnly } from "../../lifecycle/env";
+import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { BadConfigurationLLMError } from "../../llm/types/llm-errors.types";
 import { getErrorStack } from "../../common/utils/error-utils";

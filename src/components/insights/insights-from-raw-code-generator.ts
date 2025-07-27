@@ -7,7 +7,7 @@ import type { InsightsGenerator } from "./insights-generator.interface";
 import { appConfig } from "../../config/app.config";
 import { findFilesRecursively } from "../../common/utils/fs-utils";
 import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
-import type { EnvVars } from "../../lifecycle/env.types";
+import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";
 import { createPromptFromConfig } from "../../llm/core/utils/msgProcessing/prompt-templator";
 import { LLMOutputFormat } from "../../llm/types/llm.types";

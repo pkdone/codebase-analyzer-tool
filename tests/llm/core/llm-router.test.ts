@@ -22,7 +22,7 @@ import { LLMService } from "../../../src/llm/core/llm-service";
 import { RetryStrategy } from "../../../src/llm/core/strategies/retry-strategy";
 import { FallbackStrategy } from "../../../src/llm/core/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../../src/llm/core/llm-execution-pipeline";
-import type { EnvVars } from "../../../src/lifecycle/env.types";
+import type { EnvVars } from "../../../src/env/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 

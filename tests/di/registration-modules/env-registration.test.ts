@@ -11,13 +11,13 @@ import { LLMService } from "../../../src/llm/core/llm-service";
 import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.types";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 import { getProjectNameFromPath } from "../../../src/common/utils/path-utils";
-import { loadBaseEnvVarsOnly } from "../../../src/lifecycle/env";
+import { loadBaseEnvVarsOnly } from "../../../src/env/env";
 import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import dotenv from "dotenv";
 
 // Mock dependencies
 jest.mock("../../../src/llm/core/llm-service");
-jest.mock("../../../src/lifecycle/env");
+jest.mock("../../../src/env/env");
 jest.mock("../../../src/common/utils/path-utils");
 jest.mock("dotenv");
 

@@ -8,7 +8,7 @@ import {
   LLMGeneratedContent,
   LLMResponseTokensUsage,
 } from "../types/llm.types";
-import { EnvVars } from "../../lifecycle/env.types";
+import { EnvVars } from "../../env/env.types";
 
 /**
  * Interface for retry and timeout configuration used by LLMRouter

@@ -5,7 +5,7 @@ import {
 } from "../../../../../src/llm/types/llm.types";
 import { calculateTokenUsageFromError } from "../../../../../src/llm/core/utils/msgProcessing/error-parser";
 import { bedrockClaudeProviderManifest } from "../../../../../src/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
-import { loadBaseEnvVarsOnly } from "../../../../../src/lifecycle/env";
+import { loadBaseEnvVarsOnly } from "../../../../../src/env/env";
 
 // Test-only constants
 const AWS_COMPLETIONS_CLAUDE_V35 = "AWS_COMPLETIONS_CLAUDE_V35";

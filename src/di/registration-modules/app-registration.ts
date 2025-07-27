@@ -37,7 +37,7 @@ import { ReportGenerationTask } from "../../tasks/report-generation.task";
 import { DBInitializerTask } from "../../tasks/db-initializer.task";
 
 // Additional imports for the insights generator registration
-import { EnvVars } from "../../lifecycle/env.types";
+import { EnvVars } from "../../env/env.types";
 import { LLMService } from "../../llm/core/llm-service";
 import { TaskRunnerConfig } from "../../lifecycle/task.types";
 
