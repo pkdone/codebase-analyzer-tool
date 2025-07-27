@@ -1,3 +1,4 @@
+import { injectable, inject } from "tsyringe";
 import {
   LLMContext,
   LLMModelQuality,
@@ -9,10 +10,11 @@ import {
 import type { LLMProvider, LLMCandidateFunction } from "../types/llm.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { log, logWithContext } from "./utils/routerTracking/llm-router-logging";
-import type LLMStats from "./utils/routerTracking/llm-stats";
+import LLMStats from "./utils/routerTracking/llm-stats";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMService } from "./llm-service";
 import type { EnvVars } from "../../lifecycle/env.types";
+import { TOKENS } from "../../di/tokens";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
   getOverriddenCompletionCandidates,
@@ -26,6 +28,7 @@ import {
  *
  * See the `README` for the LLM non-functional behaviours abstraction / protection applied.
  */
+@injectable()
 export default class LLMRouter {
   // Private fields
   private readonly llm: LLMProvider;
@@ -42,9 +45,9 @@ export default class LLMRouter {
    * @param executionPipeline The execution pipeline for orchestrating LLM calls
    */
   constructor(
-    private readonly llmService: LLMService,
-    private readonly envVars: EnvVars,
-    private readonly llmStats: LLMStats,
+    @inject(TOKENS.LLMService) private readonly llmService: LLMService,
+    @inject(TOKENS.EnvVars) private readonly envVars: EnvVars,
+    @inject(TOKENS.LLMStats) private readonly llmStats: LLMStats,
     private readonly executionPipeline: LLMExecutionPipeline,
   ) {
     this.llm = this.llmService.getLLMProvider(this.envVars);

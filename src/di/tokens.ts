@@ -34,6 +34,7 @@ export const TOKENS = {
   PromptAdaptationStrategy: Symbol.for("PromptAdaptationStrategy"),
   RetryStrategy: Symbol.for("RetryStrategy"),
   FallbackStrategy: Symbol.for("FallbackStrategy"),
+  LLMExecutionPipeline: Symbol.for("LLMExecutionPipeline"),
   HtmlReportFormatter: Symbol.for("HtmlReportFormatter"),
   JsonReportWriter: Symbol.for("JsonReportWriter"),
   AppReportGenerator: Symbol.for("AppReportGenerator"),

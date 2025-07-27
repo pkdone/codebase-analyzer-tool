@@ -1,4 +1,4 @@
-import { injectable } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import pRetry, { FailedAttemptError } from "p-retry";
 import type {
   LLMFunction,
@@ -9,7 +9,8 @@ import type {
 import { LLMResponseStatus } from "../../types/llm.types";
 import type { LLMRetryConfig } from "../../providers/llm-provider.types";
 import { llmConfig } from "../../llm.config";
-import type LLMStats from "../utils/routerTracking/llm-stats";
+import LLMStats from "../utils/routerTracking/llm-stats";
+import { TOKENS } from "../../../di/tokens";
 
 /**
  * Strategy class responsible for handling LLM function retries.
@@ -17,7 +18,7 @@ import type LLMStats from "../utils/routerTracking/llm-stats";
  */
 @injectable()
 export class RetryStrategy {
-  constructor(private readonly llmStats: LLMStats) {}
+  constructor(@inject(TOKENS.LLMStats) private readonly llmStats: LLMStats) {}
 
   /**
    * Execute an LLM function with retry logic for overloaded or invalid responses.

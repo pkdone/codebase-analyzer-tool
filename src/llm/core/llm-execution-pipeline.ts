@@ -1,4 +1,4 @@
-import { injectable } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import {
   LLMContext,
   LLMFunction,
@@ -19,7 +19,8 @@ import {
   logErrorWithContext,
   logWithContext,
 } from "./utils/routerTracking/llm-router-logging";
-import type LLMStats from "./utils/routerTracking/llm-stats";
+import LLMStats from "./utils/routerTracking/llm-stats";
+import { TOKENS } from "../../di/tokens";
 
 /**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
@@ -32,7 +33,7 @@ export class LLMExecutionPipeline {
     private readonly retryStrategy: RetryStrategy,
     private readonly fallbackStrategy: FallbackStrategy,
     private readonly promptAdaptationStrategy: PromptAdaptationStrategy,
-    private readonly llmStats: LLMStats,
+    @inject(TOKENS.LLMStats) private readonly llmStats: LLMStats,
   ) {}
 
   /**

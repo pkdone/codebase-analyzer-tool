@@ -41,6 +41,11 @@ import { EnvVars } from "../../lifecycle/env.types";
 import { LLMService } from "../../llm/core/llm-service";
 import { TaskRunnerConfig } from "../../lifecycle/task.types";
 
+// LLM strategy and pipeline imports
+import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
+import { FallbackStrategy } from "../../llm/core/strategies/fallback-strategy";
+import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
+
 /**
  * Register all application-level dependencies (repositories, components, and tasks).
  * This consolidated registration function handles the core business logic dependencies.
@@ -74,6 +79,11 @@ function registerRepositories(): void {
 async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   // Register file handling components
   container.registerSingleton(TOKENS.FileHandlerFactory, FileHandlerFactory);
+
+  // Register LLM strategies and pipeline components (always register since they may be needed)
+  container.registerSingleton(TOKENS.RetryStrategy, RetryStrategy);
+  container.registerSingleton(TOKENS.FallbackStrategy, FallbackStrategy);
+  container.registerSingleton(TOKENS.LLMExecutionPipeline, LLMExecutionPipeline);
 
   // Register report generation components
   container.registerSingleton(TOKENS.HtmlReportFormatter, HtmlReportWriter);

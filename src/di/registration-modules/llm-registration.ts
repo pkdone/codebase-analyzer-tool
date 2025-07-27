@@ -2,12 +2,8 @@ import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
 import { LLMService } from "../../llm/core/llm-service";
 import LLMRouter from "../../llm/core/llm-router";
-import { EnvVars } from "../../lifecycle/env.types";
 import LLMStats from "../../llm/core/utils/routerTracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
-import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
-import { FallbackStrategy } from "../../llm/core/strategies/fallback-strategy";
-import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
 
 /**
  * Registers the LLM utility services in the container.
@@ -17,20 +13,19 @@ export function registerLLMServices(): void {
   // Register LLM utility classes
   container.registerSingleton(TOKENS.LLMStats, LLMStats);
   container.registerSingleton(TOKENS.PromptAdaptationStrategy, PromptAdaptationStrategy);
-  // RetryStrategy and FallbackStrategy are created manually in initializeAndRegisterLLMRouter
+  // RetryStrategy, FallbackStrategy, and LLMExecutionPipeline are now registered in app-registration.ts
 
   console.log("LLM utility services registered");
 }
 
 /**
- * Initializes the LLMRouter asynchronously and registers it as a singleton in the container.
- * This isolates all async logic to a single initialization point.
+ * Factory function to create and initialize LLMService.
+ * Handles the async initialization logic required by LLMService.
  *
  * @param modelFamily Optional model family override for testing
- * @returns Promise<LLMRouter> The initialized LLMRouter instance
+ * @returns Promise<LLMService> The initialized LLMService instance
  */
-export async function initializeAndRegisterLLMRouter(modelFamily?: string): Promise<LLMRouter> {
-  // Initialize LLMService
+async function createAndInitializeLLMService(modelFamily?: string): Promise<LLMService> {
   const resolvedModelFamily =
     modelFamily ??
     (container.isRegistered(TOKENS.LLMModelFamily)
@@ -40,26 +35,27 @@ export async function initializeAndRegisterLLMRouter(modelFamily?: string): Prom
   const service = new LLMService(resolvedModelFamily);
   await service.initialize();
   console.log("LLM Service initialized");
+  return service;
+}
 
-  // Create LLMRouter with its dependencies
-  const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
-  const llmStats = container.resolve<LLMStats>(TOKENS.LLMStats);
-  const promptAdaptationStrategy = container.resolve<PromptAdaptationStrategy>(
-    TOKENS.PromptAdaptationStrategy,
-  );
-  const retryStrategy = new RetryStrategy(llmStats);
-  const fallbackStrategy = new FallbackStrategy();
+/**
+ * Initializes the LLMRouter asynchronously and registers it as a singleton in the container.
+ * This isolates all async logic to a single initialization point and lets the DI container
+ * manage all dependencies to ensure singleton consistency.
+ *
+ * @param modelFamily Optional model family override for testing
+ * @returns Promise<LLMRouter> The initialized LLMRouter instance
+ */
+export async function initializeAndRegisterLLMRouter(modelFamily?: string): Promise<LLMRouter> {
+  // Create and initialize LLMService (this is the only manual creation needed due to async initialization)
+  const service = await createAndInitializeLLMService(modelFamily);
 
-  // Create the execution pipeline with the strategies
-  const executionPipeline = new LLMExecutionPipeline(
-    retryStrategy,
-    fallbackStrategy,
-    promptAdaptationStrategy,
-    llmStats,
-  );
+  // Register the initialized LLMService as a singleton
+  container.registerInstance(TOKENS.LLMService, service);
 
-  // Create LLMRouter with the pipeline
-  const router = new LLMRouter(service, envVars, llmStats, executionPipeline);
+  // Let the DI container create and resolve LLMRouter with all its dependencies
+  // This ensures all components get the same singleton instances (especially LLMStats)
+  const router = container.resolve<LLMRouter>(LLMRouter);
 
   // Register the initialized LLMRouter as a singleton
   container.registerInstance(TOKENS.LLMRouter, router);
