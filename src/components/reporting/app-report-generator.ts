@@ -39,16 +39,14 @@ export default class AppReportGenerator {
     outputDir: string,
     outputFilename: string,
   ): Promise<void> {
-    // Collect all data from providers
-    const appStats = await this.appStatsDataProvider.getAppStatistics(projectName);
-    const fileTypesData =
-      await this.sourcesRepository.getProjectFileTypesCountAndLines(projectName);
-    const categorizedData = await this.categoriesDataProvider.getCategorizedData(projectName);
-    const dbInteractions = await this.databaseDataProvider.getDatabaseInteractions(projectName);
-    const procsAndTriggers =
-      await this.databaseDataProvider.getStoredProceduresAndTriggers(projectName);
-
-    // Construct unified report data object
+    const [appStats, fileTypesData, categorizedData, dbInteractions, procsAndTriggers] =
+      await Promise.all([
+        this.appStatsDataProvider.getAppStatistics(projectName),
+        this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
+        this.categoriesDataProvider.getCategorizedData(projectName),
+        this.databaseDataProvider.getDatabaseInteractions(projectName),
+        this.databaseDataProvider.getStoredProceduresAndTriggers(projectName),
+      ]);
     const reportData: ReportData = {
       appStats,
       fileTypesData,
