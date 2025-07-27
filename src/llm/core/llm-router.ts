@@ -9,8 +9,8 @@ import {
 } from "../types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "../types/llm.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
-import { log, logWithContext } from "./utils/routerTracking/llm-router-logging";
-import LLMStats from "./utils/routerTracking/llm-stats";
+import { log, logWithContext } from "./tracking/llm-router-logging";
+import LLMStats from "./tracking/llm-stats";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMService } from "./llm-service";
 import type { EnvVars } from "../../env/env.types";
@@ -19,7 +19,7 @@ import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
   getOverriddenCompletionCandidates,
   buildCompletionCandidates,
-} from "./utils/msgProcessing/completions-models-retriever";
+} from "./processing/completions-models-retriever";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying

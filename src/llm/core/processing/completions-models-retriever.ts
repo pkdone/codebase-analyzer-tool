@@ -3,8 +3,8 @@ import {
   LLMCandidateFunction,
   LLMFunction,
   LLMProvider,
-} from "../../../types/llm.types";
-import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
+} from "../../types/llm.types";
+import { BadConfigurationLLMError } from "../../types/llm-errors.types";
 
 /**
  * Build completion candidates from the LLM provider.

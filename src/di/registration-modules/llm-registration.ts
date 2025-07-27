@@ -2,7 +2,7 @@ import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
 import { LLMService } from "../../llm/core/llm-service";
 import LLMRouter from "../../llm/core/llm-router";
-import LLMStats from "../../llm/core/utils/routerTracking/llm-stats";
+import LLMStats from "../../llm/core/tracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
 
 /**

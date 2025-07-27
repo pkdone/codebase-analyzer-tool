@@ -3,7 +3,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
-import { calculateTokenUsageFromError } from "../../../../../src/llm/core/utils/msgProcessing/error-parser";
+import { calculateTokenUsageFromError } from "../../../../../src/llm/core/processing/error-parser";
 import {
   bedrockLlamaProviderManifest,
   AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT,

@@ -3,7 +3,7 @@ import {
   LLMStatsCategoryStatus,
   LLMStatsCategoriesSummary,
   LLMStatsCategoriesBase,
-} from "../../../types/llm.types";
+} from "../../types/llm.types";
 
 /**
  * Class for accumulating and tracking statistics of LLM invocation result types.

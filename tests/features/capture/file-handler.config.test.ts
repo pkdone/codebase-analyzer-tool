@@ -4,7 +4,7 @@ import { appConfig } from "../../../src/config/app.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-handler";
 import { FileHandler } from "../../../src/components/capture/file-handler";
-import { DynamicPromptConfig } from "../../../src/llm/core/utils/msgProcessing/prompt-templator";
+import { DynamicPromptConfig } from "../../../src/llm/core/processing/prompt-templator";
 
 describe("File Handler Configuration", () => {
   beforeEach(() => {

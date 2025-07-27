@@ -16,7 +16,7 @@ import {
 
 import { z } from "zod";
 import LLMRouter from "../../../src/llm/core/llm-router";
-import LLMStats from "../../../src/llm/core/utils/routerTracking/llm-stats";
+import LLMStats from "../../../src/llm/core/tracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../../src/llm/core/strategies/prompt-adaptation-strategy";
 import { LLMService } from "../../../src/llm/core/llm-service";
 import { RetryStrategy } from "../../../src/llm/core/strategies/retry-strategy";
@@ -30,13 +30,13 @@ import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provide
 // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
 // postProcessAsJSONIfNeededGeneratingNewResult have been moved to AbstractLLM class
 
-jest.mock("../../../src/llm/core/utils/routerTracking/llm-router-logging", () => ({
+jest.mock("../../../src/llm/core/tracking/llm-router-logging", () => ({
   log: jest.fn(),
   logErrWithContext: jest.fn(),
   logWithContext: jest.fn(),
 }));
 
-jest.mock("../../../src/llm/core/utils/routerTracking/llm-stats", () => {
+jest.mock("../../../src/llm/core/tracking/llm-stats", () => {
   return jest.fn().mockImplementation(() => ({
     recordSuccess: jest.fn(),
     recordFailure: jest.fn(),

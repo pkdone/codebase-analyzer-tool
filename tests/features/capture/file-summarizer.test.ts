@@ -106,7 +106,7 @@ jest.mock("../../../src/components/capture/files-types-metadata.config", () => (
   },
 }));
 
-jest.mock("../../../src/llm/core/utils/msgProcessing/prompt-templator", () => ({
+jest.mock("../../../src/llm/core/processing/prompt-templator", () => ({
   createPromptFromConfig: jest.fn(
     (
       _template: string,
