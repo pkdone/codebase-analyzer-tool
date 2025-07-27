@@ -1,7 +1,7 @@
 import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
 import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
-import { LLMService } from "../../llm/core/llm-service";
+import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { BadConfigurationLLMError } from "../../llm/types/llm-errors.types";
@@ -62,7 +62,7 @@ async function loadEnvIncludingLLMVars(): Promise<EnvVars> {
       throw new Error("LLM environment variable is not set or is empty in your .env file.");
     }
     const selectedLlmModelFamily = selectedLlmContainer.data.LLM;
-    const manifest = await LLMService.loadManifestForModelFamily(selectedLlmModelFamily);
+    const manifest = await LLMProviderManager.loadManifestForModelFamily(selectedLlmModelFamily);
     const finalSchema = baseEnvVarsSchema.merge(manifest.envSchema).passthrough();
     const parsedEnv = finalSchema.parse(rawEnv);
 

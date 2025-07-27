@@ -38,7 +38,7 @@ import { DBInitializerTask } from "../../tasks/db-initializer.task";
 
 // Additional imports for the insights generator registration
 import { EnvVars } from "../../env/env.types";
-import { LLMService } from "../../llm/core/llm-service";
+import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import { TaskRunnerConfig } from "../../lifecycle/task.types";
 
 // LLM strategy and pipeline imports
@@ -125,7 +125,7 @@ async function registerLLMDependentComponents(): Promise<void> {
 
   // Pre-load manifest to determine which InsightsGenerator implementation to use
   const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
-  const manifest = await LLMService.loadManifestForModelFamily(envVars.LLM);
+  const manifest = await LLMProviderManager.loadManifestForModelFamily(envVars.LLM);
 
   // Register the InsightsGenerator interface with synchronous factory based on manifest data
   container.register(TOKENS.InsightsGenerator, {

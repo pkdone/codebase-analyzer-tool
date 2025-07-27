@@ -1,14 +1,12 @@
-import { registerAppDependencies } from "./app-registration";
-import { registerLLMServices } from "./llm-registration";
-import { registerMongoDBDependencies } from "./mongodb-registration";
+import { registerLLMProviders } from "./llm-registration";
 import { registerBaseEnvDependencies, registerLlmEnvDependencies } from "./env-registration";
-import { getTaskConfiguration } from "./task-config-registration";
+import { registerAppDependencies } from "./app-registration";
+import { registerMongoDBDependencies } from "./mongodb-registration";
 
 export {
-  registerAppDependencies,
-  registerLLMServices,
-  registerMongoDBDependencies,
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
-  getTaskConfiguration,
+  registerLLMProviders,
+  registerAppDependencies,
+  registerMongoDBDependencies,
 };

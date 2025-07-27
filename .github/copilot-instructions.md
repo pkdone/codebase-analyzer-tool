@@ -171,7 +171,7 @@ This document outlines the inferred coding standards, architectural patterns, an
     *   **Environment Variables:** Managed using `.env` files (e.g., `.env`, `EXAMPLE.env`) and loaded by the `dotenv` library.
     *   **Schema Validation:** Environment variables are validated against a Zod schema defined in `src/types/env.types.ts` (`baseEnvVarsSchema`) and dynamically extended by provider manifests in `src/di/registration-modules/env-registration.ts`. This provides runtime validation and type safety for environment configuration.
     *   **Configuration Files:** Structured configuration objects are defined in TypeScript files within the `src/config/` directory (e.g., `database.config.ts`, `llm.config.ts`, `prompts.config.ts`). These often use `as const` for type safety and immutability.
-    *   **LLM Provider Manifests:** Each LLM provider has a `.manifest.ts` file (e.g., `src/llm/providers/openai/azure-openai/azure-openai.manifest.ts`) which declaratively defines its models, required environment variables (via a Zod schema), and factory function. These are auto-discovered by `LLMService`.
+    *   **LLM Provider Manifests:** Each LLM provider has a `.manifest.ts` file (e.g., `src/llm/providers/openai/azure-openai/azure-openai.manifest.ts`) which declaratively defines its models, required environment variables (via a Zod schema), and factory function. These are auto-discovered by `LLMProviderManager`.
 
 ## 7. Testing and Documentation
 

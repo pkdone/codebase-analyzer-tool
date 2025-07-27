@@ -16,10 +16,10 @@ import { readDirContents } from "../../common/utils/fs-utils";
 import { TOKENS } from "../../di/tokens";
 
 /**
- * Service for managing a single LLM provider
+ * Manager for discovering, loading, and instantiating LLM providers based on their manifests
  */
 @injectable()
-export class LLMService {
+export class LLMProviderManager {
   private manifest?: LLMProviderManifest;
   private readonly modelFamily: string;
   private isInitialized = false;
@@ -27,16 +27,16 @@ export class LLMService {
   /**
    * Constructor for dependency injection pattern
    */
-  constructor(@inject(TOKENS.LLMModelFamily) modelFamily: string) {
+  constructor(@inject(TOKENS.LLMProviderManager) modelFamily: string) {
     this.modelFamily = modelFamily;
   }
 
   /**
-   * Static method to load a manifest for a specific model family without creating a full service
+   * Static method to load a manifest for a specific model family without creating a full manager
    */
   static async loadManifestForModelFamily(modelFamily: string): Promise<LLMProviderManifest> {
     const providersRootPath = path.join(__dirname, appConfig.PROVIDERS_FOLDER_PATH);
-    const manifest = await LLMService.findManifestRecursively(providersRootPath, modelFamily);
+    const manifest = await LLMProviderManager.findManifestRecursively(providersRootPath, modelFamily);
     if (!manifest)
       throw new BadConfigurationLLMError(
         `No provider manifest found for model family: ${modelFamily}`,
@@ -61,7 +61,7 @@ export class LLMService {
 
       if (manifestFile) {
         const manifestPath = path.join(searchPath, manifestFile.name);
-        const manifest = await LLMService.loadAndValidateManifest(manifestPath, targetModelFamily);
+        const manifest = await LLMProviderManager.loadAndValidateManifest(manifestPath, targetModelFamily);
         if (manifest) return manifest;
       }
 
@@ -69,7 +69,7 @@ export class LLMService {
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const subPath = path.join(searchPath, entry.name);
-          const manifest = await LLMService.findManifestRecursively(subPath, targetModelFamily);
+          const manifest = await LLMProviderManager.findManifestRecursively(subPath, targetModelFamily);
           if (manifest) return manifest;
         }
       }
@@ -97,7 +97,7 @@ export class LLMService {
       const manifestValue = (module as Record<string, unknown>)[manifestKey];
 
       if (
-        LLMService.isValidManifest(manifestValue) &&
+        LLMProviderManager.isValidManifest(manifestValue) &&
         manifestValue.modelFamily === targetModelFamily
       ) {
         return manifestValue;
@@ -123,17 +123,17 @@ export class LLMService {
   }
 
   /**
-   * Initialize the service (async initialization)
+   * Initialize the manager (async initialization)
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      logWarningMsg("LLMService is already initialized.");
+      logWarningMsg("LLMProviderManager is already initialized.");
       return;
     }
 
-    this.manifest = await LLMService.loadManifestForModelFamily(this.modelFamily);
+    this.manifest = await LLMProviderManager.loadManifestForModelFamily(this.modelFamily);
     console.log(
-      `LLMService: Loaded provider for model family '${this.modelFamily}': ${this.manifest.providerName}`,
+      `LLMProviderManager: Loaded provider for model family '${this.modelFamily}': ${this.manifest.providerName}`,
     );
     this.isInitialized = true;
   }
@@ -167,7 +167,7 @@ export class LLMService {
    */
   private getInitializedManifest(): LLMProviderManifest {
     if (!this.isInitialized || !this.manifest)
-      throw new Error("LLMService is not initialized. Call initialize() first.");
+      throw new Error("LLMProviderManager is not initialized. Call initialize() first.");
     return this.manifest;
   }
 
@@ -218,4 +218,4 @@ export class LLMService {
 
     return metadata;
   }
-}
+} 

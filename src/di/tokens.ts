@@ -7,10 +7,13 @@ export const TOKENS = {
   MongoClient: Symbol.for("MongoClient"),
   MongoDBClientFactory: Symbol.for("MongoDBClientFactory"),
   LLMRouter: Symbol.for("LLMRouter"),
-  LLMService: Symbol.for("LLMService"),
+  LLMProviderManager: Symbol.for("LLMProviderManager"),
   LLMModelFamily: Symbol.for("LLMModelFamily"),
   EnvVars: Symbol.for("EnvVars"),
   ProjectName: Symbol.for("ProjectName"),
+  DbConnectionConfig: Symbol.for("DbConnectionConfig"),
+  MongoDbConnection: Symbol.for("MongoDbConnection"),
+  TaskConfigs: Symbol.for("TaskConfigs"),
 
   // Repositories
   SourcesRepository: Symbol.for("SourcesRepository"),

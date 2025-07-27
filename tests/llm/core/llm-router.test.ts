@@ -18,7 +18,7 @@ import { z } from "zod";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import LLMStats from "../../../src/llm/core/tracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../../src/llm/core/strategies/prompt-adaptation-strategy";
-import { LLMService } from "../../../src/llm/core/llm-service";
+import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { RetryStrategy } from "../../../src/llm/core/strategies/retry-strategy";
 import { FallbackStrategy } from "../../../src/llm/core/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../../src/llm/core/llm-execution-pipeline";
@@ -165,8 +165,8 @@ describe("LLM Router tests", () => {
       ...retryConfig,
     };
 
-    // Create mock LLMService
-    const mockLLMService: Partial<LLMService> = {
+    // Create mock LLMProviderManager
+    const mockLLMProviderManager: Partial<LLMProviderManager> = {
       getLLMProvider: jest.fn().mockReturnValue(mockProvider) as jest.MockedFunction<
         (env: EnvVars) => LLMProvider
       >,
@@ -198,7 +198,7 @@ describe("LLM Router tests", () => {
     );
 
     const router = new LLMRouter(
-      mockLLMService as LLMService,
+      mockLLMProviderManager as LLMProviderManager,
       mockEnvVars as EnvVars,
       mockLLMStats,
       mockExecutionPipeline,

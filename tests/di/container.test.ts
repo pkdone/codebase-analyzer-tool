@@ -3,7 +3,7 @@ import { TaskRunnerConfig } from "../../src/lifecycle/task.types";
 import { TOKENS } from "../../src/di/tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests
-jest.mock("../../src/llm/core/llm-service");
+jest.mock("../../src/llm/core/llm-provider-manager");
 jest.mock("../../src/llm/core/llm-router");
 jest.mock("../../src/common/mdb/mdb-client-factory", () => {
   return {
@@ -54,7 +54,7 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(TOKENS.InsightsGenerationTask)).toBe(true);
 
       // Verify that LLM and MongoDB dependencies are not registered
-      expect(container.isRegistered(TOKENS.LLMService)).toBe(false);
+      expect(container.isRegistered(TOKENS.LLMProviderManager)).toBe(false);
       expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
     });
 
@@ -73,7 +73,7 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
 
       // Verify that LLM dependencies are not registered
-      expect(container.isRegistered(TOKENS.LLMService)).toBe(false);
+      expect(container.isRegistered(TOKENS.LLMProviderManager)).toBe(false);
     });
 
     it("should handle multiple calls without errors (idempotent)", async () => {
@@ -178,7 +178,7 @@ describe("Dependency Registration", () => {
       // Initially nothing should be registered
       expect(container.isRegistered(TOKENS.EnvVars)).toBe(false);
       expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
-      expect(container.isRegistered(TOKENS.LLMService)).toBe(false);
+      expect(container.isRegistered(TOKENS.LLMProviderManager)).toBe(false);
 
       const config: TaskRunnerConfig = {
         requiresLLM: false,
@@ -190,7 +190,7 @@ describe("Dependency Registration", () => {
       // Check that correct dependencies are now registered
       expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
       expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
-      expect(container.isRegistered(TOKENS.LLMService)).toBe(false);
+      expect(container.isRegistered(TOKENS.LLMProviderManager)).toBe(false);
     });
   });
 

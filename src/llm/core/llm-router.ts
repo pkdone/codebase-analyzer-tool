@@ -12,7 +12,7 @@ import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { log, logWithContext } from "./tracking/llm-router-logging";
 import LLMStats from "./tracking/llm-stats";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
-import { LLMService } from "./llm-service";
+import { LLMProviderManager } from "./llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
 import { TOKENS } from "../../di/tokens";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
@@ -45,14 +45,14 @@ export default class LLMRouter {
    * @param executionPipeline The execution pipeline for orchestrating LLM calls
    */
   constructor(
-    @inject(TOKENS.LLMService) private readonly llmService: LLMService,
+    @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
     @inject(TOKENS.EnvVars) private readonly envVars: EnvVars,
     @inject(TOKENS.LLMStats) private readonly llmStats: LLMStats,
     private readonly executionPipeline: LLMExecutionPipeline,
   ) {
-    this.llm = this.llmService.getLLMProvider(this.envVars);
+    this.llm = this.llmProviderManager.getLLMProvider(this.envVars);
     this.modelsMetadata = this.llm.getModelsMetadata();
-    const llmManifest = this.llmService.getLLMManifest();
+    const llmManifest = this.llmProviderManager.getLLMManifest();
     this.providerRetryConfig = llmManifest.providerSpecificConfig ?? {};
     this.completionCandidates = buildCompletionCandidates(this.llm);
 

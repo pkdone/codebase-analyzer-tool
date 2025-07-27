@@ -4,7 +4,7 @@ import { TaskRunnerConfig } from "../lifecycle/task.types";
 import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
-  registerLLMServices,
+  registerLLMProviders,
   registerMongoDBDependencies,
   registerAppDependencies,
 } from "./registration-modules";
@@ -16,7 +16,7 @@ import {
 export async function bootstrapContainer(config: TaskRunnerConfig): Promise<void> {
   if (config.requiresLLM) {
     await registerLlmEnvDependencies();
-    registerLLMServices();
+    registerLLMProviders();
   } else {
     registerBaseEnvDependencies();
   }
