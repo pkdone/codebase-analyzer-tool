@@ -73,11 +73,26 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
     projectName: string,
     fieldName: K,
   ): Promise<AppSummaryRecord[K] | null> {
+    const result = await this.getProjectAppSummaryFields(projectName, [fieldName]);
+    return result?.[fieldName] ?? null;
+  }
+
+  /**
+   * Retrieves multiple fields from an app summary record for the given project in a single query.
+   */
+  async getProjectAppSummaryFields<K extends keyof AppSummaryRecord>(
+    projectName: string,
+    fieldNames: K[],
+  ): Promise<Pick<AppSummaryRecord, K> | null> {
+    if (fieldNames.length === 0) return null;
     const query = { projectName };
-    const options = {
-      projection: { _id: 0, [fieldName]: 1 },
-    };
-    const record = await this.collection.findOne<Pick<AppSummaryRecord, K>>(query, options);
-    return record?.[fieldName] ?? null;
+    const projection: Record<string, number> = { _id: 0 };
+    
+    fieldNames.forEach((fieldName) => {
+      projection[fieldName as string] = 1;
+    });
+
+    const options = { projection };
+    return await this.collection.findOne<Pick<AppSummaryRecord, K>>(query, options);
   }
 }

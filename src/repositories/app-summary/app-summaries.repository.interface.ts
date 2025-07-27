@@ -33,4 +33,12 @@ export interface AppSummariesRepository {
     projectName: string,
     fieldName: K,
   ): Promise<AppSummaryRecord[K] | null>;
+
+  /**
+   * Get multiple fields data from app summary in a single query
+   */
+  getProjectAppSummaryFields<K extends keyof AppSummaryRecord>(
+    projectName: string,
+    fieldNames: K[],
+  ): Promise<Pick<AppSummaryRecord, K> | null>;
 }

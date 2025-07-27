@@ -41,14 +41,14 @@ export class CategoriesDataProvider {
     const categoryKeys = AppSummaryCategories.options.filter(
       (key) => key !== appConfig.APP_DESCRIPTION_KEY,
     );
-    const categoryPromises = categoryKeys.map(async (category) => {
+    const allCategoryData = await this.appSummariesRepository.getProjectAppSummaryFields(
+      projectName,
+      categoryKeys as (keyof AppSummaryRecord)[],
+    );
+    const results = categoryKeys.map((category) => {
       const label = summaryCategoriesConfig[category].label;
-      // TODO: Could call new repo method which gets all categories in one go
-      const result = await this.appSummariesRepository.getProjectAppSummaryField(
-        projectName,
-        category as keyof AppSummaryRecord,
-      );
-      const data = isAppSummaryNameDescArray(result) ? result : [];
+      const fieldData = allCategoryData?.[category as keyof AppSummaryRecord];
+      const data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];
       console.log(`Generated ${label} table`);
       return {
         category,
@@ -56,7 +56,6 @@ export class CategoriesDataProvider {
         data,
       };
     });
-
-    return await Promise.all(categoryPromises);
+    return results;
   }
 }

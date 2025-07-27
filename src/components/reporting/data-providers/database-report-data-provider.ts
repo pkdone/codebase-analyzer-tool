@@ -6,6 +6,9 @@ import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.ty
 import { Complexity, isComplexity } from "../report-gen.types";
 import { logWarningMsg } from "../../../common/utils/error-utils";
 
+const STORED_PROCEDURE_TYPE = "STORED PROCEDURE" as const;
+const TRIGGER_TYPE = "TRIGGER" as const;
+
 /**
  * Data provider responsible for aggregating database-related information for reports.
  * Handles database integrations, stored procedures, and triggers.
@@ -63,8 +66,8 @@ export class DatabaseReportDataProvider {
       (record) =>
         record.summary?.triggers?.map((trig) => ({ ...trig, filepath: record.filepath })) ?? [],
     );
-    const procs = this.aggregateProcsOrTriggersForReport(allProcs, "STORED PROCEDURE");
-    const trigs = this.aggregateProcsOrTriggersForReport(allTrigs, "TRIGGER");
+    const procs = this.aggregateProcsOrTriggersForReport(allProcs, STORED_PROCEDURE_TYPE);
+    const trigs = this.aggregateProcsOrTriggersForReport(allTrigs, TRIGGER_TYPE);
     return { procs, trigs };
   }
 
@@ -80,7 +83,7 @@ export class DatabaseReportDataProvider {
       purpose: string;
       filepath: string;
     }[],
-    type: "STORED PROCEDURE" | "TRIGGER",
+    type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
   ): ProcsAndTriggers["procs"] {
     return items.reduce<ProcsAndTriggers["procs"]>(
       (acc, item) => {
