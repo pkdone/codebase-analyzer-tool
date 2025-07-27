@@ -66,13 +66,4 @@ export async function initializeAndRegisterLLMRouter(modelFamily?: string): Prom
   return router;
 }
 
-/**
- * Create and register an initialized LLMProviderManager instance.
- * This is called during application setup to ensure the LLMProviderManager
- * is properly initialized before being used by other services.
- * 
- * @deprecated Use initializeAndRegisterLLMRouter instead
- */
-export async function createAndRegisterLLMProviderManager(modelFamily?: string): Promise<void> {
-  await initializeAndRegisterLLMRouter(modelFamily);
-}
+
