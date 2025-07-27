@@ -59,7 +59,7 @@ There are various tools you need to run in a specific order (shown the next sect
 1. Execute the pre-configured task _Run and Debug TypeScript_
     - this will run the TypeScript compiler first, and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel). 
 
-Alternatively, you also run the `./dist/cli/c*.js` JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. The command to run each tool is shown the next section.
+Alternatively, you also run the `./dist/src/cli/c*.js` JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. The command to run each tool is shown the next section.
 
 
 ## How To Run Main Tasks
@@ -76,7 +76,7 @@ Alternatively, you also run the `./dist/cli/c*.js` JavaScript files (first compi
 1. **CAPTURE SOURCES**: To capture LLM-generated metadata about every source file into the database, execute the the following commands from a terminal (or select the corresponding "src/cli/*.ts" file in your VS Code IDE and choose to "Run and Debug).
 
     ```console
-    node ./dist/cli/1-capture-codebase.js
+    node ./dist/src/cli/1-capture-codebase.js
     ```
 
     Note 1. If you receive LLM provider authentication/authorisaton errors when you execute the task, see the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
@@ -87,13 +87,13 @@ Alternatively, you also run the `./dist/cli/c*.js` JavaScript files (first compi
 1. **GENERATE INSIGHTS**: Run the following command to generate insights (e.g. identifid technology stack, business processes, DDD aggregates, potential microserices, etc.) lveraging the previously database captured sources files metadata.
 
     ```console
-    node ./dist/cli/2-generate-insights-from-db.js
+    node ./dist/src/cli/2-generate-insights-from-db.js
     ```
 
 1. **CREATE REPORT**: Run the following command to generate a static HTML-based report summarising the application from the previously captured source metadata and aggregated insights. 
 
     ```console
-    node ./dist/cli/3-create-report.js
+    node ./dist/src/cli/3-create-report.js
     ```
 
 ## OPTIONAL: How To Run Optional Additional Tasks
@@ -101,7 +101,7 @@ Alternatively, you also run the `./dist/cli/c*.js` JavaScript files (first compi
 1. **QUERY CODEBASE**: To adhoc query the codebase (i.e., to "talk to your code", which uses MongoDB's Vector Search capability to search the database-captured metadata), place your questions in the file `input/questions.prompts` and then run the following command to execute the queries. 
 
     ```console
-    node ./dist/cli/query-codebase.js
+    node ./dist/src/cli/query-codebase.js
     ```
 
 1. **OTHER TOOLS**: You wil notice other tools are also provided in the "src/cli" folder which you can explore and run. These are currently undocumented and may disappear in the future. They are primarily intended for use by this project's developers.
