@@ -43,7 +43,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
   }
 
   const validatedContent = validateSchemaIfNeededAndReturnResponse<T>(
-    jsonContent as LLMGeneratedContent,
+    jsonContent, // Removed the 'as LLMGeneratedContent' cast - pass unknown directly to Zod
     completionOptions,
     resourceName,
     doWarnOnError,
@@ -68,7 +68,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
  * fails (having logged the error).
  */
 export function validateSchemaIfNeededAndReturnResponse<T>(
-  content: LLMGeneratedContent | null,
+  content: unknown, // Accept unknown values to be safely handled by Zod validation
   completionOptions: LLMCompletionOptions,
   resourceName: string,
   doWarnOnError = false,
@@ -78,6 +78,7 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
     completionOptions.outputFormat === LLMOutputFormat.JSON &&
     completionOptions.jsonSchema
   ) {
+    // Zod's safeParse can safely handle unknown inputs and provide type-safe output
     const validation = completionOptions.jsonSchema.safeParse(content);
 
     if (!validation.success) {
@@ -88,6 +89,8 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
 
     return validation.data as T; // Cast is now safer after successful validation
   } else {
-    return content; // Return the original content with its original type
+    // When no validation is performed, we assume the content is valid LLMGeneratedContent
+    // This is reasonable since JSON.parse output should fit the LLMGeneratedContent type
+    return content as LLMGeneratedContent;
   }
 }
