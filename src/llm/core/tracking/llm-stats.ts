@@ -93,7 +93,7 @@ export default class LLMStats {
   getStatusTypesStatistics(includeTotal = false): LLMStatsCategoriesSummary {
     // Create a mutable copy of the base stats
     const baseStats = structuredClone(this.statusTypes);
-    
+
     if (includeTotal) {
       const total = baseStats.SUCCESS.count + baseStats.FAILURE.count;
       const totalStat: LLMStatsCategoryStatus = {
@@ -101,7 +101,7 @@ export default class LLMStats {
         symbol: "=",
         count: total,
       };
-      
+
       // Construct the complete object with the TOTAL property
       return {
         ...baseStats,

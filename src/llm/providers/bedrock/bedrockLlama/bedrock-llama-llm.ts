@@ -55,15 +55,13 @@ You are a helpful software engineering and programming assistant, and you need t
   /**
    * Extract the relevant information from the completion LLM specific response.
    */
-  protected extractCompletionModelSpecificResponse(
-    llmResponse: unknown,
-  ) {
+  protected extractCompletionModelSpecificResponse(llmResponse: unknown) {
     const validation = LlamaCompletionResponseSchema.safeParse(llmResponse);
     if (!validation.success) {
       throw new BadResponseContentLLMError("Invalid Llama response structure", llmResponse);
     }
     const response = validation.data;
-    
+
     const responseContent = response.generation ?? "";
     const finishReason = response.stop_reason ?? "";
     const finishReasonLowercase = finishReason.toLowerCase();
@@ -75,5 +73,3 @@ You are a helpful software engineering and programming assistant, and you need t
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 }
-
-

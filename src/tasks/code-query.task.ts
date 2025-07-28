@@ -1,10 +1,17 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { getTextLines } from "../common/utils/fs-utils";
+import { getErrorText } from "../common/utils/error-utils";
 import CodeQuestioner from "../components/querying/code-questioner";
 import { appConfig } from "../config/app.config";
 import { Task } from "../lifecycle/task.types";
 import { TOKENS } from "../di/tokens";
+
+// Constants for Promise.allSettled status values
+const PROMISE_STATUS = {
+  FULFILLED: "fulfilled" as const,
+  REJECTED: "rejected" as const,
+} as const;
 
 /**
  * Task to query the codebase.
@@ -34,15 +41,22 @@ export class CodebaseQueryTask implements Task {
       `Performing vector search then invoking LLM for optimal results for project: ${this.projectName}`,
     );
     const questions = await getTextLines(appConfig.QUESTIONS_PROMPTS_FILEPATH);
+    const queryPromises = questions.map(async (question) =>
+      this.codeQuestioner.queryCodebaseWithQuestion(question, this.projectName),
+    );
+    const results = await Promise.allSettled(queryPromises);
+    results.forEach((result, index) => {
+      const question = questions[index];
 
-    const queryPromises = questions.map(async (question) => {
-      const result = await this.codeQuestioner.queryCodebaseWithQuestion(
-        question,
-        this.projectName,
-      );
-      console.log(`\n---------------\nQUESTION: ${question}\n\n${result}\n---------------\n`);
+      if (result.status === PROMISE_STATUS.FULFILLED) {
+        console.log(
+          `\n---------------\nQUESTION: ${question}\n\n${result.value}\n---------------\n`,
+        );
+      } else {
+        console.error(
+          `\n---------------\nFAILED QUESTION: ${question}\n\nERROR: ${getErrorText(result.reason)}\n---------------\n`,
+        );
+      }
     });
-
-    await Promise.all(queryPromises);
   }
 }

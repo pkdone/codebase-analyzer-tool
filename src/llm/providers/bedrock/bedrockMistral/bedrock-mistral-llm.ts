@@ -9,17 +9,23 @@ import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
  * Zod schema for Mistral completion response validation
  */
 const MistralCompletionResponseSchema = z.object({
-  choices: z.array(z.object({
-    message: z.object({
-      content: z.string(),
-    }).optional(),
-    stop_reason: z.string().optional(),
-    finish_reason: z.string().optional(),
-  })),
-  usage: z.object({
-    prompt_tokens: z.number().optional(),
-    completion_tokens: z.number().optional(),
-  }).optional(),
+  choices: z.array(
+    z.object({
+      message: z
+        .object({
+          content: z.string(),
+        })
+        .optional(),
+      stop_reason: z.string().optional(),
+      finish_reason: z.string().optional(),
+    }),
+  ),
+  usage: z
+    .object({
+      prompt_tokens: z.number().optional(),
+      completion_tokens: z.number().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -59,15 +65,13 @@ export default class BedrockMistralLLM extends BaseBedrockLLM {
   /**
    * Extract the relevant information from the completion LLM specific response.
    */
-  protected extractCompletionModelSpecificResponse(
-    llmResponse: unknown,
-  ) {
+  protected extractCompletionModelSpecificResponse(llmResponse: unknown) {
     const validation = MistralCompletionResponseSchema.safeParse(llmResponse);
     if (!validation.success) {
       throw new BadResponseContentLLMError("Invalid Mistral response structure", llmResponse);
     }
     const response = validation.data;
-    
+
     const firstResponse = response.choices[0];
     const responseContent = firstResponse.message?.content ?? null;
     const finishReason = firstResponse.stop_reason ?? firstResponse.finish_reason ?? "";
@@ -80,5 +84,3 @@ export default class BedrockMistralLLM extends BaseBedrockLLM {
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 }
-
-

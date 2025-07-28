@@ -10,17 +10,23 @@ import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
  */
 const NovaCompletionResponseSchema = z.object({
   output: z.object({
-    message: z.object({
-      content: z.array(z.object({
-        text: z.string(),
-      })),
-    }).optional(),
+    message: z
+      .object({
+        content: z.array(
+          z.object({
+            text: z.string(),
+          }),
+        ),
+      })
+      .optional(),
   }),
   stopReason: z.string().optional(),
-  usage: z.object({
-    inputTokens: z.number().optional(),
-    outputTokens: z.number().optional(),
-  }).optional(),
+  usage: z
+    .object({
+      inputTokens: z.number().optional(),
+      outputTokens: z.number().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -72,7 +78,7 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
       throw new BadResponseContentLLMError("Invalid Nova response structure", llmResponse);
     }
     const response = validation.data;
-    
+
     const responseContent = response.output.message?.content[0].text ?? null;
     const finishReason = response.stopReason ?? "";
     const finishReasonLowercase = finishReason.toLowerCase();
@@ -84,5 +90,3 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 }
-
-

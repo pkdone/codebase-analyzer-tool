@@ -11,10 +11,12 @@ import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 const ClaudeCompletionResponseSchema = z.object({
   content: z.array(z.object({ text: z.string() })).optional(),
   stop_reason: z.string().optional(),
-  usage: z.object({
-    input_tokens: z.number().optional(),
-    output_tokens: z.number().optional(),
-  }).optional(),
+  usage: z
+    .object({
+      input_tokens: z.number().optional(),
+      output_tokens: z.number().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -61,15 +63,13 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   /**
    * Extract the relevant information from the completion LLM specific response.
    */
-  protected extractCompletionModelSpecificResponse(
-    llmResponse: unknown,
-  ) {
+  protected extractCompletionModelSpecificResponse(llmResponse: unknown) {
     const validation = ClaudeCompletionResponseSchema.safeParse(llmResponse);
     if (!validation.success) {
       throw new BadResponseContentLLMError("Invalid Claude response structure", llmResponse);
     }
     const response = validation.data;
-    
+
     const responseContent = response.content?.[0]?.text ?? "";
     const finishReason = response.stop_reason ?? "";
     const finishReasonLowercase = finishReason.toLowerCase();
@@ -81,5 +81,3 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 }
-
-
