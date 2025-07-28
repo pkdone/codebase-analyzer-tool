@@ -31,10 +31,10 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
     );
   }
 
-  let jsonContent: T;
+  let jsonContent: unknown;
 
   try {
-    jsonContent = JSON.parse(match[0]) as T;
+    jsonContent = JSON.parse(match[0]);
   } catch (_error: unknown) {
     void _error;
     throw new BadResponseContentLLMError(
@@ -44,7 +44,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
   }
 
   const validatedContent = validateSchemaIfNeededAndReturnResponse<T>(
-    jsonContent as Record<string, unknown>,
+    jsonContent as LLMGeneratedContent,
     completionOptions,
     resourceName,
     doWarnOnError,
