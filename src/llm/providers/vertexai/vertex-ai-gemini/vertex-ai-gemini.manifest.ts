@@ -2,8 +2,8 @@ import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
 import VertexAIGeminiLLM from "./vertex-ai-gemini-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { BaseEnvVars } from "../../../../env/env.types";
 import { llmConfig } from "../../../llm.config";
+import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
@@ -65,19 +65,20 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     embeddingsTaskType: "QUESTION_ANSWERING",
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
-    const env = envConfig as BaseEnvVars & {
-      [VERTEXAI_PROJECTID_KEY]: string;
-      [VERTEXAI_LOCATION_KEY]: string;
-      [VERTEXAI_TEXT_EMBEDDINGS_MODEL_KEY]: string;
-      [VERTEXAI_GEMINI_COMPLETIONS_MODEL_PRIMARY_KEY]: string;
-      [VERTEXAI_GEMINI_COMPLETIONS_MODEL_SECONDARY_KEY]: string;
-    };
+    const validationResult = vertexAIGeminiProviderManifest.envSchema.safeParse(envConfig);
+    if (!validationResult.success)
+      throw new BadConfigurationLLMError(
+        `Environment validation failed for VertexAI Gemini provider: ${JSON.stringify(validationResult.error.issues)}`,
+      );
+    const validatedEnv = validationResult.data;
+    const projectId = validatedEnv[VERTEXAI_PROJECTID_KEY] as string;
+    const location = validatedEnv[VERTEXAI_LOCATION_KEY] as string;
     return new VertexAIGeminiLLM(
       modelsKeysSet,
       modelsMetadata,
       errorPatterns,
-      env[VERTEXAI_PROJECTID_KEY],
-      env[VERTEXAI_LOCATION_KEY],
+      projectId,
+      location,
       providerSpecificConfig,
     );
   },

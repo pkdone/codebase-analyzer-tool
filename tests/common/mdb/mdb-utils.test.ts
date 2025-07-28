@@ -20,9 +20,9 @@ describe("mdb-utils", () => {
   });
 
   describe("numbersToBsonDoubles", () => {
-          test("converts array of numbers to BSON Doubles", () => {
-        const numbers = [1, 2.5, 3.14, 0, -5.7];
-        const result = numbersToBsonDoubles(numbers);
+    test("converts array of numbers to BSON Doubles", () => {
+      const numbers = [1, 2.5, 3.14, 0, -5.7];
+      const result = numbersToBsonDoubles(numbers);
 
       expect(result).toHaveLength(numbers.length);
       result.forEach((double, index) => {

@@ -3,7 +3,7 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import OpenAILLM from "./openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../openai-error-patterns";
-import { BaseEnvVars } from "../../../../env/env.types";
+import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 
 // Environment variable name constants
 const OPENAI_LLM_API_KEY_KEY = "OPENAI_LLM_API_KEY";
@@ -59,12 +59,13 @@ export const openAIProviderManifest: LLMProviderManifest = {
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, _providerSpecificConfig) => {
     void _providerSpecificConfig; // Avoid linting error
-    const env = envConfig as BaseEnvVars & {
-      [OPENAI_LLM_API_KEY_KEY]: string;
-      [OPENAI_TEXT_EMBEDDINGS_MODEL_KEY]: string;
-      [OPENAI_GPT_COMPLETIONS_MODEL_PRIMARY_KEY]: string;
-      [OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY_KEY]: string;
-    };
-    return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, env[OPENAI_LLM_API_KEY_KEY]);
+    const validationResult = openAIProviderManifest.envSchema.safeParse(envConfig);
+    if (!validationResult.success)
+      throw new BadConfigurationLLMError(
+        `Environment validation failed for OpenAI provider: ${JSON.stringify(validationResult.error.issues)}`,
+      );
+    const validatedEnv = validationResult.data;
+    const apiKey = validatedEnv[OPENAI_LLM_API_KEY_KEY] as string;
+    return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, apiKey);
   },
 };

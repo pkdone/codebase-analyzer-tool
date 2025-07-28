@@ -87,7 +87,7 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
     if (fieldNames.length === 0) return null;
     const query = { projectName };
     const projection: Record<string, number> = { _id: 0 };
-    
+
     fieldNames.forEach((fieldName) => {
       projection[fieldName as string] = 1;
     });

@@ -3,8 +3,8 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import AzureOpenAILLM from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../openai-error-patterns";
-import { BaseEnvVars } from "../../../../env/env.types";
 import { llmConfig } from "../../../llm.config";
+import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 
 // Environment variable name constants
 const AZURE_OPENAI_LLM_API_KEY = "AZURE_OPENAI_LLM_API_KEY";
@@ -72,25 +72,32 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     maxRetryAdditionalDelayMillis: 35 * 1000, // 35 seconds additional random delay
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
-    const env = envConfig as BaseEnvVars & {
-      [AZURE_OPENAI_LLM_API_KEY]: string;
-      [AZURE_OPENAI_ENDPOINT_KEY]: string;
-      [AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY]: string;
-      [AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY]: string;
-      [AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY]?: string;
-      [AZURE_OPENAI_ADA_EMBEDDINGS_MODEL_KEY]: string;
-      [AZURE_OPENAI_GPT_COMPLETIONS_MODEL_PRIMARY_KEY]: string;
-      [AZURE_OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY_KEY]: string;
-    };
+    const validationResult = azureOpenAIProviderManifest.envSchema.safeParse(envConfig);
+    if (!validationResult.success)
+      throw new BadConfigurationLLMError(
+        `Environment validation failed for Azure OpenAI provider: ${JSON.stringify(validationResult.error.issues)}`,
+      );
+    const validatedEnv = validationResult.data;
+    const apiKey = validatedEnv[AZURE_OPENAI_LLM_API_KEY] as string;
+    const endpoint = validatedEnv[AZURE_OPENAI_ENDPOINT_KEY] as string;
+    const embeddingsDeployment = validatedEnv[
+      AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY
+    ] as string;
+    const primaryCompletionDeployment = validatedEnv[
+      AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY
+    ] as string;
+    const secondaryCompletionDeployment = validatedEnv[
+      AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY
+    ] as string;
     return new AzureOpenAILLM(
       modelsKeysSet,
       modelsMetadata,
       errorPatterns,
-      env[AZURE_OPENAI_LLM_API_KEY],
-      env[AZURE_OPENAI_ENDPOINT_KEY],
-      env[AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY],
-      env[AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY],
-      env[AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY] ?? "",
+      apiKey,
+      endpoint,
+      embeddingsDeployment,
+      primaryCompletionDeployment,
+      secondaryCompletionDeployment,
       providerSpecificConfig,
     );
   },

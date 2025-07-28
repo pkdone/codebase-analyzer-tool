@@ -27,7 +27,9 @@ export function registerLLMProviders(): void {
  * @param modelFamily - Optional model family override
  * @returns Promise<LLMProviderManager> The initialized LLMProviderManager instance
  */
-async function createAndInitializeLLMProviderManager(modelFamily?: string): Promise<LLMProviderManager> {
+async function createAndInitializeLLMProviderManager(
+  modelFamily?: string,
+): Promise<LLMProviderManager> {
   // Resolve the model family (use provided or resolve from container)
   const resolvedModelFamily = modelFamily ?? container.resolve<string>(TOKENS.LLMModelFamily);
 
@@ -65,5 +67,3 @@ export async function initializeAndRegisterLLMRouter(modelFamily?: string): Prom
 
   return router;
 }
-
-

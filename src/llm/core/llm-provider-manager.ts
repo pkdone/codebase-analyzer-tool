@@ -36,7 +36,10 @@ export class LLMProviderManager {
    */
   static async loadManifestForModelFamily(modelFamily: string): Promise<LLMProviderManifest> {
     const providersRootPath = path.join(__dirname, appConfig.PROVIDERS_FOLDER_PATH);
-    const manifest = await LLMProviderManager.findManifestRecursively(providersRootPath, modelFamily);
+    const manifest = await LLMProviderManager.findManifestRecursively(
+      providersRootPath,
+      modelFamily,
+    );
     if (!manifest)
       throw new BadConfigurationLLMError(
         `No provider manifest found for model family: ${modelFamily}`,
@@ -61,7 +64,10 @@ export class LLMProviderManager {
 
       if (manifestFile) {
         const manifestPath = path.join(searchPath, manifestFile.name);
-        const manifest = await LLMProviderManager.loadAndValidateManifest(manifestPath, targetModelFamily);
+        const manifest = await LLMProviderManager.loadAndValidateManifest(
+          manifestPath,
+          targetModelFamily,
+        );
         if (manifest) return manifest;
       }
 
@@ -69,7 +75,10 @@ export class LLMProviderManager {
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const subPath = path.join(searchPath, entry.name);
-          const manifest = await LLMProviderManager.findManifestRecursively(subPath, targetModelFamily);
+          const manifest = await LLMProviderManager.findManifestRecursively(
+            subPath,
+            targetModelFamily,
+          );
           if (manifest) return manifest;
         }
       }
@@ -218,4 +227,4 @@ export class LLMProviderManager {
 
     return metadata;
   }
-} 
+}

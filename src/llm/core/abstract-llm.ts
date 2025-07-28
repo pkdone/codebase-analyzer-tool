@@ -184,8 +184,12 @@ export default abstract class AbstractLLM implements LLMProvider {
     completionOptions ??= { outputFormat: LLMOutputFormat.TEXT };
 
     try {
-      const { isIncompleteResponse, responseContent, tokenUsage } =
-        await this.invokeProvider(taskType, modelKey, request, completionOptions);
+      const { isIncompleteResponse, responseContent, tokenUsage } = await this.invokeProvider(
+        taskType,
+        modelKey,
+        request,
+        completionOptions,
+      );
 
       if (isIncompleteResponse) {
         // Often occurs if combination of prompt + generated completion execeed the max token limit (e.g. actual internal LLM completion has been executed and the completion has been cut short)
