@@ -1,7 +1,8 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import type { InsightsGenerator } from "../components/insights/insights-generator.interface";
-import type LLMRouter from "../llm/core/llm-router";
+
+import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { Task } from "../lifecycle/task.types";
 import { TOKENS } from "../di/tokens";
 
@@ -14,7 +15,7 @@ export class InsightsGenerationTask implements Task {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(TOKENS.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
     @inject(TOKENS.ProjectName) private readonly projectName: string,
     @inject(TOKENS.InsightsGenerator)
     private readonly insightsGenerator: InsightsGenerator,
@@ -32,10 +33,10 @@ export class InsightsGenerationTask implements Task {
    */
   private async generateInsights(): Promise<void> {
     console.log(`Generating insights for project: ${this.projectName}`);
-    this.llmRouter.displayLLMStatusSummary();
+    this.llmStatsReporter.displayLLMStatusSummary();
     await this.insightsGenerator.generateSummariesBackIntoDB();
     console.log("Finished generating insights for the project");
     console.log("Summary of LLM invocations outcomes:");
-    this.llmRouter.displayLLMStatusDetails();
+    this.llmStatsReporter.displayLLMStatusDetails();
   }
 }

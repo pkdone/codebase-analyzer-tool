@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../components/capture/codebase-to-db-loader";
 import type LLMRouter from "../llm/core/llm-router";
+import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { Task } from "../lifecycle/task.types";
 import type { EnvVars } from "../env/env.types";
 import type { DBInitializerTask } from "./db-initializer.task";
@@ -18,6 +19,7 @@ export class CodebaseCaptureTask implements Task {
    */
   constructor(
     @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(TOKENS.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
     @inject(TOKENS.DBInitializerTask)
     private readonly dbInitializerTask: DBInitializerTask,
     @inject(TOKENS.EnvVars) private readonly env: EnvVars,
@@ -43,10 +45,10 @@ export class CodebaseCaptureTask implements Task {
     const numDimensions =
       this.llmRouter.getEmbeddedModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.dbInitializerTask.ensureCollectionsReady(numDimensions);
-    this.llmRouter.displayLLMStatusSummary();
+    this.llmStatsReporter.displayLLMStatusSummary();
     await this.codebaseToDBLoader.loadIntoDB(this.projectName, srcDirPath, ignoreIfAlreadyCaptured);
     console.log("Finished capturing project files metadata into database");
     console.log("Summary of LLM invocations outcomes:");
-    this.llmRouter.displayLLMStatusDetails();
+    this.llmStatsReporter.displayLLMStatusDetails();
   }
 }

@@ -31,6 +31,7 @@ export const TOKENS = {
   FileSummarizer: Symbol.for("FileSummarizer"),
   FileHandlerFactory: Symbol.for("FileHandlerFactory"),
   LLMStats: Symbol.for("LLMStats"),
+  LLMStatsReporter: Symbol.for("LLMStatsReporter"),
   PromptAdaptationStrategy: Symbol.for("PromptAdaptationStrategy"),
   RetryStrategy: Symbol.for("RetryStrategy"),
   FallbackStrategy: Symbol.for("FallbackStrategy"),

@@ -4,6 +4,7 @@ import { appConfig } from "../config/app.config";
 import { clearDirectory } from "../common/utils/fs-utils";
 import { RawCodeToInsightsFileGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
 import type LLMRouter from "../llm/core/llm-router";
+import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { Task } from "../lifecycle/task.types";
 import type { EnvVars } from "../env/env.types";
 import { TOKENS } from "../di/tokens";
@@ -18,6 +19,7 @@ export class OneShotGenerateInsightsTask implements Task {
    */
   constructor(
     @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(TOKENS.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
     @inject(TOKENS.EnvVars) private readonly env: EnvVars,
     @inject(TOKENS.RawCodeToInsightsFileGenerator)
     private readonly insightsFileGenerator: RawCodeToInsightsFileGenerator,
@@ -35,7 +37,7 @@ export class OneShotGenerateInsightsTask implements Task {
    */
   private async generateInlineInsights(srcDirPath: string, llmName: string): Promise<void> {
     const normalisedSrcDirPath = srcDirPath.replace(appConfig.TRAILING_SLASH_PATTERN, "");
-    this.llmRouter.displayLLMStatusSummary();
+    this.llmStatsReporter.displayLLMStatusSummary();
     await clearDirectory(appConfig.OUTPUT_DIR);
 
     // Load prompts from file system and pass them to the generator
@@ -47,7 +49,7 @@ export class OneShotGenerateInsightsTask implements Task {
       llmName,
       prompts,
     );
-    this.llmRouter.displayLLMStatusDetails();
+    this.llmStatsReporter.displayLLMStatusDetails();
     console.log(`View generated results in the 'file://${appConfig.OUTPUT_DIR}' folder`);
   }
 }

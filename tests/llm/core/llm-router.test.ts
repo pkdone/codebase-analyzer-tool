@@ -200,7 +200,6 @@ describe("LLM Router tests", () => {
     const router = new LLMRouter(
       mockLLMProviderManager as LLMProviderManager,
       mockEnvVars as EnvVars,
-      mockLLMStats,
       mockExecutionPipeline,
     );
     return { router, mockProvider };
@@ -621,35 +620,7 @@ describe("LLM Router tests", () => {
     });
   });
 
-  describe("Statistics display methods", () => {
-    test("should display LLM status summary", () => {
-      const mockLog = jest.fn();
-      const mockTable = jest.fn();
-      const consoleSpy = jest.spyOn(console, "log").mockImplementation(mockLog);
-      const consoleTableSpy = jest.spyOn(console, "table").mockImplementation(mockTable);
 
-      const { router } = createLLMRouter();
-      router.displayLLMStatusSummary();
-
-      expect(consoleSpy).toHaveBeenCalledWith("LLM inovocation event types that will be recorded:");
-      expect(consoleTableSpy).toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
-      consoleTableSpy.mockRestore();
-    });
-
-    test("should display LLM status details", () => {
-      const mockTable = jest.fn();
-      const consoleTableSpy = jest.spyOn(console, "table").mockImplementation(mockTable);
-
-      const { router } = createLLMRouter();
-      router.displayLLMStatusDetails();
-
-      expect(consoleTableSpy).toHaveBeenCalledWith(expect.any(Object));
-
-      consoleTableSpy.mockRestore();
-    });
-  });
 
   describe("Error handling and edge cases", () => {
     test("should handle LLM provider throwing unexpected errors", async () => {

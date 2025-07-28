@@ -2,6 +2,7 @@ import { container } from "tsyringe";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import LLMRouter from "../../llm/core/llm-router";
 import LLMStats from "../../llm/core/tracking/llm-stats";
+import { LLMStatsReporter } from "../../llm/core/tracking/llm-stats-reporter";
 import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
 import { TOKENS } from "../tokens";
 
@@ -14,6 +15,7 @@ import { TOKENS } from "../tokens";
 export function registerLLMProviders(): void {
   // Register LLM utility classes
   container.registerSingleton(TOKENS.LLMStats, LLMStats);
+  container.registerSingleton(TOKENS.LLMStatsReporter, LLMStatsReporter);
   container.registerSingleton(TOKENS.PromptAdaptationStrategy, PromptAdaptationStrategy);
   // RetryStrategy, FallbackStrategy, and LLMExecutionPipeline are now registered in app-registration.ts
 

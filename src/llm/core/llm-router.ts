@@ -10,7 +10,7 @@ import {
 import type { LLMProvider, LLMCandidateFunction } from "../types/llm.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { log, logWithContext } from "./tracking/llm-router-logging";
-import LLMStats from "./tracking/llm-stats";
+
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMProviderManager } from "./llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
@@ -47,7 +47,6 @@ export default class LLMRouter {
   constructor(
     @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
     @inject(TOKENS.EnvVars) private readonly envVars: EnvVars,
-    @inject(TOKENS.LLMStats) private readonly llmStats: LLMStats,
     private readonly executionPipeline: LLMExecutionPipeline,
   ) {
     this.llm = this.llmProviderManager.getLLMProvider(this.envVars);
@@ -171,18 +170,5 @@ export default class LLMRouter {
     );
   }
 
-  /**
-   * Print the accumulated statistics of LLM invocation result types.
-   */
-  displayLLMStatusSummary(): void {
-    console.log("LLM inovocation event types that will be recorded:");
-    console.table(this.llmStats.getStatusTypesStatistics(), ["description", "symbol"]);
-  }
 
-  /**
-   * Print the accumulated statistics of LLM invocation result types.
-   */
-  displayLLMStatusDetails(): void {
-    console.table(this.llmStats.getStatusTypesStatistics(true));
-  }
 }
