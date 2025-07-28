@@ -27,11 +27,14 @@ CODE:
  * Represents a file handler that can create prompts and validate responses for a specific file type.
  */
 export class FileHandler<T extends SourceSummaryType = SourceSummaryType> {
+  // Private members
   private readonly config: DynamicPromptConfig<z.ZodType<T>>;
 
-  constructor(config: DynamicPromptConfig | DynamicPromptConfig<z.ZodType<T>>) {
-    // Safe assertion: all configs in fileTypeMetadataConfig are SourceSummaryType-compatible
-    this.config = config as DynamicPromptConfig<z.ZodType<T>>;
+  /**
+   * Constructor
+   */
+  constructor(config: DynamicPromptConfig<z.ZodType<T>>) {
+    this.config = config;
   }
 
   /**
