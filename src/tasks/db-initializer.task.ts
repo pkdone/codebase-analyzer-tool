@@ -10,6 +10,25 @@ import * as sourceSchema from "../repositories/source/sources.model";
 import * as appSummarySchema from "../repositories/app-summary/app-summaries.model";
 
 /**
+ * Interface for MongoDB duplicate index errors.
+ */
+interface MongoDuplicateIndexError {
+  codeName: string;
+}
+
+/**
+ * Type guard to check if an error is a MongoDB duplicate index error.
+ */
+function isMongoDuplicateIndexError(error: unknown): error is MongoDuplicateIndexError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "codeName" in error &&
+    typeof (error as MongoDuplicateIndexError).codeName === "string"
+  );
+}
+
+/**
  * Task responsible for database schema initialization and management.
  * Handles all DDL operations including index creation for both collections.
  */
@@ -112,13 +131,7 @@ export class DBInitializerTask implements Task {
     try {
       await this.sourcesCollection.createSearchIndexes(vectorSearchIndexes);
     } catch (error: unknown) {
-      const isDuplicateIndexError =
-        typeof error === "object" &&
-        error !== null &&
-        Object.hasOwn(error, "codeName") &&
-        (error as { codeName: unknown }).codeName === "IndexAlreadyExists";
-
-      if (!isDuplicateIndexError) {
+      if (!isMongoDuplicateIndexError(error) || error.codeName !== "IndexAlreadyExists") {
         logErrorMsgAndDetail(
           `Issue when creating Vector Search indexes, therefore you must create these Vector Search indexes manually (see README) for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
           error,
