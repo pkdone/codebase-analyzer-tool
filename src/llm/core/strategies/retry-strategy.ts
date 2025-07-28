@@ -12,6 +12,14 @@ import { llmConfig } from "../../llm.config";
 import LLMStats from "../tracking/llm-stats";
 import { TOKENS } from "../../../di/tokens";
 
+// Define a type for retryable errors
+type RetryableError = FailedAttemptError & { retryableStatus?: LLMResponseStatus };
+
+// Type guard to check for retryable errors
+function isRetryableError(error: unknown): error is RetryableError {
+  return error instanceof Error && "retryableStatus" in error;
+}
+
 /**
  * Strategy class responsible for handling LLM function retries.
  * Encapsulates retry logic that was previously embedded in LLMRouter.
@@ -57,9 +65,9 @@ export class RetryStrategy {
           retries: retryConfig.maxAttempts - 1, // p-retry uses `retries` (number of retries, not total attempts)
           minTimeout: retryConfig.minRetryDelayMillis,
           onFailedAttempt: (error: FailedAttemptError) => {
-            this.logRetryOrInvalidEvent(
-              error as FailedAttemptError & { retryableStatus?: LLMResponseStatus },
-            );
+            if (isRetryableError(error)) {
+              this.logRetryOrInvalidEvent(error);
+            }
           },
         } as pRetry.Options,
       );
@@ -89,9 +97,7 @@ export class RetryStrategy {
   /**
    * Log retry events with status-specific handling
    */
-  private logRetryOrInvalidEvent(
-    error: FailedAttemptError & { retryableStatus?: LLMResponseStatus },
-  ) {
+  private logRetryOrInvalidEvent(error: RetryableError) {
     if (error.retryableStatus === LLMResponseStatus.INVALID) {
       this.llmStats.recordHopefulRetry();
     } else if (error.retryableStatus === LLMResponseStatus.OVERLOADED) {
