@@ -18,7 +18,7 @@ const baseEnv = loadBaseEnvVarsOnly();
 const mockAzureOpenAIEnv = {
   MONGODB_URL: baseEnv.MONGODB_URL,
   CODEBASE_DIR_PATH: "/test/path",
-  IGNORE_ALREADY_PROCESSED_FILES: false,
+  SKIP_ALREADY_PROCESSED_FILES: false,
   LLM: "AzureOpenAI",
   AZURE_OPENAI_LLM_API_KEY: "test-key",
   AZURE_OPENAI_ENDPOINT: "https://test.openai.azure.com/",

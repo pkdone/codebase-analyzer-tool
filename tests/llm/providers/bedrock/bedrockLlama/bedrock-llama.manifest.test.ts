@@ -19,7 +19,7 @@ const baseEnv = loadBaseEnvVarsOnly();
 const mockBedrockLlamaEnv = {
   MONGODB_URL: baseEnv.MONGODB_URL,
   CODEBASE_DIR_PATH: "/test/path",
-  IGNORE_ALREADY_PROCESSED_FILES: false,
+  SKIP_ALREADY_PROCESSED_FILES: false,
   LLM: "BedrockLlama",
   BEDROCK_TITAN_EMBEDDINGS_MODEL: "amazon.titan-embed-text-v1",
   BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY: "meta.llama3-3-70b-instruct-v1:0",

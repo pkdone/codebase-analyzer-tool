@@ -53,7 +53,7 @@ describe("Environment Registration Module", () => {
   const mockBaseEnvVars = {
     MONGODB_URL: "mongodb://localhost:27017/test",
     CODEBASE_DIR_PATH: "/test/project",
-    IGNORE_ALREADY_PROCESSED_FILES: false,
+    SKIP_ALREADY_PROCESSED_FILES: false,
     LLM: "TestProvider",
   };
 
@@ -246,7 +246,7 @@ describe("Environment Registration Module", () => {
       const envVarsWithoutLLM = {
         MONGODB_URL: "mongodb://localhost:27017/test",
         CODEBASE_DIR_PATH: "/test/project",
-        IGNORE_ALREADY_PROCESSED_FILES: false,
+        SKIP_ALREADY_PROCESSED_FILES: false,
       };
 
       container.registerInstance(TOKENS.EnvVars, envVarsWithoutLLM);

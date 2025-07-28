@@ -11,7 +11,7 @@ process.env.LLM = 'AzureOpenAI';
 process.env.CODEBASE_DIR_PATH = "/test/path/petstore1.3.2";
 // Use MONGODB_URL from .env if it exists, otherwise use a default
 process.env.MONGODB_URL = process.env.MONGODB_URL || "mongodb://localhost:27017/test";
-process.env.IGNORE_ALREADY_PROCESSED_FILES = "false";
+process.env.SKIP_ALREADY_PROCESSED_FILES = "false";
 // OpenAI API variables - sourced from .env
 // Azure OpenAI API variables - sourced from .env
 // GCP VertexAI API variables - sourced from .env

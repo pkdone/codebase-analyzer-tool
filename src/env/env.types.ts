@@ -6,7 +6,7 @@ import { z } from "zod";
 export const baseEnvVarsSchema = z.object({
   MONGODB_URL: z.string().url(),
   CODEBASE_DIR_PATH: z.string().min(1, "CODEBASE_DIR_PATH cannot be empty"),
-  IGNORE_ALREADY_PROCESSED_FILES: z
+  SKIP_ALREADY_PROCESSED_FILES: z
     .preprocess((val) => {
       if (typeof val === "string") return val.toLowerCase() === "true";
       if (typeof val === "boolean") return val;

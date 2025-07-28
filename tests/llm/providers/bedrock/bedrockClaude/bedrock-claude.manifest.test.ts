@@ -17,7 +17,7 @@ const baseEnv = loadBaseEnvVarsOnly();
 const mockBedrockClaudeEnv = {
   MONGODB_URL: baseEnv.MONGODB_URL,
   CODEBASE_DIR_PATH: "/test/path",
-  IGNORE_ALREADY_PROCESSED_FILES: false,
+  SKIP_ALREADY_PROCESSED_FILES: false,
   LLM: "BedrockClaude",
   BEDROCK_TITAN_EMBEDDINGS_MODEL: "amazon.titan-embed-text-v1",
   BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY: "anthropic.claude-3-5-sonnet-20240620-v1:0",

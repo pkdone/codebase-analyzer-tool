@@ -33,7 +33,7 @@ export default class CodebaseToDBLoader {
   async loadIntoDB(
     projectName: string,
     srcDirPath: string,
-    ignoreIfAlreadyCaptured: boolean,
+    skipIfAlreadyCaptured: boolean,
   ): Promise<void> {
     const srcFilepaths = await findFilesRecursively(
       srcDirPath,
@@ -45,7 +45,7 @@ export default class CodebaseToDBLoader {
       srcFilepaths,
       projectName,
       srcDirPath,
-      ignoreIfAlreadyCaptured,
+      skipIfAlreadyCaptured,
     );
   }
 
@@ -56,26 +56,26 @@ export default class CodebaseToDBLoader {
     filepaths: string[],
     projectName: string,
     srcDirPath: string,
-    ignoreIfAlreadyCaptured: boolean,
+    skipIfAlreadyCaptured: boolean,
   ) {
     console.log(
       `Creating metadata for ${filepaths.length} files to the MongoDB database sources collection`,
     );
 
-    if (ignoreIfAlreadyCaptured) {
+    if (skipIfAlreadyCaptured) {
       // Check if any files already exist for this project and log message once if they do
       const existingFilesCount = await this.sourcesRepository.getProjectFilesCount(projectName);
 
       if (existingFilesCount > 0) {
         console.log(
-          `Not capturing some of the metadata files into the database because they've already been captured by a previous run - change env var 'IGNORE_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
+          `Not capturing some of the metadata files into the database because they've already been captured by a previous run - change env var 'SKIP_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
         );
       }
-      await this.sourcesRepository.deleteSourcesByProject(projectName);
     } else {
       console.log(
-        `Deleting older version of the project's metadata files from the database to enable the metadata to be re-generated - change env var 'IGNORE_ALREADY_PROCESSED_FILES' to avoid re-processing of all files`,
+        `Deleting older version of the project's metadata files from the database to enable the metadata to be re-generated - change env var 'SKIP_ALREADY_PROCESSED_FILES' to avoid re-processing of all files`,
       );
+      await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
     const limit = pLimit(appConfig.MAX_CONCURRENCY);
@@ -86,7 +86,7 @@ export default class CodebaseToDBLoader {
             filepath,
             projectName,
             srcDirPath,
-            ignoreIfAlreadyCaptured,
+            skipIfAlreadyCaptured,
           );
         } catch (error: unknown) {
           logErrorMsgAndDetail(
@@ -113,13 +113,13 @@ export default class CodebaseToDBLoader {
     fullFilepath: string,
     projectName: string,
     srcDirPath: string,
-    ignoreIfAlreadyCaptured: boolean,
+    skipIfAlreadyCaptured: boolean,
   ) {
     const type = getFileExtension(fullFilepath).toLowerCase();
     const filepath = path.relative(srcDirPath, fullFilepath);
     if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
     if (
-      ignoreIfAlreadyCaptured &&
+      skipIfAlreadyCaptured &&
       (await this.sourcesRepository.doesProjectSourceExist(projectName, filepath))
     ) return;
     const rawContent = await readFile(fullFilepath);

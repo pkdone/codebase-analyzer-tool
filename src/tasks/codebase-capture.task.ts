@@ -31,7 +31,7 @@ export class CodebaseCaptureTask implements Task {
    * Execute the task - captures the codebase.
    */
   async execute(): Promise<void> {
-    await this.captureCodebase(this.env.CODEBASE_DIR_PATH, this.env.IGNORE_ALREADY_PROCESSED_FILES);
+    await this.captureCodebase(this.env.CODEBASE_DIR_PATH, this.env.SKIP_ALREADY_PROCESSED_FILES);
   }
 
   /**
@@ -39,14 +39,14 @@ export class CodebaseCaptureTask implements Task {
    */
   private async captureCodebase(
     srcDirPath: string,
-    ignoreIfAlreadyCaptured: boolean,
+    skipIfAlreadyCaptured: boolean,
   ): Promise<void> {
     console.log(`Processing source files for project: ${this.projectName}`);
     const numDimensions =
       this.llmRouter.getEmbeddedModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.dbInitializerTask.ensureCollectionsReady(numDimensions);
     this.llmStatsReporter.displayLLMStatusSummary();
-    await this.codebaseToDBLoader.loadIntoDB(this.projectName, srcDirPath, ignoreIfAlreadyCaptured);
+    await this.codebaseToDBLoader.loadIntoDB(this.projectName, srcDirPath, skipIfAlreadyCaptured);
     console.log("Finished capturing project files metadata into database");
     console.log("Summary of LLM invocations outcomes:");
     this.llmStatsReporter.displayLLMStatusDetails();
