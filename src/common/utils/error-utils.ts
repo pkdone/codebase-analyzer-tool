@@ -31,6 +31,13 @@ export function logWarningMsg(wrnMsg: string): void {
 }
 
 /**
+ * Type predicate to check if an object has a message property
+ */
+function hasMessageProperty(obj: unknown): obj is { message: unknown } {
+  return typeof obj === "object" && obj !== null && Object.hasOwn(obj, "message");
+}
+
+/**
  * Get the error text from a thrown variable which may or may not be an Error object.
  */
 export function getErrorText(error: unknown): string {
@@ -38,17 +45,21 @@ export function getErrorText(error: unknown): string {
 
   if (!error) {
     return `${errType}. No error message available`;
-  } else if (error instanceof Error) {
+  }
+  
+  if (error instanceof Error) {
     return `${errType}. ${error.message}`;
-  } else if (typeof error === "object" && "message" in error) {
+  }
+  
+  if (hasMessageProperty(error)) {
     return `${errType}. ${String(error.message)}`;
-  } else {
-    // Use safe stringification to prevent circular reference errors
-    try {
-      return `${errType}. ${JSON.stringify(error)}`;
-    } catch {
-      return `${errType}. (Unserializable object)`;
-    }
+  }
+  
+  // Use safe stringification to prevent circular reference errors
+  try {
+    return `${errType}. ${JSON.stringify(error)}`;
+  } catch {
+    return `${errType}. (Unserializable object)`;
   }
 }
 
