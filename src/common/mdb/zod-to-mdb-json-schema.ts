@@ -4,8 +4,8 @@ import type { JsonSchema7Type } from "zod-to-json-schema";
 import { ObjectId, Decimal128 } from "bson";
 import { zodToJsonSchemaNormalized } from "../utils/json-schema-utils";
 
-export const zBsonObjectId = z.custom<ObjectId>().describe("bson:objectId");
-export const zBsonDecimal128 = z.custom<Decimal128>().describe("bson:decimal128");
+export const zBsonObjectId = z.instanceof(ObjectId).describe("bson:objectId");
+export const zBsonDecimal128 = z.instanceof(Decimal128).describe("bson:decimal128");
 export const zBsonDate = z.coerce.date();
 
 // Define interfaces for the schema overrides
