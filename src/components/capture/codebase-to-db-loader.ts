@@ -18,9 +18,6 @@ import type { SourceSummaryType } from "./file-handler";
  */
 @injectable()
 export default class CodebaseToDBLoader {
-  // Private fields
-  private hasLoggedAlreadyCapturedMessage = false;
-
   /**
    * Constructor.
    */
@@ -65,11 +62,20 @@ export default class CodebaseToDBLoader {
       `Creating metadata for ${filepaths.length} files to the MongoDB database sources collection`,
     );
 
-    if (!ignoreIfAlreadyCaptured) {
+    if (ignoreIfAlreadyCaptured) {
+      // Check if any files already exist for this project and log message once if they do
+      const existingFilesCount = await this.sourcesRepository.getProjectFilesCount(projectName);
+      
+      if (existingFilesCount > 0) {
+        console.log(
+          `Not capturing some of the metadata files into the database because they've already been captured by a previous run - change env var 'IGNORE_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
+        );
+      }
+      await this.sourcesRepository.deleteSourcesByProject(projectName);
+    } else {
       console.log(
         `Deleting older version of the project's metadata files from the database to enable the metadata to be re-generated - change env var 'IGNORE_ALREADY_PROCESSED_FILES' to avoid re-processing of all files`,
       );
-      await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
     const limit = pLimit(appConfig.MAX_CONCURRENCY);
@@ -111,13 +117,6 @@ export default class CodebaseToDBLoader {
       ignoreIfAlreadyCaptured &&
       (await this.sourcesRepository.doesProjectSourceExist(projectName, filepath))
     ) {
-      if (!this.hasLoggedAlreadyCapturedMessage) {
-        console.log(
-          `Not capturing some of the metadata files into the database because they've already been captured by a previous run - change env var 'IGNORE_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
-        );
-        this.hasLoggedAlreadyCapturedMessage = true;
-      }
-
       return;
     }
 
