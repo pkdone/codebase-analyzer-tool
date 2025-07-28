@@ -66,7 +66,7 @@ export default class CodeQuestioner {
     const codeBlocksAsText = this.mergeSourceCodeFilesContentIntoMarkdownText(bestMatchFiles);
     const resourceName = `Codebase query`;
     const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
-    const response = await this.llmRouter.executeCompletion(resourceName, prompt, {
+    const response = await this.llmRouter.executeCompletion<string>(resourceName, prompt, {
       outputFormat: LLMOutputFormat.TEXT,
     });
 
