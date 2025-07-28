@@ -20,11 +20,11 @@ export class MongoDBClientFactory {
    * @returns A Promise resolving to the connected MongoClient instance.
    */
   async connect(id: string, url: string, options?: MongoClientOptions): Promise<MongoClient> {
-    if (this.clients.has(id)) {
+    const existingClient = this.clients.get(id);
+    
+    if (existingClient) {
       logWarningMsg(`MongoDB client with id '${id}' is already connected.`);
-      const client = this.clients.get(id);
-      if (!client) throw new MongoError(`No active connection found for id '${id}'.`);
-      return client;
+      return existingClient;
     }
 
     console.log(`Connecting MongoDB client to: ${redactUrl(url)}`);
