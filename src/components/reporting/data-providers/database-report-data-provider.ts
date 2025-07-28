@@ -85,7 +85,9 @@ export class DatabaseReportDataProvider {
   ): ProcsAndTriggers["procs"] {
     return items.reduce<ProcsAndTriggers["procs"]>(
       (acc, item) => {
+        // Use the type guard for safe validation
         const complexity = isComplexity(item.complexity) ? item.complexity : Complexity.LOW;
+        if (!isComplexity(item.complexity)) console.warn(`Invalid complexity value '${item.complexity}' found for ${item.name}. Defaulting to LOW.`);
         return {
           total: acc.total + 1,
           low: acc.low + (complexity === Complexity.LOW ? 1 : 0),
