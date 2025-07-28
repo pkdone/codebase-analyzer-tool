@@ -89,10 +89,7 @@ export default class CodeQuestioner {
     sourceFileMetadataList: ProjectedSourceMetataContentAndSummary[],
   ): string {
     return sourceFileMetadataList
-      .map(
-        (fileMetadata) =>
-          `\`\`\`${fileMetadata.type}\n${fileMetadata.content}\n\`\`\`\n\n`,
-      )
+      .map((fileMetadata) => `\`\`\`${fileMetadata.type}\n${fileMetadata.content}\n\`\`\`\n\n`)
       .join("");
   }
 }

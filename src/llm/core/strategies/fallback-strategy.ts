@@ -91,7 +91,7 @@ export class FallbackStrategy {
       case LLMResponseStatus.UNKNOWN:
       default:
         logWithContext(
-          `An unknown error occurred while LLMRouter attempted to process the LLM invocation and response for resource '${resourceName}' - terminating response processing - response status received: '${llmResponse?.status ?? 'null'}'`,
+          `An unknown error occurred while LLMRouter attempted to process the LLM invocation and response for resource '${resourceName}' - terminating response processing - response status received: '${llmResponse?.status ?? "null"}'`,
           context,
         );
         return {

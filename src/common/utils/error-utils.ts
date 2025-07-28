@@ -46,15 +46,15 @@ export function getErrorText(error: unknown): string {
   if (!error) {
     return `${errType}. No error message available`;
   }
-  
+
   if (error instanceof Error) {
     return `${errType}. ${error.message}`;
   }
-  
+
   if (hasMessageProperty(error)) {
     return `${errType}. ${String(error.message)}`;
   }
-  
+
   // Use safe stringification to prevent circular reference errors
   try {
     return `${errType}. ${JSON.stringify(error)}`;
