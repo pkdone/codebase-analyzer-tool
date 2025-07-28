@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { MongoClient, Double, Sort, Document, Collection, OptionalId } from "mongodb";
+import { MongoClient, Sort, Document, Collection, OptionalId } from "mongodb";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
   SourceRecordWithId,
@@ -14,7 +14,7 @@ import {
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
-import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-utils";
+import { logMongoValidationErrorIfPresent, numbersToBsonDoubles } from "../../common/mdb/mdb-utils";
 
 /**
  * MongoDB implementation of the Sources repository
@@ -151,10 +151,14 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
   async vectorSearchProjectSourcesRawContent(
     projectName: string,
     fileType: string,
-    queryVector: Double[],
+    queryVector: number[],
     numCandidates: number,
     limit: number,
   ): Promise<ProjectedSourceMetataContentAndSummary[]> {
+    // Convert number[] to Double[] to work around MongoDB driver issue
+    // See: https://jira.mongodb.org/browse/NODE-5714
+    const queryVectorDoubles = numbersToBsonDoubles(queryVector);
+    
     const pipeline = [
       {
         $vectorSearch: {
@@ -163,7 +167,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
           filter: {
             $and: [{ projectName: { $eq: projectName } }, { type: { $eq: fileType } }],
           },
-          queryVector: queryVector,
+          queryVector: queryVectorDoubles,
           numCandidates,
           limit,
         },

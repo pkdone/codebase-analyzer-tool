@@ -3,7 +3,6 @@ import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appConfig } from "../../config/app.config";
-import { numbersToBsonDoubles } from "../../common/mdb/mdb-utils";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
@@ -49,11 +48,11 @@ export default class CodeQuestioner {
     const queryVector = await this.llmRouter.generateEmbeddings("Human question", question);
     if (queryVector === null || queryVector.length <= 0)
       return "No vector was generated for the question - unable to answer question";
-    const queryVectorDoubles = numbersToBsonDoubles(queryVector); // HACK, see: https://jira.mongodb.org/browse/NODE-5714
+    
     const bestMatchFiles = await this.sourcesRepository.vectorSearchProjectSourcesRawContent(
       projectName,
       appConfig.JAVA_FILE_TYPE,
-      queryVectorDoubles,
+      queryVector,
       appConfig.VECTOR_SEARCH_NUM_CANDIDATES,
       appConfig.VECTOR_SEARCH_NUM_LIMIT,
     );

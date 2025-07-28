@@ -1,4 +1,3 @@
-import { Double } from "mongodb";
 import {
   ProjectedSourceMetataContentAndSummary,
   ProjectedSourceFilePathAndSummary,
@@ -57,7 +56,7 @@ export interface SourcesRepository {
   vectorSearchProjectSourcesRawContent(
     projectName: string,
     fileType: string,
-    queryVector: Double[],
+    queryVector: number[],
     numCandidates: number,
     limit: number,
   ): Promise<ProjectedSourceMetataContentAndSummary[]>;
