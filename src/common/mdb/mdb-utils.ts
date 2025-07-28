@@ -7,6 +7,14 @@ export const REDACTED_URL = "REDACTED_URL";
 export const REDACTED_CREDENTIALS = "REDACTED";
 
 /**
+ * Interface for vector search filter configuration
+ */
+export interface VectorSearchFilter {
+  type: "filter" | "string" | "token";
+  path: string;
+}
+
+/**
  * Logs a warning if the error is a MongoServerError for document validation failure.
  *
  * @param error The error to check and log if it is a MongoServerError with validation failure.
@@ -71,7 +79,7 @@ export function createVectorSearchIndexDefinition(
   dimensions = 1536,
   similarity = "euclidean",
   quantization = "scalar",
-  filters: { type: string; path: string }[] = [],
+  filters: VectorSearchFilter[] = [],
 ) {
   return {
     name: indexName,

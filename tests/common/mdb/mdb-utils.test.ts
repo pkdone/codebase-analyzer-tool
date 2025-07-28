@@ -180,8 +180,8 @@ describe("mdb-utils", () => {
 
     test("creates vector search index definition with filters", () => {
       const filters = [
-        { type: "filter", path: "category" },
-        { type: "filter", path: "status" },
+        { type: "filter" as const, path: "category" },
+        { type: "filter" as const, path: "status" },
       ];
 
       const result = createVectorSearchIndexDefinition(

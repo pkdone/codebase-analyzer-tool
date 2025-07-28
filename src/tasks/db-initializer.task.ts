@@ -160,11 +160,11 @@ export class DBInitializerTask implements Task {
 
     const filters = [
       {
-        type: "filter",
+        type: "filter" as const,
         path: "projectName",
       },
       {
-        type: "filter",
+        type: "filter" as const,
         path: "type",
       },
     ];
