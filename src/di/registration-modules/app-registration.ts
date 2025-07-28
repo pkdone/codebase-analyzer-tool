@@ -86,7 +86,7 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   container.registerSingleton(TOKENS.LLMExecutionPipeline, LLMExecutionPipeline);
 
   // Register report generation components
-  container.registerSingleton(TOKENS.HtmlReportFormatter, HtmlReportWriter);
+  container.registerSingleton(TOKENS.HtmlReportWriter, HtmlReportWriter);
   container.registerSingleton(TOKENS.JsonReportWriter, JsonReportWriter);
   container.registerSingleton(TOKENS.DatabaseReportDataProvider, DatabaseReportDataProvider);
   container.registerSingleton(TOKENS.AppStatisticsDataProvider, AppStatisticsDataProvider);

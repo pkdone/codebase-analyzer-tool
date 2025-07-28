@@ -11,7 +11,7 @@ import path from "path";
 
 /**
  * Class responsible for orchestrating report generation.
- * Data formatting is handled by HtmlReportFormatter and JSON output by JsonReportWriter.
+ * Data formatting is handled by HtmlReportWriter and JSON output by JsonReportWriter.
  * Data aggregation is handled by dedicated data provider classes.
  */
 @injectable()
@@ -21,7 +21,7 @@ export default class AppReportGenerator {
    */
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.HtmlReportFormatter) private readonly htmlWriter: HtmlReportWriter,
+    @inject(TOKENS.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
     @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
     @inject(TOKENS.DatabaseReportDataProvider)
     private readonly databaseDataProvider: DatabaseReportDataProvider,
@@ -32,7 +32,7 @@ export default class AppReportGenerator {
   ) {}
 
   /**
-   * Generate the HTML static file report using the HtmlReportFormatter and write JSON files using JsonReportWriter.
+   * Generate the HTML static file report using the HtmlReportWriter and write JSON files using JsonReportWriter.
    */
   async generateReport(
     projectName: string,

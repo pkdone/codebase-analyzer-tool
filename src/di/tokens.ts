@@ -36,7 +36,7 @@ export const TOKENS = {
   RetryStrategy: Symbol.for("RetryStrategy"),
   FallbackStrategy: Symbol.for("FallbackStrategy"),
   LLMExecutionPipeline: Symbol.for("LLMExecutionPipeline"),
-  HtmlReportFormatter: Symbol.for("HtmlReportFormatter"),
+  HtmlReportWriter: Symbol.for("HtmlReportWriter"),
   JsonReportWriter: Symbol.for("JsonReportWriter"),
   AppReportGenerator: Symbol.for("AppReportGenerator"),
   DatabaseReportDataProvider: Symbol.for("DatabaseReportDataProvider"),
