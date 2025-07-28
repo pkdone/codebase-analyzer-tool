@@ -3,6 +3,21 @@ import { APIError } from "openai/error";
 import { LLMPurpose, LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
 import AbstractLLM from "../../core/abstract-llm";
 import { llmConfig } from "../../llm.config";
+import { BadResponseContentLLMError } from "../../types/llm-errors.types";
+
+/**
+ * Type guard to check if the response from OpenAI is a valid ChatCompletion
+ */
+function isChatCompletion(response: unknown): response is OpenAI.ChatCompletion {
+  if (!response || typeof response !== 'object') return false;
+  const resp = response as Record<string, unknown>;
+  return 'choices' in resp && 
+         Array.isArray(resp.choices) &&
+         resp.choices.length > 0 &&
+         typeof resp.choices[0] === 'object' &&
+         resp.choices[0] !== null &&
+         'message' in resp.choices[0];
+}
 
 /**
  * Abstract base class for all OpenAI-based LLM providers.
@@ -58,9 +73,8 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
     params: OpenAI.ChatCompletionCreateParams,
   ) {
     // Invoke LLM
-    const llmResponses = (await this.getClient().chat.completions.create(
-      params,
-    )) as OpenAI.ChatCompletion;
+    const llmResponses = await this.getClient().chat.completions.create(params);
+    if (!isChatCompletion(llmResponses)) throw new BadResponseContentLLMError("Received an unexpected response type from OpenAI completions API", llmResponses);
     const llmResponse = llmResponses.choices[0];
 
     // Capture response content
