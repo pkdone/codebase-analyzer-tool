@@ -87,13 +87,12 @@ export default class CodeQuestioner {
    */
   private mergeSourceCodeFilesContentIntoMarkdownText(
     sourceFileMetadataList: ProjectedSourceMetataContentAndSummary[],
-  ) {
-    const markdownParts: string[] = [];
-
-    for (const fileMetadata of sourceFileMetadataList) {
-      markdownParts.push(`\`\`\`${fileMetadata.type}\n${fileMetadata.content}\n\`\`\`\n\n`);
-    }
-
-    return markdownParts.join("");
+  ): string {
+    return sourceFileMetadataList
+      .map(
+        (fileMetadata) =>
+          `\`\`\`${fileMetadata.type}\n${fileMetadata.content}\n\`\`\`\n\n`,
+      )
+      .join("");
   }
 }
