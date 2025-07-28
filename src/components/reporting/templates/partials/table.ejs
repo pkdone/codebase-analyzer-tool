@@ -19,11 +19,11 @@
             <% } else if (value && typeof value === 'object' && value.constructor === Array && value.length > 0) { %>
               <td>
                 <ul>
-                  <% value.forEach(function(item) { %>
+                  <% value.forEach(item => { %>
                     <% if (item && typeof item === 'object' && item.constructor === Object) { %>
                       <li>
-                        <% var keys = Object.keys(item); %>
-                        <% keys.forEach(function(itemKey, index) { %>
+                        <% const keys = Object.keys(item); %>
+                        <% keys.forEach((itemKey, index) => { %>
                                                      <% if (index > 0) { %> | <% } %>
                           <strong><%= convertToDisplayName(itemKey) %>:</strong> <%- item[itemKey] %>
                         <% }); %>
