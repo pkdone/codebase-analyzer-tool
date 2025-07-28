@@ -3,7 +3,7 @@ import { appConfig } from "../../../config/app.config";
 import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../../di/tokens";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
-import { Complexity } from "../report-gen.types";
+import { Complexity, isComplexity } from "../report-gen.types";
 import { procedureTriggerSchema } from "../../../schemas/sources.schema";
 import type { z } from "zod";
 
@@ -85,7 +85,7 @@ export class DatabaseReportDataProvider {
   ): ProcsAndTriggers["procs"] {
     return items.reduce<ProcsAndTriggers["procs"]>(
       (acc, item) => {
-        const complexity = item.complexity as Complexity;
+        const complexity = isComplexity(item.complexity) ? item.complexity : Complexity.LOW;
         return {
           total: acc.total + 1,
           low: acc.low + (complexity === Complexity.LOW ? 1 : 0),
