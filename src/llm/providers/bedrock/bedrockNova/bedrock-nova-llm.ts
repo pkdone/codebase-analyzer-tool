@@ -2,6 +2,26 @@ import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_NOVA } from "./bedrock-nova.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
+import { z } from "zod";
+import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+
+/**
+ * Zod schema for Nova completion response validation
+ */
+const NovaCompletionResponseSchema = z.object({
+  output: z.object({
+    message: z.object({
+      content: z.array(z.object({
+        text: z.string(),
+      })),
+    }).optional(),
+  }),
+  stopReason: z.string().optional(),
+  usage: z.object({
+    inputTokens: z.number().optional(),
+    outputTokens: z.number().optional(),
+  }).optional(),
+});
 
 /**
  * Class for the AWS Bedrock Nova LLMs.
@@ -46,35 +66,23 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
   /**
    * Extract the relevant information from the completion LLM specific response.
    */
-  protected extractCompletionModelSpecificResponse(llmResponse: NovaCompletionLLMSpecificResponse) {
-    const responseContent = llmResponse.output.message?.content?.[0]?.text ?? null;
-    const finishReason = llmResponse.stopReason ?? "";
+  protected extractCompletionModelSpecificResponse(llmResponse: unknown) {
+    const validation = NovaCompletionResponseSchema.safeParse(llmResponse);
+    if (!validation.success) {
+      throw new BadResponseContentLLMError("Invalid Nova response structure", llmResponse);
+    }
+    const response = validation.data;
+    
+    const responseContent = response.output.message?.content[0].text ?? null;
+    const finishReason = response.stopReason ?? "";
     const finishReasonLowercase = finishReason.toLowerCase();
     const isIncompleteResponse = finishReasonLowercase === "max_tokens" || !responseContent;
-    const promptTokens = llmResponse.usage?.inputTokens ?? -1;
-    const completionTokens = llmResponse.usage?.outputTokens ?? -1;
+    const promptTokens = response.usage?.inputTokens ?? -1;
+    const completionTokens = response.usage?.outputTokens ?? -1;
     const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 }
 
-/**
- * Type definitions for the Nova specific completions LLM response usage.
- */
-interface NovaCompletionLLMSpecificResponse {
-  output: {
-    message?: {
-      content?: [
-        {
-          text: string;
-        },
-      ];
-    };
-  };
-  stopReason?: string;
-  usage?: {
-    inputTokens?: number;
-    outputTokens?: number;
-  };
-}
+

@@ -2,6 +2,18 @@ import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_LLAMA, AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT } from "./bedrock-llama.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
+import { z } from "zod";
+import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+
+/**
+ * Zod schema for Llama completion response validation
+ */
+const LlamaCompletionResponseSchema = z.object({
+  generation: z.string().optional(),
+  stop_reason: z.string().optional(),
+  prompt_token_count: z.number().optional(),
+  generation_token_count: z.number().optional(),
+});
 
 /**
  * Class for the AWS Bedrock Llama LLMs.
@@ -44,26 +56,24 @@ You are a helpful software engineering and programming assistant, and you need t
    * Extract the relevant information from the completion LLM specific response.
    */
   protected extractCompletionModelSpecificResponse(
-    llmResponse: LlamaCompletionLLMSpecificResponse,
+    llmResponse: unknown,
   ) {
-    const responseContent = llmResponse.generation ?? "";
-    const finishReason = llmResponse.stop_reason ?? "";
+    const validation = LlamaCompletionResponseSchema.safeParse(llmResponse);
+    if (!validation.success) {
+      throw new BadResponseContentLLMError("Invalid Llama response structure", llmResponse);
+    }
+    const response = validation.data;
+    
+    const responseContent = response.generation ?? "";
+    const finishReason = response.stop_reason ?? "";
     const finishReasonLowercase = finishReason.toLowerCase();
     const isIncompleteResponse = finishReasonLowercase === "length" || !responseContent; // No content - assume prompt maxed out total tokens available
-    const promptTokens = llmResponse.prompt_token_count ?? -1;
-    const completionTokens = llmResponse.generation_token_count ?? -1;
+    const promptTokens = response.prompt_token_count ?? -1;
+    const completionTokens = response.generation_token_count ?? -1;
     const maxTotalTokens = -1;
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 }
 
-/**
- * Type definitions for the Llama specific completions LLM response usage.
- */
-interface LlamaCompletionLLMSpecificResponse {
-  generation?: string;
-  stop_reason?: string;
-  prompt_token_count?: number;
-  generation_token_count?: number;
-}
+

@@ -2,6 +2,25 @@ import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_MISTRAL } from "./bedrock-mistral.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
+import { z } from "zod";
+import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+
+/**
+ * Zod schema for Mistral completion response validation
+ */
+const MistralCompletionResponseSchema = z.object({
+  choices: z.array(z.object({
+    message: z.object({
+      content: z.string(),
+    }).optional(),
+    stop_reason: z.string().optional(),
+    finish_reason: z.string().optional(),
+  })),
+  usage: z.object({
+    prompt_tokens: z.number().optional(),
+    completion_tokens: z.number().optional(),
+  }).optional(),
+});
 
 /**
  * Class for the AWS Bedrock Mistral LLMs.
@@ -41,36 +60,25 @@ export default class BedrockMistralLLM extends BaseBedrockLLM {
    * Extract the relevant information from the completion LLM specific response.
    */
   protected extractCompletionModelSpecificResponse(
-    llmResponse: MistralCompletionLLMSpecificResponse,
+    llmResponse: unknown,
   ) {
-    const firstResponse = llmResponse.choices[0];
+    const validation = MistralCompletionResponseSchema.safeParse(llmResponse);
+    if (!validation.success) {
+      throw new BadResponseContentLLMError("Invalid Mistral response structure", llmResponse);
+    }
+    const response = validation.data;
+    
+    const firstResponse = response.choices[0];
     const responseContent = firstResponse.message?.content ?? null;
     const finishReason = firstResponse.stop_reason ?? firstResponse.finish_reason ?? "";
     const finishReasonLowercase = finishReason.toLowerCase();
     const isIncompleteResponse = finishReasonLowercase === "length" || !responseContent;
-    const promptTokens = llmResponse.usage?.prompt_tokens ?? -1;
-    const completionTokens = llmResponse.usage?.completion_tokens ?? -1;
+    const promptTokens = response.usage?.prompt_tokens ?? -1;
+    const completionTokens = response.usage?.completion_tokens ?? -1;
     const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 }
 
-/**
- * Type definitions for the Mistral specific completions LLM response usage.
- */
-interface MistralCompletionLLMSpecificResponse {
-  choices: [
-    {
-      message?: {
-        content: string;
-      };
-      stop_reason?: string;
-      finish_reason?: string;
-    },
-  ];
-  usage?: {
-    prompt_tokens?: number;
-    completion_tokens?: number;
-  };
-}
+

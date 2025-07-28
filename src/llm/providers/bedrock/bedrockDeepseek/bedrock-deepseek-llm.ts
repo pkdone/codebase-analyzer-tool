@@ -2,6 +2,25 @@ import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_DEEPSEEK } from "./bedrock-deepseek.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
+import { z } from "zod";
+import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+
+/**
+ * Zod schema for Deepseek completion response validation
+ */
+const DeepseekCompletionResponseSchema = z.object({
+  choices: z.array(z.object({
+    message: z.object({
+      content: z.string().optional(),
+      reasoning_content: z.string().optional(),
+    }).optional(),
+    stop_reason: z.string().optional(),
+  })).optional(),
+  usage: z.object({
+    inputTokens: z.number().optional(),
+    outputTokens: z.number().optional(),
+  }).optional(),
+});
 
 /**
  * Class for the AWS Bedrock [Anthropic] Claude LLMs.
@@ -40,36 +59,25 @@ export default class BedrockDeepseekLLM extends BaseBedrockLLM {
    * Extract the relevant information from the completion LLM specific response.
    */
   protected extractCompletionModelSpecificResponse(
-    llmResponse: DeepseekCompletionLLMSpecificResponse,
+    llmResponse: unknown,
   ) {
-    const responseMsg = llmResponse.choices?.[0]?.message;
+    const validation = DeepseekCompletionResponseSchema.safeParse(llmResponse);
+    if (!validation.success) {
+      throw new BadResponseContentLLMError("Invalid Deepseek response structure", llmResponse);
+    }
+    const response = validation.data;
+    
+    const responseMsg = response.choices?.[0]?.message;
     const responseContent = responseMsg?.content ?? responseMsg?.reasoning_content ?? null;
-    const finishReason = llmResponse.choices?.[0]?.stop_reason ?? "";
+    const finishReason = response.choices?.[0]?.stop_reason ?? "";
     const finishReasonLowercase = finishReason.toLowerCase();
     const isIncompleteResponse = finishReasonLowercase === "length" || !responseContent;
-    const promptTokens = llmResponse.usage?.inputTokens ?? -1;
-    const completionTokens = llmResponse.usage?.outputTokens ?? -1;
+    const promptTokens = response.usage?.inputTokens ?? -1;
+    const completionTokens = response.usage?.outputTokens ?? -1;
     const maxTotalTokens = -1;
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent, tokenUsage };
   }
 }
 
-/**
- * Type definitions for the Deepseek specific completions LLM response usage.
- */
-interface DeepseekCompletionLLMSpecificResponse {
-  choices?: [
-    {
-      message?: {
-        content?: string;
-        reasoning_content?: string;
-      };
-      stop_reason?: string;
-    },
-  ];
-  usage?: {
-    inputTokens?: number;
-    outputTokens?: number;
-  };
-}
+
