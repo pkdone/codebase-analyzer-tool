@@ -60,11 +60,16 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
       llmProvider: this.llmProviderDescription,
     });
     const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
-    await Promise.all(
+    const results = await Promise.allSettled(
       categories.map(async (category) =>
         this.generateAndRecordDataForCategory(category, sourceFileSummaries),
       ),
     );
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        logErrorMsgAndDetail(`Failed to generate data for category: ${categories[index]}`, result.reason);
+      }
+    });
   }
 
   /**

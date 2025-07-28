@@ -93,11 +93,17 @@ export default class CodebaseToDBLoader {
             `Problem introspecting and processing source file: ${filepath}`,
             error,
           );
+          throw error; // Re-throw to be caught by Promise.allSettled
         }
       });
     });
 
-    await Promise.all(tasks);
+    const results = await Promise.allSettled(tasks);
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        logErrorMsgAndDetail(`Failed to process file: ${filepaths[index]}`, result.reason);
+      }
+    });
   }
 
   /**
