@@ -12,10 +12,16 @@ import { TOKENS } from "../../../di/tokens";
 function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
   return (
     Array.isArray(data) &&
-    data.every(
-      (item) =>
-        typeof item === "object" && item !== null && "name" in item && "description" in item,
-    )
+    data.every((item) => {
+      if (typeof item !== "object" || item === null) return false;
+      const obj = item as Record<string, unknown>;
+      return (
+        "name" in obj &&
+        typeof obj.name === "string" &&
+        "description" in obj &&
+        typeof obj.description === "string"
+      );
+    })
   );
 }
 
