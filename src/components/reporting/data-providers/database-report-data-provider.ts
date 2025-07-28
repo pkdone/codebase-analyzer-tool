@@ -3,11 +3,16 @@ import { appConfig } from "../../../config/app.config";
 import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../../di/tokens";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
-import { Complexity, isComplexity } from "../report-gen.types";
-import { logWarningMsg } from "../../../common/utils/error-utils";
+import { Complexity } from "../report-gen.types";
+import { procedureTriggerSchema } from "../../../schemas/sources.schema";
+import type { z } from "zod";
 
+// Constants for stored procedures and triggers
 const STORED_PROCEDURE_TYPE = "STORED PROCEDURE" as const;
 const TRIGGER_TYPE = "TRIGGER" as const;
+
+// Define a more specific type for the items
+type ProcOrTrigItem = z.infer<typeof procedureTriggerSchema> & { filepath: string };
 
 /**
  * Data provider responsible for aggregating database-related information for reports.
@@ -75,28 +80,12 @@ export class DatabaseReportDataProvider {
    * Aggregate database objects (procedures or triggers) using functional programming approach
    */
   private aggregateProcsOrTriggersForReport(
-    items: {
-      name: string;
-      complexity: unknown;
-      complexityReason?: string;
-      linesOfCode: number;
-      purpose: string;
-      filepath: string;
-    }[],
+    items: ProcOrTrigItem[],
     type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
   ): ProcsAndTriggers["procs"] {
     return items.reduce<ProcsAndTriggers["procs"]>(
       (acc, item) => {
-        let complexity: Complexity;
-        if (!isComplexity(item.complexity)) {
-          logWarningMsg(
-            `Unexpected or missing complexity value encountered: ${String(item.complexity)}. Defaulting to LOW.`,
-          );
-          complexity = Complexity.LOW;
-        } else {
-          complexity = item.complexity;
-        }
-        
+        const complexity = item.complexity as Complexity;        
         return {
           total: acc.total + 1,
           low: acc.low + (complexity === Complexity.LOW ? 1 : 0),
@@ -109,7 +98,7 @@ export class DatabaseReportDataProvider {
               type: type,
               functionName: item.name,
               complexity: complexity,
-              complexityReason: item.complexityReason ?? "N/A",
+              complexityReason: item.complexityReason || "N/A",
               linesOfCode: item.linesOfCode,
               purpose: item.purpose,
             },
