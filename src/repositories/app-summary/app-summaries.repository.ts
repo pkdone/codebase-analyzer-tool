@@ -86,12 +86,13 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
   ): Promise<Pick<AppSummaryRecord, K> | null> {
     if (fieldNames.length === 0) return null;
     const query = { projectName };
-    const projection: Record<string, number> = { _id: 0 };
-
-    fieldNames.forEach((fieldName) => {
-      projection[fieldName as string] = 1;
-    });
-
+    const projection = fieldNames.reduce<Record<string, number>>(
+      (acc, fieldName) => {
+        acc[fieldName as string] = 1;
+        return acc;
+      },
+      { _id: 0 }, // Initial value for the accumulator
+    );
     const options = { projection };
     return await this.collection.findOne<Pick<AppSummaryRecord, K>>(query, options);
   }
