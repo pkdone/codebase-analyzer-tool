@@ -20,7 +20,7 @@ export class OneShotGenerateInsightsTask implements Task {
     @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(TOKENS.EnvVars) private readonly env: EnvVars,
     @inject(TOKENS.RawCodeToInsightsFileGenerator)
-    private readonly insightProcessor: RawCodeToInsightsFileGenerator,
+    private readonly insightsFileGenerator: RawCodeToInsightsFileGenerator,
   ) {}
 
   /**
@@ -41,7 +41,7 @@ export class OneShotGenerateInsightsTask implements Task {
     // Load prompts from file system and pass them to the generator
     const prompts = await RawCodeToInsightsFileGenerator.loadPrompts();
 
-    await this.insightProcessor.generateInsightsToFiles(
+    await this.insightsFileGenerator.generateInsightsToFiles(
       this.llmRouter,
       normalisedSrcDirPath,
       llmName,

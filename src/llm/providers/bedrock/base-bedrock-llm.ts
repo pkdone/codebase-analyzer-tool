@@ -109,8 +109,8 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
 
     return {
       modelId: this.llmModelsMetadata[modelKey].urn,
-      contentType: llmConfig.LLM_RESPONSE_JSON_CONTENT_TYPE,
-      accept: llmConfig.LLM_RESPONSE_ANY_CONTENT_TYPE,
+      contentType: llmConfig.MIME_TYPE_JSON,
+      accept: llmConfig.MIME_TYPE_ANY,
       body,
     };
   }
