@@ -6,7 +6,6 @@ import { BadResponseContentLLMError } from "../../types/llm-errors.types";
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally
  * validate it against a Zod schema.
  */
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknown>>(
   content: LLMGeneratedContent,
   resourceName: string,
@@ -58,20 +57,22 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
     );
   }
 
-  return validatedContent;
+  // For convertTextToJSONAndOptionallyValidate, we know we're dealing with JSON content,
+  // so if validation didn't occur (outputFormat !== JSON or no schema), we can safely cast
+  // the JSON content to T since this function is specifically for JSON conversion
+  return validatedContent as T;
 }
 
 /**
  * Validate the LLM response content against a Zod schema if provided returning null if validation
  * fails (having logged the error).
  */
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function validateSchemaIfNeededAndReturnResponse<T>(
   content: LLMGeneratedContent | null,
   completionOptions: LLMCompletionOptions,
   resourceName: string,
   doWarnOnError = false,
-): T | null {
+): T | LLMGeneratedContent | null {
   if (
     content &&
     completionOptions.outputFormat === LLMOutputFormat.JSON &&
@@ -85,8 +86,8 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
       return null;
     }
 
-    return validation.data as T;
+    return validation.data as T; // Cast is now safer after successful validation
   } else {
-    return content as T;
+    return content; // Return the original content with its original type
   }
 }

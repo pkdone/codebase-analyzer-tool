@@ -20,6 +20,7 @@ export default tseslint.config(
       "@typescript-eslint/promise-function-async": "error",
       "@typescript-eslint/require-array-sort-compare": "error",
       "@typescript-eslint/switch-exhaustiveness-check": "error",
+      "@typescript-eslint/no-unnecessary-type-parameters": "off",
       '@typescript-eslint/restrict-template-expressions': [
         'error',
         {

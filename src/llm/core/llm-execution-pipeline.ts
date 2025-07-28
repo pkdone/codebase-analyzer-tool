@@ -63,11 +63,12 @@ export class LLMExecutionPipeline {
 
       if (result) {
         const defaultOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.TEXT };
-        return await validateSchemaIfNeededAndReturnResponse(
+        const validatedResult = await validateSchemaIfNeededAndReturnResponse(
           result,
           completionOptions ?? defaultOptions,
           resourceName,
         );
+        return validatedResult as T;
       }
 
       log(
