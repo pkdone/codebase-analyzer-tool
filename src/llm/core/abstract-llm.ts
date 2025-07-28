@@ -65,11 +65,11 @@ export default abstract class AbstractLLM implements LLMProvider {
   /**
    * Get the model key for the embeddings model.
    */
-  getAvailableCompletionModelQualities() {
-    const llmQualities: LLMModelQuality[] = [LLMModelQuality.PRIMARY];
-    const secondaryCompletion = this.modelsKeys.secondaryCompletionModelKey;
-    if (secondaryCompletion) llmQualities.push(LLMModelQuality.SECONDARY);
-    return llmQualities;
+  getAvailableCompletionModelQualities(): LLMModelQuality[] {
+    return [
+      LLMModelQuality.PRIMARY,
+      ...(this.modelsKeys.secondaryCompletionModelKey ? [LLMModelQuality.SECONDARY] : []),
+    ];
   }
 
   /**
