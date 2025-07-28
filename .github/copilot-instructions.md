@@ -18,6 +18,7 @@ This document outlines the inferred coding standards, architectural patterns, an
     *   **Linting:** `eslint`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`
     *   **Model Context Protocol:** `@modelcontextprotocol/sdk` (for MCP server implementation)
     *   **Dependency Injection:** `tsyringe`, `reflect-metadata`    
+    *   **Asynchronous Utilities:** `p-limit`, `p-retry`
 
 ## 2. Formatting and Style Conventions
 
@@ -27,7 +28,7 @@ This document outlines the inferred coding standards, architectural patterns, an
 *   **Line Endings & Spacing:**
     *   **Line Endings:** LF (Unix-style). The `.gitattributes` file specifies `* -crlf` which normalizes line endings to LF in the repository.
     *   **Blank Lines:**
-        *   Typically, one blank line is used between top-level constructs (import blocks, functions, classes).
+        *   One blank line is used between top-level constructs (import blocks, functions, classes).
         *   One blank line between methods within a class.
         *   Blank lines are within functions/methods when multi-line if/else or for/while clauses occur (before and after that group)
     *   **Line Length:** 100 characters.
@@ -77,80 +78,72 @@ This document outlines the inferred coding standards, architectural patterns, an
 ## 4. Architectural Patterns and Code Structure
 
 *   **Overall Architecture:**
-    *   The project is primarily a **collection of command-line interface (CLI) tools** designed for analyzing codebases using Large Language Models (LLMs).
-    *   These tools share common services for LLM interaction, database operations, and utility functions, suggesting a **Layered Architecture** for these shared components. Dependency Injection (DI) using `tsyringe` is employed to manage these services.
-    *   An emerging **service-oriented component** is present with `insights-mcp-server.ts`, which implements a server using the Model Context Protocol (MCP) to expose insights.
-    *   **Rationale:** Each main `.ts` file in `src/` (e.g., `capture-sources.ts`, `generate-insights.ts`, `query-codebase.ts`) acts as an entry point for a specific task. They utilize shared modules from `llm/`, `utils/`, `config/`, `types/`, and `di/`. The MCP server component indicates an extension towards providing data via a defined protocol.
+        *   The project is a **collection of command-line interface (CLI) tools** designed for analyzing codebases using Large Language Models (LLMs).
+        *   The core of the project follows a **Layered Architecture**. This is evident from the separation of concerns into distinct directories: `repositories` (Data Access Layer), `components` and `tasks` (Business/Application Layer), `llm` (LLM Service Layer), and `cli` (Presentation/Entry-point Layer).
+        *   **Dependency Injection (DI)** is a core principle, implemented using `tsyringe` to manage dependencies between layers and components, promoting loose coupling.
+        *   A **Manifest-Driven** approach is used for LLM providers, allowing for pluggable and configurable LLM implementations without changing core logic.
+        *   An emerging **Service-Oriented** component is present with `start-mcp-server.ts`, which implements a server using the Model Context Protocol (MCP) to expose insights.
 *   **Directory Structure:**
     *   `src/`: Contains all core TypeScript source code.
-        *   `codebaseDBLoader/`: Logic for parsing source code and loading its metadata and content into MongoDB. Includes its own `prompts/` sub-directory.
-        *   `config/`: Application-wide configuration constants (e.g., database names, LLM parameters, file system paths).
-        *   `di/`: Dependency Injection setup using `tsyringe`. Contains token definitions (`tokens.ts`), container setup (`container.ts`), and registration modules.
-        *   `env/`: (Now part of `lifecycle/`) Handles loading, validation (using Zod), and bootstrapping of environment variables.
-        *   `insightGenerator/`: Modules responsible for generating higher-level insights from the data stored in MongoDB, often using LLMs. Includes its own `prompts/` sub-directory.
-        *   `insightsServer/`: Implements server-side logic for exposing generated insights, currently via the MCP framework.
-        *   `lifecycle/`: Manages service execution lifecycle, including environment setup and graceful shutdown.
-        *   `llm/`: Core LLM interaction layer.
-            *   `providers/`: Contains specific implementations for various LLM providers (OpenAI, Azure OpenAI, AWS Bedrock models, Google Vertex AI). Each provider has its own sub-directory containing the LLM logic (`*-llm.ts`) and a manifest file (`*.manifest.ts`) for auto-discovery and configuration.
-                *   `base/`: (Now `abstract-llm.ts` directly under `providers/`) Abstract base class for LLM provider implementations.
-            *   `response-processing/`: Utilities for processing LLM responses, including error pattern parsing and prompt adaptation.
-            *   `router-tracking/`: Utilities for logging and tracking LLM router statistics.
-            *   `llm-router.ts`: Central component for routing LLM requests, handling retries, model switching, and logging.
-            *   `llm-service.ts`: Manages auto-discovery and instantiation of LLM providers based on manifests.
-        *   `mcpFramework/`: Components for implementing the Model Context Protocol server.
-        *   `mdb/`: MongoDB related utilities, including the client factory and general utils.
-        *   `promptTemplating/`: Utilities for loading prompt templates and substituting variables.
-        *   `services/`: Contains the core application services that are run as CLI tools or servers.
-        *   `talkToCodebase/`: Modules for querying the codebase using natural language questions, leveraging vector search and LLMs for RAG. Includes its own `prompts/` sub-directory.
-        *   `types/`: TypeScript type definitions, interfaces, and enums used across the project.
-        *   `utils/`: Common utility functions (e.g., file system operations, text manipulation, error handling, control flow).
-    *   `input/`: Contains input files for the tools, such as prompt templates and lists of questions/requirements.
-        *   `requirements/`: Specific, detailed prompts for generating codebase analysis reports.
-    *   `dist/`: Output directory for compiled JavaScript files (generated by `tsc`).
-    *   `output/`: (Inferred) Directory for output files generated by tools like `one-shot-inline-insights.ts`.
+        *   `cli/`: Entry points for the command-line tools (e.g., `1-capture-codebase.ts`).
+        *   `common/`: Shared utilities and factories, particularly for MongoDB (`mdb/`) and general-purpose functions (`utils/`).
+        *   `components/`: Contains the core business logic components, organized by feature.
+            *   `api/mcpServing/`: Implements the MCP server for exposing insights.
+            *   `capture/`: Logic for parsing source code and loading it into the database.
+            *   `insights/`: Modules for generating higher-level insights from the data.
+            *   `querying/`: Logic for ad-hoc querying of the codebase.
+            *   `reporting/`: Components for generating HTML and JSON reports.
+        *   `config/`: Application-wide configuration constants (e.g., database names, file paths).
+        *   `di/`: Dependency Injection setup using `tsyringe`, including token definitions and registration modules.
+        *   `env/`: Handles loading, validation (using Zod), and bootstrapping of environment variables.
+        *   `lifecycle/`: Manages the application execution lifecycle, including startup, task execution, and graceful shutdown.
+        *   `llm/`: The LLM interaction layer.
+            *   `core/`: The central `LLMRouter`, execution pipeline, and strategies for retry, fallback, and prompt adaptation.
+            *   `providers/`: Contains specific implementations for various LLM providers (OpenAI, Azure, Bedrock, VertexAI), each with its own manifest file.
+            *   `types/`: Type definitions specific to the LLM layer.
+        *   `repositories/`: The data access layer, defining interfaces and implementations for interacting with MongoDB.
+        *   `schemas/`: Centralized Zod schemas for validating data structures like source file summaries and application summaries.
+        *   `tasks/`: Concrete, injectable classes that implement the `Task` interface and orchestrate the high-level logic for each CLI command.
+    *   `input/`: Contains input files for the tools, such as prompt templates (`.prompt`) and requirements.
+    *   `dist/`: Output directory for compiled JavaScript files.
+    *   `docs/`: Contains example output files (JSON, HTML).
+    *   `tests/`: Contains all unit (`.test.ts`) and integration (`.int.test.ts`) tests.
 *   **Database Use:**
     *   **Database:** MongoDB.
     *   **Interaction Pattern:**
-        *   The `mongodb` Node.js driver is used directly.
-        *   A `MongoDBClientFactory` (`src/mdb/mdb-client-factory.ts`), managed via DI, handles MongoDB client connections.
-        *   `DBInitializer` (`src/codebaseDBLoader/db-initializer.ts`) is responsible for creating necessary collections and indexes, including standard indexes and Atlas Vector Search indexes (on `contentVector` and `summaryVector` fields).
-        *   Data is inserted into collections like `sources` (for individual file metadata and embeddings) and `appsummaries` (for aggregated project-level insights).
-        *   Queries involve standard MongoDB find operations as well as `$vectorSearch` aggregation pipelines for semantic search (e.g., in `CodeQuestioner`).
-*   **State Management:**
-    *   Not applicable in the traditional sense of a UI application.
-    *   Application "state" for the CLI tools is primarily managed through:
-        *   Environment variables (`.env` files).
-        *   Configuration files (`src/config/`).
-        *   Command-line arguments (implicitly, though not explicitly shown in detail).
+        *   The native `mongodb` Node.js driver is used.
+        *   A `MongoDBClientFactory` (`src/common/mdb/mdb-client-factory.ts`), managed via DI, handles client connections.
+        *   `DBInitializerTask` (`src/tasks/db-initializer.task.ts`) is responsible for creating collections (`sources`, `appsummaries`) and indexes, including standard indexes and Atlas Vector Search indexes on `contentVector` and `summaryVector` fields.
+        *   The **Repository Pattern** is used to abstract data access logic (e.g., `SourcesRepository`, `AppSummariesRepository`).
+        *   Queries involve standard MongoDB find operations as well as `$vectorSearch` aggregation pipelines for semantic search.
 *   **Data Fetching & API Interaction:**
-    *   **LLM APIs:** Interactions with various LLM provider APIs (OpenAI, Azure, AWS Bedrock, GCP Vertex AI) are abstracted through the `LLMRouter` and specific provider implementations in `src/llm/providers/`. These implementations use the official SDKs for each cloud provider.
-    *   **MCP Server:** The `insights-mcp-server.ts` sets up an HTTP server using Node.js's `http` module to handle Server-Sent Events (SSE) for the Model Context Protocol, as defined by the `@modelcontextprotocol/sdk`.
+    *   **LLM APIs:** Interactions with various LLM provider APIs are abstracted through the `LLMRouter` and specific provider implementations in `src/llm/providers/`. These implementations use the official SDKs for each cloud provider.
+    *   **MCP Server:** The `McpHttpServer` sets up a raw Node.js `http` server to handle Server-Sent Events (SSE) for the Model Context Protocol.
 
 ## 5. Language-Specific Idioms and Best Practices (TypeScript)
 
 *   **Functions:**
-    *   **`async function`** is predominantly used for top-level functions and class methods, especially those involving I/O or LLM calls.
-    *   Arrow functions (`=>`) are used where syntactically appropriate (e.g., callbacks for array methods, concise function expressions), but less so for defining class methods or top-level functions.
-    *   **Type Hints:** Extensively used for function parameters, variables, and class members, leveraging TypeScript's static typing capabilities. Prefers not to explicitly state the return type of a function if it can be inferred by TypeScript, but does so when necessary for clarity.
+    *   **`async function`** is predominantly used for top-level functions and class methods, especially those involving I/O or API calls.
+    *   Arrow functions (`=>`) are used where syntactically appropriate, such as in callbacks for array methods.
+    *   **Type Hints:** Extensively used for function parameters, variables, and class members, leveraging TypeScript's static typing capabilities. Return types are often explicitly stated for public-facing methods for clarity.
 *   **Object-Oriented vs. Functional:**
     *   The project employs a **hybrid approach**.
-    *   **Object-Oriented Programming (OOP)** is evident in the use of classes for services (`LLMRouter`, `MongoDBClientFactory`), data loaders (`CodebaseToDBLoader`), specific LLM provider implementations, and server components. Abstraction and encapsulation are key principles (e.g., `AbstractLLM`). Dependency Injection (`tsyringe`) is used to manage class instances.
-    *   **Functional Programming (FP)** influences are seen in utility modules (`src/utils/`) which often export pure or near-pure functions. Immutability is encouraged by `readonly` properties and `as const` assertions in configuration.
+    *   **Object-Oriented Programming (OOP)** is central to the architecture, with classes used for services (`LLMRouter`), repositories (`SourcesRepositoryImpl`), tasks (`CodebaseCaptureTask`), and LLM provider implementations. Abstraction (`AbstractLLM`) and Dependency Injection (`tsyringe`) are key principles.
+    *   **Functional Programming (FP)** influences are seen in utility modules (`src/common/utils/`) which often export pure or near-pure functions. Immutability is encouraged through `readonly` properties and `as const` assertions in configuration files.
 *   **Error Handling:**
-    *   **`try...catch` blocks** are standard for handling exceptions, especially around I/O operations and API calls.
-    *   **Custom Error Classes:** Defined in `src/types/llm-errors.types.ts` (e.g., `BadResponseContentLLMError`, `BadConfigurationLLMError`) to provide more specific error information for LLM-related issues.
-    *   **Utility Functions:** `src/utils/error-utils.ts` provides helper functions (`logErrorMsgAndDetail`, `getErrorText`) for consistent error logging.
-    *   **Promise Rejection Handling:** Top-level scripts often use `.catch(console.error)` on the main promise chain, managed by the `runService` utility.
-    *   The `LLMRouter` implements sophisticated error handling for LLM calls, including retries and model switching based on error types or response statuses.
+    *   **`try...catch` blocks** are the standard for handling exceptions, especially around I/O and API calls.
+    *   **Custom Error Classes** are defined in `src/llm/types/llm-errors.types.ts` (e.g., `BadResponseContentLLMError`, `BadConfigurationLLMError`) to provide specific error information.
+    *   **Utility Functions** in `src/common/utils/error-utils.ts` provide helpers for consistent error logging.
+    *   The `LLMRouter` and its associated strategies (`RetryStrategy`, `FallbackStrategy`) implement sophisticated error handling for LLM calls, including retries and model switching.
 *   **Asynchronous Programming:**
-    *   **`async/await`** is the preferred and consistently used idiom for managing asynchronous operations, making asynchronous code resemble synchronous code for better readability.
-    *   `Promise.all` is used for concurrent execution of independent promises.
-    *   A custom `promiseAllThrottled` utility (`src/utils/control-utils.ts`) is used to manage concurrency when making many API calls (e.g., processing multiple files).
+    *   **`async/await`** is the preferred and consistently used idiom for managing asynchronous operations.
+    *   **`p-limit`** is used for managing concurrency when making many API calls (e.g., in `CodebaseToDBLoader`).
+    *   **`p-retry`** is used within the `RetryStrategy` to handle retries with backoff for LLM calls.
 *   **Language Standards Versions:**
-    *   **TypeScript:** The project uses a modern version of TypeScript (e.g., `^5.7.3` in `package.json`).
+    *   **TypeScript:** The project uses a modern version of TypeScript (`^5.7.3` in `package.json`).
     *   **ECMAScript:** `tsconfig.json` specifies `target: "ES2023"` and `lib: ["ES2023"]`, indicating the use of modern JavaScript features.
-    *   **Module System:** `module: "NodeNext"` and `moduleResolution: "nodenext"` are used, aligning with modern Node.js ESM practices where possible, while still producing CommonJS compatible output for Node.js execution.
-    *   **Strict Mode:** `strict: true` is enabled in `tsconfig.json`, along with several other strictness flags (`noFallthroughCasesInSwitch`, `noImplicitOverride`, `useUnknownInCatchVariables`, etc.), promoting robust and type-safe code.
+    *   **Module System:** `module: "NodeNext"` and `moduleResolution: "nodenext"` are used, aligning with modern Node.js ESM practices.
+    *   **Strict Mode:** `strict: true` is enabled in `tsconfig.json`, along with several other strictness flags, promoting robust and type-safe code.
     *   **Modern Features Used:**
         *   `readonly` properties for immutability.
         *   `as const` for creating literal types from objects/arrays (common in config files).
@@ -164,60 +157,46 @@ This document outlines the inferred coding standards, architectural patterns, an
 
 *   **Dependencies:**
     *   Managed using `npm` via `package.json` and `package-lock.json`.
-    *   Dependencies are chosen for specific functionalities (LLM SDKs, MongoDB driver, testing, linting, DI, etc.).
-    *   The `overrides` section in `package.json` (e.g., for `whatwg-url`) is used to enforce specific versions of transitive dependencies, often as a workaround for issues (as noted in `NOTES.txt`).
-    *   There isn't a strong philosophy of "minimal dependencies" vs. "batteries included"; rather, dependencies are pragmatic choices for the tasks at hand. General utility libraries like `lodash` are not broadly used, but specific, focused utilities are.
+    *   Dependencies are pragmatic choices for specific functionalities (LLM SDKs, DB driver, testing, DI, etc.). General utility libraries like `lodash` are avoided in favor of focused, single-purpose libraries (`p-limit`, `p-retry`).
+    *   The `overrides` section in `package.json` is used to enforce specific versions of transitive dependencies, as noted in `NOTES.txt`.
 *   **Configuration:**
-    *   **Environment Variables:** Managed using `.env` files (e.g., `.env`, `EXAMPLE.env`) and loaded by the `dotenv` library.
-    *   **Schema Validation:** Environment variables are validated against a Zod schema defined in `src/types/env.types.ts` (`baseEnvVarsSchema`) and dynamically extended by provider manifests in `src/di/registration-modules/env-registration.ts`. This provides runtime validation and type safety for environment configuration.
-    *   **Configuration Files:** Structured configuration objects are defined in TypeScript files within the `src/config/` directory (e.g., `database.config.ts`, `llm.config.ts`, `prompts.config.ts`). These often use `as const` for type safety and immutability.
-    *   **LLM Provider Manifests:** Each LLM provider has a `.manifest.ts` file (e.g., `src/llm/providers/openai/azure-openai/azure-openai.manifest.ts`) which declaratively defines its models, required environment variables (via a Zod schema), and factory function. These are auto-discovered by `LLMProviderManager`.
+    *   **Environment Variables:** Managed using `.env` files and loaded by the `dotenv` library.
+    *   **Schema Validation:** Environment variables are validated against a Zod schema. The base schema is in `src/env/env.types.ts` and is dynamically extended by provider manifests, providing runtime validation and type safety.
+    *   **Configuration Files:** Static configuration objects are defined in TypeScript files within `src/config/` (e.g., `database.config.ts`, `app.config.ts`).
+    *   **LLM Provider Manifests:** Each LLM provider has a `.manifest.ts` file which declaratively defines its models, required environment variables (via a Zod schema), and factory function. This is a key architectural pattern for pluggability.
 
 ## 7. Testing and Documentation
 
 *   **Testing Philosophy:**
     *   The project employs both **unit tests** and **integration tests**.
-    *   **Unit Tests:** Files ending with `.test.ts` located in the root `tests/` directory (e.g., `tests/common/utils/text-utils.test.ts`, `tests/llm/core/llm-router.test.ts`).
-    *   **DO NOT EXECUTE: Integration Tests:** Files ending with `.int.test.ts` located in the root `tests/` directory (e.g., `tests/features/api/mcpServing/insights-data.int.test.ts`, `tests/features/api/mcpServing/mcp-http-server.int.test.ts`). These likely test interactions between modules or with external systems like a database (though mocks might still be used for some external parts).
+    *   **Unit Tests:** Files ending with `.test.ts` (e.g., `tests/common/utils/text-utils.test.ts`).
+    *   **Integration Tests:** Files ending with `.int.test.ts` (e.g., `tests/features/api/mcpServing/mcp-http-server.int.test.ts`). These test interactions between modules or with external systems.
     *   **Testing Framework:** Jest (`jest`, `ts-jest`).
     *   **Test Execution:**
-        *   `npm test`: Runs unit tests (ignores `.int.test.ts` files).
+        *   `npm test`: Runs unit tests.
+        *   `npm test:int`: Runs integration tests.
         *   `npm test:verbose`: Runs unit tests with verbose output.
-        *   `npm test:int`: Runs integration tests specifically.
-    *   `jest.config.js` configures Jest, including `testPathIgnorePatterns` to separate unit and integration tests and ignore `node_modules` and `dist`.
+    *   `jest.config.js` configures Jest to separate unit and integration tests. `jest.setup.js` is used to mock environment variables for tests.
 *   **Documentation Style:**
-    *   **Code Comments:** JSDoc-style comments (`/** ... */`) are used for public APIs (classes, methods, functions, types).
-    *   **README.md:** Provides a comprehensive project overview, prerequisites, setup instructions, how to run/debug different tools, how to run tests, and guidelines for contributing (e.g., "Process for Adding LLM Providers").
-    *   **NOTES.txt:** Contains informal developer notes, ideas for future work, troubleshooting tips, and temporary workarounds.
+    *   **Code Comments:** JSDoc-style comments (`/** ... */`) are used for public APIs.
+    *   **README.md:** Provides a comprehensive project overview, setup instructions, and usage guidelines.
+    *   **NOTES.txt:** Contains informal developer notes, ideas, and troubleshooting tips.
     *   **EXAMPLE.env:** Serves as a template for the required `.env` configuration file.
 
 ## 8. Validation
 
 *   **Compiling/Building:**
-    *   **Command:** `npm run compile` or `npm run build` (they are aliases).
+    *   **Command:** `npm run build` (or `npm run compile`).
     *   **Tool:** TypeScript Compiler (`tsc`).
-    *   **Configuration:** `tsconfig.json` defines compiler options, including `target: "ES2023"`, `module: "NodeNext"`, `strict: true`, `outDir: "./dist"`, and `rootDir: "./src"`.
-    *   **Output:** Compiled JavaScript files are placed in the `dist/` directory.
+    *   **Configuration:** `tsconfig.json` defines compiler options.
+    *   **Output:** Compiled JavaScript files are placed in the `dist/` directory. The build process also includes a `copy-templates` step.
 *   **Linting:**
-    *   **Command:** `npm run lint`
+    *   **Command:** `npm run lint`.
     *   **Tool:** ESLint (`eslint`).
-    *   **Configuration:** `eslint.config.mjs`.
-        *   Uses `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser`.
-        *   Extends `eslint.configs.recommended`, `tseslint.configs.strictTypeChecked`, and `tseslint.configs.stylisticTypeChecked`.
-        *   Ignores `*js` (ESLint primarily targets `.ts` files), `dist/**`, and `node_modules/**`.
-        *   **Specific Enforced Rules (Examples):**
-            *   `@typescript-eslint/explicit-member-accessibility`: `["error", { "accessibility": "no-public" }]` (forbids explicit `public` keyword).
-            *   `@typescript-eslint/member-ordering`: `"error"` (enforces consistent class member order).
-            *   `@typescript-eslint/prefer-readonly`: `"error"`.
-            *   `@typescript-eslint/promise-function-async`: `"error"`.
-            *   `@typescript-eslint/require-array-sort-compare`: `"error"`.
-            *   `@typescript-eslint/switch-exhaustiveness-check`: `"error"`.
-            *   `@typescript-eslint/restrict-template-expressions`: Configured to allow numbers and booleans in template literals.
-*   **Comprehensive Validation:**
-    *   **Command:** `npm run validate`
-    *   **Action:** This script runs a sequence of checks: `npm run compile && npm run lint && npm run test && npm run test:int`.
-    *   Developers should run this command before committing changes to ensure code quality and correctness.
+    *   **Configuration:** `eslint.config.mjs`. It extends `eslint.configs.recommended`, `tseslint.configs.strictTypeChecked`, and `tseslint.configs.stylisticTypeChecked`, and includes custom rules like enforcing member ordering and `readonly` properties.
 *   **Formatting:**
     *   **Command:** `npm run format`.
     *   **Tool:** Prettier.
-    *   **Action:** Automatically formats all `.ts` and `.tsx` files according to the rules in `.prettierrc.json`.    
+*   **Comprehensive Validation:**
+    *   **Command:** `npm run validate`.
+    *   **Action:** This script runs a sequence of checks: `npm run build && npm run lint && npm run test && npm run test:int`. This is the recommended command for developers to run before committing changes.
