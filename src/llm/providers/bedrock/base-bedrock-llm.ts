@@ -17,6 +17,19 @@ import { llmConfig } from "../../llm.config";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "../llm-provider.types";
 import { getErrorText, logErrorMsgAndDetail } from "../../../common/utils/error-utils";
 import AbstractLLM from "../../core/abstract-llm";
+import { z } from "zod";
+import { BadResponseContentLLMError } from "../../types/llm-errors.types";
+
+/**
+ * Zod schema for Bedrock embeddings response validation
+ */
+const BedrockEmbeddingsResponseSchema = z.object({
+  embedding: z.array(z.number()).optional(),
+  inputTextTokenCount: z.number().optional(),
+  results: z.array(z.object({
+    tokenCount: z.number().optional(),
+  })).optional(),
+});
 
 /**
  * Class for the public AWS Bedrock service (multiple possible LLMs)
@@ -70,15 +83,13 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     prompt: string,
     options?: LLMCompletionOptions,
   ) {
-    // Invoke LLM
     const fullParameters = this.buildFullLLMParameters(taskType, modelKey, prompt, options);
     const command = new InvokeModelCommand(fullParameters);
     const rawResponse = await this.client.send(command);
-    const llmResponse = JSON.parse(
+    const llmResponse: unknown = JSON.parse(
       Buffer.from(rawResponse.body).toString(llmConfig.LLM_UTF8_ENCODING),
-    ) as Record<string, unknown>;
+    );
 
-    // Capture response content, finish reason and token usage
     if (taskType === LLMPurpose.EMBEDDINGS) {
       return this.extractEmbeddingModelSpecificResponse(llmResponse);
     } else {
@@ -118,11 +129,14 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   /**
    * Extract the relevant information from the LLM specific response.
    */
-  protected extractEmbeddingModelSpecificResponse(llmResponse: BedrockEmbeddingsResponse) {
-    const responseContent = llmResponse.embedding ?? [];
+  protected extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
+    const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
+    if (!validation.success) throw new BadResponseContentLLMError("Invalid Bedrock embeddings response structure", llmResponse);
+    const response = validation.data;
+    const responseContent = response.embedding ?? [];
     const isIncompleteResponse = !responseContent; // If no content assume prompt maxed out total tokens available
-    const promptTokens = llmResponse.inputTextTokenCount ?? -1;
-    const completionTokens = llmResponse.results?.[0]?.tokenCount ?? -1;
+    const promptTokens = response.inputTextTokenCount ?? -1;
+    const completionTokens = response.results?.[0]?.tokenCount ?? -1;
     const maxTotalTokens = -1;
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent, tokenUsage };
@@ -144,10 +158,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * Check to see if error code indicates potential token limit has been exceeded.
    */
   protected isTokenLimitExceeded(error: unknown): boolean {
-    if (!(error instanceof ValidationException)) {
-      return false;
-    }
-
+    if (!(error instanceof ValidationException)) return false;
     const errorKeywords = [
       "too many input tokens",
       "expected maxlength",
@@ -156,7 +167,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       "too large for model",
       "please reduce the length of the prompt",
     ];
-
     const lowercaseContent = getErrorText(error).toLowerCase();
     return errorKeywords.some((keyword) => lowercaseContent.includes(keyword));
   }
@@ -179,13 +189,4 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   ): LLMImplSpecificResponseSummary;
 }
 
-/**
- * Type definitions for the Titan specific embeddings LLM response usage.
- */
-interface BedrockEmbeddingsResponse {
-  embedding?: number[];
-  inputTextTokenCount?: number;
-  results?: {
-    tokenCount?: number;
-  }[];
-}
+
