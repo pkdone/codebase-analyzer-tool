@@ -3,6 +3,17 @@ import { logErrorMsg } from "../../../common/utils/error-utils";
 import { BadResponseContentLLMError } from "../../types/llm-errors.types";
 
 /**
+ * Type guard to validate that a value conforms to the LLMGeneratedContent type.
+ */
+function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
+  if (value === null) return true;
+  if (typeof value === 'string') return true;
+  if (Array.isArray(value)) return true;
+  if (typeof value === 'object' && !Array.isArray(value)) return true;
+  return false;
+}
+
+/**
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally
  * validate it against a Zod schema.
  */
@@ -89,8 +100,15 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
 
     return validation.data as T; // Cast is now safer after successful validation
   } else {
-    // When no validation is performed, we assume the content is valid LLMGeneratedContent
-    // This is reasonable since JSON.parse output should fit the LLMGeneratedContent type
-    return content as LLMGeneratedContent;
+    // For non-JSON formats (TEXT) or when no schema validation is needed,
+    // be more permissive and allow any valid JSON-parsed content
+    if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
+      // TEXT format should accept any type, including numbers, for backward compatibility
+      return content as LLMGeneratedContent;
+    } else {
+      if (isLLMGeneratedContent(content)) return content; // Now safe, no cast needed
+      logErrorMsg(`Content is not valid LLMGeneratedContent for resource: ${resourceName}`);
+      return null;
+    }
   }
 }
