@@ -12,8 +12,8 @@ ONLY provide an RFC8259 compliant JSON response that strictly follows the provid
 /**
  * Configuration for prompts that need file type and instructions
  */
-export interface DynamicPromptConfig {
-  schema: z.ZodType;
+export interface DynamicPromptConfig<T extends z.ZodType = z.ZodType> {
+  schema: T;
   contentDesc: string;
   instructions: string;
   hasComplexSchema: boolean;

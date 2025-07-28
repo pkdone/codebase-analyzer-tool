@@ -20,7 +20,7 @@ export class FileHandlerFactory {
   createHandler(filepath: string, type: string): FileHandler {
     const resolvedFileType = this.resolveFileType(filepath, type);
     const config = this.getConfigForFileType(resolvedFileType);
-    return new FileHandler(config);
+    return new FileHandler(config) as FileHandler;
   }
 
   /**

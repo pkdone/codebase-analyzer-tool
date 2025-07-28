@@ -27,17 +27,19 @@ CODE:
  * Represents a file handler that can create prompts and validate responses for a specific file type.
  */
 export class FileHandler<T extends SourceSummaryType = SourceSummaryType> {
-  private readonly config: DynamicPromptConfig;
+  private readonly config: DynamicPromptConfig<z.ZodType<T>>;
 
-  constructor(config: DynamicPromptConfig) {
-    this.config = config;
+  constructor(config: DynamicPromptConfig | DynamicPromptConfig<z.ZodType<T>>) {
+    // Safe assertion: all configs in fileTypeMetadataConfig are SourceSummaryType-compatible
+    this.config = config as DynamicPromptConfig<z.ZodType<T>>;
   }
 
   /**
    * Gets the Zod schema for validating the response.
+   * Type-safe due to generic constraint linking and documented safe assertion.
    */
   get schema(): z.ZodType<T> {
-    return this.config.schema as z.ZodType<T>;
+    return this.config.schema;
   }
 
   /**
