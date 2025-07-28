@@ -87,23 +87,28 @@ export class DatabaseReportDataProvider {
   ): ProcsAndTriggers["procs"] {
     return items.reduce<ProcsAndTriggers["procs"]>(
       (acc, item) => {
-        const validComplexity = isComplexity(item.complexity) ? item.complexity : Complexity.LOW;
-        if (!isComplexity(item.complexity))
+        let complexity: Complexity;
+        if (!isComplexity(item.complexity)) {
           logWarningMsg(
             `Unexpected or missing complexity value encountered: ${String(item.complexity)}. Defaulting to LOW.`,
           );
+          complexity = Complexity.LOW;
+        } else {
+          complexity = item.complexity;
+        }
+        
         return {
           total: acc.total + 1,
-          low: acc.low + (validComplexity === Complexity.LOW ? 1 : 0),
-          medium: acc.medium + (validComplexity === Complexity.MEDIUM ? 1 : 0),
-          high: acc.high + (validComplexity === Complexity.HIGH ? 1 : 0),
+          low: acc.low + (complexity === Complexity.LOW ? 1 : 0),
+          medium: acc.medium + (complexity === Complexity.MEDIUM ? 1 : 0),
+          high: acc.high + (complexity === Complexity.HIGH ? 1 : 0),
           list: [
             ...acc.list,
             {
               path: item.filepath,
               type: type,
               functionName: item.name,
-              complexity: validComplexity,
+              complexity: complexity,
               complexityReason: item.complexityReason ?? "N/A",
               linesOfCode: item.linesOfCode,
               purpose: item.purpose,
