@@ -26,9 +26,13 @@ import { BadResponseContentLLMError } from "../../types/llm-errors.types";
 const BedrockEmbeddingsResponseSchema = z.object({
   embedding: z.array(z.number()).optional(),
   inputTextTokenCount: z.number().optional(),
-  results: z.array(z.object({
-    tokenCount: z.number().optional(),
-  })).optional(),
+  results: z
+    .array(
+      z.object({
+        tokenCount: z.number().optional(),
+      }),
+    )
+    .optional(),
 });
 
 /**
@@ -131,7 +135,11 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    */
   protected extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
     const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
-    if (!validation.success) throw new BadResponseContentLLMError("Invalid Bedrock embeddings response structure", llmResponse);
+    if (!validation.success)
+      throw new BadResponseContentLLMError(
+        "Invalid Bedrock embeddings response structure",
+        llmResponse,
+      );
     const response = validation.data;
     const responseContent = response.embedding ?? [];
     const isIncompleteResponse = !responseContent; // If no content assume prompt maxed out total tokens available
@@ -188,5 +196,3 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     llmResponse: unknown,
   ): LLMImplSpecificResponseSummary;
 }
-
-

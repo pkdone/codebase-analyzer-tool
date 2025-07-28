@@ -2,14 +2,14 @@ import { injectable, inject } from "tsyringe";
 import { MongoClient, Double, Sort, Document, Collection, OptionalId } from "mongodb";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
-  SourceRecord,
+  SourceRecordWithId,
   ProjectedSourceMetataContentAndSummary,
   ProjectedSourceFilePathAndSummary,
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
   ProjectedFilePath,
   ProjectedFileTypesCountAndLines,
-  SourceRecordNoId,
+  SourceRecord,
 } from "./sources.model";
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
@@ -22,22 +22,22 @@ import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-utils";
 @injectable()
 export default class SourcesRepositoryImpl implements SourcesRepository {
   // Protected field accessible by subclasses
-  protected readonly collection: Collection<SourceRecord>;
+  protected readonly collection: Collection<SourceRecordWithId>;
 
   /**
    * Constructor.
    */
   constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient) {
     const db = mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
-    this.collection = db.collection<SourceRecord>(databaseConfig.SOURCES_COLLECTION_NAME);
+    this.collection = db.collection<SourceRecordWithId>(databaseConfig.SOURCES_COLLECTION_NAME);
   }
 
   /**
    * Insert a source file record into the database
    */
-  async insertSource(sourceFileData: SourceRecordNoId): Promise<void> {
+  async insertSource(sourceFileData: SourceRecord): Promise<void> {
     try {
-      await this.collection.insertOne(sourceFileData as OptionalId<SourceRecord>);
+      await this.collection.insertOne(sourceFileData as OptionalId<SourceRecordWithId>);
     } catch (error: unknown) {
       logMongoValidationErrorIfPresent(error);
       throw error;

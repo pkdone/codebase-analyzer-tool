@@ -61,46 +61,54 @@ export const businessProcessSchema = z
 /**
  * Schema for application description
  */
-export const appDescriptionSchema = z.object({
-  appDescription: z
-    .string()
-    .describe(
-      "A detailed description of the application's purpose and implementation in at least 20 sentences).",
-    ),
-}).passthrough();
+export const appDescriptionSchema = z
+  .object({
+    appDescription: z
+      .string()
+      .describe(
+        "A detailed description of the application's purpose and implementation in at least 20 sentences).",
+      ),
+  })
+  .passthrough();
 
 /**
  * Schema for technologies used by the application
  */
-export const technologiesSchema = z.object({
-  technologies: z
-    .array(nameDescSchema)
-    .describe(
-      "A list of key external and host platform technologies depended on by the application.",
-    ),
-}).passthrough();
+export const technologiesSchema = z
+  .object({
+    technologies: z
+      .array(nameDescSchema)
+      .describe(
+        "A list of key external and host platform technologies depended on by the application.",
+      ),
+  })
+  .passthrough();
 
 /**
  * Schema for arrays of business processes with detailed activities
  */
-export const businessProcessesSchema = z.object({
-  businessProcesses: z
-    .array(businessProcessSchema)
-    .describe(
-      "A list of the application's main business processes with their key business activities.",
-    ),
-}).passthrough();
+export const businessProcessesSchema = z
+  .object({
+    businessProcesses: z
+      .array(businessProcessSchema)
+      .describe(
+        "A list of the application's main business processes with their key business activities.",
+      ),
+  })
+  .passthrough();
 
 /**
  * Schema for bounded contexts in the application
  */
-export const boundedContextsSchema = z.object({
-  boundedContexts: z
-    .array(nameDescSchema)
-    .describe(
-      "A list of domain-driven design Bounded Contexts that define explicit boundaries around related business capabilities and their models.",
-    ),
-}).passthrough();
+export const boundedContextsSchema = z
+  .object({
+    boundedContexts: z
+      .array(nameDescSchema)
+      .describe(
+        "A list of domain-driven design Bounded Contexts that define explicit boundaries around related business capabilities and their models.",
+      ),
+  })
+  .passthrough();
 
 /**
  * Schema for enhanced aggregate with domain relationships
@@ -150,13 +158,15 @@ export const repositorySchema = z
 /**
  * Schema for arrays of aggregates with enhanced relationships
  */
-export const aggregatesSchema = z.object({
-  aggregates: z
-    .array(aggregateSchema)
-    .describe(
-      "A list of domain-driven design aggregates that should exist toenforce business rules and maintain consistency, including their 'logical' associated entities and repositories that should exist for them.",
-    ),
-}).passthrough();
+export const aggregatesSchema = z
+  .object({
+    aggregates: z
+      .array(aggregateSchema)
+      .describe(
+        "A list of domain-driven design aggregates that should exist toenforce business rules and maintain consistency, including their 'logical' associated entities and repositories that should exist for them.",
+      ),
+  })
+  .passthrough();
 
 /**
  * Schema for domain-driven design entities for microservices
@@ -201,24 +211,28 @@ export const entitySchema = z
 /**
  * Schema for entities in the application
  */
-export const entitiesSchema = z.object({
-  entities: z
-    .array(entitySchema)
-    .describe(
-      "A list of domain-driven design entities that should exist to represent core business concepts and contain business logic.",
-    ),
-}).passthrough();
+export const entitiesSchema = z
+  .object({
+    entities: z
+      .array(entitySchema)
+      .describe(
+        "A list of domain-driven design entities that should exist to represent core business concepts and contain business logic.",
+      ),
+  })
+  .passthrough();
 
 /**
  * Schema for arrays of repositories with enhanced relationships
  */
-export const repositoriesSchema = z.object({
-  repositories: z
-    .array(repositorySchema)
-    .describe(
-      "A list of domain-driven design repositories that provide access to aggregate persistence, each associated with a specific 'logical' aggregate that should exist for it.",
-    ),
-}).passthrough();
+export const repositoriesSchema = z
+  .object({
+    repositories: z
+      .array(repositorySchema)
+      .describe(
+        "A list of domain-driven design repositories that provide access to aggregate persistence, each associated with a specific 'logical' aggregate that should exist for it.",
+      ),
+  })
+  .passthrough();
 
 /**
  * Schema for CRUD operations for microservices
@@ -280,13 +294,15 @@ export const potentialMicroserviceSchema = z
 /**
  * Schema for arrays of potential microservices with detailed specifications
  */
-export const potentialMicroservicesSchema = z.object({
-  potentialMicroservices: z
-    .array(potentialMicroserviceSchema)
-    .describe(
-      "A list of recommended potential applicable microservices to modernize the monolithic application, each following the Single Responsibility Principle with defined CRUD operations, REST API endpoints, and domain-driven design entities.",
-    ),
-}).passthrough();
+export const potentialMicroservicesSchema = z
+  .object({
+    potentialMicroservices: z
+      .array(potentialMicroserviceSchema)
+      .describe(
+        "A list of recommended potential applicable microservices to modernize the monolithic application, each following the Single Responsibility Principle with defined CRUD operations, REST API endpoints, and domain-driven design entities.",
+      ),
+  })
+  .passthrough();
 
 /**
  * Schema for full application summary of categories

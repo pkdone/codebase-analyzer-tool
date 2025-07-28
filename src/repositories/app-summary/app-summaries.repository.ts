@@ -2,10 +2,10 @@ import { injectable, inject } from "tsyringe";
 import { MongoClient, Collection } from "mongodb";
 import { AppSummariesRepository } from "./app-summaries.repository.interface";
 import {
-  AppSummaryRecord,
+  AppSummaryRecordWithId,
   ProjectedAppSummaryDescAndLLMProvider,
   PartialAppSummaryRecord,
-  AppSummaryRecordNoId,
+  AppSummaryRecord,
 } from "./app-summaries.model";
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
@@ -17,20 +17,22 @@ import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-utils";
 @injectable()
 export default class AppSummariesRepositoryImpl implements AppSummariesRepository {
   // Protected field accessible by subclasses
-  protected readonly collection: Collection<AppSummaryRecord>;
+  protected readonly collection: Collection<AppSummaryRecordWithId>;
 
   /**
    * Constructor.
    */
   constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient) {
     const db = mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
-    this.collection = db.collection<AppSummaryRecord>(databaseConfig.SUMMARIES_COLLECTION_NAME);
+    this.collection = db.collection<AppSummaryRecordWithId>(
+      databaseConfig.SUMMARIES_COLLECTION_NAME,
+    );
   }
 
   /**
    * Create or replace an app summary record
    */
-  async createOrReplaceAppSummary(record: AppSummaryRecordNoId): Promise<void> {
+  async createOrReplaceAppSummary(record: AppSummaryRecord): Promise<void> {
     try {
       await this.collection.replaceOne({ projectName: record.projectName }, record, {
         upsert: true,
@@ -69,10 +71,10 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
   /**
    * Retrieves the value of a specific field from an app summary record for the given project.
    */
-  async getProjectAppSummaryField<K extends keyof AppSummaryRecord>(
+  async getProjectAppSummaryField<K extends keyof AppSummaryRecordWithId>(
     projectName: string,
     fieldName: K,
-  ): Promise<AppSummaryRecord[K] | null> {
+  ): Promise<AppSummaryRecordWithId[K] | null> {
     const result = await this.getProjectAppSummaryFields(projectName, [fieldName]);
     return result?.[fieldName] ?? null;
   }
@@ -80,10 +82,10 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
   /**
    * Retrieves multiple fields from an app summary record for the given project in a single query.
    */
-  async getProjectAppSummaryFields<K extends keyof AppSummaryRecord>(
+  async getProjectAppSummaryFields<K extends keyof AppSummaryRecordWithId>(
     projectName: string,
     fieldNames: K[],
-  ): Promise<Pick<AppSummaryRecord, K> | null> {
+  ): Promise<Pick<AppSummaryRecordWithId, K> | null> {
     if (fieldNames.length === 0) return null;
     const query = { projectName };
     const projection = fieldNames.reduce<Record<string, number>>(
@@ -94,6 +96,6 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
       { _id: 0 }, // Initial value for the accumulator
     );
     const options = { projection };
-    return await this.collection.findOne<Pick<AppSummaryRecord, K>>(query, options);
+    return await this.collection.findOne<Pick<AppSummaryRecordWithId, K>>(query, options);
   }
 }

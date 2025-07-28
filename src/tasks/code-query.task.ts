@@ -36,7 +36,7 @@ export class CodebaseQueryTask implements Task {
     );
     const questions = await getTextLines(appConfig.QUESTIONS_PROMPTS_FILEPATH);
     const queryPromises = questions.map(async (question) =>
-      this.codeQuestioner.queryCodebaseWithQuestion(question, this.projectName)
+      this.codeQuestioner.queryCodebaseWithQuestion(question, this.projectName),
     );
     const results = await Promise.allSettled(queryPromises);
     results.forEach((result, index) => {

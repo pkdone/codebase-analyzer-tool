@@ -85,7 +85,7 @@ export class DatabaseReportDataProvider {
   ): ProcsAndTriggers["procs"] {
     return items.reduce<ProcsAndTriggers["procs"]>(
       (acc, item) => {
-        const complexity = item.complexity as Complexity;        
+        const complexity = item.complexity as Complexity;
         return {
           total: acc.total + 1,
           low: acc.low + (complexity === Complexity.LOW ? 1 : 0),

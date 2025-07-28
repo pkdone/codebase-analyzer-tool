@@ -5,7 +5,7 @@ import {
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
   ProjectedFileTypesCountAndLines,
-  SourceRecordNoId,
+  SourceRecord,
 } from "./sources.model";
 
 /**
@@ -15,7 +15,7 @@ export interface SourcesRepository {
   /**
    * Insert a source file record into the database
    */
-  insertSource(sourceFileData: SourceRecordNoId): Promise<void>;
+  insertSource(sourceFileData: SourceRecord): Promise<void>;
 
   /**
    * Delete all source files for a specific project

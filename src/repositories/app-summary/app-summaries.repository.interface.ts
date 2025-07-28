@@ -1,8 +1,8 @@
 import {
-  AppSummaryRecord,
+  AppSummaryRecordWithId,
   ProjectedAppSummaryDescAndLLMProvider,
   PartialAppSummaryRecord,
-  AppSummaryRecordNoId,
+  AppSummaryRecord,
 } from "./app-summaries.model";
 
 /**
@@ -12,7 +12,7 @@ export interface AppSummariesRepository {
   /**
    * Create or replace an app summary record
    */
-  createOrReplaceAppSummary(record: AppSummaryRecordNoId): Promise<void>;
+  createOrReplaceAppSummary(record: AppSummaryRecord): Promise<void>;
 
   /**
    * Update an existing app summary record
@@ -29,16 +29,16 @@ export interface AppSummariesRepository {
   /**
    * Get specific field data from app summary
    */
-  getProjectAppSummaryField<K extends keyof AppSummaryRecord>(
+  getProjectAppSummaryField<K extends keyof AppSummaryRecordWithId>(
     projectName: string,
     fieldName: K,
-  ): Promise<AppSummaryRecord[K] | null>;
+  ): Promise<AppSummaryRecordWithId[K] | null>;
 
   /**
    * Get multiple fields data from app summary in a single query
    */
-  getProjectAppSummaryFields<K extends keyof AppSummaryRecord>(
+  getProjectAppSummaryFields<K extends keyof AppSummaryRecordWithId>(
     projectName: string,
     fieldNames: K[],
-  ): Promise<Pick<AppSummaryRecord, K> | null>;
+  ): Promise<Pick<AppSummaryRecordWithId, K> | null>;
 }

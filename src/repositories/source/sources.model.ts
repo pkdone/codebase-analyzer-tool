@@ -8,14 +8,16 @@ import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-md
 import { sourceSchema, sourceSummarySchema } from "../../schemas/sources.schema";
 
 /**
- * Type for source record without _id
+ * Type for source record with optional _id
  */
-export type SourceRecordNoId = z.infer<typeof sourceSchema>;
+export type SourceRecord = z.infer<typeof sourceSchema> & { _id?: z.infer<typeof zBsonObjectId> };
 
 /**
- * Type for source record without _id
+ * Type for source record with mandatory _id
  */
-export type SourceRecord = SourceRecordNoId & { _id: z.infer<typeof zBsonObjectId> };
+export type SourceRecordWithId = z.infer<typeof sourceSchema> & {
+  _id: z.infer<typeof zBsonObjectId>;
+};
 
 /**
  * Type for MongoDB projected document with just filepath
@@ -49,7 +51,7 @@ export type ProjectedSourceMetataContentAndSummary = z.infer<
  * Derived from source schemas to maintain consistency
  */
 export interface ProjectedSourceSummaryFields {
-  filepath: SourceRecordNoId["filepath"];
+  filepath: SourceRecord["filepath"];
   summary?: Pick<z.infer<typeof sourceSummarySchema>, "classpath" | "purpose" | "implementation">;
 }
 
@@ -58,7 +60,7 @@ export interface ProjectedSourceSummaryFields {
  * Derived from source schemas to maintain consistency
  */
 export interface ProjectedDatabaseIntegrationFields {
-  filepath: SourceRecordNoId["filepath"];
+  filepath: SourceRecord["filepath"];
   summary?: Pick<z.infer<typeof sourceSummarySchema>, "classpath" | "databaseIntegration">;
 }
 

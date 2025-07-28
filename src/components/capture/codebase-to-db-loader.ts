@@ -9,7 +9,7 @@ import pLimit from "p-limit";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { SourceRecordNoId } from "../../repositories/source/sources.model";
+import type { SourceRecord } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
 import type { SourceSummaryType } from "./file-handler";
 
@@ -143,7 +143,7 @@ export default class CodebaseToDBLoader {
 
     const contentVectorResult = await this.getContentEmbeddings(filepath, content);
     const contentVector = contentVectorResult ?? undefined;
-    const sourceFileRecord: SourceRecordNoId = {
+    const sourceFileRecord: SourceRecord = {
       projectName: projectName,
       filename,
       filepath,

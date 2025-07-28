@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { AppSummariesRepository } from "../../../repositories/app-summary/app-summaries.repository.interface";
 import { TOKENS } from "../../../di/tokens";
-import { AppSummaryRecord } from "../../../repositories/app-summary/app-summaries.model";
+import { AppSummaryRecordWithId } from "../../../repositories/app-summary/app-summaries.model";
 
 const BUSINESS_PROCESSES_FIELD = "businessProcesses" as const;
 
@@ -22,7 +22,9 @@ export default class InsightsDataServer {
   /**
    * Retrieves a list of business processes from the database.
    */
-  async getBusinessProcesses(): Promise<AppSummaryRecord[typeof BUSINESS_PROCESSES_FIELD] | null> {
+  async getBusinessProcesses(): Promise<
+    AppSummaryRecordWithId[typeof BUSINESS_PROCESSES_FIELD] | null
+  > {
     return await this.appSummariesRepository.getProjectAppSummaryField(
       this.projectName,
       BUSINESS_PROCESSES_FIELD,
