@@ -177,8 +177,8 @@ This document outlines the inferred coding standards, architectural patterns, an
 
 *   **Testing Philosophy:**
     *   The project employs both **unit tests** and **integration tests**.
-    *   **Unit Tests:** Files ending with `.test.ts` (e.g., `src/utils/utils.test.ts`, `src/llm/llm.test.ts`).
-    *   **DO NOT EXECUTE: Integration Tests:** Files ending with `.int.test.ts` (e.g., `src/insightsServer/insights-data.int.test.ts`, `src/promptTemplating/prompt-builder.int.test.ts`). These likely test interactions between modules or with external systems like a database (though mocks might still be used for some external parts).
+    *   **Unit Tests:** Files ending with `.test.ts` located in the root `tests/` directory (e.g., `tests/common/utils/text-utils.test.ts`, `tests/llm/core/llm-router.test.ts`).
+    *   **DO NOT EXECUTE: Integration Tests:** Files ending with `.int.test.ts` located in the root `tests/` directory (e.g., `tests/features/api/mcpServing/insights-data.int.test.ts`, `tests/features/api/mcpServing/mcp-http-server.int.test.ts`). These likely test interactions between modules or with external systems like a database (though mocks might still be used for some external parts).
     *   **Testing Framework:** Jest (`jest`, `ts-jest`).
     *   **Test Execution:**
         *   `npm test`: Runs unit tests (ignores `.int.test.ts` files).
