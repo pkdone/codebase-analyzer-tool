@@ -46,9 +46,4 @@ export const mcpConfig = {
 
   // MCP Session
   MCP_SESSION_ID_HEADER: "mcp-session-id",
-
-  // Node.js Event Names
-  DATA_EVENT: "data",
-  END_EVENT: "end",
-  ERROR_EVENT: "error",
 } as const;
