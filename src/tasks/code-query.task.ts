@@ -41,20 +41,26 @@ export class CodebaseQueryTask implements Task {
       `Performing vector search then invoking LLM for optimal results for project: ${this.projectName}`,
     );
     const questions = await getTextLines(appConfig.QUESTIONS_PROMPTS_FILEPATH);
-    const queryPromises = questions.map(async (question) =>
-      this.codeQuestioner.queryCodebaseWithQuestion(question, this.projectName),
-    );
-    const results = await Promise.allSettled(queryPromises);
-    results.forEach((result, index) => {
-      const question = questions[index];
-
+    const queryPromises = questions.map(async (question) => {
+      try {
+        const answer = await this.codeQuestioner.queryCodebaseWithQuestion(
+          question,
+          this.projectName,
+        );
+        return { status: PROMISE_STATUS.FULFILLED, value: answer, question };
+      } catch (reason: unknown) {
+        return { status: PROMISE_STATUS.REJECTED, reason, question };
+      }
+    });
+    const results = await Promise.all(queryPromises);
+    results.forEach((result) => {
       if (result.status === PROMISE_STATUS.FULFILLED) {
         console.log(
-          `\n---------------\nQUESTION: ${question}\n\n${result.value}\n---------------\n`,
+          `\n---------------\nQUESTION: ${result.question}\n\n${result.value}\n---------------\n`,
         );
       } else {
         console.error(
-          `\n---------------\nFAILED QUESTION: ${question}\n\nERROR: ${getErrorText(result.reason)}\n---------------\n`,
+          `\n---------------\nFAILED QUESTION: ${result.question}\n\nERROR: ${getErrorText(result.reason)}\n---------------\n`,
         );
       }
     });

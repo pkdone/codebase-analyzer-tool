@@ -65,7 +65,7 @@ export default class CodebaseToDBLoader {
     if (ignoreIfAlreadyCaptured) {
       // Check if any files already exist for this project and log message once if they do
       const existingFilesCount = await this.sourcesRepository.getProjectFilesCount(projectName);
-      
+
       if (existingFilesCount > 0) {
         console.log(
           `Not capturing some of the metadata files into the database because they've already been captured by a previous run - change env var 'IGNORE_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
