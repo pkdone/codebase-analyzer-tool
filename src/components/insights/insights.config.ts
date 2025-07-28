@@ -11,14 +11,7 @@ import {
 } from "../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "./insights.types";
 
-export const summaryCategoriesConfig: Record<
-  AppSummaryCategoryEnum,
-  {
-    label: string;
-    description: string;
-    schema: z.ZodObject<z.ZodRawShape>;
-  }
-> = {
+export const summaryCategoriesConfig = {
   appDescription: {
     label: "Application Description",
     description: "the detailed description of the application's purpose and implementation.",
@@ -66,4 +59,11 @@ export const summaryCategoriesConfig: Record<
       "a concise list of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints.",
     schema: potentialMicroservicesSchema,
   },
-};
+} satisfies Record<
+  AppSummaryCategoryEnum,
+  {
+    label: string;
+    description: string;
+    schema: z.ZodObject<z.ZodRawShape>;
+  }
+>;
