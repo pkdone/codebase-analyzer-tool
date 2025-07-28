@@ -20,6 +20,20 @@ function isChatCompletion(response: unknown): response is OpenAI.ChatCompletion 
 }
 
 /**
+ * Type guard to check if parameters are for embedding requests
+ */
+function isEmbeddingParams(params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams): params is OpenAI.EmbeddingCreateParams {
+  return 'input' in params && !('messages' in params);
+}
+
+/**
+ * Type guard to check if parameters are for completion requests
+ */
+function isCompletionParams(params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams): params is OpenAI.Chat.ChatCompletionCreateParams {
+  return 'messages' in params && !('input' in params);
+}
+
+/**
  * Abstract base class for all OpenAI-based LLM providers.
  */
 export default abstract class BaseOpenAILLM extends AbstractLLM {
@@ -35,12 +49,12 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
   ) {
     const params = this.buildFullLLMParameters(taskType, modelKey, prompt, options);
 
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      return this.invokeImplementationSpecificEmbeddingsLLM(params as OpenAI.EmbeddingCreateParams);
+    if (isEmbeddingParams(params)) {
+      return this.invokeImplementationSpecificEmbeddingsLLM(params);
+    } else if (isCompletionParams(params)) {
+      return this.invokeImplementationSpecificCompletionLLM(params);
     } else {
-      return this.invokeImplementationSpecificCompletionLLM(
-        params as OpenAI.ChatCompletionCreateParams,
-      );
+      throw new Error("Generated LLM parameters did not match expected shape for embeddings or completions.");
     }
   }
 
