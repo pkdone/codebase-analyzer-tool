@@ -112,33 +112,28 @@ export default class CodebaseToDBLoader {
     const type = getFileExtension(fullFilepath).toLowerCase();
     const filepath = path.relative(srcDirPath, fullFilepath);
     if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
-
     if (
       ignoreIfAlreadyCaptured &&
       (await this.sourcesRepository.doesProjectSourceExist(projectName, filepath))
-    ) {
-      return;
-    }
-
+    ) return;
     const rawContent = await readFile(fullFilepath);
     const content = rawContent.trim();
     if (!content) return; // Skip empty files
     const filename = path.basename(filepath);
     const linesCount = countLines(content);
-    const summaryResult = await this.fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
     let summary: SourceSummaryType | undefined;
     let summaryError: string | undefined;
     let summaryVector: number[] | undefined;
 
-    if (summaryResult.success) {
-      summary = summaryResult.data;
+    try {
+      summary = await this.fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
       const summaryVectorResult = await this.getContentEmbeddings(
         filepath,
         JSON.stringify(summary),
       );
       summaryVector = summaryVectorResult ?? undefined;
-    } else {
-      summaryError = summaryResult.error;
+    } catch (error: unknown) {
+      summaryError = `Failed to generate summary: ${error instanceof Error ? error.message : String(error)}`;
     }
 
     const contentVectorResult = await this.getContentEmbeddings(filepath, content);
