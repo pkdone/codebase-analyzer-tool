@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { MongoClient, Db, Collection, IndexSpecification } from "mongodb";
+import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
 import { TOKENS } from "../di/tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/error-utils";
@@ -9,24 +9,9 @@ import { Task } from "../lifecycle/task.types";
 import * as sourceSchema from "../repositories/source/sources.model";
 import * as appSummarySchema from "../repositories/app-summary/app-summaries.model";
 
-/**
- * Interface for MongoDB duplicate index errors.
- */
-interface MongoDuplicateIndexError {
-  codeName: string;
-}
-
-/**
- * Type guard to check if an error is a MongoDB duplicate index error.
- */
-function isMongoDuplicateIndexError(error: unknown): error is MongoDuplicateIndexError {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "codeName" in error &&
-    typeof (error as MongoDuplicateIndexError).codeName === "string"
-  );
-}
+// MongoDB error code for duplicate key errors (including duplicate indexes).
+// @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey
+const MONGODB_DUPLICATE_KEY_ERROR_CODE = 11000;
 
 /**
  * Task responsible for database schema initialization and management.
@@ -131,7 +116,7 @@ export class DBInitializerTask implements Task {
     try {
       await this.sourcesCollection.createSearchIndexes(vectorSearchIndexes);
     } catch (error: unknown) {
-      if (!isMongoDuplicateIndexError(error) || error.codeName !== "IndexAlreadyExists") {
+      if (!(error instanceof MongoServerError && error.code === MONGODB_DUPLICATE_KEY_ERROR_CODE)) {
         logErrorMsgAndDetail(
           `Issue when creating Vector Search indexes, therefore you must create these Vector Search indexes manually (see README) for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
           error,
