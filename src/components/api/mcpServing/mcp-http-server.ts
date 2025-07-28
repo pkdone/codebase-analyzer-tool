@@ -1,6 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import { createServer, Server } from "node:http";
 import { randomUUID } from "node:crypto";
+import { text as consumeText } from "node:stream/consumers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
@@ -230,26 +231,12 @@ export default class McpHttpServer {
    * Parses the request body from an IncomingMessage.
    */
   private async parseRequestBody(req: IncomingMessage): Promise<unknown> {
-    return new Promise((resolve, reject) => {
-      let data = "";
-      req.setEncoding(mcpConfig.UTF8_ENCODING);
-      req.on(mcpConfig.DATA_EVENT, (chunk: string) => {
-        data += chunk;
-      });
-      req.on(mcpConfig.END_EVENT, () => {
-        try {
-          resolve(data ? JSON.parse(data) : {});
-        } catch (parseError) {
-          reject(
-            new Error(
-              `Failed to parse JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
-            ),
-          );
-        }
-      });
-      req.on(mcpConfig.ERROR_EVENT, (error) => {
-        reject(error);
-      });
-    });
+    try {
+      const data = await consumeText(req);
+      return data ? JSON.parse(data) : {};
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to parse JSON: ${message}`);
+    }
   }
 }
