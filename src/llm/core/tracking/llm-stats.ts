@@ -90,19 +90,27 @@ export default class LLMStats {
   /**
    * Get the currently accumulated statistics of LLM invocation result types.
    */
-  getStatusTypesStatistics(includeTotal = false) {
-    const tableSnapshot: Record<string, LLMStatsCategoryStatus> = structuredClone(this.statusTypes);
-
+  getStatusTypesStatistics(includeTotal = false): LLMStatsCategoriesSummary {
+    // Create a mutable copy of the base stats
+    const baseStats = structuredClone(this.statusTypes);
+    
     if (includeTotal) {
-      const total = tableSnapshot.SUCCESS.count + tableSnapshot.FAILURE.count;
-      tableSnapshot.TOTAL = {
+      const total = baseStats.SUCCESS.count + baseStats.FAILURE.count;
+      const totalStat: LLMStatsCategoryStatus = {
         description: "Total successes + failures",
         symbol: "=",
         count: total,
       };
+      
+      // Construct the complete object with the TOTAL property
+      return {
+        ...baseStats,
+        TOTAL: totalStat,
+      } as LLMStatsCategoriesSummary;
     }
 
-    return tableSnapshot as unknown as LLMStatsCategoriesSummary;
+    // Return base stats as summary (TOTAL is optional)
+    return baseStats as LLMStatsCategoriesSummary;
   }
 
   /**
