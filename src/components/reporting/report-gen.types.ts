@@ -14,7 +14,7 @@ export enum Complexity {
 export function isComplexity(value: unknown): value is Complexity {
   return (
     typeof value === "string" &&
-    Object.values(Complexity).includes(value.toUpperCase() as Complexity)
+    (Object.values(Complexity) as string[]).includes(value.toUpperCase())
   );
 }
 
