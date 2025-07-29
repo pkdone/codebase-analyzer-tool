@@ -16,3 +16,4 @@ Do NOT inlude any of the following topics in your recommendations:
  * Low Cohesion in Utility Modules
  * Data Transformation Logic Coupled with Data Access 
  * Consolidate All Zod Schema Definitions 
+ * Use of `require` in an ES Module Project
