@@ -9,13 +9,15 @@ Do NOT inlude any of the following topics in your recommendations:
  * Overly Granular and Manual Dependency Injection Registration
  * Fragmented and Overlapping Configuration
  * Manual HTTP Server Implementation
+ * Mixing of Data Transformation and Presentation Logic in Reporting
  * Inconsistent Strategy for Defining Constants
  * Scattered and Inconsistent Type Definitions
  * Tightly Coupled Repository Implementations to MongoDB Driver
  * Decentralized and Inflexible Prompt Management
  * Low Cohesion in Utility Modules
- * Data Transformation Logic Coupled with Data Access 
+ * Data Transformation Logic Coupled with Data Access  
  * Consolidate All Zod Schema Definitions 
  * Use of `require` in an ES Module Project
  * Final Error Swallowed in Retry Strategy with p-retry
  * Monolithic and Unwieldy Configuration File
+ * Low Cohesion in Filesystem Utility Module

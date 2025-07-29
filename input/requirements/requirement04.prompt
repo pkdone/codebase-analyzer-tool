@@ -1,1 +1,23 @@
 Code Organization: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. Identify the top 10 parts of the codebase are not well-organized, and highlight which files contain multiple unrelated functions. Provide references to the specific part(s) of the code that needs these improvements with suggestions on how to improve. Include the list or relative file paths of each source file affected.
+
+Do NOT inlude any of the following topics in your recommendations:
+
+ * Monolithic and Unwieldy Environment Configuration
+ * Inconsistent and Cumbersome CLI Entry Points
+ * Redundancy in Bedrock LLM Provider Implementations
+ * Hardcoded Provider-Specific Logic in Core Lifecycle Code
+ * Overly Granular and Manual Dependency Injection Registration
+ * Fragmented and Overlapping Configuration
+ * Manual HTTP Server Implementation
+ * Mixing of Data Transformation and Presentation Logic in Reporting
+ * Inconsistent Strategy for Defining Constants
+ * Scattered and Inconsistent Type Definitions
+ * Tightly Coupled Repository Implementations to MongoDB Driver
+ * Decentralized and Inflexible Prompt Management
+ * Low Cohesion in Utility Modules
+ * Data Transformation Logic Coupled with Data Access  
+ * Consolidate All Zod Schema Definitions 
+ * Use of `require` in an ES Module Project
+ * Final Error Swallowed in Retry Strategy with p-retry
+ * Monolithic and Unwieldy Configuration File
+ * Low Cohesion in Filesystem Utility Module
