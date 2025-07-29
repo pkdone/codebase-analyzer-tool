@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "compile": "tsc && npm run copy-templates",
     "build": "tsc && npm run copy-templates",
