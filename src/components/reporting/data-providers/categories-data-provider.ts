@@ -8,20 +8,20 @@ import { TOKENS } from "../../../di/tokens";
 
 /**
  * Type guard to check if a value is an AppSummaryNameDescArray
+ * Optimized to check only the first element as a representative sample
+ * for better performance with large arrays.
  */
 function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
+  if (!Array.isArray(data)) return false;
+  if (data.length === 0) return true;
+  const firstItem: unknown = data[0];
+  if (typeof firstItem !== 'object' || firstItem === null) return false;
+  const obj = firstItem as Record<string, unknown>;
   return (
-    Array.isArray(data) &&
-    data.every((item) => {
-      if (typeof item !== "object" || item === null) return false;
-      const obj = item as Record<string, unknown>;
-      return (
-        "name" in obj &&
-        typeof obj.name === "string" &&
-        "description" in obj &&
-        typeof obj.description === "string"
-      );
-    })
+    'name' in obj &&
+    'description' in obj &&
+    typeof obj.name === 'string' &&
+    typeof obj.description === 'string'
   );
 }
 
