@@ -17,3 +17,4 @@ Do NOT inlude any of the following topics in your recommendations:
  * Data Transformation Logic Coupled with Data Access 
  * Consolidate All Zod Schema Definitions 
  * Use of `require` in an ES Module Project
+ * Final Error Swallowed in Retry Strategy with p-retry
