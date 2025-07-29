@@ -18,3 +18,4 @@ Do NOT inlude any of the following topics in your recommendations:
  * Consolidate All Zod Schema Definitions 
  * Use of `require` in an ES Module Project
  * Final Error Swallowed in Retry Strategy with p-retry
+ * Monolithic and Unwieldy Configuration File
