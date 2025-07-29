@@ -211,20 +211,16 @@ export class LLMProviderManager {
 
       return value;
     };
-
-    const metadata: Record<string, ResolvedLLMModelMetadata> = {};
-
-    // Process all models using the same pattern
     const models = [
       manifest.models.embeddings,
       manifest.models.primaryCompletion,
       ...(manifest.models.secondaryCompletion ? [manifest.models.secondaryCompletion] : []),
     ];
-
-    for (const model of models) {
-      metadata[model.modelKey] = { ...model, urn: resolveUrn(model) };
-    }
-
-    return metadata;
+    return Object.fromEntries(
+      models.map(model => [
+        model.modelKey,
+        { ...model, urn: resolveUrn(model) }
+      ])
+    );
   }
 }
