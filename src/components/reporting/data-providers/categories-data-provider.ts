@@ -15,13 +15,13 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
   if (!Array.isArray(data)) return false;
   if (data.length === 0) return true;
   const firstItem: unknown = data[0];
-  if (typeof firstItem !== 'object' || firstItem === null) return false;
+  if (typeof firstItem !== "object" || firstItem === null) return false;
   const obj = firstItem as Record<string, unknown>;
   return (
-    'name' in obj &&
-    'description' in obj &&
-    typeof obj.name === 'string' &&
-    typeof obj.description === 'string'
+    "name" in obj &&
+    "description" in obj &&
+    typeof obj.name === "string" &&
+    typeof obj.description === "string"
   );
 }
 

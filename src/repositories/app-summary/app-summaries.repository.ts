@@ -90,7 +90,7 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
     const query = { projectName };
     const projection = Object.fromEntries([
       ["_id", 0],
-      ...fieldNames.map(fieldName => [fieldName, 1])
+      ...fieldNames.map((fieldName) => [fieldName, 1]),
     ]) as Record<string, number>;
     const options = { projection };
     return await this.collection.findOne<Pick<AppSummaryRecordWithId, K>>(query, options);

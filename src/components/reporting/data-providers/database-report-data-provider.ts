@@ -77,37 +77,44 @@ export class DatabaseReportDataProvider {
   }
 
   /**
-   * Aggregate database objects (procedures or triggers) using functional programming approach
+   * Aggregate database objects (procedures or triggers) using optimized imperative approach
    */
   private aggregateProcsOrTriggersForReport(
     items: ProcOrTrigItem[],
     type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
   ): ProcsAndTriggers["procs"] {
-    return items.reduce<ProcsAndTriggers["procs"]>(
-      (acc, item) => {
-        // Use the type guard for safe validation
-        const complexity = isComplexity(item.complexity) ? item.complexity : Complexity.LOW;
-        if (!isComplexity(item.complexity)) console.warn(`Invalid complexity value '${item.complexity}' found for ${item.name}. Defaulting to LOW.`);
-        return {
-          total: acc.total + 1,
-          low: acc.low + (complexity === Complexity.LOW ? 1 : 0),
-          medium: acc.medium + (complexity === Complexity.MEDIUM ? 1 : 0),
-          high: acc.high + (complexity === Complexity.HIGH ? 1 : 0),
-          list: [
-            ...acc.list,
-            {
-              path: item.filepath,
-              type: type,
-              functionName: item.name,
-              complexity: complexity,
-              complexityReason: item.complexityReason || "N/A",
-              linesOfCode: item.linesOfCode,
-              purpose: item.purpose,
-            },
-          ],
-        };
-      },
-      { total: 0, low: 0, medium: 0, high: 0, list: [] },
-    );
+    const result: ProcsAndTriggers["procs"] = { total: 0, low: 0, medium: 0, high: 0, list: [] };
+
+    for (const item of items) {
+      const complexity = isComplexity(item.complexity) ? item.complexity : Complexity.LOW;
+      if (!isComplexity(item.complexity))
+        console.warn(
+          `Invalid complexity value '${item.complexity}' found for ${item.name}. Defaulting to LOW.`,
+        );
+      result.total++;
+
+      switch (complexity) {
+        case Complexity.LOW:
+          result.low++;
+          break;
+        case Complexity.MEDIUM:
+          result.medium++;
+          break;
+        case Complexity.HIGH:
+          result.high++;
+          break;
+      }
+
+      result.list.push({
+        path: item.filepath,
+        type: type,
+        functionName: item.name,
+        complexity: complexity,
+        complexityReason: item.complexityReason || "N/A",
+        linesOfCode: item.linesOfCode,
+        purpose: item.purpose,
+      });
+    }
+    return result;
   }
 }

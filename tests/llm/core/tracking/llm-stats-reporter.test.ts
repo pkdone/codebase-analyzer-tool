@@ -49,4 +49,4 @@ describe("LLMStatsReporter", () => {
       consoleTableSpy.mockRestore();
     });
   });
-}); 
+});

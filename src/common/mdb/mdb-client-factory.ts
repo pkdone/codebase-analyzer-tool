@@ -21,7 +21,7 @@ export class MongoDBClientFactory {
    */
   async connect(id: string, url: string, options?: MongoClientOptions): Promise<MongoClient> {
     const existingClient = this.clients.get(id);
-    
+
     if (existingClient) {
       logWarningMsg(`MongoDB client with id '${id}' is already connected.`);
       return existingClient;

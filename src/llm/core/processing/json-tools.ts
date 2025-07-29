@@ -7,9 +7,9 @@ import { BadResponseContentLLMError } from "../../types/llm-errors.types";
  */
 function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
   if (value === null) return true;
-  if (typeof value === 'string') return true;
+  if (typeof value === "string") return true;
   if (Array.isArray(value)) return true;
-  if (typeof value === 'object' && !Array.isArray(value)) return true;
+  if (typeof value === "object" && !Array.isArray(value)) return true;
   return false;
 }
 

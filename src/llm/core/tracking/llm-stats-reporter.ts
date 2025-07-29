@@ -8,9 +8,7 @@ import type LLMStats from "./llm-stats";
  */
 @injectable()
 export class LLMStatsReporter {
-  constructor(
-    @inject(TOKENS.LLMStats) private readonly llmStats: LLMStats,
-  ) {}
+  constructor(@inject(TOKENS.LLMStats) private readonly llmStats: LLMStats) {}
 
   /**
    * Print the accumulated statistics of LLM invocation result types.
@@ -26,4 +24,4 @@ export class LLMStatsReporter {
   displayLLMStatusDetails(): void {
     console.table(this.llmStats.getStatusTypesStatistics(true));
   }
-} 
+}

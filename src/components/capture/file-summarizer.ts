@@ -41,7 +41,7 @@ export class FileSummarizer {
           jsonSchema: handler.schema,
           hasComplexSchema: handler.hasComplexSchema,
         },
-      );      
+      );
       if (llmResponse === null) throw new BadResponseContentLLMError("LLM returned null response");
       return llmResponse;
     } catch (error: unknown) {

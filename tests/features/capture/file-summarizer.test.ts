@@ -313,8 +313,9 @@ describe("FileSummarizer", () => {
         const type = "js";
         const content = "";
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content))
-          .rejects.toThrow("File is empty");
+        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toThrow(
+          "File is empty",
+        );
 
         expect(mockLLMRouter.executeCompletion).not.toHaveBeenCalled();
       });
@@ -324,8 +325,9 @@ describe("FileSummarizer", () => {
         const type = "js";
         const content = "   \n\t  \n  ";
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content))
-          .rejects.toThrow("File is empty");
+        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toThrow(
+          "File is empty",
+        );
 
         expect(mockLLMRouter.executeCompletion).not.toHaveBeenCalled();
       });
@@ -339,8 +341,9 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockRejectedValue(llmError);
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content))
-          .rejects.toThrow(llmError);
+        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toThrow(
+          llmError,
+        );
 
         expect(mockLogErrorMsgAndDetail).toHaveBeenCalledWith(
           `Failed to generate summary for '${filepath}'`,
@@ -355,8 +358,9 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockRejectedValue("String error");
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content))
-          .rejects.toBe("String error");
+        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toBe(
+          "String error",
+        );
       });
 
       test("should throw BadResponseContentLLMError for null LLM response", async () => {
@@ -366,8 +370,9 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(null);
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content))
-          .rejects.toThrow(BadResponseContentLLMError);
+        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toThrow(
+          BadResponseContentLLMError,
+        );
       });
     });
 

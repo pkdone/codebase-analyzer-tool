@@ -37,10 +37,7 @@ export class CodebaseCaptureTask implements Task {
   /**
    * Captures the codebase.
    */
-  private async captureCodebase(
-    srcDirPath: string,
-    skipIfAlreadyCaptured: boolean,
-  ): Promise<void> {
+  private async captureCodebase(srcDirPath: string, skipIfAlreadyCaptured: boolean): Promise<void> {
     console.log(`Processing source files for project: ${this.projectName}`);
     const numDimensions =
       this.llmRouter.getEmbeddedModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;

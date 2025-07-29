@@ -217,10 +217,7 @@ export class LLMProviderManager {
       ...(manifest.models.secondaryCompletion ? [manifest.models.secondaryCompletion] : []),
     ];
     return Object.fromEntries(
-      models.map(model => [
-        model.modelKey,
-        { ...model, urn: resolveUrn(model) }
-      ])
+      models.map((model) => [model.modelKey, { ...model, urn: resolveUrn(model) }]),
     );
   }
 }

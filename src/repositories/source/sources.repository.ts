@@ -158,7 +158,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
     // Convert number[] to Double[] to work around MongoDB driver issue
     // See: https://jira.mongodb.org/browse/NODE-5714
     const queryVectorDoubles = numbersToBsonDoubles(queryVector);
-    
+
     const pipeline = [
       {
         $vectorSearch: {

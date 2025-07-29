@@ -620,8 +620,6 @@ describe("LLM Router tests", () => {
     });
   });
 
-
-
   describe("Error handling and edge cases", () => {
     test("should handle LLM provider throwing unexpected errors", async () => {
       const { router, mockProvider } = createLLMRouter();

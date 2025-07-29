@@ -9,28 +9,34 @@ import { BadResponseContentLLMError } from "../../types/llm-errors.types";
  * Type guard to check if the response from OpenAI is a valid ChatCompletion
  */
 function isChatCompletion(response: unknown): response is OpenAI.ChatCompletion {
-  if (!response || typeof response !== 'object') return false;
+  if (!response || typeof response !== "object") return false;
   const resp = response as Record<string, unknown>;
-  return 'choices' in resp && 
-         Array.isArray(resp.choices) &&
-         resp.choices.length > 0 &&
-         typeof resp.choices[0] === 'object' &&
-         resp.choices[0] !== null &&
-         'message' in resp.choices[0];
+  return (
+    "choices" in resp &&
+    Array.isArray(resp.choices) &&
+    resp.choices.length > 0 &&
+    typeof resp.choices[0] === "object" &&
+    resp.choices[0] !== null &&
+    "message" in resp.choices[0]
+  );
 }
 
 /**
  * Type guard to check if parameters are for embedding requests
  */
-function isEmbeddingParams(params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams): params is OpenAI.EmbeddingCreateParams {
-  return 'input' in params && !('messages' in params);
+function isEmbeddingParams(
+  params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams,
+): params is OpenAI.EmbeddingCreateParams {
+  return "input" in params && !("messages" in params);
 }
 
 /**
  * Type guard to check if parameters are for completion requests
  */
-function isCompletionParams(params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams): params is OpenAI.Chat.ChatCompletionCreateParams {
-  return 'messages' in params && !('input' in params);
+function isCompletionParams(
+  params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams,
+): params is OpenAI.Chat.ChatCompletionCreateParams {
+  return "messages" in params && !("input" in params);
 }
 
 /**
@@ -54,7 +60,9 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
     } else if (isCompletionParams(params)) {
       return this.invokeImplementationSpecificCompletionLLM(params);
     } else {
-      throw new Error("Generated LLM parameters did not match expected shape for embeddings or completions.");
+      throw new Error(
+        "Generated LLM parameters did not match expected shape for embeddings or completions.",
+      );
     }
   }
 
@@ -88,7 +96,11 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
   ) {
     // Invoke LLM
     const llmResponses = await this.getClient().chat.completions.create(params);
-    if (!isChatCompletion(llmResponses)) throw new BadResponseContentLLMError("Received an unexpected response type from OpenAI completions API", llmResponses);
+    if (!isChatCompletion(llmResponses))
+      throw new BadResponseContentLLMError(
+        "Received an unexpected response type from OpenAI completions API",
+        llmResponses,
+      );
     const llmResponse = llmResponses.choices[0];
 
     // Capture response content

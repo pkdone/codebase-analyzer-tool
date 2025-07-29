@@ -66,8 +66,11 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
       ),
     );
     results.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        logErrorMsgAndDetail(`Failed to generate data for category: ${categories[index]}`, result.reason);
+      if (result.status === "rejected") {
+        logErrorMsgAndDetail(
+          `Failed to generate data for category: ${categories[index]}`,
+          result.reason,
+        );
       }
     });
   }

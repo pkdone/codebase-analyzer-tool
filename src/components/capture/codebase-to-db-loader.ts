@@ -100,7 +100,7 @@ export default class CodebaseToDBLoader {
 
     const results = await Promise.allSettled(tasks);
     results.forEach((result, index) => {
-      if (result.status === 'rejected') {
+      if (result.status === "rejected") {
         logErrorMsgAndDetail(`Failed to process file: ${filepaths[index]}`, result.reason);
       }
     });
@@ -121,7 +121,8 @@ export default class CodebaseToDBLoader {
     if (
       skipIfAlreadyCaptured &&
       (await this.sourcesRepository.doesProjectSourceExist(projectName, filepath))
-    ) return;
+    )
+      return;
     const rawContent = await readFile(fullFilepath);
     const content = rawContent.trim();
     if (!content) return; // Skip empty files

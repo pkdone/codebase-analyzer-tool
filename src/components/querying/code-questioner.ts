@@ -48,7 +48,7 @@ export default class CodeQuestioner {
     const queryVector = await this.llmRouter.generateEmbeddings("Human question", question);
     if (queryVector === null || queryVector.length <= 0)
       return "No vector was generated for the question - unable to answer question";
-    
+
     const bestMatchFiles = await this.sourcesRepository.vectorSearchProjectSourcesRawContent(
       projectName,
       appConfig.JAVA_FILE_TYPE,
