@@ -62,7 +62,7 @@ export default class CodeQuestioner {
       return "Unable to answer question because no relevent code was found";
     }
 
-    const codeBlocksAsText = this.mergeSourceCodeFilesContentIntoMarkdownText(bestMatchFiles);
+    const codeBlocksAsText = this.formatSourcesForPrompt(bestMatchFiles);
     const resourceName = `Codebase query`;
     const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
     const response = await this.llmRouter.executeCompletion<string>(resourceName, prompt, {
@@ -84,7 +84,7 @@ export default class CodeQuestioner {
    * Turns a list of content of source code file and their respective filetypes and produces one
    * piece of text using Markdown code-block syntax to delinante the content of each source file.
    */
-  private mergeSourceCodeFilesContentIntoMarkdownText(
+  private formatSourcesForPrompt(
     sourceFileMetadataList: ProjectedSourceMetataContentAndSummary[],
   ): string {
     return sourceFileMetadataList

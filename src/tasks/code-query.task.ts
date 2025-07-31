@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { getTextLines } from "../common/utils/fs-utils";
+import { readAndFilterLines } from "../common/utils/fs-utils";
 import { getErrorText } from "../common/utils/error-utils";
 import CodeQuestioner from "../components/querying/code-questioner";
 import { appConfig } from "../config/app.config";
@@ -34,7 +34,7 @@ export class CodebaseQueryTask implements Task {
     console.log(
       `Performing vector search then invoking LLM for optimal results for project: ${this.projectName}`,
     );
-    const questions = await getTextLines(appConfig.QUESTIONS_PROMPTS_FILEPATH);
+    const questions = await readAndFilterLines(appConfig.QUESTIONS_PROMPTS_FILEPATH);
     const queryPromises = questions.map(async (question) =>
       this.codeQuestioner.queryCodebaseWithQuestion(question, this.projectName),
     );

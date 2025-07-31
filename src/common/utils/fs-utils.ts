@@ -71,7 +71,7 @@ export async function clearDirectory(dirPath: string): Promise<void> {
  * Reads the contents of a file and returns an array of lines, filtering out blank lines and lines
  * starting with #.
  */
-export async function getTextLines(filePath: string): Promise<string[]> {
+export async function readAndFilterLines(filePath: string): Promise<string[]> {
   const fileContents = await readFile(filePath);
   const lines = fileContents
     .split("\n")

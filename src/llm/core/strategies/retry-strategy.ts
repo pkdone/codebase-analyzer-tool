@@ -66,7 +66,7 @@ export class RetryStrategy {
           minTimeout: retryConfig.minRetryDelayMillis,
           onFailedAttempt: (error: FailedAttemptError) => {
             if (isRetryableError(error)) {
-              this.logRetryOrInvalidEvent(error);
+              this.recordFailedAttempt(error);
             }
           },
         } as pRetry.Options,
@@ -97,7 +97,7 @@ export class RetryStrategy {
   /**
    * Log retry events with status-specific handling
    */
-  private logRetryOrInvalidEvent(error: RetryableError) {
+  private recordFailedAttempt(error: RetryableError) {
     if (error.retryableStatus === LLMResponseStatus.INVALID) {
       this.llmStats.recordHopefulRetry();
     } else if (error.retryableStatus === LLMResponseStatus.OVERLOADED) {

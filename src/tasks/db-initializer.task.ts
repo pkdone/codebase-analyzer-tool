@@ -51,13 +51,13 @@ export class DBInitializerTask implements Task {
       this.appSummariesCollection.collectionName,
       appSummarySchema.getJSONSchema(),
     );
-    await this.createNormalIndexIfNotExists(this.sourcesCollection, {
+    await this.createStandardIndexIfNotExists(this.sourcesCollection, {
       projectName: 1,
       type: 1,
       "summary.classpath": 1,
     });
     await this.createSourcesVectorSearchIndexes(numDimensions);
-    await this.createNormalIndexIfNotExists(this.appSummariesCollection, { projectName: 1 });
+    await this.createStandardIndexIfNotExists(this.appSummariesCollection, { projectName: 1 });
   }
 
   /**
@@ -126,7 +126,7 @@ export class DBInitializerTask implements Task {
   /**
    * Create a normal MongoDB collection index if it doesn't exist.
    */
-  private async createNormalIndexIfNotExists(
+  private async createStandardIndexIfNotExists(
     collection: Collection,
     indexSpec: IndexSpecification,
     isUnique = false,
