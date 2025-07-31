@@ -14,6 +14,14 @@ import * as appSummarySchema from "../repositories/app-summary/app-summaries.mod
 const MONGODB_DUPLICATE_KEY_ERROR_CODE = 11000;
 
 /**
+ * Configuration for vector search indexes
+ */
+interface VectorIndexConfig {
+  field: string;
+  name: string;
+}
+
+/**
  * Task responsible for database schema initialization and management.
  * Handles all DDL operations including index creation for both collections.
  */
@@ -22,6 +30,14 @@ export class DBInitializerTask implements Task {
   private readonly db: Db;
   private readonly sourcesCollection: Collection;
   private readonly appSummariesCollection: Collection;
+
+  /**
+   * Vector index configurations for declarative index creation
+   */
+  private readonly vectorIndexConfigs: VectorIndexConfig[] = [
+    { field: databaseConfig.CONTENT_VECTOR_FIELD, name: databaseConfig.CONTENT_VECTOR_INDEX_NAME },
+    { field: databaseConfig.SUMMARY_VECTOR_FIELD, name: databaseConfig.SUMMARY_VECTOR_INDEX_NAME }
+  ];
 
   /**
    * Constructor with dependency injection.
@@ -99,10 +115,9 @@ export class DBInitializerTask implements Task {
    */
   private async createSourcesVectorSearchIndexes(numDimensions: number): Promise<void> {
     let unknownErrorOccurred = false;
-    const vectorSearchIndexes = [
-      databaseConfig.CONTENT_VECTOR_FIELD,
-      databaseConfig.SUMMARY_VECTOR_FIELD,
-    ].map((field) => this.createFileContentVectorIndexDefinition(field, numDimensions));
+    const vectorSearchIndexes = this.vectorIndexConfigs.map(config =>
+      this.createFileContentVectorIndexDefinition(config.name, config.field, numDimensions)
+    );
 
     try {
       await this.sourcesCollection.createSearchIndexes(vectorSearchIndexes);
@@ -141,12 +156,7 @@ export class DBInitializerTask implements Task {
    * Create a vector search index with a project and file type filter for a particular metadata
    * field extracted from a file.
    */
-  private createFileContentVectorIndexDefinition(fieldToIndex: string, numDimensions: number) {
-    const indexName =
-      fieldToIndex === databaseConfig.CONTENT_VECTOR_FIELD
-        ? databaseConfig.CONTENT_VECTOR_INDEX_NAME
-        : databaseConfig.SUMMARY_VECTOR_INDEX_NAME;
-
+  private createFileContentVectorIndexDefinition(indexName: string, fieldToIndex: string, numDimensions: number) {
     const filters = [
       {
         type: "filter" as const,
