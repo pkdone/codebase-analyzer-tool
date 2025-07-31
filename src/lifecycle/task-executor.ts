@@ -6,17 +6,15 @@ import { Task } from "./task.types";
 import { container } from "../di/container";
 import { TOKENS } from "../di/tokens";
 import { getTaskConfiguration } from "../di/registration-modules/task-config-registration";
-import { initializeAndRegisterLLMRouter } from "../di/registration-modules/llm-registration";
 
 /**
  * Generic task runner function that handles task execution:
  * 1. Resolve task configuration from DI container based on task token
- * 2. Initialize and register LLMRouter if required (isolating async logic)
- * 3. Resolve required resources from the pre-bootstrapped DI container
- * 4. Create and execute task using DI container
- * 5. Handle graceful shutdown
+ * 2. Resolve required resources from the pre-bootstrapped DI container (async factories handle initialization)
+ * 3. Create and execute task using DI container
+ * 4. Handle graceful shutdown
  *
- * Note: This function assumes the DI container has already been bootstrapped.
+ * Note: This function assumes the DI container has already been bootstrapped with async factories.
  * Use bootstrapContainer() before calling this function.
  */
 export async function runTask(taskToken: symbol): Promise<void> {
@@ -32,12 +30,8 @@ export async function runTask(taskToken: symbol): Promise<void> {
     }
 
     if (config.requiresLLM) {
-      // Check if LLMRouter is already registered, otherwise initialize it
-      if (container.isRegistered(TOKENS.LLMRouter)) {
-        llmRouter = container.resolve<LLMRouter>(TOKENS.LLMRouter);
-      } else {
-        llmRouter = await initializeAndRegisterLLMRouter();
-      }
+      // Resolve LLMRouter - async factory dependencies are handled internally by tsyringe
+      llmRouter = container.resolve<LLMRouter>(TOKENS.LLMRouter);
     }
 
     // Resolve task (await handles both sync and async resolution)

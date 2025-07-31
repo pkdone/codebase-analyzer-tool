@@ -7,7 +7,6 @@ import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
 import LLMRouter from "../../src/llm/core/llm-router";
 import { getTaskConfiguration } from "../../src/di/registration-modules/task-config-registration";
 import { gracefulShutdown } from "../../src/lifecycle/shutdown";
-import { initializeAndRegisterLLMRouter } from "../../src/di/registration-modules/llm-registration";
 
 // Mock dependencies
 jest.mock("../../src/di/container");
@@ -15,7 +14,6 @@ jest.mock("../../src/di/registration-modules/task-config-registration");
 jest.mock("../../src/lifecycle/shutdown");
 jest.mock("../../src/common/mdb/mdb-client-factory");
 jest.mock("../../src/llm/core/llm-router");
-jest.mock("../../src/di/registration-modules/llm-registration");
 
 describe("Service Runner Integration Tests", () => {
   // Mock instances
@@ -53,7 +51,6 @@ describe("Service Runner Integration Tests", () => {
 
     // Set up default mocks
     (gracefulShutdown as jest.Mock).mockResolvedValue(undefined);
-    (initializeAndRegisterLLMRouter as jest.Mock).mockResolvedValue(mockLLMRouter);
 
     // Mock container methods
     (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
@@ -61,17 +58,12 @@ describe("Service Runner Integration Tests", () => {
         case TOKENS.MongoDBClientFactory:
           return mockMongoDBClientFactory; // Synchronous for MongoDB
         case TOKENS.LLMRouter:
-          return mockLLMRouter; // Synchronous for LLM when already registered
+          return mockLLMRouter; // Synchronous for LLM - resolved directly from container
         case TEST_SERVICE_TOKEN:
           return Promise.resolve(mockService); // Async for service
         default:
           return undefined;
       }
-    });
-
-    (container.isRegistered as jest.Mock).mockImplementation((token: symbol): boolean => {
-      // By default, assume LLMRouter is not registered so it gets initialized
-      return token !== TOKENS.LLMRouter;
     });
   });
 
@@ -126,7 +118,7 @@ describe("Service Runner Integration Tests", () => {
       await runTask(TEST_SERVICE_TOKEN);
 
       expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
-      expect(initializeAndRegisterLLMRouter).toHaveBeenCalledTimes(1);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(mockService.execute).toHaveBeenCalledTimes(1);
       expect(gracefulShutdown).toHaveBeenCalledWith(mockLLMRouter, undefined);
@@ -144,7 +136,7 @@ describe("Service Runner Integration Tests", () => {
 
       expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
-      expect(initializeAndRegisterLLMRouter).toHaveBeenCalledTimes(1);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(mockService.execute).toHaveBeenCalledTimes(1);
       expect(gracefulShutdown).toHaveBeenCalledWith(mockLLMRouter, mockMongoDBClientFactory);
@@ -200,13 +192,18 @@ describe("Service Runner Integration Tests", () => {
       };
 
       const llmError = new Error("Failed to resolve LLM router");
-      (initializeAndRegisterLLMRouter as jest.Mock).mockRejectedValue(llmError);
+      (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
+        if (token === TOKENS.LLMRouter) {
+          throw llmError;
+        }
+        return Promise.resolve(mockService);
+      });
 
       (getTaskConfiguration as jest.Mock).mockReturnValue(config);
 
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Failed to resolve LLM router");
 
-      expect(initializeAndRegisterLLMRouter).toHaveBeenCalledTimes(1);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
     });
 
@@ -235,7 +232,7 @@ describe("Service Runner Integration Tests", () => {
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Failed to resolve service");
 
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
-      expect(initializeAndRegisterLLMRouter).toHaveBeenCalledTimes(1);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(gracefulShutdown).toHaveBeenCalledWith(mockLLMRouter, mockMongoDBClientFactory);
     });
@@ -281,7 +278,7 @@ describe("Service Runner Integration Tests", () => {
 
       // Verify the order of resolution calls
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
-      expect(initializeAndRegisterLLMRouter).toHaveBeenCalledTimes(1);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
     });
 
@@ -311,14 +308,23 @@ describe("Service Runner Integration Tests", () => {
 
       // MongoDB resolves successfully, LLM fails
       const llmError = new Error("LLM resolution failed");
-      (initializeAndRegisterLLMRouter as jest.Mock).mockRejectedValue(llmError);
+      (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
+        switch (token) {
+          case TOKENS.MongoDBClientFactory:
+            return mockMongoDBClientFactory;
+          case TOKENS.LLMRouter:
+            throw llmError;
+          default:
+            return Promise.resolve(mockService);
+        }
+      });
 
       (getTaskConfiguration as jest.Mock).mockReturnValue(config);
 
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("LLM resolution failed");
 
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
-      expect(initializeAndRegisterLLMRouter).toHaveBeenCalledTimes(1);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       // Service should not be resolved due to LLM failure
       expect(container.resolve).not.toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
 

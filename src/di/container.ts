@@ -8,6 +8,8 @@ import {
   registerMongoDBDependencies,
   registerAppDependencies,
 } from "./registration-modules";
+import { connectAndRegisterMongoClient } from "./registration-modules/mongodb-registration";
+import { initializeAndRegisterLLMComponents } from "./registration-modules/llm-registration";
 
 /**
  * Bootstrap the DI container based on task configuration.
@@ -17,12 +19,14 @@ export async function bootstrapContainer(config: TaskRunnerConfig): Promise<void
   if (config.requiresLLM) {
     await registerLlmEnvDependencies();
     registerLLMProviders();
+    await initializeAndRegisterLLMComponents();
   } else {
     registerBaseEnvDependencies();
   }
 
   if (config.requiresMongoDB) {
-    await registerMongoDBDependencies();
+    registerMongoDBDependencies();
+    await connectAndRegisterMongoClient();
   }
 
   await registerAppDependencies(config);

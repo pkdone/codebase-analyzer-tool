@@ -19,53 +19,30 @@ export function registerLLMProviders(): void {
   container.registerSingleton(TOKENS.PromptAdaptationStrategy, PromptAdaptationStrategy);
   // RetryStrategy, FallbackStrategy, and LLMExecutionPipeline are now registered in app-registration.ts
 
-  console.log("LLM utility services registered");
+  console.log("LLM services registered");
 }
 
 /**
- * Factory function to create and initialize LLMProviderManager.
- * Handles the async initialization logic required by LLMProviderManager.
- *
- * @param modelFamily - Optional model family override
- * @returns Promise<LLMProviderManager> The initialized LLMProviderManager instance
+ * Initializes and registers LLM components that require async initialization.
+ * This function should be called during application bootstrap after registering dependencies.
  */
-async function createAndInitializeLLMProviderManager(
-  modelFamily?: string,
-): Promise<LLMProviderManager> {
-  // Resolve the model family (use provided or resolve from container)
-  const resolvedModelFamily = modelFamily ?? container.resolve<string>(TOKENS.LLMModelFamily);
+export async function initializeAndRegisterLLMComponents(): Promise<void> {
+  if (container.isRegistered(TOKENS.LLMProviderManager)) {
+    console.log("LLM components already registered - skipping initialization");
+    return;
+  }
 
-  // Create the LLMProviderManager instance
-  const manager = new LLMProviderManager(resolvedModelFamily);
-
-  // Initialize it asynchronously
+  // Create and initialize LLMProviderManager
+  const modelFamily = container.resolve<string>(TOKENS.LLMModelFamily);
+  const manager = new LLMProviderManager(modelFamily);
   await manager.initialize();
-
-  return manager;
-}
-
-/**
- * Initializes the LLMRouter asynchronously and registers it as a singleton in the container.
- * This isolates all async logic to a single initialization point and lets the DI container
- * manage all dependencies to ensure singleton consistency.
- *
- * @param modelFamily Optional model family override for testing
- * @returns Promise<LLMRouter> The initialized LLMRouter instance
- */
-export async function initializeAndRegisterLLMRouter(modelFamily?: string): Promise<LLMRouter> {
-  // Create and initialize LLMProviderManager (this is the only manual creation needed due to async initialization)
-  const manager = await createAndInitializeLLMProviderManager(modelFamily);
-
-  // Register the initialized LLMProviderManager as a singleton
+  
+  // Register the initialized LLMProviderManager as an instance
   container.registerInstance(TOKENS.LLMProviderManager, manager);
+  console.log("LLMProviderManager initialized and registered as instance");
 
-  // Let the DI container create and resolve LLMRouter with all its dependencies
-  // This ensures all components get the same singleton instances (especially LLMStats)
+  // Now create and register LLMRouter with the initialized dependencies
   const router = container.resolve<LLMRouter>(LLMRouter);
-
-  // Register the initialized LLMRouter as a singleton
   container.registerInstance(TOKENS.LLMRouter, router);
-  console.log("LLM Router initialized and registered as singleton");
-
-  return router;
+  console.log("LLMRouter initialized and registered as instance");
 }
