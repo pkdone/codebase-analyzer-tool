@@ -124,7 +124,7 @@ export class DBInitializerTask implements Task {
     } catch (error: unknown) {
       if (!(error instanceof MongoServerError && error.code === MONGODB_DUPLICATE_KEY_ERROR_CODE)) {
         logErrorMsgAndDetail(
-          `Issue when creating Vector Search indexes, therefore you must create these Vector Search indexes manually (see README) for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
+          `Issue when creating Vector Search indexes for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
           error,
         );
         unknownErrorOccurred = true;
