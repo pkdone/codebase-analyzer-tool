@@ -2,11 +2,8 @@
  * Log an error message and the error stack to the console.
  */
 export function logErrorMsgAndDetail(msg: string | null, error: unknown): void {
-  if (msg) {
-    console.error(msg, getErrorText(error), "-", getErrorStack(error));
-  } else {
-    console.error(getErrorText(error), "-", getErrorStack(error));
-  }
+  const messageParts = [...(msg ? [msg] : []), getErrorText(error), "-", getErrorStack(error)];
+  console.error(...messageParts);
 }
 
 /**
