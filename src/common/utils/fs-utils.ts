@@ -1,6 +1,6 @@
 import { promises as fs, Dirent } from "fs";
 import path from "path";
-import glob from "fast-glob";
+import glob, { Entry } from "fast-glob";
 import { logErrorMsgAndDetail } from "./error-utils";
 const UTF8_ENCODING = "utf8";
 
@@ -109,23 +109,22 @@ export async function findFilesRecursively(
       ...baseGlobOptions,
       stats: true,
     });
-    const validFilesWithStats: { path: string; size: number }[] = [];
-
-    for (const entry of filesWithStats) {
+    // Helper function to check if entry has valid stats
+    const hasValidStats = (entry: Entry): entry is Entry & { stats: { size: number } } => {
       if (entry.stats && typeof entry.stats.size === "number") {
-        validFilesWithStats.push({
-          path: entry.path,
-          size: entry.stats.size,
-        });
+        return true;
       } else {
         logErrorMsgAndDetail(
           `Unable to get file size for: ${entry.path}`,
           new Error("Stats not available"),
         );
+        return false;
       }
-    }
-
-    return validFilesWithStats.toSorted((a, b) => b.size - a.size).map(({ path }) => path);
+    };
+    return filesWithStats
+      .filter(hasValidStats)
+      .toSorted((a, b) => b.stats.size - a.stats.size)
+      .map((entry) => entry.path);
   } else {
     // If not ordering by size, return files in natural ordering from glob
     return await glob("**/*", baseGlobOptions);

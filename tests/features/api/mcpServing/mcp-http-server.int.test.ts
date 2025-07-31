@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 import "reflect-metadata";
 import { randomUUID } from "node:crypto";
 import { IncomingMessage, ServerResponse, createServer } from "node:http";
