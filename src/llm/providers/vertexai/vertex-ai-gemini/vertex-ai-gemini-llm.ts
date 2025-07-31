@@ -294,24 +294,12 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    */
   private extractEmbeddingsFromPredictions(
     predictions: aiplatform.protos.google.protobuf.IValue[] | null | undefined,
-  ) {
-    if (!predictions) throw new BadResponseContentLLMError("Predictions are null or undefined");
-    return predictions.map((p) => {
-      const embeddings = p.structValue?.fields?.embeddings;
-      if (!embeddings?.structValue?.fields)
-        throw new BadResponseContentLLMError(
-          "Could not extract embedding values from prediction response",
-        );
-      const values = embeddings.structValue.fields.values.listValue?.values;
-      if (!values)
-        throw new BadResponseContentLLMError(
-          "Could not extract embedding values from prediction response",
-        );
-      return values.map((v) => {
-        if (typeof v.numberValue !== "number")
-          throw new BadResponseContentLLMError("Embedding value is not a number or is missing", v);
-        return v.numberValue;
-      });
+  ): number[][] {
+    if (!predictions) return [];
+    return predictions.flatMap((p) => {
+      const values = p.structValue?.fields?.embeddings.structValue?.fields?.values.listValue?.values ?? [];
+      const numbers = values.map((v) => v.numberValue ?? 0);
+      return numbers.length > 0 ? [numbers] : [];
     });
   }
 }
