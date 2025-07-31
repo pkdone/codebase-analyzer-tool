@@ -1,15 +1,9 @@
 <h2>Database Interactions <a href="<%= jsonFilesConfig.dataFiles.dbInteractions %>" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h2>
-<% if (dbInteractions && dbInteractions.length > 0) { %>
-  <%- include('table', { data: dbInteractions, convertToDisplayName: convertToDisplayName }) %>
-<% } else { %>
-  <p>None Found</p>
-<% } %>
+<%- include('table', { data: dbInteractions, convertToDisplayName: convertToDisplayName }) %>
 
 <h2>Database Stored Procedures & Triggers <a href="<%= jsonFilesConfig.dataFiles.procsAndTriggers %>" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h2>
 <p>Stored Procedures: <b><%= procsAndTriggers.procs.total %></b>&nbsp;&nbsp;&nbsp;&nbsp;(complexity: low = <%= procsAndTriggers.procs.low %>, medium = <%= procsAndTriggers.procs.medium %>, high = <%= procsAndTriggers.procs.high %>)</p>
 <p>Triggers: <b><%= procsAndTriggers.trigs.total %></b>&nbsp;&nbsp;&nbsp;&nbsp;(complexity: low = <%= procsAndTriggers.trigs.low %>, medium = <%= procsAndTriggers.trigs.medium %>, high = <%= procsAndTriggers.trigs.high %>)</p>
 
 <% const combinedList = [...procsAndTriggers.procs.list, ...procsAndTriggers.trigs.list]; %>
-<% if (combinedList.length > 0) { %>
-  <%- include('table', { data: combinedList, convertToDisplayName: convertToDisplayName }) %>
-<% } %> 
+<%- include('table', { data: combinedList, convertToDisplayName: convertToDisplayName }) %> 
