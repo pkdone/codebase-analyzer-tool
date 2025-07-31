@@ -4,12 +4,10 @@ import { TOKENS } from "../../src/di/tokens";
 import { Task } from "../../src/lifecycle/task.types";
 import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
 import LLMRouter from "../../src/llm/core/llm-router";
-import { getTaskConfiguration } from "../../src/di/registration-modules/task-config-registration";
 import { gracefulShutdown } from "../../src/lifecycle/shutdown";
 
 // Mock dependencies
 jest.mock("../../src/di/container");
-jest.mock("../../src/di/registration-modules/task-config-registration");
 jest.mock("../../src/lifecycle/shutdown");
 jest.mock("../../src/common/mdb/mdb-client-factory");
 jest.mock("../../src/llm/core/llm-router");
@@ -51,15 +49,16 @@ describe("Service Runner Integration Tests", () => {
     // Set up default mocks
     (gracefulShutdown as jest.Mock).mockResolvedValue(undefined);
 
-    // Mock container methods
+    // Mock container methods - default to no dependencies registered
+    (container.isRegistered as jest.Mock).mockReturnValue(false);
     (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
       switch (token) {
         case TOKENS.MongoDBClientFactory:
-          return mockMongoDBClientFactory; // Synchronous for MongoDB
+          return mockMongoDBClientFactory;
         case TOKENS.LLMRouter:
-          return mockLLMRouter; // Synchronous for LLM - resolved directly from container
+          return mockLLMRouter;
         case TEST_SERVICE_TOKEN:
-          return Promise.resolve(mockService); // Async for service
+          return Promise.resolve(mockService);
         default:
           return undefined;
       }
@@ -72,85 +71,69 @@ describe("Service Runner Integration Tests", () => {
 
   describe("runTask", () => {
     it("should run service with no dependencies", async () => {
-      const config = {
-        requiresMongoDB: false,
-        requiresLLM: false,
-      };
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
-
+      // No dependencies are registered (default mock setup)
       await runTask(TEST_SERVICE_TOKEN);
 
-      expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(mockService.execute).toHaveBeenCalledTimes(1);
+      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.LLMRouter);
+      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^START:/));
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^END:/));
     });
 
     it("should run service with MongoDB dependency", async () => {
-      const config = {
-        requiresMongoDB: true,
-        requiresLLM: false,
-      };
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
+      // Mock MongoDB as registered
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.MongoDBClientFactory;
+      });
 
       await runTask(TEST_SERVICE_TOKEN);
 
-      expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
       expect(mockService.execute).toHaveBeenCalledTimes(1);
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, mockMongoDBClientFactory);
     });
 
     it("should run service with LLM dependency", async () => {
-      const config = {
-        requiresMongoDB: false,
-        requiresLLM: true,
-      };
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
+      // Mock LLM as registered
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.LLMRouter;
+      });
 
       await runTask(TEST_SERVICE_TOKEN);
 
-      expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       expect(mockService.execute).toHaveBeenCalledTimes(1);
       expect(gracefulShutdown).toHaveBeenCalledWith(mockLLMRouter, undefined);
     });
 
     it("should run service with both MongoDB and LLM dependencies", async () => {
-      const config = {
-        requiresMongoDB: true,
-        requiresLLM: true,
-      };
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
+      // Mock both dependencies as registered
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.MongoDBClientFactory || token === TOKENS.LLMRouter;
+      });
 
       await runTask(TEST_SERVICE_TOKEN);
 
-      expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
+      expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
-      expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(mockService.execute).toHaveBeenCalledTimes(1);
       expect(gracefulShutdown).toHaveBeenCalledWith(mockLLMRouter, mockMongoDBClientFactory);
     });
 
     it("should handle service execution errors and still call gracefulShutdown", async () => {
-      const config = {
-        requiresMongoDB: true,
-        requiresLLM: true,
-      };
+      // Mock both dependencies as registered
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.MongoDBClientFactory || token === TOKENS.LLMRouter;
+      });
 
       const serviceError = new Error("Service execution failed");
       (mockService.execute as jest.Mock).mockRejectedValue(serviceError);
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
 
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Service execution failed");
 
@@ -160,57 +143,69 @@ describe("Service Runner Integration Tests", () => {
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^END:/));
     });
 
-    it("should handle MongoDB client factory resolution errors", async () => {
-      const config = {
-        requiresMongoDB: true,
-        requiresLLM: false,
-      };
+    it("should handle MongoDB client factory resolution errors during shutdown", async () => {
+      // Mock MongoDB as registered but throw error when resolving
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.MongoDBClientFactory;
+      });
 
       const mongoError = new Error("Failed to resolve MongoDB client factory");
+      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+      
       (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
         if (token === TOKENS.MongoDBClientFactory) {
           throw mongoError;
         }
-        return Promise.resolve(mockService);
+        if (token === TEST_SERVICE_TOKEN) {
+          return Promise.resolve(mockService);
+        }
+        return undefined;
       });
 
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
+      await runTask(TEST_SERVICE_TOKEN);
 
-      await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow(
-        "Failed to resolve MongoDB client factory",
-      );
-
+      expect(mockService.execute).toHaveBeenCalledTimes(1);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
+      expect(mockConsoleError).toHaveBeenCalledWith("Failed to resolve MongoDBClientFactory for shutdown:", mongoError);
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
+      
+      mockConsoleError.mockRestore();
     });
 
-    it("should handle LLM router resolution errors", async () => {
-      const config = {
-        requiresMongoDB: false,
-        requiresLLM: true,
-      };
+    it("should handle LLM router resolution errors during shutdown", async () => {
+      // Mock LLM as registered but throw error when resolving
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.LLMRouter;
+      });
 
       const llmError = new Error("Failed to resolve LLM router");
+      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+      
       (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
         if (token === TOKENS.LLMRouter) {
           throw llmError;
         }
-        return Promise.resolve(mockService);
+        if (token === TEST_SERVICE_TOKEN) {
+          return Promise.resolve(mockService);
+        }
+        return undefined;
       });
 
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
+      await runTask(TEST_SERVICE_TOKEN);
 
-      await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Failed to resolve LLM router");
-
+      expect(mockService.execute).toHaveBeenCalledTimes(1);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
+      expect(mockConsoleError).toHaveBeenCalledWith("Failed to resolve LLMRouter for shutdown:", llmError);
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
+      
+      mockConsoleError.mockRestore();
     });
 
     it("should handle service resolution errors", async () => {
-      const config = {
-        requiresMongoDB: true,
-        requiresLLM: true,
-      };
+      // Mock both dependencies as registered
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.MongoDBClientFactory || token === TOKENS.LLMRouter;
+      });
 
       const serviceError = new Error("Failed to resolve service");
       (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
@@ -226,26 +221,16 @@ describe("Service Runner Integration Tests", () => {
         }
       });
 
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
-
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Failed to resolve service");
 
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(gracefulShutdown).toHaveBeenCalledWith(mockLLMRouter, mockMongoDBClientFactory);
     });
 
     it("should handle gracefulShutdown errors", async () => {
-      const config = {
-        requiresMongoDB: false,
-        requiresLLM: false,
-      };
-
+      // No dependencies registered (default mock setup)
       const shutdownError = new Error("Graceful shutdown failed");
       (gracefulShutdown as jest.Mock).mockRejectedValue(shutdownError);
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
 
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Graceful shutdown failed");
 
@@ -253,42 +238,25 @@ describe("Service Runner Integration Tests", () => {
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
     });
 
-    it("should handle getTaskConfiguration errors", async () => {
-      const configError = new Error("Service configuration not found");
-      (getTaskConfiguration as jest.Mock).mockImplementation(() => {
-        throw configError;
+
+
+    it("should resolve service first, then shutdown dependencies", async () => {
+      // Mock both dependencies as registered
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.MongoDBClientFactory || token === TOKENS.LLMRouter;
       });
-
-      await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Service configuration not found");
-
-      expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
-      expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
-    });
-
-    it("should resolve dependencies in correct order", async () => {
-      const config = {
-        requiresMongoDB: true,
-        requiresLLM: true,
-      };
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
 
       await runTask(TEST_SERVICE_TOKEN);
 
-      // Verify the order of resolution calls
+      // Verify that service is resolved first (during execution)
+      expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
+      // Then shutdown dependencies are resolved (in finally block)
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
-      expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
     });
 
     it("should log start and end timestamps", async () => {
-      const config = {
-        requiresMongoDB: false,
-        requiresLLM: false,
-      };
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
-
+      // No dependencies registered (default mock setup)
       await runTask(TEST_SERVICE_TOKEN);
 
       expect(mockConsoleLog).toHaveBeenCalledWith(
@@ -299,45 +267,53 @@ describe("Service Runner Integration Tests", () => {
       );
     });
 
-    it("should handle partial dependency failures gracefully", async () => {
-      const config = {
-        requiresMongoDB: true,
-        requiresLLM: true,
-      };
+    it("should handle partial shutdown dependency failures gracefully", async () => {
+      // Mock both dependencies as registered
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.MongoDBClientFactory || token === TOKENS.LLMRouter;
+      });
 
-      // MongoDB resolves successfully, LLM fails
+      // MongoDB resolves successfully during shutdown, LLM fails during shutdown
       const llmError = new Error("LLM resolution failed");
+      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+      
       (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
         switch (token) {
           case TOKENS.MongoDBClientFactory:
             return mockMongoDBClientFactory;
           case TOKENS.LLMRouter:
             throw llmError;
-          default:
+          case TEST_SERVICE_TOKEN:
             return Promise.resolve(mockService);
+          default:
+            return undefined;
         }
       });
 
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
+      await runTask(TEST_SERVICE_TOKEN);
 
-      await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("LLM resolution failed");
+      // Service should execute successfully
+      expect(mockService.execute).toHaveBeenCalledTimes(1);
+      expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
 
+      // Both shutdown dependencies should be attempted
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
-      // Service should not be resolved due to LLM failure
-      expect(container.resolve).not.toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
 
-      // Graceful shutdown should still be called with the MongoDB client that was resolved
+      // Console error should be logged for failed LLM resolution
+      expect(mockConsoleError).toHaveBeenCalledWith("Failed to resolve LLMRouter for shutdown:", llmError);
+
+      // Graceful shutdown should be called with successfully resolved MongoDB, undefined for LLM
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, mockMongoDBClientFactory);
+      
+      mockConsoleError.mockRestore();
     });
 
     it("should handle mixed sync and async resolution", async () => {
-      const config = {
-        requiresMongoDB: true,
-        requiresLLM: true,
-      };
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
+      // Mock both dependencies as registered  
+      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
+        return token === TOKENS.MongoDBClientFactory || token === TOKENS.LLMRouter;
+      });
 
       await runTask(TEST_SERVICE_TOKEN);
 
@@ -347,20 +323,9 @@ describe("Service Runner Integration Tests", () => {
   });
 
   describe("error handling edge cases", () => {
-    it("should handle undefined service configuration", async () => {
-      (getTaskConfiguration as jest.Mock).mockReturnValue(undefined);
-
-      await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow();
-
-      expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
-    });
 
     it("should handle null service resolution", async () => {
-      const config = {
-        requiresMongoDB: false,
-        requiresLLM: false,
-      };
-
+      // No dependencies registered (default mock setup)
       (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
         if (token === TEST_SERVICE_TOKEN) {
           return Promise.resolve(null);
@@ -368,19 +333,13 @@ describe("Service Runner Integration Tests", () => {
         return undefined;
       });
 
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
-
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow();
 
       expect(gracefulShutdown).toHaveBeenCalledWith(undefined, undefined);
     });
 
     it("should handle service without execute method", async () => {
-      const config = {
-        requiresMongoDB: false,
-        requiresLLM: false,
-      };
-
+      // No dependencies registered (default mock setup)
       const invalidService = {} as Task;
       (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
         if (token === TEST_SERVICE_TOKEN) {
@@ -388,8 +347,6 @@ describe("Service Runner Integration Tests", () => {
         }
         return undefined;
       });
-
-      (getTaskConfiguration as jest.Mock).mockReturnValue(config);
 
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow();
 

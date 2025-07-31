@@ -22,3 +22,4 @@ Do NOT inlude any of the following topics in your recommendations:
  * Monolithic and Unwieldy Configuration File
  * Low Cohesion in Filesystem Utility Module
  * Using the asyncFactory feature of to encapsulate the asynchronous initialization logic
+ * Potentially Unsafe Type Guard with Risky Optimization
