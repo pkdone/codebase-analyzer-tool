@@ -36,7 +36,7 @@ export async function initializeAndRegisterLLMComponents(): Promise<void> {
   const modelFamily = container.resolve<string>(TOKENS.LLMModelFamily);
   const manager = new LLMProviderManager(modelFamily);
   await manager.initialize();
-  
+
   // Register the initialized LLMProviderManager as an instance
   container.registerInstance(TOKENS.LLMProviderManager, manager);
   console.log("LLMProviderManager initialized and registered as instance");

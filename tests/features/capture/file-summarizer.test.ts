@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment */
 import "reflect-metadata";
 import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
 import { FileHandlerFactory } from "../../../src/components/capture/file-handler-factory";

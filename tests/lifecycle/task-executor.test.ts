@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { runTask } from "../../src/lifecycle/task-executor";
 import { container } from "../../src/di/container";
 import { TOKENS } from "../../src/di/tokens";

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/unbound-method */
 import { gracefulShutdown } from "../../src/lifecycle/shutdown";
 import LLMRouter from "../../src/llm/core/llm-router";
 import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
@@ -121,7 +120,7 @@ describe("Shutdown Module", () => {
       expect(mockSetTimeout).toHaveBeenCalledTimes(1);
 
       // Get the callback function that was passed to setTimeout
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       const timeoutCallback = (mockSetTimeout as jest.Mock).mock.calls[0][0] as () => void;
 
       // Mock console.log to verify the warning message

@@ -36,7 +36,7 @@ export class DBInitializerTask implements Task {
    */
   private readonly vectorIndexConfigs: VectorIndexConfig[] = [
     { field: databaseConfig.CONTENT_VECTOR_FIELD, name: databaseConfig.CONTENT_VECTOR_INDEX_NAME },
-    { field: databaseConfig.SUMMARY_VECTOR_FIELD, name: databaseConfig.SUMMARY_VECTOR_INDEX_NAME }
+    { field: databaseConfig.SUMMARY_VECTOR_FIELD, name: databaseConfig.SUMMARY_VECTOR_INDEX_NAME },
   ];
 
   /**
@@ -115,8 +115,8 @@ export class DBInitializerTask implements Task {
    */
   private async createSourcesVectorSearchIndexes(numDimensions: number): Promise<void> {
     let unknownErrorOccurred = false;
-    const vectorSearchIndexes = this.vectorIndexConfigs.map(config =>
-      this.createFileContentVectorIndexDefinition(config.name, config.field, numDimensions)
+    const vectorSearchIndexes = this.vectorIndexConfigs.map((config) =>
+      this.createFileContentVectorIndexDefinition(config.name, config.field, numDimensions),
     );
 
     try {
@@ -156,7 +156,11 @@ export class DBInitializerTask implements Task {
    * Create a vector search index with a project and file type filter for a particular metadata
    * field extracted from a file.
    */
-  private createFileContentVectorIndexDefinition(indexName: string, fieldToIndex: string, numDimensions: number) {
+  private createFileContentVectorIndexDefinition(
+    indexName: string,
+    fieldToIndex: string,
+    numDimensions: number,
+  ) {
     const filters = [
       {
         type: "filter" as const,

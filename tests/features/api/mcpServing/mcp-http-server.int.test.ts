@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any, @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import "reflect-metadata";
 import { randomUUID } from "node:crypto";
 import { IncomingMessage, ServerResponse, createServer } from "node:http";
@@ -105,7 +105,7 @@ describe("McpHttpServer Integration Tests", () => {
       } as any;
 
       // Mock the createServer function
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
       jest.mocked(createServer).mockReturnValue(mockServer);
 
       // Start the server

@@ -59,7 +59,7 @@ describe("MongoDBClientFactory", () => {
       const result = await factory.connect(id, url, options);
 
       expect(MockedMongoClient).toHaveBeenCalledWith(url, options);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockClient.connect).toHaveBeenCalledTimes(1);
       expect(mockRedactUrl).toHaveBeenCalledWith(url);
       expect(mockConsoleLog).toHaveBeenCalledWith(`Connecting MongoDB client to: REDACTED_${url}`);

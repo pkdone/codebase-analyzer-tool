@@ -31,12 +31,12 @@ export async function connectAndRegisterMongoClient(): Promise<void> {
 
   const factory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
   const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
-  
+
   const client = await factory.connect(
     databaseConfig.DEFAULT_MONGO_SERVICE_ID,
     envVars.MONGODB_URL,
   );
-  
+
   container.registerInstance(TOKENS.MongoClient, client);
   console.log("MongoDB Client connected and registered as instance");
 }
