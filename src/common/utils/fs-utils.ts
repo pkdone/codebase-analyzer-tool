@@ -108,7 +108,7 @@ export async function findFilesRecursively(
     const filesWithStats = await glob("**/*", {
       ...baseGlobOptions,
       stats: true,
-    });    
+    });
     const validFilesWithStats: { path: string; size: number }[] = [];
 
     for (const entry of filesWithStats) {

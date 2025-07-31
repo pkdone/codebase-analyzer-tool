@@ -99,19 +99,10 @@ export class DBInitializerTask implements Task {
    */
   private async createSourcesVectorSearchIndexes(numDimensions: number): Promise<void> {
     let unknownErrorOccurred = false;
-    const vectorSearchIndexes = [];
-    vectorSearchIndexes.push(
-      this.createFileContentVectorIndexDefinition(
-        databaseConfig.CONTENT_VECTOR_FIELD,
-        numDimensions,
-      ),
-    );
-    vectorSearchIndexes.push(
-      this.createFileContentVectorIndexDefinition(
-        databaseConfig.SUMMARY_VECTOR_FIELD,
-        numDimensions,
-      ),
-    );
+    const vectorSearchIndexes = [
+      databaseConfig.CONTENT_VECTOR_FIELD,
+      databaseConfig.SUMMARY_VECTOR_FIELD,
+    ].map((field) => this.createFileContentVectorIndexDefinition(field, numDimensions));
 
     try {
       await this.sourcesCollection.createSearchIndexes(vectorSearchIndexes);
