@@ -116,7 +116,7 @@ export class DBInitializerTask implements Task {
   private async createSourcesVectorSearchIndexes(numDimensions: number): Promise<void> {
     let unknownErrorOccurred = false;
     const vectorSearchIndexes = this.vectorIndexConfigs.map((config) =>
-      this.createFileContentVectorIndexDefinition(config.name, config.field, numDimensions),
+      this.createProjectScopedVectorIndexDefinition(config.name, config.field, numDimensions),
     );
 
     try {
@@ -156,7 +156,7 @@ export class DBInitializerTask implements Task {
    * Create a vector search index with a project and file type filter for a particular metadata
    * field extracted from a file.
    */
-  private createFileContentVectorIndexDefinition(
+  private createProjectScopedVectorIndexDefinition(
     indexName: string,
     fieldToIndex: string,
     numDimensions: number,
