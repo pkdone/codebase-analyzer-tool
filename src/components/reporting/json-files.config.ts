@@ -22,4 +22,3 @@ export const jsonFilesConfig = {
    */
   getCategoryFilename: (category: string): string => `${category}.json`,
 } as const;
-
