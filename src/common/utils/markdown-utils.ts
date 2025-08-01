@@ -1,3 +1,4 @@
+import path from "path";
 import { getFileExtension } from "../../common/utils/path-utils";
 import { readFile } from "../../common/utils/fs-utils";
 
@@ -10,7 +11,7 @@ export async function mergeSourceFilesIntoMarkdownCodeblock(
   ignoreList: readonly string[],
 ): Promise<string> {
   const contentPromises = filepaths.map(async (filepath) => {
-    const relativeFilepath = filepath.replace(`${srcDirPath}/`, "");
+    const relativeFilepath = path.relative(srcDirPath, filepath);
     const type = getFileExtension(filepath).toLowerCase();
     if (ignoreList.includes(type)) return ""; // Skip file if it has binary content
     const content = await readFile(filepath);
