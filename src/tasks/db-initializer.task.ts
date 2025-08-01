@@ -9,9 +9,9 @@ import { Task } from "../env/task.types";
 import * as sourceSchema from "../repositories/source/sources.model";
 import * as appSummarySchema from "../repositories/app-summary/app-summaries.model";
 
-// MongoDB error code for duplicate key errors (including duplicate indexes).
+// MongoDB error codes for duplicate key errors (including duplicate indexes).
 // @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey
-const MONGODB_DUPLICATE_KEY_ERROR_CODE = 11000;
+const MONGODB_DUPLICATE_OBJ_ERROR_CODES = [11000, 68];
 
 /**
  * Configuration for vector search indexes
@@ -30,10 +30,6 @@ export class DBInitializerTask implements Task {
   private readonly db: Db;
   private readonly sourcesCollection: Collection;
   private readonly appSummariesCollection: Collection;
-
-  /**
-   * Vector index configurations for declarative index creation
-   */
   private readonly vectorIndexConfigs: VectorIndexConfig[] = [
     { field: databaseConfig.CONTENT_VECTOR_FIELD, name: databaseConfig.CONTENT_VECTOR_INDEX_NAME },
     { field: databaseConfig.SUMMARY_VECTOR_FIELD, name: databaseConfig.SUMMARY_VECTOR_INDEX_NAME },
@@ -122,7 +118,12 @@ export class DBInitializerTask implements Task {
     try {
       await this.sourcesCollection.createSearchIndexes(vectorSearchIndexes);
     } catch (error: unknown) {
-      if (!(error instanceof MongoServerError && error.code === MONGODB_DUPLICATE_KEY_ERROR_CODE)) {
+      if (
+        !(
+          error instanceof MongoServerError &&
+          MONGODB_DUPLICATE_OBJ_ERROR_CODES.includes(Number(error.code))
+        )
+      ) {
         logErrorMsgAndDetail(
           `Issue when creating Vector Search indexes for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
           error,

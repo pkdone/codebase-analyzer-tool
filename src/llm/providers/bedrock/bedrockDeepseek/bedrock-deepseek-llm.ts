@@ -3,7 +3,6 @@ import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_DEEPSEEK } from "./bedrock-deepseek.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
 import { z } from "zod";
-import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
 /**
  * Zod schema for Deepseek completion response validation
@@ -64,24 +63,20 @@ export default class BedrockDeepseekLLM extends BaseBedrockLLM {
   }
 
   /**
-   * Extract the relevant information from the completion LLM specific response.
+   * Get the provider-specific response extraction configuration.
    */
-  protected extractCompletionModelSpecificResponse(llmResponse: unknown) {
-    const validation = DeepseekCompletionResponseSchema.safeParse(llmResponse);
-    if (!validation.success) {
-      throw new BadResponseContentLLMError("Invalid Deepseek response structure", llmResponse);
-    }
-    const response = validation.data;
-
-    const responseMsg = response.choices?.[0]?.message;
-    const responseContent = responseMsg?.content ?? responseMsg?.reasoning_content ?? null;
-    const finishReason = response.choices?.[0]?.stop_reason ?? "";
-    const finishReasonLowercase = finishReason.toLowerCase();
-    const isIncompleteResponse = finishReasonLowercase === "length" || !responseContent;
-    const promptTokens = response.usage?.inputTokens ?? -1;
-    const completionTokens = response.usage?.outputTokens ?? -1;
-    const maxTotalTokens = -1;
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent, tokenUsage };
+  protected getResponseExtractionConfig() {
+    return {
+      schema: DeepseekCompletionResponseSchema,
+      pathConfig: {
+        contentPath: "choices[0].message.content",
+        alternativeContentPath: "choices[0].message.reasoning_content",
+        promptTokensPath: "usage.inputTokens",
+        completionTokensPath: "usage.outputTokens",
+        stopReasonPath: "choices[0].stop_reason",
+        stopReasonValueForLength: "length",
+      },
+      providerName: "Deepseek",
+    };
   }
 }

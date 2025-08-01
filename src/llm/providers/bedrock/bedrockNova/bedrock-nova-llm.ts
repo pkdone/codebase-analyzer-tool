@@ -3,7 +3,6 @@ import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_NOVA } from "./bedrock-nova.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
 import { z } from "zod";
-import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
 /**
  * Zod schema for Nova completion response validation
@@ -70,23 +69,19 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
   }
 
   /**
-   * Extract the relevant information from the completion LLM specific response.
+   * Get the provider-specific response extraction configuration.
    */
-  protected extractCompletionModelSpecificResponse(llmResponse: unknown) {
-    const validation = NovaCompletionResponseSchema.safeParse(llmResponse);
-    if (!validation.success) {
-      throw new BadResponseContentLLMError("Invalid Nova response structure", llmResponse);
-    }
-    const response = validation.data;
-
-    const responseContent = response.output.message?.content[0].text ?? null;
-    const finishReason = response.stopReason ?? "";
-    const finishReasonLowercase = finishReason.toLowerCase();
-    const isIncompleteResponse = finishReasonLowercase === "max_tokens" || !responseContent;
-    const promptTokens = response.usage?.inputTokens ?? -1;
-    const completionTokens = response.usage?.outputTokens ?? -1;
-    const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent, tokenUsage };
+  protected getResponseExtractionConfig() {
+    return {
+      schema: NovaCompletionResponseSchema,
+      pathConfig: {
+        contentPath: "output.message.content[0].text",
+        promptTokensPath: "usage.inputTokens",
+        completionTokensPath: "usage.outputTokens",
+        stopReasonPath: "stopReason",
+        stopReasonValueForLength: "max_tokens",
+      },
+      providerName: "Nova",
+    };
   }
 }

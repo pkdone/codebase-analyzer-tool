@@ -3,7 +3,6 @@ import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_LLAMA, AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT } from "./bedrock-llama.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
 import { z } from "zod";
-import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
 /**
  * Zod schema for Llama completion response validation
@@ -53,23 +52,19 @@ You are a helpful software engineering and programming assistant, and you need t
   }
 
   /**
-   * Extract the relevant information from the completion LLM specific response.
+   * Get the provider-specific response extraction configuration.
    */
-  protected extractCompletionModelSpecificResponse(llmResponse: unknown) {
-    const validation = LlamaCompletionResponseSchema.safeParse(llmResponse);
-    if (!validation.success) {
-      throw new BadResponseContentLLMError("Invalid Llama response structure", llmResponse);
-    }
-    const response = validation.data;
-
-    const responseContent = response.generation ?? "";
-    const finishReason = response.stop_reason ?? "";
-    const finishReasonLowercase = finishReason.toLowerCase();
-    const isIncompleteResponse = finishReasonLowercase === "length" || !responseContent; // No content - assume prompt maxed out total tokens available
-    const promptTokens = response.prompt_token_count ?? -1;
-    const completionTokens = response.generation_token_count ?? -1;
-    const maxTotalTokens = -1;
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent, tokenUsage };
+  protected getResponseExtractionConfig() {
+    return {
+      schema: LlamaCompletionResponseSchema,
+      pathConfig: {
+        contentPath: "generation",
+        promptTokensPath: "prompt_token_count",
+        completionTokensPath: "generation_token_count",
+        stopReasonPath: "stop_reason",
+        stopReasonValueForLength: "length",
+      },
+      providerName: "Llama",
+    };
   }
 }

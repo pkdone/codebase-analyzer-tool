@@ -3,7 +3,6 @@ import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_CLAUDE } from "./bedrock-claude.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
 import { z } from "zod";
-import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
 /**
  * Zod schema for Claude completion response validation
@@ -61,23 +60,19 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   }
 
   /**
-   * Extract the relevant information from the completion LLM specific response.
+   * Get the provider-specific response extraction configuration.
    */
-  protected extractCompletionModelSpecificResponse(llmResponse: unknown) {
-    const validation = ClaudeCompletionResponseSchema.safeParse(llmResponse);
-    if (!validation.success) {
-      throw new BadResponseContentLLMError("Invalid Claude response structure", llmResponse);
-    }
-    const response = validation.data;
-
-    const responseContent = response.content?.[0]?.text ?? "";
-    const finishReason = response.stop_reason ?? "";
-    const finishReasonLowercase = finishReason.toLowerCase();
-    const isIncompleteResponse = finishReasonLowercase === "length" || !responseContent; // No content - assume prompt maxed out total tokens available
-    const promptTokens = response.usage?.input_tokens ?? -1;
-    const completionTokens = response.usage?.output_tokens ?? -1;
-    const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent, tokenUsage };
+  protected getResponseExtractionConfig() {
+    return {
+      schema: ClaudeCompletionResponseSchema,
+      pathConfig: {
+        contentPath: "content[0].text",
+        promptTokensPath: "usage.input_tokens",
+        completionTokensPath: "usage.output_tokens",
+        stopReasonPath: "stop_reason",
+        stopReasonValueForLength: "length",
+      },
+      providerName: "Claude",
+    };
   }
 }

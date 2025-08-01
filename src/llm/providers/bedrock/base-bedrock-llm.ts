@@ -21,6 +21,38 @@ import { z } from "zod";
 import { BadResponseContentLLMError } from "../../types/llm-errors.types";
 
 /**
+ * Configuration for extracting response data from different Bedrock provider response structures
+ */
+interface ResponsePathConfig {
+  /** Path to extract the main response content from the parsed response */
+  contentPath: string;
+  /** Path to extract the prompt token count */
+  promptTokensPath: string;
+  /** Path to extract the completion token count */
+  completionTokensPath: string;
+  /** Path to extract the stop/finish reason */
+  stopReasonPath: string;
+  /** The stop reason value that indicates the response was truncated due to length limits */
+  stopReasonValueForLength: string;
+  /** Optional secondary content path (for providers like Deepseek with reasoning_content) */
+  alternativeContentPath?: string;
+  /** Optional secondary stop reason path (for providers like Mistral with finish_reason) */
+  alternativeStopReasonPath?: string;
+}
+
+/**
+ * Complete configuration for response extraction including schema and provider information
+ */
+interface ResponseExtractionConfig {
+  /** Zod schema to validate the response structure */
+  schema: z.ZodType;
+  /** Path configuration for extracting data from the response */
+  pathConfig: ResponsePathConfig;
+  /** Provider name for error messages */
+  providerName: string;
+}
+
+/**
  * Zod schema for Bedrock embeddings response validation
  */
 const BedrockEmbeddingsResponseSchema = z.object({
@@ -97,7 +129,13 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     if (taskType === LLMPurpose.EMBEDDINGS) {
       return this.extractEmbeddingModelSpecificResponse(llmResponse);
     } else {
-      return this.extractCompletionModelSpecificResponse(llmResponse);
+      const config = this.getResponseExtractionConfig();
+      return this.extractGenericCompletionResponse(
+        llmResponse,
+        config.schema,
+        config.pathConfig,
+        config.providerName,
+      );
     }
   }
 
@@ -116,7 +154,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     if (taskType === LLMPurpose.EMBEDDINGS) {
       body = JSON.stringify({
         inputText: prompt,
-        //dimensions: this.getEmbeddedModelDimensions(),  // Throws error but when moving to Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
+        //dimensions: this.getEmbeddedModelDimensions(),  // Throws error even though Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
       });
     } else {
       body = this.buildCompletionModelSpecificParameters(modelKey, prompt, options);
@@ -180,6 +218,79 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
+   * Generic helper function to extract completion response data from various Bedrock provider responses.
+   * This eliminates code duplication across different Bedrock provider implementations.
+   *
+   * @param llmResponse The raw LLM response object
+   * @param schema The Zod schema to validate the response structure
+   * @param pathConfig Configuration object mapping standard fields to provider-specific response paths
+   * @param providerName The name of the provider (for error messages)
+   * @returns Standardized LLMImplSpecificResponseSummary object
+   */
+  protected extractGenericCompletionResponse(
+    llmResponse: unknown,
+    schema: z.ZodType,
+    pathConfig: ResponsePathConfig,
+    providerName: string,
+  ): LLMImplSpecificResponseSummary {
+    const validation = schema.safeParse(llmResponse);
+    if (!validation.success)
+      throw new BadResponseContentLLMError(
+        `Invalid ${providerName} response structure`,
+        llmResponse,
+      );
+    const response = validation.data as Record<string, unknown>;
+    let responseContent = this.getNestedValue(response, pathConfig.contentPath);
+    if (!responseContent && pathConfig.alternativeContentPath)
+      responseContent = this.getNestedValue(response, pathConfig.alternativeContentPath);
+    const responseContentStr = typeof responseContent === "string" ? responseContent : "";
+    let finishReason = this.getNestedValue(response, pathConfig.stopReasonPath);
+    if (!finishReason && pathConfig.alternativeStopReasonPath)
+      finishReason = this.getNestedValue(response, pathConfig.alternativeStopReasonPath);
+    const finishReasonStr = typeof finishReason === "string" ? finishReason : "";
+    const finishReasonLowercase = finishReasonStr.toLowerCase();
+    const isIncompleteResponse =
+      finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
+      !responseContentStr;
+    const promptTokensRaw = this.getNestedValue(response, pathConfig.promptTokensPath);
+    const completionTokensRaw = this.getNestedValue(response, pathConfig.completionTokensPath);
+    const promptTokens = typeof promptTokensRaw === "number" ? promptTokensRaw : -1;
+    const completionTokens = typeof completionTokensRaw === "number" ? completionTokensRaw : -1;
+    const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
+    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+    return { isIncompleteResponse, responseContent: responseContentStr, tokenUsage };
+  }
+
+  /**
+   * Helper function to safely get a nested property value from an object using a dot-notation path.
+   * @param obj The object to extract the value from
+   * @param path The dot-notation path (e.g., "response.choices[0].message.content")
+   * @returns The value at the specified path, or undefined if not found
+   */
+  private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
+    return path.split(".").reduce((current: unknown, key: string) => {
+      if (current === null || current === undefined) return undefined;
+      const arrayRegex = /^(\w+)\[(\d+)\]$/; // Handle array notation like "choices[0]"
+      const arrayMatch = arrayRegex.exec(key);
+
+      if (arrayMatch) {
+        const [, arrayKey, indexStr] = arrayMatch;
+        const index = parseInt(indexStr, 10);
+        const currentObj = current as Record<string, unknown>;
+        const arrayValue = currentObj[arrayKey];
+        if (Array.isArray(arrayValue)) {
+          return arrayValue[index];
+        }
+        return undefined;
+      }
+
+      // Handle simple property access
+      const currentObj = current as Record<string, unknown>;
+      return currentObj[key];
+    }, obj);
+  }
+
+  /**
    * Abstract method to be overriden. Assemble the AWS Bedrock API parameters structure for the
    * specific completions model hosted on Bedroc.
    */
@@ -190,9 +301,8 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   ): string;
 
   /**
-   * Extract the relevant information from the completion LLM specific response.
+   * Abstract method to get the provider-specific response extraction configuration.
+   * Each provider implementation should return their schema, path configuration, and provider name.
    */
-  protected abstract extractCompletionModelSpecificResponse(
-    llmResponse: unknown,
-  ): LLMImplSpecificResponseSummary;
+  protected abstract getResponseExtractionConfig(): ResponseExtractionConfig;
 }
