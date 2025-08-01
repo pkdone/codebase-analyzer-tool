@@ -5,5 +5,5 @@ export interface InsightsGenerator {
   /**
    * Generates insights and stores them in the database.
    */
-  generateSummariesBackIntoDB(): Promise<void>;
+  generateAndStoreInsights(): Promise<void>;
 }

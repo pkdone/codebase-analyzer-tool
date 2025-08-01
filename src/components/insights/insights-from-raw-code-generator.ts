@@ -46,7 +46,7 @@ export default class InsightsFromRawCodeGenerator implements InsightsGenerator {
   /**
    * Generate insights from raw code and store in the database
    */
-  async generateSummariesBackIntoDB(): Promise<void> {
+  async generateAndStoreInsights(): Promise<void> {
     const srcDirPath = this.env.CODEBASE_DIR_PATH.replace(appConfig.TRAILING_SLASH_PATTERN, "");
     const srcFilepaths = await findFilesRecursively(
       srcDirPath,

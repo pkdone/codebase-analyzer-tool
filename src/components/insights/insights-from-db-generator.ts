@@ -45,7 +45,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
    * the entities and processes for the application, storing the results
    * in the database.
    */
-  async generateSummariesBackIntoDB(): Promise<void> {
+  async generateAndStoreInsights(): Promise<void> {
     const sourceFileSummaries = await this.buildSourceFileSummaryList();
 
     if (sourceFileSummaries.length === 0) {
