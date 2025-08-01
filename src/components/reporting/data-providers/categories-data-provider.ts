@@ -27,13 +27,13 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
 
 // Define valid category keys that can be used for data fetching, excluding appDescription
 // This creates a type-safe readonly array of the valid keys
-const VALID_CATEGORY_KEYS = AppSummaryCategories.options.filter(
+const REPORTABLE_INSIGHT_CATEGORIES = AppSummaryCategories.options.filter(
   (key): key is Exclude<typeof AppSummaryCategories._type, typeof appConfig.APP_DESCRIPTION_KEY> =>
     key !== appConfig.APP_DESCRIPTION_KEY,
 );
 
 // Type for the valid category keys
-type ValidCategoryKey = (typeof VALID_CATEGORY_KEYS)[number];
+type ValidCategoryKey = (typeof REPORTABLE_INSIGHT_CATEGORIES)[number];
 
 /**
  * Data provider responsible for aggregating categorized data for reports.
@@ -53,9 +53,9 @@ export class CategoriesDataProvider {
   ): Promise<{ category: string; label: string; data: AppSummaryNameDescArray }[]> {
     const allCategoryData = await this.appSummariesRepository.getProjectAppSummaryFields(
       projectName,
-      VALID_CATEGORY_KEYS,
+      REPORTABLE_INSIGHT_CATEGORIES,
     );
-    const results = VALID_CATEGORY_KEYS.map((category: ValidCategoryKey) => {
+    const results = REPORTABLE_INSIGHT_CATEGORIES.map((category: ValidCategoryKey) => {
       const label = summaryCategoriesConfig[category].label;
       const fieldData = allCategoryData?.[category];
       const data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];
