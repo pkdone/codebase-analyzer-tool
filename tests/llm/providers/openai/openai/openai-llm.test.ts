@@ -138,7 +138,7 @@ describe("OpenAI LLM Provider", () => {
 
       mockOpenAIClient.embeddings.create.mockResolvedValue(mockEmbeddingResponse as any);
 
-      const result = await (openAILLM as any).invokeImplementationSpecificEmbeddingsLLM({
+      const result = await (openAILLM as any).invokeEmbeddingsLLM({
         model: "text-embedding-ada-002",
         input: "test",
       });
@@ -162,7 +162,7 @@ describe("OpenAI LLM Provider", () => {
 
       mockOpenAIClient.embeddings.create.mockResolvedValue(mockEmbeddingResponse as any);
 
-      const result = await (openAILLM as any).invokeImplementationSpecificEmbeddingsLLM({
+      const result = await (openAILLM as any).invokeEmbeddingsLLM({
         model: "text-embedding-ada-002",
         input: "test",
       });
@@ -190,7 +190,7 @@ describe("OpenAI LLM Provider", () => {
 
       mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse as any);
 
-      const result = await (openAILLM as any).invokeImplementationSpecificCompletionLLM({
+      const result = await (openAILLM as any).invokeCompletionLLM({
         model: "gpt-4",
         messages: [{ role: "user", content: "test" }],
       });
@@ -223,7 +223,7 @@ describe("OpenAI LLM Provider", () => {
 
       mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse as any);
 
-      const result = await (openAILLM as any).invokeImplementationSpecificCompletionLLM({
+      const result = await (openAILLM as any).invokeCompletionLLM({
         model: "gpt-4",
         messages: [{ role: "user", content: "test" }],
       });
@@ -249,7 +249,7 @@ describe("OpenAI LLM Provider", () => {
 
       mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse as any);
 
-      const result = await (openAILLM as any).invokeImplementationSpecificCompletionLLM({
+      const result = await (openAILLM as any).invokeCompletionLLM({
         model: "gpt-4",
         messages: [{ role: "user", content: "test" }],
       });
@@ -272,7 +272,7 @@ describe("OpenAI LLM Provider", () => {
 
       mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse as any);
 
-      const result = await (openAILLM as any).invokeImplementationSpecificCompletionLLM({
+      const result = await (openAILLM as any).invokeCompletionLLM({
         model: "gpt-4",
         messages: [{ role: "user", content: "test" }],
       });

@@ -140,35 +140,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
-   * Assemble the AWS Bedrock API parameters structure for embeddings and completions models with
-   * the prompt.
-   */
-  protected buildFullLLMParameters(
-    taskType: LLMPurpose,
-    modelKey: string,
-    prompt: string,
-    options?: LLMCompletionOptions,
-  ) {
-    let body;
-
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      body = JSON.stringify({
-        inputText: prompt,
-        //dimensions: this.getEmbeddedModelDimensions(),  // Throws error even though Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
-      });
-    } else {
-      body = this.buildCompletionModelSpecificParameters(modelKey, prompt, options);
-    }
-
-    return {
-      modelId: this.llmModelsMetadata[modelKey].urn,
-      contentType: llmConfig.MIME_TYPE_JSON,
-      accept: llmConfig.MIME_TYPE_ANY,
-      body,
-    };
-  }
-
-  /**
    * Extract the relevant information from the LLM specific response.
    */
   protected extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
@@ -218,6 +189,35 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
+   * Assemble the AWS Bedrock API parameters structure for embeddings and completions models with
+   * the prompt.
+   */
+  private buildFullLLMParameters(
+    taskType: LLMPurpose,
+    modelKey: string,
+    prompt: string,
+    options?: LLMCompletionOptions,
+  ) {
+    let body;
+
+    if (taskType === LLMPurpose.EMBEDDINGS) {
+      body = JSON.stringify({
+        inputText: prompt,
+        //dimensions: this.getEmbeddedModelDimensions(),  // Throws error even though Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
+      });
+    } else {
+      body = this.buildCompletionModelSpecificParameters(modelKey, prompt, options);
+    }
+
+    return {
+      modelId: this.llmModelsMetadata[modelKey].urn,
+      contentType: llmConfig.MIME_TYPE_JSON,
+      accept: llmConfig.MIME_TYPE_ANY,
+      body,
+    };
+  }
+
+  /**
    * Generic helper function to extract completion response data from various Bedrock provider responses.
    * This eliminates code duplication across different Bedrock provider implementations.
    *
@@ -227,7 +227,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * @param providerName The name of the provider (for error messages)
    * @returns Standardized LLMImplSpecificResponseSummary object
    */
-  protected extractGenericCompletionResponse(
+  private extractGenericCompletionResponse(
     llmResponse: unknown,
     schema: z.ZodType,
     pathConfig: ResponsePathConfig,

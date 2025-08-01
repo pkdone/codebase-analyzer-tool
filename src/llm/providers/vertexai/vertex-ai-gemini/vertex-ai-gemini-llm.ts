@@ -110,16 +110,47 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     options?: LLMCompletionOptions,
   ) {
     if (taskType === LLMPurpose.EMBEDDINGS) {
-      return await this.invokeImplementationSpecificEmbeddingsLLM(modelKey, prompt);
+      return await this.invokeEmbeddingsLLM(modelKey, prompt);
     } else {
-      return this.invokeImplementationSpecificCompletionLLM(modelKey, prompt, options);
+      return this.invokeCompletionLLM(modelKey, prompt, options);
     }
+  }
+
+  /**
+   * See if the respnse error indicated that the LLM was overloaded.
+   */
+  protected isLLMOverloaded(error: unknown) {
+    if (error instanceof Error) {
+      const errMsg = getErrorText(error).toLowerCase() || "";
+      if (error instanceof GoogleApiError && error.code === 429) return true;
+      if (error instanceof ClientError && errMsg.includes("429 too many requests")) return true;
+
+      if (
+        errMsg.includes("reason given: recitation") ||
+        errMsg.includes("exception posting request to model") ||
+        errMsg.includes("internal server error") ||
+        errMsg.includes("deadline exceeded")
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Check to see if error code indicates potential token limit has been execeeded - this should
+   * not occur with error object thrown so always returns false
+   */
+  protected isTokenLimitExceeded(_error: unknown) {
+    void _error; // Avoid linting error
+    return false;
   }
 
   /**
    * Invoke the actuall LLM's embedding API directly.
    */
-  protected async invokeImplementationSpecificEmbeddingsLLM(modelKey: string, prompt: string) {
+  private async invokeEmbeddingsLLM(modelKey: string, prompt: string) {
     // Invoke LLM
     const fullParameters = this.buildFullEmebddingsLLMParameters(modelKey, prompt);
     const llmResponses = await this.embeddingsApiClient.predict(fullParameters);
@@ -141,7 +172,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   /**
    * Invoke the actuall LLM's completion API directly.
    */
-  protected async invokeImplementationSpecificCompletionLLM(
+  private async invokeCompletionLLM(
     modelKey: string,
     prompt: string,
     options?: LLMCompletionOptions,
@@ -176,37 +207,6 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     const maxTotalTokens = -1; // Not "totalTokenCount" as that is total of prompt + cpompletion tokens tokens and not the max limit
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent, tokenUsage };
-  }
-
-  /**
-   * See if the respnse error indicated that the LLM was overloaded.
-   */
-  protected isLLMOverloaded(error: unknown) {
-    if (error instanceof Error) {
-      const errMsg = getErrorText(error).toLowerCase() || "";
-      if (error instanceof GoogleApiError && error.code === 429) return true;
-      if (error instanceof ClientError && errMsg.includes("429 too many requests")) return true;
-
-      if (
-        errMsg.includes("reason given: recitation") ||
-        errMsg.includes("exception posting request to model") ||
-        errMsg.includes("internal server error") ||
-        errMsg.includes("deadline exceeded")
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Check to see if error code indicates potential token limit has been execeeded - this should
-   * not occur with error object thrown so always returns false
-   */
-  protected isTokenLimitExceeded(_error: unknown) {
-    void _error; // Avoid linting error
-    return false;
   }
 
   /**

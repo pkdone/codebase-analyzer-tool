@@ -6,40 +6,6 @@ import { llmConfig } from "../../llm.config";
 import { BadResponseContentLLMError } from "../../types/llm-errors.types";
 
 /**
- * Type guard to check if the response from OpenAI is a valid ChatCompletion
- */
-function isChatCompletion(response: unknown): response is OpenAI.ChatCompletion {
-  if (!response || typeof response !== "object") return false;
-  const resp = response as Record<string, unknown>;
-  return (
-    "choices" in resp &&
-    Array.isArray(resp.choices) &&
-    resp.choices.length > 0 &&
-    typeof resp.choices[0] === "object" &&
-    resp.choices[0] !== null &&
-    "message" in resp.choices[0]
-  );
-}
-
-/**
- * Type guard to check if parameters are for embedding requests
- */
-function isEmbeddingParams(
-  params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams,
-): params is OpenAI.EmbeddingCreateParams {
-  return "input" in params && !("messages" in params);
-}
-
-/**
- * Type guard to check if parameters are for completion requests
- */
-function isCompletionParams(
-  params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams,
-): params is OpenAI.Chat.ChatCompletionCreateParams {
-  return "messages" in params && !("input" in params);
-}
-
-/**
  * Abstract base class for all OpenAI-based LLM providers.
  */
 export default abstract class BaseOpenAILLM extends AbstractLLM {
@@ -55,68 +21,15 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
   ) {
     const params = this.buildFullLLMParameters(taskType, modelKey, prompt, options);
 
-    if (isEmbeddingParams(params)) {
-      return this.invokeImplementationSpecificEmbeddingsLLM(params);
-    } else if (isCompletionParams(params)) {
-      return this.invokeImplementationSpecificCompletionLLM(params);
+    if (this.isEmbeddingParams(params)) {
+      return this.invokeEmbeddingsLLM(params);
+    } else if (this.isCompletionParams(params)) {
+      return this.invokeCompletionLLM(params);
     } else {
       throw new Error(
         "Generated LLM parameters did not match expected shape for embeddings or completions.",
       );
     }
-  }
-
-  /**
-   * Invoke the actuall LLM's embedding API directly.
-   */
-  protected async invokeImplementationSpecificEmbeddingsLLM(params: OpenAI.EmbeddingCreateParams) {
-    // Invoke LLM
-    const llmResponses = await this.getClient().embeddings.create(params);
-    const llmResponse = llmResponses.data[0];
-
-    // Capture response content
-    const responseContent = llmResponse.embedding;
-
-    // Capture finish reason
-    const isIncompleteResponse = !responseContent;
-
-    // Capture token usage
-    const promptTokens = llmResponses.usage.prompt_tokens;
-    const completionTokens = -1;
-    const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent, tokenUsage };
-  }
-
-  /**
-   * Invoke the actuall LLM's completion API directly.
-   */
-  protected async invokeImplementationSpecificCompletionLLM(
-    params: OpenAI.ChatCompletionCreateParams,
-  ) {
-    // Invoke LLM
-    const llmResponses = await this.getClient().chat.completions.create(params);
-    if (!isChatCompletion(llmResponses))
-      throw new BadResponseContentLLMError(
-        "Received an unexpected response type from OpenAI completions API",
-        llmResponses,
-      );
-    const llmResponse = llmResponses.choices[0];
-
-    // Capture response content
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const responseContent = llmResponse?.message?.content; // Using extra condition checking in case Open AI types say these should exists, but they don't happen to at runtime
-
-    // Capture finish reason
-    const finishReason = llmResponse.finish_reason;
-    const isIncompleteResponse = finishReason === "length" || !responseContent;
-
-    // Capture token usage
-    const promptTokens = llmResponses.usage?.prompt_tokens ?? -1;
-    const completionTokens = llmResponses.usage?.completion_tokens ?? -1;
-    const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
   /**
@@ -145,7 +58,7 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
    * Method to build the full LLM parameters for the given model and prompt.
    * This contains the common logic shared between OpenAI and Azure OpenAI providers.
    */
-  protected buildFullLLMParameters(
+  private buildFullLLMParameters(
     taskType: LLMPurpose,
     modelKey: string,
     prompt: string,
@@ -173,6 +86,91 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
 
       return params;
     }
+  }
+
+  /**
+   * Type guard to check if the response from OpenAI is a valid ChatCompletion
+   */
+  private isChatCompletion(response: unknown): response is OpenAI.ChatCompletion {
+    if (!response || typeof response !== "object") return false;
+    const resp = response as Record<string, unknown>;
+    return (
+      "choices" in resp &&
+      Array.isArray(resp.choices) &&
+      resp.choices.length > 0 &&
+      typeof resp.choices[0] === "object" &&
+      resp.choices[0] !== null &&
+      "message" in resp.choices[0]
+    );
+  }
+
+  /**
+   * Type guard to check if parameters are for embedding requests
+   */
+  private isEmbeddingParams(
+    params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams,
+  ): params is OpenAI.EmbeddingCreateParams {
+    return "input" in params && !("messages" in params);
+  }
+
+  /**
+   * Type guard to check if parameters are for completion requests
+   */
+  private isCompletionParams(
+    params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams,
+  ): params is OpenAI.Chat.ChatCompletionCreateParams {
+    return "messages" in params && !("input" in params);
+  }
+
+  /**
+   * Invoke the actuall LLM's embedding API directly.
+   */
+  private async invokeEmbeddingsLLM(params: OpenAI.EmbeddingCreateParams) {
+    // Invoke LLM
+    const llmResponses = await this.getClient().embeddings.create(params);
+    const llmResponse = llmResponses.data[0];
+
+    // Capture response content
+    const responseContent = llmResponse.embedding;
+
+    // Capture finish reason
+    const isIncompleteResponse = !responseContent;
+
+    // Capture token usage
+    const promptTokens = llmResponses.usage.prompt_tokens;
+    const completionTokens = -1;
+    const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
+    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+    return { isIncompleteResponse, responseContent, tokenUsage };
+  }
+
+  /**
+   * Invoke the actuall LLM's completion API directly.
+   */
+  private async invokeCompletionLLM(params: OpenAI.ChatCompletionCreateParams) {
+    // Invoke LLM
+    const llmResponses = await this.getClient().chat.completions.create(params);
+    if (!this.isChatCompletion(llmResponses))
+      throw new BadResponseContentLLMError(
+        "Received an unexpected response type from OpenAI completions API",
+        llmResponses,
+      );
+    const llmResponse = llmResponses.choices[0];
+
+    // Capture response content
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const responseContent = llmResponse?.message?.content; // Using extra condition checking in case Open AI types say these should exists, but they don't happen to at runtime
+
+    // Capture finish reason
+    const finishReason = llmResponse.finish_reason;
+    const isIncompleteResponse = finishReason === "length" || !responseContent;
+
+    // Capture token usage
+    const promptTokens = llmResponses.usage?.prompt_tokens ?? -1;
+    const completionTokens = llmResponses.usage?.completion_tokens ?? -1;
+    const maxTotalTokens = -1; // Not using "total_tokens" as that is total of prompt + completion tokens tokens and not the max limit
+    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+    return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
   /**
