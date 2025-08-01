@@ -23,7 +23,3 @@ export const jsonFilesConfig = {
   getCategoryFilename: (category: string): string => `${category}.json`,
 } as const;
 
-/**
- * Type for JSON file config to ensure type safety
- */
-export type JsonFilesConfig = typeof jsonFilesConfig;
