@@ -29,13 +29,13 @@ export class OneShotGenerateInsightsTask implements Task {
    * Execute the task - generates inline insights.
    */
   async execute(): Promise<void> {
-    await this.generateInlineInsights(this.env.CODEBASE_DIR_PATH, this.env.LLM);
+    await this.generateInsightsToFiles(this.env.CODEBASE_DIR_PATH, this.env.LLM);
   }
 
   /**
    * Generates inline insights.
    */
-  private async generateInlineInsights(srcDirPath: string, llmName: string): Promise<void> {
+  private async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<void> {
     const normalisedSrcDirPath = srcDirPath.replace(appConfig.TRAILING_SLASH_PATTERN, "");
     this.llmStatsReporter.displayLLMStatusSummary();
     await clearDirectory(appConfig.OUTPUT_DIR);
