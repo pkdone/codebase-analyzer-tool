@@ -31,7 +31,7 @@ export class RawCodeToInsightsFileGenerator {
   /**
    * Load prompts from files in the input folder
    */
-   async loadPrompts(): Promise<FileRequirementPrompt[]> {
+  async loadPrompts(): Promise<FileRequirementPrompt[]> {
     const inputDir = appConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 

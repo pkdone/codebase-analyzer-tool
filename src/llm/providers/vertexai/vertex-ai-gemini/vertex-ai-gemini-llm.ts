@@ -297,7 +297,8 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   ): number[][] {
     if (!predictions) return [];
     return predictions.flatMap((p) => {
-      const values = p.structValue?.fields?.embeddings.structValue?.fields?.values.listValue?.values ?? [];
+      const values =
+        p.structValue?.fields?.embeddings.structValue?.fields?.values.listValue?.values ?? [];
       const numbers = values.map((v) => v.numberValue ?? 0);
       return numbers.length > 0 ? [numbers] : [];
     });

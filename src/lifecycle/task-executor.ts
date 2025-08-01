@@ -34,11 +34,11 @@ export async function runTask(taskToken: symbol): Promise<void> {
     }
   } finally {
     console.log(`END: ${new Date().toISOString()}`);
-    
+
     // Resolve shutdown dependencies only if they're registered, handling errors gracefully
     let llmRouter: LLMRouter | undefined;
     let mongoDBClientFactory: MongoDBClientFactory | undefined;
-    
+
     if (container.isRegistered(TOKENS.LLMRouter)) {
       try {
         llmRouter = container.resolve<LLMRouter>(TOKENS.LLMRouter);
@@ -46,7 +46,7 @@ export async function runTask(taskToken: symbol): Promise<void> {
         console.error("Failed to resolve LLMRouter for shutdown:", error);
       }
     }
-    
+
     if (container.isRegistered(TOKENS.MongoDBClientFactory)) {
       try {
         mongoDBClientFactory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
@@ -54,7 +54,7 @@ export async function runTask(taskToken: symbol): Promise<void> {
         console.error("Failed to resolve MongoDBClientFactory for shutdown:", error);
       }
     }
-      
+
     await gracefulShutdown(llmRouter, mongoDBClientFactory);
   }
 }
