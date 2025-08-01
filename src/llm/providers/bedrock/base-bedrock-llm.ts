@@ -240,13 +240,16 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
         llmResponse,
       );
     const response = validation.data as Record<string, unknown>;
-    let responseContent = this.getNestedValue(response, pathConfig.contentPath);
-    if (!responseContent && pathConfig.alternativeContentPath)
-      responseContent = this.getNestedValue(response, pathConfig.alternativeContentPath);
+    const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
+      Boolean,
+    ) as string[];
+    const responseContent = this.getNestedValueWithFallbacks(response, contentPaths);
     const responseContentStr = typeof responseContent === "string" ? responseContent : "";
-    let finishReason = this.getNestedValue(response, pathConfig.stopReasonPath);
-    if (!finishReason && pathConfig.alternativeStopReasonPath)
-      finishReason = this.getNestedValue(response, pathConfig.alternativeStopReasonPath);
+    const stopReasonPaths = [
+      pathConfig.stopReasonPath,
+      pathConfig.alternativeStopReasonPath,
+    ].filter(Boolean) as string[];
+    const finishReason = this.getNestedValueWithFallbacks(response, stopReasonPaths);
     const finishReasonStr = typeof finishReason === "string" ? finishReason : "";
     const finishReasonLowercase = finishReasonStr.toLowerCase();
     const isIncompleteResponse =
@@ -259,6 +262,23 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent: responseContentStr, tokenUsage };
+  }
+
+  /**
+   * Helper function to get a nested property value from an object using multiple fallback paths.
+   * Tries each path in order and returns the first non-null/non-undefined value found.
+   * @param obj The object to extract the value from
+   * @param paths Array of dot-notation paths to try in order
+   * @returns The first value found at any of the specified paths, or undefined if none found
+   */
+  private getNestedValueWithFallbacks(obj: Record<string, unknown>, paths: string[]): unknown {
+    for (const path of paths) {
+      const value = this.getNestedValue(obj, path);
+      if (value !== null && value !== undefined) {
+        return value;
+      }
+    }
+    return undefined;
   }
 
   /**
