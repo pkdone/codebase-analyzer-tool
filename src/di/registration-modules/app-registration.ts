@@ -39,7 +39,7 @@ import { DBInitializerTask } from "../../tasks/db-initializer.task";
 // Additional imports for the insights generator registration
 import { EnvVars } from "../../env/env.types";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
-import { TaskRunnerConfig } from "../../lifecycle/task.types";
+import { TaskRunnerConfig } from "../../env/task.types";
 
 // LLM strategy and pipeline imports
 import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";

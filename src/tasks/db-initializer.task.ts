@@ -5,7 +5,7 @@ import { TOKENS } from "../di/tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/error-utils";
 import { createVectorSearchIndexDefinition } from "../common/mdb/mdb-utils";
-import { Task } from "../lifecycle/task.types";
+import { Task } from "../env/task.types";
 import * as sourceSchema from "../repositories/source/sources.model";
 import * as appSummarySchema from "../repositories/app-summary/app-summaries.model";
 

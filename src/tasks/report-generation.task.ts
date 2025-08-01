@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { Task } from "../lifecycle/task.types";
+import { Task } from "../env/task.types";
 import { TOKENS } from "../di/tokens";
 import { appConfig } from "../config/app.config";
 import { clearDirectory } from "../common/utils/fs-utils";

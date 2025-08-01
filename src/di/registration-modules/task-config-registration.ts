@@ -1,5 +1,5 @@
 import { TOKENS } from "../tokens";
-import { TaskRunnerConfig } from "../../lifecycle/task.types";
+import { TaskRunnerConfig } from "../../env/task.types";
 
 /**
  * Task configuration mapping that defines what resources each task requires

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
 import { gracefulShutdown } from "./shutdown";
 import LLMRouter from "../llm/core/llm-router";
-import { Task } from "./task.types";
+import { Task } from "../env/task.types";
 import { container } from "../di/container";
 import { TOKENS } from "../di/tokens";
 

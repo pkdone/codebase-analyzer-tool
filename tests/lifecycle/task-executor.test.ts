@@ -1,7 +1,7 @@
 import { runTask } from "../../src/lifecycle/task-executor";
 import { container } from "../../src/di/container";
 import { TOKENS } from "../../src/di/tokens";
-import { Task } from "../../src/lifecycle/task.types";
+import { Task } from "../../src/env/task.types";
 import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
 import LLMRouter from "../../src/llm/core/llm-router";
 import { gracefulShutdown } from "../../src/lifecycle/shutdown";

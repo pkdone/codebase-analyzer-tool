@@ -4,7 +4,7 @@ import { readAndFilterLines } from "../common/utils/fs-utils";
 import { getErrorText } from "../common/utils/error-utils";
 import CodeQuestioner from "../components/querying/code-questioner";
 import { appConfig } from "../config/app.config";
-import { Task } from "../lifecycle/task.types";
+import { Task } from "../env/task.types";
 import { TOKENS } from "../di/tokens";
 
 /**

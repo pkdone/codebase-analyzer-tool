@@ -3,7 +3,7 @@ import { injectable, inject } from "tsyringe";
 import type { InsightsGenerator } from "../components/insights/insights-generator.interface";
 
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
-import { Task } from "../lifecycle/task.types";
+import { Task } from "../env/task.types";
 import { TOKENS } from "../di/tokens";
 
 /**

@@ -3,7 +3,7 @@ import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../components/capture/codebase-to-db-loader";
 import type LLMRouter from "../llm/core/llm-router";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
-import { Task } from "../lifecycle/task.types";
+import { Task } from "../env/task.types";
 import type { EnvVars } from "../env/env.types";
 import type { DBInitializerTask } from "./db-initializer.task";
 import { databaseConfig } from "../config/database.config";

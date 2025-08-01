@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import McpHttpServer from "../components/api/mcpServing/mcp-http-server";
-import { Task } from "../lifecycle/task.types";
+import { Task } from "../env/task.types";
 import { TOKENS } from "../di/tokens";
 
 /**
