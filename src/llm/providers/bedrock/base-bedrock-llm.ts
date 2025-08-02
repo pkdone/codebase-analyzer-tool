@@ -140,26 +140,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
-   * Extract the relevant information from the LLM specific response.
-   */
-  protected extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
-    const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
-    if (!validation.success)
-      throw new BadResponseContentLLMError(
-        "Invalid Bedrock embeddings response structure",
-        llmResponse,
-      );
-    const response = validation.data;
-    const responseContent = response.embedding ?? [];
-    const isIncompleteResponse = !responseContent; // If no content assume prompt maxed out total tokens available
-    const promptTokens = response.inputTextTokenCount ?? -1;
-    const completionTokens = response.results?.[0]?.tokenCount ?? -1;
-    const maxTotalTokens = -1;
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent, tokenUsage };
-  }
-
-  /**
    * See if the contents of the responses indicate inability to fully process request due to
    * overloading.
    */
@@ -186,6 +166,26 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     ];
     const lowercaseContent = getErrorText(error).toLowerCase();
     return errorKeywords.some((keyword) => lowercaseContent.includes(keyword));
+  }
+
+  /**
+   * Extract the relevant information from the LLM specific response.
+   */
+  protected extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
+    const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
+    if (!validation.success)
+      throw new BadResponseContentLLMError(
+        "Invalid Bedrock embeddings response structure",
+        llmResponse,
+      );
+    const response = validation.data;
+    const responseContent = response.embedding ?? [];
+    const isIncompleteResponse = !responseContent; // If no content assume prompt maxed out total tokens available
+    const promptTokens = response.inputTextTokenCount ?? -1;
+    const completionTokens = response.results?.[0]?.tokenCount ?? -1;
+    const maxTotalTokens = -1;
+    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
+    return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
   /**
