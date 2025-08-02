@@ -60,14 +60,16 @@ export async function registerAppDependencies(config: TaskRunnerConfig): Promise
  * Registers repositories in the DI container
  */
 function registerRepositories(): void {
-  // Register repositories
-  container.register<SourcesRepository>(TOKENS.SourcesRepository, {
-    useClass: SourcesRepositoryImpl,
-  });
+  // Register repositories as singletons
+  container.registerSingleton<SourcesRepository>(
+    TOKENS.SourcesRepository,
+    SourcesRepositoryImpl,
+  );
 
-  container.register<AppSummariesRepository>(TOKENS.AppSummariesRepository, {
-    useClass: AppSummariesRepositoryImpl,
-  });
+  container.registerSingleton<AppSummariesRepository>(
+    TOKENS.AppSummariesRepository,
+    AppSummariesRepositoryImpl,
+  );
 
   console.log("Repositories registered");
 }
