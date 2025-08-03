@@ -4,7 +4,7 @@
  * projections revert to returning field types of 'unknown'.
  */
 import { z } from "zod";
-import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
+import { zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
 import { sourceSchema, sourceSummarySchema } from "../../schemas/sources.schema";
 
 /**
@@ -71,11 +71,4 @@ export interface ProjectedFileTypesCountAndLines {
   readonly fileType: string;
   readonly lines: number;
   readonly files: number;
-}
-
-/**
- * Generate JSON schema for source file records
- */
-export function getJSONSchema() {
-  return zodToJsonSchemaForMDB(sourceSchema.extend({ _id: zBsonObjectId }));
 }

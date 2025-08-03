@@ -15,6 +15,15 @@ import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { logMongoValidationErrorIfPresent, numbersToBsonDoubles } from "../../common/mdb/mdb-utils";
+import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
+import { sourceSchema } from "../../schemas/sources.schema";
+
+/**
+ * Generate JSON schema for source file records
+ */
+export function getJSONSchema() {
+  return zodToJsonSchemaForMDB(sourceSchema.extend({ _id: zBsonObjectId }));
+}
 
 /**
  * MongoDB implementation of the Sources repository

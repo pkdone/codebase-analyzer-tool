@@ -6,8 +6,8 @@ import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/error-utils";
 import { createVectorSearchIndexDefinition } from "../common/mdb/mdb-utils";
 import { Task } from "../env/task.types";
-import * as sourceSchema from "../repositories/source/sources.model";
-import * as appSummarySchema from "../repositories/app-summary/app-summaries.model";
+import { getJSONSchema as getSourceJSONSchema } from "../repositories/source/sources.repository";
+import { getJSONSchema as getAppSummaryJSONSchema } from "../repositories/app-summary/app-summaries.repository";
 
 // MongoDB error codes for duplicate key errors (including duplicate indexes).
 // @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey
@@ -57,11 +57,11 @@ export class DBInitializerTask implements Task {
   async ensureCollectionsReady(numDimensions: number) {
     await this.createCollectionWithValidator(
       this.sourcesCollection.collectionName,
-      sourceSchema.getJSONSchema(),
+      getSourceJSONSchema(),
     );
     await this.createCollectionWithValidator(
       this.appSummariesCollection.collectionName,
-      appSummarySchema.getJSONSchema(),
+      getAppSummaryJSONSchema(),
     );
     await this.createStandardIndexIfNotExists(this.sourcesCollection, {
       projectName: 1,
@@ -77,7 +77,7 @@ export class DBInitializerTask implements Task {
    */
   private async createCollectionWithValidator(
     collectionName: string,
-    jsonSchema: ReturnType<typeof sourceSchema.getJSONSchema>,
+    jsonSchema: object,
   ): Promise<void> {
     try {
       const collections = await this.db.listCollections({ name: collectionName }).toArray();

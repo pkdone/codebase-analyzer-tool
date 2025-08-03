@@ -4,7 +4,6 @@
  * revert to returning field types of 'unknown'.
  */
 import { z } from "zod";
-import { zodToJsonSchemaForMDB } from "../../common/mdb/zod-to-mdb-json-schema";
 import { nameDescSchema, appSummarySchema } from "../../schemas/app-summaries.schema";
 import { zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
 
@@ -39,10 +38,3 @@ export type ProjectedAppSummaryDescAndLLMProvider = Pick<
   z.infer<typeof appSummarySchema>,
   "appDescription" | "llmProvider"
 >;
-
-/**
- * Generate JSON schema for application summary records
- */
-export function getJSONSchema() {
-  return zodToJsonSchemaForMDB(appSummarySchema.extend({ _id: zBsonObjectId }));
-}
