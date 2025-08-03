@@ -19,7 +19,7 @@ import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
   getOverriddenCompletionCandidates,
   buildCompletionCandidates,
-} from "./processing/completions-models-retriever";
+} from "../processing/completions-models-retriever";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying

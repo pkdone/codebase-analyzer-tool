@@ -1,6 +1,6 @@
-import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
-import { logErrorMsg } from "../../../common/utils/error-utils";
-import { BadResponseContentLLMError } from "../../types/llm-errors.types";
+import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../types/llm.types";
+import { logErrorMsg } from "../../common/utils/error-utils";
+import { BadResponseContentLLMError } from "../types/llm-errors.types";
 
 /**
  * Type guard to validate that a value conforms to the LLMGeneratedContent type.

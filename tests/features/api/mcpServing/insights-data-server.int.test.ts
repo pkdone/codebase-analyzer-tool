@@ -6,18 +6,22 @@ import { MongoDBClientFactory } from "../../../../src/common/mdb/mdb-client-fact
 
 describe("AnalysisDataServer", () => {
   beforeAll(async () => {
+    console.log("beforeAll: Starting MongoDB connection setup...");
     // Bootstrap the container with MongoDB dependencies
     // This will register all necessary dependencies, including the real MongoDB client
     await bootstrapContainer({ requiresMongoDB: true, requiresLLM: false });
-  });
+    console.log("beforeAll: MongoDB connection setup complete.");
+  }, 20000); // Increase timeout for beforeAll hook to 20 seconds
 
   afterAll(async () => {
+    console.log("afterAll: Starting MongoDB cleanup...");
     // Clean up resources
     const mongoDBClientFactory = container.resolve<MongoDBClientFactory>(
       TOKENS.MongoDBClientFactory,
     );
     await mongoDBClientFactory.closeAll();
     container.clearInstances();
+    console.log("afterAll: MongoDB cleanup complete.");
   });
 
   it("should return an array of objects where each object has keys 'name', 'description', and 'keyBusinessActivities'", async () => {
@@ -55,5 +59,5 @@ describe("AnalysisDataServer", () => {
       expect(Array.isArray(item.keyBusinessActivities)).toBe(true);
       expect(Object.keys(item)).toHaveLength(3);
     });
-  }, 15000); // Increase timeout to 15 seconds for integration test
+  }, 30000); // Increase timeout to 30 seconds for integration test
 });

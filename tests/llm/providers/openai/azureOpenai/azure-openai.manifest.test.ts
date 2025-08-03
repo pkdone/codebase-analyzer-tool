@@ -3,7 +3,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
-import { calculateTokenUsageFromError } from "../../../../../src/llm/core/processing/error-parser";
+import { calculateTokenUsageFromError } from "../../../../../src/llm/processing/error-parser";
 import { azureOpenAIProviderManifest } from "../../../../../src/llm/providers/openai/azureOpenai/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../src/env/env";
 

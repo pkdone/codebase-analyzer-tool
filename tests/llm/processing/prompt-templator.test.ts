@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   createPromptFromConfig,
   DynamicPromptConfig,
-} from "../../../src/llm/core/processing/prompt-templator";
+} from "../../../src/llm/processing/prompt-templator";
 
 describe("prompt-utils", () => {
   describe("createPromptFromConfig", () => {
