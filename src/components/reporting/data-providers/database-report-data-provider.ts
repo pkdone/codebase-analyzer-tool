@@ -108,6 +108,7 @@ export class DatabaseReportDataProvider {
       result.list.push({
         path: item.filepath,
         type: type,
+        name: item.name,
         functionName: item.name,
         complexity: complexity,
         complexityReason: item.complexityReason || "N/A",

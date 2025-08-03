@@ -1,5 +1,7 @@
+import { procedureTriggerSchema } from "../../schemas/sources.schema";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
+import type { TypeOf } from "zod";
 
 // Enum for stored procedure complexity levels
 export enum Complexity {
@@ -18,6 +20,8 @@ export function isComplexity(value: unknown): value is Complexity {
   );
 }
 
+export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;
+
 // Interface for the database interaction list
 export interface ProcsAndTriggers {
   procs: {
@@ -25,30 +29,14 @@ export interface ProcsAndTriggers {
     low: number;
     medium: number;
     high: number;
-    list: {
-      path: string;
-      type: string;
-      functionName: string;
-      complexity: Complexity;
-      complexityReason: string;
-      linesOfCode: number;
-      purpose: string;
-    }[];
+    list: (ProcedureTrigger & { path: string; type: string; functionName: string })[];
   };
   trigs: {
     total: number;
     low: number;
     medium: number;
     high: number;
-    list: {
-      path: string;
-      type: string;
-      functionName: string;
-      complexity: Complexity;
-      complexityReason: string;
-      linesOfCode: number;
-      purpose: string;
-    }[];
+    list: (ProcedureTrigger & { path: string; type: string; functionName: string })[];
   };
 }
 
