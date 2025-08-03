@@ -9,7 +9,7 @@ import { runTask } from "./task-executor";
  * 2. Run phase: Execute the specified task using the bootstrapped container
  */
 export async function runApplication(taskToken: symbol): Promise<void> {
-  const sdkShutdownWorkaroundInterval = setInterval(() => {
+  const eventLoopKeepAliveInterval = setInterval(() => {
     // Prevent process from exiting prematurely by keeping the event loop active
     // See the comment in the finally block below
   }, 30000); // Empty timer every 30 seconds
@@ -24,6 +24,6 @@ export async function runApplication(taskToken: symbol): Promise<void> {
   } finally {
     // Known Node.js + AWS SDK pattern - many AWS SDK applications need this keep-alive pattern to
     // prevent premature termination during long-running cloud operations
-    clearInterval(sdkShutdownWorkaroundInterval);
+    clearInterval(eventLoopKeepAliveInterval);
   }
 }
