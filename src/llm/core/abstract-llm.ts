@@ -160,6 +160,13 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
+   * Whether the LLM provider needs to be forcefully shut down.
+   */
+  needsForcedShutdown(): boolean {
+    return false;
+  }
+
+  /**
    * Used for debugging purposes - prints the error type and message to the console.
    */
   protected debugUnhandledError(error: unknown, modelKey: string) {

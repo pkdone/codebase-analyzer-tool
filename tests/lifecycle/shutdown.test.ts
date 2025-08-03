@@ -1,7 +1,6 @@
 import { gracefulShutdown } from "../../src/lifecycle/shutdown";
 import LLMRouter from "../../src/llm/core/llm-router";
 import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
-import { llmConfig } from "../../src/llm/llm.config";
 
 // Mock the dependencies
 jest.mock("../../src/llm/core/llm-router");
@@ -26,7 +25,7 @@ describe("Shutdown Module", () => {
     // Create mock instances
     mockLLMRouter = {
       close: jest.fn().mockResolvedValue(undefined),
-      getModelFamily: jest.fn().mockReturnValue("OpenAI"),
+      providerNeedsForcedShutdown: jest.fn().mockReturnValue(false),
     } as unknown as LLMRouter;
 
     mockMongoDBClientFactory = {
@@ -51,7 +50,7 @@ describe("Shutdown Module", () => {
       await gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory);
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
-      expect(mockLLMRouter.getModelFamily).toHaveBeenCalledTimes(1);
+      expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1);
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
@@ -60,7 +59,7 @@ describe("Shutdown Module", () => {
       await gracefulShutdown(mockLLMRouter);
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
-      expect(mockLLMRouter.getModelFamily).toHaveBeenCalledTimes(1);
+      expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
 
@@ -77,16 +76,14 @@ describe("Shutdown Module", () => {
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
 
-    it("should apply Google Cloud specific workaround when using VertexAI", async () => {
-      // Set up the mock to return the problematic provider
-      (mockLLMRouter.getModelFamily as jest.Mock).mockReturnValue(
-        llmConfig.PROBLEMATIC_SHUTDOWN_LLM_PROVIDER,
-      );
+    it("should apply Google Cloud specific workaround when provider needs forced shutdown", async () => {
+      // Set up the mock to return true for forced shutdown
+      (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(true);
 
       await gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory);
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
-      expect(mockLLMRouter.getModelFamily).toHaveBeenCalledTimes(1);
+      expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1);
 
       // Verify that setTimeout was called with the specific workaround
@@ -95,24 +92,22 @@ describe("Shutdown Module", () => {
     });
 
     it("should not apply Google Cloud workaround for other providers", async () => {
-      // Set up the mock to return a different provider
-      (mockLLMRouter.getModelFamily as jest.Mock).mockReturnValue("OpenAI");
+      // Set up the mock to return false for forced shutdown
+      (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(false);
 
       await gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory);
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
-      expect(mockLLMRouter.getModelFamily).toHaveBeenCalledTimes(1);
+      expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1);
 
       // Verify that setTimeout was NOT called for non-problematic providers
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
 
-    it("should execute the timeout callback correctly for VertexAI", async () => {
-      // Set up the mock to return the problematic provider
-      (mockLLMRouter.getModelFamily as jest.Mock).mockReturnValue(
-        llmConfig.PROBLEMATIC_SHUTDOWN_LLM_PROVIDER,
-      );
+    it("should execute the timeout callback correctly for forced shutdown", async () => {
+      // Set up the mock to return true for forced shutdown
+      (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(true);
 
       await gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory);
 
@@ -159,22 +154,22 @@ describe("Shutdown Module", () => {
       );
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
-      expect(mockLLMRouter.getModelFamily).toHaveBeenCalledTimes(1);
+      expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1);
     });
 
-    it("should handle errors from llmRouter.getModelFamily gracefully", async () => {
-      const error = new Error("Failed to get model family");
-      (mockLLMRouter.getModelFamily as jest.Mock).mockImplementation(() => {
+    it("should handle errors from llmRouter.providerNeedsForcedShutdown gracefully", async () => {
+      const error = new Error("Failed to check for forced shutdown");
+      (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockImplementation(() => {
         throw error;
       });
 
       await expect(gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory)).rejects.toThrow(
-        "Failed to get model family",
+        "Failed to check for forced shutdown",
       );
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
-      expect(mockLLMRouter.getModelFamily).toHaveBeenCalledTimes(1);
+      expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -20,6 +20,7 @@ export interface LLMProvider {
   getModelsMetadata(): Readonly<Record<string, ResolvedLLMModelMetadata>>;
   getProviderSpecificConfig(): Readonly<Record<string, unknown>>;
   close(): Promise<void>;
+  needsForcedShutdown(): boolean;
 }
 
 /**

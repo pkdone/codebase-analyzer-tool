@@ -72,6 +72,13 @@ export default class LLMRouter {
   }
 
   /**
+   * Check if the underlying provider needs a forced shutdown.
+   */
+  providerNeedsForcedShutdown(): boolean {
+    return this.llm.needsForcedShutdown();
+  }
+
+  /**
    * Get the model family of the LLM implementation.
    */
   getModelFamily(): string {

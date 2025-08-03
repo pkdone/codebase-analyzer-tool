@@ -1,6 +1,5 @@
 import LLMRouter from "../llm/core/llm-router";
 import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
-import { llmConfig } from "../llm/llm.config";
 
 /**
  * Gracefully shutdown LLM connections and MongoDB connections with provider-specific cleanup handling.
@@ -16,8 +15,8 @@ export async function gracefulShutdown(
   if (llmRouter) {
     await llmRouter.close();
 
-    // Only apply Google Cloud specific workaround when using VertexAI
-    if (llmRouter.getModelFamily() === llmConfig.PROBLEMATIC_SHUTDOWN_LLM_PROVIDER) {
+    // Check if the provider requires a forced shutdown
+    if (llmRouter.providerNeedsForcedShutdown()) {
       // Known Google Cloud Node.js client limitation:
       // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
       // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190

@@ -83,6 +83,13 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   }
 
   /**
+   * Whether the LLM provider needs to be forcefully shut down.
+   */
+  override needsForcedShutdown(): boolean {
+    return true;
+  }
+
+  /**
    * Call close on underlying LLM client libraries to release resources.
    */
   override async close(): Promise<void> {
