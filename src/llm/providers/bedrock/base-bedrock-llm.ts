@@ -171,7 +171,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   /**
    * Extract the relevant information from the LLM specific response.
    */
-  protected extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
+  private extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
     const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
     if (!validation.success)
       throw new BadResponseContentLLMError(
