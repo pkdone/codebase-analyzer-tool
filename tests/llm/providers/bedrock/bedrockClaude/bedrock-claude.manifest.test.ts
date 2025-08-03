@@ -3,7 +3,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
-import { calculateTokenUsageFromError } from "../../../../../src/llm/processing/error-parser";
+import { calculateTokenUsageFromError } from "../../../../../src/llm/utils/error-parser";
 import { bedrockClaudeProviderManifest } from "../../../../../src/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../src/env/env";
 

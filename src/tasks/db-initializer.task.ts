@@ -6,8 +6,8 @@ import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/error-utils";
 import { createVectorSearchIndexDefinition } from "../common/mdb/mdb-utils";
 import { Task } from "../env/task.types";
-import { getJSONSchema as getSourceJSONSchema } from "../repositories/source/sources.repository";
-import { getJSONSchema as getAppSummaryJSONSchema } from "../repositories/app-summary/app-summaries.repository";
+import { getJSONSchema as getSourceJSONSchema } from "../repositories/source/sources.model";
+import { getJSONSchema as getAppSummaryJSONSchema } from "../repositories/app-summary/app-summaries.model";
 
 // MongoDB error codes for duplicate key errors (including duplicate indexes).
 // @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey

@@ -11,7 +11,7 @@ describe("AnalysisDataServer", () => {
     // This will register all necessary dependencies, including the real MongoDB client
     await bootstrapContainer({ requiresMongoDB: true, requiresLLM: false });
     console.log("beforeAll: MongoDB connection setup complete.");
-  }, 20000); // Increase timeout for beforeAll hook to 20 seconds
+  }, 60000); // Increase timeout for beforeAll hook to 60 seconds
 
   afterAll(async () => {
     console.log("afterAll: Starting MongoDB cleanup...");

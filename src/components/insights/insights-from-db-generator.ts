@@ -9,7 +9,7 @@ import type { SourcesRepository } from "../../repositories/source/sources.reposi
 import { TOKENS } from "../../di/tokens";
 import { summaryCategoriesConfig } from "./insights.config";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
-import { createPromptFromConfig } from "../../llm/processing/prompt-templator";
+import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import type { InsightsGenerator } from "./insights-generator.interface";
 import { PartialAppSummaryRecord, AppSummaryCategoryEnum } from "./insights.types";
 

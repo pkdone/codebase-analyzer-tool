@@ -10,15 +10,6 @@ import {
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-utils";
-import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
-import { appSummarySchema } from "../../schemas/app-summaries.schema";
-
-/**
- * Generate JSON schema for application summary records
- */
-export function getJSONSchema() {
-  return zodToJsonSchemaForMDB(appSummarySchema.extend({ _id: zBsonObjectId }));
-}
 
 /**
  * MongoDB implementation of the App Summaries repository

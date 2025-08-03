@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { DynamicPromptConfig } from "../../llm/processing/prompt-templator";
-import { createPromptFromConfig } from "../../llm/processing/prompt-templator";
+import { DynamicPromptConfig } from "../../llm/utils/prompt-templator";
+import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 
 /**
