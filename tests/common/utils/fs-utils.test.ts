@@ -5,7 +5,7 @@ import {
   readFile,
   writeFile,
   appendFile,
-  readDirContents,
+  listDirectoryEntries,
   clearDirectory,
   readAndFilterLines,
   findFilesRecursively,
@@ -64,7 +64,7 @@ describe("File System Utilities", () => {
         },
       });
 
-      const contents = await readDirContents("/test");
+      const contents = await listDirectoryEntries("/test");
       const names = contents.map((entry) => entry.name).sort();
       expect(names).toEqual(["file1.txt", "file2.txt", "subdir"]);
     });
@@ -90,7 +90,7 @@ describe("File System Utilities", () => {
       expect(gitignoreContent).toBe("*.log");
 
       // Check that other files are removed
-      const contents = await readDirContents("/test/dir");
+      const contents = await listDirectoryEntries("/test/dir");
       const names = contents.map((entry) => entry.name);
       expect(names).toEqual([".gitignore"]);
     });
@@ -104,7 +104,7 @@ describe("File System Utilities", () => {
 
       await clearDirectory("/test/dir");
 
-      const contents = await readDirContents("/test/dir");
+      const contents = await listDirectoryEntries("/test/dir");
       expect(contents).toHaveLength(1);
       expect(contents[0].name).toBe(".gitignore");
     });
@@ -116,7 +116,7 @@ describe("File System Utilities", () => {
 
       await clearDirectory("/test/newdir");
 
-      const contents = await readDirContents("/test/newdir");
+      const contents = await listDirectoryEntries("/test/newdir");
       expect(contents).toHaveLength(0);
     });
 
@@ -127,7 +127,7 @@ describe("File System Utilities", () => {
 
       await clearDirectory("/test/empty");
 
-      const contents = await readDirContents("/test/empty");
+      const contents = await listDirectoryEntries("/test/empty");
       expect(contents).toHaveLength(0);
     });
 
@@ -152,7 +152,7 @@ describe("File System Utilities", () => {
       await clearDirectory("/test/complex");
 
       // Only .gitignore should remain
-      const contents = await readDirContents("/test/complex");
+      const contents = await listDirectoryEntries("/test/complex");
       const names = contents.map((entry) => entry.name);
       expect(names).toEqual([".gitignore"]);
 

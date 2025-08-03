@@ -6,7 +6,7 @@ import { appConfig } from "../../config/app.config";
 import {
   readFile,
   writeFile,
-  readDirContents,
+  listDirectoryEntries,
   findFilesRecursively,
 } from "../../common/utils/fs-utils";
 import pLimit from "p-limit";
@@ -37,7 +37,7 @@ export class RawCodeToInsightsFileGenerator {
 
     try {
       await fs.mkdir(inputDir, { recursive: true });
-      const files = await readDirContents(inputDir);
+      const files = await listDirectoryEntries(inputDir);
       const promptFiles = files.filter((file) => appConfig.REQUIREMENTS_FILE_REGEX.test(file.name));
 
       for (const file of promptFiles) {

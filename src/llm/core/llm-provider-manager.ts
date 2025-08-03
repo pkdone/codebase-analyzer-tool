@@ -12,7 +12,7 @@ import { EnvVars } from "../../env/env.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";
-import { readDirContents } from "../../common/utils/fs-utils";
+import { listDirectoryEntries } from "../../common/utils/fs-utils";
 import { TOKENS } from "../../di/tokens";
 
 /**
@@ -55,7 +55,7 @@ export class LLMProviderManager {
     targetModelFamily: string,
   ): Promise<LLMProviderManifest | undefined> {
     try {
-      const entries = await readDirContents(searchPath);
+      const entries = await listDirectoryEntries(searchPath);
 
       // First, check if current directory has a manifest file
       const manifestFile = entries

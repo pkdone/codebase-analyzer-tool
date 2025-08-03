@@ -28,7 +28,7 @@ export async function appendFile(filepath: string, content: string): Promise<voi
 /**
  * Get the handle of the files in a directory
  */
-export async function readDirContents(dirpath: string): Promise<Dirent[]> {
+export async function listDirectoryEntries(dirpath: string): Promise<Dirent[]> {
   return fs.readdir(dirpath, { withFileTypes: true });
 }
 
