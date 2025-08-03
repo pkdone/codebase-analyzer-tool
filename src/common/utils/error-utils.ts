@@ -2,7 +2,12 @@
  * Log an error message and the error stack to the console.
  */
 export function logErrorMsgAndDetail(msg: string | null, error: unknown): void {
-  const messageParts = [...(msg ? [msg] : []), getErrorText(error), "-", getErrorStack(error)];
+  const messageParts = [
+    ...(msg ? [msg] : []),
+    formatErrorMessage(error),
+    "-",
+    getErrorStack(error),
+  ];
   console.error(...messageParts);
 }
 
@@ -37,20 +42,11 @@ function hasMessageProperty(obj: unknown): obj is { message: unknown } {
 /**
  * Get the error text from a thrown variable which may or may not be an Error object.
  */
-export function getErrorText(error: unknown): string {
+export function formatErrorMessage(error: unknown): string {
   const errType = error instanceof Error ? error.constructor.name : "<unknown-type>";
-
-  if (!error) {
-    return `${errType}. No error message available`;
-  }
-
-  if (error instanceof Error) {
-    return `${errType}. ${error.message}`;
-  }
-
-  if (hasMessageProperty(error)) {
-    return `${errType}. ${String(error.message)}`;
-  }
+  if (!error) return `${errType}. No error message available`;
+  if (error instanceof Error) return `${errType}. ${error.message}`;
+  if (hasMessageProperty(error)) return `${errType}. ${String(error.message)}`;
 
   // Use safe stringification to prevent circular reference errors
   try {
@@ -65,9 +61,7 @@ export function getErrorText(error: unknown): string {
  * that no stack trace is available.
  */
 export function getErrorStack(obj: unknown): string {
-  if (obj instanceof Error && obj.stack) {
-    return obj.stack;
-  }
+  if (obj instanceof Error && obj.stack) return obj.stack;
   // For non-errors or errors without a stack, just return a descriptive message.
   return `No stack trace available for the provided non-Error object.`;
 }

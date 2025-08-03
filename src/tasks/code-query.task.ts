@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readAndFilterLines } from "../common/utils/fs-utils";
-import { getErrorText } from "../common/utils/error-utils";
+import { formatErrorMessage } from "../common/utils/error-utils";
 import CodeQuestioner from "../components/querying/code-questioner";
 import { appConfig } from "../config/app.config";
 import { Task } from "../env/task.types";
@@ -47,7 +47,7 @@ export class CodebaseQueryTask implements Task {
         );
       } else {
         console.error(
-          `\n---------------\nFAILED QUESTION: ${question}\n\nERROR: ${getErrorText(result.reason)}\n---------------\n`,
+          `\n---------------\nFAILED QUESTION: ${question}\n\nERROR: ${formatErrorMessage(result.reason)}\n---------------\n`,
         );
       }
     });

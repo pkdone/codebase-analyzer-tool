@@ -1,4 +1,4 @@
-import { getErrorText, getErrorStack } from "../../../src/common/utils/error-utils";
+import { formatErrorMessage, getErrorStack } from "../../../src/common/utils/error-utils";
 
 describe("Error utilities", () => {
   describe("getErrorText", () => {
@@ -27,7 +27,7 @@ describe("Error utilities", () => {
     ];
 
     test.each(errorTextTestData)("with $description", ({ input, expected }) => {
-      expect(getErrorText(input)).toBe(expected);
+      expect(formatErrorMessage(input)).toBe(expected);
     });
 
     test("with circular reference object", () => {
@@ -35,7 +35,7 @@ describe("Error utilities", () => {
       const circularObj: Record<string, unknown> = { name: "test" };
       circularObj.self = circularObj;
 
-      const result = getErrorText(circularObj);
+      const result = formatErrorMessage(circularObj);
       expect(result).toBe("<unknown-type>. (Unserializable object)");
     });
   });

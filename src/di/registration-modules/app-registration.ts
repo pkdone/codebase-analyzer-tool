@@ -61,10 +61,7 @@ export async function registerAppDependencies(config: TaskRunnerConfig): Promise
  */
 function registerRepositories(): void {
   // Register repositories as singletons
-  container.registerSingleton<SourcesRepository>(
-    TOKENS.SourcesRepository,
-    SourcesRepositoryImpl,
-  );
+  container.registerSingleton<SourcesRepository>(TOKENS.SourcesRepository, SourcesRepositoryImpl);
 
   container.registerSingleton<AppSummariesRepository>(
     TOKENS.AppSummariesRepository,

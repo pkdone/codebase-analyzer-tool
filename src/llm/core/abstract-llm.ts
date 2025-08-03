@@ -17,7 +17,7 @@ import {
   LLMImplSpecificResponseSummary,
   LLMProviderSpecificConfig,
 } from "../providers/llm-provider.types";
-import { getErrorText, logErrorMsg } from "../../common/utils/error-utils";
+import { formatErrorMessage, logErrorMsg } from "../../common/utils/error-utils";
 import { convertTextToJSONAndOptionallyValidate } from "../utils/json-tools";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
@@ -172,7 +172,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   protected debugUnhandledError(error: unknown, modelKey: string) {
     if (error instanceof Error) {
       console.log(
-        `${error.constructor.name}: ${getErrorText(error)} - LLM: ${this.llmModelsMetadata[modelKey].urn}`,
+        `${error.constructor.name}: ${formatErrorMessage(error)} - LLM: ${this.llmModelsMetadata[modelKey].urn}`,
       );
     }
   }
@@ -232,7 +232,7 @@ export default abstract class AbstractLLM implements LLMProvider {
           tokensUsage: calculateTokenUsageFromError(
             modelKey,
             request,
-            getErrorText(error),
+            formatErrorMessage(error),
             this.llmModelsMetadata,
             this.errorPatterns,
           ),
@@ -288,8 +288,8 @@ export default abstract class AbstractLLM implements LLMProvider {
           generated: generatedContent,
         };
       } catch (error: unknown) {
-        context.responseContentParseError = getErrorText(error);
-        if (doWarnOnError) logErrorMsg(getErrorText(error));
+        context.responseContentParseError = formatErrorMessage(error);
+        if (doWarnOnError) logErrorMsg(formatErrorMessage(error));
         return { ...skeletonResult, status: LLMResponseStatus.INVALID };
       }
     } else {

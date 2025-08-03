@@ -20,7 +20,7 @@ import {
   LLMOutputFormat,
 } from "../../../types/llm.types";
 import {
-  getErrorText,
+  formatErrorMessage,
   logErrorMsgAndDetail,
   logWarningMsg,
 } from "../../../../common/utils/error-utils";
@@ -128,7 +128,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    */
   protected isLLMOverloaded(error: unknown) {
     if (error instanceof Error) {
-      const errMsg = getErrorText(error).toLowerCase() || "";
+      const errMsg = formatErrorMessage(error).toLowerCase() || "";
       if (error instanceof GoogleApiError && error.code === 429) return true;
       if (error instanceof ClientError && errMsg.includes("429 too many requests")) return true;
 

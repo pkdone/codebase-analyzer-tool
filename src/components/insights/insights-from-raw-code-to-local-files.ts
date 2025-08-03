@@ -10,7 +10,7 @@ import {
   findFilesRecursively,
 } from "../../common/utils/fs-utils";
 import pLimit from "p-limit";
-import { logErrorMsgAndDetail, getErrorText } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail, formatErrorMessage } from "../../common/utils/error-utils";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
@@ -121,7 +121,7 @@ export class RawCodeToInsightsFileGenerator {
       }
     } catch (error: unknown) {
       logErrorMsgAndDetail("Problem introspecting and processing source files", error);
-      response = getErrorText(error);
+      response = formatErrorMessage(error);
     }
 
     return response;
