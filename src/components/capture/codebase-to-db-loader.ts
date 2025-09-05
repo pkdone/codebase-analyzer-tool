@@ -99,11 +99,26 @@ export default class CodebaseToDBLoader {
     });
 
     const results = await Promise.allSettled(tasks);
+    let successCount = 0;
+    let failureCount = 0;
+    
     results.forEach((result, index) => {
       if (result.status === "rejected") {
+        failureCount++;
         logErrorMsgAndDetail(`Failed to process file: ${filepaths[index]}`, result.reason);
+      } else {
+        successCount++;
       }
     });
+    
+    const totalFiles = filepaths.length;
+    console.log(`Processed ${totalFiles} files. Succeeded: ${successCount}, Failed: ${failureCount}`);
+    
+    if (failureCount > 0) {
+      console.warn(`Warning: ${failureCount} files failed to process. Check error logs above for details.`);
+    } else {
+      console.log(`All ${totalFiles} files processed successfully.`);
+    }
   }
 
   /**
