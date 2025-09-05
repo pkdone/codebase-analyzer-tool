@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
-import type { AppSummariesRepository } from "../../../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummaryRecordWithId } from "../../../repositories/app-summary/app-summaries.model";
 import { TOKENS } from "../../../di/tokens";
 import type { AppStatistics } from "../report-gen.types";
 
@@ -13,31 +13,26 @@ export class AppStatisticsDataProvider {
 
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.AppSummariesRepository)
-    private readonly appSummariesRepository: AppSummariesRepository,
   ) {
     this.currentDate = new Date().toLocaleString();
   }
 
   /**
-   * Collect app statistics data
+   * Collect app statistics data using pre-fetched app summary data
    */
-  async getAppStatistics(projectName: string): Promise<AppStatistics> {
-    const appSummaryRecord =
-      await this.appSummariesRepository.getProjectAppSummaryDescAndLLMProvider(projectName);
-    if (!appSummaryRecord)
-      throw new Error(
-        "Unable to generate app statistics for a report because no app summary data exists - ensure you first run the scripts to process the source data and generate insights",
-      );
+  async getAppStatistics(
+    projectName: string,
+    appSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider">
+  ): Promise<AppStatistics> {
     return {
       projectName: projectName,
       currentDate: this.currentDate,
-      llmProvider: appSummaryRecord.llmProvider,
+      llmProvider: appSummaryData.llmProvider,
       fileCount: await this.sourcesRepository.getProjectFilesCount(projectName),
       linesOfCode: await this.sourcesRepository.getProjectTotalLinesOfCode(projectName),
       appDescription:
-        typeof appSummaryRecord.appDescription === "string"
-          ? appSummaryRecord.appDescription
+        typeof appSummaryData.appDescription === "string"
+          ? appSummaryData.appDescription
           : "No description available",
     };
   }

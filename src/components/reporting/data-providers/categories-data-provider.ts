@@ -1,10 +1,8 @@
-import { injectable, inject } from "tsyringe";
+import { injectable } from "tsyringe";
 import { appConfig } from "../../../config/app.config";
 import { summaryCategoriesConfig } from "../../insights/insights.config";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
-import type { AppSummariesRepository } from "../../../repositories/app-summary/app-summaries.repository.interface";
-import type { AppSummaryNameDescArray } from "../../../repositories/app-summary/app-summaries.model";
-import { TOKENS } from "../../../di/tokens";
+import type { AppSummaryNameDescArray, AppSummaryRecordWithId } from "../../../repositories/app-summary/app-summaries.model";
 
 /**
  * Type guard to check if a value is an AppSummaryNameDescArray
@@ -40,24 +38,15 @@ type ValidCategoryKey = (typeof REPORTABLE_INSIGHT_CATEGORIES)[number];
  */
 @injectable()
 export class CategoriesDataProvider {
-  constructor(
-    @inject(TOKENS.AppSummariesRepository)
-    private readonly appSummariesRepository: AppSummariesRepository,
-  ) {}
-
   /**
-   * Build categorized data for all categories.
+   * Build categorized data for all categories using pre-fetched app summary data.
    */
-  async getCategorizedData(
-    projectName: string,
-  ): Promise<{ category: string; label: string; data: AppSummaryNameDescArray }[]> {
-    const allCategoryData = await this.appSummariesRepository.getProjectAppSummaryFields(
-      projectName,
-      REPORTABLE_INSIGHT_CATEGORIES,
-    );
+  getCategorizedData(
+    appSummaryData: Pick<AppSummaryRecordWithId, ValidCategoryKey>,
+  ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
     const results = REPORTABLE_INSIGHT_CATEGORIES.map((category: ValidCategoryKey) => {
       const label = summaryCategoriesConfig[category].label;
-      const fieldData = allCategoryData?.[category];
+      const fieldData = appSummaryData[category];
       const data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];
       console.log(`Generated ${label} table`);
       return {

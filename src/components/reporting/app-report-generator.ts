@@ -6,6 +6,7 @@ import { DatabaseReportDataProvider } from "./data-providers/database-report-dat
 import { AppStatisticsDataProvider } from "./data-providers/app-statistics-data-provider";
 import { CategoriesDataProvider } from "./data-providers/categories-data-provider";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
+import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { ReportData } from "./report-gen.types";
 import path from "path";
 
@@ -21,6 +22,7 @@ export default class AppReportGenerator {
    */
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
+    @inject(TOKENS.AppSummariesRepository) private readonly appSummariesRepository: AppSummariesRepository,
     @inject(TOKENS.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
     @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
     @inject(TOKENS.DatabaseReportDataProvider)
@@ -39,14 +41,38 @@ export default class AppReportGenerator {
     outputDir: string,
     outputFilename: string,
   ): Promise<void> {
-    const [appStats, fileTypesData, categorizedData, dbInteractions, procsAndTriggers] =
+    // Consolidate all required app summary fields in a single query
+    // This includes fields needed by both AppStatisticsDataProvider and CategoriesDataProvider
+    const allRequiredAppSummaryFields = [
+      "appDescription",
+      "llmProvider", 
+      "technologies",
+      "businessProcesses",
+      "boundedContexts",
+      "aggregates",
+      "entities",
+      "repositories",
+      "potentialMicroservices",
+    ];
+    
+    const [appSummaryData, fileTypesData, dbInteractions, procsAndTriggers] =
       await Promise.all([
-        this.appStatsDataProvider.getAppStatistics(projectName),
+        this.appSummariesRepository.getProjectAppSummaryFields(projectName, allRequiredAppSummaryFields),
         this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
-        this.categoriesDataProvider.getCategorizedData(projectName),
         this.databaseDataProvider.getDatabaseInteractions(projectName),
         this.databaseDataProvider.getStoredProceduresAndTriggers(projectName),
       ]);
+    
+    if (!appSummaryData) {
+      throw new Error(
+        "Unable to generate report because no app summary data exists - ensure you first run the scripts to process the source data and generate insights"
+      );
+    }
+    
+    // Generate data using consolidated app summary data
+    const appStats = await this.appStatsDataProvider.getAppStatistics(projectName, appSummaryData);
+    const categorizedData = this.categoriesDataProvider.getCategorizedData(appSummaryData);
+    
     const reportData: ReportData = {
       appStats,
       fileTypesData,
