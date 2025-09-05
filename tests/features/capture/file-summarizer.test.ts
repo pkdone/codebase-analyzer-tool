@@ -1,7 +1,6 @@
 import "reflect-metadata";
 import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
-import { FileHandlerFactory } from "../../../src/components/capture/file-handler-factory";
-import { FileHandler } from "../../../src/components/capture/file-handler";
+import { PromptConfigFactory } from "../../../src/components/capture/file-handler-factory";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../../src/llm/types/llm-errors.types";
@@ -131,7 +130,7 @@ const mockLogErrorMsgAndDetail = errorUtils.logErrorMsgAndDetail as jest.MockedF
 describe("FileSummarizer", () => {
   let fileSummarizer: FileSummarizer;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let mockFileHandlerFactory: jest.Mocked<FileHandlerFactory>;
+  let mockPromptConfigFactory: jest.Mocked<PromptConfigFactory>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -141,57 +140,58 @@ describe("FileSummarizer", () => {
       executeCompletion: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<LLMRouter>;
 
-    // Create mock FileHandlerFactory
-    mockFileHandlerFactory = {
-      createHandler: jest.fn(),
-    } as unknown as jest.Mocked<FileHandlerFactory>;
+    // Create mock PromptConfigFactory
+    mockPromptConfigFactory = {
+      createConfig: jest.fn(),
+    } as unknown as jest.Mocked<PromptConfigFactory>;
 
-    // Set up the factory to return the mock handler with proper type-based behavior
-    mockFileHandlerFactory.createHandler.mockImplementation((filepath: string, type: string) => {
-      // Determine the expected prompt based on file type (similar to real FileHandlerFactory logic)
-      let promptType = "project file content";
+    // Set up the factory to return the mock config with proper type-based behavior
+    mockPromptConfigFactory.createConfig.mockImplementation((filepath: string, type: string) => {
+      // Determine the expected prompt based on file type (similar to real PromptConfigFactory logic)
+      let contentDesc = "project file content";
 
       // Map file types to expected prompts (matching the test expectations)
       // Handle case variations by normalizing to lowercase
       const normalizedType = type.toLowerCase();
       if (normalizedType === "java") {
-        promptType = "Java code";
+        contentDesc = "Java code";
       } else if (
         normalizedType === "js" ||
         normalizedType === "javascript" ||
         normalizedType === "ts" ||
         normalizedType === "typescript"
       ) {
-        promptType = "JavaScript/TypeScript code";
+        contentDesc = "JavaScript/TypeScript code";
       } else if (normalizedType === "sql" || normalizedType === "ddl") {
-        promptType = "database DDL/DML/SQL code";
+        contentDesc = "database DDL/DML/SQL code";
       } else if (normalizedType === "md" || normalizedType === "markdown") {
-        promptType = "Markdown content";
+        contentDesc = "Markdown content";
       }
 
       // Handle filename-based mappings
       const filename = filepath.split("/").pop()?.toLowerCase();
       if (filename === "readme.md" || filename === "readme.txt" || filename === "readme") {
-        promptType = "Markdown content";
+        contentDesc = "Markdown content";
       } else if (filename === "license") {
-        promptType = "Markdown content";
+        contentDesc = "Markdown content";
       }
 
       return {
-        createPrompt: jest.fn().mockImplementation((content: string) => {
-          return `Mock prompt for ${promptType} with content: ${content}`;
-        }),
+        contentDesc,
+        instructions: `Instructions for ${contentDesc}`,
         schema: {
           parse: jest.fn().mockReturnValue({}),
           safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
+          // Mock other required ZodType properties to satisfy the interface
+          ...({} as any)
         },
         hasComplexSchema: false,
-      } as unknown as jest.Mocked<FileHandler>;
+      };
     });
 
     // Since LLMRouter is a default export class, we don't use mockImplementation
     // Instead, we directly inject the mock instance
-    fileSummarizer = new FileSummarizer(mockLLMRouter, mockFileHandlerFactory);
+    fileSummarizer = new FileSummarizer(mockLLMRouter, mockPromptConfigFactory);
   });
 
   describe("getFileSummaryAsJSON", () => {

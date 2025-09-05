@@ -11,7 +11,7 @@ import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
-import type { SourceSummaryType } from "./file-handler";
+import type { SourceSummaryType } from "./file-summarizer";
 
 /**
  * Loads each source file into a class to represent it.
@@ -118,11 +118,14 @@ export default class CodebaseToDBLoader {
     const type = getFileExtension(fullFilepath).toLowerCase();
     const filepath = path.relative(srcDirPath, fullFilepath);
     if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
+
     if (
       skipIfAlreadyCaptured &&
       (await this.sourcesRepository.doesProjectSourceExist(projectName, filepath))
-    )
+    ) {
       return;
+    }
+    
     const rawContent = await readFile(fullFilepath);
     const content = rawContent.trim();
     if (!content) return; // Skip empty files

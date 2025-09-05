@@ -9,7 +9,7 @@ import { AppSummariesRepository } from "../../repositories/app-summary/app-summa
 
 // Component imports
 import { FileSummarizer } from "../../components/capture/file-summarizer";
-import { FileHandlerFactory } from "../../components/capture/file-handler-factory";
+import { PromptConfigFactory } from "../../components/capture/file-handler-factory";
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
 import { DatabaseReportDataProvider } from "../../components/reporting/data-providers/database-report-data-provider";
@@ -77,7 +77,7 @@ function registerRepositories(): void {
  */
 async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   // Register file handling components
-  container.registerSingleton(TOKENS.FileHandlerFactory, FileHandlerFactory);
+  container.registerSingleton(TOKENS.PromptConfigFactory, PromptConfigFactory);
 
   // Register LLM strategies and pipeline components (always register since they may be needed)
   container.registerSingleton(TOKENS.RetryStrategy, RetryStrategy);

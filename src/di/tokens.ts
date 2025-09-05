@@ -29,7 +29,7 @@ export const TOKENS = {
 
   // Internal Helper Components
   FileSummarizer: Symbol.for("FileSummarizer"),
-  FileHandlerFactory: Symbol.for("FileHandlerFactory"),
+  PromptConfigFactory: Symbol.for("PromptConfigFactory"),
   LLMStats: Symbol.for("LLMStats"),
   LLMStatsReporter: Symbol.for("LLMStatsReporter"),
   PromptAdaptationStrategy: Symbol.for("PromptAdaptationStrategy"),

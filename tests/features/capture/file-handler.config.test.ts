@@ -2,8 +2,7 @@ import "reflect-metadata";
 import { fileTypeMetadataConfig } from "../../../src/components/capture/files-types-metadata.config";
 import { appConfig } from "../../../src/config/app.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
-import { SourceSummaryType } from "../../../src/components/capture/file-handler";
-import { FileHandler } from "../../../src/components/capture/file-handler";
+import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";
 import { DynamicPromptConfig } from "../../../src/llm/utils/prompt-templator";
 
 describe("File Handler Configuration", () => {
@@ -57,7 +56,7 @@ describe("File Handler Configuration", () => {
     });
   });
 
-  describe("FileHandler class", () => {
+  describe("DynamicPromptConfig structure", () => {
     test("should enforce correct structure", () => {
       const testConfig: DynamicPromptConfig = {
         contentDesc: "test content",
@@ -65,25 +64,26 @@ describe("File Handler Configuration", () => {
         schema: sourceSummarySchema,
         hasComplexSchema: false,
       };
-      const testHandler = new FileHandler(testConfig);
 
-      expect(testHandler).toHaveProperty("createPrompt");
-      expect(testHandler).toHaveProperty("schema");
-      expect(typeof testHandler.createPrompt).toBe("function");
+      expect(testConfig).toHaveProperty("contentDesc");
+      expect(testConfig).toHaveProperty("instructions");
+      expect(testConfig).toHaveProperty("schema");
+      expect(testConfig).toHaveProperty("hasComplexSchema");
+      expect(typeof testConfig.contentDesc).toBe("string");
+      expect(typeof testConfig.instructions).toBe("string");
     });
 
     test("should work with type compatibility", () => {
-      // Test that FileHandler can work with inline schema types
+      // Test that DynamicPromptConfig can work with inline schema types
       const typedConfig: DynamicPromptConfig = {
         contentDesc: "test content",
         instructions: "test instructions",
         schema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
       };
-      const typedHandler = new FileHandler(typedConfig);
 
-      expect(typedHandler.schema).toBeDefined();
-      expect(typeof typedHandler.createPrompt).toBe("function");
+      expect(typedConfig.schema).toBeDefined();
+      expect(typeof typedConfig.schema.parse).toBe("function");
     });
   });
 

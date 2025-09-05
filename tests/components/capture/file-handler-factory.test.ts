@@ -1,16 +1,7 @@
 import "reflect-metadata";
 import { jest } from "@jest/globals";
-import { FileHandlerFactory } from "../../../src/components/capture/file-handler-factory";
-import { FileHandler } from "../../../src/components/capture/file-handler";
+import { PromptConfigFactory } from "../../../src/components/capture/file-handler-factory";
 import { fileTypeMetadataConfig } from "../../../src/components/capture/files-types-metadata.config";
-
-// Mock the file-handler module
-jest.mock("../../../src/components/capture/file-handler", () => ({
-  FileHandler: jest.fn().mockImplementation((config) => ({
-    config,
-    mockFileHandler: true,
-  })),
-}));
 
 // Mock the app config module
 jest.mock("../../../src/config/app.config", () => ({
@@ -39,34 +30,31 @@ jest.mock("../../../src/config/app.config", () => ({
   },
 }));
 
-describe("FileHandlerFactory", () => {
-  let factory: FileHandlerFactory;
-  let mockFileHandler: jest.Mocked<typeof FileHandler>;
+describe("PromptConfigFactory", () => {
+  let factory: PromptConfigFactory;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    factory = new FileHandlerFactory();
-    mockFileHandler = FileHandler as jest.Mocked<typeof FileHandler>;
+    factory = new PromptConfigFactory();
   });
 
-  describe("createHandler", () => {
-    it("should create a FileHandler with the correct configuration", () => {
+  describe("createConfig", () => {
+    it("should create a DynamicPromptConfig with the correct configuration", () => {
       const filepath = "/path/to/file.java";
       const type = "java";
 
-      const handler = factory.createHandler(filepath, type);
+      const config = factory.createConfig(filepath, type);
 
-      expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.java);
-      expect(handler).toBeDefined();
+      expect(config).toEqual(fileTypeMetadataConfig.java);
     });
 
-    it("should resolve file type correctly and create handler", () => {
+    it("should resolve file type correctly and return config", () => {
       const filepath = "/src/main/MyClass.java";
       const type = "java";
 
-      factory.createHandler(filepath, type);
+      const config = factory.createConfig(filepath, type);
 
-      expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.java);
+      expect(config).toEqual(fileTypeMetadataConfig.java);
     });
   });
 
@@ -76,36 +64,36 @@ describe("FileHandlerFactory", () => {
         const filepath = "/project/README";
         const type = "unknown";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.markdown);
+        expect(config).toEqual(fileTypeMetadataConfig.markdown);
       });
 
       it("should resolve LICENSE file to markdown type", () => {
         const filepath = "/project/LICENSE";
         const type = "txt";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.markdown);
+        expect(config).toEqual(fileTypeMetadataConfig.markdown);
       });
 
       it("should resolve CHANGELOG file to markdown type", () => {
         const filepath = "/docs/CHANGELOG";
         const type = "unknown";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.markdown);
+        expect(config).toEqual(fileTypeMetadataConfig.markdown);
       });
 
       it("should be case insensitive for filename resolution", () => {
         const filepath = "/project/README.md";
         const type = "md";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.markdown);
+        expect(config).toEqual(fileTypeMetadataConfig.markdown);
       });
 
       it("should prioritize filename mapping over extension mapping", () => {
@@ -114,9 +102,9 @@ describe("FileHandlerFactory", () => {
         const filepath = "/project/package.json";
         const type = "json";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.javascript);
+        expect(config).toEqual(fileTypeMetadataConfig.javascript);
       });
     });
 
@@ -125,9 +113,9 @@ describe("FileHandlerFactory", () => {
         const filepath = "/src/main/java/com/example/MyClass.java";
         const type = "java";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.java);
+        expect(config).toEqual(fileTypeMetadataConfig.java);
       });
 
       it("should resolve JavaScript files correctly", () => {
@@ -140,8 +128,8 @@ describe("FileHandlerFactory", () => {
 
         cases.forEach(({ filepath, type }) => {
           jest.clearAllMocks();
-          factory.createHandler(filepath, type);
-          expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.javascript);
+          const config = factory.createConfig(filepath, type);
+          expect(config).toEqual(fileTypeMetadataConfig.javascript);
         });
       });
 
@@ -153,8 +141,8 @@ describe("FileHandlerFactory", () => {
 
         cases.forEach(({ filepath, type }) => {
           jest.clearAllMocks();
-          factory.createHandler(filepath, type);
-          expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.sql);
+          const config = factory.createConfig(filepath, type);
+          expect(config).toEqual(fileTypeMetadataConfig.sql);
         });
       });
 
@@ -162,18 +150,18 @@ describe("FileHandlerFactory", () => {
         const filepath = "/config/web.xml";
         const type = "xml";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.xml);
+        expect(config).toEqual(fileTypeMetadataConfig.xml);
       });
 
       it("should resolve JSP files correctly", () => {
         const filepath = "/webapp/index.jsp";
         const type = "jsp";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.jsp);
+        expect(config).toEqual(fileTypeMetadataConfig.jsp);
       });
 
       it("should resolve Markdown files correctly", () => {
@@ -184,8 +172,8 @@ describe("FileHandlerFactory", () => {
 
         cases.forEach(({ filepath, type }) => {
           jest.clearAllMocks();
-          factory.createHandler(filepath, type);
-          expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.markdown);
+          const config = factory.createConfig(filepath, type);
+          expect(config).toEqual(fileTypeMetadataConfig.markdown);
         });
       });
 
@@ -193,9 +181,9 @@ describe("FileHandlerFactory", () => {
         const filepath = "/src/MyClass.JAVA";
         const type = "JAVA";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.java);
+        expect(config).toEqual(fileTypeMetadataConfig.java);
       });
     });
 
@@ -204,36 +192,36 @@ describe("FileHandlerFactory", () => {
         const filepath = "/config/settings.ini";
         const type = "ini";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.default);
+        expect(config).toEqual(fileTypeMetadataConfig.default);
       });
 
       it("should use default type for files with no extension", () => {
         const filepath = "/scripts/build";
         const type = "";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.default);
+        expect(config).toEqual(fileTypeMetadataConfig.default);
       });
 
       it("should use default type for unknown file types", () => {
         const filepath = "/data/sample.csv";
         const type = "csv";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.default);
+        expect(config).toEqual(fileTypeMetadataConfig.default);
       });
 
       it("should use mapped default type for known extensions", () => {
         const filepath = "/scripts/main.py";
         const type = "py";
 
-        factory.createHandler(filepath, type);
+        const config = factory.createConfig(filepath, type);
 
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.default);
+        expect(config).toEqual(fileTypeMetadataConfig.default);
       });
     });
   });
@@ -243,18 +231,18 @@ describe("FileHandlerFactory", () => {
       const filepath = "/config/app.config.js";
       const type = "js";
 
-      factory.createHandler(filepath, type);
+      const config = factory.createConfig(filepath, type);
 
-      expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.javascript);
+      expect(config).toEqual(fileTypeMetadataConfig.javascript);
     });
 
     it("should handle files in nested directories", () => {
       const filepath = "/very/deep/nested/path/to/file.java";
       const type = "java";
 
-      factory.createHandler(filepath, type);
+      const config = factory.createConfig(filepath, type);
 
-      expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.java);
+      expect(config).toEqual(fileTypeMetadataConfig.java);
     });
 
     it("should handle absolute vs relative paths consistently", () => {
@@ -267,8 +255,8 @@ describe("FileHandlerFactory", () => {
 
       cases.forEach((filepath) => {
         jest.clearAllMocks();
-        factory.createHandler(filepath, "java");
-        expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.java);
+        const config = factory.createConfig(filepath, "java");
+        expect(config).toEqual(fileTypeMetadataConfig.java);
       });
     });
 
@@ -276,27 +264,27 @@ describe("FileHandlerFactory", () => {
       const filepath = "";
       const type = "";
 
-      factory.createHandler(filepath, type);
+      const config = factory.createConfig(filepath, type);
 
-      expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.default);
+      expect(config).toEqual(fileTypeMetadataConfig.default);
     });
 
     it("should handle special characters in filenames", () => {
       const filepath = "/path/to/my-file_name.with-special chars.js";
       const type = "js";
 
-      factory.createHandler(filepath, type);
+      const config = factory.createConfig(filepath, type);
 
-      expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.javascript);
+      expect(config).toEqual(fileTypeMetadataConfig.javascript);
     });
 
     it("should handle files with uppercase extensions", () => {
       const filepath = "/src/Component.TS";
       const type = "TS";
 
-      factory.createHandler(filepath, type);
+      const config = factory.createConfig(filepath, type);
 
-      expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.javascript);
+      expect(config).toEqual(fileTypeMetadataConfig.javascript);
     });
   });
 
@@ -305,9 +293,9 @@ describe("FileHandlerFactory", () => {
       const filepath = "/unknown/file.xyz";
       const type = "xyz";
 
-      factory.createHandler(filepath, type);
+      const config = factory.createConfig(filepath, type);
 
-      expect(mockFileHandler).toHaveBeenCalledWith(fileTypeMetadataConfig.default);
+      expect(config).toEqual(fileTypeMetadataConfig.default);
     });
 
     it("should return correct config for each file type", () => {
@@ -323,8 +311,8 @@ describe("FileHandlerFactory", () => {
 
       testCases.forEach(({ path, type, expectedConfig }) => {
         jest.clearAllMocks();
-        factory.createHandler(path, type);
-        expect(mockFileHandler).toHaveBeenCalledWith(expectedConfig);
+        const config = factory.createConfig(path, type);
+        expect(config).toEqual(expectedConfig);
       });
     });
   });
