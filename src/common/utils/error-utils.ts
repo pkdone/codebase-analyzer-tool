@@ -43,16 +43,14 @@ function hasMessageProperty(obj: unknown): obj is { message: unknown } {
  * Get the error text from a thrown variable which may or may not be an Error object.
  */
 export function formatErrorMessage(error: unknown): string {
-  const errType = error instanceof Error ? error.constructor.name : "<unknown-type>";
-  if (!error) return `${errType}. No error message available`;
-  if (error instanceof Error) return `${errType}. ${error.message}`;
-  if (hasMessageProperty(error)) return `${errType}. ${String(error.message)}`;
+  if (!error) return "<unknown-type>. No error message available";  
+  if (error instanceof Error) return `${error.constructor.name}. ${error.message}`;
+  if (hasMessageProperty(error)) return `<unknown-type>. ${String(error.message)}`;
 
-  // Use safe stringification to prevent circular reference errors
   try {
-    return `${errType}. ${JSON.stringify(error)}`;
+    return `<unknown-type>. ${JSON.stringify(error)}`;
   } catch {
-    return `${errType}. (Unserializable object)`;
+    return `<unknown-type>. (Unserializable object)`;
   }
 }
 
