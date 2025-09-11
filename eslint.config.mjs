@@ -5,14 +5,59 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['*js', 'dist/**', 'node_modules/**'],
+    ignores: ['dist/**', 'node_modules/**'],
   },
 
-  eslint.configs.recommended,
-  tseslint.configs.strictTypeChecked,
-  tseslint.configs.stylisticTypeChecked,
-
+  // JavaScript files - use standard ESLint with Node.js globals
   {
+    files: ['**/*.js'],
+    ...eslint.configs.recommended,
+    languageOptions: {
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        global: 'readonly',
+        Buffer: 'readonly',
+        console: 'readonly',
+      },
+      parserOptions: {
+        ecmaVersion: 2023,
+        sourceType: 'script', // CommonJS for .js files
+      },
+    },
+  },
+
+  // ES Module JavaScript files (.mjs) - use standard ESLint with Node.js globals
+  {
+    files: ['**/*.mjs'],
+    ...eslint.configs.recommended,
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        global: 'readonly',
+        Buffer: 'readonly',
+        console: 'readonly',
+      },
+      parserOptions: {
+        ecmaVersion: 2023,
+        sourceType: 'module', // ES modules for .mjs files
+      },
+    },
+  },
+
+  // TypeScript files - use strict TypeScript ESLint
+  {
+    files: ['**/*.ts'],
+    extends: [
+      eslint.configs.recommended,
+      ...tseslint.configs.strictTypeChecked,
+      ...tseslint.configs.stylisticTypeChecked,
+    ],
     rules: {
       "@typescript-eslint/explicit-member-accessibility": ["error", { "accessibility": "no-public" }],
       "@typescript-eslint/member-ordering": "error",     
