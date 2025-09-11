@@ -10,9 +10,6 @@
     "isolatedModules": true,    
     "sourceMap": true,
     "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*"]
-    },
     "types": ["node", "mongodb", "jest"],
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
