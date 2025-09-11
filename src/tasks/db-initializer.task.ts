@@ -13,6 +13,10 @@ import { getJSONSchema as getAppSummaryJSONSchema } from "../repositories/app-su
 // @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey
 const MONGODB_DUPLICATE_OBJ_ERROR_CODES = [11000, 68];
 
+// MongoDB error code for NamespaceExists (collection already exists).
+// @see https://www.mongodb.com/docs/manual/reference/error-codes/
+const MONGODB_NAMESPACE_EXISTS_ERROR_CODE = 48;
+
 /**
  * Configuration for vector search indexes
  */
@@ -79,30 +83,39 @@ export class DBInitializerTask implements Task {
     collectionName: string,
     jsonSchema: object,
   ): Promise<void> {
-    try {
-      const collections = await this.db.listCollections({ name: collectionName }).toArray();
-      const validationOptions = {
-        validator: { $jsonSchema: jsonSchema },
-        validationLevel: "strict",
-        validationAction: "error",
-      };
+    const validationOptions = {
+      validator: { $jsonSchema: jsonSchema },
+      validationLevel: "strict",
+      validationAction: "error",
+    };
 
-      if (collections.length === 0) {
-        await this.db.createCollection(collectionName, validationOptions);
-        console.log(
-          `Created collection '${this.db.databaseName}.${collectionName}' with JSON schema validator`,
-        );
+    try {
+      // Try to create the collection first (more efficient for new collections)
+      await this.db.createCollection(collectionName, validationOptions);
+      console.log(
+        `Created collection '${this.db.databaseName}.${collectionName}' with JSON schema validator`,
+      );
+    } catch (error: unknown) {
+      // If collection already exists (NamespaceExists), update the validator
+      if (error instanceof MongoServerError && error.code === MONGODB_NAMESPACE_EXISTS_ERROR_CODE) {
+        try {
+          await this.db.command({ collMod: collectionName, ...validationOptions });
+          console.log(
+            `Updated JSON schema validator for collection '${this.db.databaseName}.${collectionName}'`,
+          );
+        } catch (updateError: unknown) {
+          logErrorMsgAndDetail(
+            `Failed to update validator for existing collection '${collectionName}'`,
+            updateError,
+          );
+        }
       } else {
-        await this.db.command({ collMod: collectionName, ...validationOptions });
-        console.log(
-          `Updated JSON schema validator for collection '${this.db.databaseName}.${collectionName}'`,
+        // Handle other errors (permissions, invalid schema, etc.)
+        logErrorMsgAndDetail(
+          `Failed to create collection '${collectionName}' with validator`,
+          error,
         );
       }
-    } catch (error: unknown) {
-      logErrorMsgAndDetail(
-        `Failed to create or update collection '${collectionName}' with validator`,
-        error,
-      );
     }
   }
 
@@ -118,12 +131,14 @@ export class DBInitializerTask implements Task {
     try {
       await this.sourcesCollection.createSearchIndexes(vectorSearchIndexes);
     } catch (error: unknown) {
+      // Check if this is an expected duplicate error that we can safely ignore
       if (
-        !(
-          error instanceof MongoServerError &&
-          MONGODB_DUPLICATE_OBJ_ERROR_CODES.includes(Number(error.code))
-        )
+        error instanceof MongoServerError &&
+        MONGODB_DUPLICATE_OBJ_ERROR_CODES.includes(Number(error.code))
       ) {
+        // Expected duplicate error - indexes already exist, which is fine
+      } else {
+        // Unexpected error - log it for investigation
         logErrorMsgAndDetail(
           `Issue when creating Vector Search indexes for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
           error,
