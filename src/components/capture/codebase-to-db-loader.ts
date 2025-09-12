@@ -164,16 +164,16 @@ export default class CodebaseToDBLoader {
     const contentVectorResult = await this.getContentEmbeddings(filepath, content);
     const contentVector = contentVectorResult ?? undefined;
     const sourceFileRecord: SourceRecord = {
-      projectName: projectName,
+      projectName,
       filename,
       filepath,
       type,
       linesCount,
       content,
-      ...(summary !== undefined && { summary }),
-      ...(summaryError !== undefined && { summaryError }),
-      ...(summaryVector !== undefined && { summaryVector }),
-      ...(contentVector !== undefined && { contentVector }),
+      ...(summary && { summary }),
+      ...(summaryError && { summaryError }),
+      ...(summaryVector && { summaryVector }),
+      ...(contentVector && { contentVector }),
     };
     await this.sourcesRepository.insertSource(sourceFileRecord);
   }
