@@ -15,6 +15,7 @@ import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { logMongoValidationErrorIfPresent, numbersToBsonDoubles } from "../../common/mdb/mdb-utils";
+import { getJSONSchema } from "./sources.model";
 
 /**
  * MongoDB implementation of the Sources repository
@@ -249,5 +250,12 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       { $sort: { files: -1, lines: -1 } },
     ];
     return await this.collection.aggregate<ProjectedFileTypesCountAndLines>(pipeline).toArray();
+  }
+
+  /**
+   * Get the JSON schema for collection validation
+   */
+  getCollectionValidationSchema(): object {
+    return getJSONSchema();
   }
 }

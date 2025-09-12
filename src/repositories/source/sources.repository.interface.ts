@@ -80,4 +80,9 @@ export interface SourcesRepository {
    * Get files count and lines of code count for each file type for a project
    */
   getProjectFileTypesCountAndLines(projectName: string): Promise<ProjectedFileTypesCountAndLines[]>;
+
+  /**
+   * Get the JSON schema for collection validation
+   */
+  getCollectionValidationSchema(): object;
 }

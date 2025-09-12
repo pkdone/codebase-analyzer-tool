@@ -6,8 +6,8 @@ import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/error-utils";
 import { createVectorSearchIndexDefinition } from "../common/mdb/mdb-utils";
 import { Task } from "../env/task.types";
-import { getJSONSchema as getSourceJSONSchema } from "../repositories/source/sources.model";
-import { getJSONSchema as getAppSummaryJSONSchema } from "../repositories/app-summary/app-summaries.model";
+import type { SourcesRepository } from "../repositories/source/sources.repository.interface";
+import type { AppSummariesRepository } from "../repositories/app-summary/app-summaries.repository.interface";
 
 // MongoDB error codes for duplicate key errors (including duplicate indexes).
 // @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey
@@ -42,7 +42,11 @@ export class DBInitializerTask implements Task {
   /**
    * Constructor with dependency injection.
    */
-  constructor(@inject(TOKENS.MongoClient) private readonly mongoClient: MongoClient) {
+  constructor(
+    @inject(TOKENS.MongoClient) private readonly mongoClient: MongoClient,
+    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
+    @inject(TOKENS.AppSummariesRepository) private readonly appSummariesRepository: AppSummariesRepository,
+  ) {
     this.db = this.mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
     this.sourcesCollection = this.db.collection(databaseConfig.SOURCES_COLLECTION_NAME);
     this.appSummariesCollection = this.db.collection(databaseConfig.SUMMARIES_COLLECTION_NAME);
@@ -61,11 +65,11 @@ export class DBInitializerTask implements Task {
   async ensureCollectionsReady(numDimensions: number) {
     await this.createCollectionWithValidator(
       this.sourcesCollection.collectionName,
-      getSourceJSONSchema(),
+      this.sourcesRepository.getCollectionValidationSchema(),
     );
     await this.createCollectionWithValidator(
       this.appSummariesCollection.collectionName,
-      getAppSummaryJSONSchema(),
+      this.appSummariesRepository.getCollectionValidationSchema(),
     );
     await this.createStandardIndexIfNotExists(this.sourcesCollection, {
       projectName: 1,

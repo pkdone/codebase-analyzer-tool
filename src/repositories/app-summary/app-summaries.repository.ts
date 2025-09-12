@@ -10,6 +10,7 @@ import {
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-utils";
+import { getJSONSchema } from "./app-summaries.model";
 
 /**
  * MongoDB implementation of the App Summaries repository
@@ -94,5 +95,12 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
     ]) as Record<string, number>;
     const options = { projection };
     return await this.collection.findOne<Pick<AppSummaryRecordWithId, K>>(query, options);
+  }
+
+  /**
+   * Get the JSON schema for collection validation
+   */
+  getCollectionValidationSchema(): object {
+    return getJSONSchema();
   }
 }
