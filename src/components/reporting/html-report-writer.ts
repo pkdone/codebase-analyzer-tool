@@ -1,9 +1,9 @@
 import { injectable } from "tsyringe";
 import path from "path";
+import ejs from "ejs";
 import { appConfig } from "../../config/app.config";
 import { jsonFilesConfig } from "./json-files.config";
 import type { ReportData } from "./report-gen.types";
-
 import { writeFile } from "../../common/utils/fs-utils";
 import { convertToDisplayName } from "../../common/utils/text-utils";
 
@@ -17,10 +17,6 @@ interface EjsTemplateData {
   convertToDisplayName: (text: string) => string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const ejs = require("ejs") as {
-  renderFile: (path: string, data: EjsTemplateData) => Promise<string>;
-};
 
 /**
  * Class responsible for formatting data into HTML presentation format using EJS templates.
@@ -50,6 +46,4 @@ export class HtmlReportWriter {
     await writeFile(htmlFilePath, htmlContent);
     console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
   }
-
-  // ...existing code...
 }
