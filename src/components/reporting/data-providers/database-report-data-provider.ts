@@ -75,45 +75,81 @@ export class DatabaseReportDataProvider {
   }
 
   /**
-   * Aggregate database objects (procedures or triggers) using optimized imperative approach
+   * Aggregate database objects (procedures or triggers) for report generation
    */
   private aggregateProcsOrTriggersForReport(
     items: ProcOrTrigItem[],
     type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
   ): ProcsAndTriggers["procs"] {
-    const result: ProcsAndTriggers["procs"] = { total: 0, low: 0, medium: 0, high: 0, list: [] };
+    const stats = this.calculateComplexityStats(items);
+    const list = items.map((item) => this.mapItemToReportFormat(item, type));
+
+    return {
+      ...stats,
+      list,
+    };
+  }
+
+  /**
+   * Calculate complexity statistics for a collection of items
+   */
+  private calculateComplexityStats(items: ProcOrTrigItem[]): {
+    total: number;
+    low: number;
+    medium: number;
+    high: number;
+  } {
+    const stats = { total: 0, low: 0, medium: 0, high: 0 };
 
     for (const item of items) {
-      const complexity = isComplexity(item.complexity) ? item.complexity : Complexity.LOW;
-      if (!isComplexity(item.complexity))
-        console.warn(
-          `Invalid complexity value '${item.complexity}' found for ${item.name}. Defaulting to LOW.`,
-        );
-      result.total++;
+      const complexity = this.normalizeComplexity(item.complexity, item.name);
+      stats.total++;
 
       switch (complexity) {
         case Complexity.LOW:
-          result.low++;
+          stats.low++;
           break;
         case Complexity.MEDIUM:
-          result.medium++;
+          stats.medium++;
           break;
         case Complexity.HIGH:
-          result.high++;
+          stats.high++;
           break;
       }
-
-      result.list.push({
-        path: item.filepath,
-        type: type,
-        name: item.name,
-        functionName: item.name,
-        complexity: complexity,
-        complexityReason: item.complexityReason || "N/A",
-        linesOfCode: item.linesOfCode,
-        purpose: item.purpose,
-      });
     }
-    return result;
+
+    return stats;
+  }
+
+  /**
+   * Transform a single item into the format required for reports
+   */
+  private mapItemToReportFormat(
+    item: ProcOrTrigItem,
+    type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
+  ) {
+    const complexity = this.normalizeComplexity(item.complexity, item.name);
+
+    return {
+      path: item.filepath,
+      type: type,
+      name: item.name,
+      functionName: item.name,
+      complexity: complexity,
+      complexityReason: item.complexityReason || "N/A",
+      linesOfCode: item.linesOfCode,
+      purpose: item.purpose,
+    };
+  }
+
+  /**
+   * Normalize and validate complexity values, providing fallback for invalid values
+   */
+  private normalizeComplexity(complexity: unknown, itemName: string): Complexity {
+    if (isComplexity(complexity)) return complexity;
+    console.warn(
+      `Invalid complexity value '${String(complexity)}' found for ${itemName}. Defaulting to LOW.`,
+    );
+    return Complexity.LOW;
   }
 }
