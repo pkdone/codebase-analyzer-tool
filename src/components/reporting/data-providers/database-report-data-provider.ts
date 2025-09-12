@@ -36,21 +36,19 @@ export class DatabaseReportDataProvider {
       const summary = record.summary;
       const databaseIntegration = summary?.databaseIntegration;
 
-      if (summary && databaseIntegration) {
-        return {
-          path: summary.classpath ?? record.filepath,
-          mechanism: databaseIntegration.mechanism,
-          description: databaseIntegration.description,
-          codeExample: databaseIntegration.codeExample,
-        };
-      } else {
-        return {
-          path: record.filepath,
-          mechanism: "UNKNOWN",
-          description: "Unknown database integration",
-          codeExample: "N/A",
-        };
-      }
+      return summary && databaseIntegration
+        ? {
+            path: summary.classpath ?? record.filepath,
+            mechanism: databaseIntegration.mechanism,
+            description: databaseIntegration.description,
+            codeExample: databaseIntegration.codeExample,
+          }
+        : {
+            path: record.filepath,
+            mechanism: "UNKNOWN",
+            description: "Unknown database integration",
+            codeExample: "N/A",
+          };
     });
   }
 
