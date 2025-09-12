@@ -6,21 +6,23 @@ import type { AppSummaryNameDescArray, AppSummaryRecordWithId } from "../../../r
 
 /**
  * Type guard to check if a value is an AppSummaryNameDescArray
- * Optimized to check only the first element as a representative sample
- * for better performance with large arrays.
+ * Validates all elements to ensure type safety.
  */
 function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
   if (!Array.isArray(data)) return false;
   if (data.length === 0) return true;
-  const firstItem: unknown = data[0];
-  if (typeof firstItem !== "object" || firstItem === null) return false;
-  const obj = firstItem as Record<string, unknown>;
-  return (
-    "name" in obj &&
-    "description" in obj &&
-    typeof obj.name === "string" &&
-    typeof obj.description === "string"
-  );
+  
+  // Use .every() to check all elements for complete type safety
+  return data.every((item: unknown) => {
+    if (typeof item !== "object" || item === null) return false;
+    const obj = item as Record<string, unknown>;
+    return (
+      "name" in obj &&
+      "description" in obj &&
+      typeof obj.name === "string" &&
+      typeof obj.description === "string"
+    );
+  });
 }
 
 // Define valid category keys that can be used for data fetching, excluding appDescription
