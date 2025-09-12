@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { MongoClient, Sort, Document, Collection, OptionalId } from "mongodb";
+import { Double } from "bson";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
   SourceRecordWithId,
@@ -14,7 +15,7 @@ import {
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
-import { logMongoValidationErrorIfPresent, numbersToBsonDoubles } from "../../common/mdb/mdb-utils";
+import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
 import { getJSONSchema } from "./sources.model";
 
 /**
@@ -158,7 +159,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
   ): Promise<ProjectedSourceMetataContentAndSummary[]> {
     // Convert number[] to Double[] to work around MongoDB driver issue
     // See: https://jira.mongodb.org/browse/NODE-5714
-    const queryVectorDoubles = numbersToBsonDoubles(queryVector);
+    const queryVectorDoubles = this.numbersToBsonDoubles(queryVector);
 
     const pipeline = [
       {
@@ -257,5 +258,17 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
    */
   getCollectionValidationSchema(): object {
     return getJSONSchema();
+  }
+
+  /**
+   * Iterates through the numbers in the array and converts each one explicitly to a BSON Double.
+   * This works around a MongoDB driver issue.
+   * @see https://jira.mongodb.org/browse/NODE-5714
+   *
+   * @param numbers The array of numbers to convert.
+   * @returns The array of BSON Doubles.
+   */
+  private numbersToBsonDoubles(numbers: number[]): Double[] {
+    return numbers.map((number) => new Double(number));
   }
 }

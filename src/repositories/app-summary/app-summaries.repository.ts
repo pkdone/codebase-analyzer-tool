@@ -9,7 +9,7 @@ import {
 } from "./app-summaries.model";
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
-import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-utils";
+import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
 import { getJSONSchema } from "./app-summaries.model";
 
 /**

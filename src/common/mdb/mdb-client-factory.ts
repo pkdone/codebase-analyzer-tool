@@ -1,7 +1,7 @@
 import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
 import { injectable } from "tsyringe";
 import { logErrorMsgAndDetail, logWarningMsg } from "../utils/error-utils";
-import { redactUrl } from "./mdb-utils";
+import { redactUrl } from "../utils/security-utils";
 
 /**
  * A factory class for creating and managing MongoDB client connections.
