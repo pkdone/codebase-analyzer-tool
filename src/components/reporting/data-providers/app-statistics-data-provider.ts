@@ -14,7 +14,12 @@ export class AppStatisticsDataProvider {
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
   ) {
-    this.currentDate = new Date().toLocaleString();
+    // Use Intl.DateTimeFormat for consistent date formatting across environments
+    this.currentDate = new Intl.DateTimeFormat('en-GB', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false
+    }).format(new Date());
   }
 
   /**
