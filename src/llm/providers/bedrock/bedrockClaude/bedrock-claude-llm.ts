@@ -1,6 +1,6 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
-import { BEDROCK_CLAUDE } from "./bedrock-claude.manifest";
+import { BEDROCK_CLAUDE, AWS_COMPLETIONS_CLAUDE_V40 } from "./bedrock-claude.manifest";
 import { LLMCompletionOptions } from "../../../types/llm.types";
 import { z } from "zod";
 
@@ -39,7 +39,8 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   ) {
     void options; // Bedrock providers don't support JSON mode options
     const config = this.providerSpecificConfig;
-    return JSON.stringify({
+    
+    const baseParams = {
       anthropic_version: config.apiVersion,
       messages: [
         {
@@ -56,7 +57,17 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
       top_p: config.topP ?? llmConfig.DEFAULT_TOP_P_LOWEST,
       top_k: config.topK ?? llmConfig.DEFAULT_TOP_K_LOWEST,
       max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
-    });
+    };
+
+    // Only add anthropic_beta for Claude V40 model (1M-token context beta)
+    if (modelKey === AWS_COMPLETIONS_CLAUDE_V40) {
+      return JSON.stringify({
+        ...baseParams,
+        anthropic_beta: ["context-1m-2025-08-07"],
+      });
+    }
+
+    return JSON.stringify(baseParams);
   }
 
   /**

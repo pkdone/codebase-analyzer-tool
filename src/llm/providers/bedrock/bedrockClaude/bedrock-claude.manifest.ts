@@ -47,8 +47,11 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
       modelKey: AWS_COMPLETIONS_CLAUDE_V40,
       urnEnvKey: BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 32768, // Should be 64k but errors if larger than around 39200
-      maxTotalTokens: 200000,
+      maxCompletionTokens: 64000,
+      maxTotalTokens: 1_000_000,
+      // OLD values for pre-1M-token context beta
+      //maxCompletionTokens: 32768, // Should be 64k but errors if larger than around 39200 - varies, so me be more of a timeout issue or Bedrock’s 20 MB payload limit
+      //maxTotalTokens: 200000,
     },
     secondaryCompletion: {
       modelKey: AWS_COMPLETIONS_CLAUDE_V37,
@@ -59,16 +62,16 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  supportsFullCodebaseAnalysis: false, // Bedrock Claude doesn't support full codebase analysis
+  supportsFullCodebaseAnalysis: true, // Bedrock Claude Sonnet 4.0 supports new 1M context window to support full codebase analysis
   providerSpecificConfig: {
     apiVersion: "bedrock-2023-05-31",
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
     requestTimeoutMillis: 8 * 60 * 1000, // 8 minutes - Bedrock can be slower, especially for large models
-    maxRetryAttempts: 5, // More retries for Bedrock due to capacity limits
-    minRetryDelayMillis: 30 * 1000, // 30 seconds - longer delay for AWS rate limits
-    maxRetryAdditionalDelayMillis: 45 * 1000, // 45 seconds additional random delay
+    maxRetryAttempts: 6, // More retries for Bedrock due to capacity limits
+    minRetryDelayMillis: 45 * 1000, // 45 seconds - longer delay for throttled Bedrock new claude models
+    maxRetryAdditionalDelayMillis: 60 * 1000, // 60 seconds additional random delay for throttled Bedrock new claude models
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     return new BedrockClaudeLLM(
