@@ -288,26 +288,29 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * @returns The value at the specified path, or undefined if not found
    */
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-    return path.split(".").reduce((current: unknown, key: string) => {
+    let current: unknown = obj;
+    const arrayRegex = /^(\w+)\[(\d+)\]$/;
+    
+    for (const key of path.split(".")) {
       if (current === null || current === undefined) return undefined;
-      const arrayRegex = /^(\w+)\[(\d+)\]$/; // Handle array notation like "choices[0]"
       const arrayMatch = arrayRegex.exec(key);
 
       if (arrayMatch) {
         const [, arrayKey, indexStr] = arrayMatch;
-        const index = parseInt(indexStr, 10);
         const currentObj = current as Record<string, unknown>;
         const arrayValue = currentObj[arrayKey];
-        if (Array.isArray(arrayValue)) {
-          return arrayValue[index];
-        }
-        return undefined;
-      }
 
-      // Handle simple property access
-      const currentObj = current as Record<string, unknown>;
-      return currentObj[key];
-    }, obj);
+        if (Array.isArray(arrayValue)) {
+          current = arrayValue[parseInt(indexStr, 10)];
+        } else {
+          current = undefined;
+        }
+      } else {
+        const currentObj = current as Record<string, unknown>;
+        current = currentObj[key];
+      }
+    }
+    return current;
   }
 
   /**
