@@ -97,15 +97,14 @@ export default class CodebaseToDBLoader {
         }
       });
     });
-
     const results = await Promise.allSettled(tasks);
     let successCount = 0;
     let failureCount = 0;
-    
     results.forEach((result, index) => {
       if (result.status === "rejected") {
         failureCount++;
-        logErrorMsgAndDetail(`Failed to process file: ${filepaths[index]}`, result.reason);
+        const error: unknown = result.reason;
+        logErrorMsgAndDetail(`Failed to process file: ${filepaths[index]}`, error);
       } else {
         successCount++;
       }
