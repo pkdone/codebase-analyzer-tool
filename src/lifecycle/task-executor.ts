@@ -57,7 +57,7 @@ export async function runTask(taskToken: symbol): Promise<void> {
 
     try {
       const shutdownService = new ShutdownService(llmRouter, mongoDBClientFactory);
-      await shutdownService.gracefulShutdown();
+      await shutdownService.shutdownWithForcedExitFallback();
     } catch (error) {
       console.error("Failed to perform graceful shutdown:", error);
     }

@@ -37,12 +37,12 @@ export async function registerLLMDependentInsightsComponents(): Promise<void> {
   container.registerSingleton(InsightsFromDBGenerator);
   container.registerSingleton(InsightsFromRawCodeGenerator);
 
-  // Pre-load manifest to determine which InsightsGenerator implementation to use
+  // Pre-load manifest to determine which ApplicationInsightsProcessor implementation to use
   const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
   const manifest = await LLMProviderManager.loadManifestForModelFamily(envVars.LLM);
 
-  // Register the InsightsGenerator interface with synchronous factory based on manifest data
-  container.register(TOKENS.InsightsGenerator, {
+  // Register the ApplicationInsightsProcessor interface with synchronous factory based on manifest data
+  container.register(TOKENS.ApplicationInsightsProcessor, {
     useFactory: () => {
       if (manifest.supportsFullCodebaseAnalysis) {
         return container.resolve(InsightsFromRawCodeGenerator);

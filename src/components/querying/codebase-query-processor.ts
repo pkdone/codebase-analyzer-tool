@@ -31,7 +31,7 @@ CODE:
  * Provides ability to query the codebase, using Vector Search under the covers.
  */
 @injectable()
-export default class CodeQuestioner {
+export default class CodebaseQueryProcessor {
   /**
    * Constructor.
    */

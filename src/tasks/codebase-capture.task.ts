@@ -43,7 +43,7 @@ export class CodebaseCaptureTask implements Task {
       this.llmRouter.getEmbeddedModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.dbInitializerTask.ensureCollectionsReady(numDimensions);
     this.llmStatsReporter.displayLLMStatusSummary();
-    await this.codebaseToDBLoader.loadIntoDB(this.projectName, srcDirPath, skipIfAlreadyCaptured);
+    await this.codebaseToDBLoader.captureCodebaseToDatabase(this.projectName, srcDirPath, skipIfAlreadyCaptured);
     console.log("Finished capturing project files metadata into database");
     console.log("Summary of LLM invocations outcomes:");
     this.llmStatsReporter.displayLLMStatusDetails();

@@ -10,7 +10,7 @@ import { TOKENS } from "../../di/tokens";
 import { summaryCategoriesConfig } from "./insights.config";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
-import type { InsightsGenerator } from "./insights-generator.interface";
+import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { PartialAppSummaryRecord, AppSummaryCategoryEnum } from "./insights.types";
 
 // Mark schema as being easy for LLMs to digest
@@ -21,7 +21,7 @@ const IS_TRICKY_SCHEMA = false;
  * such as entities and processes, for a given project.
  */
 @injectable()
-export default class InsightsFromDBGenerator implements InsightsGenerator {
+export default class InsightsFromDBGenerator implements ApplicationInsightsProcessor {
   // Private fields
   private readonly APP_CATEGORY_SUMMARIZER_TEMPLATE =
     "Act as a senior developer analyzing the code in a legacy application. Take the list of paths and descriptions of its {{contentDesc}} shown below in the section marked 'SOURCES', and based on their content, return a JSON response that contains {{specificInstructions}}.\n\nThe JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";
@@ -46,7 +46,7 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
    * in the database.
    */
   async generateAndStoreInsights(): Promise<void> {
-    const sourceFileSummaries = await this.buildSourceFileSummaryList();
+    const sourceFileSummaries = await this.formatSourcesForLLMPrompt();
 
     if (sourceFileSummaries.length === 0) {
       throw new Error(
@@ -76,9 +76,9 @@ export default class InsightsFromDBGenerator implements InsightsGenerator {
   }
 
   /**
-   * Builds a formatted list of source file summaries for LLM prompt consumption.
+   * Formats source file summaries for LLM prompt consumption.
    */
-  private async buildSourceFileSummaryList(): Promise<string[]> {
+  private async formatSourcesForLLMPrompt(): Promise<string[]> {
     const srcFilesList: string[] = [];
     const records = await this.sourcesRepository.getProjectSourcesSummaries(this.projectName, [
       ...appConfig.CODE_FILE_EXTENSIONS,

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readAndFilterLines } from "../common/utils/fs-utils";
 import { formatErrorMessage } from "../common/utils/error-utils";
-import CodeQuestioner from "../components/querying/code-questioner";
+import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { appConfig } from "../config/app.config";
 import { Task } from "../env/task.types";
 import { TOKENS } from "../di/tokens";
@@ -17,7 +17,7 @@ export class CodebaseQueryTask implements Task {
    */
   constructor(
     @inject(TOKENS.ProjectName) private readonly projectName: string,
-    @inject(TOKENS.CodeQuestioner) private readonly codeQuestioner: CodeQuestioner,
+    @inject(TOKENS.CodebaseQueryProcessor) private readonly codebaseQueryProcessor: CodebaseQueryProcessor,
   ) {}
 
   /**
@@ -36,7 +36,7 @@ export class CodebaseQueryTask implements Task {
     );
     const questions = await readAndFilterLines(appConfig.QUESTIONS_PROMPTS_FILEPATH);
     const queryPromises = questions.map(async (question) =>
-      this.codeQuestioner.queryCodebaseWithQuestion(question, this.projectName),
+      this.codebaseQueryProcessor.queryCodebaseWithQuestion(question, this.projectName),
     );
     const results = await Promise.allSettled(queryPromises);
     results.forEach((result, index) => {

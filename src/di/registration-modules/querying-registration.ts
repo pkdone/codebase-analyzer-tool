@@ -2,7 +2,7 @@ import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
 
 // Querying component imports
-import CodeQuestioner from "../../components/querying/code-questioner";
+import CodebaseQueryProcessor from "../../components/querying/codebase-query-processor";
 
 /**
  * Register querying-related components in the DI container.
@@ -20,7 +20,7 @@ export function registerQueryingComponents(): void {
  * These components require LLM functionality to be available.
  */
 export function registerLLMDependentQueryingComponents(): void {
-  container.registerSingleton(TOKENS.CodeQuestioner, CodeQuestioner);
+  container.registerSingleton(TOKENS.CodebaseQueryProcessor, CodebaseQueryProcessor);
   
   console.log("LLM-dependent querying components registered");
 }

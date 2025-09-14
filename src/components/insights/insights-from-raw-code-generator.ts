@@ -3,7 +3,7 @@ import { z } from "zod";
 import LLMRouter from "../../llm/core/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import { TOKENS } from "../../di/tokens";
-import type { InsightsGenerator } from "./insights-generator.interface";
+import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { appConfig } from "../../config/app.config";
 import { findFilesRecursively } from "../../common/utils/fs-utils";
 import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
@@ -24,7 +24,7 @@ const IS_TRICKY_SCHEMA = true;
  * Class to generate insights from raw code
  */
 @injectable()
-export default class InsightsFromRawCodeGenerator implements InsightsGenerator {
+export default class InsightsFromRawCodeGenerator implements ApplicationInsightsProcessor {
   // Private fields
   private readonly APP_CATEGORIES_SUMMARIZER_TEMPLATE =
     "Act as a senior developer analyzing the code in a legacy application. Analyze the application's codebase shown below in the section marked 'SOURCES', and based on the code, return a JSON response that contains:\n\n {{specificInstructions}}.\n\nThe JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";

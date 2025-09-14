@@ -61,7 +61,7 @@ describe("Service Runner Integration Tests", () => {
 
     // Mock ShutdownService constructor
     (ShutdownService as jest.Mock).mockImplementation(() => ({
-      gracefulShutdown: jest.fn().mockResolvedValue(undefined),
+      shutdownWithForcedExitFallback: jest.fn().mockResolvedValue(undefined),
     }));
   });
 
@@ -82,7 +82,7 @@ describe("Service Runner Integration Tests", () => {
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^END:/));
     });
 
-    it("should handle service execution errors and still call gracefulShutdown", async () => {
+    it("should handle service execution errors and still call shutdownWithForcedExitFallback", async () => {
       const serviceError = new Error("Service execution failed");
       (mockService.execute as jest.Mock).mockRejectedValue(serviceError);
 
@@ -209,7 +209,7 @@ describe("Service Runner Integration Tests", () => {
       
       // Mock ShutdownService to throw error
       (ShutdownService as jest.Mock).mockImplementation(() => ({
-        gracefulShutdown: jest.fn().mockRejectedValue(shutdownError),
+        shutdownWithForcedExitFallback: jest.fn().mockRejectedValue(shutdownError),
       }));
 
       await runTask(TEST_SERVICE_TOKEN);

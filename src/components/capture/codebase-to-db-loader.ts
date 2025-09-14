@@ -30,7 +30,7 @@ export default class CodebaseToDBLoader {
   /**
    * Generate the set of representations of source files including each one's content and metadata.
    */
-  async loadIntoDB(
+  async captureCodebaseToDatabase(
     projectName: string,
     srcDirPath: string,
     skipIfAlreadyCaptured: boolean,

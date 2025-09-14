@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import type { InsightsGenerator } from "../components/insights/insights-generator.interface";
+import type { ApplicationInsightsProcessor } from "../components/insights/insights-generator.interface";
 
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { Task } from "../env/task.types";
@@ -17,8 +17,8 @@ export class InsightsGenerationTask implements Task {
   constructor(
     @inject(TOKENS.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
     @inject(TOKENS.ProjectName) private readonly projectName: string,
-    @inject(TOKENS.InsightsGenerator)
-    private readonly insightsGenerator: InsightsGenerator,
+    @inject(TOKENS.ApplicationInsightsProcessor)
+    private readonly applicationInsightsProcessor: ApplicationInsightsProcessor,
   ) {}
 
   /**
@@ -34,7 +34,7 @@ export class InsightsGenerationTask implements Task {
   private async generateInsights(): Promise<void> {
     console.log(`Generating insights for project: ${this.projectName}`);
     this.llmStatsReporter.displayLLMStatusSummary();
-    await this.insightsGenerator.generateAndStoreInsights();
+    await this.applicationInsightsProcessor.generateAndStoreInsights();
     console.log("Finished generating insights for the project");
     console.log("Summary of LLM invocations outcomes:");
     this.llmStatsReporter.displayLLMStatusDetails();

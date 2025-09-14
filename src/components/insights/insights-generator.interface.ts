@@ -1,7 +1,7 @@
 /**
- * Interface for insights generators that process code and generate summaries.
+ * Interface for application insights processors that analyze code and generate architectural insights.
  */
-export interface InsightsGenerator {
+export interface ApplicationInsightsProcessor {
   /**
    * Generates insights and stores them in the database.
    */

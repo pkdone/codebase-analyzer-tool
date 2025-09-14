@@ -43,8 +43,8 @@ export const TOKENS = {
   AppStatisticsDataProvider: Symbol.for("AppStatisticsDataProvider"),
   CategoriesDataProvider: Symbol.for("CategoriesDataProvider"),
   CodebaseToDBLoader: Symbol.for("CodebaseToDBLoader"),
-  CodeQuestioner: Symbol.for("CodeQuestioner"),
-  InsightsGenerator: Symbol.for("InsightsGenerator"),
+  CodebaseQueryProcessor: Symbol.for("CodebaseQueryProcessor"),
+  ApplicationInsightsProcessor: Symbol.for("ApplicationInsightsProcessor"),
   InsightsFromDBGenerator: Symbol.for("InsightsFromDBGenerator"),
   RawCodeToInsightsFileGenerator: Symbol.for("RawCodeToInsightsFileGenerator"),
 
