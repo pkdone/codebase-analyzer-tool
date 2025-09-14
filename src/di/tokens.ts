@@ -12,9 +12,9 @@ export const TOKENS = {
   EnvVars: Symbol.for("EnvVars"),
   ProjectName: Symbol.for("ProjectName"),
 
-  // Repositories
-  SourcesRepository: Symbol.for("SourcesRepository"),
-  AppSummariesRepository: Symbol.for("AppSummariesRepository"),
+  // Repositories (interface tokens)
+  SourcesRepository: Symbol.for("ISourcesRepository"),
+  AppSummariesRepository: Symbol.for("IAppSummariesRepository"),
 
   // Tasks (formerly Services - these are top-level orchestrators for CLI commands)
   CodebaseCaptureTask: Symbol.for("CodebaseCaptureTask"),
