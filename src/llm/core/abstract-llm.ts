@@ -167,7 +167,8 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
-   * Used for debugging purposes - prints the error type and message to the console.
+   * Used for debugging purposes - prints the error type and message to the console. Set to 
+   * protected to avoid lint errors saying it is unused.
    */
   protected debugUnhandledError(error: unknown, modelKey: string) {
     if (error instanceof Error) {

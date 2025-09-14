@@ -23,8 +23,8 @@ import { getJSONSchema } from "./sources.model";
  */
 @injectable()
 export default class SourcesRepositoryImpl implements SourcesRepository {
-  // Protected field accessible by subclasses
-  protected readonly collection: Collection<SourceRecordWithId>;
+  // Private field
+  private readonly collection: Collection<SourceRecordWithId>;
 
   /**
    * Constructor.

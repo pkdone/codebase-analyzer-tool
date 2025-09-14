@@ -17,8 +17,8 @@ import { getJSONSchema } from "./app-summaries.model";
  */
 @injectable()
 export default class AppSummariesRepositoryImpl implements AppSummariesRepository {
-  // Protected field accessible by subclasses
-  protected readonly collection: Collection<AppSummaryRecordWithId>;
+  // Private field
+  private readonly collection: Collection<AppSummaryRecordWithId>;
 
   /**
    * Constructor.

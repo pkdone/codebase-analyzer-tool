@@ -6,7 +6,7 @@ import { logWithContext } from "../tracking/llm-router-logging";
 /**
  * Represents the outcome decision for an unsuccessful LLM call.
  */
-export interface FallbackDecision {
+interface FallbackDecision {
   shouldTerminate: boolean;
   shouldCropPrompt: boolean;
   shouldSwitchToNextLLM: boolean;
