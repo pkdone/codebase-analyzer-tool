@@ -19,7 +19,7 @@ export async function bootstrapContainer(config: TaskRunnerConfig): Promise<void
   if (config.requiresLLM) {
     await registerLlmEnvDependencies();
     registerLLMProviders();
-    await initializeAndRegisterLLMComponents();
+    initializeAndRegisterLLMComponents();
   } else {
     registerBaseEnvDependencies();
   }

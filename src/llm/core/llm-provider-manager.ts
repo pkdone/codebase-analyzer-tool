@@ -27,7 +27,7 @@ export class LLMProviderManager {
   /**
    * Constructor for dependency injection pattern
    */
-  constructor(@inject(TOKENS.LLMProviderManager) modelFamily: string) {
+  constructor(@inject(TOKENS.LLMModelFamily) modelFamily: string) {
     this.modelFamily = modelFamily;
   }
 

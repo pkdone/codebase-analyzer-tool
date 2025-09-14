@@ -1,4 +1,4 @@
-import { gracefulShutdown } from "../../src/lifecycle/shutdown";
+import { ShutdownService } from "../../src/lifecycle/shutdown-service";
 import LLMRouter from "../../src/llm/core/llm-router";
 import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
 
@@ -6,7 +6,7 @@ import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
 jest.mock("../../src/llm/core/llm-router");
 jest.mock("../../src/common/mdb/mdb-client-factory");
 
-describe("Shutdown Module", () => {
+describe("ShutdownService", () => {
   // Mock instances
   let mockLLMRouter: LLMRouter;
   let mockMongoDBClientFactory: MongoDBClientFactory;
@@ -46,8 +46,10 @@ describe("Shutdown Module", () => {
   });
 
   describe("gracefulShutdown", () => {
-    it("should handle shutdown when both llmRouter and mongoDBClientFactory are provided", async () => {
-      await gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory);
+    it("should handle shutdown when both llmRouter and mongoDBClientFactory are available", async () => {
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      
+      await shutdownService.gracefulShutdown();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
@@ -55,23 +57,29 @@ describe("Shutdown Module", () => {
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
 
-    it("should handle shutdown when only llmRouter is provided", async () => {
-      await gracefulShutdown(mockLLMRouter);
+    it("should handle shutdown when only llmRouter is available", async () => {
+      const shutdownService = new ShutdownService(mockLLMRouter, undefined);
+      
+      await shutdownService.gracefulShutdown();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
 
-    it("should handle shutdown when only mongoDBClientFactory is provided", async () => {
-      await gracefulShutdown(undefined, mockMongoDBClientFactory);
+    it("should handle shutdown when only mongoDBClientFactory is available", async () => {
+      const shutdownService = new ShutdownService(undefined, mockMongoDBClientFactory);
+      
+      await shutdownService.gracefulShutdown();
 
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1);
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
 
-    it("should handle shutdown when neither dependency is provided", async () => {
-      await gracefulShutdown();
+    it("should handle shutdown when no dependencies are available", async () => {
+      const shutdownService = new ShutdownService(undefined, undefined);
+      
+      await shutdownService.gracefulShutdown();
 
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
@@ -79,8 +87,10 @@ describe("Shutdown Module", () => {
     it("should apply Google Cloud specific workaround when provider needs forced shutdown", async () => {
       // Set up the mock to return true for forced shutdown
       (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(true);
-
-      await gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory);
+      
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      
+      await shutdownService.gracefulShutdown();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
@@ -94,8 +104,10 @@ describe("Shutdown Module", () => {
     it("should not apply Google Cloud workaround for other providers", async () => {
       // Set up the mock to return false for forced shutdown
       (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(false);
-
-      await gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory);
+      
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      
+      await shutdownService.gracefulShutdown();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
@@ -108,8 +120,10 @@ describe("Shutdown Module", () => {
     it("should execute the timeout callback correctly for forced shutdown", async () => {
       // Set up the mock to return true for forced shutdown
       (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(true);
-
-      await gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory);
+      
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      
+      await shutdownService.gracefulShutdown();
 
       // Verify setTimeout was called
       expect(mockSetTimeout).toHaveBeenCalledTimes(1);
@@ -126,7 +140,7 @@ describe("Shutdown Module", () => {
 
       // Verify that the warning message was logged and process.exit was called
       expect(mockConsoleLog).toHaveBeenCalledWith(
-        "Forced exit because GCP client connections caanot be closed properly",
+        "Forced exit because GCP client connections cannot be closed properly",
       );
       expect(mockProcessExit).toHaveBeenCalledWith(0);
 
@@ -137,8 +151,10 @@ describe("Shutdown Module", () => {
     it("should handle errors from llmRouter.close gracefully", async () => {
       const error = new Error("Failed to close LLM router");
       (mockLLMRouter.close as jest.Mock).mockRejectedValue(error);
+      
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
-      await expect(gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory)).rejects.toThrow(
+      await expect(shutdownService.gracefulShutdown()).rejects.toThrow(
         "Failed to close LLM router",
       );
 
@@ -148,8 +164,10 @@ describe("Shutdown Module", () => {
     it("should handle errors from mongoDBClientFactory.closeAll gracefully", async () => {
       const error = new Error("Failed to close MongoDB connections");
       (mockMongoDBClientFactory.closeAll as jest.Mock).mockRejectedValue(error);
+      
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
-      await expect(gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory)).rejects.toThrow(
+      await expect(shutdownService.gracefulShutdown()).rejects.toThrow(
         "Failed to close MongoDB connections",
       );
 
@@ -163,8 +181,10 @@ describe("Shutdown Module", () => {
       (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockImplementation(() => {
         throw error;
       });
+      
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
-      await expect(gracefulShutdown(mockLLMRouter, mockMongoDBClientFactory)).rejects.toThrow(
+      await expect(shutdownService.gracefulShutdown()).rejects.toThrow(
         "Failed to check for forced shutdown",
       );
 

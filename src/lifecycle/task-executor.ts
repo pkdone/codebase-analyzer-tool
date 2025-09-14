@@ -1,10 +1,10 @@
 import "reflect-metadata";
-import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
-import { gracefulShutdown } from "./shutdown";
-import LLMRouter from "../llm/core/llm-router";
 import { Task } from "../env/task.types";
 import { container } from "../di/container";
 import { TOKENS } from "../di/tokens";
+import { ShutdownService } from "./shutdown-service";
+import LLMRouter from "../llm/core/llm-router";
+import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
 
 /**
  * Generic task runner function that handles task execution:
@@ -35,7 +35,7 @@ export async function runTask(taskToken: symbol): Promise<void> {
   } finally {
     console.log(`END: ${new Date().toISOString()}`);
 
-    // Resolve shutdown dependencies only if they're registered, handling errors gracefully
+    // Resolve shutdown dependencies safely and create shutdown service
     let llmRouter: LLMRouter | undefined;
     let mongoDBClientFactory: MongoDBClientFactory | undefined;
 
@@ -55,6 +55,11 @@ export async function runTask(taskToken: symbol): Promise<void> {
       }
     }
 
-    await gracefulShutdown(llmRouter, mongoDBClientFactory);
+    try {
+      const shutdownService = new ShutdownService(llmRouter, mongoDBClientFactory);
+      await shutdownService.gracefulShutdown();
+    } catch (error) {
+      console.error("Failed to perform graceful shutdown:", error);
+    }
   }
 }
