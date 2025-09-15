@@ -15,7 +15,8 @@ import {
 } from "../../types/llm.types";
 import { llmConfig } from "../../llm.config";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "../llm-provider.types";
-import { formatErrorMessage, logErrorMsgAndDetail } from "../../../common/utils/error-utils";
+import { formatErrorMessage } from "../../../common/utils/error-formatters";
+import { logErrorMsgAndDetail } from "../../../common/utils/logging";
 import { getNestedValue, getNestedValueWithFallbacks } from "../../../common/utils/object-utils";
 import AbstractLLM from "../../core/abstract-llm";
 import { z } from "zod";

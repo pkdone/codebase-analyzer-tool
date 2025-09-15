@@ -3,10 +3,10 @@ import {
   REDACTED_URL,
   REDACTED_CREDENTIALS,
 } from "../../../src/common/utils/security-utils";
-import { logErrorMsgAndDetail } from "../../../src/common/utils/error-utils";
+import { logErrorMsgAndDetail } from "../../../src/common/utils/logging";
 
-// Mock the error-utils module
-jest.mock("../../../src/common/utils/error-utils");
+// Mock the logging module
+jest.mock("../../../src/common/utils/logging");
 const mockLogErrorMsgAndDetail = logErrorMsgAndDetail as jest.MockedFunction<
   typeof logErrorMsgAndDetail
 >;

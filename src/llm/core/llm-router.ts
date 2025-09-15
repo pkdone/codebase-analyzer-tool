@@ -20,6 +20,7 @@ import {
   getOverriddenCompletionCandidates,
   buildCompletionCandidates,
 } from "../utils/completions-models-retriever";
+import { LLMInfoProvider } from "./llm-info-provider";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -48,6 +49,7 @@ export default class LLMRouter {
     @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
     @inject(TOKENS.EnvVars) private readonly envVars: EnvVars,
     private readonly executionPipeline: LLMExecutionPipeline,
+    @inject(TOKENS.LLMInfoProvider) private readonly llmInfoProvider: LLMInfoProvider,
   ) {
     this.llm = this.llmProviderManager.getLLMProvider(this.envVars);
     this.modelsMetadata = this.llm.getModelsMetadata();
@@ -61,7 +63,7 @@ export default class LLMRouter {
       );
     }
 
-    log(`Router LLMs to be used: ${this.getModelsUsedDescription()}`);
+    log(`Router LLMs to be used: ${this.llmInfoProvider.getModelsUsedDescription(this.llm, this.completionCandidates)}`);
   }
 
   /**
@@ -89,17 +91,7 @@ export default class LLMRouter {
    * Get the description of models the chosen plug-in provides.
    */
   getModelsUsedDescription(): string {
-    const models = this.llm.getModelsNames();
-    const candidateDescriptions = this.completionCandidates
-      .map((candidate) => {
-        const modelId =
-          candidate.modelQuality === LLMModelQuality.PRIMARY
-            ? models.primaryCompletion
-            : (models.secondaryCompletion ?? "n/a");
-        return `${candidate.modelQuality}: ${modelId}`;
-      })
-      .join(", ");
-    return `${this.llm.getModelFamily()} (embeddings: ${models.embeddings}, completions - ${candidateDescriptions})`;
+    return this.llmInfoProvider.getModelsUsedDescription(this.llm, this.completionCandidates);
   }
 
   /**

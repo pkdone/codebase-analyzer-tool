@@ -1,5 +1,5 @@
 import { MongoServerError } from "mongodb";
-import { logErrorMsg } from "../utils/error-utils";
+import { logErrorMsg } from "../utils/logging";
 
 /**
  * Logs a warning if the error is a MongoServerError for document validation failure.

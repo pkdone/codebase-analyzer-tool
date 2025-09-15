@@ -3,10 +3,11 @@ import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
 import { TOKENS } from "../di/tokens";
 import { databaseConfig } from "../config/database.config";
-import { logErrorMsgAndDetail } from "../common/utils/error-utils";
+import { logErrorMsgAndDetail } from "../common/utils/logging";
 import { Task } from "./task.types";
 import type { SourcesRepository } from "../repositories/source/sources.repository.interface";
 import type { AppSummariesRepository } from "../repositories/app-summary/app-summaries.repository.interface";
+import { VectorIndexConfig, VectorSearchFilter, createVectorSearchIndexDefinition } from "../common/mdb/mdb-index-utils";
 
 // MongoDB error codes for duplicate key errors (including duplicate indexes).
 // @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey
@@ -16,21 +17,6 @@ const MONGODB_DUPLICATE_OBJ_ERROR_CODES = [11000, 68];
 // @see https://www.mongodb.com/docs/manual/reference/error-codes/
 const MONGODB_NAMESPACE_EXISTS_ERROR_CODE = 48;
 
-/**
- * Interface for vector search filter configuration
- */
-interface VectorSearchFilter {
-  type: "filter" | "string" | "token";
-  path: string;
-}
-
-/**
- * Configuration for vector search indexes
- */
-interface VectorIndexConfig {
-  field: string;
-  name: string;
-}
 
 /**
  * Task responsible for database schema initialization and management.
@@ -179,50 +165,8 @@ export class DBInitializerTask implements Task {
     );
   }
 
-
   /**
-   * Creates a vector search index definition for MongoDB Atlas Vector Search.
-   *
-   * @param indexName The name of the index
-   * @param vectorPath The path to the vector field to index
-   * @param dimensions The number of dimensions for the vector
-   * @param similarity The similarity metric to use
-   * @param quantization The quantization type
-   * @param filters Optional array of filter field definitions
-   * @returns The vector search index definition
-   */
-  private createVectorSearchIndexDefinition(
-    indexName: string,
-    vectorPath: string,
-    dimensions = 1536,
-    similarity = "euclidean",
-    quantization = "scalar",
-    filters: VectorSearchFilter[] = [],
-  ) {
-    return {
-      name: indexName,
-      type: "vectorSearch",
-      definition: {
-        fields: [
-          {
-            type: "vector",
-            path: vectorPath,
-            numDimensions: dimensions,
-            similarity: similarity,
-            quantization: quantization,
-          },
-          ...filters.map((filter) => ({
-            type: filter.type,
-            path: filter.path,
-          })),
-        ],
-      },
-    };
-  }
-
-  /**
-   * Create a vector search index with a project and file type filter for a particular metadata
-   * field extracted from a file.
+   * Create a vector search index with project and file type filters specific to codebase processing.
    */
   private createProjectScopedVectorIndexDefinition(
     indexName: string,
@@ -240,7 +184,7 @@ export class DBInitializerTask implements Task {
       },
     ];
 
-    return this.createVectorSearchIndexDefinition(
+    return createVectorSearchIndexDefinition(
       indexName,
       fieldToIndex,
       numDimensions,

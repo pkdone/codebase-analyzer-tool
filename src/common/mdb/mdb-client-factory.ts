@@ -1,6 +1,6 @@
 import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
 import { injectable } from "tsyringe";
-import { logErrorMsgAndDetail, logWarningMsg } from "../utils/error-utils";
+import { logErrorMsgAndDetail, logWarningMsg } from "../utils/logging";
 import { redactUrl } from "../utils/security-utils";
 
 /**

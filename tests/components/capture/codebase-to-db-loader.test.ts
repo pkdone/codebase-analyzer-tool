@@ -15,7 +15,7 @@ jest.mock("../../../src/common/utils/file-operations");
 jest.mock("../../../src/common/utils/directory-operations");
 jest.mock("../../../src/common/utils/path-utils");
 jest.mock("../../../src/common/utils/text-utils");
-jest.mock("../../../src/common/utils/error-utils", () => ({
+jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
 
@@ -164,7 +164,7 @@ describe("CodebaseToDBLoader", () => {
         filePath.split("/").pop() ?? ""
       );
 
-      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock("../../../src/common/utils/error-utils");
+      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock("../../../src/common/utils/logging");
 
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
@@ -406,7 +406,7 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockRejectedValue(processingError);
 
-      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock("../../../src/common/utils/error-utils");
+      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock("../../../src/common/utils/logging");
 
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 

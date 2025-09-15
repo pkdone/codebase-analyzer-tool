@@ -12,7 +12,7 @@ import {
   SourceRecord,
 } from "./sources.model";
 import { databaseConfig } from "../../config/database.config";
-import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
 import { getJSONSchema } from "./sources.model";
 import { BaseRepository } from "../base-repository";

@@ -11,7 +11,7 @@ import {
 import { EnvVars } from "../../env/env.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
-import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { listDirectoryEntries } from "../../common/utils/directory-operations";
 import { TOKENS } from "../../di/tokens";
 

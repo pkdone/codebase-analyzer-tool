@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import type LLMRouter from "../../llm/core/llm-router";
 import { TOKENS } from "../../di/tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";

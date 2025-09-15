@@ -1,4 +1,4 @@
-import { formatErrorMessage, getErrorStack } from "../../../src/common/utils/error-utils";
+import { formatErrorMessage, getErrorStack } from "../../../src/common/utils/error-formatters";
 
 describe("Error utilities", () => {
   describe("getErrorText", () => {

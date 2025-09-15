@@ -4,19 +4,13 @@ import { PromptConfigFactory } from "../../../src/components/capture/file-handle
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../../src/llm/types/llm-errors.types";
-import * as errorUtils from "../../../src/common/utils/error-utils";
+import * as logging from "../../../src/common/utils/logging";
 
 // Mock dependencies
 jest.mock("../../../src/llm/core/llm-router");
-jest.mock("../../../src/common/utils/error-utils", () => ({
+jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logErrorMsgAndDetail: jest.fn(),
-  getErrorText: jest.fn((error: unknown) => {
-    if (error && typeof error === "object" && "message" in error) {
-      return String((error as { message: unknown }).message);
-    }
-    return "Unknown error";
-  }),
 }));
 
 jest.mock("../../../src/config/app.config", () => ({
@@ -123,8 +117,8 @@ jest.mock("../../../src/llm/utils/prompt-templator", () => ({
 }));
 
 // LLMRouter is mocked, we'll create a mock instance directly
-const mockLogErrorMsgAndDetail = errorUtils.logErrorMsgAndDetail as jest.MockedFunction<
-  typeof errorUtils.logErrorMsgAndDetail
+const mockLogErrorMsgAndDetail = logging.logErrorMsgAndDetail as jest.MockedFunction<
+  typeof logging.logErrorMsgAndDetail
 >;
 
 describe("FileSummarizer", () => {

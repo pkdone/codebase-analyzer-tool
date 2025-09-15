@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readAndFilterLines } from "../common/utils/file-content-utils";
-import { formatErrorMessage } from "../common/utils/error-utils";
+import { formatErrorMessage } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { appConfig } from "../config/app.config";
 import { Task } from "./task.types";

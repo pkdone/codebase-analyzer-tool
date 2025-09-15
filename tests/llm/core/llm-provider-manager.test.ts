@@ -15,7 +15,7 @@ jest.mock("../../../src/config/app.config", () => ({
 }));
 
 jest.mock("../../../src/common/utils/directory-operations");
-jest.mock("../../../src/common/utils/error-utils", () => ({
+jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
   logWarningMsg: jest.fn(),
 }));
@@ -64,7 +64,7 @@ describe("LLMProviderManager", () => {
 
   describe("filesystem operations", () => {
     it("should handle filesystem errors gracefully", async () => {
-      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock("../../../src/common/utils/error-utils");
+      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock("../../../src/common/utils/logging");
       
       mockDirectoryOperations.listDirectoryEntries.mockRejectedValue(new Error("Permission denied"));
 

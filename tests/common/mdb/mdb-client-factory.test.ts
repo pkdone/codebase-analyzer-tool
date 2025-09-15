@@ -1,12 +1,12 @@
 import "reflect-metadata";
 import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
 import { MongoDBClientFactory } from "../../../src/common/mdb/mdb-client-factory";
-import { logErrorMsgAndDetail, logWarningMsg } from "../../../src/common/utils/error-utils";
+import { logErrorMsgAndDetail, logWarningMsg } from "../../../src/common/utils/logging";
 import { redactUrl } from "../../../src/common/utils/security-utils";
 
 // Mock dependencies
 jest.mock("mongodb");
-jest.mock("../../../src/common/utils/error-utils");
+jest.mock("../../../src/common/utils/logging");
 jest.mock("../../../src/common/utils/security-utils");
 
 const MockedMongoClient = MongoClient as jest.MockedClass<typeof MongoClient>;

@@ -1,7 +1,7 @@
 import { promises as fs, Dirent } from "fs";
 import path from "path";
 import glob, { Entry } from "fast-glob";
-import { logErrorMsgAndDetail } from "./error-utils";
+import { logErrorMsgAndDetail } from "./logging";
 
 /**
  * Get the handle of the files in a directory

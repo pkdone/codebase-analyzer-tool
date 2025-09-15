@@ -5,8 +5,8 @@ import { readFile, writeFile, appendFile } from "../../../src/common/utils/file-
 import { listDirectoryEntries, clearDirectory, findFilesRecursively } from "../../../src/common/utils/directory-operations";
 import { readAndFilterLines } from "../../../src/common/utils/file-content-utils";
 
-// Mock the error-utils module to avoid actual logging during tests
-jest.mock("../../../src/common/utils/error-utils", () => ({
+// Mock the logging module to avoid actual logging during tests
+jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
 

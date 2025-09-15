@@ -19,11 +19,8 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
 } from "../../../types/llm.types";
-import {
-  formatErrorMessage,
-  logWarningMsg,
-  logErrorMsgAndDetail,
-} from "../../../../common/utils/error-utils";
+import { logWarningMsg, logErrorMsgAndDetail } from "../../../../common/utils/logging";
+import { formatErrorMessage } from "../../../../common/utils/error-formatters";
 import AbstractLLM from "../../../core/abstract-llm";
 import {
   BadConfigurationLLMError,

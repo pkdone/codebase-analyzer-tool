@@ -17,7 +17,8 @@ import {
   LLMImplSpecificResponseSummary,
   LLMProviderSpecificConfig,
 } from "../providers/llm-provider.types";
-import { formatErrorMessage, logErrorMsg } from "../../common/utils/error-utils";
+import { formatErrorMessage } from "../../common/utils/error-formatters";
+import { logErrorMsg } from "../../common/utils/logging";
 import { convertTextToJSONAndOptionallyValidate } from "../utils/json-tools";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";

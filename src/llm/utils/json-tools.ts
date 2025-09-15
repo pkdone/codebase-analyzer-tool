@@ -1,5 +1,5 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../types/llm.types";
-import { logErrorMsg } from "../../common/utils/error-utils";
+import { logErrorMsg } from "../../common/utils/logging";
 import { BadResponseContentLLMError } from "../types/llm-errors.types";
 
 /**

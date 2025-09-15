@@ -33,6 +33,7 @@ export const TOKENS = {
   PromptConfigFactory: Symbol("PromptConfigFactory"),
   LLMStats: Symbol("LLMStats"),
   LLMStatsReporter: Symbol("LLMStatsReporter"),
+  LLMInfoProvider: Symbol("LLMInfoProvider"),
   PromptAdaptationStrategy: Symbol("PromptAdaptationStrategy"),
   RetryStrategy: Symbol("RetryStrategy"),
   FallbackStrategy: Symbol("FallbackStrategy"),

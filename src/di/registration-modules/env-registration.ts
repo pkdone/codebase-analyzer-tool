@@ -5,7 +5,7 @@ import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { BadConfigurationLLMError } from "../../llm/types/llm-errors.types";
-import { getErrorStack } from "../../common/utils/error-utils";
+import { getErrorStack } from "../../common/utils/error-formatters";
 import { getProjectNameFromPath } from "../../common/utils/path-utils";
 import dotenv from "dotenv";
 

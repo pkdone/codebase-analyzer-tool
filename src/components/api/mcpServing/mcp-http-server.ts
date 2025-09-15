@@ -5,7 +5,7 @@ import { text as consumeText } from "node:stream/consumers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
-import { logErrorMsgAndDetail } from "../../../common/utils/error-utils";
+import { logErrorMsgAndDetail } from "../../../common/utils/logging";
 import { mcpConfig } from "./mcp.config";
 import McpDataServer from "./mcp-data-server";
 import { TOKENS } from "../../../di/tokens";

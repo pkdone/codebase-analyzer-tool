@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appConfig } from "../../config/app.config";
-import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../common/utils/text-utils";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";

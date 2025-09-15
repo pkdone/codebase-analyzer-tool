@@ -1,5 +1,5 @@
 import { LLMContext } from "../../types/llm.types";
-import { logErrorDetail } from "../../../common/utils/error-utils";
+import { logErrorDetail } from "../../../common/utils/logging";
 
 /**
  * Log info/error text to the console or a redirected-to file

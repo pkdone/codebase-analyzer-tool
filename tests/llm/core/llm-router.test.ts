@@ -17,6 +17,7 @@ import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { RetryStrategy } from "../../../src/llm/core/strategies/retry-strategy";
 import { FallbackStrategy } from "../../../src/llm/core/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../../src/llm/core/llm-execution-pipeline";
+import { LLMInfoProvider } from "../../../src/llm/core/llm-info-provider";
 import type { EnvVars } from "../../../src/env/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
@@ -192,10 +193,14 @@ describe("LLM Router tests", () => {
       mockLLMStats,
     );
 
+    // Create info provider
+    const mockInfoProvider = new LLMInfoProvider();
+
     const router = new LLMRouter(
       mockLLMProviderManager as LLMProviderManager,
       mockEnvVars as EnvVars,
       mockExecutionPipeline,
+      mockInfoProvider,
     );
     return { router, mockProvider };
   };

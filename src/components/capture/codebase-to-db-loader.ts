@@ -7,7 +7,7 @@ import { findFilesRecursively } from "../../common/utils/directory-operations";
 import { getFileExtension } from "../../common/utils/path-utils";
 import { countLines } from "../../common/utils/text-utils";
 import pLimit from "p-limit";
-import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
+import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/source/sources.model";
