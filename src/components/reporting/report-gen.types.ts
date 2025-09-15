@@ -3,17 +3,15 @@ import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
 import type { TypeOf } from "zod";
 
-// Union type for stored procedure complexity levels
-export type Complexity = "LOW" | "MEDIUM" | "HIGH";
+// Define complexity levels as constant array for type safety
+const COMPLEXITY_LEVELS = ["LOW", "MEDIUM", "HIGH"] as const;
+export type Complexity = (typeof COMPLEXITY_LEVELS)[number];
 
 /**
  * Type guard to check if a value is a valid Complexity value
  */
 export function isComplexity(value: unknown): value is Complexity {
-  return (
-    typeof value === "string" &&
-    (value.toUpperCase() === "LOW" || value.toUpperCase() === "MEDIUM" || value.toUpperCase() === "HIGH")
-  );
+  return typeof value === "string" && (COMPLEXITY_LEVELS as readonly string[]).includes(value.toUpperCase());
 }
 
 export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;

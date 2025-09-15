@@ -99,26 +99,15 @@ export class DatabaseReportDataProvider {
     medium: number;
     high: number;
   } {
-    const stats = { total: 0, low: 0, medium: 0, high: 0 };
-
-    for (const item of items) {
-      const complexity = this.normalizeComplexity(item.complexity, item.name);
-      stats.total++;
-
-      switch (complexity) {
-        case "LOW":
-          stats.low++;
-          break;
-        case "MEDIUM":
-          stats.medium++;
-          break;
-        case "HIGH":
-          stats.high++;
-          break;
-      }
-    }
-
-    return stats;
+    return items.reduce(
+      (stats, item) => {
+        const complexity = this.normalizeComplexity(item.complexity, item.name);
+        stats.total++;
+        stats[complexity.toLowerCase() as 'low' | 'medium' | 'high']++;
+        return stats;
+      },
+      { total: 0, low: 0, medium: 0, high: 0 }
+    );
   }
 
   /**

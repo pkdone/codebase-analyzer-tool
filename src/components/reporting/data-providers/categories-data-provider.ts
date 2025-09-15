@@ -1,28 +1,19 @@
 import { injectable } from "tsyringe";
+import { z } from "zod";
 import { appConfig } from "../../../config/app.config";
 import { summaryCategoriesConfig } from "../../insights/insights.config";
-import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
+import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
 import type { AppSummaryNameDescArray, AppSummaryRecordWithId } from "../../../repositories/app-summary/app-summaries.model";
+
+// Zod schema for validating AppSummaryNameDescArray
+const appSummaryNameDescArraySchema = z.array(nameDescSchema);
 
 /**
  * Type guard to check if a value is an AppSummaryNameDescArray
- * Validates all elements to ensure type safety.
+ * Uses Zod schema validation for robust type checking.
  */
 function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
-  if (!Array.isArray(data)) return false;
-  if (data.length === 0) return true;
-  
-  // Use .every() to check all elements for complete type safety
-  return data.every((item: unknown) => {
-    if (typeof item !== "object" || item === null) return false;
-    const obj = item as Record<string, unknown>;
-    return (
-      "name" in obj &&
-      "description" in obj &&
-      typeof obj.name === "string" &&
-      typeof obj.description === "string"
-    );
-  });
+  return appSummaryNameDescArraySchema.safeParse(data).success;
 }
 
 // Define valid category keys that can be used for data fetching, excluding appDescription

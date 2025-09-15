@@ -104,6 +104,7 @@ export default class McpHttpServer {
         });
       });
     }
+    return Promise.resolve();
   }
 
   /**
