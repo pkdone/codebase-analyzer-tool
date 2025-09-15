@@ -1,15 +1,9 @@
 import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import mockFs from "mock-fs";
 import path from "path";
-import {
-  readFile,
-  writeFile,
-  appendFile,
-  listDirectoryEntries,
-  clearDirectory,
-  readAndFilterLines,
-  findFilesRecursively,
-} from "../../../src/common/utils/fs-utils";
+import { readFile, writeFile, appendFile } from "../../../src/common/utils/file-operations";
+import { listDirectoryEntries, clearDirectory, findFilesRecursively } from "../../../src/common/utils/directory-operations";
+import { readAndFilterLines } from "../../../src/common/utils/file-content-utils";
 
 // Mock the error-utils module to avoid actual logging during tests
 jest.mock("../../../src/common/utils/error-utils", () => ({

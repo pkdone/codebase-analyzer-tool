@@ -1,8 +1,8 @@
 /**
- * File type mappings configuration
+ * File type mappings configuration with readonly maps for immutability
  */
 export const fileTypeMappingsConfig = {
-  FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+  FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map([
     ["java", "java"],
     ["js", "javascript"],
     ["ts", "javascript"],
@@ -14,12 +14,12 @@ export const fileTypeMappingsConfig = {
     ["jsp", "jsp"],
     ["markdown", "markdown"],
     ["md", "markdown"],
-  ]),
-  FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+  ]) as ReadonlyMap<string, string>,
+  FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map([
     ["readme", "markdown"],
     ["license", "markdown"],
     ["changelog", "markdown"],
-  ]),
+  ]) as ReadonlyMap<string, string>,
   DEFAULT_FILE_TYPE: "default",
   JAVA_FILE_TYPE: "java",
 } as const;

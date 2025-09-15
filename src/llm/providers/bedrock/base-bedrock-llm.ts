@@ -16,6 +16,7 @@ import {
 import { llmConfig } from "../../llm.config";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "../llm-provider.types";
 import { formatErrorMessage, logErrorMsgAndDetail } from "../../../common/utils/error-utils";
+import { getNestedValue, getNestedValueWithFallbacks } from "../../../common/utils/object-utils";
 import AbstractLLM from "../../core/abstract-llm";
 import { z } from "zod";
 import { BadResponseContentLLMError } from "../../types/llm-errors.types";
@@ -243,20 +244,20 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
       Boolean,
     ) as string[];
-    const responseContent = this.getNestedValueWithFallbacks(response, contentPaths);
+    const responseContent = getNestedValueWithFallbacks(response, contentPaths);
     const responseContentStr = typeof responseContent === "string" ? responseContent : "";
     const stopReasonPaths = [
       pathConfig.stopReasonPath,
       pathConfig.alternativeStopReasonPath,
     ].filter(Boolean) as string[];
-    const finishReason = this.getNestedValueWithFallbacks(response, stopReasonPaths);
+    const finishReason = getNestedValueWithFallbacks(response, stopReasonPaths);
     const finishReasonStr = typeof finishReason === "string" ? finishReason : "";
     const finishReasonLowercase = finishReasonStr.toLowerCase();
     const isIncompleteResponse =
       finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
       !responseContentStr;
-    const promptTokensRaw = this.getNestedValue(response, pathConfig.promptTokensPath);
-    const completionTokensRaw = this.getNestedValue(response, pathConfig.completionTokensPath);
+    const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
+    const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);
     const promptTokens = typeof promptTokensRaw === "number" ? promptTokensRaw : -1;
     const completionTokens = typeof completionTokensRaw === "number" ? completionTokensRaw : -1;
     const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
@@ -264,50 +265,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     return { isIncompleteResponse, responseContent: responseContentStr, tokenUsage };
   }
 
-  /**
-   * Helper function to get a nested property value from an object using multiple fallback paths.
-   * Tries each path in order and returns the first non-null/non-undefined value found.
-   * @param obj The object to extract the value from
-   * @param paths Array of dot-notation paths to try in order
-   * @returns The first value found at any of the specified paths, or undefined if none found
-   */
-  private getNestedValueWithFallbacks(obj: Record<string, unknown>, paths: string[]): unknown {
-    for (const path of paths) {
-      const value = this.getNestedValue(obj, path);
-      if (value !== null && value !== undefined) {
-        return value;
-      }
-    }
-    return undefined;
-  }
-
-
-  /**
-   * Helper function to safely get a nested property value from an object using a dot-notation path.
-   * Uses modern JavaScript features for cleaner implementation.
-   * @param obj The object to extract the value from
-   * @param path The dot-notation path (e.g., "response.choices[0].message.content")
-   * @returns The value at the specified path, or undefined if not found
-   */
-  private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-    return path.split('.').reduce((current: unknown, key: string) => {
-      if (current == null) return undefined;
-      
-      const arrayMatch = /^(\w+)\[(\d+)\]$/.exec(key);
-      if (arrayMatch) {
-        const [, arrayKey, index] = arrayMatch;
-        const currentObj = current as Record<string, unknown>;
-        const arrayValue = currentObj[arrayKey];
-        if (Array.isArray(arrayValue)) {
-          return arrayValue[parseInt(index, 10)];
-        }
-        return undefined;
-      }
-      
-      const currentObj = current as Record<string, unknown>;
-      return currentObj[key];
-    }, obj);
-  }
 
   /**
    * Abstract method to be overriden. Assemble the AWS Bedrock API parameters structure for the

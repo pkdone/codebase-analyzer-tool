@@ -3,7 +3,7 @@ import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.types";
-import * as fsUtils from "../../../src/common/utils/fs-utils";
+import * as directoryOperations from "../../../src/common/utils/directory-operations";
 
 // Mock dependencies
 jest.mock("../../../src/config/app.config", () => ({
@@ -14,13 +14,13 @@ jest.mock("../../../src/config/app.config", () => ({
   },
 }));
 
-jest.mock("../../../src/common/utils/fs-utils");
+jest.mock("../../../src/common/utils/directory-operations");
 jest.mock("../../../src/common/utils/error-utils", () => ({
   logErrorMsgAndDetail: jest.fn(),
   logWarningMsg: jest.fn(),
 }));
 
-const mockFsUtils = fsUtils as jest.Mocked<typeof fsUtils>;
+const mockDirectoryOperations = directoryOperations as jest.Mocked<typeof directoryOperations>;
 
 // Create a more comprehensive test that focuses on what we can actually test
 describe("LLMProviderManager", () => {
@@ -66,7 +66,7 @@ describe("LLMProviderManager", () => {
     it("should handle filesystem errors gracefully", async () => {
       const { logErrorMsgAndDetail: mockLogError } = jest.requireMock("../../../src/common/utils/error-utils");
       
-      mockFsUtils.listDirectoryEntries.mockRejectedValue(new Error("Permission denied"));
+      mockDirectoryOperations.listDirectoryEntries.mockRejectedValue(new Error("Permission denied"));
 
       await expect(LLMProviderManager.loadManifestForModelFamily("testFamily")).rejects.toThrow(
         BadConfigurationLLMError,
@@ -76,7 +76,7 @@ describe("LLMProviderManager", () => {
     });
 
     it("should return undefined for empty directories", async () => {
-      mockFsUtils.listDirectoryEntries.mockResolvedValue([]);
+      mockDirectoryOperations.listDirectoryEntries.mockResolvedValue([]);
 
       await expect(LLMProviderManager.loadManifestForModelFamily("testFamily")).rejects.toThrow(
         "No provider manifest found for model family: testFamily",
@@ -85,7 +85,7 @@ describe("LLMProviderManager", () => {
 
     it("should handle directory traversal correctly", async () => {
       // Test the directory traversal logic by simulating multiple directory levels
-      mockFsUtils.listDirectoryEntries
+      mockDirectoryOperations.listDirectoryEntries
         .mockResolvedValueOnce([
           { 
             name: "level1",
@@ -116,11 +116,11 @@ describe("LLMProviderManager", () => {
         BadConfigurationLLMError,
       );
 
-      expect(mockFsUtils.listDirectoryEntries).toHaveBeenCalledTimes(3);
+      expect(mockDirectoryOperations.listDirectoryEntries).toHaveBeenCalledTimes(3);
     });
 
     it("should find files in directories", async () => {
-      mockFsUtils.listDirectoryEntries.mockResolvedValue([
+      mockDirectoryOperations.listDirectoryEntries.mockResolvedValue([
         {
           name: "non-manifest.ts",
           isFile: () => true,
@@ -149,7 +149,7 @@ describe("LLMProviderManager", () => {
         BadConfigurationLLMError,
       );
 
-      expect(mockFsUtils.listDirectoryEntries).toHaveBeenCalled();
+      expect(mockDirectoryOperations.listDirectoryEntries).toHaveBeenCalled();
     });
   });
 

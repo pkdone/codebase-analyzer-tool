@@ -5,7 +5,7 @@ import type { AppSummariesRepository } from "../../repositories/app-summary/app-
 import { TOKENS } from "../../di/tokens";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { appConfig } from "../../config/app.config";
-import { findFilesRecursively } from "../../common/utils/fs-utils";
+import { findFilesRecursively } from "../../common/utils/directory-operations";
 import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
 import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/error-utils";

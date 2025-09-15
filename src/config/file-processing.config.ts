@@ -1,5 +1,5 @@
 /**
- * File processing configuration
+ * File processing configuration with readonly arrays for immutability
  */
 export const fileProcessingConfig = {
   FOLDER_IGNORE_LIST: [
@@ -10,7 +10,7 @@ export const fileProcessingConfig = {
     ".vscode",
     "dist",
     "output",
-  ] as const,
+  ] as const satisfies readonly string[],
   FILENAME_PREFIX_IGNORE: "test-",
   BINARY_FILE_EXTENSION_IGNORE_LIST: [
     "aac",
@@ -79,7 +79,7 @@ export const fileProcessingConfig = {
     "tar",
     "gz",
     "tgz",
-  ] as const,
-  CODE_FILE_EXTENSIONS: ["js", "ts", "java", "py", "sql"] as const,
+  ] as const satisfies readonly string[],
+  CODE_FILE_EXTENSIONS: ["js", "ts", "java", "py", "sql"] as const satisfies readonly string[],
   MAX_CONCURRENCY: 50,
 } as const;

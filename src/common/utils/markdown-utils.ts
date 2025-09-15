@@ -1,6 +1,6 @@
 import path from "path";
 import { getFileExtension } from "../../common/utils/path-utils";
-import { readFile } from "../../common/utils/fs-utils";
+import { readFile } from "../../common/utils/file-operations";
 
 /**
  * Merge the content of all source files.

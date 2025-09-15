@@ -4,7 +4,7 @@ import ejs from "ejs";
 import { appConfig } from "../../config/app.config";
 import { jsonFilesConfig } from "./json-files.config";
 import type { ReportData } from "./report-gen.types";
-import { writeFile } from "../../common/utils/fs-utils";
+import { writeFile } from "../../common/utils/file-operations";
 import { convertToDisplayName } from "../../common/utils/text-utils";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 

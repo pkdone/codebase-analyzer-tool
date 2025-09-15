@@ -3,12 +3,8 @@ import { promises as fs } from "fs";
 import os from "os";
 import { injectable } from "tsyringe";
 import { appConfig } from "../../config/app.config";
-import {
-  readFile,
-  writeFile,
-  listDirectoryEntries,
-  findFilesRecursively,
-} from "../../common/utils/fs-utils";
+import { readFile, writeFile } from "../../common/utils/file-operations";
+import { listDirectoryEntries, findFilesRecursively } from "../../common/utils/directory-operations";
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail, formatErrorMessage } from "../../common/utils/error-utils";
 import LLMRouter from "../../llm/core/llm-router";

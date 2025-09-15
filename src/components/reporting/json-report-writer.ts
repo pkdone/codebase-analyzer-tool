@@ -10,7 +10,7 @@ import type {
   DatabaseIntegrationInfo,
 } from "./report-gen.types";
 import { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
-import { writeFile } from "../../common/utils/fs-utils";
+import { writeFile } from "../../common/utils/file-operations";
 
 /**
  * Class responsible for writing JSON data files to the output directory.

@@ -2,7 +2,8 @@ import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../llm/core/llm-router";
 import path from "path";
 import { appConfig } from "../../config/app.config";
-import { readFile, findFilesRecursively } from "../../common/utils/fs-utils";
+import { readFile } from "../../common/utils/file-operations";
+import { findFilesRecursively } from "../../common/utils/directory-operations";
 import { getFileExtension } from "../../common/utils/path-utils";
 import { countLines } from "../../common/utils/text-utils";
 import pLimit from "p-limit";
@@ -98,17 +99,19 @@ export default class CodebaseToDBLoader {
       });
     });
     const results = await Promise.allSettled(tasks);
-    let successCount = 0;
-    let failureCount = 0;
-    results.forEach((result, index) => {
-      if (result.status === "rejected") {
-        failureCount++;
-        const error: unknown = result.reason;
-        logErrorMsgAndDetail(`Failed to process file: ${filepaths[index]}`, error);
-      } else {
-        successCount++;
-      }
-    });
+    const { successCount, failureCount } = results.reduce(
+      (acc, result, index) => {
+        if (result.status === "fulfilled") {
+          acc.successCount++;
+        } else {
+          acc.failureCount++;
+          const error: unknown = result.reason;
+          logErrorMsgAndDetail(`Failed to process file: ${filepaths[index]}`, error);
+        }
+        return acc;
+      },
+      { successCount: 0, failureCount: 0 },
+    );
     
     const totalFiles = filepaths.length;
     console.log(`Processed ${totalFiles} files. Succeeded: ${successCount}, Failed: ${failureCount}`);
