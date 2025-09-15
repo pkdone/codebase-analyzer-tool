@@ -22,6 +22,8 @@ interface EjsTemplateData {
   jsonFilesConfig: typeof jsonFilesConfig;
   convertToDisplayName: (text: string) => string;
   fileTypesTableViewModel: TableViewModel;
+  dbInteractionsTableViewModel: TableViewModel;
+  procsAndTriggersTableViewModel: TableViewModel;
 }
 
 
@@ -54,6 +56,13 @@ export class HtmlReportWriter {
       tableViewModel: new TableViewModel(category.data as DisplayableTableRow[])
     }));
 
+    // Create view models for database interactions
+    const dbInteractionsTableViewModel = new TableViewModel(reportData.dbInteractions as unknown as DisplayableTableRow[]);
+    
+    // Create view model for stored procedures and triggers
+    const combinedProcsTrigsList = [...reportData.procsAndTriggers.procs.list, ...reportData.procsAndTriggers.trigs.list];
+    const procsAndTriggersTableViewModel = new TableViewModel(combinedProcsTrigsList as unknown as DisplayableTableRow[]);
+
     const data: EjsTemplateData = {
       appStats: reportData.appStats,
       fileTypesData: reportData.fileTypesData,
@@ -63,6 +72,8 @@ export class HtmlReportWriter {
       jsonFilesConfig,
       convertToDisplayName,
       fileTypesTableViewModel,
+      dbInteractionsTableViewModel,
+      procsAndTriggersTableViewModel,
     };
     const htmlContent = await ejs.renderFile(templatePath, data);
     await writeFile(htmlFilePath, htmlContent);
