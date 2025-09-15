@@ -5,6 +5,10 @@ import AbstractLLM from "../../core/abstract-llm";
 import { llmConfig } from "../../llm.config";
 import { BadResponseContentLLMError } from "../../types/llm-errors.types";
 
+// Constants for GPT-5 model detection
+const GPT5_MODEL_KEY = "GPT_COMPLETIONS_GPT5";
+const GPT5_MODEL_IDENTIFIER_SUBSTRING = "gpt-5";
+
 /**
  * Abstract base class for all OpenAI-based LLM providers.
  */
@@ -48,7 +52,7 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
    */
   protected isTokenLimitExceeded(error: unknown) {
     if (error instanceof APIError) {
-      return error.code === "context_length_exceeded" || error.type === "invalid_request_error";
+      return error.code === "context_length_exceeded";
     }
 
     return false;
@@ -73,12 +77,18 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
       };
       return params;
     } else {
-      const params: OpenAI.Chat.ChatCompletionCreateParams = {
+      const isGPT5Model = modelKey === GPT5_MODEL_KEY || modelIdentifier.toLowerCase().includes(GPT5_MODEL_IDENTIFIER_SUBSTRING);
+      
+      // GPT-5 models only support default temperature (1), while other models support custom temperature
+      const baseParams: OpenAI.Chat.ChatCompletionCreateParams = {
         model: modelIdentifier,
-        temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
         messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
-        max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
+        ...(isGPT5Model ? {} : { temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP }),
       };
+
+      const params = isGPT5Model 
+        ? { ...baseParams, max_completion_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens }
+        : { ...baseParams, max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens };
 
       if (options?.outputFormat === LLMOutputFormat.JSON) {
         params.response_format = { type: "json_object" };

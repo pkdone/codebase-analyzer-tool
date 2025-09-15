@@ -14,8 +14,8 @@ const OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY_KEY = "OPENAI_GPT_COMPLETIONS_MODEL
 // Exported constants
 export const OPENAI = "OpenAI";
 export const GPT_EMBEDDINGS_TEXT_3SMALL = "GPT_EMBEDDINGS_TEXT_3SMALL";
+const GPT_COMPLETIONS_GPT5 = "GPT_COMPLETIONS_GPT5";
 const GPT_COMPLETIONS_GPT4_O = "GPT_COMPLETIONS_GPT4_O";
-const GPT_COMPLETIONS_GPT4_TURBO = "GPT_COMPLETIONS_GPT4_TURBO";
 
 export const openAIProviderManifest: LLMProviderManifest = {
   providerName: "OpenAI GPT",
@@ -35,18 +35,18 @@ export const openAIProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 8191,
     },
     primaryCompletion: {
-      modelKey: GPT_COMPLETIONS_GPT4_O,
+      modelKey: GPT_COMPLETIONS_GPT5,
       urnEnvKey: OPENAI_GPT_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 16384,
-      maxTotalTokens: 128000,
+      maxCompletionTokens: 128_000,
+      maxTotalTokens: 400_000,
     },
     secondaryCompletion: {
-      modelKey: GPT_COMPLETIONS_GPT4_TURBO,
+      modelKey: GPT_COMPLETIONS_GPT4_O,
       urnEnvKey: OPENAI_GPT_COMPLETIONS_MODEL_SECONDARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 4096,
-      maxTotalTokens: 128000,
+      maxCompletionTokens: 16_384,
+      maxTotalTokens: 128_000,
     },
   },
   errorPatterns: OPENAI_COMMON_ERROR_PATTERNS,
