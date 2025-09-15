@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import path from "path";
 import ejs from "ejs";
-import { appConfig } from "../../config/app.config";
+import { outputConfig } from "../../config/output.config";
 import { jsonFilesConfig } from "./json-files.config";
 import type { ReportData } from "./report-gen.types";
 import { writeFile } from "../../common/utils/file-operations";
@@ -39,8 +39,8 @@ export class HtmlReportWriter {
   async writeHTMLReportFile(reportData: ReportData, htmlFilePath: string): Promise<void> {
     const templatePath = path.join(
       __dirname,
-      appConfig.HTML_TEMPLATES_DIR,
-      appConfig.HTML_MAIN_TEMPLATE_FILE,
+      outputConfig.HTML_TEMPLATES_DIR,
+      outputConfig.HTML_MAIN_TEMPLATE_FILE,
     );
     // Create view models for file types summary
     const fileTypesDisplayData = reportData.fileTypesData.map(item => ({

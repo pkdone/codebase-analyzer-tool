@@ -4,7 +4,8 @@ import LLMRouter from "../../llm/core/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import { TOKENS } from "../../di/tokens";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
-import { appConfig } from "../../config/app.config";
+import { pathsConfig } from "../../config/paths.config";
+import { fileProcessingConfig } from "../../config/file-processing.config";
 import { findFilesRecursively } from "../../common/utils/directory-operations";
 import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
 import type { EnvVars } from "../../env/env.types";
@@ -47,16 +48,16 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Generate insights from raw code and store in the database
    */
   async generateAndStoreInsights(): Promise<void> {
-    const srcDirPath = this.env.CODEBASE_DIR_PATH.replace(appConfig.TRAILING_SLASH_PATTERN, "");
+    const srcDirPath = this.env.CODEBASE_DIR_PATH.replace(pathsConfig.TRAILING_SLASH_PATTERN, "");
     const srcFilepaths = await findFilesRecursively(
       srcDirPath,
-      appConfig.FOLDER_IGNORE_LIST,
-      appConfig.FILENAME_PREFIX_IGNORE,
+      fileProcessingConfig.FOLDER_IGNORE_LIST,
+      fileProcessingConfig.FILENAME_PREFIX_IGNORE,
     );
     const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(
       srcFilepaths,
       srcDirPath,
-      appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
     );
     await this.generateDataForAllCategories(codeBlocksContent);
   }

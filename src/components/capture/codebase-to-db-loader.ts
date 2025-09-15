@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../llm/core/llm-router";
 import path from "path";
-import { appConfig } from "../../config/app.config";
+import { fileProcessingConfig } from "../../config/file-processing.config";
 import { readFile } from "../../common/utils/file-operations";
 import { findFilesRecursively } from "../../common/utils/directory-operations";
 import { getFileExtension } from "../../common/utils/path-utils";
@@ -38,8 +38,8 @@ export default class CodebaseToDBLoader {
   ): Promise<void> {
     const srcFilepaths = await findFilesRecursively(
       srcDirPath,
-      appConfig.FOLDER_IGNORE_LIST,
-      appConfig.FILENAME_PREFIX_IGNORE,
+      fileProcessingConfig.FOLDER_IGNORE_LIST,
+      fileProcessingConfig.FILENAME_PREFIX_IGNORE,
       true,
     );
     await this.processAndStoreSourceFilesIntoDB(
@@ -79,7 +79,7 @@ export default class CodebaseToDBLoader {
       await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
-    const limit = pLimit(appConfig.MAX_CONCURRENCY);
+    const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = filepaths.map(async (filepath) => {
       return limit(async () => {
         try {
@@ -134,7 +134,7 @@ export default class CodebaseToDBLoader {
   ) {
     const type = getFileExtension(fullFilepath).toLowerCase();
     const filepath = path.relative(srcDirPath, fullFilepath);
-    if ((appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
+    if ((fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
 
     if (
       skipIfAlreadyCaptured &&

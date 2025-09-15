@@ -2,7 +2,8 @@ import { injectable, inject } from "tsyringe";
 import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { appConfig } from "../../config/app.config";
+import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
+import { vectorSearchConfig } from "../../config/vector-search.config";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
@@ -51,10 +52,10 @@ export default class CodebaseQueryProcessor {
 
     const bestMatchFiles = await this.sourcesRepository.vectorSearchProjectSourcesRawContent(
       projectName,
-      appConfig.JAVA_FILE_TYPE,
+      fileTypeMappingsConfig.JAVA_FILE_TYPE,
       queryVector,
-      appConfig.VECTOR_SEARCH_NUM_CANDIDATES,
-      appConfig.VECTOR_SEARCH_NUM_LIMIT,
+      vectorSearchConfig.VECTOR_SEARCH_NUM_CANDIDATES,
+      vectorSearchConfig.VECTOR_SEARCH_NUM_LIMIT,
     );
 
     if (bestMatchFiles.length <= 0) {

@@ -3,7 +3,7 @@ import { injectable, inject } from "tsyringe";
 import { readAndFilterLines } from "../common/utils/file-content-utils";
 import { formatErrorMessage } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
-import { appConfig } from "../config/app.config";
+import { pathsConfig } from "../config/paths.config";
 import { Task } from "./task.types";
 import { TOKENS } from "../di/tokens";
 
@@ -34,7 +34,7 @@ export class CodebaseQueryTask implements Task {
     console.log(
       `Performing vector search then invoking LLM for optimal results for project: ${this.projectName}`,
     );
-    const questions = await readAndFilterLines(appConfig.QUESTIONS_PROMPTS_FILEPATH);
+    const questions = await readAndFilterLines(pathsConfig.QUESTIONS_PROMPTS_FILEPATH);
     const queryPromises = questions.map(async (question) =>
       this.codebaseQueryProcessor.queryCodebaseWithQuestion(question, this.projectName),
     );

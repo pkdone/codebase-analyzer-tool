@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { appConfig } from "../config/app.config";
+import { pathsConfig } from "../config/paths.config";
 import { readFile } from "../common/utils/file-operations";
 import { LLMModelQuality, LLMOutputFormat } from "../llm/types/llm.types";
 import LLMRouter from "../llm/core/llm-router";
@@ -28,7 +28,7 @@ export class PluggableLLMsTestTask implements Task {
    * Tests the LLM functionality.
    */
   private async runPluggableLLMs(): Promise<void> {
-    const prompt = await readFile(appConfig.SAMPLE_PROMPT_FILEPATH);
+    const prompt = await readFile(pathsConfig.SAMPLE_PROMPT_FILEPATH);
     console.log("\n---PROMPT---");
     console.log(prompt);
 

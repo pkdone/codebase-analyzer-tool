@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { Task } from "./task.types";
 import { TOKENS } from "../di/tokens";
-import { appConfig } from "../config/app.config";
+import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/utils/directory-operations";
 import AppReportGenerator from "../components/reporting/app-report-generator";
 
@@ -31,12 +31,12 @@ export class ReportGenerationTask implements Task {
    */
   private async generateReport(): Promise<void> {
     console.log(`ReportGenerationTask: Generating report for project: ${this.projectName}`);
-    await clearDirectory(appConfig.OUTPUT_DIR);
+    await clearDirectory(outputConfig.OUTPUT_DIR);
     console.log(`Creating report for project: ${this.projectName}`);
     await this.appReportGenerator.generateReport(
       this.projectName,
-      appConfig.OUTPUT_DIR,
-      appConfig.OUTPUT_SUMMARY_HTML_FILE,
+      outputConfig.OUTPUT_DIR,
+      outputConfig.OUTPUT_SUMMARY_HTML_FILE,
     );
   }
 }

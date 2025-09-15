@@ -8,7 +8,7 @@ import * as fileOperations from "../../../src/common/utils/file-operations";
 import * as directoryOperations from "../../../src/common/utils/directory-operations";
 import * as pathUtils from "../../../src/common/utils/path-utils";
 import * as textUtils from "../../../src/common/utils/text-utils";
-import { appConfig } from "../../../src/config/app.config";
+import { fileProcessingConfig } from "../../../src/config/file-processing.config";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/file-operations");
@@ -19,8 +19,8 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
 
-jest.mock("../../../src/config/app.config", () => ({
-  appConfig: {
+jest.mock("../../../src/config/file-processing.config", () => ({
+  fileProcessingConfig: {
     FOLDER_IGNORE_LIST: [".git", "node_modules"],
     FILENAME_PREFIX_IGNORE: [".", "_"],
     BINARY_FILE_EXTENSION_IGNORE_LIST: [".jpg", ".png", ".pdf", ".exe"],
@@ -102,8 +102,8 @@ describe("CodebaseToDBLoader", () => {
 
       expect(mockDirectoryOperations.findFilesRecursively).toHaveBeenCalledWith(
         "/src",
-        appConfig.FOLDER_IGNORE_LIST,
-        appConfig.FILENAME_PREFIX_IGNORE,
+        fileProcessingConfig.FOLDER_IGNORE_LIST,
+        fileProcessingConfig.FILENAME_PREFIX_IGNORE,
         true,
       );
       expect(mockSourcesRepository.deleteSourcesByProject).toHaveBeenCalledWith("testProject");

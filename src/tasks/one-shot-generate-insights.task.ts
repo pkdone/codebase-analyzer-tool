@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { appConfig } from "../config/app.config";
+import { pathsConfig } from "../config/paths.config";
+import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/utils/directory-operations";
 import { RawCodeToInsightsFileGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
 import type LLMRouter from "../llm/core/llm-router";
@@ -36,9 +37,9 @@ export class OneShotGenerateInsightsTask implements Task {
    * Generates inline insights.
    */
   private async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<void> {
-    const normalisedSrcDirPath = srcDirPath.replace(appConfig.TRAILING_SLASH_PATTERN, "");
+    const normalisedSrcDirPath = srcDirPath.replace(pathsConfig.TRAILING_SLASH_PATTERN, "");
     this.llmStatsReporter.displayLLMStatusSummary();
-    await clearDirectory(appConfig.OUTPUT_DIR);
+    await clearDirectory(outputConfig.OUTPUT_DIR);
     const prompts = await this.insightsFileGenerator.loadPrompts();
     await this.insightsFileGenerator.generateInsightsToFiles(
       this.llmRouter,
@@ -47,6 +48,6 @@ export class OneShotGenerateInsightsTask implements Task {
       prompts,
     );
     this.llmStatsReporter.displayLLMStatusDetails();
-    console.log(`View generated results in the 'file://${appConfig.OUTPUT_DIR}' folder`);
+    console.log(`View generated results in the 'file://${outputConfig.OUTPUT_DIR}' folder`);
   }
 }

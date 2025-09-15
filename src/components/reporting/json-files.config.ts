@@ -1,4 +1,4 @@
-import { appConfig } from "../../config/app.config";
+import { outputConfig } from "../../config/output.config";
 
 /**
  * Configuration for JSON file generation in HTML reports.
@@ -9,7 +9,7 @@ export const jsonFilesConfig = {
    * Filenames for additional data section JSON files
    */
   dataFiles: {
-    completeReport: appConfig.OUTPUT_SUMMARY_FILENAME,
+    completeReport: outputConfig.OUTPUT_SUMMARY_FILENAME,
     appStats: "app-stats.json",
     appDescription: "app-description.json",
     fileTypes: "file-types.json",

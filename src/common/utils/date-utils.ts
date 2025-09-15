@@ -30,9 +30,3 @@ export function formatDateForFilename(): string {
   return new Date().toISOString().replace(/[:.]/g, '-');
 }
 
-/**
- * Get current timestamp as number for unique identifiers.
- */
-export function getCurrentTimestamp(): number {
-  return Date.now();
-}

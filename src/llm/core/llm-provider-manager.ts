@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import path from "path";
-import { appConfig } from "../../config/app.config";
+import { llmProviderConfig } from "../../config/llm-provider.config";
 import {
   LLMProvider,
   LLMModelKeysSet as LLMModelsKeysSet,
@@ -35,7 +35,7 @@ export class LLMProviderManager {
    * Static method to load a manifest for a specific model family without creating a full manager
    */
   static async loadManifestForModelFamily(modelFamily: string): Promise<LLMProviderManifest> {
-    const providersRootPath = path.join(__dirname, appConfig.PROVIDERS_FOLDER_PATH);
+    const providersRootPath = path.join(__dirname, llmProviderConfig.PROVIDERS_FOLDER_PATH);
     const manifest = await LLMProviderManager.findManifestRecursively(
       providersRootPath,
       modelFamily,
@@ -60,7 +60,7 @@ export class LLMProviderManager {
       // First, check if current directory has a manifest file
       const manifestFile = entries
         .filter((file) => file.isFile())
-        .find((file) => file.name.endsWith(appConfig.MANIFEST_FILE_SUFFIX));
+        .find((file) => file.name.endsWith(llmProviderConfig.MANIFEST_FILE_SUFFIX));
 
       if (manifestFile) {
         const manifestPath = path.join(searchPath, manifestFile.name);
@@ -100,7 +100,7 @@ export class LLMProviderManager {
       const module: unknown = await import(manifestPath);
       if (!module || typeof module !== "object") return undefined;
       const manifestKey = Object.keys(module).find((key) =>
-        key.endsWith(appConfig.PROVIDER_MANIFEST_EXPORT_SUFFIX),
+        key.endsWith(llmProviderConfig.PROVIDER_MANIFEST_EXPORT_SUFFIX),
       );
       if (!manifestKey || !(manifestKey in module)) return undefined;
       const manifestValue = (module as Record<string, unknown>)[manifestKey];

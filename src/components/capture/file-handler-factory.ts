@@ -2,7 +2,7 @@ import path from "path";
 import { injectable } from "tsyringe";
 import { DynamicPromptConfig } from "../../llm/utils/prompt-templator";
 import { fileTypeMetadataConfig } from "./files-types-metadata.config";
-import { appConfig } from "../../config/app.config";
+import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
 /**
  * Factory class responsible for creating appropriate prompt configurations based on file type.
@@ -34,13 +34,13 @@ export class PromptConfigFactory {
   private resolveFileType(filepath: string, type: string): string {
     const filename = path.basename(filepath).toLowerCase();
     // Check if this specific filename has a canonical type mapping
-    const canonicalType = appConfig.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
+    const canonicalType = fileTypeMappingsConfig.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
     if (canonicalType) return canonicalType;
   
     // Use the extension-based mapping to determine the canonical type
     return (
-      appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase()) ??
-      appConfig.DEFAULT_FILE_TYPE
+      fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase()) ??
+      fileTypeMappingsConfig.DEFAULT_FILE_TYPE
     );
   }
 

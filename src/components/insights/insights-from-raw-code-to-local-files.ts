@@ -2,7 +2,9 @@ import path from "path";
 import { promises as fs } from "fs";
 import os from "os";
 import { injectable } from "tsyringe";
-import { appConfig } from "../../config/app.config";
+import { pathsConfig } from "../../config/paths.config";
+import { fileProcessingConfig } from "../../config/file-processing.config";
+import { outputConfig } from "../../config/output.config";
 import { readFile, writeFile } from "../../common/utils/file-operations";
 import { listDirectoryEntries, findFilesRecursively } from "../../common/utils/directory-operations";
 import pLimit from "p-limit";
@@ -30,13 +32,13 @@ export class RawCodeToInsightsFileGenerator {
    * Load prompts from files in the input folder
    */
   async loadPrompts(): Promise<FileRequirementPrompt[]> {
-    const inputDir = appConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
+    const inputDir = pathsConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 
     try {
       await fs.mkdir(inputDir, { recursive: true });
       const files = await listDirectoryEntries(inputDir);
-      const promptFiles = files.filter((file) => appConfig.REQUIREMENTS_FILE_REGEX.test(file.name));
+      const promptFiles = files.filter((file) => pathsConfig.REQUIREMENTS_FILE_REGEX.test(file.name));
 
       for (const file of promptFiles) {
         const filePath = path.join(inputDir, file.name);
@@ -64,16 +66,16 @@ export class RawCodeToInsightsFileGenerator {
   ): Promise<string[]> {
     const srcFilepaths = await findFilesRecursively(
       srcDirPath,
-      appConfig.FOLDER_IGNORE_LIST,
-      appConfig.FILENAME_PREFIX_IGNORE,
+      fileProcessingConfig.FOLDER_IGNORE_LIST,
+      fileProcessingConfig.FILENAME_PREFIX_IGNORE,
     );
     const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(
       srcFilepaths,
       srcDirPath,
-      appConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
     );
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
-    const limit = pLimit(appConfig.MAX_CONCURRENCY);
+    const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {
       return limit(async () => {
         const result = await this.executePromptAgainstCodebase(
@@ -82,7 +84,7 @@ export class RawCodeToInsightsFileGenerator {
           llmRouter,
         );
         const outputFileName = `${prompt.filename}.result`;
-        const outputFilePath = path.join(process.cwd(), appConfig.OUTPUT_DIR, outputFileName);
+        const outputFilePath = path.join(process.cwd(), outputConfig.OUTPUT_DIR, outputFileName);
         await writeFile(
           outputFilePath,
           `GENERATED-BY: ${llmName}\n\nREQUIREMENT: ${prompt.question}\n\nRECOMENDATIONS:\n\n${result.trim()}\n`,

@@ -3,9 +3,9 @@ import { jest } from "@jest/globals";
 import { PromptConfigFactory } from "../../../src/components/capture/file-handler-factory";
 import { fileTypeMetadataConfig } from "../../../src/components/capture/files-types-metadata.config";
 
-// Mock the app config module
-jest.mock("../../../src/config/app.config", () => ({
-  appConfig: {
+// Mock the file type mappings config module
+jest.mock("../../../src/config/file-type-mappings.config", () => ({
+  fileTypeMappingsConfig: {
     FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
       ["readme", "markdown"],
       ["license", "markdown"],

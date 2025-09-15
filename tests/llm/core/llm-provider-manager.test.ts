@@ -6,8 +6,8 @@ import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.type
 import * as directoryOperations from "../../../src/common/utils/directory-operations";
 
 // Mock dependencies
-jest.mock("../../../src/config/app.config", () => ({
-  appConfig: {
+jest.mock("../../../src/config/llm-provider.config", () => ({
+  llmProviderConfig: {
     PROVIDERS_FOLDER_PATH: "../providers",
     MANIFEST_FILE_SUFFIX: ".manifest.ts",
     PROVIDER_MANIFEST_EXPORT_SUFFIX: "Manifest",

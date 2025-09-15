@@ -13,9 +13,9 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
 
-jest.mock("../../../src/config/app.config", () => ({
-  appConfig: {
-    FILE_SUFFIX_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+jest.mock("../../../src/config/file-type-mappings.config", () => ({
+  fileTypeMappingsConfig: {
+    FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
       ["java", "java"],
       ["js", "javascript"],
       ["ts", "javascript"],

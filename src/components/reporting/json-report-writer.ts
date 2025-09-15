@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 import path from "path";
-import { appConfig } from "../../config/app.config";
+import { outputConfig } from "../../config/output.config";
 import { jsonFilesConfig } from "./json-files.config";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
 import type {
@@ -65,7 +65,7 @@ export class JsonReportWriter {
 
     // Write all JSON files in parallel
     const jsonFilePromises = jsonFiles.map(async (fileInfo) => {
-      const jsonFilePath = path.join(appConfig.OUTPUT_DIR, fileInfo.filename);
+      const jsonFilePath = path.join(outputConfig.OUTPUT_DIR, fileInfo.filename);
       const jsonContent = JSON.stringify(fileInfo.data, null, 2);
       await writeFile(jsonFilePath, jsonContent);
       console.log(`Generated JSON file: ${fileInfo.filename}`);

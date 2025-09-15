@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { appConfig } from "../../config/app.config";
+import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../common/utils/text-utils";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
@@ -81,7 +81,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
   private async formatSourcesForLLMPrompt(): Promise<string[]> {
     const srcFilesList: string[] = [];
     const records = await this.sourcesRepository.getProjectSourcesSummaries(this.projectName, [
-      ...appConfig.CODE_FILE_EXTENSIONS,
+      ...fileProcessingConfig.CODE_FILE_EXTENSIONS,
     ]);
 
     for (const record of records) {

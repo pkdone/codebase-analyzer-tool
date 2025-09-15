@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { appConfig } from "../../../config/app.config";
+import { fileProcessingConfig } from "../../../config/file-processing.config";
 import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../../di/tokens";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
@@ -29,7 +29,7 @@ export class DatabaseReportDataProvider {
    */
   async getDatabaseInteractions(projectName: string): Promise<DatabaseIntegrationInfo[]> {
     const records = await this.sourcesRepository.getProjectDatabaseIntegrations(projectName, [
-      ...appConfig.CODE_FILE_EXTENSIONS,
+      ...fileProcessingConfig.CODE_FILE_EXTENSIONS,
     ]);
     const validRecords = records.filter((record) => record.summary?.databaseIntegration);
     return validRecords.map((record) => {
@@ -58,7 +58,7 @@ export class DatabaseReportDataProvider {
   async getStoredProceduresAndTriggers(projectName: string): Promise<ProcsAndTriggers> {
     const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(
       projectName,
-      [...appConfig.CODE_FILE_EXTENSIONS],
+      [...fileProcessingConfig.CODE_FILE_EXTENSIONS],
     );
     const allProcs = records.flatMap(
       (record) =>
