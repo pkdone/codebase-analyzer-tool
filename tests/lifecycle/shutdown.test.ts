@@ -1,15 +1,28 @@
+import "reflect-metadata";
 import { ShutdownService } from "../../src/lifecycle/shutdown-service";
 import LLMRouter from "../../src/llm/core/llm-router";
 import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
+import { container } from "tsyringe";
+import { TOKENS } from "../../src/di/tokens";
 
 // Mock the dependencies
 jest.mock("../../src/llm/core/llm-router");
 jest.mock("../../src/common/mdb/mdb-client-factory");
 
+// Mock tsyringe decorators
+jest.mock("tsyringe", () => ({
+  injectable: () => (target: any) => target,
+  container: {
+    isRegistered: jest.fn(),
+    resolve: jest.fn(),
+  },
+}));
+
 describe("ShutdownService", () => {
   // Mock instances
   let mockLLMRouter: LLMRouter;
   let mockMongoDBClientFactory: MongoDBClientFactory;
+  let mockContainer: jest.Mocked<typeof container>;
 
   // Mock process.exit to prevent actual process termination during tests
   const originalProcessExit = process.exit;
@@ -32,6 +45,11 @@ describe("ShutdownService", () => {
       closeAll: jest.fn().mockResolvedValue(undefined),
     } as unknown as MongoDBClientFactory;
 
+    // Mock the container
+    mockContainer = container as jest.Mocked<typeof container>;
+    mockContainer.isRegistered = jest.fn();
+    mockContainer.resolve = jest.fn();
+
     // Mock process.exit
     process.exit = mockProcessExit as unknown as typeof process.exit;
 
@@ -47,7 +65,17 @@ describe("ShutdownService", () => {
 
   describe("shutdownWithForcedExitFallback", () => {
     it("should handle shutdown when both llmRouter and mongoDBClientFactory are available", async () => {
-      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      // Mock container to return both dependencies
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.LLMRouter) return mockLLMRouter;
+        if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
+        throw new Error("Unexpected token");
+      });
+
+      const shutdownService = new ShutdownService();
       
       await shutdownService.shutdownWithForcedExitFallback();
 
@@ -58,7 +86,16 @@ describe("ShutdownService", () => {
     });
 
     it("should handle shutdown when only llmRouter is available", async () => {
-      const shutdownService = new ShutdownService(mockLLMRouter, undefined);
+      // Mock container to return only LLMRouter
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.LLMRouter;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.LLMRouter) return mockLLMRouter;
+        throw new Error("Unexpected token");
+      });
+
+      const shutdownService = new ShutdownService();
       
       await shutdownService.shutdownWithForcedExitFallback();
 
@@ -68,7 +105,16 @@ describe("ShutdownService", () => {
     });
 
     it("should handle shutdown when only mongoDBClientFactory is available", async () => {
-      const shutdownService = new ShutdownService(undefined, mockMongoDBClientFactory);
+      // Mock container to return only MongoDBClientFactory
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.MongoDBClientFactory;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
+        throw new Error("Unexpected token");
+      });
+
+      const shutdownService = new ShutdownService();
       
       await shutdownService.shutdownWithForcedExitFallback();
 
@@ -77,7 +123,10 @@ describe("ShutdownService", () => {
     });
 
     it("should handle shutdown when no dependencies are available", async () => {
-      const shutdownService = new ShutdownService(undefined, undefined);
+      // Mock container to return no dependencies
+      mockContainer.isRegistered.mockReturnValue(false);
+
+      const shutdownService = new ShutdownService();
       
       await shutdownService.shutdownWithForcedExitFallback();
 
@@ -87,8 +136,18 @@ describe("ShutdownService", () => {
     it("should apply Google Cloud specific workaround when provider needs forced shutdown", async () => {
       // Set up the mock to return true for forced shutdown
       (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(true);
+
+      // Mock container to return both dependencies
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.LLMRouter) return mockLLMRouter;
+        if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
+        throw new Error("Unexpected token");
+      });
       
-      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      const shutdownService = new ShutdownService();
       
       await shutdownService.shutdownWithForcedExitFallback();
 
@@ -104,8 +163,18 @@ describe("ShutdownService", () => {
     it("should not apply Google Cloud workaround for other providers", async () => {
       // Set up the mock to return false for forced shutdown
       (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(false);
+
+      // Mock container to return both dependencies
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.LLMRouter) return mockLLMRouter;
+        if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
+        throw new Error("Unexpected token");
+      });
       
-      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      const shutdownService = new ShutdownService();
       
       await shutdownService.shutdownWithForcedExitFallback();
 
@@ -120,8 +189,18 @@ describe("ShutdownService", () => {
     it("should execute the timeout callback correctly for forced shutdown", async () => {
       // Set up the mock to return true for forced shutdown
       (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockReturnValue(true);
+
+      // Mock container to return both dependencies
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.LLMRouter) return mockLLMRouter;
+        if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
+        throw new Error("Unexpected token");
+      });
       
-      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      const shutdownService = new ShutdownService();
       
       await shutdownService.shutdownWithForcedExitFallback();
 
@@ -151,8 +230,18 @@ describe("ShutdownService", () => {
     it("should handle errors from llmRouter.close gracefully", async () => {
       const error = new Error("Failed to close LLM router");
       (mockLLMRouter.close as jest.Mock).mockRejectedValue(error);
+
+      // Mock container to return both dependencies
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.LLMRouter) return mockLLMRouter;
+        if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
+        throw new Error("Unexpected token");
+      });
       
-      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      const shutdownService = new ShutdownService();
 
       await expect(shutdownService.shutdownWithForcedExitFallback()).rejects.toThrow(
         "Failed to close LLM router",
@@ -164,8 +253,18 @@ describe("ShutdownService", () => {
     it("should handle errors from mongoDBClientFactory.closeAll gracefully", async () => {
       const error = new Error("Failed to close MongoDB connections");
       (mockMongoDBClientFactory.closeAll as jest.Mock).mockRejectedValue(error);
+
+      // Mock container to return both dependencies
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.LLMRouter) return mockLLMRouter;
+        if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
+        throw new Error("Unexpected token");
+      });
       
-      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      const shutdownService = new ShutdownService();
 
       await expect(shutdownService.shutdownWithForcedExitFallback()).rejects.toThrow(
         "Failed to close MongoDB connections",
@@ -181,8 +280,18 @@ describe("ShutdownService", () => {
       (mockLLMRouter.providerNeedsForcedShutdown as jest.Mock).mockImplementation(() => {
         throw error;
       });
+
+      // Mock container to return both dependencies
+      mockContainer.isRegistered.mockImplementation((token) => {
+        return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
+      });
+      mockContainer.resolve.mockImplementation((token) => {
+        if (token === TOKENS.LLMRouter) return mockLLMRouter;
+        if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
+        throw new Error("Unexpected token");
+      });
       
-      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
+      const shutdownService = new ShutdownService();
 
       await expect(shutdownService.shutdownWithForcedExitFallback()).rejects.toThrow(
         "Failed to check for forced shutdown",

@@ -33,6 +33,9 @@ import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
 import { FallbackStrategy } from "../../llm/core/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
 
+// Lifecycle imports
+import { ShutdownService } from "../../lifecycle/shutdown-service";
+
 /**
  * Register all application-level dependencies (repositories, components, and tasks).
  * This orchestrator function delegates to domain-specific registration modules.
@@ -67,6 +70,9 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   container.registerSingleton(TOKENS.RetryStrategy, RetryStrategy);
   container.registerSingleton(TOKENS.FallbackStrategy, FallbackStrategy);
   container.registerSingleton(TOKENS.LLMExecutionPipeline, LLMExecutionPipeline);
+  
+  // Register lifecycle services
+  container.registerSingleton(TOKENS.ShutdownService, ShutdownService);
 
   // Register domain-specific components
   registerCaptureComponents();

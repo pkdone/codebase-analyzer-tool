@@ -3,24 +3,19 @@ import { container } from "../../src/di/container";
 import { TOKENS } from "../../src/di/tokens";
 import { Task } from "../../src/tasks/task.types";
 import { ShutdownService } from "../../src/lifecycle/shutdown-service";
-import LLMRouter from "../../src/llm/core/llm-router";
-import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
 
 // Mock dependencies
 jest.mock("../../src/di/container");
 jest.mock("../../src/lifecycle/shutdown-service");
-jest.mock("../../src/llm/core/llm-router");
-jest.mock("../../src/common/mdb/mdb-client-factory");
 
 describe("Service Runner Integration Tests", () => {
   // Mock instances
   let mockService: Task;
-  let mockLLMRouter: LLMRouter;
-  let mockMongoDBClientFactory: MongoDBClientFactory;
+  let mockShutdownService: jest.Mocked<ShutdownService>;
   let mockConsoleLog: jest.SpyInstance;
 
   // Test service token
-  const TEST_SERVICE_TOKEN = Symbol.for("TestService");
+  const TEST_SERVICE_TOKEN = Symbol("TestService");
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,39 +25,28 @@ describe("Service Runner Integration Tests", () => {
       execute: jest.fn().mockResolvedValue(undefined),
     };
 
-    // Mock LLM router
-    mockLLMRouter = {
-      close: jest.fn().mockResolvedValue(undefined),
-      providerNeedsForcedShutdown: jest.fn().mockReturnValue(false),
-    } as unknown as LLMRouter;
-
-    // Mock MongoDB client factory
-    mockMongoDBClientFactory = {
-      closeAll: jest.fn().mockResolvedValue(undefined),
-    } as unknown as MongoDBClientFactory;
+    // Mock shutdown service
+    mockShutdownService = {
+      shutdownWithForcedExitFallback: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<ShutdownService>;
 
     // Mock console.log
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
 
-    // Mock container methods - default to no dependencies registered
-    (container.isRegistered as jest.Mock).mockReturnValue(false);
+    // Mock container methods
     (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
       switch (token) {
-        case TOKENS.LLMRouter:
-          return mockLLMRouter;
-        case TOKENS.MongoDBClientFactory:
-          return mockMongoDBClientFactory;
         case TEST_SERVICE_TOKEN:
           return Promise.resolve(mockService);
+        case TOKENS.ShutdownService:
+          return mockShutdownService;
         default:
-          return undefined;
+          throw new Error(`Unexpected token: ${token.toString()}`);
       }
     });
 
     // Mock ShutdownService constructor
-    (ShutdownService as jest.Mock).mockImplementation(() => ({
-      shutdownWithForcedExitFallback: jest.fn().mockResolvedValue(undefined),
-    }));
+    (ShutdownService as jest.Mock).mockImplementation(() => mockShutdownService);
   });
 
   afterEach(() => {
@@ -70,14 +54,13 @@ describe("Service Runner Integration Tests", () => {
   });
 
   describe("runTask", () => {
-    it("should run service and call graceful shutdown with no dependencies", async () => {
+    it("should run service and call graceful shutdown", async () => {
       await runTask(TEST_SERVICE_TOKEN);
 
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
-      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.LLMRouter);
-      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
       expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(ShutdownService).toHaveBeenCalledWith(undefined, undefined);
+      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^START:/));
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^END:/));
     });
@@ -89,49 +72,10 @@ describe("Service Runner Integration Tests", () => {
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Service execution failed");
 
       expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(ShutdownService).toHaveBeenCalledWith(undefined, undefined);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^START:/));
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^END:/));
-    });
-
-    it("should handle shutdown with both dependencies available", async () => {
-      // Mock both dependencies as registered
-      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
-        return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
-      });
-
-      await runTask(TEST_SERVICE_TOKEN);
-
-      expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
-      expect(ShutdownService).toHaveBeenCalledWith(mockLLMRouter, mockMongoDBClientFactory);
-    });
-
-    it("should handle shutdown with only LLM router available", async () => {
-      // Mock only LLM router as registered
-      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
-        return token === TOKENS.LLMRouter;
-      });
-
-      await runTask(TEST_SERVICE_TOKEN);
-
-      expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.LLMRouter);
-      expect(ShutdownService).toHaveBeenCalledWith(mockLLMRouter, undefined);
-    });
-
-    it("should handle shutdown with only MongoDB factory available", async () => {
-      // Mock only MongoDB factory as registered
-      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
-        return token === TOKENS.MongoDBClientFactory;
-      });
-
-      await runTask(TEST_SERVICE_TOKEN);
-
-      expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.MongoDBClientFactory);
-      expect(ShutdownService).toHaveBeenCalledWith(undefined, mockMongoDBClientFactory);
     });
 
     it("should handle service resolution errors", async () => {
@@ -140,77 +84,24 @@ describe("Service Runner Integration Tests", () => {
         if (token === TEST_SERVICE_TOKEN) {
           throw serviceError;
         }
-        return undefined;
+        if (token === TOKENS.ShutdownService) {
+          return mockShutdownService;
+        }
+        throw new Error(`Unexpected token: ${token.toString()}`);
       });
 
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow("Failed to resolve service");
 
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
-      expect(ShutdownService).toHaveBeenCalledWith(undefined, undefined);
-    });
-
-    it("should handle LLM router resolution errors during shutdown", async () => {
-      const llmError = new Error("Failed to resolve LLM router");
-      const mockConsoleError = jest.spyOn(console, "error").mockImplementation();
-      
-      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
-        return token === TOKENS.LLMRouter;
-      });
-
-      (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
-        if (token === TOKENS.LLMRouter) {
-          throw llmError;
-        }
-        if (token === TEST_SERVICE_TOKEN) {
-          return Promise.resolve(mockService);
-        }
-        return undefined;
-      });
-
-      await runTask(TEST_SERVICE_TOKEN);
-
-      expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(mockConsoleError).toHaveBeenCalledWith("Failed to resolve LLMRouter for shutdown:", llmError);
-      expect(ShutdownService).toHaveBeenCalledWith(undefined, undefined);
-
-      mockConsoleError.mockRestore();
-    });
-
-    it("should handle MongoDB factory resolution errors during shutdown", async () => {
-      const mongoError = new Error("Failed to resolve MongoDB factory");
-      const mockConsoleError = jest.spyOn(console, "error").mockImplementation();
-      
-      (container.isRegistered as jest.Mock).mockImplementation((token: symbol) => {
-        return token === TOKENS.MongoDBClientFactory;
-      });
-
-      (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
-        if (token === TOKENS.MongoDBClientFactory) {
-          throw mongoError;
-        }
-        if (token === TEST_SERVICE_TOKEN) {
-          return Promise.resolve(mockService);
-        }
-        return undefined;
-      });
-
-      await runTask(TEST_SERVICE_TOKEN);
-
-      expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(mockConsoleError).toHaveBeenCalledWith("Failed to resolve MongoDBClientFactory for shutdown:", mongoError);
-      expect(ShutdownService).toHaveBeenCalledWith(undefined, undefined);
-
-      mockConsoleError.mockRestore();
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
     });
 
     it("should handle graceful shutdown errors", async () => {
       const shutdownError = new Error("Graceful shutdown failed");
       const mockConsoleError = jest.spyOn(console, "error").mockImplementation();
       
-      // Mock ShutdownService to throw error
-      (ShutdownService as jest.Mock).mockImplementation(() => ({
-        shutdownWithForcedExitFallback: jest.fn().mockRejectedValue(shutdownError),
-      }));
+      mockShutdownService.shutdownWithForcedExitFallback.mockRejectedValue(shutdownError);
 
       await runTask(TEST_SERVICE_TOKEN);
 
@@ -238,12 +129,16 @@ describe("Service Runner Integration Tests", () => {
         if (token === TEST_SERVICE_TOKEN) {
           return Promise.resolve(null);
         }
-        return undefined;
+        if (token === TOKENS.ShutdownService) {
+          return mockShutdownService;
+        }
+        throw new Error(`Unexpected token: ${token.toString()}`);
       });
 
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow();
 
-      expect(ShutdownService).toHaveBeenCalledWith(undefined, undefined);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
     });
 
     it("should handle service without execute method", async () => {
@@ -252,12 +147,38 @@ describe("Service Runner Integration Tests", () => {
         if (token === TEST_SERVICE_TOKEN) {
           return Promise.resolve(invalidService);
         }
-        return undefined;
+        if (token === TOKENS.ShutdownService) {
+          return mockShutdownService;
+        }
+        throw new Error(`Unexpected token: ${token.toString()}`);
       });
 
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow();
 
-      expect(ShutdownService).toHaveBeenCalledWith(undefined, undefined);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
+    });
+
+    it("should handle shutdown service resolution errors", async () => {
+      const shutdownResolutionError = new Error("Failed to resolve shutdown service");
+      const mockConsoleError = jest.spyOn(console, "error").mockImplementation();
+      
+      (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
+        if (token === TEST_SERVICE_TOKEN) {
+          return Promise.resolve(mockService);
+        }
+        if (token === TOKENS.ShutdownService) {
+          throw shutdownResolutionError;
+        }
+        throw new Error(`Unexpected token: ${token.toString()}`);
+      });
+
+      await runTask(TEST_SERVICE_TOKEN);
+
+      expect(mockService.execute).toHaveBeenCalledTimes(1);
+      expect(mockConsoleError).toHaveBeenCalledWith("Failed to perform graceful shutdown:", shutdownResolutionError);
+
+      mockConsoleError.mockRestore();
     });
   });
 });

@@ -32,10 +32,9 @@ export function registerInsightsComponents(): void {
  * These components require LLM functionality to be available.
  */
 export async function registerLLMDependentInsightsComponents(): Promise<void> {
-  // Register both insights generator implementations
+  // Register both insights generator implementations with explicit tokens
   container.registerSingleton(TOKENS.InsightsFromDBGenerator, InsightsFromDBGenerator);
-  container.registerSingleton(InsightsFromDBGenerator);
-  container.registerSingleton(InsightsFromRawCodeGenerator);
+  container.registerSingleton(TOKENS.InsightsFromRawCodeGenerator, InsightsFromRawCodeGenerator);
 
   // Pre-load manifest to determine which ApplicationInsightsProcessor implementation to use
   const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
@@ -45,9 +44,9 @@ export async function registerLLMDependentInsightsComponents(): Promise<void> {
   container.register(TOKENS.ApplicationInsightsProcessor, {
     useFactory: () => {
       if (manifest.supportsFullCodebaseAnalysis) {
-        return container.resolve(InsightsFromRawCodeGenerator);
+        return container.resolve(TOKENS.InsightsFromRawCodeGenerator);
       } else {
-        return container.resolve(InsightsFromDBGenerator);
+        return container.resolve(TOKENS.InsightsFromDBGenerator);
       }
     },
   });

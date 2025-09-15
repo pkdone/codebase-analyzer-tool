@@ -1,15 +1,36 @@
+import "reflect-metadata";
 import LLMRouter from "../llm/core/llm-router";
 import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
+import { injectable, container } from "tsyringe";
+import { TOKENS } from "../di/tokens";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.
- * Accepts optional dependencies directly to perform shutdown operations.
+ * Resolves optional dependencies from DI container to perform shutdown operations.
  */
+@injectable()
 export class ShutdownService {
-  constructor(
-    private readonly llmRouter?: LLMRouter,
-    private readonly mongoDBClientFactory?: MongoDBClientFactory,
-  ) {}
+  private readonly llmRouter?: LLMRouter;
+  private readonly mongoDBClientFactory?: MongoDBClientFactory;
+
+  constructor() {
+    // Resolve optional dependencies from container safely
+    if (container.isRegistered(TOKENS.LLMRouter)) {
+      try {
+        this.llmRouter = container.resolve<LLMRouter>(TOKENS.LLMRouter);
+      } catch (error) {
+        console.error("Failed to resolve LLMRouter for shutdown:", error);
+      }
+    }
+
+    if (container.isRegistered(TOKENS.MongoDBClientFactory)) {
+      try {
+        this.mongoDBClientFactory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+      } catch (error) {
+        console.error("Failed to resolve MongoDBClientFactory for shutdown:", error);
+      }
+    }
+  }
 
   /**
    * Perform shutdown of all registered services with provider-specific handling.

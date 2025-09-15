@@ -3,8 +3,6 @@ import { Task } from "../tasks/task.types";
 import { container } from "../di/container";
 import { TOKENS } from "../di/tokens";
 import { ShutdownService } from "./shutdown-service";
-import LLMRouter from "../llm/core/llm-router";
-import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
 import { formatDateForLogging } from "../common/utils/date-utils";
 
 /**
@@ -36,28 +34,9 @@ export async function runTask(taskToken: symbol): Promise<void> {
   } finally {
     console.log(`END: ${formatDateForLogging()}`);
 
-    // Resolve shutdown dependencies safely and create shutdown service
-    let llmRouter: LLMRouter | undefined;
-    let mongoDBClientFactory: MongoDBClientFactory | undefined;
-
-    if (container.isRegistered(TOKENS.LLMRouter)) {
-      try {
-        llmRouter = container.resolve<LLMRouter>(TOKENS.LLMRouter);
-      } catch (error) {
-        console.error("Failed to resolve LLMRouter for shutdown:", error);
-      }
-    }
-
-    if (container.isRegistered(TOKENS.MongoDBClientFactory)) {
-      try {
-        mongoDBClientFactory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
-      } catch (error) {
-        console.error("Failed to resolve MongoDBClientFactory for shutdown:", error);
-      }
-    }
-
+    // Resolve and use shutdown service from DI container
     try {
-      const shutdownService = new ShutdownService(llmRouter, mongoDBClientFactory);
+      const shutdownService = container.resolve<ShutdownService>(TOKENS.ShutdownService);
       await shutdownService.shutdownWithForcedExitFallback();
     } catch (error) {
       console.error("Failed to perform graceful shutdown:", error);
