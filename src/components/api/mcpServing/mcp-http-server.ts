@@ -234,7 +234,7 @@ export default class McpHttpServer {
   private async parseRequestBody(req: IncomingMessage): Promise<unknown> {
     try {
       const data = await consumeText(req);
-      return data ? JSON.parse(data) : {};
+      return data ? (JSON.parse(data) as unknown) : {};
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to parse JSON: ${message}`);

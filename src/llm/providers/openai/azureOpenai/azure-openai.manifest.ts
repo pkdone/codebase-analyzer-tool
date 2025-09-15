@@ -77,6 +77,7 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
       throw new BadConfigurationLLMError(
         `Environment validation failed for Azure OpenAI provider: ${JSON.stringify(validationResult.error.issues)}`,
       );
+    
     const validatedEnv = validationResult.data;
     // Type assertions are safe here because Zod validation has already ensured these are strings
     const apiKey = validatedEnv[AZURE_OPENAI_LLM_API_KEY] as string;

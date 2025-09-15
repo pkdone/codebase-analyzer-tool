@@ -159,7 +159,7 @@ export default class SourcesRepositoryImpl extends BaseRepository<SourceRecordWi
     // See: https://jira.mongodb.org/browse/NODE-5714
     const queryVectorDoubles = this.numbersToBsonDoubles(queryVector);
 
-    const pipeline = [
+    const pipeline: Document[] = [
       {
         $vectorSearch: {
           index: databaseConfig.CONTENT_VECTOR_INDEX_NAME,
@@ -213,7 +213,7 @@ export default class SourcesRepositoryImpl extends BaseRepository<SourceRecordWi
    * Get file count for a project
    */
   async getProjectFilesCount(projectName: string): Promise<number> {
-    const pipeline = [{ $match: { projectName } }, { $group: { _id: "", count: { $sum: 1 } } }];
+    const pipeline: Document[] = [{ $match: { projectName } }, { $group: { _id: "", count: { $sum: 1 } } }];
     const result = await this.collection.aggregate<{ count: number }>(pipeline).toArray();
     return result[0]?.count ?? 0;
   }
@@ -222,7 +222,7 @@ export default class SourcesRepositoryImpl extends BaseRepository<SourceRecordWi
    * Get total lines of code for a project
    */
   async getProjectTotalLinesOfCode(projectName: string): Promise<number> {
-    const pipeline = [
+    const pipeline: Document[] = [
       { $match: { projectName } },
       { $group: { _id: "", count: { $sum: "$linesCount" } } },
     ];
@@ -236,7 +236,7 @@ export default class SourcesRepositoryImpl extends BaseRepository<SourceRecordWi
   async getProjectFileTypesCountAndLines(
     projectName: string,
   ): Promise<ProjectedFileTypesCountAndLines[]> {
-    const pipeline = [
+    const pipeline: Document[] = [
       { $match: { projectName } },
       {
         $group: {
