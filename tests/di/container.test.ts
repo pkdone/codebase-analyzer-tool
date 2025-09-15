@@ -1,5 +1,5 @@
 import { bootstrapContainer, container } from "../../src/di/container";
-import { TaskRunnerConfig } from "../../src/env/task.types";
+import { TaskRunnerConfig } from "../../src/tasks/task.types";
 import { TOKENS } from "../../src/di/tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests

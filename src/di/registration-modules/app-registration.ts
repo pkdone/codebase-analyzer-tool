@@ -25,9 +25,8 @@ import { McpServerTask } from "../../tasks/mcp-server.task";
 import { ReportGenerationTask } from "../../tasks/report-generation.task";
 import { DBInitializerTask } from "../../tasks/db-initializer.task";
 
-
 // Configuration import
-import { TaskRunnerConfig } from "../../env/task.types";
+import { TaskRunnerConfig } from "../../tasks/task.types";
 
 // LLM strategy and pipeline imports
 import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";

@@ -106,13 +106,13 @@ export class DatabaseReportDataProvider {
       stats.total++;
 
       switch (complexity) {
-        case Complexity.LOW:
+        case "LOW":
           stats.low++;
           break;
-        case Complexity.MEDIUM:
+        case "MEDIUM":
           stats.medium++;
           break;
-        case Complexity.HIGH:
+        case "HIGH":
           stats.high++;
           break;
       }
@@ -150,6 +150,6 @@ export class DatabaseReportDataProvider {
     console.warn(
       `Invalid complexity value '${String(complexity)}' found for ${itemName}. Defaulting to LOW.`,
     );
-    return Complexity.LOW;
+    return "LOW";
   }
 }

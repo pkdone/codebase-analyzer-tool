@@ -3,20 +3,16 @@ import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
 import type { TypeOf } from "zod";
 
-// Enum for stored procedure complexity levels
-export enum Complexity {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-}
+// Union type for stored procedure complexity levels
+export type Complexity = "LOW" | "MEDIUM" | "HIGH";
 
 /**
- * Type guard to check if a value is a valid Complexity enum value
+ * Type guard to check if a value is a valid Complexity value
  */
 export function isComplexity(value: unknown): value is Complexity {
   return (
     typeof value === "string" &&
-    (Object.values(Complexity) as string[]).includes(value.toUpperCase())
+    (value.toUpperCase() === "LOW" || value.toUpperCase() === "MEDIUM" || value.toUpperCase() === "HIGH")
   );
 }
 

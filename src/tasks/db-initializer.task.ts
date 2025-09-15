@@ -4,7 +4,7 @@ import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } fro
 import { TOKENS } from "../di/tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/error-utils";
-import { Task } from "../env/task.types";
+import { Task } from "./task.types";
 import type { SourcesRepository } from "../repositories/source/sources.repository.interface";
 import type { AppSummariesRepository } from "../repositories/app-summary/app-summaries.repository.interface";
 

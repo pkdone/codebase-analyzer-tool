@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { TaskRunnerConfig } from "../env/task.types";
+import { TaskRunnerConfig } from "../tasks/task.types";
 import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,

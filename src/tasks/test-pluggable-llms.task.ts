@@ -4,7 +4,7 @@ import { appConfig } from "../config/app.config";
 import { readFile } from "../common/utils/fs-utils";
 import { LLMModelQuality, LLMOutputFormat } from "../llm/types/llm.types";
 import LLMRouter from "../llm/core/llm-router";
-import { Task } from "../env/task.types";
+import { Task } from "./task.types";
 import { TOKENS } from "../di/tokens";
 
 /**

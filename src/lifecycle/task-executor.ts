@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { Task } from "../env/task.types";
+import { Task } from "../tasks/task.types";
 import { container } from "../di/container";
 import { TOKENS } from "../di/tokens";
 import { ShutdownService } from "./shutdown-service";
