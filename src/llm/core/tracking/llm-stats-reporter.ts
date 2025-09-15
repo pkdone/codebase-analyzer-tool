@@ -14,7 +14,7 @@ export class LLMStatsReporter {
    * Print the accumulated statistics of LLM invocation result types.
    */
   displayLLMStatusSummary(): void {
-    console.log("LLM inovocation event types that will be recorded:");
+    console.log("LLM invocation event types that will be recorded:");
     console.table(this.llmStats.getStatusTypesStatistics(), ["description", "symbol"]);
   }
 

@@ -75,7 +75,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
         llmProvider: this.llmProviderDescription,
         ...allCategoriesSummaryData,
       });
-      console.log(`Captured summary details of all cateogories into database`);
+      console.log(`Captured summary details of all categories into database`);
     } catch (error: unknown) {
       logErrorMsgAndDetail(
         `Unable to generate summary data for all app categories details into database`,
@@ -94,7 +94,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       const instructions = Object.values(summaryCategoriesConfig)
         .map((category) => `* ${category.description}`)
         .join("\n"); // Concatenate category descriptions. prefixed with "* " followed by newline
-      const prompt = this.createInsightsAllCateogriesPrompt(instructions, codeBlocksContent);
+      const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
       const llmResponse = await this.llmRouter.executeCompletion<AppSummaryRecordCategories>(
         "all-categories",
         prompt,
@@ -116,7 +116,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
   /**
    * Create a prompt for the LLM to generate insights for all categories
    */
-  private createInsightsAllCateogriesPrompt(
+  private createInsightsAllCategoriesPrompt(
     instructions: string,
     codeBlocksContent: string,
   ): string {

@@ -29,7 +29,7 @@ describe("LLMStatsReporter", () => {
 
       llmStatsReporter.displayLLMStatusSummary();
 
-      expect(consoleSpy).toHaveBeenCalledWith("LLM inovocation event types that will be recorded:");
+      expect(consoleSpy).toHaveBeenCalledWith("LLM invocation event types that will be recorded:");
       expect(consoleTableSpy).toHaveBeenCalled();
 
       consoleSpy.mockRestore();

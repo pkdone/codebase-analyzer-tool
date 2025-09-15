@@ -121,7 +121,7 @@ describe("LLMStats", () => {
 
     test("should maintain proper descriptions and symbols", () => {
       const stats = llmStats.getStatusTypesStatistics();
-      expect(stats.SUCCESS.description).toBe("LLM invocation suceeded");
+      expect(stats.SUCCESS.description).toBe("LLM invocation succeeded");
       expect(stats.SUCCESS.symbol).toBe(">");
       expect(stats.FAILURE.description).toBe("LLM invocation failed so no data produced");
       expect(stats.FAILURE.symbol).toBe("!");
