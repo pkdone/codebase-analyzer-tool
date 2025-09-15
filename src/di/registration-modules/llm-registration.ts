@@ -26,23 +26,21 @@ export function registerLLMProviders(): void {
  * Initializes and registers LLM components that require async initialization.
  * This function should be called during application bootstrap after registering dependencies.
  */
-export function initializeAndRegisterLLMComponents(): void {
+export async function initializeAndRegisterLLMComponents(): Promise<void> {
   if (container.isRegistered(TOKENS.LLMProviderManager)) {
     console.log("LLM components already registered - skipping initialization");
     return;
   }
 
-  // Register LLMProviderManager as a singleton with async initialization
-  container.register(TOKENS.LLMProviderManager, {
-    useFactory: async (container) => {
-      const manager = container.resolve(LLMProviderManager);
-      await manager.initialize();
-      return manager;
-    },
-  });
+  // Create and initialize LLMProviderManager instance first
+  const manager = container.resolve(LLMProviderManager);
+  await manager.initialize();
+  
+  // Register the initialized instance
+  container.registerInstance(TOKENS.LLMProviderManager, manager);
   console.log("LLMProviderManager registered with async initialization");
 
-  // Register LLMRouter as a singleton
+  // Register LLMRouter as a singleton (now that LLMProviderManager is ready)
   container.registerSingleton(TOKENS.LLMRouter, LLMRouter);
   console.log("LLMRouter registered as singleton");
 }

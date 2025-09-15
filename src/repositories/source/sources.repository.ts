@@ -1,5 +1,4 @@
-import { injectable, inject } from "tsyringe";
-import { MongoClient, Sort, Document, Collection, OptionalId } from "mongodb";
+import { Sort, Document, OptionalId } from "mongodb";
 import { Double } from "bson";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
@@ -12,26 +11,25 @@ import {
   ProjectedFileTypesCountAndLines,
   SourceRecord,
 } from "./sources.model";
-import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/error-utils";
 import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
 import { getJSONSchema } from "./sources.model";
+import { BaseRepository } from "../base-repository";
+import { MongoClient } from "mongodb";
+import { TOKENS } from "../../di/tokens";
+import { inject, injectable } from "tsyringe";
 
 /**
  * MongoDB implementation of the Sources repository
  */
 @injectable()
-export default class SourcesRepositoryImpl implements SourcesRepository {
-  // Private field
-  private readonly collection: Collection<SourceRecordWithId>;
-
+export default class SourcesRepositoryImpl extends BaseRepository<SourceRecordWithId> implements SourcesRepository {
   /**
    * Constructor.
    */
   constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient) {
-    const db = mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
-    this.collection = db.collection<SourceRecordWithId>(databaseConfig.SOURCES_COLLECTION_NAME);
+    super(mongoClient, databaseConfig.SOURCES_COLLECTION_NAME);
   }
 
   /**

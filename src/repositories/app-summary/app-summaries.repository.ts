@@ -1,5 +1,3 @@
-import { injectable, inject } from "tsyringe";
-import { MongoClient, Collection } from "mongodb";
 import { AppSummariesRepository } from "./app-summaries.repository.interface";
 import {
   AppSummaryRecordWithId,
@@ -7,27 +5,24 @@ import {
   PartialAppSummaryRecord,
   AppSummaryRecord,
 } from "./app-summaries.model";
-import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
 import { getJSONSchema } from "./app-summaries.model";
+import { BaseRepository } from "../base-repository";
+import { MongoClient } from "mongodb";
+import { TOKENS } from "../../di/tokens";
+import { inject, injectable } from "tsyringe";
 
 /**
  * MongoDB implementation of the App Summaries repository
  */
 @injectable()
-export default class AppSummariesRepositoryImpl implements AppSummariesRepository {
-  // Private field
-  private readonly collection: Collection<AppSummaryRecordWithId>;
-
+export default class AppSummariesRepositoryImpl extends BaseRepository<AppSummaryRecordWithId> implements AppSummariesRepository {
   /**
    * Constructor.
    */
   constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient) {
-    const db = mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
-    this.collection = db.collection<AppSummaryRecordWithId>(
-      databaseConfig.SUMMARIES_COLLECTION_NAME,
-    );
+    super(mongoClient, databaseConfig.SUMMARIES_COLLECTION_NAME);
   }
 
   /**

@@ -1,5 +1,5 @@
-import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
+import { registerComponents } from "../registration-utils";
 
 // Capture component imports
 import { FileSummarizer } from "../../components/capture/file-summarizer";
@@ -15,10 +15,9 @@ import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
  * - File handling configuration
  */
 export function registerCaptureComponents(): void {
-  // Register file handling components
-  container.registerSingleton(TOKENS.PromptConfigFactory, PromptConfigFactory);
-  
-  console.log("Capture components registered");
+  registerComponents([
+    { token: TOKENS.PromptConfigFactory, implementation: PromptConfigFactory },
+  ], "Capture components registered");
 }
 
 /**
@@ -26,8 +25,8 @@ export function registerCaptureComponents(): void {
  * These components require LLM functionality to be available.
  */
 export function registerLLMDependentCaptureComponents(): void {
-  container.registerSingleton(TOKENS.FileSummarizer, FileSummarizer);
-  container.registerSingleton(TOKENS.CodebaseToDBLoader, CodebaseToDBLoader);
-  
-  console.log("LLM-dependent capture components registered");
+  registerComponents([
+    { token: TOKENS.FileSummarizer, implementation: FileSummarizer },
+    { token: TOKENS.CodebaseToDBLoader, implementation: CodebaseToDBLoader },
+  ], "LLM-dependent capture components registered");
 }

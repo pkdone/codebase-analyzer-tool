@@ -1,5 +1,5 @@
-import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
+import { registerComponents } from "../registration-utils";
 
 // API component imports
 import InsightsDataServer from "../../components/api/mcpServing/insights-data-server";
@@ -15,10 +15,9 @@ import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
  * - Data serving for insights and general queries
  */
 export function registerApiComponents(): void {
-  // Register MCP server components
-  container.registerSingleton(TOKENS.InsightsDataServer, InsightsDataServer);
-  container.registerSingleton(TOKENS.McpDataServer, McpDataServer);
-  container.registerSingleton(TOKENS.McpHttpServer, McpHttpServer);
-  
-  console.log("API components registered");
+  registerComponents([
+    { token: TOKENS.InsightsDataServer, implementation: InsightsDataServer },
+    { token: TOKENS.McpDataServer, implementation: McpDataServer },
+    { token: TOKENS.McpHttpServer, implementation: McpHttpServer },
+  ], "API components registered");
 }
