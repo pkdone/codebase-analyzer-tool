@@ -282,6 +282,13 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
+   * Type guard to check if a value is a record (object but not array or null)
+   */
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  }
+
+  /**
    * Helper function to safely get a nested property value from an object using a dot-notation path.
    * @param obj The object to extract the value from
    * @param path The dot-notation path (e.g., "response.choices[0].message.content")
@@ -292,13 +299,12 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const arrayRegex = /^(\w+)\[(\d+)\]$/;
     
     for (const key of path.split(".")) {
-      if (current === null || current === undefined) return undefined;
+      if (!this.isRecord(current)) return undefined;
       const arrayMatch = arrayRegex.exec(key);
 
       if (arrayMatch) {
         const [, arrayKey, indexStr] = arrayMatch;
-        const currentObj = current as Record<string, unknown>;
-        const arrayValue = currentObj[arrayKey];
+        const arrayValue = current[arrayKey];
 
         if (Array.isArray(arrayValue)) {
           current = arrayValue[parseInt(indexStr, 10)];
@@ -306,8 +312,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
           current = undefined;
         }
       } else {
-        const currentObj = current as Record<string, unknown>;
-        current = currentObj[key];
+        current = current[key];
       }
     }
     return current;
