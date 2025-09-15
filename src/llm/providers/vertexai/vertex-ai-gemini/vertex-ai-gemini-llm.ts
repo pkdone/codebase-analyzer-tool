@@ -21,8 +21,8 @@ import {
 } from "../../../types/llm.types";
 import {
   formatErrorMessage,
-  logErrorMsgAndDetail,
   logWarningMsg,
+  logErrorMsgAndDetail,
 } from "../../../../common/utils/error-utils";
 import AbstractLLM from "../../../core/abstract-llm";
 import {
@@ -157,8 +157,8 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    * Invoke the actuall LLM's embedding API directly.
    */
   private async invokeEmbeddingsLLM(modelKey: string, prompt: string) {
-    // Invoke LLM
-    const fullParameters = this.buildFullEmebddingsLLMParameters(modelKey, prompt);
+    // Invoke LLM using PredictionServiceClient for embeddings
+    const fullParameters = this.buildFullEmbeddingsLLMParameters(modelKey, prompt);
     const llmResponses = await this.embeddingsApiClient.predict(fullParameters);
     const [predictionResponses] = llmResponses;
     const predictions = predictionResponses.predictions;
@@ -216,13 +216,13 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   }
 
   /**
-   * Assemble the GCP API parameters structure for the given model and prompt.
+   * Assemble the GCP API parameters structure for the given model and prompt (for Gemini embeddings).
    */
-  private buildFullEmebddingsLLMParameters(modelKey: string, prompt: string) {
+  private buildFullEmbeddingsLLMParameters(modelKey: string, prompt: string) {
     const model = this.llmModelsMetadata[modelKey].urn;
     const endpoint = `${this.apiEndpointPrefix}${model}`;
-    const taskType = this.providerSpecificConfig.embeddingsTaskType ?? "QUESTION_ANSWERING";
-    const instance = helpers.toValue({ content: prompt, task_type: taskType });
+    // For Gemini models, we don't use task_type parameter
+    const instance = helpers.toValue({ content: prompt });
     if (!instance) throw new BadConfigurationLLMError("Failed to convert prompt to IValue");
     const parameters = helpers.toValue({});
     return { endpoint, instances: [instance], parameters };
@@ -296,15 +296,18 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   }
 
   /**
-   * Extract the embeddings from the predictions.
+   * Extract the embeddings from the predictions (for Gemini embeddings).
    */
   private extractEmbeddingsFromPredictions(
     predictions: aiplatform.protos.google.protobuf.IValue[] | null | undefined,
   ): number[][] {
     if (!predictions) return [];
     return predictions.flatMap((p) => {
-      const values =
-        p.structValue?.fields?.embeddings.structValue?.fields?.values.listValue?.values ?? [];
+      // For Gemini models, the response structure might be different
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      const values = p.structValue?.fields?.embeddings?.structValue?.fields?.values?.listValue?.values 
+        ?? p.listValue?.values 
+        ?? [];
       const numbers = values.map((v) => v.numberValue ?? 0);
       return numbers.length > 0 ? [numbers] : [];
     });

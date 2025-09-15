@@ -15,7 +15,7 @@ const VERTEXAI_GEMINI_COMPLETIONS_MODEL_SECONDARY_KEY =
 
 // Exported constants
 export const VERTEX_GEMINI = "VertexAIGemini";
-export const GCP_EMBEDDINGS_TEXT_005 = "GCP_EMBEDDINGS_TEXT_005";
+export const GCP_EMBEDDINGS_GEMINI_001 = "GCP_EMBEDDINGS_GEMINI_001";
 export const GCP_COMPLETIONS_GEMINI_PRO25 = "GCP_COMPLETIONS_GEMINI_PRO25";
 export const GCP_COMPLETIONS_GEMINI_FLASH20 = "GCP_COMPLETIONS_GEMINI_FLASH20";
 
@@ -31,10 +31,10 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
   }),
   models: {
     embeddings: {
-      modelKey: GCP_EMBEDDINGS_TEXT_005,
+      modelKey: GCP_EMBEDDINGS_GEMINI_001,
       urnEnvKey: VERTEXAI_TEXT_EMBEDDINGS_MODEL_KEY,
       purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 768,
+      dimensions: 3072,   // Either: 768, 1536 or 3072
       maxTotalTokens: 2048,
     },
     primaryCompletion: {
@@ -62,7 +62,6 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     maxRetryAttempts: 3, // Standard retries for Vertex AI
     minRetryDelayMillis: 40 * 1000, // Fair amount delay for GCP
     maxRetryAdditionalDelayMillis: 100 * 1000, // Fair amount ofadditional random delay
-    embeddingsTaskType: "QUESTION_ANSWERING",
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const validationResult = vertexAIGeminiProviderManifest.envSchema.safeParse(envConfig);
