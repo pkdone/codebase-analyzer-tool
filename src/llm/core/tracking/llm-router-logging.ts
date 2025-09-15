@@ -30,6 +30,6 @@ export function logWithContext(msg: string, context: LLMContext): void {
  */
 export function logContext(context: LLMContext): void {
   for (const [key, value] of Object.entries(context)) {
-    log(`  * ${key}: ${String(value)}`);
+    log(`  * ${key}: ${value}`);
   }
 }
