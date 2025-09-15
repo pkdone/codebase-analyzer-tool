@@ -6,7 +6,7 @@ import { clearDirectory } from "../common/utils/directory-operations";
 import { RawCodeToInsightsFileGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
 import type LLMRouter from "../llm/core/llm-router";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
-import { Task } from "./task.types";
+import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
 import { TOKENS } from "../di/tokens";
 
@@ -14,40 +14,41 @@ import { TOKENS } from "../di/tokens";
  * Task to generate inline insights.
  */
 @injectable()
-export class OneShotGenerateInsightsTask implements Task {
+export class OneShotGenerateInsightsTask extends BaseLLMTask {
   /**
    * Constructor with dependency injection.
    */
   constructor(
     @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(TOKENS.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
+    @inject(TOKENS.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
     @inject(TOKENS.EnvVars) private readonly env: EnvVars,
     @inject(TOKENS.RawCodeToInsightsFileGenerator)
     private readonly insightsFileGenerator: RawCodeToInsightsFileGenerator,
-  ) {}
-
-  /**
-   * Execute the task - generates inline insights.
-   */
-  async execute(): Promise<void> {
-    await this.generateInsightsToFiles(this.env.CODEBASE_DIR_PATH, this.env.LLM);
+    @inject(TOKENS.ProjectName) projectName: string,
+  ) {
+    super(llmStatsReporter, projectName);
   }
 
   /**
-   * Generates inline insights.
+   * Get the task name for logging.
    */
-  private async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<void> {
-    const normalisedSrcDirPath = srcDirPath.replace(pathsConfig.TRAILING_SLASH_PATTERN, "");
-    this.llmStatsReporter.displayLLMStatusSummary();
+  protected getTaskName(): string {
+    return "Generating insights";
+  }
+
+  /**
+   * Execute the core task logic.
+   */
+  protected async run(): Promise<void> {
+    const normalisedSrcDirPath = this.env.CODEBASE_DIR_PATH.replace(pathsConfig.TRAILING_SLASH_PATTERN, "");
     await clearDirectory(outputConfig.OUTPUT_DIR);
     const prompts = await this.insightsFileGenerator.loadPrompts();
     await this.insightsFileGenerator.generateInsightsToFiles(
       this.llmRouter,
       normalisedSrcDirPath,
-      llmName,
+      this.env.LLM,
       prompts,
     );
-    this.llmStatsReporter.displayLLMStatusDetails();
     console.log(`View generated results in the 'file://${outputConfig.OUTPUT_DIR}' folder`);
   }
 }

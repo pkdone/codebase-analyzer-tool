@@ -6,8 +6,7 @@ import { readFile } from "../../common/utils/file-operations";
 import { findFilesRecursively } from "../../common/utils/directory-operations";
 import { getFileExtension } from "../../common/utils/path-utils";
 import { countLines } from "../../common/utils/text-utils";
-import pLimit from "p-limit";
-import { logErrorMsgAndDetail } from "../../common/utils/logging";
+import { processItemsConcurrently } from "../../common/utils/async-utils";
 import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/source/sources.model";
@@ -79,48 +78,20 @@ export default class CodebaseToDBLoader {
       await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
-    const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
-    const tasks = filepaths.map(async (filepath) => {
-      return limit(async () => {
-        try {
-          await this.processAndStoreSourceFile(
-            filepath,
-            projectName,
-            srcDirPath,
-            skipIfAlreadyCaptured,
-          );
-        } catch (error: unknown) {
-          logErrorMsgAndDetail(
-            `Problem introspecting and processing source file: ${filepath}`,
-            error,
-          );
-          throw error; // Re-throw to be caught by Promise.allSettled
-        }
-      });
-    });
-    const results = await Promise.allSettled(tasks);
-    const { successCount, failureCount } = results.reduce(
-      (acc, result, index) => {
-        if (result.status === "fulfilled") {
-          acc.successCount++;
-        } else {
-          acc.failureCount++;
-          const error: unknown = result.reason;
-          logErrorMsgAndDetail(`Failed to process file: ${filepaths[index]}`, error);
-        }
-        return acc;
+    // Use the reusable concurrent processing utility
+    await processItemsConcurrently(
+      filepaths,
+      async (filepath) => {
+        await this.processAndStoreSourceFile(
+          filepath,
+          projectName,
+          srcDirPath,
+          skipIfAlreadyCaptured,
+        );
       },
-      { successCount: 0, failureCount: 0 },
+      fileProcessingConfig.MAX_CONCURRENCY,
+      "file",
     );
-    
-    const totalFiles = filepaths.length;
-    console.log(`Processed ${totalFiles} files. Succeeded: ${successCount}, Failed: ${failureCount}`);
-    
-    if (failureCount > 0) {
-      console.warn(`Warning: ${failureCount} files failed to process. Check error logs above for details.`);
-    } else {
-      console.log(`All ${totalFiles} files processed successfully.`);
-    }
   }
 
   /**

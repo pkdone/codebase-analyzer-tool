@@ -169,7 +169,7 @@ describe("CodebaseToDBLoader", () => {
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
       expect(mockConsoleLog).toHaveBeenCalledWith("Processed 3 files. Succeeded: 2, Failed: 1");
-      expect(mockConsoleWarn).toHaveBeenCalledWith("Warning: 1 files failed to process. Check error logs above for details.");
+      expect(mockConsoleWarn).toHaveBeenCalledWith("Warning: 1 files failed to process. Check logs for details.");
       expect(mockLogError).toHaveBeenCalled();
     });
 
@@ -190,7 +190,6 @@ describe("CodebaseToDBLoader", () => {
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
       expect(mockConsoleLog).toHaveBeenCalledWith("Processed 2 files. Succeeded: 2, Failed: 0");
-      expect(mockConsoleLog).toHaveBeenCalledWith("All 2 files processed successfully.");
       expect(mockConsoleWarn).not.toHaveBeenCalled();
     });
 
@@ -212,7 +211,7 @@ describe("CodebaseToDBLoader", () => {
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(10);
-      expect(mockConsoleLog).toHaveBeenCalledWith("All 10 files processed successfully.");
+      expect(mockConsoleLog).toHaveBeenCalledWith("Processed 10 files. Succeeded: 10, Failed: 0");
     });
   });
 
@@ -410,10 +409,6 @@ describe("CodebaseToDBLoader", () => {
 
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
-      expect(mockLogError).toHaveBeenCalledWith(
-        "Problem introspecting and processing source file: /src/file1.ts",
-        processingError,
-      );
       expect(mockLogError).toHaveBeenCalledWith(
         "Failed to process file: /src/file1.ts",
         processingError,

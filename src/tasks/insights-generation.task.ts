@@ -1,42 +1,38 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import type { ApplicationInsightsProcessor } from "../components/insights/insights-generator.interface";
-
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
-import { Task } from "./task.types";
+import { BaseLLMTask } from "./base-llm.task";
 import { TOKENS } from "../di/tokens";
 
 /**
  * Task to generate insights.
  */
 @injectable()
-export class InsightsGenerationTask implements Task {
+export class InsightsGenerationTask extends BaseLLMTask {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
-    @inject(TOKENS.ProjectName) private readonly projectName: string,
+    @inject(TOKENS.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
+    @inject(TOKENS.ProjectName) projectName: string,
     @inject(TOKENS.ApplicationInsightsProcessor)
     private readonly applicationInsightsProcessor: ApplicationInsightsProcessor,
-  ) {}
-
-  /**
-   * Execute the task - generates insights.
-   */
-  async execute(): Promise<void> {
-    await this.generateInsights();
+  ) {
+    super(llmStatsReporter, projectName);
   }
 
   /**
-   * Generates insights.
+   * Get the task name for logging.
    */
-  private async generateInsights(): Promise<void> {
-    console.log(`Generating insights for project: ${this.projectName}`);
-    this.llmStatsReporter.displayLLMStatusSummary();
+  protected getTaskName(): string {
+    return "Generating insights";
+  }
+
+  /**
+   * Execute the core task logic.
+   */
+  protected async run(): Promise<void> {
     await this.applicationInsightsProcessor.generateAndStoreInsights();
-    console.log("Finished generating insights for the project");
-    console.log("Summary of LLM invocations outcomes:");
-    this.llmStatsReporter.displayLLMStatusDetails();
   }
 }
