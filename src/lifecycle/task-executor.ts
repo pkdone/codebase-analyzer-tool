@@ -5,6 +5,7 @@ import { TOKENS } from "../di/tokens";
 import { ShutdownService } from "./shutdown-service";
 import LLMRouter from "../llm/core/llm-router";
 import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
+import { formatDateForLogging } from "../common/utils/date-utils";
 
 /**
  * Generic task runner function that handles task execution:
@@ -16,7 +17,7 @@ import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
  */
 export async function runTask(taskToken: symbol): Promise<void> {
   try {
-    console.log(`START: ${new Date().toISOString()}`);
+    console.log(`START: ${formatDateForLogging()}`);
 
     // Resolve task (await handles both sync and async resolution)
     // Task dependencies are automatically injected via constructor DI
@@ -33,7 +34,7 @@ export async function runTask(taskToken: symbol): Promise<void> {
       throw error;
     }
   } finally {
-    console.log(`END: ${new Date().toISOString()}`);
+    console.log(`END: ${formatDateForLogging()}`);
 
     // Resolve shutdown dependencies safely and create shutdown service
     let llmRouter: LLMRouter | undefined;

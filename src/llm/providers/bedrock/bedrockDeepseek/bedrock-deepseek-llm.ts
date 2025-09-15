@@ -1,7 +1,6 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_DEEPSEEK } from "./bedrock-deepseek.manifest";
-import { LLMCompletionOptions } from "../../../types/llm.types";
 import { z } from "zod";
 
 /**
@@ -46,9 +45,8 @@ export default class BedrockDeepseekLLM extends BaseBedrockLLM {
   protected buildCompletionModelSpecificParameters(
     modelKey: string,
     prompt: string,
-    options?: LLMCompletionOptions,
   ) {
-    void options; // Bedrock providers don't support JSON mode options
+    // Bedrock providers don't support JSON mode options
     return JSON.stringify({
       messages: [
         {

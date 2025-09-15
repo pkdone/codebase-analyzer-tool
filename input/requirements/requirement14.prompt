@@ -2,4 +2,4 @@ Poor Dependency Injection: Act as a senior programmer analyzing the code in a Ty
 
 Do NOT inlude any of the following topics in your recommendations:
 
- * Using the asyncFactory feature of to encapsulate the asynchronous initialization logic
+ * Using the asyncFactory feature to encapsulate the asynchronous initialization logic

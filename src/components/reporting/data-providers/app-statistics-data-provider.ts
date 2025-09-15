@@ -3,6 +3,7 @@ import type { SourcesRepository } from "../../../repositories/source/sources.rep
 import type { AppSummaryRecordWithId } from "../../../repositories/app-summary/app-summaries.model";
 import { TOKENS } from "../../../di/tokens";
 import type { AppStatistics } from "../report-gen.types";
+import { formatDateForDisplay } from "../../../common/utils/date-utils";
 
 /**
  * Data provider responsible for aggregating app statistics information for reports.
@@ -14,12 +15,7 @@ export class AppStatisticsDataProvider {
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
   ) {
-    // Use Intl.DateTimeFormat for consistent date formatting across environments
-    this.currentDate = new Intl.DateTimeFormat('en-GB', {
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-      hour12: false
-    }).format(new Date());
+    this.currentDate = formatDateForDisplay();
   }
 
   /**

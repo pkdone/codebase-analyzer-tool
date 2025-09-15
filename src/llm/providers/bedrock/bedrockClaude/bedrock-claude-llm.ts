@@ -1,7 +1,6 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../base-bedrock-llm";
 import { BEDROCK_CLAUDE, AWS_COMPLETIONS_CLAUDE_V40 } from "./bedrock-claude.manifest";
-import { LLMCompletionOptions } from "../../../types/llm.types";
 import { z } from "zod";
 
 /**
@@ -35,9 +34,8 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   protected buildCompletionModelSpecificParameters(
     modelKey: string,
     prompt: string,
-    options?: LLMCompletionOptions,
   ) {
-    void options; // Bedrock providers don't support JSON mode options
+    // Bedrock providers don't support JSON mode options
     const config = this.providerSpecificConfig;
     
     const baseParams = {

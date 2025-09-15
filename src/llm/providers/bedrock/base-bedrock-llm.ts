@@ -117,9 +117,10 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     taskType: LLMPurpose,
     modelKey: string,
     prompt: string,
-    options?: LLMCompletionOptions,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options?: LLMCompletionOptions,
   ) {
-    const fullParameters = this.buildFullLLMParameters(taskType, modelKey, prompt, options);
+    const fullParameters = this.buildFullLLMParameters(taskType, modelKey, prompt);
     const command = new InvokeModelCommand(fullParameters);
     const rawResponse = await this.client.send(command);
     const llmResponse: unknown = JSON.parse(
@@ -196,7 +197,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     taskType: LLMPurpose,
     modelKey: string,
     prompt: string,
-    options?: LLMCompletionOptions,
   ) {
     let body;
 
@@ -206,7 +206,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
         //dimensions: this.getEmbeddedModelDimensions(),  // Throws error even though Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
       });
     } else {
-      body = this.buildCompletionModelSpecificParameters(modelKey, prompt, options);
+      body = this.buildCompletionModelSpecificParameters(modelKey, prompt);
     }
 
     return {
@@ -281,41 +281,32 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     return undefined;
   }
 
-  /**
-   * Type guard to check if a value is a record (object but not array or null)
-   */
-  private isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-  }
 
   /**
    * Helper function to safely get a nested property value from an object using a dot-notation path.
+   * Uses modern JavaScript features for cleaner implementation.
    * @param obj The object to extract the value from
    * @param path The dot-notation path (e.g., "response.choices[0].message.content")
    * @returns The value at the specified path, or undefined if not found
    */
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-    let current: unknown = obj;
-    const arrayRegex = /^(\w+)\[(\d+)\]$/;
-    
-    for (const key of path.split(".")) {
-      if (!this.isRecord(current)) return undefined;
-      const arrayMatch = arrayRegex.exec(key);
-
+    return path.split('.').reduce((current: unknown, key: string) => {
+      if (current == null) return undefined;
+      
+      const arrayMatch = /^(\w+)\[(\d+)\]$/.exec(key);
       if (arrayMatch) {
-        const [, arrayKey, indexStr] = arrayMatch;
-        const arrayValue = current[arrayKey];
-
+        const [, arrayKey, index] = arrayMatch;
+        const currentObj = current as Record<string, unknown>;
+        const arrayValue = currentObj[arrayKey];
         if (Array.isArray(arrayValue)) {
-          current = arrayValue[parseInt(indexStr, 10)];
-        } else {
-          current = undefined;
+          return arrayValue[parseInt(index, 10)];
         }
-      } else {
-        current = current[key];
+        return undefined;
       }
-    }
-    return current;
+      
+      const currentObj = current as Record<string, unknown>;
+      return currentObj[key];
+    }, obj);
   }
 
   /**
@@ -325,7 +316,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   protected abstract buildCompletionModelSpecificParameters(
     modelKey: string,
     prompt: string,
-    options?: LLMCompletionOptions,
   ): string;
 
   /**

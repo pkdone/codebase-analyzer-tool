@@ -46,8 +46,8 @@ export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 30 * 1000, // 30 seconds
     maxRetryAdditionalDelayMillis: 40 * 1000, // 40 seconds additional random delay
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, _providerSpecificConfig) => {
-    void _providerSpecificConfig; // Avoid linting error
+  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns) => {
+    // Provider-specific config not used by Deepseek
     return new BedrockDeepseekLLM(modelsKeysSet, modelsMetadata, errorPatterns);
   },
 };

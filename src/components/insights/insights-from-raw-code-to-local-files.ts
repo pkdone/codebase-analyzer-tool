@@ -14,6 +14,7 @@ import { logErrorMsgAndDetail, formatErrorMessage } from "../../common/utils/err
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
+import { formatDateForFilename } from "../../common/utils/date-utils";
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -131,7 +132,7 @@ export class RawCodeToInsightsFileGenerator {
    * Dump code blocks content to a temporary file for debugging/inspection purposes.
    */
   private async dumpCodeBlocksToTempFile(codeBlocksContent: string): Promise<void> {
-    const timestamp = new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
+    const timestamp = formatDateForFilename();
     const tempFileName = `codebase-dump-${timestamp}.txt`;
     const tempFilePath = path.join(os.tmpdir(), tempFileName);
 

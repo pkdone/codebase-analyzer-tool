@@ -57,8 +57,8 @@ export const openAIProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 15 * 1000, // 15 seconds - faster retry for OpenAI
     maxRetryAdditionalDelayMillis: 25 * 1000, // 25 seconds additional random delay
   },
-  factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, _providerSpecificConfig) => {
-    void _providerSpecificConfig; // Avoid linting error
+  factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns) => {
+    // Provider-specific config not used by OpenAI
     const validationResult = openAIProviderManifest.envSchema.safeParse(envConfig);
     if (!validationResult.success)
       throw new BadConfigurationLLMError(

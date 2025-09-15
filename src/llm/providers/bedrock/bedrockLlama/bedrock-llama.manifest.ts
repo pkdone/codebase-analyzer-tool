@@ -62,8 +62,8 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 35 * 1000, // 35 seconds - longer delay for large models
     maxRetryAdditionalDelayMillis: 50 * 1000, // 50 seconds additional random delay
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, _providerSpecificConfig) => {
-    void _providerSpecificConfig; // Avoid linting error
+  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns) => {
+    // Provider-specific config not used by Llama
     return new BedrockLlamaLLM(modelsKeysSet, modelsMetadata, errorPatterns);
   },
 };

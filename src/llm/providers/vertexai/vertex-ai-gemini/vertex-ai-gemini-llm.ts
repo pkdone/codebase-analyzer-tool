@@ -149,8 +149,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    * Check to see if error code indicates potential token limit has been execeeded - this should
    * not occur with error object thrown so always returns false
    */
-  protected isTokenLimitExceeded(_error: unknown) {
-    void _error; // Avoid linting error
+  protected isTokenLimitExceeded() {
     return false;
   }
 

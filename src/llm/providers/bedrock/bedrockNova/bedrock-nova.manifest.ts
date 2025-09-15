@@ -56,8 +56,8 @@ export const bedrockNovaProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 25 * 1000, // 25 seconds
     maxRetryAdditionalDelayMillis: 40 * 1000, // 40 seconds additional random delay
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, _providerSpecificConfig) => {
-    void _providerSpecificConfig; // Avoid linting error
+  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns) => {
+    // Provider-specific config not used by Nova
     return new BedrockNovaLLM(modelsKeysSet, modelsMetadata, errorPatterns);
   },
 };

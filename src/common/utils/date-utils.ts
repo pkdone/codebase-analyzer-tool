@@ -1,0 +1,38 @@
+/**
+ * Format date for display in reports and UI.
+ * Uses consistent format: "DD/MM/YYYY, HH:mm:ss"
+ */
+export function formatDateForDisplay(): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit',
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    hour12: false
+  }).format(new Date());
+}
+
+/**
+ * Format date for logging purposes.
+ * Uses ISO string format for consistency and parseability.
+ */
+export function formatDateForLogging(): string {
+  return new Date().toISOString();
+}
+
+/**
+ * Format date for use in filenames.
+ * Replaces colons and dots with hyphens for filesystem compatibility.
+ */
+export function formatDateForFilename(): string {
+  return new Date().toISOString().replace(/[:.]/g, '-');
+}
+
+/**
+ * Get current timestamp as number for unique identifiers.
+ */
+export function getCurrentTimestamp(): number {
+  return Date.now();
+}

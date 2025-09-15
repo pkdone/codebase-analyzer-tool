@@ -45,8 +45,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
 
   try {
     jsonContent = JSON.parse(match[0]);
-  } catch (_error: unknown) {
-    void _error;
+  } catch {
     throw new BadResponseContentLLMError(
       `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
       content,
