@@ -10,6 +10,58 @@ import {
 import OpenAILLM from "../../../../../src/llm/providers/openai/openai/openai-llm";
 import { OPENAI } from "../../../../../src/llm/providers/openai/openai/openai.manifest";
 
+// Helper functions to create properly typed mock responses
+// These provide type safety during mock creation while avoiding OpenAI SDK type complexity
+function createMockEmbeddingResponse(data: {
+  data: { embedding: number[] | null; index?: number }[];
+  usage?: { prompt_tokens?: number; total_tokens?: number };
+  model?: string;
+  object?: string;
+}) {
+  return {
+    data: data.data.map(d => ({ 
+      embedding: d.embedding, 
+      index: d.index ?? 0, 
+      object: 'embedding' as const 
+    })),
+    usage: data.usage,
+    model: data.model ?? 'text-embedding-ada-002',
+    object: data.object ?? 'list',
+  } as any; // Safe cast after structuring the data properly
+}
+
+function createMockCompletionResponse(data: {
+  choices: {
+    message: { content: string | null; role?: string };
+    finish_reason: string;
+    index?: number;
+  }[];
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+  object?: string;
+  id?: string;
+  created?: number;
+  model?: string;
+}) {
+  return {
+    choices: data.choices.map(c => ({
+      message: { content: c.message.content, role: c.message.role ?? 'assistant' },
+      finish_reason: c.finish_reason,
+      index: c.index ?? 0,
+      logprobs: null, // Required by OpenAI SDK
+    })),
+    usage: data.usage,
+    object: data.object ?? 'chat.completion',
+    id: data.id ?? 'chatcmpl-test',
+    created: data.created ?? Date.now(),
+    model: data.model ?? 'gpt-4',
+    system_fingerprint: null, // Required by OpenAI SDK
+  } as any; // Safe cast after structuring the data properly
+}
+
 // Mock the OpenAI client
 jest.mock("openai");
 
@@ -131,12 +183,12 @@ describe("OpenAI LLM Provider", () => {
 
   describe("Response Parsing - Embeddings", () => {
     test("should correctly parse successful embedding response", async () => {
-      const mockEmbeddingResponse = {
+      const mockEmbeddingResponse = createMockEmbeddingResponse({
         data: [{ embedding: [0.1, 0.2, 0.3] }],
         usage: { prompt_tokens: 10 },
-      };
+      });
 
-      mockOpenAIClient.embeddings.create.mockResolvedValue(mockEmbeddingResponse as any);
+      mockOpenAIClient.embeddings.create.mockResolvedValue(mockEmbeddingResponse);
 
       const result = await (openAILLM as any).invokeEmbeddingsLLM({
         model: "text-embedding-ada-002",
@@ -155,12 +207,12 @@ describe("OpenAI LLM Provider", () => {
     });
 
     test("should handle empty embedding response", async () => {
-      const mockEmbeddingResponse = {
+      const mockEmbeddingResponse = createMockEmbeddingResponse({
         data: [{ embedding: null }],
         usage: { prompt_tokens: 10 },
-      };
+      });
 
-      mockOpenAIClient.embeddings.create.mockResolvedValue(mockEmbeddingResponse as any);
+      mockOpenAIClient.embeddings.create.mockResolvedValue(mockEmbeddingResponse);
 
       const result = await (openAILLM as any).invokeEmbeddingsLLM({
         model: "text-embedding-ada-002",
@@ -174,7 +226,7 @@ describe("OpenAI LLM Provider", () => {
 
   describe("Response Parsing - Completions", () => {
     test("should correctly parse successful completion response", async () => {
-      const mockCompletionResponse = {
+      const mockCompletionResponse = createMockCompletionResponse({
         choices: [
           {
             message: { content: "Test response content" },
@@ -185,10 +237,10 @@ describe("OpenAI LLM Provider", () => {
           prompt_tokens: 15,
           completion_tokens: 25,
         },
-        object: "chat.completion",
-      };
+        id: "chatcmpl-test123",
+      });
 
-      mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse as any);
+      mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse);
 
       const result = await (openAILLM as any).invokeCompletionLLM({
         model: "gpt-4",
@@ -207,7 +259,7 @@ describe("OpenAI LLM Provider", () => {
     });
 
     test("should handle incomplete response due to length limit", async () => {
-      const mockCompletionResponse = {
+      const mockCompletionResponse = createMockCompletionResponse({
         choices: [
           {
             message: { content: "Partial response..." },
@@ -218,10 +270,10 @@ describe("OpenAI LLM Provider", () => {
           prompt_tokens: 15,
           completion_tokens: 25,
         },
-        object: "chat.completion",
-      };
+        id: "chatcmpl-test456",
+      });
 
-      mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse as any);
+      mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse);
 
       const result = await (openAILLM as any).invokeCompletionLLM({
         model: "gpt-4",
@@ -233,7 +285,7 @@ describe("OpenAI LLM Provider", () => {
     });
 
     test("should handle response with no content", async () => {
-      const mockCompletionResponse = {
+      const mockCompletionResponse = createMockCompletionResponse({
         choices: [
           {
             message: { content: null },
@@ -244,10 +296,10 @@ describe("OpenAI LLM Provider", () => {
           prompt_tokens: 15,
           completion_tokens: 0,
         },
-        object: "chat.completion",
-      };
+        id: "chatcmpl-test789",
+      });
 
-      mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse as any);
+      mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse);
 
       const result = await (openAILLM as any).invokeCompletionLLM({
         model: "gpt-4",
@@ -259,7 +311,7 @@ describe("OpenAI LLM Provider", () => {
     });
 
     test("should handle response with missing usage data", async () => {
-      const mockCompletionResponse = {
+      const mockCompletionResponse = createMockCompletionResponse({
         choices: [
           {
             message: { content: "Test response" },
@@ -267,10 +319,10 @@ describe("OpenAI LLM Provider", () => {
           },
         ],
         usage: undefined,
-        object: "chat.completion",
-      };
+        id: "chatcmpl-test000",
+      });
 
-      mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse as any);
+      mockOpenAIClient.chat.completions.create.mockResolvedValue(mockCompletionResponse);
 
       const result = await (openAILLM as any).invokeCompletionLLM({
         model: "gpt-4",
