@@ -1,41 +1,40 @@
-<% if (data && data.length > 0) { %>
+<% if (viewModel.hasData()) { %>
   <p><table>
     <thead>
       <tr>
-        <% Object.keys(data[0]).forEach(key => { %>
-          <th><%= convertToDisplayName(key) %></th>
+        <% viewModel.getDisplayHeaders().forEach(header => { %>
+          <th><%= header %></th>
         <% }); %>
       </tr>
     </thead>
     <tbody>
-      <% data.forEach(row => { %>
+      <% viewModel.getProcessedRows().forEach(row => { %>
         <tr>
-          <% Object.keys(row).forEach(key => { %>
-            <% const value = row[key]; %>
-            <% if (key === 'link') { %>
-              <td><a href="<%= value %>" target="_blank">Link</a></td>
-            <% } else if (key === 'codeExample') { %>
-              <td><pre><code><%- value %></code></pre></td>
-            <% } else if (value && typeof value === 'object' && value.constructor === Array && value.length > 0) { %>
+          <% row.forEach(cell => { %>
+            <% if (cell.type === 'link') { %>
+              <td><a href="<%= cell.content %>" target="_blank">Link</a></td>
+            <% } else if (cell.type === 'code') { %>
+              <td><pre><code><%- cell.content %></code></pre></td>
+            <% } else if (cell.type === 'list') { %>
               <td>
                 <ul>
-                  <% value.forEach(item => { %>
-                    <% if (item && typeof item === 'object' && item.constructor === Object) { %>
+                  <% cell.content.forEach(item => { %>
+                    <% if (item.type === 'object') { %>
                       <li>
-                        <% const keys = Object.keys(item); %>
-                        <% keys.forEach((itemKey, index) => { %>
-                                                     <% if (index > 0) { %> | <% } %>
-                          <strong><%= convertToDisplayName(itemKey) %>:</strong> <%- item[itemKey] %>
+                        <% const keys = Object.keys(item.content); %>
+                        <% keys.forEach((key, index) => { %>
+                          <% if (index > 0) { %> | <% } %>
+                          <strong><%= key %>:</strong> <%- item.content[key] %>
                         <% }); %>
                       </li>
                     <% } else { %>
-                      <li><%- item %></li>
+                      <li><%- item.content %></li>
                     <% } %>
                   <% }); %>
                 </ul>
               </td>
             <% } else { %>
-              <td><%- value %></td>
+              <td><%- cell.content %></td>
             <% } %>
           <% }); %>
         </tr>

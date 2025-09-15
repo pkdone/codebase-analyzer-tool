@@ -6,15 +6,22 @@ import { jsonFilesConfig } from "./json-files.config";
 import type { ReportData } from "./report-gen.types";
 import { writeFile } from "../../common/utils/fs-utils";
 import { convertToDisplayName } from "../../common/utils/text-utils";
+import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 
 interface EjsTemplateData {
   appStats: ReportData["appStats"];
   fileTypesData: ReportData["fileTypesData"];
-  categorizedData: ReportData["categorizedData"];
+  categorizedData: {
+    category: string;
+    label: string;
+    data: unknown[];
+    tableViewModel: TableViewModel;
+  }[];
   dbInteractions: ReportData["dbInteractions"];
   procsAndTriggers: ReportData["procsAndTriggers"];
   jsonFilesConfig: typeof jsonFilesConfig;
   convertToDisplayName: (text: string) => string;
+  fileTypesTableViewModel: TableViewModel;
 }
 
 
@@ -33,14 +40,29 @@ export class HtmlReportWriter {
       appConfig.HTML_TEMPLATES_DIR,
       appConfig.HTML_MAIN_TEMPLATE_FILE,
     );
+    // Create view models for file types summary
+    const fileTypesDisplayData = reportData.fileTypesData.map(item => ({
+      'File Type': item.fileType,
+      'Files Count': item.files,
+      'Lines Count': item.lines
+    }));
+    const fileTypesTableViewModel = new TableViewModel(fileTypesDisplayData);
+
+    // Create view models for categorized data
+    const categorizedDataWithViewModels = reportData.categorizedData.map(category => ({
+      ...category,
+      tableViewModel: new TableViewModel(category.data as DisplayableTableRow[])
+    }));
+
     const data: EjsTemplateData = {
       appStats: reportData.appStats,
       fileTypesData: reportData.fileTypesData,
-      categorizedData: reportData.categorizedData,
+      categorizedData: categorizedDataWithViewModels,
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
       jsonFilesConfig,
       convertToDisplayName,
+      fileTypesTableViewModel,
     };
     const htmlContent = await ejs.renderFile(templatePath, data);
     await writeFile(htmlFilePath, htmlContent);

@@ -130,9 +130,9 @@ describe("File Handler Configuration", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
       const canonicalTypes = new Set(appConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values());
 
-      canonicalTypes.forEach((canonicalType) => {
+      for (const canonicalType of canonicalTypes) {
         expect(fileTypeMetadataConfig).toHaveProperty(canonicalType);
-      });
+      }
     });
 
     test("should provide fallback to default for unknown types", () => {

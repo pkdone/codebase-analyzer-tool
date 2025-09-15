@@ -47,7 +47,8 @@ export class CategoriesDataProvider {
     appSummaryData: Pick<AppSummaryRecordWithId, ValidCategoryKey>,
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
     const results = REPORTABLE_INSIGHT_CATEGORIES.map((category: ValidCategoryKey) => {
-      const label = summaryCategoriesConfig[category].label;
+      const config = summaryCategoriesConfig[category as keyof typeof summaryCategoriesConfig];
+      const label = config.label;
       const fieldData = appSummaryData[category];
       const data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];
       console.log(`Generated ${label} table`);
