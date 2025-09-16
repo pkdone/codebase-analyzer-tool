@@ -5,6 +5,7 @@
 export const TOKENS = {
   // Core dependencies
   MongoClient: Symbol("MongoClient"),
+  DatabaseName: Symbol("DatabaseName"),
   MongoDBClientFactory: Symbol("MongoDBClientFactory"),
   LLMRouter: Symbol("LLMRouter"),
   LLMProviderManager: Symbol("LLMProviderManager"),

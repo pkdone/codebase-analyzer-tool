@@ -53,7 +53,7 @@ describe("SourcesRepositoryImpl", () => {
       close: jest.fn(),
     } as unknown as jest.Mocked<MongoClient>;
 
-    repository = new SourcesRepositoryImpl(mockMongoClient);
+    repository = new SourcesRepositoryImpl(mockMongoClient, "test-db");
   });
 
   describe("insertSource", () => {

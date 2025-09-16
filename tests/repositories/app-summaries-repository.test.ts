@@ -36,7 +36,7 @@ describe("AppSummariesRepositoryImpl", () => {
       close: jest.fn(),
     } as unknown as jest.Mocked<MongoClient>;
 
-    repository = new AppSummariesRepositoryImpl(mockMongoClient);
+    repository = new AppSummariesRepositoryImpl(mockMongoClient, "test-db");
   });
 
   describe("createOrReplaceAppSummary", () => {

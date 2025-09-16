@@ -1,30 +1,26 @@
 import "reflect-metadata";
-import { container, bootstrapContainer } from "../../../../src/di/container";
+import { container } from "tsyringe";
 import { TOKENS } from "../../../../src/di/tokens";
 import InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-server";
-import { MongoDBClientFactory } from "../../../../src/common/mdb/mdb-client-factory";
+import { setupTestDatabase, teardownTestDatabase } from "../../../helpers/db-test-helper";
 
 describe("AnalysisDataServer", () => {
   beforeAll(async () => {
-    console.log("beforeAll: Starting MongoDB connection setup...");
-    // Bootstrap the container with MongoDB dependencies
-    // This will register all necessary dependencies, including the real MongoDB client
-    await bootstrapContainer({ requiresMongoDB: true, requiresLLM: false });
-    console.log("beforeAll: MongoDB connection setup complete.");
+    // Setup the temporary database and get the client
+    await setupTestDatabase();
   }, 60000); // Increase timeout for beforeAll hook to 60 seconds
 
   afterAll(async () => {
-    console.log("afterAll: Starting MongoDB cleanup...");
-    // Clean up resources
-    const mongoDBClientFactory = container.resolve<MongoDBClientFactory>(
-      TOKENS.MongoDBClientFactory,
-    );
-    await mongoDBClientFactory.closeAll();
-    container.clearInstances();
-    console.log("afterAll: MongoDB cleanup complete.");
+    // Teardown the temporary database
+    await teardownTestDatabase();
   });
 
   it("should return an array of objects where each object has keys 'name', 'description', and 'keyBusinessActivities'", async () => {
+    // Check if ProjectName is registered, if not register a test project name
+    if (!container.isRegistered(TOKENS.ProjectName)) {
+      container.registerInstance(TOKENS.ProjectName, "test-project");
+    }
+
     // Resolve the service under test directly from the container
     const analysisDataServer = container.resolve<InsightsDataProvider>(TOKENS.InsightsDataProvider);
 

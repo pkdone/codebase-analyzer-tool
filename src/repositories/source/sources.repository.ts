@@ -31,8 +31,11 @@ export default class SourcesRepositoryImpl
   /**
    * Constructor.
    */
-  constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient) {
-    super(mongoClient, databaseConfig.SOURCES_COLLECTION_NAME);
+  constructor(
+    @inject(TOKENS.MongoClient) mongoClient: MongoClient,
+    @inject(TOKENS.DatabaseName) dbName: string,
+  ) {
+    super(mongoClient, dbName, databaseConfig.SOURCES_COLLECTION_NAME);
   }
 
   /**

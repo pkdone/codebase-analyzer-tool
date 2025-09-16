@@ -40,11 +40,12 @@ export class DBInitializerTask implements Task {
    */
   constructor(
     @inject(TOKENS.MongoClient) private readonly mongoClient: MongoClient,
+    @inject(TOKENS.DatabaseName) dbName: string,
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
     @inject(TOKENS.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
   ) {
-    this.db = this.mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
+    this.db = this.mongoClient.db(dbName);
     this.sourcesCollection = this.db.collection(databaseConfig.SOURCES_COLLECTION_NAME);
     this.appSummariesCollection = this.db.collection(databaseConfig.SUMMARIES_COLLECTION_NAME);
   }

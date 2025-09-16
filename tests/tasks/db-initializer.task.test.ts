@@ -77,6 +77,7 @@ describe("DBInitializerTask", () => {
 
     dbInitializer = new DBInitializerTask(
       mockMongoClient,
+      "test-db",
       mockSourcesRepository,
       mockAppSummariesRepository,
     );

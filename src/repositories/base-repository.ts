@@ -1,7 +1,6 @@
 import { inject } from "tsyringe";
 import { MongoClient, Collection, Document } from "mongodb";
 import { TOKENS } from "../di/tokens";
-import { databaseConfig } from "../config/database.config";
 
 /**
  * Base repository class that provides common MongoDB setup.
@@ -15,10 +14,15 @@ export abstract class BaseRepository<T extends Document> {
    * Constructor with MongoDB client injection and collection setup.
    *
    * @param mongoClient The MongoDB client instance
+   * @param dbName The name of the database to use
    * @param collectionName The name of the MongoDB collection
    */
-  constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient, collectionName: string) {
-    const db = mongoClient.db(databaseConfig.CODEBASE_DB_NAME);
+  constructor(
+    @inject(TOKENS.MongoClient) mongoClient: MongoClient,
+    @inject(TOKENS.DatabaseName) dbName: string,
+    collectionName: string,
+  ) {
+    const db = mongoClient.db(dbName);
     this.collection = db.collection<T>(collectionName);
   }
 

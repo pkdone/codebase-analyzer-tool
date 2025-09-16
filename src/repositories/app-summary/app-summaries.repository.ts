@@ -24,8 +24,11 @@ export default class AppSummariesRepositoryImpl
   /**
    * Constructor.
    */
-  constructor(@inject(TOKENS.MongoClient) mongoClient: MongoClient) {
-    super(mongoClient, databaseConfig.SUMMARIES_COLLECTION_NAME);
+  constructor(
+    @inject(TOKENS.MongoClient) mongoClient: MongoClient,
+    @inject(TOKENS.DatabaseName) dbName: string,
+  ) {
+    super(mongoClient, dbName, databaseConfig.SUMMARIES_COLLECTION_NAME);
   }
 
   /**

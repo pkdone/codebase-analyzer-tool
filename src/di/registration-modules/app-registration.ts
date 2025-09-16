@@ -36,6 +36,7 @@ import { DBInitializerTask } from "../../tasks/db-initializer.task";
 
 // Configuration import
 import { TaskRunnerConfig } from "../../tasks/task.types";
+import { databaseConfig } from "../../config/database.config";
 
 // LLM strategy and pipeline imports
 import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
@@ -59,6 +60,9 @@ export async function registerAppDependencies(config: TaskRunnerConfig): Promise
  * Registers repositories in the DI container
  */
 function registerRepositories(): void {
+  // Register the default database name for the application
+  container.registerInstance(TOKENS.DatabaseName, databaseConfig.CODEBASE_DB_NAME);
+
   // Register repositories as singletons
   container.registerSingleton<SourcesRepository>(TOKENS.SourcesRepository, SourcesRepositoryImpl);
 
