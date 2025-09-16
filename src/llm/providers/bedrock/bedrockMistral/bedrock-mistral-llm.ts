@@ -1,5 +1,5 @@
 import { llmConfig } from "../../../llm.config";
-import BaseBedrockLLM from "../base-bedrock-llm";
+import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { BEDROCK_MISTRAL } from "./bedrock-mistral.manifest";
 import { z } from "zod";
 

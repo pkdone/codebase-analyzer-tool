@@ -4,7 +4,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
 } from "../../../types/llm.types";
-import BaseOpenAILLM from "../base-openai-llm";
+import BaseOpenAILLM from "../common/base-openai-llm";
 import { OPENAI } from "./openai.manifest";
 
 /**

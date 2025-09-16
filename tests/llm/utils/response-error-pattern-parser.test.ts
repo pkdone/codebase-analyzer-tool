@@ -1,7 +1,7 @@
 import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import { parseTokenUsageFromLLMError } from "../../../src/llm/utils/error-parser";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "../../../src/llm/providers/bedrock/common/bedrock-error-patterns";
-import { OPENAI_COMMON_ERROR_PATTERNS } from "../../../src/llm/providers/openai/openai-error-patterns";
+import { OPENAI_COMMON_ERROR_PATTERNS } from "../../../src/llm/providers/openai/common/openai-error-patterns";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4 = "GPT_COMPLETIONS_GPT4";

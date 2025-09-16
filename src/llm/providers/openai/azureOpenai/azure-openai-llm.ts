@@ -4,7 +4,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
 } from "../../../types/llm.types";
-import BaseOpenAILLM from "../base-openai-llm";
+import BaseOpenAILLM from "../common/base-openai-llm";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 import { AZURE_OPENAI } from "./azure-openai.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";

@@ -11,15 +11,18 @@ import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
-} from "../../types/llm.types";
-import { llmConfig } from "../../llm.config";
-import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "../llm-provider.types";
-import { formatErrorMessage } from "../../../common/utils/error-formatters";
-import { logErrorMsgAndDetail } from "../../../common/utils/logging";
-import { getNestedValue, getNestedValueWithFallbacks } from "../../../common/utils/object-utils";
-import AbstractLLM from "../../core/abstract-llm";
+} from "../../../types/llm.types";
+import { llmConfig } from "../../../llm.config";
+import {
+  LLMImplSpecificResponseSummary,
+  LLMProviderSpecificConfig,
+} from "../../llm-provider.types";
+import { formatErrorMessage } from "../../../../common/utils/error-formatters";
+import { logErrorMsgAndDetail } from "../../../../common/utils/logging";
+import { getNestedValue, getNestedValueWithFallbacks } from "../../../../common/utils/object-utils";
+import AbstractLLM from "../../../core/abstract-llm";
 import { z } from "zod";
-import { BadResponseContentLLMError } from "../../types/llm-errors.types";
+import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
 /**
  * Configuration for extracting response data from different Bedrock provider response structures

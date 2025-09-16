@@ -1,9 +1,9 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
 import { APIError } from "openai/error";
-import { LLMPurpose, LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
-import AbstractLLM from "../../core/abstract-llm";
-import { llmConfig } from "../../llm.config";
-import { BadResponseContentLLMError } from "../../types/llm-errors.types";
+import { LLMPurpose, LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm.types";
+import AbstractLLM from "../../../core/abstract-llm";
+import { llmConfig } from "../../../llm.config";
+import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
 // Constants for GPT-5 model detection
 const GPT5_MODEL_KEY = "GPT_COMPLETIONS_GPT5";

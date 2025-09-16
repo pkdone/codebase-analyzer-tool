@@ -2,7 +2,7 @@ import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
 import OpenAILLM from "./openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
-import { OPENAI_COMMON_ERROR_PATTERNS } from "../openai-error-patterns";
+import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 
 // Environment variable name constants

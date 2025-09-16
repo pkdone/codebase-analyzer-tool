@@ -1,5 +1,5 @@
 import { llmConfig } from "../../../llm.config";
-import BaseBedrockLLM from "../base-bedrock-llm";
+import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { BEDROCK_CLAUDE, AWS_COMPLETIONS_CLAUDE_V40 } from "./bedrock-claude.manifest";
 import { z } from "zod";
 
