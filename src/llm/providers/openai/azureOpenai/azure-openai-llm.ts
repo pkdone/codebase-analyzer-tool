@@ -10,6 +10,19 @@ import { AZURE_OPENAI } from "./azure-openai.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 
 /**
+ * Configuration object for Azure OpenAI LLM provider.
+ * Encapsulates all Azure OpenAI-specific configuration parameters.
+ */
+export interface AzureOpenAIConfig {
+  apiKey: string;
+  endpoint: string;
+  embeddingsDeployment: string;
+  primaryCompletionsDeployment: string;
+  secondaryCompletionsDeployment: string;
+  providerSpecificConfig?: LLMProviderSpecificConfig;
+}
+
+/**
  * Class for Azure's own managed version of the OpenAI service.
  */
 export default class AzureOpenAILLM extends BaseOpenAILLM {
@@ -24,25 +37,23 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    apiKey: string,
-    endpoint: string,
-    embeddingsDeployment: string,
-    primaryCompletionsDeployment: string,
-    secondaryCompletionsDeployment: string,
-    providerSpecificConfig: LLMProviderSpecificConfig = {},
+    config: AzureOpenAIConfig,
   ) {
-    super(modelsKeys, modelsMetadata, errorPatterns, providerSpecificConfig);
+    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
     this.modelToDeploymentMappings = new Map();
-    this.modelToDeploymentMappings.set(modelsKeys.embeddingsModelKey, embeddingsDeployment);
+    this.modelToDeploymentMappings.set(modelsKeys.embeddingsModelKey, config.embeddingsDeployment);
     this.modelToDeploymentMappings.set(
       modelsKeys.primaryCompletionModelKey,
-      primaryCompletionsDeployment,
+      config.primaryCompletionsDeployment,
     );
     const secondaryCompletion = modelsKeys.secondaryCompletionModelKey;
     if (secondaryCompletion)
-      this.modelToDeploymentMappings.set(secondaryCompletion, secondaryCompletionsDeployment);
-    const apiVersion = providerSpecificConfig.apiVersion ?? "2025-01-01-preview";
-    this.client = new AzureOpenAI({ endpoint, apiKey, apiVersion });
+      this.modelToDeploymentMappings.set(
+        secondaryCompletion,
+        config.secondaryCompletionsDeployment,
+      );
+    const apiVersion = config.providerSpecificConfig?.apiVersion ?? "2025-01-01-preview";
+    this.client = new AzureOpenAI({ endpoint: config.endpoint, apiKey: config.apiKey, apiVersion });
   }
 
   /**

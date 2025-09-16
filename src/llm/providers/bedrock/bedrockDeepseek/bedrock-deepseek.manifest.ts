@@ -7,6 +7,7 @@ import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
 } from "../common/bedrock-models.constants";
+import { BedrockConfig } from "../common/base-bedrock-llm";
 
 // Environment variable name constants
 const BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY";
@@ -46,8 +47,10 @@ export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 30 * 1000, // 30 seconds
     maxRetryAdditionalDelayMillis: 40 * 1000, // 40 seconds additional random delay
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns) => {
-    // Provider-specific config not used by Deepseek
-    return new BedrockDeepseekLLM(modelsKeysSet, modelsMetadata, errorPatterns);
+  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+    const config: BedrockConfig = {
+      providerSpecificConfig,
+    };
+    return new BedrockDeepseekLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
   },
 };

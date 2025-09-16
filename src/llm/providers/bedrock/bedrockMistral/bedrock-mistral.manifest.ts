@@ -7,6 +7,7 @@ import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
 } from "../common/bedrock-models.constants";
+import { BedrockConfig } from "../common/base-bedrock-llm";
 
 // Environment variable name constants
 const BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY";
@@ -57,8 +58,10 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 25 * 1000, // 25 seconds
     maxRetryAdditionalDelayMillis: 35 * 1000, // 35 seconds additional random delay
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns) => {
-    // Provider-specific config not used by Mistral
-    return new BedrockMistralLLM(modelsKeysSet, modelsMetadata, errorPatterns);
+  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+    const config: BedrockConfig = {
+      providerSpecificConfig,
+    };
+    return new BedrockMistralLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
   },
 };

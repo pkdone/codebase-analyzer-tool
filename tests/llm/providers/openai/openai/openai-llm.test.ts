@@ -120,7 +120,8 @@ describe("OpenAI LLM Provider", () => {
     // Mock OpenAI constructor
     (OpenAI as jest.MockedClass<typeof OpenAI>).mockImplementation(() => mockOpenAIClient);
 
-    openAILLM = new OpenAILLM(mockModelsKeys, mockModelsMetadata, mockErrorPatterns, mockApiKey);
+    const config = { apiKey: mockApiKey };
+    openAILLM = new OpenAILLM(mockModelsKeys, mockModelsMetadata, mockErrorPatterns, config);
   });
 
   describe("Basic Provider Info", () => {

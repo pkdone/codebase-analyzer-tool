@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
-import OpenAILLM from "./openai-llm";
+import OpenAILLM, { OpenAIConfig } from "./openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
@@ -57,8 +57,7 @@ export const openAIProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 15 * 1000, // 15 seconds - faster retry for OpenAI
     maxRetryAdditionalDelayMillis: 25 * 1000, // 25 seconds additional random delay
   },
-  factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns) => {
-    // Provider-specific config not used by OpenAI
+  factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const validationResult = openAIProviderManifest.envSchema.safeParse(envConfig);
     if (!validationResult.success)
       throw new BadConfigurationLLMError(
@@ -66,8 +65,10 @@ export const openAIProviderManifest: LLMProviderManifest = {
       );
 
     const validatedEnv = validationResult.data;
-    // Type assertion is safe here because Zod validation has already ensured this is a string
-    const apiKey = validatedEnv[OPENAI_LLM_API_KEY_KEY] as string;
-    return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, apiKey);
+    const config: OpenAIConfig = {
+      apiKey: validatedEnv[OPENAI_LLM_API_KEY_KEY] as string,
+      providerSpecificConfig,
+    };
+    return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
   },
 };

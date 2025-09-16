@@ -6,6 +6,16 @@ import {
 } from "../../../types/llm.types";
 import BaseOpenAILLM from "../common/base-openai-llm";
 import { OPENAI } from "./openai.manifest";
+import { LLMProviderSpecificConfig } from "../../llm-provider.types";
+
+/**
+ * Configuration object for OpenAI LLM provider.
+ * Encapsulates all OpenAI-specific configuration parameters.
+ */
+export interface OpenAIConfig {
+  apiKey: string;
+  providerSpecificConfig?: LLMProviderSpecificConfig;
+}
 
 /**
  * Class for the public OpenAI service.
@@ -21,10 +31,10 @@ export default class OpenAILLM extends BaseOpenAILLM {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    apiKey: string,
+    config: OpenAIConfig,
   ) {
-    super(modelsKeys, modelsMetadata, errorPatterns);
-    this.client = new OpenAI({ apiKey });
+    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
+    this.client = new OpenAI({ apiKey: config.apiKey });
   }
 
   /**

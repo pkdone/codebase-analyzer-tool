@@ -31,6 +31,16 @@ import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { zodToJsonSchemaWithoutSchemaProperty } from "../../../../common/utils/json-schema-utils";
 
+/**
+ * Configuration object for VertexAI Gemini LLM provider.
+ * Encapsulates all VertexAI-specific configuration parameters.
+ */
+export interface VertexAIConfig {
+  project: string;
+  location: string;
+  providerSpecificConfig?: LLMProviderSpecificConfig;
+}
+
 // Constant for the finish reasons that are considered terminal and should be rejected
 const VERTEXAI_TERMINAL_FINISH_REASONS = [
   FinishReason.BLOCKLIST,
@@ -60,16 +70,14 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    project: string,
-    location: string,
-    providerSpecificConfig: LLMProviderSpecificConfig = {},
+    config: VertexAIConfig,
   ) {
-    super(modelsKeys, modelsMetadata, errorPatterns, providerSpecificConfig);
-    this.vertexAiApiClient = new VertexAI({ project, location });
+    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
+    this.vertexAiApiClient = new VertexAI({ project: config.project, location: config.location });
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
-      apiEndpoint: `${location}-aiplatform.googleapis.com`,
+      apiEndpoint: `${config.location}-aiplatform.googleapis.com`,
     });
-    this.apiEndpointPrefix = `projects/${project}/locations/${location}/publishers/google/models/`;
+    this.apiEndpointPrefix = `projects/${config.project}/locations/${config.location}/publishers/google/models/`;
   }
 
   /**

@@ -8,6 +8,7 @@ import {
   AWS_EMBEDDINGS_TITAN_V1,
 } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../llm.config";
+import { BedrockConfig } from "../common/base-bedrock-llm";
 
 // Environment variable name constants
 const BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY";
@@ -74,11 +75,9 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     maxRetryAdditionalDelayMillis: 60 * 1000, // 60 seconds additional random delay for throttled Bedrock new claude models
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
-    return new BedrockClaudeLLM(
-      modelsKeysSet,
-      modelsMetadata,
-      errorPatterns,
+    const config: BedrockConfig = {
       providerSpecificConfig,
-    );
+    };
+    return new BedrockClaudeLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
   },
 };

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
-import AzureOpenAILLM from "./azure-openai-llm";
+import AzureOpenAILLM, { AzureOpenAIConfig } from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { llmConfig } from "../../../llm.config";
@@ -79,28 +79,18 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
       );
 
     const validatedEnv = validationResult.data;
-    // Type assertions are safe here because Zod validation has already ensured these are strings
-    const apiKey = validatedEnv[AZURE_OPENAI_LLM_API_KEY] as string;
-    const endpoint = validatedEnv[AZURE_OPENAI_ENDPOINT_KEY] as string;
-    const embeddingsDeployment = validatedEnv[
-      AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY
-    ] as string;
-    const primaryCompletionDeployment = validatedEnv[
-      AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY
-    ] as string;
-    const secondaryCompletionDeployment = validatedEnv[
-      AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY
-    ] as string;
-    return new AzureOpenAILLM(
-      modelsKeysSet,
-      modelsMetadata,
-      errorPatterns,
-      apiKey,
-      endpoint,
-      embeddingsDeployment,
-      primaryCompletionDeployment,
-      secondaryCompletionDeployment,
+    const config: AzureOpenAIConfig = {
+      apiKey: validatedEnv[AZURE_OPENAI_LLM_API_KEY] as string,
+      endpoint: validatedEnv[AZURE_OPENAI_ENDPOINT_KEY] as string,
+      embeddingsDeployment: validatedEnv[AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY] as string,
+      primaryCompletionsDeployment: validatedEnv[
+        AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY
+      ] as string,
+      secondaryCompletionsDeployment: validatedEnv[
+        AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY
+      ] as string,
       providerSpecificConfig,
-    );
+    };
+    return new AzureOpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
   },
 };

@@ -25,6 +25,14 @@ import { z } from "zod";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
 /**
+ * Configuration object for Bedrock LLM providers.
+ * Encapsulates all Bedrock-specific configuration parameters.
+ */
+export interface BedrockConfig {
+  providerSpecificConfig?: LLMProviderSpecificConfig;
+}
+
+/**
  * Configuration for extracting response data from different Bedrock provider response structures
  */
 interface ResponsePathConfig {
@@ -92,11 +100,12 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig = {},
+    config: BedrockConfig,
   ) {
-    super(modelsKeys, modelsMetadata, errorPatterns, providerSpecificConfig);
+    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
     const requestTimeoutMillis =
-      providerSpecificConfig.requestTimeoutMillis ?? llmConfig.DEFAULT_REQUEST_WAIT_TIMEOUT_MILLIS;
+      config.providerSpecificConfig?.requestTimeoutMillis ??
+      llmConfig.DEFAULT_REQUEST_WAIT_TIMEOUT_MILLIS;
     this.client = new BedrockRuntimeClient({
       requestHandler: { requestTimeout: requestTimeoutMillis },
     });

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
-import VertexAIGeminiLLM from "./vertex-ai-gemini-llm";
+import VertexAIGeminiLLM, { VertexAIConfig } from "./vertex-ai-gemini-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
@@ -70,15 +70,11 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
         `Environment validation failed for VertexAI Gemini provider: ${JSON.stringify(validationResult.error.issues)}`,
       );
     const validatedEnv = validationResult.data;
-    const projectId = validatedEnv[VERTEXAI_PROJECTID_KEY] as string;
-    const location = validatedEnv[VERTEXAI_LOCATION_KEY] as string;
-    return new VertexAIGeminiLLM(
-      modelsKeysSet,
-      modelsMetadata,
-      errorPatterns,
-      projectId,
-      location,
+    const config: VertexAIConfig = {
+      project: validatedEnv[VERTEXAI_PROJECTID_KEY] as string,
+      location: validatedEnv[VERTEXAI_LOCATION_KEY] as string,
       providerSpecificConfig,
-    );
+    };
+    return new VertexAIGeminiLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
   },
 };

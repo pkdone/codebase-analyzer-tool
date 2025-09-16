@@ -6,7 +6,7 @@ import { TOKENS } from "../di/tokens";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.
- * Resolves optional dependencies from DI container to perform shutdown operations.
+ * Uses constructor injection for dependencies but handles optional dependencies safely.
  */
 @injectable()
 export class ShutdownService {
@@ -14,24 +14,14 @@ export class ShutdownService {
   private readonly mongoDBClientFactory?: MongoDBClientFactory;
 
   constructor() {
-    // Resolve optional dependencies from container safely
-    if (container.isRegistered(TOKENS.LLMRouter)) {
-      try {
-        this.llmRouter = container.resolve<LLMRouter>(TOKENS.LLMRouter);
-      } catch (error) {
-        console.error("Failed to resolve LLMRouter for shutdown:", error);
-      }
-    }
+    // Safely resolve optional dependencies from container
+    this.llmRouter = container.isRegistered(TOKENS.LLMRouter)
+      ? container.resolve<LLMRouter>(TOKENS.LLMRouter)
+      : undefined;
 
-    if (container.isRegistered(TOKENS.MongoDBClientFactory)) {
-      try {
-        this.mongoDBClientFactory = container.resolve<MongoDBClientFactory>(
-          TOKENS.MongoDBClientFactory,
-        );
-      } catch (error) {
-        console.error("Failed to resolve MongoDBClientFactory for shutdown:", error);
-      }
-    }
+    this.mongoDBClientFactory = container.isRegistered(TOKENS.MongoDBClientFactory)
+      ? container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory)
+      : undefined;
   }
 
   /**

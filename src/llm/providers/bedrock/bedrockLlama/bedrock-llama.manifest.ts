@@ -7,6 +7,7 @@ import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
 } from "../common/bedrock-models.constants";
+import { BedrockConfig } from "../common/base-bedrock-llm";
 
 // Environment variable name constants
 const BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY";
@@ -62,8 +63,10 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 35 * 1000, // 35 seconds - longer delay for large models
     maxRetryAdditionalDelayMillis: 50 * 1000, // 50 seconds additional random delay
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns) => {
-    // Provider-specific config not used by Llama
-    return new BedrockLlamaLLM(modelsKeysSet, modelsMetadata, errorPatterns);
+  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+    const config: BedrockConfig = {
+      providerSpecificConfig,
+    };
+    return new BedrockLlamaLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
   },
 };
