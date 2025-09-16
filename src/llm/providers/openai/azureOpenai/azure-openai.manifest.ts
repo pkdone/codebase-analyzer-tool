@@ -4,7 +4,6 @@ import AzureOpenAILLM, { AzureOpenAIConfig } from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { llmConfig } from "../../../llm.config";
-import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 
 // Environment variable name constants
 const AZURE_OPENAI_LLM_API_KEY = "AZURE_OPENAI_LLM_API_KEY";
@@ -72,21 +71,15 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     maxRetryAdditionalDelayMillis: 35 * 1000, // 35 seconds additional random delay
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
-    const validationResult = azureOpenAIProviderManifest.envSchema.safeParse(envConfig);
-    if (!validationResult.success)
-      throw new BadConfigurationLLMError(
-        `Environment validation failed for Azure OpenAI provider: ${JSON.stringify(validationResult.error.issues)}`,
-      );
-
-    const validatedEnv = validationResult.data;
     const config: AzureOpenAIConfig = {
-      apiKey: validatedEnv[AZURE_OPENAI_LLM_API_KEY] as string,
-      endpoint: validatedEnv[AZURE_OPENAI_ENDPOINT_KEY] as string,
-      embeddingsDeployment: validatedEnv[AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY] as string,
-      primaryCompletionsDeployment: validatedEnv[
+      // envConfig is already the fully typed object
+      apiKey: envConfig[AZURE_OPENAI_LLM_API_KEY] as string,
+      endpoint: envConfig[AZURE_OPENAI_ENDPOINT_KEY] as string,
+      embeddingsDeployment: envConfig[AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY] as string,
+      primaryCompletionsDeployment: envConfig[
         AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY
       ] as string,
-      secondaryCompletionsDeployment: validatedEnv[
+      secondaryCompletionsDeployment: envConfig[
         AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY
       ] as string,
       providerSpecificConfig,

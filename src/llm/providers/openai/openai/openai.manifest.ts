@@ -3,7 +3,6 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import OpenAILLM, { OpenAIConfig } from "./openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
-import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 
 // Environment variable name constants
 const OPENAI_LLM_API_KEY_KEY = "OPENAI_LLM_API_KEY";
@@ -58,15 +57,9 @@ export const openAIProviderManifest: LLMProviderManifest = {
     maxRetryAdditionalDelayMillis: 25 * 1000, // 25 seconds additional random delay
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
-    const validationResult = openAIProviderManifest.envSchema.safeParse(envConfig);
-    if (!validationResult.success)
-      throw new BadConfigurationLLMError(
-        `Environment validation failed for OpenAI provider: ${JSON.stringify(validationResult.error.issues)}`,
-      );
-
-    const validatedEnv = validationResult.data;
     const config: OpenAIConfig = {
-      apiKey: validatedEnv[OPENAI_LLM_API_KEY_KEY] as string,
+      // envConfig is already the fully typed object
+      apiKey: envConfig[OPENAI_LLM_API_KEY_KEY] as string,
       providerSpecificConfig,
     };
     return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config);

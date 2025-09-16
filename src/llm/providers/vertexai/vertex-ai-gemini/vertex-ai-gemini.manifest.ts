@@ -3,7 +3,6 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import VertexAIGeminiLLM, { VertexAIConfig } from "./vertex-ai-gemini-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
-import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
@@ -64,15 +63,10 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     maxRetryAdditionalDelayMillis: 100 * 1000, // Fair amount ofadditional random delay
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
-    const validationResult = vertexAIGeminiProviderManifest.envSchema.safeParse(envConfig);
-    if (!validationResult.success)
-      throw new BadConfigurationLLMError(
-        `Environment validation failed for VertexAI Gemini provider: ${JSON.stringify(validationResult.error.issues)}`,
-      );
-    const validatedEnv = validationResult.data;
     const config: VertexAIConfig = {
-      project: validatedEnv[VERTEXAI_PROJECTID_KEY] as string,
-      location: validatedEnv[VERTEXAI_LOCATION_KEY] as string,
+      // envConfig is already the fully typed object
+      project: envConfig[VERTEXAI_PROJECTID_KEY] as string,
+      location: envConfig[VERTEXAI_LOCATION_KEY] as string,
       providerSpecificConfig,
     };
     return new VertexAIGeminiLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);

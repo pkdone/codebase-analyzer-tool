@@ -125,7 +125,12 @@ export class TableViewModel {
         const objectItem = item as Record<string, unknown>;
         const processedKeys = Object.keys(objectItem).reduce<Record<string, string>>(
           (acc, itemKey) => {
-            acc[convertToDisplayName(itemKey)] = String(objectItem[itemKey]);
+            const value = objectItem[itemKey];
+            if (typeof value === 'object' && value !== null) {
+              acc[convertToDisplayName(itemKey)] = JSON.stringify(value);
+            } else {
+              acc[convertToDisplayName(itemKey)] = String(value);
+            }
             return acc;
           },
           {},

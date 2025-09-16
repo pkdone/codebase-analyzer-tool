@@ -5,8 +5,8 @@
  * @param path The dot-notation path (e.g., "response.choices[0].message.content")
  * @returns The value at the specified path, or undefined if not found
  */
-export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  return path.split(".").reduce((current: unknown, key: string) => {
+export function getNestedValue<T = unknown>(obj: Record<string, unknown>, path: string): T | undefined {
+  const result = path.split(".").reduce((current: unknown, key: string) => {
     if (current == null) return undefined;
 
     const arrayMatch = /^(\w+)\[(\d+)\]$/.exec(key);
@@ -23,6 +23,8 @@ export function getNestedValue(obj: Record<string, unknown>, path: string): unkn
     const currentObj = current as Record<string, unknown>;
     return currentObj[key];
   }, obj);
+  
+  return result as T | undefined;
 }
 
 /**
@@ -32,12 +34,12 @@ export function getNestedValue(obj: Record<string, unknown>, path: string): unkn
  * @param paths Array of dot-notation paths to try in order
  * @returns The first value found at any of the specified paths, or undefined if none found
  */
-export function getNestedValueWithFallbacks(
+export function getNestedValueWithFallbacks<T = unknown>(
   obj: Record<string, unknown>,
   paths: string[],
-): unknown {
+): T | undefined {
   for (const path of paths) {
-    const value = getNestedValue(obj, path);
+    const value = getNestedValue<T>(obj, path);
     if (value !== null && value !== undefined) {
       return value;
     }

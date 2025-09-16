@@ -246,25 +246,21 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
       Boolean,
     ) as string[];
-    const responseContent = getNestedValueWithFallbacks(response, contentPaths);
-    const responseContentStr = typeof responseContent === "string" ? responseContent : "";
+    const responseContent = getNestedValueWithFallbacks<string>(response, contentPaths) ?? "";
     const stopReasonPaths = [
       pathConfig.stopReasonPath,
       pathConfig.alternativeStopReasonPath,
     ].filter(Boolean) as string[];
-    const finishReason = getNestedValueWithFallbacks(response, stopReasonPaths);
-    const finishReasonStr = typeof finishReason === "string" ? finishReason : "";
-    const finishReasonLowercase = finishReasonStr.toLowerCase();
+    const finishReason = getNestedValueWithFallbacks<string>(response, stopReasonPaths) ?? "";
+    const finishReasonLowercase = finishReason.toLowerCase();
     const isIncompleteResponse =
       finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
-      !responseContentStr;
-    const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
-    const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);
-    const promptTokens = typeof promptTokensRaw === "number" ? promptTokensRaw : -1;
-    const completionTokens = typeof completionTokensRaw === "number" ? completionTokensRaw : -1;
+      !responseContent;
+    const promptTokens = getNestedValue<number>(response, pathConfig.promptTokensPath) ?? -1;
+    const completionTokens = getNestedValue<number>(response, pathConfig.completionTokensPath) ?? -1;
     const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent: responseContentStr, tokenUsage };
+    return { isIncompleteResponse, responseContent, tokenUsage };
   }
 
   /**
