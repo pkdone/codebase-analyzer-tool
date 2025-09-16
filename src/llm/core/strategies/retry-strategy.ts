@@ -12,12 +12,22 @@ import { llmConfig } from "../../llm.config";
 import LLMStats from "../tracking/llm-stats";
 import { TOKENS } from "../../../di/tokens";
 
-// Define a type for retryable errors
-type RetryableError = FailedAttemptError & { retryableStatus?: LLMResponseStatus };
+/**
+ * Custom error class for retryable LLM operations
+ */
+class RetryableError extends Error {
+  readonly retryableStatus: LLMResponseStatus;
+  
+  constructor(message: string, retryableStatus: LLMResponseStatus) {
+    super(message);
+    this.name = "RetryableError";
+    this.retryableStatus = retryableStatus;
+  }
+}
 
 // Type guard to check for retryable errors
 function isRetryableError(error: unknown): error is RetryableError {
-  return error instanceof Error && "retryableStatus" in error;
+  return error instanceof RetryableError;
 }
 
 /**
@@ -46,17 +56,9 @@ export class RetryStrategy {
           const result = await llmFunction(prompt, context, completionOptions);
 
           if (result.status === LLMResponseStatus.OVERLOADED) {
-            const error = new Error("LLM is overloaded") as Error & {
-              retryableStatus: LLMResponseStatus;
-            };
-            error.retryableStatus = LLMResponseStatus.OVERLOADED;
-            throw error;
+            throw new RetryableError("LLM is overloaded", LLMResponseStatus.OVERLOADED);
           } else if (result.status === LLMResponseStatus.INVALID) {
-            const error = new Error("LLM response is invalid") as Error & {
-              retryableStatus: LLMResponseStatus;
-            };
-            error.retryableStatus = LLMResponseStatus.INVALID;
-            throw error;
+            throw new RetryableError("LLM response is invalid", LLMResponseStatus.INVALID);
           }
 
           return result;

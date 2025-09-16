@@ -23,8 +23,6 @@ export class JsonReportWriter {
    */
   async writeAllJSONFiles(reportData: ReportData): Promise<void> {
     console.log("Generating JSON files for all data sections...");
-
-    // Prepare complete report data
     const completeReportData = {
       appStats: reportData.appStats,
       fileTypesData: reportData.fileTypesData,
@@ -32,8 +30,6 @@ export class JsonReportWriter {
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
     };
-
-    // Prepare all JSON files to write
     const jsonFiles: {
       filename: string;
       data:
@@ -45,14 +41,11 @@ export class JsonReportWriter {
         | { appDescription: string }
         | typeof completeReportData;
     }[] = [
-      // Complete report file
       { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },
-      // Category data files
       ...reportData.categorizedData.map((categoryData) => ({
         filename: jsonFilesConfig.getCategoryFilename(categoryData.category),
         data: categoryData.data,
       })),
-      // Additional data files
       { filename: jsonFilesConfig.dataFiles.appStats, data: reportData.appStats },
       {
         filename: jsonFilesConfig.dataFiles.appDescription,
@@ -62,16 +55,18 @@ export class JsonReportWriter {
       { filename: jsonFilesConfig.dataFiles.dbInteractions, data: reportData.dbInteractions },
       { filename: jsonFilesConfig.dataFiles.procsAndTriggers, data: reportData.procsAndTriggers },
     ];
-
-    // Write all JSON files in parallel
     const jsonFilePromises = jsonFiles.map(async (fileInfo) => {
       const jsonFilePath = path.join(outputConfig.OUTPUT_DIR, fileInfo.filename);
       const jsonContent = JSON.stringify(fileInfo.data, null, 2);
       await writeFile(jsonFilePath, jsonContent);
       console.log(`Generated JSON file: ${fileInfo.filename}`);
     });
-
-    await Promise.all(jsonFilePromises);
+    const results = await Promise.allSettled(jsonFilePromises);
+    results.forEach((result, index) => { // Check for any failures and log them
+      if (result.status === 'rejected') {
+        console.error(`Failed to write JSON file: ${jsonFiles[index].filename}`, result.reason);
+      }
+    });
     console.log("Finished generating all JSON files");
   }
 }

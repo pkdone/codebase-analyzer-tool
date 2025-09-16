@@ -5,26 +5,22 @@
  * @param path The dot-notation path (e.g., "response.choices[0].message.content")
  * @returns The value at the specified path, or undefined if not found
  */
-export function getNestedValue<T = unknown>(obj: Record<string, unknown>, path: string): T | undefined {
-  const result = path.split(".").reduce((current: unknown, key: string) => {
-    if (current == null) return undefined;
+export function getNestedValue<T = unknown>(obj: unknown, path: string): T | undefined {
+  if (path === "") return undefined;
+  if (path.includes("][")) return undefined; // Double bracket notation not supported
+  const normalizedPath = path.replace(/\[(\d+)\]/g, ".$1"); // Normalize path: 'choices[0].message' -> 'choices.0.message'
+  const keys = normalizedPath.split(".").filter(Boolean); // filter(Boolean) removes empty strings
+  let current: unknown = obj;
 
-    const arrayMatch = /^(\w+)\[(\d+)\]$/.exec(key);
-    if (arrayMatch) {
-      const [, arrayKey, index] = arrayMatch;
-      const currentObj = current as Record<string, unknown>;
-      const arrayValue = currentObj[arrayKey];
-      if (Array.isArray(arrayValue)) {
-        return arrayValue[parseInt(index, 10)];
-      }
+  for (const key of keys) {
+    if (current === null || typeof current !== "object") {
       return undefined;
     }
+    
+    current = (current as Record<string, unknown>)[key];
+  }
 
-    const currentObj = current as Record<string, unknown>;
-    return currentObj[key];
-  }, obj);
-  
-  return result as T | undefined;
+  return current as T | undefined;
 }
 
 /**
@@ -35,7 +31,7 @@ export function getNestedValue<T = unknown>(obj: Record<string, unknown>, path: 
  * @returns The first value found at any of the specified paths, or undefined if none found
  */
 export function getNestedValueWithFallbacks<T = unknown>(
-  obj: Record<string, unknown>,
+  obj: unknown,
   paths: string[],
 ): T | undefined {
   for (const path of paths) {

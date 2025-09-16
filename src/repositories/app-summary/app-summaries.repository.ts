@@ -90,13 +90,10 @@ export default class AppSummariesRepositoryImpl
   ): Promise<Pick<AppSummaryRecordWithId, K> | null> {
     if (fieldNames.length === 0) return null;
     const query = { projectName };
-    const projection = fieldNames.reduce<Record<string, number>>(
-      (acc, fieldName) => {
-        acc[fieldName as string] = 1;
-        return acc;
-      },
-      { _id: 0 },
-    );
+    const projection = {
+      _id: 0,
+      ...Object.fromEntries(fieldNames.map(fieldName => [fieldName, 1])),
+    };
     const options = { projection };
     return await this.collection.findOne<Pick<AppSummaryRecordWithId, K>>(query, options);
   }
