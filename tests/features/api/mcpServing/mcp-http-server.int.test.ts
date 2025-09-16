@@ -128,7 +128,7 @@ describe("McpHttpServer Integration Tests", () => {
       const req = createMockRequest("OPTIONS", "/mcp", {});
       const res = createMockResponse();
 
-      const handler = mcpHttpServer.createMcpHandler();
+      const handler = (mcpHttpServer as any).createMcpHandler();
 
       // Act
       await handler(req, res);
@@ -175,7 +175,7 @@ describe("McpHttpServer Integration Tests", () => {
       const req = createMockRequest("POST", "/mcp", {}, initializeRequest);
       const res = createMockResponse();
 
-      const handler = mcpHttpServer.createMcpHandler();
+      const handler = (mcpHttpServer as any).createMcpHandler();
 
       // Act
       await handler(req, res);
@@ -204,7 +204,7 @@ describe("McpHttpServer Integration Tests", () => {
       const req = createMockRequest("POST", "/mcp", {}, nonInitRequest);
       const res = createMockResponse();
 
-      const handler = mcpHttpServer.createMcpHandler();
+      const handler = (mcpHttpServer as any).createMcpHandler();
 
       // Act
       await handler(req, res);
@@ -250,7 +250,7 @@ describe("McpHttpServer Integration Tests", () => {
       const initReq = createMockRequest("POST", "/mcp", {}, initializeRequest);
       const initRes = createMockResponse();
 
-      const handler = mcpHttpServer.createMcpHandler();
+      const handler = (mcpHttpServer as any).createMcpHandler();
 
       // Initialize session
       await handler(initReq, initRes);
@@ -306,7 +306,7 @@ describe("McpHttpServer Integration Tests", () => {
       req.setEncoding = jest.fn();
 
       const res = createMockResponse();
-      const handler = mcpHttpServer.createMcpHandler();
+      const handler = (mcpHttpServer as any).createMcpHandler();
 
       // Act
       await handler(req, res);
@@ -358,7 +358,7 @@ describe("McpHttpServer Integration Tests", () => {
       const req = createMockRequest("POST", "/mcp", {}, initializeRequest);
       const res = createMockResponse();
 
-      const handler = mcpHttpServer.createMcpHandler();
+      const handler = (mcpHttpServer as any).createMcpHandler();
 
       // Act
       await handler(req, res);

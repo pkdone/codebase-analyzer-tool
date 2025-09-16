@@ -111,7 +111,7 @@ export default class McpHttpServer {
    * Creates a raw Node.js HTTP handler for MCP requests.
    * This includes CORS handling and session management.
    */
-  createMcpHandler() {
+  protected createMcpHandler() {
     return async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
       try {
         // Set CORS headers for all MCP requests

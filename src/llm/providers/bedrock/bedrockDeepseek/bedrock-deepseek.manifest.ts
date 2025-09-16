@@ -14,7 +14,7 @@ const BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_DEEPSEEK_COMPLET
 
 // Exported constants
 export const BEDROCK_DEEPSEEK = "BedrockDeepseek";
-export const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";
+const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";
 
 export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Deepseek",

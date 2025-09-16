@@ -7,8 +7,6 @@ import { calculateTokenUsageFromError } from "../../../../../src/llm/utils/error
 import {
   bedrockLlamaProviderManifest,
   AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT,
-  AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT,
-  AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT,
 } from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../src/env/env";
 
@@ -54,8 +52,8 @@ const bedrockLlamaModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     maxTotalTokens: bedrockLlamaProviderManifest.models.primaryCompletion.maxTotalTokens,
   },
   // Add common test models that are used in the tests
-  [AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT]: {
-    modelKey: AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT,
+  ["AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT"]: {
+    modelKey: "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
     urn: "us.meta.llama3-3-70b-instruct-v1:0",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 8192,
@@ -68,8 +66,8 @@ const bedrockLlamaModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     maxCompletionTokens: 4096,
     maxTotalTokens: 128000,
   },
-  [AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT]: {
-    modelKey: AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT,
+  ["AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT"]: {
+    modelKey: "AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT",
     urn: "meta.llama3-1-405b-instruct-v1:0",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
