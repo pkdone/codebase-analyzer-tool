@@ -65,7 +65,11 @@ describe("SourcesRepositoryImpl", () => {
         type: "ts",
         linesCount: 10,
         content: "console.log('test');",
-        summary: { classpath: "Test", purpose: "Testing", implementation: "This is a test implementation for testing purposes." },
+        summary: {
+          classpath: "Test",
+          purpose: "Testing",
+          implementation: "This is a test implementation for testing purposes.",
+        },
       };
 
       mockCollection.insertOne.mockResolvedValue({} as any);
@@ -115,7 +119,7 @@ describe("SourcesRepositoryImpl", () => {
       expect(result).toBe(true);
       expect(mockCollection.findOne).toHaveBeenCalledWith(
         { projectName, filepath },
-        { projection: { _id: 1 } }
+        { projection: { _id: 1 } },
       );
     });
 
@@ -155,7 +159,7 @@ describe("SourcesRepositoryImpl", () => {
         fileType,
         queryVector,
         numCandidates,
-        limit
+        limit,
       );
 
       // Verify the pipeline structure
@@ -165,10 +169,7 @@ describe("SourcesRepositoryImpl", () => {
             index: databaseConfig.CONTENT_VECTOR_INDEX_NAME,
             path: databaseConfig.CONTENT_VECTOR_FIELD,
             filter: {
-              $and: [
-                { projectName: { $eq: projectName } },
-                { type: { $eq: fileType } },
-              ],
+              $and: [{ projectName: { $eq: projectName } }, { type: { $eq: fileType } }],
             },
             queryVector: [new Double(1.0), new Double(2.0), new Double(3.0)],
             numCandidates,
@@ -202,7 +203,7 @@ describe("SourcesRepositoryImpl", () => {
         "ts",
         queryVector,
         100,
-        10
+        10,
       );
 
       // Verify that aggregate was called with the expected pipeline structure
@@ -210,14 +211,10 @@ describe("SourcesRepositoryImpl", () => {
         expect.arrayContaining([
           expect.objectContaining({
             $vectorSearch: expect.objectContaining({
-              queryVector: [
-                new Double(1.5),
-                new Double(2.7),
-                new Double(3.14),
-              ]
-            })
-          })
-        ])
+              queryVector: [new Double(1.5), new Double(2.7), new Double(3.14)],
+            }),
+          }),
+        ]),
       );
     });
 
@@ -228,12 +225,12 @@ describe("SourcesRepositoryImpl", () => {
       } as any);
 
       await expect(
-        repository.vectorSearchProjectSourcesRawContent("test", "ts", [1, 2, 3], 100, 10)
+        repository.vectorSearchProjectSourcesRawContent("test", "ts", [1, 2, 3], 100, 10),
       ).rejects.toThrow(mongoError);
 
       expect(mockLogging.logErrorMsgAndDetail).toHaveBeenCalledWith(
         expect.stringContaining("Problem performing Atlas Vector Search aggregation"),
-        mongoError
+        mongoError,
       );
     });
   });
@@ -248,7 +245,7 @@ describe("SourcesRepositoryImpl", () => {
         const result = await repository.getProjectFilesCount(projectName);
 
         expect(result).toBe(42);
-        
+
         const expectedPipeline = [
           { $match: { projectName } },
           { $group: { _id: "", count: { $sum: 1 } } },
@@ -275,7 +272,7 @@ describe("SourcesRepositoryImpl", () => {
         const result = await repository.getProjectTotalLinesOfCode(projectName);
 
         expect(result).toBe(1500);
-        
+
         const expectedPipeline = [
           { $match: { projectName } },
           { $group: { _id: "", count: { $sum: "$linesCount" } } },
@@ -305,7 +302,7 @@ describe("SourcesRepositoryImpl", () => {
         const result = await repository.getProjectFileTypesCountAndLines(projectName);
 
         expect(result).toEqual(mockResults);
-        
+
         const expectedPipeline = [
           { $match: { projectName } },
           {
@@ -350,7 +347,7 @@ describe("SourcesRepositoryImpl", () => {
               filepath: 1,
             },
             sort: { "summary.classpath": 1 },
-          }
+          },
         );
       });
     });
@@ -397,7 +394,7 @@ describe("SourcesRepositoryImpl", () => {
               "summary.databaseIntegration.mechanism": 1,
               "summary.classpath": 1,
             },
-          }
+          },
         );
       });
     });
@@ -417,7 +414,10 @@ describe("SourcesRepositoryImpl", () => {
         ];
         mockFindCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectStoredProceduresAndTriggers(projectName, fileTypes);
+        const result = await repository.getProjectStoredProceduresAndTriggers(
+          projectName,
+          fileTypes,
+        );
 
         expect(result).toEqual(mockResults);
         expect(mockCollection.find).toHaveBeenCalledWith(
@@ -433,7 +433,7 @@ describe("SourcesRepositoryImpl", () => {
               },
             ],
           },
-          { projection: { _id: 0, summary: 1, filepath: 1 } }
+          { projection: { _id: 0, summary: 1, filepath: 1 } },
         );
       });
     });
@@ -441,12 +441,12 @@ describe("SourcesRepositoryImpl", () => {
     describe("getProjectFilesPaths", () => {
       it("should return array of file paths", async () => {
         const projectName = "test-project";
-      const mockCursor = {
-        map: jest.fn().mockReturnValue({
-          toArray: jest.fn().mockResolvedValue(["src/test1.ts", "src/test2.js"]),
-        }),
-        toArray: jest.fn(),
-      };
+        const mockCursor = {
+          map: jest.fn().mockReturnValue({
+            toArray: jest.fn().mockResolvedValue(["src/test1.ts", "src/test2.js"]),
+          }),
+          toArray: jest.fn(),
+        };
         mockCollection.find.mockReturnValue(mockCursor as any);
 
         const result = await repository.getProjectFilesPaths(projectName);
@@ -454,7 +454,7 @@ describe("SourcesRepositoryImpl", () => {
         expect(result).toEqual(["src/test1.ts", "src/test2.js"]);
         expect(mockCollection.find).toHaveBeenCalledWith(
           { projectName },
-          { projection: { _id: 0, filepath: 1 } }
+          { projection: { _id: 0, filepath: 1 } },
         );
       });
     });
@@ -463,9 +463,9 @@ describe("SourcesRepositoryImpl", () => {
   describe("getCollectionValidationSchema", () => {
     it("should return the JSON schema", () => {
       const result = repository.getCollectionValidationSchema();
-      
+
       expect(result).toBeDefined();
-      expect(typeof result).toBe('object');
+      expect(typeof result).toBe("object");
     });
   });
 });

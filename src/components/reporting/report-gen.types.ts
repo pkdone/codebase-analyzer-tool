@@ -11,7 +11,10 @@ export type Complexity = (typeof COMPLEXITY_LEVELS)[number];
  * Type guard to check if a value is a valid Complexity value
  */
 export function isComplexity(value: unknown): value is Complexity {
-  return typeof value === "string" && (COMPLEXITY_LEVELS as readonly string[]).includes(value.toUpperCase());
+  return (
+    typeof value === "string" &&
+    (COMPLEXITY_LEVELS as readonly string[]).includes(value.toUpperCase())
+  );
 }
 
 export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;

@@ -77,14 +77,20 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
       throw new BadConfigurationLLMError(
         `Environment validation failed for Azure OpenAI provider: ${JSON.stringify(validationResult.error.issues)}`,
       );
-    
+
     const validatedEnv = validationResult.data;
     // Type assertions are safe here because Zod validation has already ensured these are strings
     const apiKey = validatedEnv[AZURE_OPENAI_LLM_API_KEY] as string;
     const endpoint = validatedEnv[AZURE_OPENAI_ENDPOINT_KEY] as string;
-    const embeddingsDeployment = validatedEnv[AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY] as string;
-    const primaryCompletionDeployment = validatedEnv[AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY] as string;
-    const secondaryCompletionDeployment = validatedEnv[AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY] as string;
+    const embeddingsDeployment = validatedEnv[
+      AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY
+    ] as string;
+    const primaryCompletionDeployment = validatedEnv[
+      AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY
+    ] as string;
+    const secondaryCompletionDeployment = validatedEnv[
+      AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY
+    ] as string;
     return new AzureOpenAILLM(
       modelsKeysSet,
       modelsMetadata,

@@ -17,7 +17,8 @@ export class CodebaseQueryTask implements Task {
    */
   constructor(
     @inject(TOKENS.ProjectName) private readonly projectName: string,
-    @inject(TOKENS.CodebaseQueryProcessor) private readonly codebaseQueryProcessor: CodebaseQueryProcessor,
+    @inject(TOKENS.CodebaseQueryProcessor)
+    private readonly codebaseQueryProcessor: CodebaseQueryProcessor,
   ) {}
 
   /**

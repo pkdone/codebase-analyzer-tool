@@ -24,7 +24,10 @@ import { inject, injectable } from "tsyringe";
  * MongoDB implementation of the Sources repository
  */
 @injectable()
-export default class SourcesRepositoryImpl extends BaseRepository<SourceRecordWithId> implements SourcesRepository {
+export default class SourcesRepositoryImpl
+  extends BaseRepository<SourceRecordWithId>
+  implements SourcesRepository
+{
   /**
    * Constructor.
    */
@@ -213,7 +216,10 @@ export default class SourcesRepositoryImpl extends BaseRepository<SourceRecordWi
    * Get file count for a project
    */
   async getProjectFilesCount(projectName: string): Promise<number> {
-    const pipeline: Document[] = [{ $match: { projectName } }, { $group: { _id: "", count: { $sum: 1 } } }];
+    const pipeline: Document[] = [
+      { $match: { projectName } },
+      { $group: { _id: "", count: { $sum: 1 } } },
+    ];
     const result = await this.collection.aggregate<{ count: number }>(pipeline).toArray();
     return result[0]?.count ?? 0;
   }

@@ -22,7 +22,8 @@ export default class AppReportGenerator {
    */
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.AppSummariesRepository) private readonly appSummariesRepository: AppSummariesRepository,
+    @inject(TOKENS.AppSummariesRepository)
+    private readonly appSummariesRepository: AppSummariesRepository,
     @inject(TOKENS.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
     @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
     @inject(TOKENS.DatabaseReportDataProvider)
@@ -45,7 +46,7 @@ export default class AppReportGenerator {
     // This includes fields needed by both AppStatisticsDataProvider and CategoriesDataProvider
     const allRequiredAppSummaryFields = [
       "appDescription",
-      "llmProvider", 
+      "llmProvider",
       "technologies",
       "businessProcesses",
       "boundedContexts",
@@ -54,25 +55,27 @@ export default class AppReportGenerator {
       "repositories",
       "potentialMicroservices",
     ];
-    
-    const [appSummaryData, fileTypesData, dbInteractions, procsAndTriggers] =
-      await Promise.all([
-        this.appSummariesRepository.getProjectAppSummaryFields(projectName, allRequiredAppSummaryFields),
-        this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
-        this.databaseDataProvider.getDatabaseInteractions(projectName),
-        this.databaseDataProvider.getStoredProceduresAndTriggers(projectName),
-      ]);
-    
+
+    const [appSummaryData, fileTypesData, dbInteractions, procsAndTriggers] = await Promise.all([
+      this.appSummariesRepository.getProjectAppSummaryFields(
+        projectName,
+        allRequiredAppSummaryFields,
+      ),
+      this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
+      this.databaseDataProvider.getDatabaseInteractions(projectName),
+      this.databaseDataProvider.getStoredProceduresAndTriggers(projectName),
+    ]);
+
     if (!appSummaryData) {
       throw new Error(
-        "Unable to generate report because no app summary data exists - ensure you first run the scripts to process the source data and generate insights"
+        "Unable to generate report because no app summary data exists - ensure you first run the scripts to process the source data and generate insights",
       );
     }
-    
+
     // Generate data using consolidated app summary data
     const appStats = await this.appStatsDataProvider.getAppStatistics(projectName, appSummaryData);
     const categorizedData = this.categoriesDataProvider.getCategorizedData(appSummaryData);
-    
+
     const reportData: ReportData = {
       appStats,
       fileTypesData,

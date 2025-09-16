@@ -3,7 +3,10 @@ import { z } from "zod";
 import { pathsConfig } from "../../../config/paths.config";
 import { summaryCategoriesConfig } from "../../insights/insights.config";
 import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
-import type { AppSummaryNameDescArray, AppSummaryRecordWithId } from "../../../repositories/app-summary/app-summaries.model";
+import type {
+  AppSummaryNameDescArray,
+  AppSummaryRecordWithId,
+} from "../../../repositories/app-summary/app-summaries.model";
 
 // Zod schema for validating AppSummaryNameDescArray
 const appSummaryNameDescArraySchema = z.array(nameDescSchema);
@@ -19,7 +22,9 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
 // Define valid category keys that can be used for data fetching, excluding appDescription
 // This creates a type-safe readonly array of the valid keys
 const REPORTABLE_INSIGHT_CATEGORIES = AppSummaryCategories.options.filter(
-  (key): key is Exclude<typeof AppSummaryCategories._type, typeof pathsConfig.APP_DESCRIPTION_KEY> =>
+  (
+    key,
+  ): key is Exclude<typeof AppSummaryCategories._type, typeof pathsConfig.APP_DESCRIPTION_KEY> =>
     key !== pathsConfig.APP_DESCRIPTION_KEY,
 );
 

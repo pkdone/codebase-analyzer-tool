@@ -9,7 +9,7 @@ export type DisplayableTableRow = Record<string, unknown>;
  * Interface for processed table cell data
  */
 export interface ProcessedTableCell {
-  type: 'text' | 'link' | 'code' | 'list';
+  type: "text" | "link" | "code" | "list";
   content: string | ProcessedListItem[];
 }
 
@@ -17,7 +17,7 @@ export interface ProcessedTableCell {
  * Interface for processed list items
  */
 export interface ProcessedListItem {
-  type: 'object' | 'primitive';
+  type: "object" | "primitive";
   content: string | Record<string, string>;
 }
 
@@ -37,14 +37,14 @@ export class TableViewModel {
    * Get the display headers for the table
    */
   getDisplayHeaders(): string[] {
-    return this.headers.map(header => convertToDisplayName(header));
+    return this.headers.map((header) => convertToDisplayName(header));
   }
 
   /**
    * Get processed rows ready for display
    */
   getProcessedRows(): ProcessedTableCell[][] {
-    return this.data.map(row => this.processRow(row));
+    return this.data.map((row) => this.processRow(row));
   }
 
   /**
@@ -58,59 +58,61 @@ export class TableViewModel {
    * Process a single row into display-ready format
    */
   private processRow(row: DisplayableTableRow): ProcessedTableCell[] {
-    return this.headers.map(key => this.processCell(key, row[key]));
+    return this.headers.map((key) => this.processCell(key, row[key]));
   }
 
   /**
    * Process a single cell value into display format
    */
   private processCell(key: string, value: unknown): ProcessedTableCell {
-    if (key === 'link' && typeof value === 'string') {
+    if (key === "link" && typeof value === "string") {
       return {
-        type: 'link',
-        content: value
+        type: "link",
+        content: value,
       };
     }
 
-    if (key === 'codeExample' && typeof value === 'string') {
+    if (key === "codeExample" && typeof value === "string") {
       return {
-        type: 'code',
-        content: value
+        type: "code",
+        content: value,
       };
     }
 
     if (Array.isArray(value) && value.length > 0) {
       return {
-        type: 'list',
-        content: this.processArrayValue(value)
+        type: "list",
+        content: this.processArrayValue(value),
       };
     }
 
     if (value === null || value === undefined) {
       return {
-        type: 'text',
-        content: ''
+        type: "text",
+        content: "",
       };
     }
-    
-    if (typeof value === 'object') {
+
+    if (typeof value === "object") {
       return {
-        type: 'text', 
-        content: JSON.stringify(value)
+        type: "text",
+        content: JSON.stringify(value),
       };
     }
-    
-    if (typeof value === 'string') {
+
+    if (typeof value === "string") {
       return {
-        type: 'text',
-        content: value
+        type: "text",
+        content: value,
       };
     }
-    
+
     return {
-      type: 'text',
-      content: typeof value === 'number' || typeof value === 'boolean' ? 
-        String(value) : JSON.stringify(value)
+      type: "text",
+      content:
+        typeof value === "number" || typeof value === "boolean"
+          ? String(value)
+          : JSON.stringify(value),
     };
   }
 
@@ -118,22 +120,25 @@ export class TableViewModel {
    * Process array values into structured list items
    */
   private processArrayValue(value: unknown[]): ProcessedListItem[] {
-    return value.map(item => {
-      if (item && typeof item === 'object' && item.constructor === Object) {
+    return value.map((item) => {
+      if (item && typeof item === "object" && item.constructor === Object) {
         const objectItem = item as Record<string, unknown>;
-        const processedKeys = Object.keys(objectItem).reduce<Record<string, string>>((acc, itemKey) => {
-          acc[convertToDisplayName(itemKey)] = String(objectItem[itemKey]);
-          return acc;
-        }, {});
+        const processedKeys = Object.keys(objectItem).reduce<Record<string, string>>(
+          (acc, itemKey) => {
+            acc[convertToDisplayName(itemKey)] = String(objectItem[itemKey]);
+            return acc;
+          },
+          {},
+        );
 
         return {
-          type: 'object' as const,
-          content: processedKeys
+          type: "object" as const,
+          content: processedKeys,
         };
       } else {
         return {
-          type: 'primitive' as const,
-          content: String(item)
+          type: "primitive" as const,
+          content: String(item),
         };
       }
     });

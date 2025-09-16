@@ -1,12 +1,12 @@
 // Reusable formatter instances to avoid recreating them on each call
-const displayFormatter = new Intl.DateTimeFormat('en-GB', {
-  year: 'numeric', 
-  month: '2-digit', 
-  day: '2-digit',
-  hour: '2-digit', 
-  minute: '2-digit', 
-  second: '2-digit',
-  hour12: false
+const displayFormatter = new Intl.DateTimeFormat("en-GB", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
 });
 
 /**
@@ -30,6 +30,5 @@ export function formatDateForLogging(): string {
  * Replaces colons and dots with hyphens for filesystem compatibility.
  */
 export function formatDateForFilename(): string {
-  return new Date().toISOString().replace(/[:.]/g, '-');
+  return new Date().toISOString().replace(/[:.]/g, "-");
 }
-

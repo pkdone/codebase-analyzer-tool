@@ -128,7 +128,9 @@ describe("File Handler Configuration", () => {
 
   describe("Integration between file suffix mappings and prompt templates", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
-      const canonicalTypes = new Set(fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values());
+      const canonicalTypes = new Set(
+        fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values(),
+      );
 
       for (const canonicalType of canonicalTypes) {
         expect(fileTypeMetadataConfig).toHaveProperty(canonicalType);
@@ -139,7 +141,8 @@ describe("File Handler Configuration", () => {
       // Test that unknown suffix maps to default
       const unknownSuffix = "unknown";
       const canonicalType =
-        fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ?? "default";
+        fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ??
+        "default";
 
       expect(canonicalType).toBe("default");
       expect(fileTypeMetadataConfig).toHaveProperty("default");

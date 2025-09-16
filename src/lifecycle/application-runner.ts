@@ -7,7 +7,7 @@ import { runTask } from "./task-executor";
  * Main application entry point that orchestrates the two distinct phases:
  * 1. Bootstrap phase: Set up the DI container with required dependencies
  * 2. Run phase: Execute the specified task using the bootstrapped container
- * 
+ *
  * This function handles all error cases and process termination internally.
  */
 export function runApplication(taskToken: symbol): void {

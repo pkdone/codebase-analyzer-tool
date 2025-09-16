@@ -12,17 +12,14 @@ interface ComponentRegistration {
 /**
  * Helper function to register multiple components in the DI container.
  * This eliminates duplication across registration modules.
- * 
+ *
  * @param components Array of component registrations
  * @param logMessage Message to log after successful registration
  */
-export function registerComponents(
-  components: ComponentRegistration[],
-  logMessage: string,
-): void {
+export function registerComponents(components: ComponentRegistration[], logMessage: string): void {
   components.forEach(({ token, implementation }) => {
     container.registerSingleton(token, implementation);
   });
-  
+
   console.log(logMessage);
 }

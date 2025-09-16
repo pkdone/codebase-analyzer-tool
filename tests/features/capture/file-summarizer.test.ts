@@ -177,7 +177,7 @@ describe("FileSummarizer", () => {
           parse: jest.fn().mockReturnValue({}),
           safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
           // Mock other required ZodType properties to satisfy the interface
-          ...({} as any)
+          ...({} as any),
         },
         hasComplexSchema: false,
       };

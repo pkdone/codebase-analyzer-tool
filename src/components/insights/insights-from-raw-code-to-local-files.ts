@@ -6,7 +6,10 @@ import { pathsConfig } from "../../config/paths.config";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { outputConfig } from "../../config/output.config";
 import { readFile, writeFile } from "../../common/utils/file-operations";
-import { listDirectoryEntries, findFilesRecursively } from "../../common/utils/directory-operations";
+import {
+  listDirectoryEntries,
+  findFilesRecursively,
+} from "../../common/utils/directory-operations";
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatErrorMessage } from "../../common/utils/error-formatters";
@@ -38,7 +41,9 @@ export class RawCodeToInsightsFileGenerator {
     try {
       await fs.mkdir(inputDir, { recursive: true });
       const files = await listDirectoryEntries(inputDir);
-      const promptFiles = files.filter((file) => pathsConfig.REQUIREMENTS_FILE_REGEX.test(file.name));
+      const promptFiles = files.filter((file) =>
+        pathsConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
+      );
 
       for (const file of promptFiles) {
         const filePath = path.join(inputDir, file.name);

@@ -19,8 +19,8 @@ export abstract class BaseLLMTask implements Task {
    */
   async execute(): Promise<void> {
     console.log(`${this.getTaskName()} for project: ${this.projectName}`);
-    this.llmStatsReporter.displayLLMStatusSummary();    
-    await this.run();    
+    this.llmStatsReporter.displayLLMStatusSummary();
+    await this.run();
     console.log(`Finished ${this.getTaskName().toLowerCase()} for the project`);
     console.log("Summary of LLM invocations outcomes:");
     this.llmStatsReporter.displayLLMStatusDetails();

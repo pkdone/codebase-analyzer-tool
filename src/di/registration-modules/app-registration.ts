@@ -8,11 +8,20 @@ import { SourcesRepository } from "../../repositories/source/sources.repository.
 import { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 
 // Domain-specific registration functions
-import { registerCaptureComponents, registerLLMDependentCaptureComponents } from "./capture-registration";
-import { registerInsightsComponents, registerLLMDependentInsightsComponents } from "./insights-registration";
+import {
+  registerCaptureComponents,
+  registerLLMDependentCaptureComponents,
+} from "./capture-registration";
+import {
+  registerInsightsComponents,
+  registerLLMDependentInsightsComponents,
+} from "./insights-registration";
 import { registerReportingComponents } from "./reporting-registration";
 import { registerApiComponents } from "./api-registration";
-import { registerQueryingComponents, registerLLMDependentQueryingComponents } from "./querying-registration";
+import {
+  registerQueryingComponents,
+  registerLLMDependentQueryingComponents,
+} from "./querying-registration";
 
 // Task imports (these are top-level orchestrators for CLI commands)
 import { CodebaseCaptureTask } from "../../tasks/codebase-capture.task";
@@ -70,7 +79,7 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   container.registerSingleton(TOKENS.RetryStrategy, RetryStrategy);
   container.registerSingleton(TOKENS.FallbackStrategy, FallbackStrategy);
   container.registerSingleton(TOKENS.LLMExecutionPipeline, LLMExecutionPipeline);
-  
+
   // Register lifecycle services
   container.registerSingleton(TOKENS.ShutdownService, ShutdownService);
 

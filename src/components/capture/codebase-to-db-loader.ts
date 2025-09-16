@@ -105,7 +105,10 @@ export default class CodebaseToDBLoader {
   ) {
     const type = getFileExtension(fullFilepath).toLowerCase();
     const filepath = path.relative(srcDirPath, fullFilepath);
-    if ((fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)) return; // Skip file if it has binary content
+    if (
+      (fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)
+    )
+      return; // Skip file if it has binary content
 
     if (
       skipIfAlreadyCaptured &&
@@ -113,7 +116,7 @@ export default class CodebaseToDBLoader {
     ) {
       return;
     }
-    
+
     const rawContent = await readFile(fullFilepath);
     const content = rawContent.trim();
     if (!content) return; // Skip empty files

@@ -77,17 +77,26 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
       };
       return params;
     } else {
-      const isGPT5Model = modelKey === GPT5_MODEL_KEY || modelIdentifier.toLowerCase().includes(GPT5_MODEL_IDENTIFIER_SUBSTRING);
-      
+      const isGPT5Model =
+        modelKey === GPT5_MODEL_KEY ||
+        modelIdentifier.toLowerCase().includes(GPT5_MODEL_IDENTIFIER_SUBSTRING);
+
       // GPT-5 models only support default temperature (1), while other models support custom temperature
       const baseParams: OpenAI.Chat.ChatCompletionCreateParams = {
         model: modelIdentifier,
         messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
-        ...(isGPT5Model ? {} : { temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP }),
+        ...(isGPT5Model
+          ? {}
+          : {
+              temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
+            }),
       };
 
-      const params = isGPT5Model 
-        ? { ...baseParams, max_completion_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens }
+      const params = isGPT5Model
+        ? {
+            ...baseParams,
+            max_completion_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
+          }
         : { ...baseParams, max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens };
 
       if (options?.outputFormat === LLMOutputFormat.JSON) {

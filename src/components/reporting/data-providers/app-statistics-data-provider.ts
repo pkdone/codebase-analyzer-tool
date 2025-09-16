@@ -23,7 +23,7 @@ export class AppStatisticsDataProvider {
    */
   async getAppStatistics(
     projectName: string,
-    appSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider">
+    appSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider">,
   ): Promise<AppStatistics> {
     return {
       projectName: projectName,

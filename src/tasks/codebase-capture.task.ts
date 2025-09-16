@@ -44,9 +44,9 @@ export class CodebaseCaptureTask extends BaseLLMTask {
       this.llmRouter.getEmbeddedModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.dbInitializerTask.ensureCollectionsReady(numDimensions);
     await this.codebaseToDBLoader.captureCodebaseToDatabase(
-      this.projectName, 
-      this.env.CODEBASE_DIR_PATH, 
-      this.env.SKIP_ALREADY_PROCESSED_FILES
+      this.projectName,
+      this.env.CODEBASE_DIR_PATH,
+      this.env.SKIP_ALREADY_PROCESSED_FILES,
     );
   }
 }

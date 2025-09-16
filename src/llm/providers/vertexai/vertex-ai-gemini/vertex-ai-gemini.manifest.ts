@@ -34,7 +34,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
       modelKey: GCP_EMBEDDINGS_GEMINI_001,
       urnEnvKey: VERTEXAI_TEXT_EMBEDDINGS_MODEL_KEY,
       purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 3072,   // Either: 768, 1536 or 3072
+      dimensions: 3072, // Either: 768, 1536 or 3072
       maxTotalTokens: 2048,
     },
     primaryCompletion: {

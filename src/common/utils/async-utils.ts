@@ -12,7 +12,7 @@ export interface ProcessingResult {
 /**
  * Process a list of items concurrently with a specified concurrency limit.
  * Handles error logging and provides summary statistics.
- * 
+ *
  * @param items Array of items to process
  * @param processor Function to process each item
  * @param concurrency Maximum number of concurrent operations
@@ -26,7 +26,7 @@ export async function processItemsConcurrently<T, R>(
   itemName: string,
 ): Promise<ProcessingResult> {
   const limit = pLimit(concurrency);
-  const tasks = items.map(async item => limit(async () => processor(item)));
+  const tasks = items.map(async (item) => limit(async () => processor(item)));
   const results = await Promise.allSettled(tasks);
 
   let successCount = 0;
@@ -41,9 +41,13 @@ export async function processItemsConcurrently<T, R>(
     }
   });
 
-  console.log(`Processed ${items.length} ${itemName}s. Succeeded: ${successCount}, Failed: ${failureCount}`);
+  console.log(
+    `Processed ${items.length} ${itemName}s. Succeeded: ${successCount}, Failed: ${failureCount}`,
+  );
   if (failureCount > 0) {
-    console.warn(`Warning: ${failureCount} ${itemName}s failed to process. Check logs for details.`);
+    console.warn(
+      `Warning: ${failureCount} ${itemName}s failed to process. Check logs for details.`,
+    );
   }
 
   return { successes: successCount, failures: failureCount };

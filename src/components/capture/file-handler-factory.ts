@@ -36,7 +36,7 @@ export class PromptConfigFactory {
     // Check if this specific filename has a canonical type mapping
     const canonicalType = fileTypeMappingsConfig.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
     if (canonicalType) return canonicalType;
-  
+
     // Use the extension-based mapping to determine the canonical type
     return (
       fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase()) ??

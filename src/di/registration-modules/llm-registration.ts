@@ -37,7 +37,7 @@ export async function initializeAndRegisterLLMComponents(): Promise<void> {
   // Create and initialize LLMProviderManager instance first
   const manager = container.resolve(LLMProviderManager);
   await manager.initialize();
-  
+
   // Register the initialized instance
   container.registerInstance(TOKENS.LLMProviderManager, manager);
   console.log("LLMProviderManager registered with async initialization");

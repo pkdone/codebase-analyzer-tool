@@ -302,9 +302,10 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     return predictions.flatMap((p) => {
       // For Gemini models, the response structure might be different
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      const values = p.structValue?.fields?.embeddings?.structValue?.fields?.values?.listValue?.values 
-        ?? p.listValue?.values 
-        ?? [];
+      const values =
+        p.structValue?.fields?.embeddings?.structValue?.fields?.values?.listValue?.values ??
+        p.listValue?.values ??
+        [];
       const numbers = values.map((v) => v.numberValue ?? 0);
       return numbers.length > 0 ? [numbers] : [];
     });

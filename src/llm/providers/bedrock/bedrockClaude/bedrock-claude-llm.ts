@@ -31,13 +31,10 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   /**
    * Assemble the Bedrock parameters for Claude completions only.
    */
-  protected buildCompletionModelSpecificParameters(
-    modelKey: string,
-    prompt: string,
-  ) {
+  protected buildCompletionModelSpecificParameters(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     const config = this.providerSpecificConfig;
-    
+
     const baseParams = {
       anthropic_version: config.apiVersion,
       messages: [

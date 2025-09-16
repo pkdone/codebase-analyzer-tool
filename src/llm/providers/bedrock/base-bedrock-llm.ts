@@ -11,7 +11,6 @@ import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
-  LLMCompletionOptions,
 } from "../../types/llm.types";
 import { llmConfig } from "../../llm.config";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "../llm-provider.types";
@@ -115,13 +114,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   /**
    * Execute the prompt against the LLM and return the relevant sumamry of the LLM's answer.
    */
-  protected async invokeProvider(
-    taskType: LLMPurpose,
-    modelKey: string,
-    prompt: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _options?: LLMCompletionOptions,
-  ) {
+  protected async invokeProvider(taskType: LLMPurpose, modelKey: string, prompt: string) {
     const fullParameters = this.buildFullLLMParameters(taskType, modelKey, prompt);
     const command = new InvokeModelCommand(fullParameters);
     const rawResponse = await this.client.send(command);
@@ -195,11 +188,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * Assemble the AWS Bedrock API parameters structure for embeddings and completions models with
    * the prompt.
    */
-  private buildFullLLMParameters(
-    taskType: LLMPurpose,
-    modelKey: string,
-    prompt: string,
-  ) {
+  private buildFullLLMParameters(taskType: LLMPurpose, modelKey: string, prompt: string) {
     let body;
 
     if (taskType === LLMPurpose.EMBEDDINGS) {
@@ -265,7 +254,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent: responseContentStr, tokenUsage };
   }
-
 
   /**
    * Abstract method to be overriden. Assemble the AWS Bedrock API parameters structure for the

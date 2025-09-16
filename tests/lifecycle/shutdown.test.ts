@@ -76,7 +76,7 @@ describe("ShutdownService", () => {
       });
 
       const shutdownService = new ShutdownService();
-      
+
       await shutdownService.shutdownWithForcedExitFallback();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
@@ -96,7 +96,7 @@ describe("ShutdownService", () => {
       });
 
       const shutdownService = new ShutdownService();
-      
+
       await shutdownService.shutdownWithForcedExitFallback();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
@@ -115,7 +115,7 @@ describe("ShutdownService", () => {
       });
 
       const shutdownService = new ShutdownService();
-      
+
       await shutdownService.shutdownWithForcedExitFallback();
 
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1);
@@ -127,7 +127,7 @@ describe("ShutdownService", () => {
       mockContainer.isRegistered.mockReturnValue(false);
 
       const shutdownService = new ShutdownService();
-      
+
       await shutdownService.shutdownWithForcedExitFallback();
 
       expect(mockSetTimeout).not.toHaveBeenCalled();
@@ -146,9 +146,9 @@ describe("ShutdownService", () => {
         if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
         throw new Error("Unexpected token");
       });
-      
+
       const shutdownService = new ShutdownService();
-      
+
       await shutdownService.shutdownWithForcedExitFallback();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
@@ -173,9 +173,9 @@ describe("ShutdownService", () => {
         if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
         throw new Error("Unexpected token");
       });
-      
+
       const shutdownService = new ShutdownService();
-      
+
       await shutdownService.shutdownWithForcedExitFallback();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
@@ -199,9 +199,9 @@ describe("ShutdownService", () => {
         if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
         throw new Error("Unexpected token");
       });
-      
+
       const shutdownService = new ShutdownService();
-      
+
       await shutdownService.shutdownWithForcedExitFallback();
 
       // Verify setTimeout was called
@@ -231,6 +231,9 @@ describe("ShutdownService", () => {
       const error = new Error("Failed to close LLM router");
       (mockLLMRouter.close as jest.Mock).mockRejectedValue(error);
 
+      // Spy on console.error to verify error is logged
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
       // Mock container to return both dependencies
       mockContainer.isRegistered.mockImplementation((token) => {
         return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
@@ -240,20 +243,26 @@ describe("ShutdownService", () => {
         if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
         throw new Error("Unexpected token");
       });
-      
+
       const shutdownService = new ShutdownService();
 
-      await expect(shutdownService.shutdownWithForcedExitFallback()).rejects.toThrow(
-        "Failed to close LLM router",
-      );
+      // Should not throw - errors are logged instead
+      await expect(shutdownService.shutdownWithForcedExitFallback()).resolves.not.toThrow();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
+      expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1); // Both should be attempted
+      expect(consoleSpy).toHaveBeenCalledWith("A shutdown operation failed:", error);
+
+      consoleSpy.mockRestore();
     });
 
     it("should handle errors from mongoDBClientFactory.closeAll gracefully", async () => {
       const error = new Error("Failed to close MongoDB connections");
       (mockMongoDBClientFactory.closeAll as jest.Mock).mockRejectedValue(error);
 
+      // Spy on console.error to verify error is logged
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
       // Mock container to return both dependencies
       mockContainer.isRegistered.mockImplementation((token) => {
         return token === TOKENS.LLMRouter || token === TOKENS.MongoDBClientFactory;
@@ -263,16 +272,18 @@ describe("ShutdownService", () => {
         if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
         throw new Error("Unexpected token");
       });
-      
+
       const shutdownService = new ShutdownService();
 
-      await expect(shutdownService.shutdownWithForcedExitFallback()).rejects.toThrow(
-        "Failed to close MongoDB connections",
-      );
+      // Should not throw - errors are logged instead
+      await expect(shutdownService.shutdownWithForcedExitFallback()).resolves.not.toThrow();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1);
+      expect(consoleSpy).toHaveBeenCalledWith("A shutdown operation failed:", error);
+
+      consoleSpy.mockRestore();
     });
 
     it("should handle errors from llmRouter.providerNeedsForcedShutdown gracefully", async () => {
@@ -290,7 +301,7 @@ describe("ShutdownService", () => {
         if (token === TOKENS.MongoDBClientFactory) return mockMongoDBClientFactory;
         throw new Error("Unexpected token");
       });
-      
+
       const shutdownService = new ShutdownService();
 
       await expect(shutdownService.shutdownWithForcedExitFallback()).rejects.toThrow(

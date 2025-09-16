@@ -6,7 +6,7 @@ import CodebaseQueryProcessor from "../../components/querying/codebase-query-pro
 
 /**
  * Register querying-related components in the DI container.
- * 
+ *
  * This module handles the registration of components responsible for:
  * - Code questioning and analysis
  * - Interactive codebase querying functionality
@@ -21,6 +21,6 @@ export function registerQueryingComponents(): void {
  */
 export function registerLLMDependentQueryingComponents(): void {
   container.registerSingleton(TOKENS.CodebaseQueryProcessor, CodebaseQueryProcessor);
-  
+
   console.log("LLM-dependent querying components registered");
 }

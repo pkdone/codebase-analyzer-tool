@@ -30,11 +30,38 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
     );
   }
 
-  // This regex finds the first '{' or '[' and matches until the corresponding '}' or ']'.
-  const jsonRegex = /({[\s\S]*}|\[[\s\S]*\])/;
-  const match = jsonRegex.exec(content);
+  // Find JSON content by looking for balanced braces/brackets, handling nested structures
+  let jsonMatch: string | null = null;
+  const markdownMatch = /```(?:json)?\s*([{[][\s\S]*?[}\]])\s*```/.exec(content);
 
-  if (!match) {
+  if (markdownMatch) {
+    jsonMatch = markdownMatch[1];
+  } else {
+    // Look for the first opening brace or bracket and find its matching closing one
+    const openBraceIndex = content.search(/[{[]/);
+
+    if (openBraceIndex !== -1) {
+      const startChar = content[openBraceIndex];
+      const endChar = startChar === "{" ? "}" : "]";
+      let depth = 0;
+      let endIndex = -1;
+
+      for (let i = openBraceIndex; i < content.length; i++) {
+        if (content[i] === startChar) depth++;
+        else if (content[i] === endChar) {
+          depth--;
+          if (depth === 0) {
+            endIndex = i;
+            break;
+          }
+        }
+      }
+
+      if (endIndex !== -1) jsonMatch = content.substring(openBraceIndex, endIndex + 1);
+    }
+  }
+
+  if (!jsonMatch) {
     throw new BadResponseContentLLMError(
       `LLM response for resource '${resourceName}' doesn't contain valid JSON content for text`,
       content,
@@ -44,7 +71,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
   let jsonContent: unknown;
 
   try {
-    jsonContent = JSON.parse(match[0]);
+    jsonContent = JSON.parse(jsonMatch);
   } catch {
     throw new BadResponseContentLLMError(
       `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,

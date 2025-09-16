@@ -19,14 +19,14 @@ function createMockEmbeddingResponse(data: {
   object?: string;
 }) {
   return {
-    data: data.data.map(d => ({ 
-      embedding: d.embedding, 
-      index: d.index ?? 0, 
-      object: 'embedding' as const 
+    data: data.data.map((d) => ({
+      embedding: d.embedding,
+      index: d.index ?? 0,
+      object: "embedding" as const,
     })),
     usage: data.usage,
-    model: data.model ?? 'text-embedding-ada-002',
-    object: data.object ?? 'list',
+    model: data.model ?? "text-embedding-ada-002",
+    object: data.object ?? "list",
   } as any; // Safe cast after structuring the data properly
 }
 
@@ -47,17 +47,17 @@ function createMockCompletionResponse(data: {
   model?: string;
 }) {
   return {
-    choices: data.choices.map(c => ({
-      message: { content: c.message.content, role: c.message.role ?? 'assistant' },
+    choices: data.choices.map((c) => ({
+      message: { content: c.message.content, role: c.message.role ?? "assistant" },
       finish_reason: c.finish_reason,
       index: c.index ?? 0,
       logprobs: null, // Required by OpenAI SDK
     })),
     usage: data.usage,
-    object: data.object ?? 'chat.completion',
-    id: data.id ?? 'chatcmpl-test',
+    object: data.object ?? "chat.completion",
+    id: data.id ?? "chatcmpl-test",
     created: data.created ?? Date.now(),
-    model: data.model ?? 'gpt-4',
+    model: data.model ?? "gpt-4",
     system_fingerprint: null, // Required by OpenAI SDK
   } as any; // Safe cast after structuring the data properly
 }

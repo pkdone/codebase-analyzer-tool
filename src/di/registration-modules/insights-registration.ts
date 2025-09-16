@@ -12,7 +12,7 @@ import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 
 /**
  * Register insights-related components in the DI container.
- * 
+ *
  * This module handles the registration of components responsible for:
  * - Generating insights from database content
  * - Generating insights from raw code
@@ -23,7 +23,7 @@ export function registerInsightsComponents(): void {
     TOKENS.RawCodeToInsightsFileGenerator,
     RawCodeToInsightsFileGenerator,
   );
-  
+
   console.log("Insights components registered");
 }
 
@@ -50,6 +50,6 @@ export async function registerLLMDependentInsightsComponents(): Promise<void> {
       }
     },
   });
-  
+
   console.log("LLM-dependent insights components registered");
 }

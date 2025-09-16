@@ -2,7 +2,11 @@ import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globa
 import mockFs from "mock-fs";
 import path from "path";
 import { readFile, writeFile, appendFile } from "../../../src/common/utils/file-operations";
-import { listDirectoryEntries, clearDirectory, findFilesRecursively } from "../../../src/common/utils/directory-operations";
+import {
+  listDirectoryEntries,
+  clearDirectory,
+  findFilesRecursively,
+} from "../../../src/common/utils/directory-operations";
 import { readAndFilterLines } from "../../../src/common/utils/file-content-utils";
 
 // Mock the logging module to avoid actual logging during tests
@@ -59,7 +63,7 @@ describe("File System Utilities", () => {
       });
 
       const contents = await listDirectoryEntries("/test");
-      const names = contents.map((entry) => entry.name).sort();
+      const names = contents.map((entry) => entry.name).sort((a, b) => a.localeCompare(b));
       expect(names).toEqual(["file1.txt", "file2.txt", "subdir"]);
     });
   });

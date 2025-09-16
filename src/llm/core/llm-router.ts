@@ -63,7 +63,9 @@ export default class LLMRouter {
       );
     }
 
-    log(`Router LLMs to be used: ${this.llmInfoProvider.getModelsUsedDescription(this.llm, this.completionCandidates)}`);
+    log(
+      `Router LLMs to be used: ${this.llmInfoProvider.getModelsUsedDescription(this.llm, this.completionCandidates)}`,
+    );
   }
 
   /**

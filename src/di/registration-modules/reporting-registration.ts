@@ -11,7 +11,7 @@ import AppReportGenerator from "../../components/reporting/app-report-generator"
 
 /**
  * Register reporting-related components in the DI container.
- * 
+ *
  * This module handles the registration of components responsible for:
  * - HTML and JSON report writing
  * - Data providers for various report sections
@@ -21,14 +21,14 @@ export function registerReportingComponents(): void {
   // Register report writers
   container.registerSingleton(TOKENS.HtmlReportWriter, HtmlReportWriter);
   container.registerSingleton(TOKENS.JsonReportWriter, JsonReportWriter);
-  
+
   // Register data providers
   container.registerSingleton(TOKENS.DatabaseReportDataProvider, DatabaseReportDataProvider);
   container.registerSingleton(TOKENS.AppStatisticsDataProvider, AppStatisticsDataProvider);
   container.registerSingleton(TOKENS.CategoriesDataProvider, CategoriesDataProvider);
-  
+
   // Register main report generator
   container.registerSingleton(TOKENS.AppReportGenerator, AppReportGenerator);
-  
+
   console.log("Reporting components registered");
 }

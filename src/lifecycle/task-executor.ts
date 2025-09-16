@@ -16,25 +16,11 @@ import { formatDateForLogging } from "../common/utils/date-utils";
 export async function runTask(taskToken: symbol): Promise<void> {
   try {
     console.log(`START: ${formatDateForLogging()}`);
-
-    // Resolve task (await handles both sync and async resolution)
-    // Task dependencies are automatically injected via constructor DI
     const task = await container.resolve<Task | Promise<Task>>(taskToken);
-
-    try {
-      await task.execute();
-    } catch (error: unknown) {
-      if (error instanceof TypeError && error.message.includes("execute")) {
-        throw new Error(
-          `Task for token '${taskToken.toString()}' could not be resolved or does not have a valid execute method.`,
-        );
-      }
-      throw error;
-    }
+    await task.execute();
   } finally {
     console.log(`END: ${formatDateForLogging()}`);
 
-    // Resolve and use shutdown service from DI container
     try {
       const shutdownService = container.resolve<ShutdownService>(TOKENS.ShutdownService);
       await shutdownService.shutdownWithForcedExitFallback();

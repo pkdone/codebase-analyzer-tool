@@ -1,11 +1,14 @@
-import { getNestedValue, getNestedValueWithFallbacks } from "../../../src/common/utils/object-utils";
+import {
+  getNestedValue,
+  getNestedValueWithFallbacks,
+} from "../../../src/common/utils/object-utils";
 
 describe("Object Utils", () => {
   describe("getNestedValue", () => {
     describe("simple property access", () => {
       it("should get top-level property", () => {
         const obj = { name: "John", age: 30 };
-        
+
         expect(getNestedValue(obj, "name")).toBe("John");
         expect(getNestedValue(obj, "age")).toBe(30);
       });
@@ -15,25 +18,25 @@ describe("Object Utils", () => {
           user: {
             profile: {
               name: "John",
-              email: "john@example.com"
-            }
-          }
+              email: "john@example.com",
+            },
+          },
         };
-        
+
         expect(getNestedValue(obj, "user.profile.name")).toBe("John");
         expect(getNestedValue(obj, "user.profile.email")).toBe("john@example.com");
       });
 
       it("should return undefined for non-existent property", () => {
         const obj = { name: "John" };
-        
+
         expect(getNestedValue(obj, "nonexistent")).toBeUndefined();
         expect(getNestedValue(obj, "user.profile.name")).toBeUndefined();
       });
 
       it("should handle empty string path", () => {
         const obj = { name: "John" };
-        
+
         expect(getNestedValue(obj, "")).toBeUndefined();
       });
     });
@@ -43,10 +46,13 @@ describe("Object Utils", () => {
         const obj = {
           users: ["Alice", "Bob", "Charlie"],
           data: {
-            items: [{ id: 1, name: "Item 1" }, { id: 2, name: "Item 2" }]
-          }
+            items: [
+              { id: 1, name: "Item 1" },
+              { id: 2, name: "Item 2" },
+            ],
+          },
         };
-        
+
         expect(getNestedValue(obj, "users[0]")).toBe("Alice");
         expect(getNestedValue(obj, "users[2]")).toBe("Charlie");
         expect(getNestedValue(obj, "data.items[1].name")).toBe("Item 2");
@@ -54,27 +60,24 @@ describe("Object Utils", () => {
 
       it("should handle out-of-bounds array access", () => {
         const obj = { numbers: [1, 2, 3] };
-        
+
         expect(getNestedValue(obj, "numbers[5]")).toBeUndefined();
         expect(getNestedValue(obj, "numbers[-1]")).toBeUndefined();
       });
 
       it("should handle non-array properties with bracket notation", () => {
         const obj = { notArray: "string" };
-        
+
         expect(getNestedValue(obj, "notArray[0]")).toBeUndefined();
       });
 
       it("should handle complex array access patterns", () => {
         const obj = {
           response: {
-            choices: [
-              { message: { content: "Hello" } },
-              { message: { content: "World" } }
-            ]
-          }
+            choices: [{ message: { content: "Hello" } }, { message: { content: "World" } }],
+          },
         };
-        
+
         expect(getNestedValue(obj, "response.choices[0].message.content")).toBe("Hello");
         expect(getNestedValue(obj, "response.choices[1].message.content")).toBe("World");
       });
@@ -83,10 +86,10 @@ describe("Object Utils", () => {
         const obj = {
           matrix: [
             [1, 2, 3],
-            [4, 5, 6]
-          ]
+            [4, 5, 6],
+          ],
         };
-        
+
         expect(getNestedValue(obj, "matrix[0][1]")).toBeUndefined(); // Double bracket not supported
         expect(getNestedValue(obj, "matrix[1]")).toEqual([4, 5, 6]);
       });
@@ -99,11 +102,11 @@ describe("Object Utils", () => {
           data: {
             info: undefined,
             nested: {
-              value: "test"
-            }
-          }
+              value: "test",
+            },
+          },
         };
-        
+
         expect(getNestedValue(obj, "user.name")).toBeUndefined();
         expect(getNestedValue(obj, "data.info.value")).toBeUndefined();
         expect(getNestedValue(obj, "data.nested.value")).toBe("test");
@@ -116,7 +119,7 @@ describe("Object Utils", () => {
 
       it("should handle empty object", () => {
         const obj = {};
-        
+
         expect(getNestedValue(obj, "any.path")).toBeUndefined();
       });
 
@@ -127,10 +130,10 @@ describe("Object Utils", () => {
           false: false,
           nested: {
             zero: 0,
-            emptyArray: []
-          }
+            emptyArray: [],
+          },
         };
-        
+
         expect(getNestedValue(obj, "zero")).toBe(0);
         expect(getNestedValue(obj, "emptyString")).toBe("");
         expect(getNestedValue(obj, "false")).toBe(false);
@@ -142,9 +145,9 @@ describe("Object Utils", () => {
         const obj = {
           "special-key": "value1",
           "key with spaces": "value2",
-          "123numeric": "value3"
+          "123numeric": "value3",
         };
-        
+
         expect(getNestedValue(obj, "special-key")).toBe("value1");
         expect(getNestedValue(obj, "key with spaces")).toBe("value2");
         expect(getNestedValue(obj, "123numeric")).toBe("value3");
@@ -158,20 +161,21 @@ describe("Object Utils", () => {
             {
               message: {
                 content: "Hello, how can I help you?",
-                role: "assistant"
+                role: "assistant",
               },
-              finish_reason: "stop"
-            }
+              finish_reason: "stop",
+            },
           ],
           usage: {
             prompt_tokens: 10,
             completion_tokens: 8,
-            total_tokens: 18
-          }
+            total_tokens: 18,
+          },
         };
-        
-        expect(getNestedValue(openaiResponse, "choices[0].message.content"))
-          .toBe("Hello, how can I help you?");
+
+        expect(getNestedValue(openaiResponse, "choices[0].message.content")).toBe(
+          "Hello, how can I help you?",
+        );
         expect(getNestedValue(openaiResponse, "choices[0].finish_reason")).toBe("stop");
         expect(getNestedValue(openaiResponse, "usage.prompt_tokens")).toBe(10);
       });
@@ -180,18 +184,19 @@ describe("Object Utils", () => {
         const bedrockResponse = {
           content: [
             {
-              text: "This is the response text"
-            }
+              text: "This is the response text",
+            },
           ],
           stop_reason: "end_turn",
           usage: {
             input_tokens: 15,
-            output_tokens: 12
-          }
+            output_tokens: 12,
+          },
         };
-        
-        expect(getNestedValue(bedrockResponse, "content[0].text"))
-          .toBe("This is the response text");
+
+        expect(getNestedValue(bedrockResponse, "content[0].text")).toBe(
+          "This is the response text",
+        );
         expect(getNestedValue(bedrockResponse, "stop_reason")).toBe("end_turn");
         expect(getNestedValue(bedrockResponse, "usage.input_tokens")).toBe(15);
       });
@@ -203,21 +208,21 @@ describe("Object Utils", () => {
               {
                 items: [
                   { type: "text", value: "First item" },
-                  { type: "code", value: "console.log('test');" }
+                  { type: "code", value: "console.log('test');" },
                 ],
                 metadata: {
                   timestamp: "2023-01-01",
-                  source: "llm"
-                }
-              }
-            ]
-          }
+                  source: "llm",
+                },
+              },
+            ],
+          },
         };
-        
-        expect(getNestedValue(complexResponse, "data.results[0].items[1].value"))
-          .toBe("console.log('test');");
-        expect(getNestedValue(complexResponse, "data.results[0].metadata.source"))
-          .toBe("llm");
+
+        expect(getNestedValue(complexResponse, "data.results[0].items[1].value")).toBe(
+          "console.log('test');",
+        );
+        expect(getNestedValue(complexResponse, "data.results[0].metadata.source")).toBe("llm");
       });
     });
   });
@@ -228,9 +233,9 @@ describe("Object Utils", () => {
         const obj = {
           primary: "primary value",
           secondary: "secondary value",
-          tertiary: "tertiary value"
+          tertiary: "tertiary value",
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, ["primary", "secondary", "tertiary"]);
         expect(result).toBe("primary value");
       });
@@ -238,27 +243,27 @@ describe("Object Utils", () => {
       it("should fallback to second path when first is undefined", () => {
         const obj = {
           secondary: "secondary value",
-          tertiary: "tertiary value"
+          tertiary: "tertiary value",
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, ["primary", "secondary", "tertiary"]);
         expect(result).toBe("secondary value");
       });
 
       it("should fallback to last path when others are undefined", () => {
         const obj = {
-          tertiary: "tertiary value"
+          tertiary: "tertiary value",
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, ["primary", "secondary", "tertiary"]);
         expect(result).toBe("tertiary value");
       });
 
       it("should return undefined when all paths are undefined", () => {
         const obj = {
-          other: "other value"
+          other: "other value",
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, ["primary", "secondary", "tertiary"]);
         expect(result).toBeUndefined();
       });
@@ -268,9 +273,9 @@ describe("Object Utils", () => {
       it("should skip null values and continue to fallbacks", () => {
         const obj = {
           primary: null,
-          secondary: "secondary value"
+          secondary: "secondary value",
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, ["primary", "secondary"]);
         expect(result).toBe("secondary value");
       });
@@ -278,9 +283,9 @@ describe("Object Utils", () => {
       it("should skip undefined values and continue to fallbacks", () => {
         const obj = {
           primary: undefined,
-          secondary: "secondary value"
+          secondary: "secondary value",
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, ["primary", "secondary"]);
         expect(result).toBe("secondary value");
       });
@@ -289,9 +294,9 @@ describe("Object Utils", () => {
         const obj = {
           zero: 0,
           emptyString: "",
-          false: false
+          false: false,
         };
-        
+
         expect(getNestedValueWithFallbacks(obj, ["zero", "fallback"])).toBe(0);
         expect(getNestedValueWithFallbacks(obj, ["emptyString", "fallback"])).toBe("");
         expect(getNestedValueWithFallbacks(obj, ["false", "fallback"])).toBe(false);
@@ -302,35 +307,31 @@ describe("Object Utils", () => {
       it("should handle nested paths in fallbacks", () => {
         const obj = {
           user: {
-            name: "John"
+            name: "John",
           },
           profile: {
-            displayName: "John Doe"
-          }
+            displayName: "John Doe",
+          },
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, [
           "user.firstName",
           "user.name",
-          "profile.displayName"
+          "profile.displayName",
         ]);
         expect(result).toBe("John");
       });
 
       it("should handle array access in fallbacks", () => {
         const obj = {
-          choices: [
-            { message: { content: "Hello" } }
-          ],
-          alternatives: [
-            { text: "Alternative response" }
-          ]
+          choices: [{ message: { content: "Hello" } }],
+          alternatives: [{ text: "Alternative response" }],
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, [
           "response[0].text",
           "choices[0].message.content",
-          "alternatives[0].text"
+          "alternatives[0].text",
         ]);
         expect(result).toBe("Hello");
       });
@@ -339,16 +340,16 @@ describe("Object Utils", () => {
         const obj = {
           data: {
             response: {
-              content: "Nested content"
-            }
+              content: "Nested content",
+            },
           },
-          simpleContent: "Simple content"
+          simpleContent: "Simple content",
         };
-        
+
         const result = getNestedValueWithFallbacks(obj, [
           "content",
           "data.response.content",
-          "simpleContent"
+          "simpleContent",
         ]);
         expect(result).toBe("Nested content");
       });
@@ -361,20 +362,20 @@ describe("Object Utils", () => {
           choices: [
             {
               message: {
-                content: "Response content"
-              }
-            }
-          ]
+                content: "Response content",
+              },
+            },
+          ],
         };
-        
+
         const result = getNestedValueWithFallbacks(response, [
-          "text",                           // Direct text field (some providers)
-          "response.text",                  // Nested text field
-          "choices[0].text",               // OpenAI-style text field
-          "choices[0].message.content",    // OpenAI-style message content
-          "content[0].text"                // Anthropic/Bedrock style
+          "text", // Direct text field (some providers)
+          "response.text", // Nested text field
+          "choices[0].text", // OpenAI-style text field
+          "choices[0].message.content", // OpenAI-style message content
+          "content[0].text", // Anthropic/Bedrock style
         ]);
-        
+
         expect(result).toBe("Response content");
       });
 
@@ -382,32 +383,32 @@ describe("Object Utils", () => {
         const response = {
           usage: {
             input_tokens: 10,
-            output_tokens: 15
-          }
+            output_tokens: 15,
+          },
         };
-        
+
         const promptTokens = getNestedValueWithFallbacks(response, [
-          "usage.prompt_tokens",    // OpenAI style
-          "usage.input_tokens",     // Bedrock style
-          "token_usage.prompt",     // Alternative style
-          "tokens.input"            // Another alternative
+          "usage.prompt_tokens", // OpenAI style
+          "usage.input_tokens", // Bedrock style
+          "token_usage.prompt", // Alternative style
+          "tokens.input", // Another alternative
         ]);
-        
+
         expect(promptTokens).toBe(10);
       });
 
       it("should handle stop reason fallback patterns", () => {
         const response = {
-          stop_reason: "end_turn"
+          stop_reason: "end_turn",
         };
-        
+
         const stopReason = getNestedValueWithFallbacks(response, [
-          "choices[0].finish_reason",  // OpenAI style
-          "stop_reason",               // Bedrock/Anthropic style
-          "finish_reason",             // Alternative
-          "completion.stop_reason"     // Nested alternative
+          "choices[0].finish_reason", // OpenAI style
+          "stop_reason", // Bedrock/Anthropic style
+          "finish_reason", // Alternative
+          "completion.stop_reason", // Nested alternative
         ]);
-        
+
         expect(stopReason).toBe("end_turn");
       });
 
@@ -416,19 +417,19 @@ describe("Object Utils", () => {
         const response = {
           content: [
             {
-              text: "Bedrock/Anthropic style response"
-            }
-          ]
+              text: "Bedrock/Anthropic style response",
+            },
+          ],
         };
-        
+
         const content = getNestedValueWithFallbacks(response, [
-          "choices[0].message.content",    // OpenAI
-          "content[0].text",               // Bedrock/Anthropic  
-          "response.text",                 // Alternative
-          "text",                          // Direct text
-          "message.content"                // Another alternative
+          "choices[0].message.content", // OpenAI
+          "content[0].text", // Bedrock/Anthropic
+          "response.text", // Alternative
+          "text", // Direct text
+          "message.content", // Another alternative
         ]);
-        
+
         expect(content).toBe("Bedrock/Anthropic style response");
       });
     });
@@ -436,7 +437,7 @@ describe("Object Utils", () => {
     describe("empty paths array", () => {
       it("should return undefined for empty paths array", () => {
         const obj = { value: "test" };
-        
+
         const result = getNestedValueWithFallbacks(obj, []);
         expect(result).toBeUndefined();
       });
@@ -445,13 +446,13 @@ describe("Object Utils", () => {
     describe("path validation", () => {
       it("should handle invalid path formats gracefully", () => {
         const obj = { value: "test" };
-        
+
         const result = getNestedValueWithFallbacks(obj, [
-          "",                    // Empty string path
-          "valid.path",         // Valid path that doesn't exist
-          "value"               // Valid path that exists
+          "", // Empty string path
+          "valid.path", // Valid path that doesn't exist
+          "value", // Valid path that exists
         ]);
-        
+
         expect(result).toBe("test");
       });
     });

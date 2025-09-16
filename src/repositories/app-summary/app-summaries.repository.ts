@@ -17,7 +17,10 @@ import { inject, injectable } from "tsyringe";
  * MongoDB implementation of the App Summaries repository
  */
 @injectable()
-export default class AppSummariesRepositoryImpl extends BaseRepository<AppSummaryRecordWithId> implements AppSummariesRepository {
+export default class AppSummariesRepositoryImpl
+  extends BaseRepository<AppSummaryRecordWithId>
+  implements AppSummariesRepository
+{
   /**
    * Constructor.
    */

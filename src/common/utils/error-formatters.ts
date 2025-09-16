@@ -9,7 +9,7 @@ function hasMessageProperty(obj: unknown): obj is { message: unknown } {
  * Get the error text from a thrown variable which may or may not be an Error object.
  */
 export function formatErrorMessage(error: unknown): string {
-  if (!error) return "<unknown-type>. No error message available";  
+  if (!error) return "<unknown-type>. No error message available";
   if (error instanceof Error) return `${error.constructor.name}. ${error.message}`;
   if (hasMessageProperty(error)) return `<unknown-type>. ${String(error.message)}`;
 

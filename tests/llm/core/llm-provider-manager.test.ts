@@ -64,9 +64,13 @@ describe("LLMProviderManager", () => {
 
   describe("filesystem operations", () => {
     it("should handle filesystem errors gracefully", async () => {
-      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock("../../../src/common/utils/logging");
-      
-      mockDirectoryOperations.listDirectoryEntries.mockRejectedValue(new Error("Permission denied"));
+      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock(
+        "../../../src/common/utils/logging",
+      );
+
+      mockDirectoryOperations.listDirectoryEntries.mockRejectedValue(
+        new Error("Permission denied"),
+      );
 
       await expect(LLMProviderManager.loadManifestForModelFamily("testFamily")).rejects.toThrow(
         BadConfigurationLLMError,
@@ -87,7 +91,7 @@ describe("LLMProviderManager", () => {
       // Test the directory traversal logic by simulating multiple directory levels
       mockDirectoryOperations.listDirectoryEntries
         .mockResolvedValueOnce([
-          { 
+          {
             name: "level1",
             isFile: () => false,
             isDirectory: () => true,
@@ -174,7 +178,7 @@ describe("LLMProviderManager", () => {
     // by creating a manager with a pre-loaded manifest
     it("should handle models without secondary completion", () => {
       const testManager = new LLMProviderManager("testFamily");
-      
+
       // Simulate initialization by setting the private properties
       (testManager as any).manifest = mockManifest;
       (testManager as any).isInitialized = true;

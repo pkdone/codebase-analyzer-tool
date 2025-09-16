@@ -103,10 +103,10 @@ export class DatabaseReportDataProvider {
       (stats, item) => {
         const complexity = this.normalizeComplexity(item.complexity, item.name);
         stats.total++;
-        stats[complexity.toLowerCase() as 'low' | 'medium' | 'high']++;
+        stats[complexity.toLowerCase() as "low" | "medium" | "high"]++;
         return stats;
       },
-      { total: 0, low: 0, medium: 0, high: 0 }
+      { total: 0, low: 0, medium: 0, high: 0 },
     );
   }
 

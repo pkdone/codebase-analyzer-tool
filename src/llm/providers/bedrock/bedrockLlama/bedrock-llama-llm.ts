@@ -28,10 +28,7 @@ export default class BedrockLlamaLLM extends BaseBedrockLLM {
   /**
    * Assemble the Bedrock parameters for Llama completions only.
    */
-  protected buildCompletionModelSpecificParameters(
-    modelKey: string,
-    prompt: string,
-  ) {
+  protected buildCompletionModelSpecificParameters(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     const bodyObj: { prompt: string; temperature: number; top_p: number; max_gen_len?: number } = {
       prompt: `<|begin_of_text|><|start_header_id|>${llmConfig.LLM_ROLE_SYSTEM}<|end_header_id|>

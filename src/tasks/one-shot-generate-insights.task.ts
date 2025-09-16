@@ -40,7 +40,10 @@ export class OneShotGenerateInsightsTask extends BaseLLMTask {
    * Execute the core task logic.
    */
   protected async run(): Promise<void> {
-    const normalisedSrcDirPath = this.env.CODEBASE_DIR_PATH.replace(pathsConfig.TRAILING_SLASH_PATTERN, "");
+    const normalisedSrcDirPath = this.env.CODEBASE_DIR_PATH.replace(
+      pathsConfig.TRAILING_SLASH_PATTERN,
+      "",
+    );
     await clearDirectory(outputConfig.OUTPUT_DIR);
     const prompts = await this.insightsFileGenerator.loadPrompts();
     await this.insightsFileGenerator.generateInsightsToFiles(

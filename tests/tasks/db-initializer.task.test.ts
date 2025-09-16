@@ -93,12 +93,18 @@ describe("DBInitializerTask", () => {
       await dbInitializer.execute();
 
       expect(mockDb.createCollection).toHaveBeenCalledTimes(2);
-      expect(mockSourcesCollection.createIndex).toHaveBeenCalledWith({
-        projectName: 1,
-        type: 1,
-        "summary.classpath": 1,
-      }, { unique: false });
-      expect(mockSummariesCollection.createIndex).toHaveBeenCalledWith({ projectName: 1 }, { unique: false });
+      expect(mockSourcesCollection.createIndex).toHaveBeenCalledWith(
+        {
+          projectName: 1,
+          type: 1,
+          "summary.classpath": 1,
+        },
+        { unique: false },
+      );
+      expect(mockSummariesCollection.createIndex).toHaveBeenCalledWith(
+        { projectName: 1 },
+        { unique: false },
+      );
       expect(mockSourcesCollection.createSearchIndexes).toHaveBeenCalled();
     });
   });
@@ -287,12 +293,18 @@ describe("DBInitializerTask", () => {
     it("should create standard indexes successfully", async () => {
       await dbInitializer.execute();
 
-      expect(mockSourcesCollection.createIndex).toHaveBeenCalledWith({
-        projectName: 1,
-        type: 1,
-        "summary.classpath": 1,
-      }, { unique: false });
-      expect(mockSummariesCollection.createIndex).toHaveBeenCalledWith({ projectName: 1 }, { unique: false });
+      expect(mockSourcesCollection.createIndex).toHaveBeenCalledWith(
+        {
+          projectName: 1,
+          type: 1,
+          "summary.classpath": 1,
+        },
+        { unique: false },
+      );
+      expect(mockSummariesCollection.createIndex).toHaveBeenCalledWith(
+        { projectName: 1 },
+        { unique: false },
+      );
       expect(mockConsoleLog).toHaveBeenCalledWith(
         "Ensured normal indexes exist for the MongoDB database collection: 'test-codebase.sources'",
       );

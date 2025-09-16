@@ -100,13 +100,16 @@ describe("Service Runner Integration Tests", () => {
     it("should handle graceful shutdown errors", async () => {
       const shutdownError = new Error("Graceful shutdown failed");
       const mockConsoleError = jest.spyOn(console, "error").mockImplementation();
-      
+
       mockShutdownService.shutdownWithForcedExitFallback.mockRejectedValue(shutdownError);
 
       await runTask(TEST_SERVICE_TOKEN);
 
       expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(mockConsoleError).toHaveBeenCalledWith("Failed to perform graceful shutdown:", shutdownError);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        "Failed to perform graceful shutdown:",
+        shutdownError,
+      );
 
       mockConsoleError.mockRestore();
     });
@@ -162,7 +165,7 @@ describe("Service Runner Integration Tests", () => {
     it("should handle shutdown service resolution errors", async () => {
       const shutdownResolutionError = new Error("Failed to resolve shutdown service");
       const mockConsoleError = jest.spyOn(console, "error").mockImplementation();
-      
+
       (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
         if (token === TEST_SERVICE_TOKEN) {
           return Promise.resolve(mockService);
@@ -176,7 +179,10 @@ describe("Service Runner Integration Tests", () => {
       await runTask(TEST_SERVICE_TOKEN);
 
       expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(mockConsoleError).toHaveBeenCalledWith("Failed to perform graceful shutdown:", shutdownResolutionError);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        "Failed to perform graceful shutdown:",
+        shutdownResolutionError,
+      );
 
       mockConsoleError.mockRestore();
     });

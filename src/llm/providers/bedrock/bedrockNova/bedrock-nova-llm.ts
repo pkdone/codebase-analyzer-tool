@@ -41,10 +41,7 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
   /**
    * Assemble the Bedrock parameters for Nova completions only.
    */
-  protected buildCompletionModelSpecificParameters(
-    modelKey: string,
-    prompt: string,
-  ) {
+  protected buildCompletionModelSpecificParameters(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     return JSON.stringify({
       inferenceConfig: {

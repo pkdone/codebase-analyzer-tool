@@ -41,10 +41,7 @@ export default class BedrockMistralLLM extends BaseBedrockLLM {
   /**
    * Assemble the Bedrock parameters for Mistral completions only.
    */
-  protected buildCompletionModelSpecificParameters(
-    modelKey: string,
-    prompt: string,
-  ) {
+  protected buildCompletionModelSpecificParameters(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     return JSON.stringify({
       messages: [

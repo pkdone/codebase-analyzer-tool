@@ -1,7 +1,10 @@
 import "reflect-metadata";
 import { MongoClient, Collection } from "mongodb";
 import AppSummariesRepositoryImpl from "../../src/repositories/app-summary/app-summaries.repository";
-import { AppSummaryRecord, PartialAppSummaryRecord } from "../../src/repositories/app-summary/app-summaries.model";
+import {
+  AppSummaryRecord,
+  PartialAppSummaryRecord,
+} from "../../src/repositories/app-summary/app-summaries.model";
 import { databaseConfig } from "../../src/config/database.config";
 import * as mdbErrorUtils from "../../src/common/mdb/mdb-error-utils";
 
@@ -44,7 +47,7 @@ describe("AppSummariesRepositoryImpl", () => {
         llmProvider: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
-          { name: "Node.js", description: "JavaScript runtime for server-side development" }
+          { name: "Node.js", description: "JavaScript runtime for server-side development" },
         ],
         entities: [{ name: "User", description: "User management entity" }],
       };
@@ -56,7 +59,7 @@ describe("AppSummariesRepositoryImpl", () => {
       expect(mockCollection.replaceOne).toHaveBeenCalledWith(
         { projectName: mockRecord.projectName },
         mockRecord,
-        { upsert: true }
+        { upsert: true },
       );
     });
 
@@ -82,7 +85,7 @@ describe("AppSummariesRepositoryImpl", () => {
         appDescription: "Updated description",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
-          { name: "React", description: "JavaScript library for building user interfaces" }
+          { name: "React", description: "JavaScript library for building user interfaces" },
         ],
       };
 
@@ -90,10 +93,7 @@ describe("AppSummariesRepositoryImpl", () => {
 
       await repository.updateAppSummary(projectName, updates);
 
-      expect(mockCollection.updateOne).toHaveBeenCalledWith(
-        { projectName },
-        { $set: updates }
-      );
+      expect(mockCollection.updateOne).toHaveBeenCalledWith({ projectName }, { $set: updates });
     });
 
     it("should handle MongoDB validation errors during update", async () => {
@@ -117,10 +117,7 @@ describe("AppSummariesRepositoryImpl", () => {
 
       await repository.updateAppSummary(projectName, updates);
 
-      expect(mockCollection.updateOne).toHaveBeenCalledWith(
-        { projectName },
-        { $set: {} }
-      );
+      expect(mockCollection.updateOne).toHaveBeenCalledWith({ projectName }, { $set: {} });
     });
   });
 
@@ -141,7 +138,7 @@ describe("AppSummariesRepositoryImpl", () => {
         { projectName },
         {
           projection: { _id: 0, appDescription: 1, llmProvider: 1 },
-        }
+        },
       );
     });
 
@@ -173,7 +170,7 @@ describe("AppSummariesRepositoryImpl", () => {
         { projectName },
         {
           projection: { _id: 0, [fieldName]: 1 },
-        }
+        },
       );
     });
 
@@ -203,13 +200,17 @@ describe("AppSummariesRepositoryImpl", () => {
   describe("getProjectAppSummaryFields", () => {
     it("should return multiple fields when record exists", async () => {
       const projectName = "test-project";
-      const fieldNames = ["appDescription", "llmProvider", "technologies"] as (keyof AppSummaryRecord)[];
+      const fieldNames = [
+        "appDescription",
+        "llmProvider",
+        "technologies",
+      ] as (keyof AppSummaryRecord)[];
       const mockRecord = {
         appDescription: "Test application",
         llmProvider: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
-          { name: "Node.js", description: "JavaScript runtime" }
+          { name: "Node.js", description: "JavaScript runtime" },
         ],
       };
 
@@ -227,7 +228,7 @@ describe("AppSummariesRepositoryImpl", () => {
             llmProvider: 1,
             technologies: 1,
           },
-        }
+        },
       );
     });
 
@@ -268,13 +269,17 @@ describe("AppSummariesRepositoryImpl", () => {
             _id: 0,
             appDescription: 1,
           },
-        }
+        },
       );
     });
 
     it("should handle partial records where some requested fields are missing", async () => {
       const projectName = "test-project";
-      const fieldNames = ["appDescription", "llmProvider", "technologies"] as (keyof AppSummaryRecord)[];
+      const fieldNames = [
+        "appDescription",
+        "llmProvider",
+        "technologies",
+      ] as (keyof AppSummaryRecord)[];
       const mockRecord = {
         appDescription: "Test application",
         // llmProvider is missing
@@ -295,7 +300,12 @@ describe("AppSummariesRepositoryImpl", () => {
   describe("projection building", () => {
     it("should build correct projection object for multiple fields", async () => {
       const projectName = "test-project";
-      const fieldNames = ["appDescription", "technologies", "entities", "llmProvider"] as (keyof AppSummaryRecord)[];
+      const fieldNames = [
+        "appDescription",
+        "technologies",
+        "entities",
+        "llmProvider",
+      ] as (keyof AppSummaryRecord)[];
 
       mockCollection.findOne.mockResolvedValue({});
 
@@ -311,7 +321,7 @@ describe("AppSummariesRepositoryImpl", () => {
             entities: 1,
             llmProvider: 1,
           },
-        }
+        },
       );
     });
 
@@ -331,9 +341,9 @@ describe("AppSummariesRepositoryImpl", () => {
   describe("getCollectionValidationSchema", () => {
     it("should return the JSON schema", () => {
       const result = repository.getCollectionValidationSchema();
-      
+
       expect(result).toBeDefined();
-      expect(typeof result).toBe('object');
+      expect(typeof result).toBe("object");
     });
   });
 
