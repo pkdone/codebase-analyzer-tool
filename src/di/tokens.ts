@@ -52,7 +52,7 @@ export const TOKENS = {
   RawCodeToInsightsFileGenerator: Symbol("RawCodeToInsightsFileGenerator"),
 
   // MCP Server Components
-  InsightsDataServer: Symbol("InsightsDataServer"),
+  InsightsDataProvider: Symbol("InsightsDataProvider"),
   McpDataServer: Symbol("McpDataServer"),
   McpHttpServer: Symbol("McpHttpServer"),
 } as const;

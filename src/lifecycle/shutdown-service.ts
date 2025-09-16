@@ -35,11 +35,11 @@ export class ShutdownService {
   }
 
   /**
-   * Perform shutdown of all registered services with provider-specific handling.
+   * Perform graceful shutdown of all registered services with provider-specific handling.
    * This method handles LLM router shutdown, MongoDB connections cleanup,
    * and includes forced exit fallback for providers that cannot close cleanly.
    */
-  async shutdownWithForcedExitFallback(): Promise<void> {
+  async gracefulShutdown(): Promise<void> {
     const shutdownPromises = [];
     if (this.llmRouter) shutdownPromises.push(this.llmRouter.close());
     if (this.mongoDBClientFactory) shutdownPromises.push(this.mongoDBClientFactory.closeAll());

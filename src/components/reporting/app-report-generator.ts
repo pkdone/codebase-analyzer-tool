@@ -63,7 +63,7 @@ export default class AppReportGenerator {
       ),
       this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
       this.databaseDataProvider.getDatabaseInteractions(projectName),
-      this.databaseDataProvider.getStoredProceduresAndTriggers(projectName),
+      this.databaseDataProvider.getSummarizedProceduresAndTriggers(projectName),
     ]);
 
     if (!appSummaryData) {

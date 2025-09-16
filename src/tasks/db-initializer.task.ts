@@ -53,13 +53,13 @@ export class DBInitializerTask implements Task {
    * Execute the task - initializes database schema.
    */
   async execute(): Promise<void> {
-    await this.ensureCollectionsReady(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);
+    await this.initializeDatabaseSchema(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);
   }
 
   /**
-   * Ensures that the necessary collections and indexes are ready in the database.
+   * Initializes the complete database schema including collections, validators, and indexes.
    */
-  async ensureCollectionsReady(numDimensions: number) {
+  async initializeDatabaseSchema(numDimensions: number) {
     await this.createCollectionWithValidator(
       this.sourcesCollection.collectionName,
       this.sourcesRepository.getCollectionValidationSchema(),

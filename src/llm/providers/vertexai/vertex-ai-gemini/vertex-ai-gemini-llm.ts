@@ -29,7 +29,7 @@ import {
 } from "../../../types/llm-errors.types";
 import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { zodToJsonSchemaNormalized } from "../../../../common/utils/json-schema-utils";
+import { zodToJsonSchemaWithoutSchemaProperty } from "../../../../common/utils/json-schema-utils";
 
 // Constant for the finish reasons that are considered terminal and should be rejected
 const VERTEXAI_TERMINAL_FINISH_REASONS = [
@@ -245,7 +245,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       // schema definiton elements that the Vertex AI API chokes on - otherwise VertexAI throws
       // ClientError - INVALID_ARGUMENT - fieldViolations errors
       if (options.jsonSchema && !options.hasComplexSchema) {
-        const jsonSchema = zodToJsonSchemaNormalized(options.jsonSchema);
+        const jsonSchema = zodToJsonSchemaWithoutSchemaProperty(options.jsonSchema);
 
         if (isVertexAICompatibleSchema(jsonSchema)) {
           generationConfig.responseSchema = jsonSchema as Record<string, unknown>;
@@ -301,11 +301,12 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     if (!predictions) return [];
     return predictions.flatMap((p) => {
       // For Gemini models, the response structure might be different
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      /* eslint-disable @typescript-eslint/no-unnecessary-condition */
       const values =
         p.structValue?.fields?.embeddings?.structValue?.fields?.values?.listValue?.values ??
         p.listValue?.values ??
         [];
+      /* eslint-enable @typescript-eslint/no-unnecessary-condition */
       const numbers = values.map((v) => v.numberValue ?? 0);
       return numbers.length > 0 ? [numbers] : [];
     });

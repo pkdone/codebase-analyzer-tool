@@ -9,7 +9,7 @@ const BUSINESS_PROCESSES_FIELD = "businessProcesses" as const;
  * Class to handle analysis data server operations.
  */
 @injectable()
-export default class InsightsDataServer {
+export default class InsightsDataProvider {
   /**
    * Constructor.
    */

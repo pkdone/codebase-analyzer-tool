@@ -27,7 +27,7 @@ describe("Service Runner Integration Tests", () => {
 
     // Mock shutdown service
     mockShutdownService = {
-      shutdownWithForcedExitFallback: jest.fn().mockResolvedValue(undefined),
+      gracefulShutdown: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<ShutdownService>;
 
     // Mock console.log
@@ -60,12 +60,12 @@ describe("Service Runner Integration Tests", () => {
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
       expect(mockService.execute).toHaveBeenCalledTimes(1);
-      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
+      expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^START:/));
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^END:/));
     });
 
-    it("should handle service execution errors and still call shutdownWithForcedExitFallback", async () => {
+    it("should handle service execution errors and still call gracefulShutdown", async () => {
       const serviceError = new Error("Service execution failed");
       (mockService.execute as jest.Mock).mockRejectedValue(serviceError);
 
@@ -73,7 +73,7 @@ describe("Service Runner Integration Tests", () => {
 
       expect(mockService.execute).toHaveBeenCalledTimes(1);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
-      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
+      expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^START:/));
       expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringMatching(/^END:/));
     });
@@ -94,14 +94,14 @@ describe("Service Runner Integration Tests", () => {
 
       expect(container.resolve).toHaveBeenCalledWith(TEST_SERVICE_TOKEN);
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
-      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
+      expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
     });
 
     it("should handle graceful shutdown errors", async () => {
       const shutdownError = new Error("Graceful shutdown failed");
       const mockConsoleError = jest.spyOn(console, "error").mockImplementation();
 
-      mockShutdownService.shutdownWithForcedExitFallback.mockRejectedValue(shutdownError);
+      mockShutdownService.gracefulShutdown.mockRejectedValue(shutdownError);
 
       await runTask(TEST_SERVICE_TOKEN);
 
@@ -141,7 +141,7 @@ describe("Service Runner Integration Tests", () => {
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow();
 
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
-      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
+      expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
     });
 
     it("should handle service without execute method", async () => {
@@ -159,7 +159,7 @@ describe("Service Runner Integration Tests", () => {
       await expect(runTask(TEST_SERVICE_TOKEN)).rejects.toThrow();
 
       expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
-      expect(mockShutdownService.shutdownWithForcedExitFallback).toHaveBeenCalledTimes(1);
+      expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
     });
 
     it("should handle shutdown service resolution errors", async () => {

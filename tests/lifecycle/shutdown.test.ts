@@ -63,7 +63,7 @@ describe("ShutdownService", () => {
     global.setTimeout = originalSetTimeout;
   });
 
-  describe("shutdownWithForcedExitFallback", () => {
+  describe("gracefulShutdown", () => {
     it("should handle shutdown when both llmRouter and mongoDBClientFactory are available", async () => {
       // Mock container to return both dependencies
       mockContainer.isRegistered.mockImplementation((token) => {
@@ -77,7 +77,7 @@ describe("ShutdownService", () => {
 
       const shutdownService = new ShutdownService();
 
-      await shutdownService.shutdownWithForcedExitFallback();
+      await shutdownService.gracefulShutdown();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
@@ -97,7 +97,7 @@ describe("ShutdownService", () => {
 
       const shutdownService = new ShutdownService();
 
-      await shutdownService.shutdownWithForcedExitFallback();
+      await shutdownService.gracefulShutdown();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
@@ -116,7 +116,7 @@ describe("ShutdownService", () => {
 
       const shutdownService = new ShutdownService();
 
-      await shutdownService.shutdownWithForcedExitFallback();
+      await shutdownService.gracefulShutdown();
 
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1);
       expect(mockSetTimeout).not.toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe("ShutdownService", () => {
 
       const shutdownService = new ShutdownService();
 
-      await shutdownService.shutdownWithForcedExitFallback();
+      await shutdownService.gracefulShutdown();
 
       expect(mockSetTimeout).not.toHaveBeenCalled();
     });
@@ -149,7 +149,7 @@ describe("ShutdownService", () => {
 
       const shutdownService = new ShutdownService();
 
-      await shutdownService.shutdownWithForcedExitFallback();
+      await shutdownService.gracefulShutdown();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
@@ -176,7 +176,7 @@ describe("ShutdownService", () => {
 
       const shutdownService = new ShutdownService();
 
-      await shutdownService.shutdownWithForcedExitFallback();
+      await shutdownService.gracefulShutdown();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
@@ -202,7 +202,7 @@ describe("ShutdownService", () => {
 
       const shutdownService = new ShutdownService();
 
-      await shutdownService.shutdownWithForcedExitFallback();
+      await shutdownService.gracefulShutdown();
 
       // Verify setTimeout was called
       expect(mockSetTimeout).toHaveBeenCalledTimes(1);
@@ -247,7 +247,7 @@ describe("ShutdownService", () => {
       const shutdownService = new ShutdownService();
 
       // Should not throw - errors are logged instead
-      await expect(shutdownService.shutdownWithForcedExitFallback()).resolves.not.toThrow();
+      await expect(shutdownService.gracefulShutdown()).resolves.not.toThrow();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockMongoDBClientFactory.closeAll).toHaveBeenCalledTimes(1); // Both should be attempted
@@ -276,7 +276,7 @@ describe("ShutdownService", () => {
       const shutdownService = new ShutdownService();
 
       // Should not throw - errors are logged instead
-      await expect(shutdownService.shutdownWithForcedExitFallback()).resolves.not.toThrow();
+      await expect(shutdownService.gracefulShutdown()).resolves.not.toThrow();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
@@ -304,7 +304,7 @@ describe("ShutdownService", () => {
 
       const shutdownService = new ShutdownService();
 
-      await expect(shutdownService.shutdownWithForcedExitFallback()).rejects.toThrow(
+      await expect(shutdownService.gracefulShutdown()).rejects.toThrow(
         "Failed to check for forced shutdown",
       );
 

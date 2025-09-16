@@ -42,7 +42,7 @@ export class CodebaseCaptureTask extends BaseLLMTask {
   protected async run(): Promise<void> {
     const numDimensions =
       this.llmRouter.getEmbeddedModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
-    await this.dbInitializerTask.ensureCollectionsReady(numDimensions);
+    await this.dbInitializerTask.initializeDatabaseSchema(numDimensions);
     await this.codebaseToDBLoader.captureCodebaseToDatabase(
       this.projectName,
       this.env.CODEBASE_DIR_PATH,

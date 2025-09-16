@@ -5,7 +5,7 @@ import { zodToJsonSchema, Options, JsonSchema7Type } from "zod-to-json-schema";
  * Converts a Zod schema to a JSON schema. Removes the $schema property which technologies like
  * MongoDB and VertexAI don't support
  */
-export function zodToJsonSchemaNormalized(
+export function zodToJsonSchemaWithoutSchemaProperty(
   schema: ZodType<unknown, ZodTypeDef, unknown>,
   options?: string | Partial<Options>,
 ): Omit<JsonSchema7Type, "$schema"> {

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import McpDataServer from "../../../../src/components/api/mcpServing/mcp-data-server";
-import type InsightsDataServer from "../../../../src/components/api/mcpServing/insights-data-server";
+import type InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-server";
 import { mcpConfig } from "../../../../src/components/api/mcpServing/mcp.config";
 
 // Mock the MCP SDK
@@ -12,7 +12,7 @@ jest.mock("@modelcontextprotocol/sdk/server/mcp.js", () => ({
 
 describe("McpDataServer", () => {
   let mcpDataServer: McpDataServer;
-  let mockInsightsDataServer: jest.Mocked<InsightsDataServer>;
+  let mockInsightsDataProvider: jest.Mocked<InsightsDataProvider>;
   let mockMcpServer: jest.Mocked<McpServer>;
   let mockGetBusinessProcesses: jest.MockedFunction<() => Promise<unknown>>;
   let mockRegisterResource: jest.MockedFunction<McpServer["registerResource"]>;
@@ -22,10 +22,10 @@ describe("McpDataServer", () => {
     mockGetBusinessProcesses = jest.fn();
     mockRegisterResource = jest.fn();
 
-    // Create mock InsightsDataServer
-    mockInsightsDataServer = {
+    // Create mock InsightsDataProvider
+    mockInsightsDataProvider = {
       getBusinessProcesses: mockGetBusinessProcesses,
-    } as unknown as jest.Mocked<InsightsDataServer>;
+    } as unknown as jest.Mocked<InsightsDataProvider>;
 
     // Create mock McpServer
     mockMcpServer = {
@@ -40,7 +40,7 @@ describe("McpDataServer", () => {
     (ResourceTemplate as jest.Mock).mockImplementation(() => mockResourceTemplate);
 
     // Create instance
-    mcpDataServer = new McpDataServer(mockInsightsDataServer);
+    mcpDataServer = new McpDataServer(mockInsightsDataProvider);
   });
 
   afterEach(() => {
@@ -88,7 +88,7 @@ describe("McpDataServer", () => {
       expect(result).toBe(mockMcpServer);
     });
 
-    it("should create a resource handler that calls InsightsDataServer", async () => {
+    it("should create a resource handler that calls InsightsDataProvider", async () => {
       // Arrange
       const mockBusinessProcesses = [
         { name: "Process 1", description: "Description 1" },

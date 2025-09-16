@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { container, bootstrapContainer } from "../../../../src/di/container";
 import { TOKENS } from "../../../../src/di/tokens";
-import InsightsDataServer from "../../../../src/components/api/mcpServing/insights-data-server";
+import InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-server";
 import { MongoDBClientFactory } from "../../../../src/common/mdb/mdb-client-factory";
 
 describe("AnalysisDataServer", () => {
@@ -26,7 +26,7 @@ describe("AnalysisDataServer", () => {
 
   it("should return an array of objects where each object has keys 'name', 'description', and 'keyBusinessActivities'", async () => {
     // Resolve the service under test directly from the container
-    const analysisDataServer = container.resolve<InsightsDataServer>(TOKENS.InsightsDataServer);
+    const analysisDataServer = container.resolve<InsightsDataProvider>(TOKENS.InsightsDataProvider);
 
     console.log(`About to call getBusinessProcesses()...`);
     const result = await analysisDataServer.getBusinessProcesses();

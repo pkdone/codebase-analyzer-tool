@@ -2,7 +2,7 @@ import { TOKENS } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
 // API component imports
-import InsightsDataServer from "../../components/api/mcpServing/insights-data-server";
+import InsightsDataProvider from "../../components/api/mcpServing/insights-data-server";
 import McpDataServer from "../../components/api/mcpServing/mcp-data-server";
 import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
 
@@ -17,7 +17,7 @@ import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
 export function registerApiComponents(): void {
   registerComponents(
     [
-      { token: TOKENS.InsightsDataServer, implementation: InsightsDataServer },
+      { token: TOKENS.InsightsDataProvider, implementation: InsightsDataProvider },
       { token: TOKENS.McpDataServer, implementation: McpDataServer },
       { token: TOKENS.McpHttpServer, implementation: McpHttpServer },
     ],
