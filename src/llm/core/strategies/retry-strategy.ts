@@ -17,7 +17,7 @@ import { TOKENS } from "../../../di/tokens";
  */
 class RetryableError extends Error {
   readonly retryableStatus: LLMResponseStatus;
-  
+
   constructor(message: string, retryableStatus: LLMResponseStatus) {
     super(message);
     this.name = "RetryableError";

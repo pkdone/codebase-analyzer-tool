@@ -383,8 +383,8 @@ describe("TableViewModel", () => {
       const listItem = (rows[0][0].content as ProcessedListItem[])[0];
       expect(listItem.type).toBe("object");
       expect(listItem.content).toEqual({
-        "Nested Array": "[\"item1\",\"item2\"]",
-        "Nested Object": "{\"prop1\":\"value1\",\"prop2\":\"value2\"}",
+        "Nested Array": '["item1","item2"]',
+        "Nested Object": '{"prop1":"value1","prop2":"value2"}',
       });
     });
 

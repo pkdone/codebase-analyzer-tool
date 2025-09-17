@@ -257,7 +257,8 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
       !responseContent;
     const promptTokens = getNestedValue<number>(response, pathConfig.promptTokensPath) ?? -1;
-    const completionTokens = getNestedValue<number>(response, pathConfig.completionTokensPath) ?? -1;
+    const completionTokens =
+      getNestedValue<number>(response, pathConfig.completionTokensPath) ?? -1;
     const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
     const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
     return { isIncompleteResponse, responseContent, tokenUsage };

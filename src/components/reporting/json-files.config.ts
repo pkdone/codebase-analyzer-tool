@@ -15,6 +15,7 @@ export const jsonFilesConfig = {
     fileTypes: "file-types.json",
     dbInteractions: "db-interactions.json",
     procsAndTriggers: "procs-and-triggers.json",
+    topLevelJavaClasses: "top-level-java-classes.json",
   },
 
   /**

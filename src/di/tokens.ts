@@ -43,6 +43,7 @@ export const TOKENS = {
   JsonReportWriter: Symbol("JsonReportWriter"),
   AppReportGenerator: Symbol("AppReportGenerator"),
   DatabaseReportDataProvider: Symbol("DatabaseReportDataProvider"),
+  CodeStructureDataProvider: Symbol("CodeStructureDataProvider"),
   AppStatisticsDataProvider: Symbol("AppStatisticsDataProvider"),
   CategoriesDataProvider: Symbol("CategoriesDataProvider"),
   CodebaseToDBLoader: Symbol("CodebaseToDBLoader"),

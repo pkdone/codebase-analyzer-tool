@@ -29,6 +29,7 @@ export class JsonReportWriter {
       categorizedData: reportData.categorizedData,
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
+      topLevelJavaClasses: reportData.topLevelJavaClasses,
     };
     const jsonFiles: {
       filename: string;
@@ -39,6 +40,7 @@ export class JsonReportWriter {
         | DatabaseIntegrationInfo[]
         | ProcsAndTriggers
         | { appDescription: string }
+        | string[]
         | typeof completeReportData;
     }[] = [
       { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },
@@ -54,6 +56,10 @@ export class JsonReportWriter {
       { filename: jsonFilesConfig.dataFiles.fileTypes, data: reportData.fileTypesData },
       { filename: jsonFilesConfig.dataFiles.dbInteractions, data: reportData.dbInteractions },
       { filename: jsonFilesConfig.dataFiles.procsAndTriggers, data: reportData.procsAndTriggers },
+      {
+        filename: jsonFilesConfig.dataFiles.topLevelJavaClasses,
+        data: reportData.topLevelJavaClasses,
+      },
     ];
     const jsonFilePromises = jsonFiles.map(async (fileInfo) => {
       const jsonFilePath = path.join(outputConfig.OUTPUT_DIR, fileInfo.filename);
@@ -62,8 +68,9 @@ export class JsonReportWriter {
       console.log(`Generated JSON file: ${fileInfo.filename}`);
     });
     const results = await Promise.allSettled(jsonFilePromises);
-    results.forEach((result, index) => { // Check for any failures and log them
-      if (result.status === 'rejected') {
+    results.forEach((result, index) => {
+      // Check for any failures and log them
+      if (result.status === "rejected") {
         console.error(`Failed to write JSON file: ${jsonFiles[index].filename}`, result.reason);
       }
     });

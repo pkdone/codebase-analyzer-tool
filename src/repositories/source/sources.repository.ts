@@ -138,7 +138,8 @@ export default class SourcesRepositoryImpl
       $and: [
         { projectName },
         { type: { $in: fileTypes } },
-        { $or: [
+        {
+          $or: [
             { "summary.storedProcedures": { $exists: true, $ne: [] } },
             { "summary.triggers": { $exists: true, $ne: [] } },
           ],
@@ -166,7 +167,8 @@ export default class SourcesRepositoryImpl
     const queryVectorDoubles = this.numbersToBsonDoubles(queryVector);
 
     const pipeline: Document[] = [
-      { $vectorSearch: {
+      {
+        $vectorSearch: {
           index: databaseConfig.CONTENT_VECTOR_INDEX_NAME,
           path: databaseConfig.CONTENT_VECTOR_FIELD,
           filter: {
@@ -177,7 +179,8 @@ export default class SourcesRepositoryImpl
           limit,
         },
       },
-      { $project: {
+      {
+        $project: {
           _id: 0,
           projectName: 1,
           filepath: 1,
@@ -245,7 +248,8 @@ export default class SourcesRepositoryImpl
   ): Promise<ProjectedFileTypesCountAndLines[]> {
     const pipeline: Document[] = [
       { $match: { projectName } },
-      { $group: {
+      {
+        $group: {
           _id: "$type",
           lines: { $sum: "$linesCount" },
           files: { $sum: 1 },
@@ -260,33 +264,46 @@ export default class SourcesRepositoryImpl
   /**
    * Get top level Java classes for a project.
    */
-  async getProjectTopLevelJavaClasses(
-    projectName: string,
-  ): Promise<string[]> {
+  async getProjectTopLevelJavaClasses(projectName: string): Promise<string[]> {
     const pipeline: Document[] = [
-      { $match: { 
-        projectName,
-        type: fileTypeMappingsConfig.JAVA_FILE_TYPE,
-      } },
-      { $project: {
-        _id: 0,
-        references: { $concatArrays: [["$summary.classpath"], "$summary.internalReferences"] },
-      } },
-      {$match: {
-        references: { $not: /^javax\..*/ },
-      }},
-      {$group: {
-        _id: "$references",
-        count: { $sum: 1 },
-      }},
-      {$match: {
-        count: { $lte: 1 },
-      }},
+      {
+        $match: {
+          projectName,
+          type: fileTypeMappingsConfig.JAVA_FILE_TYPE,
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          references: { $concatArrays: [["$summary.classpath"], "$summary.internalReferences"] },
+        },
+      },
+      {
+        $unwind: {
+          path: "$references",
+        },
+      },
+      {
+        $match: {
+          references: { $not: /^javax\..*/ },
+        },
+      },
+      {
+        $group: {
+          _id: "$references",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $match: {
+          count: { $lte: 1 },
+        },
+      },
     ];
     return this.collection
       .aggregate<{ _id: string }>(pipeline)
       .map((record) => record._id)
-      .toArray();  
+      .toArray();
   }
 
   /**

@@ -19,11 +19,13 @@ interface EjsTemplateData {
   }[];
   dbInteractions: ReportData["dbInteractions"];
   procsAndTriggers: ReportData["procsAndTriggers"];
+  topLevelJavaClasses: ReportData["topLevelJavaClasses"];
   jsonFilesConfig: typeof jsonFilesConfig;
   convertToDisplayName: (text: string) => string;
   fileTypesTableViewModel: TableViewModel;
   dbInteractionsTableViewModel: TableViewModel;
   procsAndTriggersTableViewModel: TableViewModel;
+  topLevelJavaClassesTableViewModel: TableViewModel;
 }
 
 /**
@@ -69,17 +71,25 @@ export class HtmlReportWriter {
       combinedProcsTrigsList as unknown as DisplayableTableRow[],
     );
 
+    // Create view model for top-level Java classes
+    const topLevelJavaClassesDisplayData = reportData.topLevelJavaClasses.map((classpath) => ({
+      Classpath: classpath,
+    }));
+    const topLevelJavaClassesTableViewModel = new TableViewModel(topLevelJavaClassesDisplayData);
+
     const data: EjsTemplateData = {
       appStats: reportData.appStats,
       fileTypesData: reportData.fileTypesData,
       categorizedData: categorizedDataWithViewModels,
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
+      topLevelJavaClasses: reportData.topLevelJavaClasses,
       jsonFilesConfig,
       convertToDisplayName,
       fileTypesTableViewModel,
       dbInteractionsTableViewModel,
       procsAndTriggersTableViewModel,
+      topLevelJavaClassesTableViewModel,
     };
     const htmlContent = await ejs.renderFile(templatePath, data);
     await writeFile(htmlFilePath, htmlContent);

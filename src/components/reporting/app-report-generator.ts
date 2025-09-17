@@ -3,6 +3,7 @@ import { TOKENS } from "../../di/tokens";
 import { HtmlReportWriter } from "./html-report-writer";
 import { JsonReportWriter } from "./json-report-writer";
 import { DatabaseReportDataProvider } from "./data-providers/database-report-data-provider";
+import { CodeStructureDataProvider } from "./data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "./data-providers/app-statistics-data-provider";
 import { CategoriesDataProvider } from "./data-providers/categories-data-provider";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
@@ -28,6 +29,8 @@ export default class AppReportGenerator {
     @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
     @inject(TOKENS.DatabaseReportDataProvider)
     private readonly databaseDataProvider: DatabaseReportDataProvider,
+    @inject(TOKENS.CodeStructureDataProvider)
+    private readonly codeStructureDataProvider: CodeStructureDataProvider,
     @inject(TOKENS.AppStatisticsDataProvider)
     private readonly appStatsDataProvider: AppStatisticsDataProvider,
     @inject(TOKENS.CategoriesDataProvider)
@@ -56,15 +59,17 @@ export default class AppReportGenerator {
       "potentialMicroservices",
     ];
 
-    const [appSummaryData, fileTypesData, dbInteractions, procsAndTriggers] = await Promise.all([
-      this.appSummariesRepository.getProjectAppSummaryFields(
-        projectName,
-        allRequiredAppSummaryFields,
-      ),
-      this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
-      this.databaseDataProvider.getDatabaseInteractions(projectName),
-      this.databaseDataProvider.getSummarizedProceduresAndTriggers(projectName),
-    ]);
+    const [appSummaryData, fileTypesData, dbInteractions, procsAndTriggers, topLevelJavaClasses] =
+      await Promise.all([
+        this.appSummariesRepository.getProjectAppSummaryFields(
+          projectName,
+          allRequiredAppSummaryFields,
+        ),
+        this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
+        this.databaseDataProvider.getDatabaseInteractions(projectName),
+        this.databaseDataProvider.getSummarizedProceduresAndTriggers(projectName),
+        this.codeStructureDataProvider.getTopLevelJavaClasses(projectName),
+      ]);
 
     if (!appSummaryData) {
       throw new Error(
@@ -82,6 +87,7 @@ export default class AppReportGenerator {
       categorizedData,
       dbInteractions,
       procsAndTriggers,
+      topLevelJavaClasses,
     };
 
     // Generate reports using the unified data object

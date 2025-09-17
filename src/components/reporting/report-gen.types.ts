@@ -65,4 +65,5 @@ export interface ReportData {
   categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
+  topLevelJavaClasses: string[];
 }

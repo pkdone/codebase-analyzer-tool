@@ -126,7 +126,7 @@ export class TableViewModel {
         const processedKeys = Object.keys(objectItem).reduce<Record<string, string>>(
           (acc, itemKey) => {
             const value = objectItem[itemKey];
-            if (typeof value === 'object' && value !== null) {
+            if (typeof value === "object" && value !== null) {
               acc[convertToDisplayName(itemKey)] = JSON.stringify(value);
             } else {
               acc[convertToDisplayName(itemKey)] = String(value);
