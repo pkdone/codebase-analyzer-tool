@@ -82,6 +82,11 @@ export interface SourcesRepository {
   getProjectFileTypesCountAndLines(projectName: string): Promise<ProjectedFileTypesCountAndLines[]>;
 
   /**
+   * Get top level Java classes for a project
+   */
+  getProjectTopLevelJavaClasses(projectName: string): Promise<string[]>;
+
+  /**
    * Get the JSON schema for collection validation
    */
   getCollectionValidationSchema(): object;
