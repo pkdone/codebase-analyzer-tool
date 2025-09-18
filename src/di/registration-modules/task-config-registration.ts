@@ -16,7 +16,6 @@ const TASK_CONFIGURATIONS = new Map<symbol, TaskRunnerConfig>([
   [TOKENS.MDBConnectionTestTask, { requiresMongoDB: true, requiresLLM: false }],
   [TOKENS.PluggableLLMsTestTask, { requiresMongoDB: false, requiresLLM: true }],
   [TOKENS.ReportGenerationTask, { requiresMongoDB: true, requiresLLM: false }],
-  [TOKENS.DBInitializerTask, { requiresMongoDB: true, requiresLLM: false }],
 ]);
 
 /**

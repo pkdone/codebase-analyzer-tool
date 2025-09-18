@@ -1,11 +1,10 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../components/capture/codebase-to-db-loader";
-import type LLMRouter from "../llm/core/llm-router";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
-import type { DBInitializerTask } from "./db-initializer.task";
+import { DatabaseInitializer } from "../components/database/database-initializer";
 import { databaseConfig } from "../config/database.config";
 import { TOKENS } from "../di/tokens";
 
@@ -18,10 +17,9 @@ export class CodebaseCaptureTask extends BaseLLMTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(TOKENS.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
-    @inject(TOKENS.DBInitializerTask)
-    private readonly dbInitializerTask: DBInitializerTask,
+    @inject(TOKENS.DatabaseInitializer)
+    private readonly databaseInitializer: DatabaseInitializer,
     @inject(TOKENS.EnvVars) private readonly env: EnvVars,
     @inject(TOKENS.ProjectName) projectName: string,
     @inject(TOKENS.CodebaseToDBLoader) private readonly codebaseToDBLoader: CodebaseToDBLoader,
@@ -40,9 +38,7 @@ export class CodebaseCaptureTask extends BaseLLMTask {
    * Execute the core task logic.
    */
   protected async run(): Promise<void> {
-    const numDimensions =
-      this.llmRouter.getEmbeddedModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
-    await this.dbInitializerTask.initializeDatabaseSchema(numDimensions);
+    await this.databaseInitializer.initializeDatabaseSchema(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);
     await this.codebaseToDBLoader.captureCodebaseToDatabase(
       this.projectName,
       this.env.CODEBASE_DIR_PATH,

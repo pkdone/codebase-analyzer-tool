@@ -27,9 +27,9 @@ export const TOKENS = {
   MDBConnectionTestTask: Symbol("MDBConnectionTestTask"),
   McpServerTask: Symbol("McpServerTask"),
   ReportGenerationTask: Symbol("ReportGenerationTask"),
-  DBInitializerTask: Symbol("DBInitializerTask"),
 
   // Internal Helper Components
+  DatabaseInitializer: Symbol("DatabaseInitializer"),
   FileSummarizer: Symbol("FileSummarizer"),
   PromptConfigFactory: Symbol("PromptConfigFactory"),
   LLMStats: Symbol("LLMStats"),

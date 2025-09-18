@@ -32,7 +32,6 @@ import { MDBConnectionTestTask } from "../../tasks/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/test-pluggable-llms.task";
 import { McpServerTask } from "../../tasks/mcp-server.task";
 import { ReportGenerationTask } from "../../tasks/report-generation.task";
-import { DBInitializerTask } from "../../tasks/db-initializer.task";
 
 // Configuration import
 import { TaskRunnerConfig } from "../../tasks/task.types";
@@ -45,6 +44,9 @@ import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
 
 // Lifecycle imports
 import { ShutdownService } from "../../lifecycle/shutdown-service";
+
+// Database component imports
+import { DatabaseInitializer } from "../../components/database/database-initializer";
 
 /**
  * Register all application-level dependencies (repositories, components, and tasks).
@@ -87,6 +89,9 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   // Register lifecycle services
   container.registerSingleton(TOKENS.ShutdownService, ShutdownService);
 
+  // Register database components
+  container.registerSingleton(TOKENS.DatabaseInitializer, DatabaseInitializer);
+
   // Register domain-specific components
   registerCaptureComponents();
   registerInsightsComponents();
@@ -120,7 +125,6 @@ async function registerLLMDependentComponents(): Promise<void> {
 function registerTasks(): void {
   // Register tasks that don't depend on LLMRouter as regular singletons
   container.registerSingleton(TOKENS.ReportGenerationTask, ReportGenerationTask);
-  container.registerSingleton(TOKENS.DBInitializerTask, DBInitializerTask);
   container.registerSingleton(TOKENS.MDBConnectionTestTask, MDBConnectionTestTask);
   container.registerSingleton(TOKENS.McpServerTask, McpServerTask);
   // Register tasks that depend on LLMRouter with simplified singleton registrations

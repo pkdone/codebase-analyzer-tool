@@ -1,17 +1,16 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
-import { TOKENS } from "../di/tokens";
-import { databaseConfig } from "../config/database.config";
-import { logErrorMsgAndDetail } from "../common/utils/logging";
-import { Task } from "./task.types";
-import type { SourcesRepository } from "../repositories/source/sources.repository.interface";
-import type { AppSummariesRepository } from "../repositories/app-summary/app-summaries.repository.interface";
+import { TOKENS } from "../../di/tokens";
+import { databaseConfig } from "../../config/database.config";
+import { logErrorMsgAndDetail } from "../../common/utils/logging";
+import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
+import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import {
   VectorIndexConfig,
   VectorSearchFilter,
   createVectorSearchIndexDefinition,
-} from "../common/mdb/mdb-index-utils";
+} from "../../common/mdb/mdb-index-utils";
 
 // MongoDB error codes for duplicate key errors (including duplicate indexes).
 // @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey
@@ -22,11 +21,15 @@ const MONGODB_DUPLICATE_OBJ_ERROR_CODES = [11000, 68];
 const MONGODB_NAMESPACE_EXISTS_ERROR_CODE = 48;
 
 /**
- * Task responsible for database schema initialization and management.
+ * Component responsible for database schema initialization and management.
  * Handles all DDL operations including index creation for both collections.
+ * 
+ * This component encapsulates the core database initialization business logic
+ * and can be used by tasks or other components that need to ensure the database
+ * schema is properly set up.
  */
 @injectable()
-export class DBInitializerTask implements Task {
+export class DatabaseInitializer {
   private readonly db: Db;
   private readonly sourcesCollection: Collection;
   private readonly appSummariesCollection: Collection;
@@ -51,16 +54,9 @@ export class DBInitializerTask implements Task {
   }
 
   /**
-   * Execute the task - initializes database schema.
-   */
-  async execute(): Promise<void> {
-    await this.initializeDatabaseSchema(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);
-  }
-
-  /**
    * Initializes the complete database schema including collections, validators, and indexes.
    */
-  async initializeDatabaseSchema(numDimensions: number) {
+  async initializeDatabaseSchema(numDimensions: number): Promise<void> {
     await this.createCollectionWithValidator(
       this.sourcesCollection.collectionName,
       this.sourcesRepository.getCollectionValidationSchema(),
