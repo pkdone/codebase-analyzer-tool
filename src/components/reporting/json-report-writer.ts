@@ -9,7 +9,10 @@ import type {
   ProcsAndTriggers,
   DatabaseIntegrationInfo,
 } from "./report-gen.types";
-import { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
+import {
+  ProjectedFileTypesCountAndLines,
+  ProjectedTopLevelJavaClassDependencies,
+} from "../../repositories/source/sources.model";
 import { writeFile } from "../../common/utils/file-operations";
 
 /**
@@ -40,7 +43,7 @@ export class JsonReportWriter {
         | DatabaseIntegrationInfo[]
         | ProcsAndTriggers
         | { appDescription: string }
-        | string[]
+        | ProjectedTopLevelJavaClassDependencies[]
         | typeof completeReportData;
     }[] = [
       { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },

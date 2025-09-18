@@ -9,6 +9,7 @@ import {
   ProjectedDatabaseIntegrationFields,
   ProjectedFilePath,
   ProjectedFileTypesCountAndLines,
+  ProjectedTopLevelJavaClassDependencies,
   SourceRecord,
 } from "./sources.model";
 import { databaseConfig } from "../../config/database.config";
@@ -264,7 +265,9 @@ export default class SourcesRepositoryImpl
   /**
    * Get top level Java classes for a project.
    */
-  async getProjectTopLevelJavaClasses(projectName: string): Promise<string[]> {
+  async getProjectTopLevelJavaClasses(
+    projectName: string,
+  ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
     const pipeline: Document[] = [
       {
         $match: {
@@ -299,10 +302,36 @@ export default class SourcesRepositoryImpl
           count: { $lte: 1 },
         },
       },
+      {
+        $graphLookup: {
+          from: "sources",
+          startWith: "$_id",
+          connectFromField: "summary.internalReferences",
+          connectToField: "summary.classpath",
+          depthField: "level",
+          as: "dependency_documents",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          classpath: "$_id",
+          dependencies: {
+            $map: {
+              input: "$dependency_documents",
+              as: "dependency",
+              in: {
+                level: "$$dependency.level",
+                classpath: "$$dependency.summary.classpath",
+                references: "$$dependency.summary.internalReferences",
+              },
+            },
+          },
+        },
+      },
     ];
-    return this.collection
-      .aggregate<{ _id: string }>(pipeline)
-      .map((record) => record._id)
+    return await this.collection
+      .aggregate<ProjectedTopLevelJavaClassDependencies>(pipeline)
       .toArray();
   }
 

@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
+import type { ProjectedTopLevelJavaClassDependencies } from "../../../repositories/source/sources.model";
 import { TOKENS } from "../../../di/tokens";
 
 /**
@@ -15,7 +16,9 @@ export class CodeStructureDataProvider {
   /**
    * Returns a list of top-level Java classes (classes not depended on by other classes).
    */
-  async getTopLevelJavaClasses(projectName: string): Promise<string[]> {
+  async getTopLevelJavaClasses(
+    projectName: string,
+  ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
     return this.sourcesRepository.getProjectTopLevelJavaClasses(projectName);
   }
 }

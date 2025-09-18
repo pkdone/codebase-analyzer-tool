@@ -1,6 +1,9 @@
 import { procedureTriggerSchema } from "../../schemas/sources.schema";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
-import type { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
+import type {
+  ProjectedFileTypesCountAndLines,
+  ProjectedTopLevelJavaClassDependencies,
+} from "../../repositories/source/sources.model";
 import type { TypeOf } from "zod";
 
 // Define complexity levels as constant array for type safety
@@ -65,5 +68,5 @@ export interface ReportData {
   categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
-  topLevelJavaClasses: string[];
+  topLevelJavaClasses: ProjectedTopLevelJavaClassDependencies[];
 }

@@ -71,9 +71,10 @@ export class HtmlReportWriter {
       combinedProcsTrigsList as unknown as DisplayableTableRow[],
     );
 
-    // Create view model for top-level Java classes
-    const topLevelJavaClassesDisplayData = reportData.topLevelJavaClasses.map((classpath) => ({
-      Classpath: classpath,
+    // Create view model for top-level Java classes with their dependencies
+    const topLevelJavaClassesDisplayData = reportData.topLevelJavaClasses.map((classData) => ({
+      "Classpath": classData.classpath,
+      "Dependencies": classData.dependencies.map(dep => dep.classpath).join(", "),
     }));
     const topLevelJavaClassesTableViewModel = new TableViewModel(topLevelJavaClassesDisplayData);
 

@@ -4,6 +4,7 @@ import {
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
   ProjectedFileTypesCountAndLines,
+  ProjectedTopLevelJavaClassDependencies,
   SourceRecord,
 } from "./sources.model";
 
@@ -84,7 +85,9 @@ export interface SourcesRepository {
   /**
    * Get top level Java classes for a project
    */
-  getProjectTopLevelJavaClasses(projectName: string): Promise<string[]>;
+  getProjectTopLevelJavaClasses(
+    projectName: string,
+  ): Promise<ProjectedTopLevelJavaClassDependencies[]>;
 
   /**
    * Get the JSON schema for collection validation

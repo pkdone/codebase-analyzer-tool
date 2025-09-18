@@ -74,6 +74,23 @@ export interface ProjectedFileTypesCountAndLines {
 }
 
 /**
+ * Interface representing a dependency entry for a Java class
+ */
+export interface JavaClassDependency {
+  readonly level: number;
+  readonly classpath: string;
+  readonly references: readonly string[];
+}
+
+/**
+ * Interface representing a top-level Java class with its dependencies
+ */
+export interface ProjectedTopLevelJavaClassDependencies {
+  readonly classpath: string;
+  readonly dependencies: readonly JavaClassDependency[];
+}
+
+/**
  * Generate JSON schema for source file records
  */
 export function getJSONSchema() {
