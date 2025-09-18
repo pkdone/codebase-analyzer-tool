@@ -52,7 +52,7 @@ export class PieChartGenerator {
   private readonly COLORS = {
     SLICE_BORDER: "#ffffff",
     TEXT_STROKE: "#000000",
-    TEXT: "#333333", 
+    TEXT: "#333333",
     LEGEND_BORDER: "#cccccc",
     NO_DATA_TEXT: "#666666",
   } as const;
@@ -139,11 +139,11 @@ export class PieChartGenerator {
       // Use predefined color palette for first 15 slices
       return this.SLICE_COLORS[index];
     }
-    
+
     // Generate dynamic colors using HSL for additional slices
     // Use golden angle for good color distribution
     const hue = ((index - this.SLICE_COLORS.length) * this.DYNAMIC_COLOR.GOLDEN_ANGLE) % 360;
-    
+
     return `${this.DYNAMIC_COLOR.HSL_PREFIX}${hue}${this.DYNAMIC_COLOR.HSL_SEPARATOR}${this.DYNAMIC_COLOR.SATURATION}${this.TEXT.PERCENTAGE_SUFFIX}${this.DYNAMIC_COLOR.HSL_SEPARATOR}${this.DYNAMIC_COLOR.LIGHTNESS}${this.DYNAMIC_COLOR.HSL_SUFFIX}`;
   }
 
@@ -180,7 +180,10 @@ export class PieChartGenerator {
 
     // Calculate legend width (approximate based on longest text)
     const maxLabelLength = Math.max(...slices.map((s) => s.label.length));
-    const estimatedLegendWidth = Math.max(this.NUMERIC.MIN_LEGEND_WIDTH, maxLabelLength * this.NUMERIC.TEXT_WIDTH_ESTIMATE + this.NUMERIC.LEGEND_WIDTH_PADDING);
+    const estimatedLegendWidth = Math.max(
+      this.NUMERIC.MIN_LEGEND_WIDTH,
+      maxLabelLength * this.NUMERIC.TEXT_WIDTH_ESTIMATE + this.NUMERIC.LEGEND_WIDTH_PADDING,
+    );
     const totalWidth = Math.max(
       pieWidth,
       this.LEGEND_X + estimatedLegendWidth + this.CANVAS_PADDING,
@@ -265,12 +268,22 @@ export class PieChartGenerator {
 
       // Draw color box
       ctx.fillStyle = slice.color;
-      ctx.fillRect(this.LEGEND_X, y - this.NUMERIC.LEGEND_BOX_OFFSET, this.NUMERIC.LEGEND_BOX_SIZE, this.NUMERIC.LEGEND_BOX_SIZE);
+      ctx.fillRect(
+        this.LEGEND_X,
+        y - this.NUMERIC.LEGEND_BOX_OFFSET,
+        this.NUMERIC.LEGEND_BOX_SIZE,
+        this.NUMERIC.LEGEND_BOX_SIZE,
+      );
 
       // Draw border around color box
       ctx.strokeStyle = this.COLORS.LEGEND_BORDER;
       ctx.lineWidth = 1;
-      ctx.strokeRect(this.LEGEND_X, y - this.NUMERIC.LEGEND_BOX_OFFSET, this.NUMERIC.LEGEND_BOX_SIZE, this.NUMERIC.LEGEND_BOX_SIZE);
+      ctx.strokeRect(
+        this.LEGEND_X,
+        y - this.NUMERIC.LEGEND_BOX_OFFSET,
+        this.NUMERIC.LEGEND_BOX_SIZE,
+        this.NUMERIC.LEGEND_BOX_SIZE,
+      );
 
       // Draw label and count
       ctx.fillStyle = this.COLORS.TEXT;
@@ -291,7 +304,11 @@ export class PieChartGenerator {
     ctx.font = `${this.FONT_SIZE + 2}px ${this.TEXT.FONT_FAMILY}`;
     ctx.fillStyle = this.COLORS.NO_DATA_TEXT;
     ctx.textAlign = "center";
-    ctx.fillText(this.TEXT.NO_DATA_MESSAGE, this.NUMERIC.EMPTY_CANVAS_WIDTH / 2, this.NUMERIC.EMPTY_CANVAS_HEIGHT / 2);
+    ctx.fillText(
+      this.TEXT.NO_DATA_MESSAGE,
+      this.NUMERIC.EMPTY_CANVAS_WIDTH / 2,
+      this.NUMERIC.EMPTY_CANVAS_HEIGHT / 2,
+    );
 
     // Save to file
     const filepath = path.join(outputDir, filename);

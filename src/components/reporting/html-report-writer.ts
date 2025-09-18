@@ -107,7 +107,10 @@ export class HtmlReportWriter {
 
         // Create hyperlink to the PNG file
         const pngRelativePath = htmlReportConstants.paths.DEPENDENCY_TREES_DIR + pngFileName;
-        const classpathLink = htmlReportConstants.html.LINK_TEMPLATE(pngRelativePath, classData.classpath);
+        const classpathLink = htmlReportConstants.html.LINK_TEMPLATE(
+          pngRelativePath,
+          classData.classpath,
+        );
 
         // Count total dependencies from hierarchical structure
         const dependencyCount = this.countAllDependencies(classData.dependencies);
@@ -137,7 +140,9 @@ export class HtmlReportWriter {
     };
     const htmlContent = await ejs.renderFile(templatePath, data);
     await writeFile(htmlFilePath, htmlContent);
-    console.log(`View generated report in a browser: ${htmlReportConstants.protocols.FILE_PROTOCOL}${path.resolve(htmlFilePath)}`);
+    console.log(
+      `View generated report in a browser: ${htmlReportConstants.protocols.FILE_PROTOCOL}${path.resolve(htmlFilePath)}`,
+    );
   }
 
   /**

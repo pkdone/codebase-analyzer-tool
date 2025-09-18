@@ -9,7 +9,7 @@ export const htmlReportConstants = {
     CHARTS_DIR: "charts/",
     DEPENDENCY_TREES_DIR: "dependency-trees/",
   },
-  
+
   /**
    * Directory names (without trailing slash)
    */
@@ -17,7 +17,7 @@ export const htmlReportConstants = {
     CHARTS: "charts",
     DEPENDENCY_TREES: "dependency-trees",
   },
-  
+
   /**
    * Column headers for data tables
    */
@@ -28,7 +28,7 @@ export const htmlReportConstants = {
     CLASSPATH: "Classpath",
     DEPENDENCIES_COUNT: "Dependencies Count",
   },
-  
+
   /**
    * HTML template strings
    */
@@ -36,7 +36,7 @@ export const htmlReportConstants = {
     LINK_TEMPLATE: (href: string, text: string, target = "_blank"): string =>
       `<a href="${href}" target="${target}">${text}</a>`,
   },
-  
+
   /**
    * URL protocols
    */

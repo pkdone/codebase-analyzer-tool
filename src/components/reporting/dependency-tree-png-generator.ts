@@ -69,7 +69,7 @@ export class DependencyTreePngGenerator {
   // Colors
   private readonly COLORS = {
     WHITE: "#ffffff",
-    ROOT_BACKGROUND: "#e8f4fd", 
+    ROOT_BACKGROUND: "#e8f4fd",
     NODE_BACKGROUND: "#f5f5f5",
     ROOT_BORDER: "#2196F3",
     NODE_BORDER: "#cccccc",
@@ -458,13 +458,21 @@ export class DependencyTreePngGenerator {
     // Always use full classpath text - no truncation
     const displayText = node.classpath;
 
-    ctx.fillText(displayText, node.x + this.NUMERIC.TEXT_PADDING_REGULAR, node.y + node.height / 2 + this.FONT_SIZE / 2 - 2);
+    ctx.fillText(
+      displayText,
+      node.x + this.NUMERIC.TEXT_PADDING_REGULAR,
+      node.y + node.height / 2 + this.FONT_SIZE / 2 - 2,
+    );
 
     // Draw level indicator
     ctx.font = `${this.FONT_SIZE - this.NUMERIC.FONT_SIZE_LEVEL_OFFSET_REGULAR}px ${this.TEXT.FONT_FAMILY}`;
     ctx.fillStyle = this.COLORS.LEVEL_INDICATOR;
     ctx.textAlign = "right";
-    ctx.fillText(`${this.TEXT.LEVEL_PREFIX}${level}`, node.x + node.width - this.NUMERIC.LEVEL_PADDING_REGULAR, node.y + this.NUMERIC.LEVEL_Y_REGULAR);
+    ctx.fillText(
+      `${this.TEXT.LEVEL_PREFIX}${level}`,
+      node.x + node.width - this.NUMERIC.LEVEL_PADDING_REGULAR,
+      node.y + this.NUMERIC.LEVEL_Y_REGULAR,
+    );
   }
 
   /**
@@ -705,7 +713,13 @@ export class DependencyTreePngGenerator {
 
       horizontalTargets.forEach((target, index) => {
         const yOffset = startOffset + index * staggerOffset;
-        this.drawConnectionLineWithYOffset(ctx, sourceNode, target, this.COLORS.CONNECTION, yOffset);
+        this.drawConnectionLineWithYOffset(
+          ctx,
+          sourceNode,
+          target,
+          this.COLORS.CONNECTION,
+          yOffset,
+        );
       });
     } else if (horizontalTargets.length === 1) {
       // Single horizontal connection - no staggering needed
@@ -924,18 +938,30 @@ export class DependencyTreePngGenerator {
     // Always use full classpath text - no abbreviation or truncation
     const displayText = node.classpath;
 
-    const textPadding = isCompactMode ? this.NUMERIC.TEXT_PADDING_COMPACT : this.NUMERIC.TEXT_PADDING_REGULAR;
+    const textPadding = isCompactMode
+      ? this.NUMERIC.TEXT_PADDING_COMPACT
+      : this.NUMERIC.TEXT_PADDING_REGULAR;
     const textY = node.y + node.height / 2 + layout.fontSize / 2 - 2;
     ctx.fillText(displayText, node.x + textPadding, textY);
 
     // Draw level indicator (smaller in compact mode)
-    const levelFontSize = isCompactMode ? layout.fontSize - this.NUMERIC.FONT_SIZE_LEVEL_OFFSET_COMPACT : layout.fontSize - this.NUMERIC.FONT_SIZE_LEVEL_OFFSET_REGULAR;
+    const levelFontSize = isCompactMode
+      ? layout.fontSize - this.NUMERIC.FONT_SIZE_LEVEL_OFFSET_COMPACT
+      : layout.fontSize - this.NUMERIC.FONT_SIZE_LEVEL_OFFSET_REGULAR;
     ctx.font = `${levelFontSize}px ${this.TEXT.FONT_FAMILY}`;
     ctx.fillStyle = this.COLORS.LEVEL_INDICATOR;
     ctx.textAlign = "right";
-    const levelPadding = isCompactMode ? this.NUMERIC.LEVEL_PADDING_COMPACT : this.NUMERIC.LEVEL_PADDING_REGULAR;
-    const levelY = isCompactMode ? node.y + this.NUMERIC.LEVEL_Y_COMPACT : node.y + this.NUMERIC.LEVEL_Y_REGULAR;
-    ctx.fillText(`${this.TEXT.LEVEL_PREFIX}${node.level}`, node.x + node.width - levelPadding, levelY);
+    const levelPadding = isCompactMode
+      ? this.NUMERIC.LEVEL_PADDING_COMPACT
+      : this.NUMERIC.LEVEL_PADDING_REGULAR;
+    const levelY = isCompactMode
+      ? node.y + this.NUMERIC.LEVEL_Y_COMPACT
+      : node.y + this.NUMERIC.LEVEL_Y_REGULAR;
+    ctx.fillText(
+      `${this.TEXT.LEVEL_PREFIX}${node.level}`,
+      node.x + node.width - levelPadding,
+      levelY,
+    );
   }
 
   /**
