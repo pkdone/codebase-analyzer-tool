@@ -11,7 +11,7 @@ import type {
 } from "./report-gen.types";
 import {
   ProjectedFileTypesCountAndLines,
-  ProjectedTopLevelJavaClassDependencies,
+  HierarchicalTopLevelJavaClassDependencies,
 } from "../../repositories/source/sources.model";
 import { writeFile } from "../../common/utils/file-operations";
 
@@ -43,7 +43,7 @@ export class JsonReportWriter {
         | DatabaseIntegrationInfo[]
         | ProcsAndTriggers
         | { appDescription: string }
-        | ProjectedTopLevelJavaClassDependencies[]
+        | HierarchicalTopLevelJavaClassDependencies[]
         | typeof completeReportData;
     }[] = [
       { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },

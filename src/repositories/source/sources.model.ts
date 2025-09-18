@@ -83,7 +83,24 @@ export interface JavaClassDependency {
 }
 
 /**
- * Interface representing a top-level Java class with its dependencies
+ * Interface representing a hierarchical Java class dependency node
+ */
+export interface HierarchicalJavaClassDependency {
+  readonly classpath: string;
+  readonly originalLevel?: number; // Preserve original level from flat data
+  readonly dependencies?: readonly HierarchicalJavaClassDependency[];
+}
+
+/**
+ * Interface representing a top-level Java class with its hierarchical dependencies
+ */
+export interface HierarchicalTopLevelJavaClassDependencies {
+  readonly classpath: string;
+  readonly dependencies: readonly HierarchicalJavaClassDependency[];
+}
+
+/**
+ * Interface representing a top-level Java class with its dependencies (flat structure)
  */
 export interface ProjectedTopLevelJavaClassDependencies {
   readonly classpath: string;

@@ -41,6 +41,7 @@ export const TOKENS = {
   LLMExecutionPipeline: Symbol("LLMExecutionPipeline"),
   HtmlReportWriter: Symbol("HtmlReportWriter"),
   JsonReportWriter: Symbol("JsonReportWriter"),
+  DependencyTreePngGenerator: Symbol("DependencyTreePngGenerator"),
   AppReportGenerator: Symbol("AppReportGenerator"),
   DatabaseReportDataProvider: Symbol("DatabaseReportDataProvider"),
   CodeStructureDataProvider: Symbol("CodeStructureDataProvider"),

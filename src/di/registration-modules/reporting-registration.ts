@@ -4,6 +4,7 @@ import { TOKENS } from "../tokens";
 // Reporting component imports
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
+import { DependencyTreePngGenerator } from "../../components/reporting/dependency-tree-png-generator";
 import { DatabaseReportDataProvider } from "../../components/reporting/data-providers/database-report-data-provider";
 import { CodeStructureDataProvider } from "../../components/reporting/data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/data-providers/app-statistics-data-provider";
@@ -19,9 +20,10 @@ import AppReportGenerator from "../../components/reporting/app-report-generator"
  * - Report generation orchestration
  */
 export function registerReportingComponents(): void {
-  // Register report writers
+  // Register report writers and generators
   container.registerSingleton(TOKENS.HtmlReportWriter, HtmlReportWriter);
   container.registerSingleton(TOKENS.JsonReportWriter, JsonReportWriter);
+  container.registerSingleton(TOKENS.DependencyTreePngGenerator, DependencyTreePngGenerator);
 
   // Register data providers
   container.registerSingleton(TOKENS.DatabaseReportDataProvider, DatabaseReportDataProvider);

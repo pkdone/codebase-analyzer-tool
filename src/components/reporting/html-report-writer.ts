@@ -1,5 +1,6 @@
 import { injectable } from "tsyringe";
 import path from "path";
+import fs from "fs";
 import ejs from "ejs";
 import { outputConfig } from "../../config/output.config";
 import { jsonFilesConfig } from "./json-files.config";
@@ -7,6 +8,8 @@ import type { ReportData } from "./report-gen.types";
 import { writeFile } from "../../common/utils/file-operations";
 import { convertToDisplayName } from "../../common/utils/text-utils";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
+import { DependencyTreePngGenerator } from "./dependency-tree-png-generator";
+import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 
 interface EjsTemplateData {
   appStats: ReportData["appStats"];
@@ -34,10 +37,16 @@ interface EjsTemplateData {
  */
 @injectable()
 export class HtmlReportWriter {
+  constructor(private readonly pngGenerator: DependencyTreePngGenerator) {}
+
   /**
    * Generate complete HTML report from all data sections using EJS templates and write it to file.
    */
   async writeHTMLReportFile(reportData: ReportData, htmlFilePath: string): Promise<void> {
+    // Create directory for PNG files
+    const htmlDir = path.dirname(htmlFilePath);
+    const pngDir = path.join(htmlDir, 'dependency-trees');
+    await fs.promises.mkdir(pngDir, { recursive: true });
     const templatePath = path.join(
       __dirname,
       outputConfig.HTML_TEMPLATES_DIR,
@@ -71,11 +80,29 @@ export class HtmlReportWriter {
       combinedProcsTrigsList as unknown as DisplayableTableRow[],
     );
 
-    // Create view model for top-level Java classes with their dependencies
-    const topLevelJavaClassesDisplayData = reportData.topLevelJavaClasses.map((classData) => ({
-      "Classpath": classData.classpath,
-      "Dependencies": classData.dependencies.map(dep => dep.classpath).join(", "),
-    }));
+    // Generate PNG files for each top-level Java class and create hyperlinks
+    const topLevelJavaClassesDisplayData = await Promise.all(
+      reportData.topLevelJavaClasses.map(async (classData) => {
+        // Generate PNG file for this class's dependency tree
+        const pngFileName = await this.pngGenerator.generateHierarchicalDependencyTreePng(
+          classData.classpath,
+          classData.dependencies,
+          pngDir
+        );
+        
+        // Create hyperlink to the PNG file
+        const pngRelativePath = `dependency-trees/${pngFileName}`;
+        const classpathLink = `<a href="${pngRelativePath}" target="_blank">${classData.classpath}</a>`;
+        
+        // Count total dependencies from hierarchical structure
+        const dependencyCount = this.countAllDependencies(classData.dependencies);
+        
+        return {
+          "Classpath": classpathLink,
+          "Dependencies Count": dependencyCount,
+        };
+      })
+    );
     const topLevelJavaClassesTableViewModel = new TableViewModel(topLevelJavaClassesDisplayData);
 
     const data: EjsTemplateData = {
@@ -95,5 +122,32 @@ export class HtmlReportWriter {
     const htmlContent = await ejs.renderFile(templatePath, data);
     await writeFile(htmlFilePath, htmlContent);
     console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
+  }
+
+  /**
+   * Counts unique dependencies in a hierarchical dependency structure, excluding the root element.
+   */
+  private countAllDependencies(dependencies: readonly HierarchicalJavaClassDependency[]): number {
+    const uniqueClasspaths = new Set<string>();
+    this.collectUniqueClasspaths(dependencies, uniqueClasspaths);
+    return uniqueClasspaths.size;
+  }
+
+  /**
+   * Recursively collects unique classpaths from hierarchical dependencies.
+   */
+  private collectUniqueClasspaths(
+    dependencies: readonly HierarchicalJavaClassDependency[],
+    uniqueClasspaths: Set<string>
+  ): void {
+    for (const dependency of dependencies) {
+      // Add this dependency to the unique set
+      uniqueClasspaths.add(dependency.classpath);
+      
+      // Recursively collect from nested dependencies
+      if (dependency.dependencies && dependency.dependencies.length > 0) {
+        this.collectUniqueClasspaths(dependency.dependencies, uniqueClasspaths);
+      }
+    }
   }
 }

@@ -2,7 +2,7 @@ import { procedureTriggerSchema } from "../../schemas/sources.schema";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
 import type {
   ProjectedFileTypesCountAndLines,
-  ProjectedTopLevelJavaClassDependencies,
+  HierarchicalTopLevelJavaClassDependencies,
 } from "../../repositories/source/sources.model";
 import type { TypeOf } from "zod";
 
@@ -68,5 +68,5 @@ export interface ReportData {
   categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
-  topLevelJavaClasses: ProjectedTopLevelJavaClassDependencies[];
+  topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
 }
