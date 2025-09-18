@@ -78,6 +78,10 @@
     <h1>Codebase Analysis Tools (CAT) Report <a href="<%= jsonFilesConfig.dataFiles.completeReport %>" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h1>
     <hr/>
     <%- include('partials/app-statistics', { appStats: appStats, jsonFilesConfig: jsonFilesConfig }) %>
+    <h2>File Types Distribution</h2>
+    <div style="text-align: center; margin: 20px 0;">
+      <img src="<%= fileTypesPieChartPath %>" alt="File Types Distribution Pie Chart" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px;">
+    </div>    
     <%- include('partials/file-types-summary', { fileTypesData: fileTypesData, jsonFilesConfig: jsonFilesConfig }) %>
     <% categorizedData.forEach(category => { %>
       <%- include('partials/category-table', { category: category.category, label: category.label, data: category.data, tableViewModel: category.tableViewModel, convertToDisplayName: convertToDisplayName, jsonFilesConfig: jsonFilesConfig }) %>

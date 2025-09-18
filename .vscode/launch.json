@@ -5,7 +5,7 @@
       "name": "Run and Debug TypeScript",
       "type": "node",
       "request": "launch",
-      "preLaunchTask": "Compile TypeScript",
+      "preLaunchTask": "Build and Copy Templates",
       "program": "${file}",
       "outFiles": [
         "${workspaceFolder}/**/*.js"

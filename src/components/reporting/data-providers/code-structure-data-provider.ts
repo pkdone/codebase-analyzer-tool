@@ -1,10 +1,10 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
-import type { 
+import type {
   ProjectedTopLevelJavaClassDependencies,
   HierarchicalTopLevelJavaClassDependencies,
   HierarchicalJavaClassDependency,
-  JavaClassDependency
+  JavaClassDependency,
 } from "../../../repositories/source/sources.model";
 import { TOKENS } from "../../../di/tokens";
 
@@ -24,15 +24,20 @@ export class CodeStructureDataProvider {
   async getTopLevelJavaClasses(
     projectName: string,
   ): Promise<HierarchicalTopLevelJavaClassDependencies[]> {
-    const flatData: ProjectedTopLevelJavaClassDependencies[] = await this.sourcesRepository.getProjectTopLevelJavaClasses(projectName);
-    return flatData.map((classData: ProjectedTopLevelJavaClassDependencies): HierarchicalTopLevelJavaClassDependencies => this.convertToHierarchical(classData));
+    const flatData: ProjectedTopLevelJavaClassDependencies[] =
+      await this.sourcesRepository.getProjectTopLevelJavaClasses(projectName);
+    return flatData.map(
+      (
+        classData: ProjectedTopLevelJavaClassDependencies,
+      ): HierarchicalTopLevelJavaClassDependencies => this.convertToHierarchical(classData),
+    );
   }
 
   /**
    * Converts flat dependency structure to hierarchical structure.
    */
   private convertToHierarchical(
-    flatClassData: ProjectedTopLevelJavaClassDependencies
+    flatClassData: ProjectedTopLevelJavaClassDependencies,
   ): HierarchicalTopLevelJavaClassDependencies {
     // Create a map for quick lookup of dependencies by classpath
     const dependencyMap = new Map<string, JavaClassDependency>();
@@ -46,7 +51,7 @@ export class CodeStructureDataProvider {
       // If no root found, return empty structure
       return {
         classpath: flatClassData.classpath,
-        dependencies: []
+        dependencies: [],
       };
     }
 
@@ -55,12 +60,12 @@ export class CodeStructureDataProvider {
       rootDependency.references,
       dependencyMap,
       new Set(), // Track visited nodes to avoid infinite recursion
-      1 // Start at level 1 for direct dependencies
+      1, // Start at level 1 for direct dependencies
     );
 
     return {
       classpath: flatClassData.classpath,
-      dependencies: hierarchicalDependencies
+      dependencies: hierarchicalDependencies,
     };
   }
 
@@ -71,7 +76,7 @@ export class CodeStructureDataProvider {
     references: readonly string[],
     dependencyMap: Map<string, JavaClassDependency>,
     visited: Set<string>,
-    currentLevel: number
+    currentLevel: number,
   ): HierarchicalJavaClassDependency[] {
     const hierarchicalDeps: HierarchicalJavaClassDependency[] = [];
 
@@ -86,34 +91,34 @@ export class CodeStructureDataProvider {
       newVisited.add(refClasspath);
 
       const dependency = dependencyMap.get(refClasspath);
-      
+
       if (dependency && dependency.references.length > 0) {
         // Has child dependencies - recursively build them
         const childDependencies = this.buildHierarchicalDependencies(
           dependency.references,
           dependencyMap,
           newVisited,
-          currentLevel + 1
+          currentLevel + 1,
         );
-        
+
         if (childDependencies.length > 0) {
           hierarchicalDeps.push({
             classpath: refClasspath,
             originalLevel: dependency.level,
-            dependencies: childDependencies
+            dependencies: childDependencies,
           });
         } else {
           // No actual child dependencies found
           hierarchicalDeps.push({
             classpath: refClasspath,
-            originalLevel: dependency.level
+            originalLevel: dependency.level,
           });
         }
       } else {
         // Leaf node - no child dependencies
         hierarchicalDeps.push({
           classpath: refClasspath,
-          originalLevel: dependency?.level
+          originalLevel: dependency?.level,
         });
       }
     }

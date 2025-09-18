@@ -42,6 +42,7 @@ export const TOKENS = {
   HtmlReportWriter: Symbol("HtmlReportWriter"),
   JsonReportWriter: Symbol("JsonReportWriter"),
   DependencyTreePngGenerator: Symbol("DependencyTreePngGenerator"),
+  PieChartGenerator: Symbol("PieChartGenerator"),
   AppReportGenerator: Symbol("AppReportGenerator"),
   DatabaseReportDataProvider: Symbol("DatabaseReportDataProvider"),
   CodeStructureDataProvider: Symbol("CodeStructureDataProvider"),

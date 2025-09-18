@@ -9,11 +9,13 @@ import { writeFile } from "../../common/utils/file-operations";
 import { convertToDisplayName } from "../../common/utils/text-utils";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 import { DependencyTreePngGenerator } from "./dependency-tree-png-generator";
+import { PieChartGenerator } from "./pie-chart-generator";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 
 interface EjsTemplateData {
   appStats: ReportData["appStats"];
   fileTypesData: ReportData["fileTypesData"];
+  fileTypesPieChartPath: string;
   categorizedData: {
     category: string;
     label: string;
@@ -37,16 +39,28 @@ interface EjsTemplateData {
  */
 @injectable()
 export class HtmlReportWriter {
-  constructor(private readonly pngGenerator: DependencyTreePngGenerator) {}
+  constructor(
+    private readonly pngGenerator: DependencyTreePngGenerator,
+    private readonly pieChartGenerator: PieChartGenerator,
+  ) {}
 
   /**
    * Generate complete HTML report from all data sections using EJS templates and write it to file.
    */
   async writeHTMLReportFile(reportData: ReportData, htmlFilePath: string): Promise<void> {
-    // Create directory for PNG files
+    // Create directories for PNG files
     const htmlDir = path.dirname(htmlFilePath);
-    const pngDir = path.join(htmlDir, 'dependency-trees');
+    const pngDir = path.join(htmlDir, "dependency-trees");
+    const chartsDir = path.join(htmlDir, "charts");
     await fs.promises.mkdir(pngDir, { recursive: true });
+    await fs.promises.mkdir(chartsDir, { recursive: true });
+
+    // Generate file types pie chart
+    const fileTypesPieChartFilename = await this.pieChartGenerator.generateFileTypesPieChart(
+      reportData.fileTypesData,
+      chartsDir,
+    );
+    const fileTypesPieChartPath = `charts/${fileTypesPieChartFilename}`;
     const templatePath = path.join(
       __dirname,
       outputConfig.HTML_TEMPLATES_DIR,
@@ -87,27 +101,28 @@ export class HtmlReportWriter {
         const pngFileName = await this.pngGenerator.generateHierarchicalDependencyTreePng(
           classData.classpath,
           classData.dependencies,
-          pngDir
+          pngDir,
         );
-        
+
         // Create hyperlink to the PNG file
         const pngRelativePath = `dependency-trees/${pngFileName}`;
         const classpathLink = `<a href="${pngRelativePath}" target="_blank">${classData.classpath}</a>`;
-        
+
         // Count total dependencies from hierarchical structure
         const dependencyCount = this.countAllDependencies(classData.dependencies);
-        
+
         return {
-          "Classpath": classpathLink,
+          Classpath: classpathLink,
           "Dependencies Count": dependencyCount,
         };
-      })
+      }),
     );
     const topLevelJavaClassesTableViewModel = new TableViewModel(topLevelJavaClassesDisplayData);
 
     const data: EjsTemplateData = {
       appStats: reportData.appStats,
       fileTypesData: reportData.fileTypesData,
+      fileTypesPieChartPath: fileTypesPieChartPath,
       categorizedData: categorizedDataWithViewModels,
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
@@ -138,12 +153,12 @@ export class HtmlReportWriter {
    */
   private collectUniqueClasspaths(
     dependencies: readonly HierarchicalJavaClassDependency[],
-    uniqueClasspaths: Set<string>
+    uniqueClasspaths: Set<string>,
   ): void {
     for (const dependency of dependencies) {
       // Add this dependency to the unique set
       uniqueClasspaths.add(dependency.classpath);
-      
+
       // Recursively collect from nested dependencies
       if (dependency.dependencies && dependency.dependencies.length > 0) {
         this.collectUniqueClasspaths(dependency.dependencies, uniqueClasspaths);

@@ -13,6 +13,18 @@
 			"presentation": {
 				"reveal": "always"
 			}
+		},
+		{
+			"label": "Build and Copy Templates",
+			"type": "shell",
+			"command": "npm",
+			"args": ["run", "build"],
+			"group": "build",
+			"problemMatcher": "$tsc",
+			"presentation": {
+				"reveal": "always"
+			},
+			"dependsOrder": "sequence"
 		}
 	]
 }
