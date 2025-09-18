@@ -56,9 +56,15 @@ export class HtmlReportWriter {
     await ensureDirectoryExists(pngDir);
     await ensureDirectoryExists(chartsDir);
 
+    // Process file types data to show "unknown" for empty file types
+    const processedFileTypesData = reportData.fileTypesData.map((item) => ({
+      ...item,
+      fileType: item.fileType || "unknown",
+    }));
+
     // Generate file types pie chart
     const fileTypesPieChartFilename = await this.pieChartGenerator.generateFileTypesPieChart(
-      reportData.fileTypesData,
+      processedFileTypesData,
       chartsDir,
     );
     const fileTypesPieChartPath = htmlReportConstants.paths.CHARTS_DIR + fileTypesPieChartFilename;
@@ -68,7 +74,7 @@ export class HtmlReportWriter {
       outputConfig.HTML_MAIN_TEMPLATE_FILE,
     );
     // Create view models for file types summary
-    const fileTypesDisplayData = reportData.fileTypesData.map((item) => ({
+    const fileTypesDisplayData = processedFileTypesData.map((item) => ({
       [htmlReportConstants.columnHeaders.FILE_TYPE]: item.fileType,
       [htmlReportConstants.columnHeaders.FILES_COUNT]: item.files,
       [htmlReportConstants.columnHeaders.LINES_COUNT]: item.lines,
@@ -125,7 +131,7 @@ export class HtmlReportWriter {
 
     const data: EjsTemplateData = {
       appStats: reportData.appStats,
-      fileTypesData: reportData.fileTypesData,
+      fileTypesData: processedFileTypesData,
       fileTypesPieChartPath: fileTypesPieChartPath,
       categorizedData: categorizedDataWithViewModels,
       dbInteractions: reportData.dbInteractions,
