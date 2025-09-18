@@ -93,7 +93,7 @@ Alternatively, you also run the compiled JavaScript files (first compiled from T
 1. **CREATE REPORT**: Run the following command to generate a static HTML-based report summarising the application from the previously captured source metadata and aggregated insights. 
 
     ```console
-    node ./dist/src/cli/create-report.js
+    node ./dist/src/cli/produce-report.js
     ```
 
 ## OPTIONAL: How To Run Optional Additional Tasks
