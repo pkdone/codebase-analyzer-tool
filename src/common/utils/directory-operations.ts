@@ -95,3 +95,15 @@ export async function findFilesRecursively(
     return await glob("**/*", baseGlobOptions);
   }
 }
+
+/**
+ * Ensures a directory exists by creating it if it doesn't exist
+ */
+export async function ensureDirectoryExists(dirPath: string): Promise<void> {
+  try {
+    await fs.mkdir(dirPath, { recursive: true });
+  } catch (error: unknown) {
+    logErrorMsgAndDetail(`Failed to create directory: ${dirPath}`, error);
+    throw error;
+  }
+}

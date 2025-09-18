@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { createCanvas, CanvasRenderingContext2D } from "canvas";
 import path from "path";
-import fs from "fs";
+import { writeBinaryFile } from "../../common/utils/file-operations";
 import type { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
 
 interface PieSlice {
@@ -127,7 +127,7 @@ export class PieChartGenerator {
     // Save to file
     const filepath = path.join(outputDir, filename);
     const buffer = canvas.toBuffer(this.FILE.FORMAT);
-    await fs.promises.writeFile(filepath, buffer);
+    await writeBinaryFile(filepath, buffer);
     return filename;
   }
 
@@ -296,7 +296,7 @@ export class PieChartGenerator {
     // Save to file
     const filepath = path.join(outputDir, filename);
     const buffer = canvas.toBuffer(this.FILE.FORMAT);
-    await fs.promises.writeFile(filepath, buffer);
+    await writeBinaryFile(filepath, buffer);
     return filename;
   }
 }

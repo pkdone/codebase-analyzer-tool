@@ -1,13 +1,14 @@
 import { injectable } from "tsyringe";
 import path from "path";
-import fs from "fs";
 import ejs from "ejs";
 import { outputConfig } from "../../config/output.config";
 import { jsonFilesConfig } from "./json-files.config";
 import type { ReportData } from "./report-gen.types";
 import { writeFile } from "../../common/utils/file-operations";
 import { convertToDisplayName } from "../../common/utils/text-utils";
+import { ensureDirectoryExists } from "../../common/utils/directory-operations";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
+import { htmlReportConstants } from "./html-report.constants";
 import { DependencyTreePngGenerator } from "./dependency-tree-png-generator";
 import { PieChartGenerator } from "./pie-chart-generator";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
@@ -50,17 +51,17 @@ export class HtmlReportWriter {
   async writeHTMLReportFile(reportData: ReportData, htmlFilePath: string): Promise<void> {
     // Create directories for PNG files
     const htmlDir = path.dirname(htmlFilePath);
-    const pngDir = path.join(htmlDir, "dependency-trees");
-    const chartsDir = path.join(htmlDir, "charts");
-    await fs.promises.mkdir(pngDir, { recursive: true });
-    await fs.promises.mkdir(chartsDir, { recursive: true });
+    const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
+    const chartsDir = path.join(htmlDir, htmlReportConstants.directories.CHARTS);
+    await ensureDirectoryExists(pngDir);
+    await ensureDirectoryExists(chartsDir);
 
     // Generate file types pie chart
     const fileTypesPieChartFilename = await this.pieChartGenerator.generateFileTypesPieChart(
       reportData.fileTypesData,
       chartsDir,
     );
-    const fileTypesPieChartPath = `charts/${fileTypesPieChartFilename}`;
+    const fileTypesPieChartPath = htmlReportConstants.paths.CHARTS_DIR + fileTypesPieChartFilename;
     const templatePath = path.join(
       __dirname,
       outputConfig.HTML_TEMPLATES_DIR,
@@ -68,9 +69,9 @@ export class HtmlReportWriter {
     );
     // Create view models for file types summary
     const fileTypesDisplayData = reportData.fileTypesData.map((item) => ({
-      "File Type": item.fileType,
-      "Files Count": item.files,
-      "Lines Count": item.lines,
+      [htmlReportConstants.columnHeaders.FILE_TYPE]: item.fileType,
+      [htmlReportConstants.columnHeaders.FILES_COUNT]: item.files,
+      [htmlReportConstants.columnHeaders.LINES_COUNT]: item.lines,
     }));
     const fileTypesTableViewModel = new TableViewModel(fileTypesDisplayData);
 
@@ -105,15 +106,15 @@ export class HtmlReportWriter {
         );
 
         // Create hyperlink to the PNG file
-        const pngRelativePath = `dependency-trees/${pngFileName}`;
-        const classpathLink = `<a href="${pngRelativePath}" target="_blank">${classData.classpath}</a>`;
+        const pngRelativePath = htmlReportConstants.paths.DEPENDENCY_TREES_DIR + pngFileName;
+        const classpathLink = htmlReportConstants.html.LINK_TEMPLATE(pngRelativePath, classData.classpath);
 
         // Count total dependencies from hierarchical structure
         const dependencyCount = this.countAllDependencies(classData.dependencies);
 
         return {
-          Classpath: classpathLink,
-          "Dependencies Count": dependencyCount,
+          [htmlReportConstants.columnHeaders.CLASSPATH]: classpathLink,
+          [htmlReportConstants.columnHeaders.DEPENDENCIES_COUNT]: dependencyCount,
         };
       }),
     );
@@ -136,7 +137,7 @@ export class HtmlReportWriter {
     };
     const htmlContent = await ejs.renderFile(templatePath, data);
     await writeFile(htmlFilePath, htmlContent);
-    console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
+    console.log(`View generated report in a browser: ${htmlReportConstants.protocols.FILE_PROTOCOL}${path.resolve(htmlFilePath)}`);
   }
 
   /**

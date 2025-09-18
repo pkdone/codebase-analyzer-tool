@@ -21,3 +21,10 @@ export async function writeFile(filepath: string, content: string): Promise<void
 export async function appendFile(filepath: string, content: string): Promise<void> {
   await fs.appendFile(filepath, content, UTF8_ENCODING);
 }
+
+/**
+ * Write binary data to a file.
+ */
+export async function writeBinaryFile(filepath: string, buffer: Buffer): Promise<void> {
+  await fs.writeFile(filepath, buffer);
+}

@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { createCanvas, CanvasRenderingContext2D } from "canvas";
 import path from "path";
-import fs from "fs";
+import { writeBinaryFile } from "../../common/utils/file-operations";
 import type {
   JavaClassDependency,
   HierarchicalJavaClassDependency,
@@ -141,7 +141,7 @@ export class DependencyTreePngGenerator {
 
     // Save to file
     const buffer = canvas.toBuffer(this.FILE.FORMAT);
-    await fs.promises.writeFile(filepath, buffer);
+    await writeBinaryFile(filepath, buffer);
     return filename + this.FILE.EXTENSION;
   }
 
@@ -214,7 +214,7 @@ export class DependencyTreePngGenerator {
 
       // Save to file
       const buffer = canvas.toBuffer(this.FILE.FORMAT);
-      await fs.promises.writeFile(filepath, buffer);
+      await writeBinaryFile(filepath, buffer);
       return filename + this.FILE.EXTENSION;
     } catch (error) {
       console.warn(`Failed to generate dependency tree for ${classpath}:`, error);

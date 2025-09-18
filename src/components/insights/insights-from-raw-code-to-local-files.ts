@@ -1,5 +1,4 @@
 import path from "path";
-import { promises as fs } from "fs";
 import os from "os";
 import { injectable } from "tsyringe";
 import { pathsConfig } from "../../config/paths.config";
@@ -9,6 +8,7 @@ import { readFile, writeFile } from "../../common/utils/file-operations";
 import {
   listDirectoryEntries,
   findFilesRecursively,
+  ensureDirectoryExists,
 } from "../../common/utils/directory-operations";
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
@@ -39,7 +39,7 @@ export class RawCodeToInsightsFileGenerator {
     const prompts: FileRequirementPrompt[] = [];
 
     try {
-      await fs.mkdir(inputDir, { recursive: true });
+      await ensureDirectoryExists(inputDir);
       const files = await listDirectoryEntries(inputDir);
       const promptFiles = files.filter((file) =>
         pathsConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
