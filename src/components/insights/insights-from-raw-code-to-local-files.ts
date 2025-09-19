@@ -15,7 +15,7 @@ import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatErrorMessage } from "../../common/utils/error-formatters";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
+import { mergeSourceFilesIntoMarkdownCodeblock } from "../../llm/utils/markdown-utils";
 import { formatDateForFilename } from "../../common/utils/date-utils";
 
 /**

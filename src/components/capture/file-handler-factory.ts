@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { DynamicPromptConfig } from "../../llm/utils/prompt-templator";
 import { fileTypeMetadataConfig } from "./files-types-metadata.config";
-import { resolveFileType } from "../../common/utils/file-type-resolver";
+import { resolveFileType } from "./utils/file-type-resolver";
 
 /**
  * Factory class responsible for creating appropriate prompt configurations based on file type.

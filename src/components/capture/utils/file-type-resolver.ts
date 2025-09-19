@@ -1,5 +1,5 @@
 import path from "path";
-import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
+import { fileTypeMappingsConfig } from "../../../config/file-type-mappings.config";
 
 /**
  * Resolves the canonical file type based on filepath and detected type.

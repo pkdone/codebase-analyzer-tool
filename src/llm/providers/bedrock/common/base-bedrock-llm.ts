@@ -14,15 +14,14 @@ import {
 } from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
 import {
-  LLMImplSpecificResponseSummary,
   LLMProviderSpecificConfig,
 } from "../../llm-provider.types";
 import { formatErrorMessage } from "../../../../common/utils/error-formatters";
 import { logErrorMsgAndDetail } from "../../../../common/utils/logging";
-import { getNestedValue, getNestedValueWithFallbacks } from "../../../../common/utils/object-utils";
 import AbstractLLM from "../../../core/abstract-llm";
 import { z } from "zod";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+import { extractGenericCompletionResponse, type ResponsePathConfig } from "./bedrock-response-parser";
 
 /**
  * Configuration object for Bedrock LLM providers.
@@ -32,25 +31,6 @@ export interface BedrockConfig {
   providerSpecificConfig?: LLMProviderSpecificConfig;
 }
 
-/**
- * Configuration for extracting response data from different Bedrock provider response structures
- */
-interface ResponsePathConfig {
-  /** Path to extract the main response content from the parsed response */
-  contentPath: string;
-  /** Path to extract the prompt token count */
-  promptTokensPath: string;
-  /** Path to extract the completion token count */
-  completionTokensPath: string;
-  /** Path to extract the stop/finish reason */
-  stopReasonPath: string;
-  /** The stop reason value that indicates the response was truncated due to length limits */
-  stopReasonValueForLength: string;
-  /** Optional secondary content path (for providers like Deepseek with reasoning_content) */
-  alternativeContentPath?: string;
-  /** Optional secondary stop reason path (for providers like Mistral with finish_reason) */
-  alternativeStopReasonPath?: string;
-}
 
 /**
  * Complete configuration for response extraction including schema and provider information
@@ -138,7 +118,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       return this.extractEmbeddingModelSpecificResponse(llmResponse);
     } else {
       const config = this.getResponseExtractionConfig();
-      return this.extractGenericCompletionResponse(
+      return extractGenericCompletionResponse(
         llmResponse,
         config.schema,
         config.pathConfig,
@@ -220,49 +200,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     };
   }
 
-  /**
-   * Generic helper function to extract completion response data from various Bedrock provider responses.
-   * This eliminates code duplication across different Bedrock provider implementations.
-   *
-   * @param llmResponse The raw LLM response object
-   * @param schema The Zod schema to validate the response structure
-   * @param pathConfig Configuration object mapping standard fields to provider-specific response paths
-   * @param providerName The name of the provider (for error messages)
-   * @returns Standardized LLMImplSpecificResponseSummary object
-   */
-  private extractGenericCompletionResponse(
-    llmResponse: unknown,
-    schema: z.ZodType,
-    pathConfig: ResponsePathConfig,
-    providerName: string,
-  ): LLMImplSpecificResponseSummary {
-    const validation = schema.safeParse(llmResponse);
-    if (!validation.success)
-      throw new BadResponseContentLLMError(
-        `Invalid ${providerName} response structure`,
-        llmResponse,
-      );
-    const response = validation.data as Record<string, unknown>;
-    const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
-      Boolean,
-    ) as string[];
-    const responseContent = getNestedValueWithFallbacks<string>(response, contentPaths) ?? "";
-    const stopReasonPaths = [
-      pathConfig.stopReasonPath,
-      pathConfig.alternativeStopReasonPath,
-    ].filter(Boolean) as string[];
-    const finishReason = getNestedValueWithFallbacks<string>(response, stopReasonPaths) ?? "";
-    const finishReasonLowercase = finishReason.toLowerCase();
-    const isIncompleteResponse =
-      finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
-      !responseContent;
-    const promptTokens = getNestedValue<number>(response, pathConfig.promptTokensPath) ?? -1;
-    const completionTokens =
-      getNestedValue<number>(response, pathConfig.completionTokensPath) ?? -1;
-    const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
-    const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
-    return { isIncompleteResponse, responseContent, tokenUsage };
-  }
 
   /**
    * Abstract method to be overriden. Assemble the AWS Bedrock API parameters structure for the

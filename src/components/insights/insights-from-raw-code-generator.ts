@@ -7,7 +7,7 @@ import type { ApplicationInsightsProcessor } from "./insights-generator.interfac
 import { pathsConfig } from "../../config/paths.config";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { findFilesRecursively } from "../../common/utils/directory-operations";
-import { mergeSourceFilesIntoMarkdownCodeblock } from "../../common/utils/markdown-utils";
+import { mergeSourceFilesIntoMarkdownCodeblock } from "../../llm/utils/markdown-utils";
 import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
