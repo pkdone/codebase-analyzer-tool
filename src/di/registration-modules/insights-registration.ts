@@ -42,11 +42,11 @@ export async function registerLLMDependentInsightsComponents(): Promise<void> {
 
   // Register the ApplicationInsightsProcessor interface with synchronous factory based on manifest data
   container.register(TOKENS.ApplicationInsightsProcessor, {
-    useFactory: () => {
+    useFactory: (c) => {
       if (manifest.supportsFullCodebaseAnalysis) {
-        return container.resolve(TOKENS.InsightsFromRawCodeGenerator);
+        return c.resolve(TOKENS.InsightsFromRawCodeGenerator);
       } else {
-        return container.resolve(TOKENS.InsightsFromDBGenerator);
+        return c.resolve(TOKENS.InsightsFromDBGenerator);
       }
     },
   });

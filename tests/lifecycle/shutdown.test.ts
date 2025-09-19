@@ -12,6 +12,8 @@ jest.mock("../../src/common/mdb/mdb-client-factory");
 // Mock tsyringe decorators
 jest.mock("tsyringe", () => ({
   injectable: () => (target: any) => target,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  inject: () => (_target: any, _propertyKey: string | symbol | undefined, _parameterIndex: number) => {},
   container: {
     isRegistered: jest.fn(),
     resolve: jest.fn(),
@@ -75,7 +77,7 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
       await shutdownService.gracefulShutdown();
 
@@ -95,7 +97,7 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(mockLLMRouter);
 
       await shutdownService.gracefulShutdown();
 
@@ -114,7 +116,7 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(undefined, mockMongoDBClientFactory);
 
       await shutdownService.gracefulShutdown();
 
@@ -147,7 +149,7 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
       await shutdownService.gracefulShutdown();
 
@@ -174,7 +176,7 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
       await shutdownService.gracefulShutdown();
 
@@ -200,7 +202,7 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
       await shutdownService.gracefulShutdown();
 
@@ -244,7 +246,7 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
       // Should not throw - errors are logged instead
       await expect(shutdownService.gracefulShutdown()).resolves.not.toThrow();
@@ -273,7 +275,7 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
       // Should not throw - errors are logged instead
       await expect(shutdownService.gracefulShutdown()).resolves.not.toThrow();
@@ -305,7 +307,7 @@ describe("ShutdownService", () => {
       // Spy on console.error to verify error logging
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
-      const shutdownService = new ShutdownService();
+      const shutdownService = new ShutdownService(mockLLMRouter, mockMongoDBClientFactory);
 
       // The method should now complete gracefully instead of throwing
       await expect(shutdownService.gracefulShutdown()).resolves.not.toThrow();

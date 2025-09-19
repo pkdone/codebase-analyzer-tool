@@ -1,28 +1,18 @@
 import "reflect-metadata";
 import LLMRouter from "../llm/core/llm-router";
 import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
-import { injectable, container } from "tsyringe";
-import { TOKENS } from "../di/tokens";
+import { injectable } from "tsyringe";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.
- * Uses service locator pattern for optional dependencies since tsyringe doesn't support @optional.
+ * Dependencies are now injected via constructor for better testability.
  */
 @injectable()
 export class ShutdownService {
-  private readonly llmRouter?: LLMRouter;
-  private readonly mongoDBClientFactory?: MongoDBClientFactory;
-
-  constructor() {
-    // Safely resolve optional dependencies from container
-    this.llmRouter = container.isRegistered(TOKENS.LLMRouter)
-      ? container.resolve<LLMRouter>(TOKENS.LLMRouter)
-      : undefined;
-
-    this.mongoDBClientFactory = container.isRegistered(TOKENS.MongoDBClientFactory)
-      ? container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory)
-      : undefined;
-  }
+  constructor(
+    private readonly llmRouter?: LLMRouter,
+    private readonly mongoDBClientFactory?: MongoDBClientFactory,
+  ) {}
 
   /**
    * Perform graceful shutdown of all registered services with provider-specific handling.

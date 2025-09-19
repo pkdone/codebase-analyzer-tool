@@ -44,6 +44,8 @@ import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
 
 // Lifecycle imports
 import { ShutdownService } from "../../lifecycle/shutdown-service";
+import LLMRouter from "../../llm/core/llm-router";
+import { MongoDBClientFactory } from "../../common/mdb/mdb-client-factory";
 
 // Database component imports
 import { DatabaseInitializer } from "../../repositories/setup/database-initializer";
@@ -86,8 +88,14 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   container.registerSingleton(TOKENS.FallbackStrategy, FallbackStrategy);
   container.registerSingleton(TOKENS.LLMExecutionPipeline, LLMExecutionPipeline);
 
-  // Register lifecycle services
-  container.registerSingleton(TOKENS.ShutdownService, ShutdownService);
+  // Register lifecycle services using factory for optional dependencies
+  container.register(TOKENS.ShutdownService, {
+    useFactory: (c) => {
+      const llmRouter = c.isRegistered(TOKENS.LLMRouter) ? c.resolve<LLMRouter>(TOKENS.LLMRouter) : undefined;
+      const mongoFactory = c.isRegistered(TOKENS.MongoDBClientFactory) ? c.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory) : undefined;
+      return new ShutdownService(llmRouter, mongoFactory);
+    }
+  });
 
   // Register database components
   container.registerSingleton(TOKENS.DatabaseInitializer, DatabaseInitializer);
