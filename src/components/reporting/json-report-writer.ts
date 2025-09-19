@@ -48,13 +48,11 @@ export class JsonReportWriter {
     });
 
     const results = await Promise.allSettled(tasks);
-    
-    // Check for any failures and log them
-    results.forEach((result, index) => {
-      if (result.status === "rejected") {
-        console.error(`Failed to write JSON file at index ${index}:`, result.reason);
-      }
-    });
+    const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+
+    for (const failure of failures) {
+      console.error(`Failed to write a JSON file:`, failure.reason);
+    }
     
     console.log("Finished generating all JSON files");
   }

@@ -31,24 +31,17 @@ export class DatabaseReportDataProvider {
     const records = await this.sourcesRepository.getProjectDatabaseIntegrations(projectName, [
       ...fileProcessingConfig.CODE_FILE_EXTENSIONS,
     ]);
-    const validRecords = records.filter((record) => record.summary?.databaseIntegration);
-    return validRecords.map((record) => {
-      const summary = record.summary;
-      const databaseIntegration = summary?.databaseIntegration;
-
-      return summary && databaseIntegration
-        ? {
-            path: summary.classpath ?? record.filepath,
-            mechanism: databaseIntegration.mechanism,
-            description: databaseIntegration.description,
-            codeExample: databaseIntegration.codeExample,
-          }
-        : {
-            path: record.filepath,
-            mechanism: "UNKNOWN",
-            description: "Unknown database integration",
-            codeExample: "N/A",
-          };
+    return records.flatMap((record) => {
+      const { summary } = record;
+      if (summary?.databaseIntegration) {
+        return [{
+          path: summary.classpath ?? record.filepath,
+          mechanism: summary.databaseIntegration.mechanism,
+          description: summary.databaseIntegration.description,
+          codeExample: summary.databaseIntegration.codeExample,
+        }];
+      }
+      return []; // This item will be filtered out by flatMap
     });
   }
 
@@ -103,7 +96,8 @@ export class DatabaseReportDataProvider {
       (stats, item) => {
         const complexity = this.normalizeComplexity(item.complexity, item.name);
         stats.total++;
-        stats[complexity.toLowerCase() as "low" | "medium" | "high"]++;
+        const lowercaseComplexity = complexity.toLowerCase() as "low" | "medium" | "high";
+        stats[lowercaseComplexity]++;
         return stats;
       },
       { total: 0, low: 0, medium: 0, high: 0 },

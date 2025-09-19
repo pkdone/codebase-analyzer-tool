@@ -123,17 +123,11 @@ export class TableViewModel {
     return value.map((item) => {
       if (item && typeof item === "object" && item.constructor === Object) {
         const objectItem = item as Record<string, unknown>;
-        const processedKeys = Object.keys(objectItem).reduce<Record<string, string>>(
-          (acc, itemKey) => {
-            const value = objectItem[itemKey];
-            if (typeof value === "object" && value !== null) {
-              acc[convertToDisplayName(itemKey)] = JSON.stringify(value);
-            } else {
-              acc[convertToDisplayName(itemKey)] = String(value);
-            }
-            return acc;
-          },
-          {},
+        const processedKeys = Object.fromEntries(
+          Object.entries(objectItem).map(([key, value]) => [
+            convertToDisplayName(key),
+            (typeof value === "object" && value !== null) ? JSON.stringify(value) : String(value)
+          ])
         );
 
         return {

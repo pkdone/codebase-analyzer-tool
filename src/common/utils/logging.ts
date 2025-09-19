@@ -4,13 +4,8 @@ import { formatErrorMessage, getErrorStack } from "./error-formatters";
  * Log an error message and the error stack to the console.
  */
 export function logErrorMsgAndDetail(msg: string | null, error: unknown): void {
-  const messageParts = [
-    ...(msg ? [msg] : []),
-    formatErrorMessage(error),
-    "-",
-    getErrorStack(error),
-  ];
-  console.error(...messageParts);
+  const prefix = msg ? `${msg}: ` : "";
+  console.error(`${prefix}${formatErrorMessage(error)}\n-\n${getErrorStack(error)}`);
 }
 
 /**
