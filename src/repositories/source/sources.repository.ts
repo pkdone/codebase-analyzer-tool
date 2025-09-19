@@ -338,7 +338,7 @@ export default class SourcesRepositoryImpl
   /**
    * Get the JSON schema for collection validation
    */
-  getCollectionValidationSchema(): object {
+  getCollectionValidationSchema(): Record<string, unknown> {
     return getJSONSchema();
   }
 

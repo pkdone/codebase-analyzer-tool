@@ -30,5 +30,5 @@ export abstract class BaseRepository<T extends Document> {
    * Abstract method for getting the JSON schema for collection validation.
    * Each repository implementation should provide its own validation schema.
    */
-  abstract getCollectionValidationSchema(): object;
+  abstract getCollectionValidationSchema(): Record<string, unknown>;
 }
