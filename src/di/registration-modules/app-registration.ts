@@ -46,7 +46,7 @@ import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
 import { ShutdownService } from "../../lifecycle/shutdown-service";
 
 // Database component imports
-import { DatabaseInitializer } from "../../components/database/database-initializer";
+import { DatabaseInitializer } from "../../repositories/setup/database-initializer";
 
 /**
  * Register all application-level dependencies (repositories, components, and tasks).

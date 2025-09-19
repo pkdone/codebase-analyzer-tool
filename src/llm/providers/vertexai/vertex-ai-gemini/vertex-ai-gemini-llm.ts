@@ -21,7 +21,7 @@ import {
 } from "../../../types/llm.types";
 import { logWarningMsg, logErrorMsgAndDetail } from "../../../../common/utils/logging";
 import { formatErrorMessage } from "../../../../common/utils/error-formatters";
-import AbstractLLM from "../../../core/abstract-llm";
+import AbstractLLM from "../../abstract-llm";
 import {
   BadConfigurationLLMError,
   BadResponseContentLLMError,

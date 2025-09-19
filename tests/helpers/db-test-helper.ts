@@ -57,7 +57,7 @@ export async function setupTestDatabase(): Promise<MongoClient> {
   await registerAppDependencies({ requiresMongoDB: true, requiresLLM: false });
 
   // Initialize the schema in the new test database
-  const databaseInitializer = container.resolve<import("../../src/components/database/database-initializer").DatabaseInitializer>(TOKENS.DatabaseInitializer);
+  const databaseInitializer = container.resolve<import("../../src/repositories/setup/database-initializer").DatabaseInitializer>(TOKENS.DatabaseInitializer);
   await databaseInitializer.initializeDatabaseSchema(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);
 
   console.log(`Test database '${testDbName}' created and initialized.`);

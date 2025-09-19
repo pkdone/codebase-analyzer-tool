@@ -13,6 +13,7 @@ export const TOKENS = {
   EnvVars: Symbol("EnvVars"),
   ProjectName: Symbol("ProjectName"),
   ShutdownService: Symbol("ShutdownService"),
+  FileTypeMappingsConfig: Symbol("FileTypeMappingsConfig"),
 
   // Repositories (interface tokens)
   SourcesRepository: Symbol("ISourcesRepository"),

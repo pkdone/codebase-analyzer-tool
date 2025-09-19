@@ -1,3 +1,4 @@
+import { container } from "tsyringe";
 import { TOKENS } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
@@ -5,6 +6,7 @@ import { registerComponents } from "../registration-utils";
 import { FileSummarizer } from "../../components/capture/file-summarizer";
 import { PromptConfigFactory } from "../../components/capture/file-handler-factory";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
+import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
 /**
  * Register capture-related components in the DI container.
@@ -15,6 +17,9 @@ import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
  * - File handling configuration
  */
 export function registerCaptureComponents(): void {
+  // Register configuration
+  container.registerInstance(TOKENS.FileTypeMappingsConfig, fileTypeMappingsConfig);
+  
   registerComponents(
     [{ token: TOKENS.PromptConfigFactory, implementation: PromptConfigFactory }],
     "Capture components registered",

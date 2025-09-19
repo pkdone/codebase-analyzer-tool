@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import { z } from "zod";
 import { pathsConfig } from "../../../config/paths.config";
-import { summaryCategoriesConfig } from "../../insights/insights.config";
+import { summaryCategoriesConfig } from "../../../config/insights.config";
 import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
 import type {
   AppSummaryNameDescArray,

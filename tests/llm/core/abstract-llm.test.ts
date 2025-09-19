@@ -10,7 +10,7 @@ import {
   LLMImplSpecificResponseSummary,
   LLMProviderSpecificConfig,
 } from "../../../src/llm/providers/llm-provider.types";
-import AbstractLLM from "../../../src/llm/core/abstract-llm";
+import AbstractLLM from "../../../src/llm/providers/abstract-llm";
 import { AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT } from "../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
 
 // Test-only constants

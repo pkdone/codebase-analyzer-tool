@@ -16,7 +16,7 @@ import {
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderSpecificConfig,
-} from "../providers/llm-provider.types";
+} from "./llm-provider.types";
 import { formatErrorMessage } from "../../common/utils/error-formatters";
 import { logErrorMsg } from "../../common/utils/logging";
 import { convertTextToJSONAndOptionallyValidate } from "../utils/json-tools";

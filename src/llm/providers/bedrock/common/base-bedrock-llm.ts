@@ -18,7 +18,7 @@ import {
 } from "../../llm-provider.types";
 import { formatErrorMessage } from "../../../../common/utils/error-formatters";
 import { logErrorMsgAndDetail } from "../../../../common/utils/logging";
-import AbstractLLM from "../../../core/abstract-llm";
+import AbstractLLM from "../../abstract-llm";
 import { z } from "zod";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 import { extractGenericCompletionResponse, type ResponsePathConfig } from "./bedrock-response-parser";

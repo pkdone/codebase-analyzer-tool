@@ -1,7 +1,7 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
 import { APIError } from "openai/error";
 import { LLMPurpose, LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm.types";
-import AbstractLLM from "../../../core/abstract-llm";
+import AbstractLLM from "../../abstract-llm";
 import { llmConfig } from "../../../llm.config";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 

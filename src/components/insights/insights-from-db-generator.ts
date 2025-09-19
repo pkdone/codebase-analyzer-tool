@@ -7,7 +7,7 @@ import { joinArrayWithSeparators } from "../../common/utils/text-utils";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../di/tokens";
-import { summaryCategoriesConfig } from "./insights.config";
+import { summaryCategoriesConfig } from "../../config/insights.config";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";

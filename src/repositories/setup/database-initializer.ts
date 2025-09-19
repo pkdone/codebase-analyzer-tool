@@ -4,8 +4,8 @@ import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } fro
 import { TOKENS } from "../../di/tokens";
 import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
-import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import type { SourcesRepository } from "../source/sources.repository.interface";
+import type { AppSummariesRepository } from "../app-summary/app-summaries.repository.interface";
 import {
   VectorIndexConfig,
   VectorSearchFilter,

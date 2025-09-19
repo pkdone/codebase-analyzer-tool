@@ -12,7 +12,7 @@ import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { summaryCategoriesConfig } from "./insights.config";
+import { summaryCategoriesConfig } from "../../config/insights.config";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories

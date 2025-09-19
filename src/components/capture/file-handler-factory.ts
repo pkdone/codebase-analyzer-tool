@@ -1,7 +1,8 @@
-import { injectable } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import { DynamicPromptConfig } from "../../llm/utils/prompt-templator";
 import { fileTypeMetadataConfig } from "./files-types-metadata.config";
-import { resolveFileType } from "./utils/file-type-resolver";
+import { resolveFileType, type FileTypeMappingsConfig } from "./utils/file-type-resolver";
+import { TOKENS } from "../../di/tokens";
 
 /**
  * Factory class responsible for creating appropriate prompt configurations based on file type.
@@ -9,6 +10,11 @@ import { resolveFileType } from "./utils/file-type-resolver";
  */
 @injectable()
 export class PromptConfigFactory {
+  constructor(
+    @inject(TOKENS.FileTypeMappingsConfig) 
+    private readonly fileTypeMappingsConfig: FileTypeMappingsConfig
+  ) {}
+
   /**
    * Creates a DynamicPromptConfig for the given file path and type.
    *
@@ -17,7 +23,7 @@ export class PromptConfigFactory {
    * @returns A DynamicPromptConfig configured for the specific file type
    */
   createConfig(filepath: string, type: string): DynamicPromptConfig {
-    const resolvedFileType = resolveFileType(filepath, type);
+    const resolvedFileType = resolveFileType(filepath, type, this.fileTypeMappingsConfig);
     const config = this.getConfigForFileType(resolvedFileType);
     return config;
   }
