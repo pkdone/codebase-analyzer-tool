@@ -11,8 +11,8 @@ import { TOKENS } from "../../di/tokens";
 @injectable()
 export class PromptConfigFactory {
   constructor(
-    @inject(TOKENS.FileTypeMappingsConfig) 
-    private readonly fileTypeMappingsConfig: FileTypeMappingsConfig
+    @inject(TOKENS.FileTypeMappingsConfig)
+    private readonly fileTypeMappingsConfig: FileTypeMappingsConfig,
   ) {}
 
   /**

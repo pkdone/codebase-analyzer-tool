@@ -32,11 +32,11 @@ jest.mock("../../../src/config/file-type-mappings.config", () => ({
 
 describe("PromptConfigFactory", () => {
   let factory: PromptConfigFactory;
-  
+
   const mockFileTypeMappingsConfig = {
     FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
       ["readme", "markdown"],
-      ["license", "markdown"], 
+      ["license", "markdown"],
       ["changelog", "markdown"],
       ["package.json", "javascript"],
     ]),

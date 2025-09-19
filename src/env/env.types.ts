@@ -7,7 +7,7 @@ export const baseEnvVarsSchema = z.object({
   MONGODB_URL: z.string().url(),
   CODEBASE_DIR_PATH: z.string().min(1, "CODEBASE_DIR_PATH cannot be empty"),
   SKIP_ALREADY_PROCESSED_FILES: z
-    .preprocess((val) => String(val).toLowerCase() === 'true', z.boolean())
+    .preprocess((val) => String(val).toLowerCase() === "true", z.boolean())
     .default(false),
   LLM: z.string().min(1, "LLM provider selection cannot be empty"),
 });

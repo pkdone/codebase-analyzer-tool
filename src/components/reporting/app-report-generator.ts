@@ -128,18 +128,24 @@ export default class AppReportGenerator {
     const preparedData: PreparedJsonData[] = [
       { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },
       { filename: jsonFilesConfig.dataFiles.appStats, data: reportData.appStats },
-      { filename: jsonFilesConfig.dataFiles.appDescription, data: { appDescription: reportData.appStats.appDescription } },
+      {
+        filename: jsonFilesConfig.dataFiles.appDescription,
+        data: { appDescription: reportData.appStats.appDescription },
+      },
       { filename: jsonFilesConfig.dataFiles.fileTypes, data: reportData.fileTypesData },
       { filename: jsonFilesConfig.dataFiles.dbInteractions, data: reportData.dbInteractions },
       { filename: jsonFilesConfig.dataFiles.procsAndTriggers, data: reportData.procsAndTriggers },
-      { filename: jsonFilesConfig.dataFiles.topLevelJavaClasses, data: reportData.topLevelJavaClasses },
+      {
+        filename: jsonFilesConfig.dataFiles.topLevelJavaClasses,
+        data: reportData.topLevelJavaClasses,
+      },
     ];
 
     // Add categorized data files
-    reportData.categorizedData.forEach(categoryData => {
+    reportData.categorizedData.forEach((categoryData) => {
       preparedData.push({
         filename: jsonFilesConfig.getCategoryFilename(categoryData.category),
-        data: categoryData.data
+        data: categoryData.data,
       });
     });
 
@@ -149,7 +155,10 @@ export default class AppReportGenerator {
   /**
    * Prepares HTML template data by processing all report data, generating assets, and creating view models.
    */
-  private async prepareHtmlData(reportData: ReportData, htmlFilePath: string): Promise<PreparedHtmlReportData> {
+  private async prepareHtmlData(
+    reportData: ReportData,
+    htmlFilePath: string,
+  ): Promise<PreparedHtmlReportData> {
     // Create directories for PNG files and charts
     const htmlDir = path.dirname(htmlFilePath);
     const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
@@ -246,7 +255,9 @@ export default class AppReportGenerator {
   /**
    * Counts unique dependencies in a hierarchical dependency structure, excluding the root element.
    */
-  private countUniqueDependencies(dependencies: readonly HierarchicalJavaClassDependency[]): number {
+  private countUniqueDependencies(
+    dependencies: readonly HierarchicalJavaClassDependency[],
+  ): number {
     const uniqueClasspaths = new Set<string>();
     this.collectUniqueClasspaths(dependencies, uniqueClasspaths);
     return uniqueClasspaths.size;

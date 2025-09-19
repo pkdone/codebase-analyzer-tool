@@ -217,22 +217,25 @@ export default class SourcesRepositoryImpl
       .toArray();
   }
 
-
   /**
    * Get file count and total lines of code for a project in a single query
    */
-  async getProjectFileAndLineStats(projectName: string): Promise<{ fileCount: number; linesOfCode: number }> {
+  async getProjectFileAndLineStats(
+    projectName: string,
+  ): Promise<{ fileCount: number; linesOfCode: number }> {
     const pipeline = [
       { $match: { projectName } },
-      { 
-        $group: { 
-          _id: null, 
+      {
+        $group: {
+          _id: null,
           fileCount: { $sum: 1 },
-          linesOfCode: { $sum: "$linesCount" }
-        } 
-      }
+          linesOfCode: { $sum: "$linesCount" },
+        },
+      },
     ];
-    const result = await this.collection.aggregate<{ _id: null; fileCount: number; linesOfCode: number }>(pipeline).toArray();
+    const result = await this.collection
+      .aggregate<{ _id: null; fileCount: number; linesOfCode: number }>(pipeline)
+      .toArray();
     if (result.length === 0) {
       return { fileCount: 0, linesOfCode: 0 };
     }
@@ -340,7 +343,6 @@ export default class SourcesRepositoryImpl
   getCollectionValidationSchema(): Record<string, unknown> {
     return getJSONSchema();
   }
-
 
   /**
    * Iterates through the numbers in the array and converts each one explicitly to a BSON Double.

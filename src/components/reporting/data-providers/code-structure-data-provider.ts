@@ -31,5 +31,4 @@ export class CodeStructureDataProvider {
       ): HierarchicalTopLevelJavaClassDependencies => convertToHierarchical(classData),
     );
   }
-
 }

@@ -131,7 +131,10 @@ describe("AppSummariesRepositoryImpl", () => {
 
       mockCollection.findOne.mockResolvedValue(mockResult);
 
-      const result = await repository.getProjectAppSummaryFields(projectName, ["appDescription", "llmProvider"]);
+      const result = await repository.getProjectAppSummaryFields(projectName, [
+        "appDescription",
+        "llmProvider",
+      ]);
 
       expect(result).toEqual(mockResult);
       expect(mockCollection.findOne).toHaveBeenCalledWith(
@@ -146,7 +149,10 @@ describe("AppSummariesRepositoryImpl", () => {
       const projectName = "nonexistent-project";
       mockCollection.findOne.mockResolvedValue(null);
 
-      const result = await repository.getProjectAppSummaryFields(projectName, ["appDescription", "llmProvider"]);
+      const result = await repository.getProjectAppSummaryFields(projectName, [
+        "appDescription",
+        "llmProvider",
+      ]);
 
       expect(result).toBeNull();
     });

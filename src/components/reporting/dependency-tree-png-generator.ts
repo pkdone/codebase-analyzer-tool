@@ -2,10 +2,7 @@ import { injectable } from "tsyringe";
 import { createCanvas, CanvasRenderingContext2D } from "canvas";
 import path from "path";
 import { writeBinaryFile } from "../../common/utils/file-operations";
-import type {
-  HierarchicalJavaClassDependency,
-} from "../../repositories/source/sources.model";
-
+import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 
 interface HierarchicalTreeNode {
   classpath: string;
@@ -103,7 +100,6 @@ export class DependencyTreePngGenerator {
     CONNECTION_WIDTH: 2,
     PERCENTAGE_360: 360,
   } as const;
-
 
   /**
    * Generate a PNG file showing the hierarchical dependency tree for a specific Java class
@@ -217,11 +213,6 @@ export class DependencyTreePngGenerator {
       .replace(/^_|_$/g, "");
   }
 
-
-
-
-
-
   /**
    * Draw the title at the top of the canvas
    */
@@ -236,8 +227,6 @@ export class DependencyTreePngGenerator {
     const titleText = `${this.TEXT.TITLE_PREFIX}${mainClasspath}`;
     ctx.fillText(titleText, canvasWidth / 2, this.NUMERIC.TITLE_Y_POSITION);
   }
-
-
 
   /**
    * Draw a single node (class box)

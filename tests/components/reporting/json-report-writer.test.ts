@@ -1,6 +1,9 @@
 import "reflect-metadata";
 import path from "path";
-import { JsonReportWriter, PreparedJsonData } from "../../../src/components/reporting/json-report-writer";
+import {
+  JsonReportWriter,
+  PreparedJsonData,
+} from "../../../src/components/reporting/json-report-writer";
 import { outputConfig } from "../../../src/config/output.config";
 import { writeFile } from "../../../src/common/utils/file-operations";
 
@@ -19,24 +22,24 @@ describe("JsonReportWriter", () => {
       filename: "entities.json",
       data: [
         { name: "User", type: "Entity", properties: ["id", "name", "email"] },
-        { name: "Product", type: "Entity", properties: ["id", "title", "price"] }
-      ]
+        { name: "Product", type: "Entity", properties: ["id", "title", "price"] },
+      ],
     },
     {
       filename: "app-stats.json",
-      data: { fileCount: 150, linesOfCode: 7500, lastUpdated: "2024-01-15" }
+      data: { fileCount: 150, linesOfCode: 7500, lastUpdated: "2024-01-15" },
     },
     {
       filename: "file-types.json",
-      data: { typescript: 80, javascript: 45, json: 25, markdown: 10 }
-    }
+      data: { typescript: 80, javascript: 45, json: 25, markdown: 10 },
+    },
   ];
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     jsonReportWriter = new JsonReportWriter();
-    
+
     // Mock console methods
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
     mockConsoleError = jest.spyOn(console, "error").mockImplementation();
@@ -55,19 +58,19 @@ describe("JsonReportWriter", () => {
       await jsonReportWriter.writeAllJSONFiles(mockPreparedDataList);
 
       expect(mockWriteFile).toHaveBeenCalledTimes(3);
-      
+
       // Verify each file was written with correct path and content
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "entities.json"),
-        JSON.stringify(mockPreparedDataList[0].data, null, 2)
+        JSON.stringify(mockPreparedDataList[0].data, null, 2),
       );
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "app-stats.json"),
-        JSON.stringify(mockPreparedDataList[1].data, null, 2)
+        JSON.stringify(mockPreparedDataList[1].data, null, 2),
       );
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "file-types.json"),
-        JSON.stringify(mockPreparedDataList[2].data, null, 2)
+        JSON.stringify(mockPreparedDataList[2].data, null, 2),
       );
 
       // Verify console output
@@ -107,7 +110,7 @@ describe("JsonReportWriter", () => {
     it("should handle multiple file write failures", async () => {
       const error1 = new Error("First file error");
       const error2 = new Error("Second file error");
-      
+
       mockWriteFile
         .mockRejectedValueOnce(error1)
         .mockRejectedValueOnce(error2)
@@ -131,7 +134,9 @@ describe("JsonReportWriter", () => {
       expect(mockConsoleLog).toHaveBeenCalledWith("Generating JSON files for all data sections...");
       expect(mockConsoleLog).toHaveBeenCalledWith("Finished generating all JSON files");
       // Should not log any "Generated JSON file" messages
-      expect(mockConsoleLog).not.toHaveBeenCalledWith(expect.stringMatching(/^Generated JSON file:/));
+      expect(mockConsoleLog).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^Generated JSON file:/),
+      );
     });
   });
 
@@ -146,11 +151,11 @@ describe("JsonReportWriter", () => {
                 with: ["arrays", "and", "values"],
                 numbers: 42,
                 booleans: true,
-                nullValue: null
-              }
-            }
-          }
-        }
+                nullValue: null,
+              },
+            },
+          },
+        },
       ];
 
       await jsonReportWriter.writeAllJSONFiles(complexData);
@@ -158,12 +163,12 @@ describe("JsonReportWriter", () => {
       const expectedJson = JSON.stringify(complexData[0].data, null, 2);
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "complex.json"),
-        expectedJson
+        expectedJson,
       );
 
       // Verify the JSON is properly formatted (has newlines and indentation)
-      expect(expectedJson).toContain('\n');
-      expect(expectedJson).toContain('  '); // 2-space indentation
+      expect(expectedJson).toContain("\n");
+      expect(expectedJson).toContain("  "); // 2-space indentation
     });
 
     it("should handle special data types in JSON", async () => {
@@ -179,9 +184,9 @@ describe("JsonReportWriter", () => {
             array: [1, 2, 3],
             emptyArray: [],
             emptyObject: {},
-            date: new Date("2024-01-15").toISOString()
-          }
-        }
+            date: new Date("2024-01-15").toISOString(),
+          },
+        },
       ];
 
       await jsonReportWriter.writeAllJSONFiles(specialData);
@@ -209,7 +214,7 @@ describe("JsonReportWriter", () => {
 
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "test.json"),
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -217,22 +222,22 @@ describe("JsonReportWriter", () => {
       const testData = [
         { filename: "data.json", data: {} },
         { filename: "config.json", data: {} },
-        { filename: "report.json", data: {} }
+        { filename: "report.json", data: {} },
       ];
 
       await jsonReportWriter.writeAllJSONFiles(testData);
 
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "data.json"),
-        expect.any(String)
+        expect.any(String),
       );
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "config.json"),
-        expect.any(String)
+        expect.any(String),
       );
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "report.json"),
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -240,7 +245,7 @@ describe("JsonReportWriter", () => {
       const testData = [
         { filename: "file with spaces.json", data: {} },
         { filename: "file-with-dashes.json", data: {} },
-        { filename: "file_with_underscores.json", data: {} }
+        { filename: "file_with_underscores.json", data: {} },
       ];
 
       await jsonReportWriter.writeAllJSONFiles(testData);
@@ -248,7 +253,7 @@ describe("JsonReportWriter", () => {
       testData.forEach(({ filename }) => {
         expect(mockWriteFile).toHaveBeenCalledWith(
           path.join(outputConfig.OUTPUT_DIR, filename),
-          expect.any(String)
+          expect.any(String),
         );
       });
     });
@@ -277,15 +282,13 @@ describe("JsonReportWriter", () => {
     });
 
     it("should handle null data gracefully", async () => {
-      const nullData = [
-        { filename: "null.json", data: null }
-      ];
+      const nullData = [{ filename: "null.json", data: null }];
 
       await jsonReportWriter.writeAllJSONFiles(nullData);
 
       expect(mockWriteFile).toHaveBeenCalledWith(
         path.join(outputConfig.OUTPUT_DIR, "null.json"),
-        "null"
+        "null",
       );
     });
   });

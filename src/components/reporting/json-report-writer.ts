@@ -19,18 +19,18 @@ export class JsonReportWriter {
    */
   async writeAllJSONFiles(preparedDataList: PreparedJsonData[]): Promise<void> {
     console.log("Generating JSON files for all data sections...");
-    
-    const tasks = preparedDataList.map(async ({ filename, data }) => 
-      this.writeJsonFile(filename, data)
+
+    const tasks = preparedDataList.map(async ({ filename, data }) =>
+      this.writeJsonFile(filename, data),
     );
 
     const results = await Promise.allSettled(tasks);
-    const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    const failures = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
 
     for (const failure of failures) {
       console.error(`Failed to write a JSON file:`, failure.reason);
     }
-    
+
     console.log("Finished generating all JSON files");
   }
 

@@ -26,8 +26,9 @@ export class AppStatisticsDataProvider {
     appSummaryData: Pick<AppSummaryRecordWithId, "appDescription" | "llmProvider">,
   ): Promise<AppStatistics> {
     // Use single database query instead of two separate queries for better performance
-    const { fileCount, linesOfCode } = await this.sourcesRepository.getProjectFileAndLineStats(projectName);
-    
+    const { fileCount, linesOfCode } =
+      await this.sourcesRepository.getProjectFileAndLineStats(projectName);
+
     return {
       projectName: projectName,
       currentDate: this.currentDate,

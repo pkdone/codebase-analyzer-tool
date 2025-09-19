@@ -41,27 +41,21 @@ export function extractGenericCompletionResponse(
 ): LLMImplSpecificResponseSummary {
   const validation = schema.safeParse(llmResponse);
   if (!validation.success)
-    throw new BadResponseContentLLMError(
-      `Invalid ${providerName} response structure`,
-      llmResponse,
-    );
+    throw new BadResponseContentLLMError(`Invalid ${providerName} response structure`, llmResponse);
   const response = validation.data as Record<string, unknown>;
   const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
     Boolean,
   ) as string[];
   const responseContent = getNestedValueWithFallbacks<string>(response, contentPaths) ?? "";
-  const stopReasonPaths = [
-    pathConfig.stopReasonPath,
-    pathConfig.alternativeStopReasonPath,
-  ].filter(Boolean) as string[];
+  const stopReasonPaths = [pathConfig.stopReasonPath, pathConfig.alternativeStopReasonPath].filter(
+    Boolean,
+  ) as string[];
   const finishReason = getNestedValueWithFallbacks<string>(response, stopReasonPaths) ?? "";
   const finishReasonLowercase = finishReason.toLowerCase();
   const isIncompleteResponse =
-    finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
-    !responseContent;
+    finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() || !responseContent;
   const promptTokens = getNestedValue<number>(response, pathConfig.promptTokensPath) ?? -1;
-  const completionTokens =
-    getNestedValue<number>(response, pathConfig.completionTokensPath) ?? -1;
+  const completionTokens = getNestedValue<number>(response, pathConfig.completionTokensPath) ?? -1;
   const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
   const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
   return { isIncompleteResponse, responseContent, tokenUsage };

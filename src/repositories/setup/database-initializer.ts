@@ -23,7 +23,7 @@ const MONGODB_NAMESPACE_EXISTS_ERROR_CODE = 48;
 /**
  * Component responsible for database schema initialization and management.
  * Handles all DDL operations including index creation for both collections.
- * 
+ *
  * This component encapsulates the core database initialization business logic
  * and can be used by tasks or other components that need to ensure the database
  * schema is properly set up.

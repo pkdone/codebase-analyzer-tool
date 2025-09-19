@@ -21,15 +21,15 @@ describe("Application Runner", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock console methods
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
     mockConsoleError = jest.spyOn(console, "error").mockImplementation();
-    
+
     // Mock timer functions
     mockSetInterval = jest.spyOn(global, "setInterval").mockImplementation(() => 123 as any);
     mockClearInterval = jest.spyOn(global, "clearInterval").mockImplementation();
-    
+
     // Mock process.exitCode
     mockProcessExit = jest.spyOn(process, "exitCode", "set").mockImplementation();
 
@@ -52,7 +52,7 @@ describe("Application Runner", () => {
       bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_TASK_TOKEN);
       expect(bootstrapContainer).toHaveBeenCalledWith(TEST_CONFIG);
@@ -67,7 +67,7 @@ describe("Application Runner", () => {
       expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 30000);
 
       // Wait for async execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Verify interval is cleaned up
       expect(mockClearInterval).toHaveBeenCalledWith(123);
@@ -84,7 +84,7 @@ describe("Application Runner", () => {
       bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockConsoleError).toHaveBeenCalledWith("Application error:", configError);
       expect(mockProcessExit).toHaveBeenCalledWith(1);
@@ -98,7 +98,7 @@ describe("Application Runner", () => {
       bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_TASK_TOKEN);
       expect(bootstrapContainer).toHaveBeenCalledWith(TEST_CONFIG);
@@ -115,7 +115,7 @@ describe("Application Runner", () => {
       bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(getTaskConfiguration).toHaveBeenCalledWith(TEST_TASK_TOKEN);
       expect(bootstrapContainer).toHaveBeenCalledWith(TEST_CONFIG);
@@ -132,7 +132,7 @@ describe("Application Runner", () => {
       bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Verify interval was set up and cleaned up despite error
       expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 30000);
@@ -152,7 +152,7 @@ describe("Application Runner", () => {
 
       // Get the callback function passed to setInterval
       const keepAliveCallback = (mockSetInterval as jest.Mock).mock.calls[0][0];
-      
+
       // Should not throw when executed
       expect(() => keepAliveCallback()).not.toThrow();
     });
@@ -167,7 +167,7 @@ describe("Application Runner", () => {
       bootstrapAndRunTask(null as any);
 
       // Wait for async execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockConsoleError).toHaveBeenCalled();
       expect(mockProcessExit).toHaveBeenCalledWith(1);
@@ -180,12 +180,12 @@ describe("Application Runner", () => {
       (runTask as jest.Mock).mockRejectedValueOnce(firstError);
 
       bootstrapAndRunTask(TEST_TASK_TOKEN);
-      
+
       // Wait for first execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockConsoleError).toHaveBeenCalledWith("Application error:", firstError);
-      
+
       // Reset mocks for second call
       jest.clearAllMocks();
       mockConsoleError = jest.spyOn(console, "error").mockImplementation();
@@ -198,13 +198,12 @@ describe("Application Runner", () => {
       (runTask as jest.Mock).mockRejectedValueOnce(secondError);
 
       bootstrapAndRunTask(TEST_TASK_TOKEN);
-      
+
       // Wait for second execution to complete
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(mockConsoleError).toHaveBeenCalledWith("Application error:", secondError);
       expect(mockClearInterval).toHaveBeenCalledWith(456);
     });
   });
 });
-

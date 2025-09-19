@@ -66,7 +66,7 @@ export default class CodebaseToDBLoader {
     const existingFiles = new Set<string>();
     if (skipIfAlreadyCaptured) {
       const existingFilePaths = await this.sourcesRepository.getProjectFilesPaths(projectName);
-      existingFilePaths.forEach(filepath => existingFiles.add(filepath));
+      existingFilePaths.forEach((filepath) => existingFiles.add(filepath));
 
       if (existingFiles.size > 0) {
         console.log(

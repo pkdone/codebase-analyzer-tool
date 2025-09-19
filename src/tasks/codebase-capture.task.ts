@@ -38,7 +38,9 @@ export class CodebaseCaptureTask extends BaseLLMTask {
    * Execute the core task logic.
    */
   protected async run(): Promise<void> {
-    await this.databaseInitializer.initializeDatabaseSchema(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);
+    await this.databaseInitializer.initializeDatabaseSchema(
+      databaseConfig.DEFAULT_VECTOR_DIMENSIONS,
+    );
     await this.codebaseToDBLoader.captureCodebaseToDatabase(
       this.projectName,
       this.env.CODEBASE_DIR_PATH,

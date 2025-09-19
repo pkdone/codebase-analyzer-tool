@@ -248,13 +248,13 @@ describe("SourcesRepositoryImpl", () => {
 
         const expectedPipeline = [
           { $match: { projectName } },
-          { 
-            $group: { 
-              _id: null, 
+          {
+            $group: {
+              _id: null,
               fileCount: { $sum: 1 },
-              linesOfCode: { $sum: "$linesCount" }
-            } 
-          }
+              linesOfCode: { $sum: "$linesCount" },
+            },
+          },
         ];
         expect(mockCollection.aggregate).toHaveBeenCalledWith(expectedPipeline);
       });

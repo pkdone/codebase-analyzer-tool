@@ -31,23 +31,22 @@ export interface PreparedHtmlReportData {
  */
 @injectable()
 export class HtmlReportWriter {
-
   /**
    * Renders HTML report from prepared template data and writes it to file.
    * This is a pure presentation method that only handles template rendering.
    */
-  async writeHTMLReportFile(preparedData: PreparedHtmlReportData, htmlFilePath: string): Promise<void> {
+  async writeHTMLReportFile(
+    preparedData: PreparedHtmlReportData,
+    htmlFilePath: string,
+  ): Promise<void> {
     const templatePath = path.join(
       __dirname,
       outputConfig.HTML_TEMPLATES_DIR,
       outputConfig.HTML_MAIN_TEMPLATE_FILE,
     );
-    
+
     const htmlContent = await ejs.renderFile(templatePath, preparedData);
     await writeFile(htmlFilePath, htmlContent);
-    console.log(
-      `View generated report in a browser: file://${path.resolve(htmlFilePath)}`,
-    );
+    console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
   }
-
 }

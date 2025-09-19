@@ -126,8 +126,8 @@ export class TableViewModel {
         const processedKeys = Object.fromEntries(
           Object.entries(objectItem).map(([key, value]) => [
             convertToDisplayName(key),
-            (typeof value === "object" && value !== null) ? JSON.stringify(value) : String(value)
-          ])
+            typeof value === "object" && value !== null ? JSON.stringify(value) : String(value),
+          ]),
         );
 
         return {

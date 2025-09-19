@@ -23,8 +23,10 @@ export default class McpHttpServer {
   /**
    * Constructor.
    */
-constructor(@inject(TOKENS.McpDataServer) private readonly mcpServerConfigurator: McpServerConfigurator) {
-this.mcpServer = this.mcpServerConfigurator.configure();
+  constructor(
+    @inject(TOKENS.McpDataServer) private readonly mcpServerConfigurator: McpServerConfigurator,
+  ) {
+    this.mcpServer = this.mcpServerConfigurator.configure();
   }
 
   /**

@@ -13,15 +13,16 @@ import {
   LLMErrorMsgRegExPattern,
 } from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
-import {
-  LLMProviderSpecificConfig,
-} from "../../llm-provider.types";
+import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { formatErrorMessage } from "../../../../common/utils/error-formatters";
 import { logErrorMsgAndDetail } from "../../../../common/utils/logging";
 import AbstractLLM from "../../abstract-llm";
 import { z } from "zod";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
-import { extractGenericCompletionResponse, type ResponsePathConfig } from "./bedrock-response-parser";
+import {
+  extractGenericCompletionResponse,
+  type ResponsePathConfig,
+} from "./bedrock-response-parser";
 
 /**
  * Configuration object for Bedrock LLM providers.
@@ -30,7 +31,6 @@ import { extractGenericCompletionResponse, type ResponsePathConfig } from "./bed
 export interface BedrockConfig {
   providerSpecificConfig?: LLMProviderSpecificConfig;
 }
-
 
 /**
  * Complete configuration for response extraction including schema and provider information
@@ -199,7 +199,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       body,
     };
   }
-
 
   /**
    * Abstract method to be overriden. Assemble the AWS Bedrock API parameters structure for the

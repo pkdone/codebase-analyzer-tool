@@ -19,7 +19,7 @@ import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 export function registerCaptureComponents(): void {
   // Register configuration
   container.registerInstance(TOKENS.FileTypeMappingsConfig, fileTypeMappingsConfig);
-  
+
   registerComponents(
     [{ token: TOKENS.PromptConfigFactory, implementation: PromptConfigFactory }],
     "Capture components registered",

@@ -30,7 +30,7 @@ export async function processItemsConcurrently<T, R>(
   const results = await Promise.allSettled(tasks);
   const { successes, failures } = results.reduce(
     (acc, result, index) => {
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         acc.successes++;
       } else {
         acc.failures++;
@@ -45,16 +45,14 @@ export async function processItemsConcurrently<T, R>(
       }
       return acc;
     },
-    { successes: 0, failures: 0 }
+    { successes: 0, failures: 0 },
   );
   console.log(
     `Processed ${items.length} ${itemName}s. Succeeded: ${successes}, Failed: ${failures}`,
   );
-  
+
   if (failures > 0) {
-    console.warn(
-      `Warning: ${failures} ${itemName}s failed to process. Check logs for details.`,
-    );
+    console.warn(`Warning: ${failures} ${itemName}s failed to process. Check logs for details.`);
   }
 
   return { successes, failures };

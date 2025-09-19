@@ -91,10 +91,14 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
   // Register lifecycle services using factory for optional dependencies
   container.register(TOKENS.ShutdownService, {
     useFactory: (c) => {
-      const llmRouter = c.isRegistered(TOKENS.LLMRouter) ? c.resolve<LLMRouter>(TOKENS.LLMRouter) : undefined;
-      const mongoFactory = c.isRegistered(TOKENS.MongoDBClientFactory) ? c.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory) : undefined;
+      const llmRouter = c.isRegistered(TOKENS.LLMRouter)
+        ? c.resolve<LLMRouter>(TOKENS.LLMRouter)
+        : undefined;
+      const mongoFactory = c.isRegistered(TOKENS.MongoDBClientFactory)
+        ? c.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory)
+        : undefined;
       return new ShutdownService(llmRouter, mongoFactory);
-    }
+    },
   });
 
   // Register database components

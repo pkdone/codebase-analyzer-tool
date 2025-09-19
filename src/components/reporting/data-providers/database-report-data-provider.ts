@@ -37,12 +37,14 @@ export class DatabaseReportDataProvider {
     return records.flatMap((record) => {
       const { summary } = record;
       if (summary?.databaseIntegration) {
-        return [{
-          path: summary.classpath ?? record.filepath,
-          mechanism: summary.databaseIntegration.mechanism,
-          description: summary.databaseIntegration.description,
-          codeExample: summary.databaseIntegration.codeExample,
-        }];
+        return [
+          {
+            path: summary.classpath ?? record.filepath,
+            mechanism: summary.databaseIntegration.mechanism,
+            description: summary.databaseIntegration.description,
+            codeExample: summary.databaseIntegration.codeExample,
+          },
+        ];
       }
       return []; // This item will be filtered out by flatMap
     });

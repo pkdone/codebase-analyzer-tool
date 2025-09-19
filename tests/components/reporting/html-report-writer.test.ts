@@ -2,7 +2,10 @@ import "reflect-metadata";
 import mockFs from "mock-fs";
 import path from "path";
 import ejs from "ejs";
-import { HtmlReportWriter, PreparedHtmlReportData } from "../../../src/components/reporting/html-report-writer";
+import {
+  HtmlReportWriter,
+  PreparedHtmlReportData,
+} from "../../../src/components/reporting/html-report-writer";
 import { outputConfig } from "../../../src/config/output.config";
 import { writeFile } from "../../../src/common/utils/file-operations";
 
@@ -26,8 +29,8 @@ describe("HtmlReportWriter", () => {
         category: "entities",
         label: "Business Entities",
         data: [{ name: "User", description: "User entity" }],
-        tableViewModel: {}
-      }
+        tableViewModel: {},
+      },
     ],
     dbInteractions: { queries: 10, connections: 3 },
     procsAndTriggers: { procedures: 5, triggers: 2 },
@@ -37,14 +40,14 @@ describe("HtmlReportWriter", () => {
     fileTypesTableViewModel: {},
     dbInteractionsTableViewModel: {},
     procsAndTriggersTableViewModel: {},
-    topLevelJavaClassesTableViewModel: {}
+    topLevelJavaClassesTableViewModel: {},
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     htmlReportWriter = new HtmlReportWriter();
-    
+
     // Mock console.log
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
 
@@ -64,25 +67,30 @@ describe("HtmlReportWriter", () => {
       const expectedTemplatePath = path.join(
         __dirname.replace("tests/components/reporting", "src/components/reporting"),
         outputConfig.HTML_TEMPLATES_DIR,
-        outputConfig.HTML_MAIN_TEMPLATE_FILE
+        outputConfig.HTML_MAIN_TEMPLATE_FILE,
       );
 
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
 
       expect(mockEjs.renderFile).toHaveBeenCalledWith(expectedTemplatePath, mockPreparedData);
-      expect(mockWriteFile).toHaveBeenCalledWith(htmlFilePath, "<html><body>Test Report</body></html>");
+      expect(mockWriteFile).toHaveBeenCalledWith(
+        htmlFilePath,
+        "<html><body>Test Report</body></html>",
+      );
       expect(mockConsoleLog).toHaveBeenCalledWith(
-        `View generated report in a browser: file://${path.resolve(htmlFilePath)}`
+        `View generated report in a browser: file://${path.resolve(htmlFilePath)}`,
       );
     });
 
     it("should handle template rendering errors", async () => {
       const htmlFilePath = "/output/test-report.html";
       const templateError = new Error("Template rendering failed");
-      
+
       mockEjs.renderFile = jest.fn().mockRejectedValue(templateError);
 
-      await expect(htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath)).rejects.toThrow("Template rendering failed");
+      await expect(
+        htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath),
+      ).rejects.toThrow("Template rendering failed");
 
       expect(mockWriteFile).not.toHaveBeenCalled();
       expect(mockConsoleLog).not.toHaveBeenCalled();
@@ -91,10 +99,12 @@ describe("HtmlReportWriter", () => {
     it("should handle file writing errors", async () => {
       const htmlFilePath = "/output/test-report.html";
       const fileError = new Error("File writing failed");
-      
+
       mockWriteFile.mockRejectedValue(fileError);
 
-      await expect(htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath)).rejects.toThrow("File writing failed");
+      await expect(
+        htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath),
+      ).rejects.toThrow("File writing failed");
 
       expect(mockEjs.renderFile).toHaveBeenCalled();
       expect(mockConsoleLog).not.toHaveBeenCalled();
@@ -102,13 +112,13 @@ describe("HtmlReportWriter", () => {
 
     it("should use correct template path", async () => {
       const htmlFilePath = "/output/custom-report.html";
-      
+
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
 
       const expectedTemplatePath = path.join(
         __dirname.replace("tests/components/reporting", "src/components/reporting"),
         outputConfig.HTML_TEMPLATES_DIR,
-        outputConfig.HTML_MAIN_TEMPLATE_FILE
+        outputConfig.HTML_MAIN_TEMPLATE_FILE,
       );
 
       expect(mockEjs.renderFile).toHaveBeenCalledWith(expectedTemplatePath, mockPreparedData);
@@ -120,7 +130,7 @@ describe("HtmlReportWriter", () => {
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
 
       expect(mockEjs.renderFile).toHaveBeenCalledWith(expect.any(String), mockPreparedData);
-      
+
       // Verify the exact data structure is passed through
       const passedData = (mockEjs.renderFile as jest.Mock).mock.calls[0][1];
       expect(passedData).toEqual(mockPreparedData);
@@ -134,7 +144,7 @@ describe("HtmlReportWriter", () => {
         "/output/report.html",
         "./relative/path/report.html",
         "../parent/directory/report.html",
-        "simple-filename.html"
+        "simple-filename.html",
       ];
 
       for (const htmlFilePath of testCases) {
@@ -142,7 +152,7 @@ describe("HtmlReportWriter", () => {
 
         expect(mockWriteFile).toHaveBeenCalledWith(htmlFilePath, expect.any(String));
         expect(mockConsoleLog).toHaveBeenCalledWith(
-          `View generated report in a browser: file://${path.resolve(htmlFilePath)}`
+          `View generated report in a browser: file://${path.resolve(htmlFilePath)}`,
         );
       }
 
@@ -151,7 +161,8 @@ describe("HtmlReportWriter", () => {
     });
 
     it("should preserve template content exactly", async () => {
-      const customTemplate = "<html><head><title>{{title}}</title></head><body>{{content}}</body></html>";
+      const customTemplate =
+        "<html><head><title>{{title}}</title></head><body>{{content}}</body></html>";
       mockEjs.renderFile = jest.fn().mockResolvedValue(customTemplate);
 
       const htmlFilePath = "/output/test-report.html";
@@ -173,19 +184,20 @@ describe("HtmlReportWriter", () => {
     });
 
     it("should handle very long file paths", async () => {
-      const longPath = "/very/long/path/with/many/nested/directories/and/a/very/long/filename/that/exceeds/normal/length/expectations/report.html";
-      
+      const longPath =
+        "/very/long/path/with/many/nested/directories/and/a/very/long/filename/that/exceeds/normal/length/expectations/report.html";
+
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, longPath);
 
       expect(mockWriteFile).toHaveBeenCalledWith(longPath, expect.any(String));
       expect(mockConsoleLog).toHaveBeenCalledWith(
-        `View generated report in a browser: file://${path.resolve(longPath)}`
+        `View generated report in a browser: file://${path.resolve(longPath)}`,
       );
     });
 
     it("should handle special characters in file paths", async () => {
       const specialCharPath = "/output/report with spaces & symbols (test).html";
-      
+
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, specialCharPath);
 
       expect(mockWriteFile).toHaveBeenCalledWith(specialCharPath, expect.any(String));
