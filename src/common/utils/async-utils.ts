@@ -34,7 +34,14 @@ export async function processItemsConcurrently<T, R>(
         acc.successes++;
       } else {
         acc.failures++;
-        logErrorMsgAndDetail(`Failed to process ${itemName}: ${String(items[index])}`, result.reason);
+        // Use JSON.stringify for better object logging, with a fallback for circular references
+        let itemIdentifier: string;
+        try {
+          itemIdentifier = JSON.stringify(items[index]);
+        } catch {
+          itemIdentifier = String(items[index]);
+        }
+        logErrorMsgAndDetail(`Failed to process ${itemName}: ${itemIdentifier}`, result.reason);
       }
       return acc;
     },

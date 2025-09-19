@@ -302,14 +302,20 @@ describe("ShutdownService", () => {
         throw new Error("Unexpected token");
       });
 
+      // Spy on console.error to verify error logging
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+
       const shutdownService = new ShutdownService();
 
-      await expect(shutdownService.gracefulShutdown()).rejects.toThrow(
-        "Failed to check for forced shutdown",
-      );
+      // The method should now complete gracefully instead of throwing
+      await expect(shutdownService.gracefulShutdown()).resolves.not.toThrow();
 
       expect(mockLLMRouter.close).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalledTimes(1);
+      // Verify the error was logged instead of thrown
+      expect(consoleSpy).toHaveBeenCalledWith("Error during forced shutdown check:", error);
+
+      consoleSpy.mockRestore();
     });
   });
 });

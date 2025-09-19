@@ -187,6 +187,18 @@ export default class McpHttpServer {
         // Handle the request with the transport
         await transport.handleRequest(req, res, body);
       } catch (error: unknown) {
+        // Check if it's a JSON parsing error
+        if (error instanceof Error && error.message.startsWith("Failed to parse JSON")) {
+          this.sendJsonRpcError(
+            res,
+            mcpConfig.HTTP_STATUS_BAD_REQUEST,
+            -32700, // JSON-RPC Parse Error
+            "Parse error",
+          );
+          return;
+        }
+
+        // Handle other errors as internal server errors
         logErrorMsgAndDetail("Error in MCP request handler", error);
         if (!res.headersSent) {
           this.sendJsonRpcError(

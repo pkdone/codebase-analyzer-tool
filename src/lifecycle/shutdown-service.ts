@@ -40,15 +40,19 @@ export class ShutdownService {
       }
     });
 
-    if (this.llmRouter?.providerNeedsForcedShutdown()) {
-      // Known Google Cloud Node.js client limitation:
-      // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
-      // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
-      // Use timeout-based cleanup as the recommended workaround
-      void setTimeout(() => {
-        console.log("Forced exit because GCP client connections cannot be closed properly");
-        process.exit(0);
-      }, 1000); // 1 second should be enough for any pending operations
+    try {
+      if (this.llmRouter?.providerNeedsForcedShutdown()) {
+        // Known Google Cloud Node.js client limitation:
+        // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
+        // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
+        // Use timeout-based cleanup as the recommended workaround
+        void setTimeout(() => {
+          console.log("Forced exit because GCP client connections cannot be closed properly");
+          process.exit(0);
+        }, 1000); // 1 second should be enough for any pending operations
+      }
+    } catch (error) {
+      console.error("Error during forced shutdown check:", error);
     }
   }
 }
