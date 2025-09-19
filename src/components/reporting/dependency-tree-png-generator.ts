@@ -3,19 +3,9 @@ import { createCanvas, CanvasRenderingContext2D } from "canvas";
 import path from "path";
 import { writeBinaryFile } from "../../common/utils/file-operations";
 import type {
-  JavaClassDependency,
   HierarchicalJavaClassDependency,
 } from "../../repositories/source/sources.model";
 
-interface TreeNode {
-  classpath: string;
-  level: number;
-  references: string[];
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
 
 interface HierarchicalTreeNode {
   classpath: string;
@@ -114,36 +104,6 @@ export class DependencyTreePngGenerator {
     PERCENTAGE_360: 360,
   } as const;
 
-  /**
-   * Generate a PNG file showing the dependency tree for a specific Java class
-   */
-  async generateDependencyTreePng(
-    classpath: string,
-    dependencies: JavaClassDependency[],
-    outputDir: string,
-  ): Promise<string> {
-    // Create a safe filename from the classpath
-    const filename = this.createSafeFilename(classpath);
-    const filepath = path.join(outputDir, `${filename}.png`);
-
-    // Organize dependencies by level
-    const nodesByLevel = this.organizeDependenciesByLevel(dependencies);
-
-    // Calculate canvas dimensions
-    const { width, height } = this.calculateCanvasDimensions(nodesByLevel);
-
-    // Create canvas
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext("2d");
-
-    // Draw the dependency tree
-    this.drawDependencyTree(ctx, classpath, nodesByLevel, width, height);
-
-    // Save to file
-    const buffer = canvas.toBuffer(this.FILE.FORMAT);
-    await writeBinaryFile(filepath, buffer);
-    return filename + this.FILE.EXTENSION;
-  }
 
   /**
    * Generate a PNG file showing the hierarchical dependency tree for a specific Java class
@@ -257,104 +217,10 @@ export class DependencyTreePngGenerator {
       .replace(/^_|_$/g, "");
   }
 
-  /**
-   * Organize dependencies by their hierarchy level
-   */
-  private organizeDependenciesByLevel(
-    dependencies: JavaClassDependency[],
-  ): Map<number, TreeNode[]> {
-    const nodesByLevel = new Map<number, TreeNode[]>();
 
-    dependencies.forEach((dep) => {
-      if (!nodesByLevel.has(dep.level)) nodesByLevel.set(dep.level, []);
-      const nodes = nodesByLevel.get(dep.level);
-      if (!nodes) return;
-      nodes.push({
-        classpath: dep.classpath,
-        level: dep.level,
-        references: [...dep.references],
-        x: 0, // Will be calculated later
-        y: 0, // Will be calculated later
-        width: this.NODE_WIDTH,
-        height: this.NODE_HEIGHT,
-      });
-    });
 
-    const sortedLevels = new Map([...nodesByLevel.entries()].sort((a, b) => a[0] - b[0]));
-    this.calculateNodePositions(sortedLevels);
-    return sortedLevels;
-  }
 
-  /**
-   * Calculate x,y positions for all nodes in the tree
-   */
-  private calculateNodePositions(nodesByLevel: Map<number, TreeNode[]>): void {
-    let currentY = this.CANVAS_PADDING;
 
-    for (const [, nodes] of nodesByLevel) {
-      let currentX = this.CANVAS_PADDING;
-
-      nodes.forEach((node) => {
-        node.x = currentX;
-        node.y = currentY;
-        currentX += this.NODE_WIDTH + this.HORIZONTAL_SPACING;
-      });
-
-      currentY += this.NODE_HEIGHT + this.VERTICAL_SPACING + this.LEVEL_HEIGHT;
-    }
-  }
-
-  /**
-   * Calculate maximum width needed for the canvas
-   */
-  private calculateMaxWidth(nodesByLevel: Map<number, TreeNode[]>): number {
-    let maxWidth = 0;
-
-    for (const nodes of nodesByLevel.values()) {
-      const levelWidth =
-        nodes.length * (this.NODE_WIDTH + this.HORIZONTAL_SPACING) - this.HORIZONTAL_SPACING;
-      maxWidth = Math.max(maxWidth, levelWidth);
-    }
-
-    return maxWidth + 2 * this.CANVAS_PADDING;
-  }
-
-  /**
-   * Calculate the required canvas dimensions
-   */
-  private calculateCanvasDimensions(nodesByLevel: Map<number, TreeNode[]>): {
-    width: number;
-    height: number;
-  } {
-    const levels = nodesByLevel.size;
-    const calculatedWidth = this.calculateMaxWidth(nodesByLevel);
-    const calculatedHeight =
-      levels * (this.NODE_HEIGHT + this.VERTICAL_SPACING + this.LEVEL_HEIGHT) +
-      2 * this.CANVAS_PADDING;
-    const width = Math.min(Math.max(calculatedWidth, this.MIN_CANVAS_WIDTH), this.MAX_CANVAS_WIDTH);
-    const height = Math.min(
-      Math.max(calculatedHeight, this.MIN_CANVAS_HEIGHT),
-      this.MAX_CANVAS_HEIGHT,
-    );
-    return { width, height };
-  }
-
-  /**
-   * Draw the complete dependency tree on the canvas
-   */
-  private drawDependencyTree(
-    ctx: CanvasRenderingContext2D,
-    mainClasspath: string,
-    nodesByLevel: Map<number, TreeNode[]>,
-    canvasWidth: number,
-    canvasHeight: number,
-  ): void {
-    ctx.fillStyle = this.COLORS.WHITE;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    this.drawTitle(ctx, mainClasspath, canvasWidth);
-    this.drawConnections(ctx, nodesByLevel);
-    this.drawNodes(ctx, nodesByLevel);
-  }
 
   /**
    * Draw the title at the top of the canvas
@@ -371,109 +237,11 @@ export class DependencyTreePngGenerator {
     ctx.fillText(titleText, canvasWidth / 2, this.NUMERIC.TITLE_Y_POSITION);
   }
 
-  /**
-   * Draw connection lines between dependency levels
-   */
-  private drawConnections(
-    ctx: CanvasRenderingContext2D,
-    nodesByLevel: Map<number, TreeNode[]>,
-  ): void {
-    ctx.strokeStyle = this.COLORS.CONNECTION;
-    ctx.lineWidth = this.NUMERIC.CONNECTION_WIDTH;
-    const levels = Array.from(nodesByLevel.keys()).sort((a, b) => a - b);
 
-    for (let i = 0; i < levels.length - 1; i++) {
-      const currentLevelNodes = nodesByLevel.get(levels[i]);
-      const nextLevelNodes = nodesByLevel.get(levels[i + 1]);
-
-      if (!currentLevelNodes || !nextLevelNodes) continue;
-
-      currentLevelNodes.forEach((currentNode) => {
-        // Collect all targets for this node to enable staggering
-        const targetNodesForStaggering: HierarchicalTreeNode[] = [];
-
-        nextLevelNodes.forEach((nextNode) => {
-          if (currentNode.references.includes(nextNode.classpath)) {
-            const toNodeForFlat: HierarchicalTreeNode = {
-              classpath: nextNode.classpath,
-              level: 0,
-              x: nextNode.x,
-              y: nextNode.y,
-              width: nextNode.width,
-              height: nextNode.height,
-              children: [],
-            };
-            targetNodesForStaggering.push(toNodeForFlat);
-          }
-        });
-
-        // Draw all connections from this node with staggering
-        if (targetNodesForStaggering.length > 0) {
-          const fromNodeForFlat: HierarchicalTreeNode = {
-            classpath: currentNode.classpath,
-            level: 0,
-            x: currentNode.x,
-            y: currentNode.y,
-            width: currentNode.width,
-            height: currentNode.height,
-            children: [],
-          };
-
-          this.drawConnectionsWithStaggering(ctx, fromNodeForFlat, targetNodesForStaggering);
-        }
-      });
-    }
-  }
-
-  /**
-   * Draw all nodes (class boxes) on the canvas
-   */
-  private drawNodes(ctx: CanvasRenderingContext2D, nodesByLevel: Map<number, TreeNode[]>): void {
-    for (const [level, nodes] of nodesByLevel) {
-      nodes.forEach((node) => {
-        this.drawNode(ctx, node, level);
-      });
-    }
-  }
 
   /**
    * Draw a single node (class box)
    */
-  private drawNode(ctx: CanvasRenderingContext2D, node: TreeNode, level: number): void {
-    // Draw node background
-    const isRootLevel = level === 0;
-    ctx.fillStyle = isRootLevel ? this.COLORS.ROOT_BACKGROUND : this.COLORS.NODE_BACKGROUND;
-    ctx.fillRect(node.x, node.y, node.width, node.height);
-
-    // Draw node border
-    ctx.strokeStyle = isRootLevel ? this.COLORS.ROOT_BORDER : this.COLORS.NODE_BORDER;
-    ctx.lineWidth = isRootLevel ? this.NUMERIC.BORDER_WIDTH_ROOT : this.NUMERIC.BORDER_WIDTH_NODE;
-    ctx.strokeRect(node.x, node.y, node.width, node.height);
-
-    // Draw class name - ALWAYS show full classpath without truncation
-    ctx.font = `${isRootLevel ? this.TEXT.FONT_WEIGHT_BOLD : ""}${this.FONT_SIZE}px ${this.TEXT.FONT_FAMILY}`;
-    ctx.fillStyle = this.COLORS.TEXT;
-    ctx.textAlign = "left";
-
-    // Always use full classpath text - no truncation
-    const displayText = node.classpath;
-
-    ctx.fillText(
-      displayText,
-      node.x + this.NUMERIC.TEXT_PADDING_REGULAR,
-      node.y + node.height / 2 + this.FONT_SIZE / 2 - 2,
-    );
-
-    // Draw level indicator
-    ctx.font = `${this.FONT_SIZE - this.NUMERIC.FONT_SIZE_LEVEL_OFFSET_REGULAR}px ${this.TEXT.FONT_FAMILY}`;
-    ctx.fillStyle = this.COLORS.LEVEL_INDICATOR;
-    ctx.textAlign = "right";
-    ctx.fillText(
-      `${this.TEXT.LEVEL_PREFIX}${level}`,
-      node.x + node.width - this.NUMERIC.LEVEL_PADDING_REGULAR,
-      node.y + this.NUMERIC.LEVEL_Y_REGULAR,
-    );
-  }
 
   /**
    * Convert hierarchical dependencies to tree nodes using original levels, avoiding duplicates

@@ -4,8 +4,8 @@ This document outlines the inferred coding standards, architectural patterns, an
 
 ## 1. Language(s) and Framework(s) Identification
 
-*   **Primary Language:** TypeScript (v5.7.3 or higher)
-*   **Runtime Environment:** Node.js (v20.0.0 or higher)
+*   **Primary Language:** TypeScript (v5.7.3 or higher, as per `package.json` and `tsconfig.json`)
+*   **Runtime Environment:** Node.js (v20.0.0 or higher, as per `package.json` `engines` field)
 *   **Package Manager:** npm
 *   **Major Libraries & Frameworks:**
     *   **LLM Interaction:**
@@ -25,19 +25,18 @@ This document outlines the inferred coding standards, architectural patterns, an
 The project uses a combination of Prettier for automated formatting and ESLint for stylistic and quality rules, ensuring a highly consistent code style.
 
 *   **Indentation:**
-    *   **2 spaces** are used for indentation. This is consistent across all TypeScript, JavaScript, and configuration files.
+    *   **2 spaces** are used for indentation. This is consistent across all TypeScript, JavaScript, and configuration files (`tsconfig.json`, `eslint.config.mjs`).
 *   **Line Endings & Spacing:**
-    *   **Line Endings:** LF (Unix-style) is enforced.
+    *   **Line Endings:** LF (Unix-style) is the standard.
     *   **Blank Lines:** A single blank line is used to separate top-level constructs (imports, functions, classes) and methods within classes. Blank lines are also used sparingly within functions to group related blocks of logic.
     *   **Line Length:** While not strictly enforced by a linter rule, the code style aims for a line length of approximately **100-120 characters** to maintain readability.
-    *   **Trailing Commas:** Trailing commas are preferred in multi-line object literals, array literals, and import/export lists, as is common practice with Prettier and stylistic ESLint rules.
+    *   **Trailing Commas:** Trailing commas are preferred in multi-line object literals, array literals, and import/export lists, as is common practice with Prettier.
 *   **Braces and Parentheses:**
     *   **Braces:** The opening brace (`{`) is placed on the **same line** as the corresponding statement or declaration (e.g., `class MyClass {`, `if (condition) {`). This is a variant of the K&R style.
         ```typescript
-        async function exampleFunction() {
-            if (condition) {
-                // ...
-            }
+        // From: src/lifecycle/application-runner.ts
+        export function runApplication(taskToken: symbol): void {
+            // ...
         }
         ```
     *   **Parentheses:** Standard use for function calls and control structures. Spaces are used around operators inside parentheses for readability (e.g., `(a + b)`).
@@ -62,7 +61,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   **TypeScript Files:** `kebab-case.ts` (e.g., `application-runner.ts`, `llm-router.ts`).
     *   **Specialized Files:** Suffixes are used to denote purpose, such as `*.config.ts`, `*.types.ts`, `*.test.ts`, and `*.int.test.ts`.
     *   **Prompt Files:** `kebab-case.prompt` or `questions.prompts`.
-    *   **Directories:** ``kebab-case` is used for directories or standard names (e.g., `src`, `tests`, `input`) hanging directly off the root folder.
+    *   **Directories:** `kebab-case` is used for directories containing multiple files (e.g., `src/components/reporting/data-providers`), while standard names (`src`, `tests`, `input`) are used for top-level folders.
 
 ## 4. Architectural Patterns and Code Structure
 
@@ -94,7 +93,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
         *   The native `mongodb` driver is used.
         *   A `MongoDBClientFactory` is managed via DI to handle connections.
         *   The **Repository Pattern** is strictly followed to abstract data access logic (e.g., `SourcesRepository`, `AppSummariesRepository`).
-        *   The `DBInitializerTask` is responsible for setting up collections and indexes, including vector search indexes on `contentVector` and `summaryVector` fields.
+        *   The `DatabaseInitializer` task is responsible for setting up collections and indexes, including vector search indexes on `contentVector` and `summaryVector` fields.
         *   Queries consist of standard MongoDB operations and `$vectorSearch` aggregation pipelines for semantic search.
 *   **Data Fetching & API Interaction:**
     *   **LLM APIs:** All interactions with external LLM APIs are centralized and abstracted through the `LLMRouter`. Specific provider implementations in `src/llm/providers/` use the official SDKs for each service (e.g., `openai`, `@aws-sdk/client-bedrock-runtime`).
@@ -157,7 +156,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
 
 *   **Compiling/Building:**
     *   **Command:** `npm run build`
-    *   **Process:** The TypeScript Compiler (`tsc`) compiles `.ts` files into JavaScript, placing them in the `dist/` directory as configured in `tsconfig.json`. The build script also copies necessary template files.
+    *   **Process:** The TypeScript Compiler (`tsc`) compiles `.ts` files into JavaScript, placing them in the `dist/` directory as configured in `tsconfig.json`. The build script also copies necessary template files via `scripts/copy-assets.js`.
 *   **Linting:**
     *   **Command:** `npm run lint`
     *   **Tool:** ESLint, configured via `eslint.config.mjs`.

@@ -24,27 +24,3 @@ export function resolveFileType(filepath: string, detectedType: string): string 
   );
 }
 
-/**
- * Gets the default file type when no specific mapping is found.
- */
-export function getDefaultFileType(): string {
-  return fileTypeMappingsConfig.DEFAULT_FILE_TYPE;
-}
-
-/**
- * Gets the Java file type constant.
- */
-export function getJavaFileType(): string {
-  return fileTypeMappingsConfig.JAVA_FILE_TYPE;
-}
-
-/**
- * Checks if a file type has a specific mapping (either by extension or filename).
- */
-export function hasFileTypeMapping(filepath: string, detectedType: string): boolean {
-  const filename = path.basename(filepath).toLowerCase();
-  return (
-    fileTypeMappingsConfig.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.has(filename) ||
-    fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.has(detectedType.toLowerCase())
-  );
-}
