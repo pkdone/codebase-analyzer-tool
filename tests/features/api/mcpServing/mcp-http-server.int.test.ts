@@ -313,11 +313,11 @@ describe("McpHttpServer Integration Tests", () => {
 
       // Assert
       expect(res.setHeader).toHaveBeenCalledWith("Access-Control-Allow-Origin", "*");
-      expect(res.writeHead).toHaveBeenCalledWith(500, { "Content-Type": "application/json" });
+      expect(res.writeHead).toHaveBeenCalledWith(400, { "Content-Type": "application/json" });
       expect(res.end).toHaveBeenCalledWith(
         JSON.stringify({
           jsonrpc: "2.0",
-          error: { code: -32603, message: "Internal Server Error" },
+          error: { code: -32700, message: "Parse error" },
           id: null,
         }),
       );

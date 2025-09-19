@@ -2,7 +2,7 @@ import { TOKENS } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
 // API component imports
-import InsightsDataProvider from "../../components/api/mcpServing/insights-data-server";
+import InsightsDataProvider from "../../components/api/mcpServing/insights-data-provider";
 import McpDataServer from "../../components/api/mcpServing/mcp-data-server";
 import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
 

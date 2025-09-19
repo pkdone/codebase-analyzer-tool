@@ -87,7 +87,7 @@ describe("AppSummariesRepository Integration Tests", () => {
 
       // Assert: Verify the record was inserted
       const retrieved =
-        await appSummariesRepository.getProjectAppSummaryDescAndLLMProvider(testProjectName);
+        await appSummariesRepository.getProjectAppSummaryFields(testProjectName, ["appDescription", "llmProvider"]);
       expect(retrieved).not.toBeNull();
       expect(retrieved!.appDescription).toBe("Test application for integration testing");
       expect(retrieved!.llmProvider).toBe("openai");
@@ -106,7 +106,7 @@ describe("AppSummariesRepository Integration Tests", () => {
 
       // Verify initial record exists
       let retrieved =
-        await appSummariesRepository.getProjectAppSummaryDescAndLLMProvider(testProjectName);
+        await appSummariesRepository.getProjectAppSummaryFields(testProjectName, ["appDescription", "llmProvider"]);
       expect(retrieved!.appDescription).toBe("Initial description");
       expect(retrieved!.llmProvider).toBe("claude");
 
@@ -126,7 +126,7 @@ describe("AppSummariesRepository Integration Tests", () => {
 
       // Assert: Verify the record was replaced completely
       retrieved =
-        await appSummariesRepository.getProjectAppSummaryDescAndLLMProvider(testProjectName);
+        await appSummariesRepository.getProjectAppSummaryFields(testProjectName, ["appDescription", "llmProvider"]);
       expect(retrieved!.appDescription).toBe("Updated description");
       expect(retrieved!.llmProvider).toBe("openai");
 
@@ -166,7 +166,7 @@ describe("AppSummariesRepository Integration Tests", () => {
 
       // Assert: Verify updated fields
       const retrieved =
-        await appSummariesRepository.getProjectAppSummaryDescAndLLMProvider(testProjectName);
+        await appSummariesRepository.getProjectAppSummaryFields(testProjectName, ["appDescription", "llmProvider"]);
       expect(retrieved!.appDescription).toBe("Updated description via partial update");
       expect(retrieved!.llmProvider).toBe("claude"); // Should remain unchanged
 
@@ -200,7 +200,7 @@ describe("AppSummariesRepository Integration Tests", () => {
 
       // Assert: Record should remain unchanged
       const retrieved =
-        await appSummariesRepository.getProjectAppSummaryDescAndLLMProvider(testProjectName);
+        await appSummariesRepository.getProjectAppSummaryFields(testProjectName, ["appDescription", "llmProvider"]);
       expect(retrieved!.appDescription).toBe("Initial description");
       expect(retrieved!.llmProvider).toBe("openai");
     }, 30000);
@@ -268,10 +268,10 @@ describe("AppSummariesRepository Integration Tests", () => {
       await appSummariesRepository.createOrReplaceAppSummary(testRecord);
     });
 
-    it("should return correct projected fields from getProjectAppSummaryDescAndLLMProvider", async () => {
+    it("should return correct projected fields using generic getProjectAppSummaryFields", async () => {
       // Act
       const result =
-        await appSummariesRepository.getProjectAppSummaryDescAndLLMProvider(testProjectName);
+        await appSummariesRepository.getProjectAppSummaryFields(testProjectName, ["appDescription", "llmProvider"]);
 
       // Assert
       expect(result).not.toBeNull();
@@ -285,7 +285,7 @@ describe("AppSummariesRepository Integration Tests", () => {
     it("should return null for non-existent project", async () => {
       // Act
       const result =
-        await appSummariesRepository.getProjectAppSummaryDescAndLLMProvider("nonexistent-project");
+        await appSummariesRepository.getProjectAppSummaryFields("nonexistent-project", ["appDescription", "llmProvider"]);
 
       // Assert
       expect(result).toBeNull();

@@ -30,7 +30,7 @@ export class CodebaseCaptureTask extends BaseLLMTask {
   /**
    * Get the task name for logging.
    */
-  protected getTaskName(): string {
+  protected getTaskActivityDescription(): string {
     return "Processing source files";
   }
 

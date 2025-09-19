@@ -21,7 +21,7 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
 
 // Define valid category keys for generating structured table reports, excluding appDescription
 // This creates a type-safe readonly array of the valid keys
-const TABLE_FORMAT_INSIGHT_CATEGORIES = AppSummaryCategories.options.filter(
+const TABLE_DISPLAY_CATEGORIES = AppSummaryCategories.options.filter(
   (
     key,
   ): key is Exclude<typeof AppSummaryCategories._type, typeof pathsConfig.APP_DESCRIPTION_KEY> =>
@@ -29,7 +29,7 @@ const TABLE_FORMAT_INSIGHT_CATEGORIES = AppSummaryCategories.options.filter(
 );
 
 // Type for the valid category keys
-type ValidCategoryKey = (typeof TABLE_FORMAT_INSIGHT_CATEGORIES)[number];
+type ValidCategoryKey = (typeof TABLE_DISPLAY_CATEGORIES)[number];
 
 /**
  * Data provider responsible for aggregating categorized data for reports.
@@ -42,7 +42,7 @@ export class CategoriesDataProvider {
   getCategorizedData(
     appSummaryData: Pick<AppSummaryRecordWithId, ValidCategoryKey>,
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
-    const results = TABLE_FORMAT_INSIGHT_CATEGORIES.map((category: ValidCategoryKey) => {
+    const results = TABLE_DISPLAY_CATEGORIES.map((category: ValidCategoryKey) => {
       const config = summaryCategoriesConfig[category as keyof typeof summaryCategoriesConfig];
       const label = config.label;
       const fieldData = appSummaryData[category];

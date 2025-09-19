@@ -1,7 +1,6 @@
 import { AppSummariesRepository } from "./app-summaries.repository.interface";
 import {
   AppSummaryRecordWithId,
-  ProjectedAppSummaryDescAndLLMProvider,
   PartialAppSummaryRecord,
   AppSummaryRecord,
 } from "./app-summaries.model";
@@ -55,19 +54,6 @@ export default class AppSummariesRepositoryImpl
       logMongoValidationErrorIfPresent(error);
       throw error;
     }
-  }
-
-  /**
-   * Get app summary info for reporting (description and LLM provider)
-   */
-  async getProjectAppSummaryDescAndLLMProvider(
-    projectName: string,
-  ): Promise<ProjectedAppSummaryDescAndLLMProvider | null> {
-    const query = { projectName };
-    const options = {
-      projection: { _id: 0, appDescription: 1, llmProvider: 1 },
-    };
-    return await this.collection.findOne<ProjectedAppSummaryDescAndLLMProvider>(query, options);
   }
 
   /**

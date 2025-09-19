@@ -7,7 +7,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { logErrorMsgAndDetail } from "../../../common/utils/logging";
 import { mcpConfig } from "./mcp.config";
-import McpDataServer from "./mcp-data-server";
+import McpServerConfigurator from "./mcp-data-server";
 import { TOKENS } from "../../../di/tokens";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -23,8 +23,8 @@ export default class McpHttpServer {
   /**
    * Constructor.
    */
-  constructor(@inject(TOKENS.McpDataServer) private readonly mcpDataServer: McpDataServer) {
-    this.mcpServer = this.mcpDataServer.configure();
+constructor(@inject(TOKENS.McpDataServer) private readonly mcpServerConfigurator: McpServerConfigurator) {
+this.mcpServer = this.mcpServerConfigurator.configure();
   }
 
   /**

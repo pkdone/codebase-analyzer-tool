@@ -2,8 +2,8 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { fillPrompt } from "type-safe-prompt";
 import { z } from "zod";
 
-// Constant to force the LLM to respond with a JSON object
-const FORCE_JSON_RESPONSE_TEXT = `
+// Instructions for the LLM to respond with a JSON object
+const JSON_OUTPUT_INSTRUCTIONS = `
 In your response, only include JSON and do not include any additional text explanations outside the JSON object.
 NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
 NEVER use " or ' quote symbols as part of the text you use for JSON description values, even if you want to quote a piece of existing text, existing message or show a path
@@ -32,7 +32,7 @@ export function createPromptFromConfig(
   return fillPrompt(template, {
     contentDesc,
     specificInstructions,
-    forceJSON: FORCE_JSON_RESPONSE_TEXT,
+    forceJSON: JSON_OUTPUT_INSTRUCTIONS,
     jsonSchema: JSON.stringify(zodToJsonSchema(schema), null, 2),
     codeContent,
   });

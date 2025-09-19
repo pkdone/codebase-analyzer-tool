@@ -216,7 +216,7 @@ export default class AppReportGenerator {
         );
 
         // Count total dependencies from hierarchical structure
-        const dependencyCount = this.countAllDependencies(classData.dependencies);
+        const dependencyCount = this.countUniqueDependencies(classData.dependencies);
 
         return {
           [htmlReportConstants.columnHeaders.CLASSPATH]: classpathLink,
@@ -246,7 +246,7 @@ export default class AppReportGenerator {
   /**
    * Counts unique dependencies in a hierarchical dependency structure, excluding the root element.
    */
-  private countAllDependencies(dependencies: readonly HierarchicalJavaClassDependency[]): number {
+  private countUniqueDependencies(dependencies: readonly HierarchicalJavaClassDependency[]): number {
     const uniqueClasspaths = new Set<string>();
     this.collectUniqueClasspaths(dependencies, uniqueClasspaths);
     return uniqueClasspaths.size;

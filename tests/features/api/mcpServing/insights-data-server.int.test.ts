@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { TOKENS } from "../../../../src/di/tokens";
-import InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-server";
+import InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-provider";
 import { setupTestDatabase, teardownTestDatabase } from "../../../helpers/db-test-helper";
 
 describe("AnalysisDataServer", () => {
@@ -46,7 +46,7 @@ describe("AnalysisDataServer", () => {
 
     // If we have data, validate its structure
     expect(result.length).toBeGreaterThan(0);
-    result.forEach((item) => {
+    result.forEach((item: any) => {
       expect(item).toHaveProperty("name");
       expect(item).toHaveProperty("description");
       expect(item).toHaveProperty("keyBusinessActivities");

@@ -10,7 +10,7 @@ import { runTask } from "./task-executor";
  *
  * This function handles all error cases and process termination internally.
  */
-export function runApplication(taskToken: symbol): void {
+export function bootstrapAndRunTask(taskToken: symbol): void {
   const eventLoopKeepAliveInterval = setInterval(() => {
     // Prevent process from exiting prematurely by keeping the event loop active
     // See the comment in the finally block below

@@ -14,7 +14,7 @@ import type { ApplicationInsightsProcessor } from "./insights-generator.interfac
 import { PartialAppSummaryRecord, AppSummaryCategoryEnum } from "./insights.types";
 
 // Mark schema as being easy for LLMs to digest
-const IS_TRICKY_SCHEMA = false;
+const SCHEMA_HAS_VERTEXAI_INCOMPATIBILITY = false;
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -143,7 +143,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
-          hasComplexSchema: IS_TRICKY_SCHEMA,
+          hasComplexSchema: SCHEMA_HAS_VERTEXAI_INCOMPATIBILITY,
         },
       );
       return llmResponse;

@@ -1,6 +1,5 @@
 import {
   AppSummaryRecordWithId,
-  ProjectedAppSummaryDescAndLLMProvider,
   PartialAppSummaryRecord,
   AppSummaryRecord,
 } from "./app-summaries.model";
@@ -18,13 +17,6 @@ export interface AppSummariesRepository {
    * Update an existing app summary record
    */
   updateAppSummary(projectName: string, updates: PartialAppSummaryRecord): Promise<void>;
-
-  /**
-   * Get app summary info for reporting (description and LLM provider)
-   */
-  getProjectAppSummaryDescAndLLMProvider(
-    projectName: string,
-  ): Promise<ProjectedAppSummaryDescAndLLMProvider | null>;
 
   /**
    * Get specific field data from app summary

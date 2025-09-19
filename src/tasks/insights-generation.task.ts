@@ -25,7 +25,7 @@ export class InsightsGenerationTask extends BaseLLMTask {
   /**
    * Get the task name for logging.
    */
-  protected getTaskName(): string {
+  protected getTaskActivityDescription(): string {
     return "Generating insights";
   }
 

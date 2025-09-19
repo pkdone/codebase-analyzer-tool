@@ -32,14 +32,6 @@ export type AppSummaryNameDescArray = z.infer<typeof nameDescSchema>[];
 export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;
 
 /**
- * Type for MongoDB projected document with app description and LLM provider fields
- */
-export type ProjectedAppSummaryDescAndLLMProvider = Pick<
-  z.infer<typeof appSummarySchema>,
-  "appDescription" | "llmProvider"
->;
-
-/**
  * Generate JSON schema for application summary records
  */
 export function getJSONSchema() {

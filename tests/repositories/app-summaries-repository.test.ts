@@ -121,7 +121,7 @@ describe("AppSummariesRepositoryImpl", () => {
     });
   });
 
-  describe("getProjectAppSummaryDescAndLLMProvider", () => {
+  describe("getProjectAppSummaryFields for appDescription and llmProvider", () => {
     it("should return projected fields when record exists", async () => {
       const projectName = "test-project";
       const mockResult = {
@@ -131,7 +131,7 @@ describe("AppSummariesRepositoryImpl", () => {
 
       mockCollection.findOne.mockResolvedValue(mockResult);
 
-      const result = await repository.getProjectAppSummaryDescAndLLMProvider(projectName);
+      const result = await repository.getProjectAppSummaryFields(projectName, ["appDescription", "llmProvider"]);
 
       expect(result).toEqual(mockResult);
       expect(mockCollection.findOne).toHaveBeenCalledWith(
@@ -146,7 +146,7 @@ describe("AppSummariesRepositoryImpl", () => {
       const projectName = "nonexistent-project";
       mockCollection.findOne.mockResolvedValue(null);
 
-      const result = await repository.getProjectAppSummaryDescAndLLMProvider(projectName);
+      const result = await repository.getProjectAppSummaryFields(projectName, ["appDescription", "llmProvider"]);
 
       expect(result).toBeNull();
     });

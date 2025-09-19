@@ -1,14 +1,14 @@
 import { injectable, inject } from "tsyringe";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import InsightsDataProvider from "./insights-data-server";
+import InsightsDataProvider from "./insights-data-provider";
 import { mcpConfig } from "./mcp.config";
 import { TOKENS } from "../../../di/tokens";
 
 /**
- * Class representing the MCP Data Server.
+ * Class for configuring the MCP server with data providers and resources.
  */
 @injectable()
-export default class McpDataServer {
+export default class McpServerConfigurator {
   /**
    * Constructor.
    */

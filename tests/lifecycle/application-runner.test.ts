@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { runApplication } from "../../src/lifecycle/application-runner";
+import { bootstrapAndRunTask } from "../../src/lifecycle/application-runner";
 import { bootstrapContainer } from "../../src/di/container";
 import { getTaskConfiguration } from "../../src/di/registration-modules/task-config-registration";
 import { runTask } from "../../src/lifecycle/task-executor";
@@ -49,7 +49,7 @@ describe("Application Runner", () => {
 
   describe("successful execution", () => {
     it("should execute the full application lifecycle successfully", async () => {
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -61,7 +61,7 @@ describe("Application Runner", () => {
     });
 
     it("should set up and clean up keep-alive interval", async () => {
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Verify interval is set up
       expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 30000);
@@ -81,7 +81,7 @@ describe("Application Runner", () => {
         throw configError;
       });
 
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -95,7 +95,7 @@ describe("Application Runner", () => {
       const bootstrapError = new Error("Bootstrap failed");
       (bootstrapContainer as jest.Mock).mockRejectedValue(bootstrapError);
 
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -112,7 +112,7 @@ describe("Application Runner", () => {
       const taskError = new Error("Task execution failed");
       (runTask as jest.Mock).mockRejectedValue(taskError);
 
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -129,7 +129,7 @@ describe("Application Runner", () => {
       const error = new Error("Any error");
       (runTask as jest.Mock).mockRejectedValue(error);
 
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Wait for async execution to complete
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -142,13 +142,13 @@ describe("Application Runner", () => {
 
   describe("keep-alive interval functionality", () => {
     it("should create interval with correct timing", () => {
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 30000);
     });
 
     it("should execute keep-alive function without errors", () => {
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
 
       // Get the callback function passed to setInterval
       const keepAliveCallback = (mockSetInterval as jest.Mock).mock.calls[0][0];
@@ -164,7 +164,7 @@ describe("Application Runner", () => {
         throw new Error("Invalid task token");
       });
 
-      runApplication(null as any);
+      bootstrapAndRunTask(null as any);
 
       // Wait for async execution to complete
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -179,7 +179,7 @@ describe("Application Runner", () => {
       const firstError = new Error("First error");
       (runTask as jest.Mock).mockRejectedValueOnce(firstError);
 
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
       
       // Wait for first execution to complete
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -197,7 +197,7 @@ describe("Application Runner", () => {
       const secondError = new Error("Second error");
       (runTask as jest.Mock).mockRejectedValueOnce(secondError);
 
-      runApplication(TEST_TASK_TOKEN);
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
       
       // Wait for second execution to complete
       await new Promise(resolve => setTimeout(resolve, 10));

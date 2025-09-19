@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import McpDataServer from "../../../../src/components/api/mcpServing/mcp-data-server";
-import type InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-server";
+import type InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-provider";
 import { mcpConfig } from "../../../../src/components/api/mcpServing/mcp.config";
 
 // Mock the MCP SDK

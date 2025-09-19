@@ -18,10 +18,10 @@ export abstract class BaseLLMTask implements Task {
    * Execute the task with standard LLM stats reporting wrapper.
    */
   async execute(): Promise<void> {
-    console.log(`${this.getTaskName()} for project: ${this.projectName}`);
+    console.log(`${this.getTaskActivityDescription()} for project: ${this.projectName}`);
     this.llmStatsReporter.displayLLMStatusSummary();
     await this.run();
-    console.log(`Finished ${this.getTaskName().toLowerCase()} for the project`);
+    console.log(`Finished ${this.getTaskActivityDescription().toLowerCase()} for the project`);
     console.log("Summary of LLM invocations outcomes:");
     this.llmStatsReporter.displayLLMStatusDetails();
   }
@@ -32,7 +32,7 @@ export abstract class BaseLLMTask implements Task {
   protected abstract run(): Promise<void>;
 
   /**
-   * Get the task name for logging. Should be in present participle form (e.g., "Generating insights").
+   * Get the task activity description for logging. Should be in present participle form (e.g., "Generating insights").
    */
-  protected abstract getTaskName(): string;
+  protected abstract getTaskActivityDescription(): string;
 }
