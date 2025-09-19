@@ -236,57 +236,36 @@ describe("SourcesRepositoryImpl", () => {
   });
 
   describe("aggregation methods", () => {
-    describe("getProjectFilesCount", () => {
-      it("should return correct file count", async () => {
+    describe("getProjectFileAndLineStats", () => {
+      it("should return correct stats when files exist", async () => {
         const projectName = "test-project";
-        const mockResults = [{ count: 42 }];
+        const mockResults = [{ fileCount: 42, linesOfCode: 1500 }];
         mockAggregationCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectFilesCount(projectName);
+        const result = await repository.getProjectFileAndLineStats(projectName);
 
-        expect(result).toBe(42);
+        expect(result).toEqual({ fileCount: 42, linesOfCode: 1500 });
 
         const expectedPipeline = [
           { $match: { projectName } },
-          { $group: { _id: "", count: { $sum: 1 } } },
+          { 
+            $group: { 
+              _id: null, 
+              fileCount: { $sum: 1 },
+              linesOfCode: { $sum: "$linesCount" }
+            } 
+          }
         ];
         expect(mockCollection.aggregate).toHaveBeenCalledWith(expectedPipeline);
       });
 
-      it("should return 0 when no files found", async () => {
+      it("should return zeros when no files exist", async () => {
         const projectName = "test-project";
         mockAggregationCursor.toArray.mockResolvedValue([]);
 
-        const result = await repository.getProjectFilesCount(projectName);
+        const result = await repository.getProjectFileAndLineStats(projectName);
 
-        expect(result).toBe(0);
-      });
-    });
-
-    describe("getProjectTotalLinesOfCode", () => {
-      it("should return correct lines count", async () => {
-        const projectName = "test-project";
-        const mockResults = [{ count: 1500 }];
-        mockAggregationCursor.toArray.mockResolvedValue(mockResults);
-
-        const result = await repository.getProjectTotalLinesOfCode(projectName);
-
-        expect(result).toBe(1500);
-
-        const expectedPipeline = [
-          { $match: { projectName } },
-          { $group: { _id: "", count: { $sum: "$linesCount" } } },
-        ];
-        expect(mockCollection.aggregate).toHaveBeenCalledWith(expectedPipeline);
-      });
-
-      it("should return 0 when no results", async () => {
-        const projectName = "test-project";
-        mockAggregationCursor.toArray.mockResolvedValue([]);
-
-        const result = await repository.getProjectTotalLinesOfCode(projectName);
-
-        expect(result).toBe(0);
+        expect(result).toEqual({ fileCount: 0, linesOfCode: 0 });
       });
     });
 

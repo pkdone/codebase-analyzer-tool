@@ -67,15 +67,11 @@ export interface SourcesRepository {
    */
   getProjectFilesPaths(projectName: string): Promise<string[]>;
 
-  /**
-   * Get file count for a project
-   */
-  getProjectFilesCount(projectName: string): Promise<number>;
 
   /**
-   * Get total lines of code for a project
+   * Get file count and total lines of code for a project in a single query
    */
-  getProjectTotalLinesOfCode(projectName: string): Promise<number>;
+  getProjectFileAndLineStats(projectName: string): Promise<{ fileCount: number; linesOfCode: number }>;
 
   /**
    * Get files count and lines of code count for each file type for a project

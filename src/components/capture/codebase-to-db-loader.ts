@@ -62,11 +62,13 @@ export default class CodebaseToDBLoader {
       `Creating metadata for ${filepaths.length} files to the MongoDB database sources collection`,
     );
 
+    // Batch load existing files once to avoid N+1 query problem
+    const existingFiles = new Set<string>();
     if (skipIfAlreadyCaptured) {
-      // Check if any files already exist for this project and log message once if they do
-      const existingFilesCount = await this.sourcesRepository.getProjectFilesCount(projectName);
+      const existingFilePaths = await this.sourcesRepository.getProjectFilesPaths(projectName);
+      existingFilePaths.forEach(filepath => existingFiles.add(filepath));
 
-      if (existingFilesCount > 0) {
+      if (existingFiles.size > 0) {
         console.log(
           `Not capturing some of the metadata files into the database because they've already been captured by a previous run - change env var 'SKIP_ALREADY_PROCESSED_FILES' to force re-processing of all files`,
         );
@@ -86,6 +88,7 @@ export default class CodebaseToDBLoader {
           projectName,
           srcDirPath,
           skipIfAlreadyCaptured,
+          existingFiles,
         );
       },
       fileProcessingConfig.MAX_CONCURRENCY,
@@ -101,6 +104,7 @@ export default class CodebaseToDBLoader {
     projectName: string,
     srcDirPath: string,
     skipIfAlreadyCaptured: boolean,
+    existingFiles: Set<string>,
   ) {
     const type = getFileExtension(fullFilepath).toLowerCase();
     const filepath = path.relative(srcDirPath, fullFilepath);
@@ -109,10 +113,7 @@ export default class CodebaseToDBLoader {
     )
       return; // Skip file if it has binary content
 
-    if (
-      skipIfAlreadyCaptured &&
-      (await this.sourcesRepository.doesProjectSourceExist(projectName, filepath))
-    ) {
+    if (skipIfAlreadyCaptured && existingFiles.has(filepath)) {
       return;
     }
 

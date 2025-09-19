@@ -231,47 +231,7 @@ describe("SourcesRepository Integration Tests", () => {
       expect(pyResult).toMatchObject({ fileType: "py", files: 1, lines: 75 });
     }, 30000);
 
-    it("should return correct file count from getProjectFilesCount", async () => {
-      // Arrange
-      const testData: SourceRecord[] = [
-        {
-          projectName,
-          filename: "test1.ts",
-          filepath: "src/test1.ts",
-          type: "ts",
-          linesCount: 10,
-          content: "content1",
-        },
-        {
-          projectName,
-          filename: "test2.java",
-          filepath: "src/test2.java",
-          type: "java",
-          linesCount: 20,
-          content: "content2",
-        },
-        {
-          projectName,
-          filename: "test3.py",
-          filepath: "src/test3.py",
-          type: "py",
-          linesCount: 30,
-          content: "content3",
-        },
-      ];
-
-      for (const record of testData) {
-        await sourcesRepository.insertSource(record);
-      }
-
-      // Act
-      const result = await sourcesRepository.getProjectFilesCount(projectName);
-
-      // Assert
-      expect(result).toBe(3);
-    }, 30000);
-
-    it("should return correct total lines from getProjectTotalLinesOfCode", async () => {
+    it("should return correct file and line stats from getProjectFileAndLineStats", async () => {
       // Arrange
       const testData: SourceRecord[] = [
         {
@@ -305,10 +265,10 @@ describe("SourcesRepository Integration Tests", () => {
       }
 
       // Act
-      const result = await sourcesRepository.getProjectTotalLinesOfCode(projectName);
+      const result = await sourcesRepository.getProjectFileAndLineStats(projectName);
 
       // Assert
-      expect(result).toBe(450);
+      expect(result).toEqual({ fileCount: 3, linesOfCode: 450 });
     }, 30000);
   });
 
@@ -510,15 +470,15 @@ describe("SourcesRepository Integration Tests", () => {
       }
 
       // Verify data exists
-      let count = await sourcesRepository.getProjectFilesCount(projectName);
-      expect(count).toBe(2);
+      let stats = await sourcesRepository.getProjectFileAndLineStats(projectName);
+      expect(stats.fileCount).toBe(2);
 
       // Act: Delete all sources for project
       await sourcesRepository.deleteSourcesByProject(projectName);
 
       // Assert: Verify deletion
-      count = await sourcesRepository.getProjectFilesCount(projectName);
-      expect(count).toBe(0);
+      stats = await sourcesRepository.getProjectFileAndLineStats(projectName);
+      expect(stats.fileCount).toBe(0);
     }, 30000);
 
     it("should return correct file paths from getProjectFilesPaths", async () => {

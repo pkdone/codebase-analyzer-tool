@@ -56,7 +56,8 @@ describe("CodebaseToDBLoader", () => {
 
     // Mock SourcesRepository
     mockSourcesRepository = {
-      getProjectFilesCount: jest.fn().mockResolvedValue(0),
+      getProjectFilesPaths: jest.fn().mockResolvedValue([]),
+      getProjectFileAndLineStats: jest.fn().mockResolvedValue({ fileCount: 0, linesOfCode: 0 }),
       deleteSourcesByProject: jest.fn().mockResolvedValue(undefined),
       doesProjectSourceExist: jest.fn().mockResolvedValue(false),
       insertSource: jest.fn().mockResolvedValue(undefined),
@@ -110,8 +111,14 @@ describe("CodebaseToDBLoader", () => {
       const mockFiles = ["/src/file1.ts", "/src/file2.js"];
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockSourcesRepository.getProjectFilesCount.mockResolvedValue(5);
-      mockSourcesRepository.doesProjectSourceExist.mockResolvedValue(true);
+      // Mock existing file paths to indicate files are already captured
+      mockSourcesRepository.getProjectFilesPaths.mockResolvedValue(["file1.ts", "file2.js"]);
+      // Mock path.relative to return the relative paths
+      mockPath.relative.mockImplementation((_from, to) => {
+        if (to === "/src/file1.ts") return "file1.ts";
+        if (to === "/src/file2.js") return "file2.js";
+        return to;
+      });
 
       await loader.captureCodebaseToDatabase("testProject", "/src", true);
 

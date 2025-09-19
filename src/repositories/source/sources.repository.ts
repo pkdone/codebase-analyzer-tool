@@ -217,18 +217,27 @@ export default class SourcesRepositoryImpl
       .toArray();
   }
 
-  /**
-   * Get file count for a project
-   */
-  async getProjectFilesCount(projectName: string): Promise<number> {
-    return this.getProjectCount(projectName, 1);
-  }
 
   /**
-   * Get total lines of code for a project
+   * Get file count and total lines of code for a project in a single query
    */
-  async getProjectTotalLinesOfCode(projectName: string): Promise<number> {
-    return this.getProjectCount(projectName, "$linesCount");
+  async getProjectFileAndLineStats(projectName: string): Promise<{ fileCount: number; linesOfCode: number }> {
+    const pipeline = [
+      { $match: { projectName } },
+      { 
+        $group: { 
+          _id: null, 
+          fileCount: { $sum: 1 },
+          linesOfCode: { $sum: "$linesCount" }
+        } 
+      }
+    ];
+    const result = await this.collection.aggregate<{ _id: null; fileCount: number; linesOfCode: number }>(pipeline).toArray();
+    if (result.length === 0) {
+      return { fileCount: 0, linesOfCode: 0 };
+    }
+    const stats = result[0];
+    return { fileCount: stats.fileCount, linesOfCode: stats.linesOfCode };
   }
 
   /**
@@ -332,17 +341,6 @@ export default class SourcesRepositoryImpl
     return getJSONSchema();
   }
 
-  /**
-   * Private helper method for count aggregations
-   */
-  private async getProjectCount(projectName: string, sumExpression: Document | number | string): Promise<number> {
-    const pipeline: Document[] = [
-      { $match: { projectName } },
-      { $group: { _id: "", count: { $sum: sumExpression } } },
-    ];
-    const result = await this.collection.aggregate<{ count: number }>(pipeline).toArray();
-    return result[0]?.count ?? 0;
-  }
 
   /**
    * Iterates through the numbers in the array and converts each one explicitly to a BSON Double.
