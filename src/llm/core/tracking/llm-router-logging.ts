@@ -28,7 +28,7 @@ export function logWithContext(msg: string, context: LLMContext): void {
 /**
  * Log the context keys and values.
  */
-export function logContext(context: LLMContext): void {
+function logContext(context: LLMContext): void {
   for (const [key, value] of Object.entries(context)) {
     log(`  * ${key}: ${value}`);
   }
