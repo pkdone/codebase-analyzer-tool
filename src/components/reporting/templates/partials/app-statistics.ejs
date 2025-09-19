@@ -1,9 +1,9 @@
-<h2>Application Statistics <a href="<%= jsonFilesConfig.dataFiles.appStats %>" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h2>
+<%- include('section-header', { title: 'Application Statistics', jsonFile: jsonFilesConfig.dataFiles.appStats }) %>
 <p>Application: <b><%= appStats.projectName %></b></p>
 <p>Snapshot date/time: <b><%= appStats.currentDate %></b></p>
 <p>LLM provider: <b><%= appStats.llmProvider %></b></p>
 <p>Files count: <b><%= appStats.fileCount %></b></p>
 <p>Lines of code: <b><%= appStats.linesOfCode %></b></p>
 
-<h2>Application Description <a href="<%= jsonFilesConfig.dataFiles.appDescription %>" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h2>
+<%- include('section-header', { title: 'Application Description', jsonFile: jsonFilesConfig.dataFiles.appDescription }) %>
 <p><%= appStats.appDescription %></p> 

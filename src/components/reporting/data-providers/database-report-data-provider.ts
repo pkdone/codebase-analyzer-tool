@@ -20,6 +20,8 @@ type ProcOrTrigItem = z.infer<typeof procedureTriggerSchema> & { filepath: strin
  */
 @injectable()
 export class DatabaseReportDataProvider {
+  private readonly codeFileExtensions = [...fileProcessingConfig.CODE_FILE_EXTENSIONS];
+
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
   ) {}
@@ -28,9 +30,10 @@ export class DatabaseReportDataProvider {
    * Returns a list of database integrations.
    */
   async getDatabaseInteractions(projectName: string): Promise<DatabaseIntegrationInfo[]> {
-    const records = await this.sourcesRepository.getProjectDatabaseIntegrations(projectName, [
-      ...fileProcessingConfig.CODE_FILE_EXTENSIONS,
-    ]);
+    const records = await this.sourcesRepository.getProjectDatabaseIntegrations(
+      projectName,
+      this.codeFileExtensions,
+    );
     return records.flatMap((record) => {
       const { summary } = record;
       if (summary?.databaseIntegration) {
@@ -51,7 +54,7 @@ export class DatabaseReportDataProvider {
   async getSummarizedProceduresAndTriggers(projectName: string): Promise<ProcsAndTriggers> {
     const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(
       projectName,
-      [...fileProcessingConfig.CODE_FILE_EXTENSIONS],
+      this.codeFileExtensions,
     );
     const allProcs = records.flatMap(
       (record) =>

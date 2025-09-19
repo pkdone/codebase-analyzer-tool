@@ -221,24 +221,14 @@ export default class SourcesRepositoryImpl
    * Get file count for a project
    */
   async getProjectFilesCount(projectName: string): Promise<number> {
-    const pipeline: Document[] = [
-      { $match: { projectName } },
-      { $group: { _id: "", count: { $sum: 1 } } },
-    ];
-    const result = await this.collection.aggregate<{ count: number }>(pipeline).toArray();
-    return result[0]?.count ?? 0;
+    return this.getProjectCount(projectName, 1);
   }
 
   /**
    * Get total lines of code for a project
    */
   async getProjectTotalLinesOfCode(projectName: string): Promise<number> {
-    const pipeline: Document[] = [
-      { $match: { projectName } },
-      { $group: { _id: "", count: { $sum: "$linesCount" } } },
-    ];
-    const result = await this.collection.aggregate<{ count: number }>(pipeline).toArray();
-    return result[0]?.count ?? 0;
+    return this.getProjectCount(projectName, "$linesCount");
   }
 
   /**
@@ -340,6 +330,18 @@ export default class SourcesRepositoryImpl
    */
   getCollectionValidationSchema(): Record<string, unknown> {
     return getJSONSchema();
+  }
+
+  /**
+   * Private helper method for count aggregations
+   */
+  private async getProjectCount(projectName: string, sumExpression: Document | number | string): Promise<number> {
+    const pipeline: Document[] = [
+      { $match: { projectName } },
+      { $group: { _id: "", count: { $sum: sumExpression } } },
+    ];
+    const result = await this.collection.aggregate<{ count: number }>(pipeline).toArray();
+    return result[0]?.count ?? 0;
   }
 
   /**

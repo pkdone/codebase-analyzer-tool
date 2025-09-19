@@ -1,4 +1,4 @@
-<h2>File Types Distribution <a href="<%= jsonFilesConfig.dataFiles.fileTypes %>" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h2>
+<%- include('section-header', { title: 'File Types Distribution', jsonFile: jsonFilesConfig.dataFiles.fileTypes }) %>
 <div style="text-align: center; margin: 20px 0;">
   <img src="<%= fileTypesPieChartPath %>" alt="File Types Distribution Pie Chart" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px;">
 </div>    
