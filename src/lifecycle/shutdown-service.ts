@@ -6,7 +6,7 @@ import { TOKENS } from "../di/tokens";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.
- * Uses constructor injection for dependencies but handles optional dependencies safely.
+ * Uses service locator pattern for optional dependencies since tsyringe doesn't support @optional.
  */
 @injectable()
 export class ShutdownService {

@@ -28,27 +28,27 @@ export async function processItemsConcurrently<T, R>(
   const limit = pLimit(concurrency);
   const tasks = items.map(async (item) => limit(async () => processor(item)));
   const results = await Promise.allSettled(tasks);
-
-  let successCount = 0;
-  let failureCount = 0;
-
-  results.forEach((result, index) => {
-    if (result.status === "rejected") {
-      failureCount++;
-      logErrorMsgAndDetail(`Failed to process ${itemName}: ${String(items[index])}`, result.reason);
-    } else {
-      successCount++;
-    }
-  });
-
-  console.log(
-    `Processed ${items.length} ${itemName}s. Succeeded: ${successCount}, Failed: ${failureCount}`,
+  const { successes, failures } = results.reduce(
+    (acc, result, index) => {
+      if (result.status === 'fulfilled') {
+        acc.successes++;
+      } else {
+        acc.failures++;
+        logErrorMsgAndDetail(`Failed to process ${itemName}: ${String(items[index])}`, result.reason);
+      }
+      return acc;
+    },
+    { successes: 0, failures: 0 }
   );
-  if (failureCount > 0) {
+  console.log(
+    `Processed ${items.length} ${itemName}s. Succeeded: ${successes}, Failed: ${failures}`,
+  );
+  
+  if (failures > 0) {
     console.warn(
-      `Warning: ${failureCount} ${itemName}s failed to process. Check logs for details.`,
+      `Warning: ${failures} ${itemName}s failed to process. Check logs for details.`,
     );
   }
 
-  return { successes: successCount, failures: failureCount };
+  return { successes, failures };
 }

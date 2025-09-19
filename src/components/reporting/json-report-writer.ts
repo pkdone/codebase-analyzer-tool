@@ -2,17 +2,7 @@ import { injectable } from "tsyringe";
 import path from "path";
 import { outputConfig } from "../../config/output.config";
 import { jsonFilesConfig } from "./json-files.config";
-import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
-import type {
-  ReportData,
-  AppStatistics,
-  ProcsAndTriggers,
-  DatabaseIntegrationInfo,
-} from "./report-gen.types";
-import {
-  ProjectedFileTypesCountAndLines,
-  HierarchicalTopLevelJavaClassDependencies,
-} from "../../repositories/source/sources.model";
+import type { ReportData } from "./report-gen.types";
 import { writeFile } from "../../common/utils/file-operations";
 
 /**
@@ -26,6 +16,7 @@ export class JsonReportWriter {
    */
   async writeAllJSONFiles(reportData: ReportData): Promise<void> {
     console.log("Generating JSON files for all data sections...");
+    
     const completeReportData = {
       appStats: reportData.appStats,
       fileTypesData: reportData.fileTypesData,
@@ -34,49 +25,47 @@ export class JsonReportWriter {
       procsAndTriggers: reportData.procsAndTriggers,
       topLevelJavaClasses: reportData.topLevelJavaClasses,
     };
-    const jsonFiles: {
-      filename: string;
-      data:
-        | AppSummaryNameDescArray
-        | AppStatistics
-        | ProjectedFileTypesCountAndLines[]
-        | DatabaseIntegrationInfo[]
-        | ProcsAndTriggers
-        | { appDescription: string }
-        | HierarchicalTopLevelJavaClassDependencies[]
-        | typeof completeReportData;
-    }[] = [
-      { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },
-      ...reportData.categorizedData.map((categoryData) => ({
-        filename: jsonFilesConfig.getCategoryFilename(categoryData.category),
-        data: categoryData.data,
-      })),
-      { filename: jsonFilesConfig.dataFiles.appStats, data: reportData.appStats },
-      {
-        filename: jsonFilesConfig.dataFiles.appDescription,
-        data: { appDescription: reportData.appStats.appDescription },
-      },
-      { filename: jsonFilesConfig.dataFiles.fileTypes, data: reportData.fileTypesData },
-      { filename: jsonFilesConfig.dataFiles.dbInteractions, data: reportData.dbInteractions },
-      { filename: jsonFilesConfig.dataFiles.procsAndTriggers, data: reportData.procsAndTriggers },
-      {
-        filename: jsonFilesConfig.dataFiles.topLevelJavaClasses,
-        data: reportData.topLevelJavaClasses,
-      },
+
+    // Create array of write tasks
+    const tasks = [
+      this.writeJsonFile(`${jsonFilesConfig.dataFiles.completeReport}.json`, completeReportData),
+      this.writeJsonFile(jsonFilesConfig.dataFiles.appStats, reportData.appStats),
+      this.writeJsonFile(jsonFilesConfig.dataFiles.appDescription, { appDescription: reportData.appStats.appDescription }),
+      this.writeJsonFile(jsonFilesConfig.dataFiles.fileTypes, reportData.fileTypesData),
+      this.writeJsonFile(jsonFilesConfig.dataFiles.dbInteractions, reportData.dbInteractions),
+      this.writeJsonFile(jsonFilesConfig.dataFiles.procsAndTriggers, reportData.procsAndTriggers),
+      this.writeJsonFile(jsonFilesConfig.dataFiles.topLevelJavaClasses, reportData.topLevelJavaClasses),
     ];
-    const jsonFilePromises = jsonFiles.map(async (fileInfo) => {
-      const jsonFilePath = path.join(outputConfig.OUTPUT_DIR, fileInfo.filename);
-      const jsonContent = JSON.stringify(fileInfo.data, null, 2);
-      await writeFile(jsonFilePath, jsonContent);
-      console.log(`Generated JSON file: ${fileInfo.filename}`);
+
+    // Add categorized data files
+    reportData.categorizedData.forEach(categoryData => {
+      tasks.push(
+        this.writeJsonFile(
+          jsonFilesConfig.getCategoryFilename(categoryData.category),
+          categoryData.data
+        )
+      );
     });
-    const results = await Promise.allSettled(jsonFilePromises);
+
+    const results = await Promise.allSettled(tasks);
+    
+    // Check for any failures and log them
     results.forEach((result, index) => {
-      // Check for any failures and log them
       if (result.status === "rejected") {
-        console.error(`Failed to write JSON file: ${jsonFiles[index].filename}`, result.reason);
+        console.error(`Failed to write JSON file at index ${index}:`, result.reason);
       }
     });
+    
     console.log("Finished generating all JSON files");
+  }
+
+  /**
+   * Helper method to write a single JSON file with error handling.
+   */
+  private async writeJsonFile(filename: string, data: unknown): Promise<void> {
+    const jsonFilePath = path.join(outputConfig.OUTPUT_DIR, filename);
+    const jsonContent = JSON.stringify(data, null, 2);
+    await writeFile(jsonFilePath, jsonContent);
+    console.log(`Generated JSON file: ${filename}`);
   }
 }

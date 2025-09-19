@@ -78,7 +78,6 @@ export default class CodebaseToDBLoader {
       await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
-    // Use the reusable concurrent processing utility
     await processItemsConcurrently(
       filepaths,
       async (filepath) => {

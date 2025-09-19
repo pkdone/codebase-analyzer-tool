@@ -62,7 +62,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   **TypeScript Files:** `kebab-case.ts` (e.g., `application-runner.ts`, `llm-router.ts`).
     *   **Specialized Files:** Suffixes are used to denote purpose, such as `*.config.ts`, `*.types.ts`, `*.test.ts`, and `*.int.test.ts`.
     *   **Prompt Files:** `kebab-case.prompt` or `questions.prompts`.
-    *   **Directories:** `camelCase` is used for directories within `src/` (e.g., `codebaseDBLoader`, `insightGenerator`), while top-level directories are `kebab-case` or standard names (e.g., `src`, `tests`, `input`).
+    *   **Directories:** ``kebab-case` is used for directories or standard names (e.g., `src`, `tests`, `input`) hanging directly off the root folder.
 
 ## 4. Architectural Patterns and Code Structure
 
