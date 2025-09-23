@@ -267,9 +267,12 @@ export default class SourcesRepositoryImpl
   /**
    * Get top level Java classes for a project.
    */
-  async getProjectTopLevelJavaClasses(
+  async getMostComplextProjectTopLevelJavaClasses(
     projectName: string,
   ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
+    const MAX_DEPENDENCY_DEPTH = 8;
+    const RESULT_LIMIT = 25;
+
     const pipeline: Document[] = [
       {
         $match: {
@@ -311,6 +314,7 @@ export default class SourcesRepositoryImpl
           connectFromField: "summary.internalReferences",
           connectToField: "summary.classpath",
           depthField: "level",
+          maxDepth: MAX_DEPENDENCY_DEPTH,
           as: "dependency_documents",
         },
       },
@@ -318,6 +322,7 @@ export default class SourcesRepositoryImpl
         $project: {
           _id: 0,
           classpath: "$_id",
+          dependency_count: { $size: "$dependency_documents" },
           dependencies: {
             $map: {
               input: "$dependency_documents",
@@ -331,10 +336,15 @@ export default class SourcesRepositoryImpl
           },
         },
       },
+      {
+        $sort: {
+          dependency_count: -1,
+        },
+      },
+      { $limit: RESULT_LIMIT },
     ];
-    return await this.collection
-      .aggregate<ProjectedTopLevelJavaClassDependencies>(pipeline)
-      .toArray();
+
+    return this.collection.aggregate<ProjectedTopLevelJavaClassDependencies>(pipeline).toArray();
   }
 
   /**

@@ -82,7 +82,7 @@ export interface SourcesRepository {
   /**
    * Get top level Java classes for a project
    */
-  getProjectTopLevelJavaClasses(
+  getMostComplextProjectTopLevelJavaClasses(
     projectName: string,
   ): Promise<ProjectedTopLevelJavaClassDependencies[]>;
 

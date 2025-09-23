@@ -90,10 +90,6 @@ describe("CodeStructureDataProvider", () => {
                   ],
                 },
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
-                  originalLevel: 1,
-                },
-                {
                   classpath: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
                   originalLevel: 2,
                   dependencies: [
@@ -103,37 +99,21 @@ describe("CodeStructureDataProvider", () => {
                     },
                   ],
                 },
-                {
-                  classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
-                  originalLevel: 2,
-                },
               ],
-            },
-            {
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
-              originalLevel: 1,
-              dependencies: [
-                {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
-                  originalLevel: 1,
-                },
-              ],
-            },
-            {
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
-              originalLevel: 1,
             },
           ],
         },
       ];
 
-      mockSourcesRepository.getProjectTopLevelJavaClasses.mockResolvedValue(inputData);
+      mockSourcesRepository.getMostComplextProjectTopLevelJavaClasses = jest
+        .fn()
+        .mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
 
       // Assert
-      expect(mockSourcesRepository.getProjectTopLevelJavaClasses).toHaveBeenCalledWith(
+      expect(mockSourcesRepository.getMostComplextProjectTopLevelJavaClasses).toHaveBeenCalledWith(
         "test-project",
       );
       expect(result).toEqual(expectedOutput);
@@ -155,7 +135,9 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getProjectTopLevelJavaClasses.mockResolvedValue(inputData);
+      mockSourcesRepository.getMostComplextProjectTopLevelJavaClasses = jest
+        .fn()
+        .mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -191,7 +173,9 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getProjectTopLevelJavaClasses.mockResolvedValue(inputData);
+      mockSourcesRepository.getMostComplextProjectTopLevelJavaClasses = jest
+        .fn()
+        .mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -245,7 +229,9 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getProjectTopLevelJavaClasses.mockResolvedValue(inputData);
+      mockSourcesRepository.getMostComplextProjectTopLevelJavaClasses = jest
+        .fn()
+        .mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -326,7 +312,9 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getProjectTopLevelJavaClasses.mockResolvedValue(inputData);
+      mockSourcesRepository.getMostComplextProjectTopLevelJavaClasses = jest
+        .fn()
+        .mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -403,10 +391,6 @@ describe("CodeStructureDataProvider", () => {
                   ],
                 },
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
-                  originalLevel: 1,
-                },
-                {
                   classpath: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
                   originalLevel: 2,
                   dependencies: [
@@ -416,31 +400,15 @@ describe("CodeStructureDataProvider", () => {
                     },
                   ],
                 },
-                {
-                  classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
-                  originalLevel: 2,
-                },
               ],
-            },
-            {
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
-              originalLevel: 1,
-              dependencies: [
-                {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
-                  originalLevel: 1,
-                },
-              ],
-            },
-            {
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
-              originalLevel: 1,
             },
           ],
         },
       ];
 
-      mockSourcesRepository.getProjectTopLevelJavaClasses.mockResolvedValue(inputData);
+      mockSourcesRepository.getMostComplextProjectTopLevelJavaClasses = jest
+        .fn()
+        .mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -448,14 +416,12 @@ describe("CodeStructureDataProvider", () => {
       // Assert - Verify that all direct dependencies are properly structured
       expect(result).toEqual(expectedOutput);
 
-      // Additional verification: ensure all direct dependencies exist at root level
+      // Additional verification: ensure the dependency tree structure is correct
       const directDependencies = result[0].dependencies;
-      expect(directDependencies).toHaveLength(3); // SignOnFilter, SignOnLocalHome, SignOnLocal
+      expect(directDependencies).toHaveLength(1); // Only SignOnFilter at root level (duplicates removed)
 
       const classpaths = directDependencies.map((dep) => dep.classpath);
       expect(classpaths).toContain("com.sun.j2ee.blueprints.signon.web.SignOnFilter");
-      expect(classpaths).toContain("com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome");
-      expect(classpaths).toContain("com.sun.j2ee.blueprints.signon.ejb.SignOnLocal");
     });
   });
 });

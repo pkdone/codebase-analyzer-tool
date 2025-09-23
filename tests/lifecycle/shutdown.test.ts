@@ -12,8 +12,7 @@ jest.mock("../../src/common/mdb/mdb-client-factory");
 // Mock tsyringe decorators
 jest.mock("tsyringe", () => ({
   injectable: () => (target: any) => target,
-  inject:
-    () => () => {},
+  inject: () => () => {},
   container: {
     isRegistered: jest.fn(),
     resolve: jest.fn(),

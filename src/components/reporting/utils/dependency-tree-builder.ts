@@ -4,10 +4,14 @@ import type {
   HierarchicalJavaClassDependency,
   JavaClassDependency,
 } from "../../../repositories/source/sources.model";
+import { logWarningMsg } from "../../../common/utils/logging";
 
 /**
  * Utility functions for transforming flat dependency structures into hierarchical trees.
  */
+
+/** Maximum recursion depth to prevent infinite loops or excessive memory usage */
+const MAX_RECURSION_DEPTH = 4;
 
 /**
  * Converts flat dependency structure to hierarchical structure.
@@ -54,6 +58,13 @@ export function buildHierarchicalDependencies(
   visited: Set<string>,
   currentLevel: number,
 ): HierarchicalJavaClassDependency[] {
+  if (currentLevel >= MAX_RECURSION_DEPTH) {
+    logWarningMsg(
+      `Maximum recursion depth of ${MAX_RECURSION_DEPTH} reached in buildHierarchicalDependencies. Stopping further recursion to prevent stack overflow.`,
+    );
+    return [];
+  }
+
   const hierarchicalDeps: HierarchicalJavaClassDependency[] = [];
 
   for (const refClasspath of references) {
@@ -62,9 +73,8 @@ export function buildHierarchicalDependencies(
       continue;
     }
 
-    // Add to visited set
-    const newVisited = new Set(visited);
-    newVisited.add(refClasspath);
+    // Add to visited set (shared across all references at this level)
+    visited.add(refClasspath);
 
     const dependency = dependencyMap.get(refClasspath);
 
@@ -73,7 +83,7 @@ export function buildHierarchicalDependencies(
       const childDependencies = buildHierarchicalDependencies(
         dependency.references,
         dependencyMap,
-        newVisited,
+        visited, // Use the shared visited set
         currentLevel + 1,
       );
 

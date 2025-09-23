@@ -14,7 +14,8 @@ export class InsightsProcessorSelector {
   constructor(
     @inject(TOKENS.EnvVars) private readonly envVars: EnvVars,
     @inject(TOKENS.InsightsFromDBGenerator) private readonly dbGenerator: InsightsFromDBGenerator,
-    @inject(TOKENS.InsightsFromRawCodeGenerator) private readonly rawCodeGenerator: InsightsFromRawCodeGenerator,
+    @inject(TOKENS.InsightsFromRawCodeGenerator)
+    private readonly rawCodeGenerator: InsightsFromRawCodeGenerator,
   ) {}
 
   /**
@@ -24,10 +25,10 @@ export class InsightsProcessorSelector {
   async selectInsightsProcessor(): Promise<InsightsFromDBGenerator | InsightsFromRawCodeGenerator> {
     const manifest = await LLMProviderManager.loadManifestForModelFamily(this.envVars.LLM);
     const primaryCompletionTokens = manifest.models.primaryCompletion.maxTotalTokens;
-    
-    // TODO: revert - remove '9'
-    const supportsFullCodebaseAnalysis = primaryCompletionTokens >= 91_000_000;
-    
+    const supportsFullCodebaseAnalysis = primaryCompletionTokens >= 1_000_000;
+    // TODO: base decsision off token limit based on source line count and not the value of primaryCompletionTokens directly
+    // For a line count of 720919, the number of input tokens is 13216743 but limit is 1000000
+
     if (supportsFullCodebaseAnalysis) {
       return this.rawCodeGenerator;
     } else {

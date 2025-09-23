@@ -6,6 +6,7 @@ import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.ty
 import { Complexity, isComplexity } from "../report-gen.types";
 import { procedureTriggerSchema } from "../../../schemas/sources.schema";
 import type { z } from "zod";
+import { logWarningMsg } from "../../../common/utils/logging";
 
 // Constants for stored procedures and triggers
 const STORED_PROCEDURE_TYPE = "STORED PROCEDURE" as const;
@@ -135,7 +136,7 @@ export class DatabaseReportDataProvider {
    */
   private normalizeComplexity(complexity: unknown, itemName: string): Complexity {
     if (isComplexity(complexity)) return complexity;
-    console.warn(
+    logWarningMsg(
       `Invalid complexity value '${String(complexity)}' found for ${itemName}. Defaulting to LOW.`,
     );
     return "LOW";
