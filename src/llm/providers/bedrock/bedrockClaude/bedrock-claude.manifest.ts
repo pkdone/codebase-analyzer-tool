@@ -63,7 +63,6 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  supportsFullCodebaseAnalysis: true, // Bedrock Claude Sonnet 4.0 supports new 1M context window to support full codebase analysis
   providerSpecificConfig: {
     apiVersion: "bedrock-2023-05-31",
     temperature: llmConfig.DEFAULT_ZERO_TEMP,

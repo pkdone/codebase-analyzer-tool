@@ -12,9 +12,8 @@ jest.mock("../../src/common/mdb/mdb-client-factory");
 // Mock tsyringe decorators
 jest.mock("tsyringe", () => ({
   injectable: () => (target: any) => target,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   inject:
-    () => (_target: any, _propertyKey: string | symbol | undefined, _parameterIndex: number) => {},
+    () => () => {},
   container: {
     isRegistered: jest.fn(),
     resolve: jest.fn(),

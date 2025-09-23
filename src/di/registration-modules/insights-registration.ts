@@ -5,10 +5,7 @@ import { TOKENS } from "../tokens";
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
 import { RawCodeToInsightsFileGenerator } from "../../components/insights/insights-from-raw-code-to-local-files";
-
-// LLM imports needed for insights selection logic
-import { EnvVars } from "../../env/env.types";
-import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
+import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 
 /**
  * Register insights-related components in the DI container.
@@ -36,19 +33,16 @@ export async function registerLLMDependentInsightsComponents(): Promise<void> {
   container.registerSingleton(TOKENS.InsightsFromDBGenerator, InsightsFromDBGenerator);
   container.registerSingleton(TOKENS.InsightsFromRawCodeGenerator, InsightsFromRawCodeGenerator);
 
-  // Pre-load manifest to determine which ApplicationInsightsProcessor implementation to use
-  const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
-  const manifest = await LLMProviderManager.loadManifestForModelFamily(envVars.LLM);
+  // Register the insights processor selector
+  container.registerSingleton(TOKENS.InsightsProcessorSelector, InsightsProcessorSelector);
 
-  // Register the ApplicationInsightsProcessor interface with synchronous factory based on manifest data
+  // Pre-resolve the selector to determine which processor to use
+  const selector = container.resolve<InsightsProcessorSelector>(TOKENS.InsightsProcessorSelector);
+  const selectedProcessor = await selector.selectInsightsProcessor();
+
+  // Register the ApplicationInsightsProcessor interface with the pre-selected processor
   container.register(TOKENS.ApplicationInsightsProcessor, {
-    useFactory: (c) => {
-      if (manifest.supportsFullCodebaseAnalysis) {
-        return c.resolve(TOKENS.InsightsFromRawCodeGenerator);
-      } else {
-        return c.resolve(TOKENS.InsightsFromDBGenerator);
-      }
-    },
+    useValue: selectedProcessor,
   });
 
   console.log("LLM-dependent insights components registered");

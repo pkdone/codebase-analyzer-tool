@@ -40,7 +40,6 @@ export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  supportsFullCodebaseAnalysis: false, // Bedrock Deepseek doesn't support full codebase analysis
   providerSpecificConfig: {
     requestTimeoutMillis: 8 * 60 * 1000, // 8 minutes - Deepseek models are reasonably fast
     maxRetryAttempts: 4, // More retries as it's a newer model that might have availability issues

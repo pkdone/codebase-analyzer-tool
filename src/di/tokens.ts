@@ -54,6 +54,7 @@ export const TOKENS = {
   ApplicationInsightsProcessor: Symbol("ApplicationInsightsProcessor"),
   InsightsFromDBGenerator: Symbol("InsightsFromDBGenerator"),
   InsightsFromRawCodeGenerator: Symbol("InsightsFromRawCodeGenerator"),
+  InsightsProcessorSelector: Symbol("InsightsProcessorSelector"),
   RawCodeToInsightsFileGenerator: Symbol("RawCodeToInsightsFileGenerator"),
 
   // MCP Server Components

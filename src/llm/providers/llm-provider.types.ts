@@ -63,8 +63,6 @@ export interface LLMProviderManifest {
   errorPatterns: readonly LLMErrorMsgRegExPattern[];
   /** Provider-specific operational configuration */
   providerSpecificConfig?: LLMProviderSpecificConfig;
-  /** Whether this provider supports full codebase analysis (large context) */
-  supportsFullCodebaseAnalysis: boolean;
   /** Factory function to create an instance of the provider's LLMProviderImpl */
   factory: (
     envConfig: EnvVars,

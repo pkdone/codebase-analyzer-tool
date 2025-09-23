@@ -45,7 +45,6 @@ describe("Environment Registration Module", () => {
       },
     },
     errorPatterns: [],
-    supportsFullCodebaseAnalysis: false,
     factory: jest.fn(),
   };
 

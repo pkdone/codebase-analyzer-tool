@@ -51,7 +51,6 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
-  supportsFullCodebaseAnalysis: false, // Bedrock Mistral doesn't support full codebase analysis
   providerSpecificConfig: {
     requestTimeoutMillis: 8 * 60 * 1000, // 8 minutes - Mistral models are reasonably fast
     maxRetryAttempts: 3, // Standard retries for Mistral

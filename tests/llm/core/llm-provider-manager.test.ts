@@ -31,7 +31,6 @@ describe("LLMProviderManager", () => {
     modelFamily: "testFamily",
     providerName: "Test Provider",
     envSchema: {} as any, // Mock Zod schema
-    supportsFullCodebaseAnalysis: false,
     models: {
       embeddings: {
         modelKey: "test-embeddings",

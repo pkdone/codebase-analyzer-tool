@@ -49,7 +49,6 @@ export const openAIProviderManifest: LLMProviderManifest = {
     },
   },
   errorPatterns: OPENAI_COMMON_ERROR_PATTERNS,
-  supportsFullCodebaseAnalysis: false, // OpenAI doesn't support full codebase analysis
   providerSpecificConfig: {
     requestTimeoutMillis: 5 * 60 * 1000, // 5 minutes - OpenAI is generally faster than Azure
     maxRetryAttempts: 3, // Standard retry attempts
