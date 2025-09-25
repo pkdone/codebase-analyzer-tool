@@ -151,7 +151,7 @@ export class DatabaseInitializer {
 
     if (!unknownErrorOccurred) {
       console.log(
-        `Ensured Vector Search indexes exist for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
+        `Ensured Vector Search index exists for the MongoDB database collection: '${this.sourcesCollection.dbName}.${this.sourcesCollection.collectionName}'`,
       );
     }
   }
@@ -166,7 +166,7 @@ export class DatabaseInitializer {
   ): Promise<void> {
     await collection.createIndex(indexSpec, { unique: isUnique });
     console.log(
-      `Ensured normal indexes exist for the MongoDB database collection: '${collection.dbName}.${collection.collectionName}'`,
+      `Ensured regular index exists for the MongoDB database collection: '${collection.dbName}.${collection.collectionName}'`,
     );
   }
 
