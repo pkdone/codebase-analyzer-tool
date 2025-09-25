@@ -59,7 +59,7 @@ export default class CodebaseToDBLoader {
     skipIfAlreadyCaptured: boolean,
   ) {
     console.log(
-      `Creating metadata for ${filepaths.length} files to the MongoDB database sources collection`,
+      `Creating metadata for ${filepaths.length} files to go into the MongoDB database sources collection`,
     );
 
     // Batch load existing files once to avoid N+1 query problem
