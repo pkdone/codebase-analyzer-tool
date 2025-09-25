@@ -211,9 +211,11 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     if (!llmResponse) throw new BadResponseContentLLMError("LLM response was completely empty");
 
     // Capture response content
+    // Using extra checking because even though Vertex AI types say these should exists they may not
+    // if there is a bad "finish reason"
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const responseContent = llmResponse?.content?.parts?.[0]?.text ?? ""; // Using extra checking because even though Vertex AI types say these should exists they may not if there is a bad "finish reason"
-
+    const responseContent = llmResponse?.content?.parts?.[0]?.text ?? "";
+  
     // Capture finish reason
     const finishReason = llmResponse.finishReason ?? FinishReason.OTHER;
     if (VERTEXAI_TERMINAL_FINISH_REASONS.includes(finishReason))
