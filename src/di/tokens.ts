@@ -51,7 +51,6 @@ export const TOKENS = {
   CategoriesDataProvider: Symbol("CategoriesDataProvider"),
   CodebaseToDBLoader: Symbol("CodebaseToDBLoader"),
   CodebaseQueryProcessor: Symbol("CodebaseQueryProcessor"),
-  ApplicationInsightsProcessor: Symbol("ApplicationInsightsProcessor"),
   InsightsFromDBGenerator: Symbol("InsightsFromDBGenerator"),
   InsightsFromRawCodeGenerator: Symbol("InsightsFromRawCodeGenerator"),
   InsightsProcessorSelector: Symbol("InsightsProcessorSelector"),

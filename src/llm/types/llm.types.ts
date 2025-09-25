@@ -86,6 +86,7 @@ interface BaseLLMModelMetadata {
   readonly dimensions?: number;
   /** Maximum completion tokens for completion models */
   readonly maxCompletionTokens?: number;
+  /** Normalized model name for use with llm-cost token calculation library */
   /** Maximum total tokens (prompt + completion) */
   readonly maxTotalTokens: number;
 }

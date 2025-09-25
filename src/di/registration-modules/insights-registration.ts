@@ -28,22 +28,9 @@ export function registerInsightsComponents(): void {
  * Register insights components that depend on LLM services.
  * These components require LLM functionality to be available.
  */
-export async function registerLLMDependentInsightsComponents(): Promise<void> {
-  // Register both insights generator implementations with explicit tokens
+export function registerLLMDependentInsightsComponents(): void {
   container.registerSingleton(TOKENS.InsightsFromDBGenerator, InsightsFromDBGenerator);
   container.registerSingleton(TOKENS.InsightsFromRawCodeGenerator, InsightsFromRawCodeGenerator);
-
-  // Register the insights processor selector
   container.registerSingleton(TOKENS.InsightsProcessorSelector, InsightsProcessorSelector);
-
-  // Pre-resolve the selector to determine which processor to use
-  const selector = container.resolve<InsightsProcessorSelector>(TOKENS.InsightsProcessorSelector);
-  const selectedProcessor = await selector.selectInsightsProcessor();
-
-  // Register the ApplicationInsightsProcessor interface with the pre-selected processor
-  container.register(TOKENS.ApplicationInsightsProcessor, {
-    useValue: selectedProcessor,
-  });
-
   console.log("LLM-dependent insights components registered");
 }

@@ -154,7 +154,18 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    * Check to see if error code indicates potential token limit has been execeeded - this should
    * not occur with error object thrown so always returns false
    */
-  protected isTokenLimitExceeded() {
+  protected isTokenLimitExceeded(error: unknown) {
+    if (error instanceof Error) {
+      const errMsg = formatErrorMessage(error).toLowerCase() || "";
+      if (error instanceof ClientError && errMsg.includes("exceeds the maximum number of tokens"))
+        return true;
+      if (
+        error instanceof ClientError &&
+        errMsg.includes("contains text fields that are too large")
+      )
+        return true;
+    }
+
     return false;
   }
 

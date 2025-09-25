@@ -54,7 +54,7 @@ export async function setupTestDatabase(): Promise<MongoClient> {
   process.env.CODEBASE_DIR_PATH ??= "/test/project";
 
   // Register other application dependencies needed for the initializer
-  await registerAppDependencies({ requiresMongoDB: true, requiresLLM: false });
+  registerAppDependencies({ requiresMongoDB: true, requiresLLM: false });
 
   // Initialize the schema in the new test database
   const databaseInitializer = container.resolve<

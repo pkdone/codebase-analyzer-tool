@@ -3,6 +3,7 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import VertexAIGeminiLLM, { VertexAIConfig } from "./vertex-ai-gemini-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
+import { VERTEXAI_COMMON_ERROR_PATTERNS } from "./vertex-ai-error-patterns";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
@@ -51,7 +52,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 1048576,
     },
   },
-  errorPatterns: [] as const, // VertexAI has no specific error patterns defined
+  errorPatterns: VERTEXAI_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,

@@ -54,9 +54,9 @@ import { DatabaseInitializer } from "../../repositories/setup/database-initializ
  * Register all application-level dependencies (repositories, components, and tasks).
  * This orchestrator function delegates to domain-specific registration modules.
  */
-export async function registerAppDependencies(config: TaskRunnerConfig): Promise<void> {
+export function registerAppDependencies(config: TaskRunnerConfig): void {
   registerRepositories();
-  await registerComponents(config);
+  registerComponents(config);
   registerTasks();
 }
 
@@ -82,7 +82,7 @@ function registerRepositories(): void {
  * Register component implementations that other parts of the system depend on.
  * Delegates to domain-specific registration modules for better organization.
  */
-async function registerComponents(config: TaskRunnerConfig): Promise<void> {
+function registerComponents(config: TaskRunnerConfig): void {
   // Register LLM strategies and pipeline components (always register since they may be needed)
   container.registerSingleton(TOKENS.RetryStrategy, RetryStrategy);
   container.registerSingleton(TOKENS.FallbackStrategy, FallbackStrategy);
@@ -113,7 +113,7 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
 
   // Register LLM-dependent components if required
   if (config.requiresLLM) {
-    await registerLLMDependentComponents();
+    registerLLMDependentComponents();
   }
 
   console.log("Internal helper components registered");
@@ -123,10 +123,10 @@ async function registerComponents(config: TaskRunnerConfig): Promise<void> {
  * Register components that depend on LLMRouter using domain-specific registrations.
  * Delegates to domain-specific modules for better organization.
  */
-async function registerLLMDependentComponents(): Promise<void> {
+function registerLLMDependentComponents(): void {
   // Register LLM-dependent components by domain
   registerLLMDependentCaptureComponents();
-  await registerLLMDependentInsightsComponents();
+  registerLLMDependentInsightsComponents();
   registerLLMDependentQueryingComponents();
 }
 

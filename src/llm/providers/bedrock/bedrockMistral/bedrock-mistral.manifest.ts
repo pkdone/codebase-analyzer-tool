@@ -45,9 +45,9 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
     secondaryCompletion: {
       modelKey: AWS_COMPLETIONS_MISTRAL_LARGE,
       urnEnvKey: BEDROCK_MISTRAL_COMPLETIONS_MODEL_SECONDARY_KEY,
+      purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,
       maxTotalTokens: 32768,
-      purpose: LLMPurpose.COMPLETIONS,
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,

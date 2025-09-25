@@ -7,7 +7,6 @@ import { outputConfig } from "../../config/output.config";
 import { readFile, writeFile } from "../../common/utils/file-operations";
 import {
   listDirectoryEntries,
-  findFilesRecursively,
   ensureDirectoryExists,
 } from "../../common/utils/directory-operations";
 import pLimit from "p-limit";
@@ -15,7 +14,7 @@ import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatErrorMessage } from "../../common/utils/error-formatters";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { mergeSourceFilesIntoMarkdownCodeblock } from "../../llm/utils/markdown-utils";
+import { convertCodebaseToMarkdown } from "../../common/utils/codebase-processing";
 import { formatDateForFilename } from "../../common/utils/date-utils";
 
 /**
@@ -69,16 +68,7 @@ export class RawCodeToInsightsFileGenerator {
     llmName: string,
     prompts: FileRequirementPrompt[],
   ): Promise<string[]> {
-    const srcFilepaths = await findFilesRecursively(
-      srcDirPath,
-      fileProcessingConfig.FOLDER_IGNORE_LIST,
-      fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-    );
-    const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(
-      srcFilepaths,
-      srcDirPath,
-      fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
-    );
+    const codeBlocksContent = await convertCodebaseToMarkdown(srcDirPath);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {

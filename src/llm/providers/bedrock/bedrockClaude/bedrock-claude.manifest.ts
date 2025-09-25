@@ -51,7 +51,7 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
       maxCompletionTokens: 64000,
       maxTotalTokens: 1_000_000,
       // OLD values for pre-1M-token context beta
-      //maxCompletionTokens: 32768, // Should be 64k but errors if larger than around 39200 - varies, so me be more of a timeout issue or Bedrock’s 20 MB payload limit
+      //maxCompletionTokens: 32768, // Should be 64k but errors if larger than around 39200 - varies, so me be more of a timeout issue or Bedrock's 20 MB payload limit
       //maxTotalTokens: 200000,
     },
     secondaryCompletion: {

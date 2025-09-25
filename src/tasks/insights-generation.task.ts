@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import type { ApplicationInsightsProcessor } from "../components/insights/insights-generator.interface";
+import type { InsightsProcessorSelector } from "../components/insights/insights-processor-selector";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import { TOKENS } from "../di/tokens";
@@ -16,8 +16,8 @@ export class InsightsGenerationTask extends BaseLLMTask {
   constructor(
     @inject(TOKENS.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
     @inject(TOKENS.ProjectName) projectName: string,
-    @inject(TOKENS.ApplicationInsightsProcessor)
-    private readonly applicationInsightsProcessor: ApplicationInsightsProcessor,
+    @inject(TOKENS.InsightsProcessorSelector)
+    private readonly insightsProcessorSelector: InsightsProcessorSelector,
   ) {
     super(llmStatsReporter, projectName);
   }
@@ -33,6 +33,7 @@ export class InsightsGenerationTask extends BaseLLMTask {
    * Execute the core task logic.
    */
   protected async run(): Promise<void> {
-    await this.applicationInsightsProcessor.generateAndStoreInsights();
+    const selectedProcessor = await this.insightsProcessorSelector.selectInsightsProcessor();
+    await selectedProcessor.generateAndStoreInsights();
   }
 }

@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { pathsConfig } from "../config/paths.config";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/utils/directory-operations";
 import { RawCodeToInsightsFileGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
@@ -40,15 +39,11 @@ export class OneShotGenerateInsightsTask extends BaseLLMTask {
    * Execute the core task logic.
    */
   protected async run(): Promise<void> {
-    const normalisedSrcDirPath = this.env.CODEBASE_DIR_PATH.replace(
-      pathsConfig.TRAILING_SLASH_PATTERN,
-      "",
-    );
     await clearDirectory(outputConfig.OUTPUT_DIR);
     const prompts = await this.insightsFileGenerator.loadPrompts();
     await this.insightsFileGenerator.generateInsightsToFiles(
       this.llmRouter,
-      normalisedSrcDirPath,
+      this.env.CODEBASE_DIR_PATH,
       this.env.LLM,
       prompts,
     );

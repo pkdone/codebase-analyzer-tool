@@ -29,7 +29,7 @@ export async function bootstrapContainer(config: TaskRunnerConfig): Promise<void
     await connectAndRegisterMongoClient();
   }
 
-  await registerAppDependencies(config);
+  registerAppDependencies(config);
 }
 
 export { container };
