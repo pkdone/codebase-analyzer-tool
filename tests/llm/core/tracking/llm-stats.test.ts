@@ -123,7 +123,7 @@ describe("LLMStats", () => {
       const stats = llmStats.getStatusTypesStatistics();
       expect(stats.SUCCESS.description).toBe("LLM invocation succeeded");
       expect(stats.SUCCESS.symbol).toBe(">");
-      expect(stats.FAILURE.description).toBe("LLM invocation failed so no data produced");
+      expect(stats.FAILURE.description).toBe("LLM invocation failed (no data produced)");
       expect(stats.FAILURE.symbol).toBe("!");
       expect(stats.SWITCH.description).toBe("Switched to secondary LLM to try to process request");
       expect(stats.SWITCH.symbol).toBe("+");

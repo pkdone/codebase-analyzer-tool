@@ -14,7 +14,7 @@ export default class LLMStats {
   private readonly doPrintEventTicks: boolean;
   private readonly statusTypes: Record<keyof LLMStatsCategoriesBase, LLMStatsCategoryStatus> = {
     SUCCESS: { description: "LLM invocation succeeded", symbol: ">", count: 0 },
-    FAILURE: { description: "LLM invocation failed so no data produced", symbol: "!", count: 0 },
+    FAILURE: { description: "LLM invocation failed (no data produced)", symbol: "!", count: 0 },
     SWITCH: {
       description: "Switched to secondary LLM to try to process request",
       symbol: "+",
