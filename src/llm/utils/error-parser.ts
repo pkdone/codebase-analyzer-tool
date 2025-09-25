@@ -3,7 +3,7 @@ import {
   LLMErrorMsgRegExPattern,
   LLMResponseTokensUsage,
 } from "../types/llm.types";
-import { llmConfig } from "../llm.config";
+import { llmProviderConfig } from "../../config/llm-provider.config";
 
 /**
  * Extract token usage information from LLM error message.
@@ -145,7 +145,7 @@ export function calculateTokenUsageFromError(
   if (promptTokens < 0) {
     const assumedMaxTotalTokens = maxTotalTokens > 0 ? maxTotalTokens : publishedMaxTotalTokens;
     const estimatedPromptTokensConsumed = Math.floor(
-      prompt.length / llmConfig.MODEL_CHARS_PER_TOKEN_ESTIMATE,
+      prompt.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN,
     );
     promptTokens = Math.max(estimatedPromptTokensConsumed, assumedMaxTotalTokens + 1);
   }

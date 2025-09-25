@@ -5,9 +5,7 @@ import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./insights-from-db-generator";
 import type InsightsFromRawCodeGenerator from "./insights-from-raw-code-generator";
 import { convertCodebaseToMarkdown } from "../../common/utils/codebase-processing";
-
-// This is a rough estimate based on the average number of characters per token for the model
-const AVERAGE_CHARS_PER_TOKEN = 3.6;
+import { llmProviderConfig } from "../../config/llm-provider.config";
 
 /**
  * Service to determine which insights processor to use based on LLM capabilities.
@@ -30,7 +28,8 @@ export class InsightsProcessorSelector {
     const manifest = await LLMProviderManager.loadManifestForModelFamily(this.envVars.LLM);
     const primaryCompletionTokens = manifest.models.primaryCompletion.maxTotalTokens;
     const codeBlocksContent = await convertCodebaseToMarkdown(this.envVars.CODEBASE_DIR_PATH);
-    const codeBlockContentTokensEstimate = codeBlocksContent.length / AVERAGE_CHARS_PER_TOKEN;
+    const codeBlockContentTokensEstimate =
+      codeBlocksContent.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
     console.log(
       `Codebase chars length: ${codeBlocksContent.length}, Estimated prompt tokens: ${Math.floor(codeBlockContentTokensEstimate)}`,
     );

@@ -19,6 +19,7 @@ import { logErrorMsg } from "../../common/utils/logging";
 import { convertTextToJSONAndOptionallyValidate } from "../utils/json-tools";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
+import { llmProviderConfig } from "../../config/llm-provider.config";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
@@ -206,6 +207,7 @@ export default abstract class AbstractLLM implements LLMProvider {
             modelKey,
             tokenUsage,
             this.llmModelsMetadata,
+            request,
           ),
         };
       } else {
@@ -250,11 +252,18 @@ export default abstract class AbstractLLM implements LLMProvider {
     modelKey: string,
     tokenUsage: LLMResponseTokensUsage,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
+    request: string,
   ): LLMResponseTokensUsage {
     let { promptTokens, completionTokens, maxTotalTokens } = tokenUsage;
     if (completionTokens < 0) completionTokens = 0;
     if (maxTotalTokens < 0) maxTotalTokens = modelsMetadata[modelKey].maxTotalTokens;
-    if (promptTokens < 0) promptTokens = Math.max(1, maxTotalTokens - completionTokens + 1);
+    if (promptTokens < 0) {
+      const estimatedPromptTokensConsumed = Math.floor(
+        request.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN,
+      );
+      promptTokens = Math.max(estimatedPromptTokensConsumed, maxTotalTokens + 1);
+    }
+
     return { promptTokens, completionTokens, maxTotalTokens };
   }
 

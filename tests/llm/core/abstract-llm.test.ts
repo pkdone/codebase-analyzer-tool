@@ -147,7 +147,7 @@ describe("Abstract LLM Token Extraction", () => {
 
       expect(result.tokensUsage).toStrictEqual({
         completionTokens: 200,
-        promptTokens: 32569,
+        promptTokens: 32769,
         maxTotalTokens: 32768,
       });
     });
