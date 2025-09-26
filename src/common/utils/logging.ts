@@ -1,11 +1,10 @@
-import { formatErrorMessage, getErrorStack } from "./error-formatters";
+import { formatErrorMessageAndDetail } from "./error-formatters";
 
 /**
  * Log an error message and the error stack to the console.
  */
 export function logErrorMsgAndDetail(msg: string | null, error: unknown): void {
-  const prefix = msg ? `${msg}: ` : "";
-  console.error(`${prefix}${formatErrorMessage(error)}\n-\n${getErrorStack(error)}`);
+  console.error(formatErrorMessageAndDetail(msg, error));
 }
 
 /**

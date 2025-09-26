@@ -14,12 +14,21 @@ import {
   LLMOutputFormat,
 } from "../types/llm.types";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
-import { formatErrorMessage } from "../../common/utils/error-formatters";
-import { logErrorMsg } from "../../common/utils/logging";
+import {
+  formatErrorMessage,
+  formatErrorMessageAndDetail,
+} from "../../common/utils/error-formatters";
+import { logErrorMsg, logWarningMsg, logErrorMsgAndDetail } from "../../common/utils/logging";
 import { convertTextToJSONAndOptionallyValidate } from "../utils/json-tools";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../../config/llm-provider.config";
+import { writeFile } from "../../common/utils/file-operations";
+import { ensureDirectoryExists } from "../../common/utils/directory-operations";
+
+// Constants for error logging
+const ERROR_LOG_DIRECTORY = "output/errors";
+const ERROR_LOG_FILENAME_TEMPLATE = "response-error-{timestamp}.log";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
@@ -31,6 +40,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
+  private hasLoggedJsonError = false;
 
   /**
    * Constructor.
@@ -211,7 +221,7 @@ export default abstract class AbstractLLM implements LLMProvider {
           ),
         };
       } else {
-        return this.formatAndValidateResponse(
+        return await this.formatAndValidateResponse(
           skeletonResponse,
           taskType,
           responseContent,
@@ -271,14 +281,14 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Post-process the LLM response, converting it to JSON if necessary, and build the
    * response metadaat object.
    */
-  private formatAndValidateResponse(
+  private async formatAndValidateResponse(
     skeletonResult: LLMFunctionResponse,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions,
     context: LLMContext,
     doWarnOnError = false,
-  ): LLMFunctionResponse {
+  ): Promise<LLMFunctionResponse> {
     if (taskType === LLMPurpose.COMPLETIONS) {
       try {
         const generatedContent =
@@ -298,10 +308,43 @@ export default abstract class AbstractLLM implements LLMProvider {
       } catch (error: unknown) {
         context.responseContentParseError = formatErrorMessage(error);
         if (doWarnOnError) logErrorMsg(formatErrorMessage(error));
+        await this.recordTestResponseToJSONErrorToFile(error, responseContent);
         return { ...skeletonResult, status: LLMResponseStatus.INVALID };
       }
     } else {
       return { ...skeletonResult, status: LLMResponseStatus.COMPLETED, generated: responseContent };
+    }
+  }
+
+  /**
+   * Logs response formatting/validation errors to individual files for debugging purposes.
+   */
+  private async recordTestResponseToJSONErrorToFile(
+    error: unknown,
+    responseContent: LLMGeneratedContent,
+  ): Promise<void> {
+    if (typeof responseContent !== "string") return;
+
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = ERROR_LOG_FILENAME_TEMPLATE.replace("{timestamp}", timestamp);
+      const errorDir = ERROR_LOG_DIRECTORY;
+      const filepath = `${errorDir}/${filename}`;
+      await ensureDirectoryExists(errorDir);
+      const logContent =
+        formatErrorMessageAndDetail("LLM response parsing error", error) +
+        "\n\n\n" +
+        responseContent;
+      await writeFile(filepath, logContent);
+
+      if (!this.hasLoggedJsonError) {
+        logWarningMsg(
+          `First of potentially numerous errors detected trying to convert an LLM response to JSON - details written to: ${filepath}`,
+        );
+        this.hasLoggedJsonError = true;
+      }
+    } catch (fileError: unknown) {
+      logErrorMsgAndDetail("Failed to write error log file:", fileError);
     }
   }
 

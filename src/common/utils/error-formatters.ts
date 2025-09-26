@@ -21,6 +21,14 @@ export function formatErrorMessage(error: unknown): string {
 }
 
 /**
+ * Capture error message and detail as a formatted string.
+ */
+export function formatErrorMessageAndDetail(msg: string | null, error: unknown): string {
+  const prefix = msg ? `${msg}: ` : "";
+  return `${prefix}${formatErrorMessage(error)}\n-\n${getErrorStack(error)}`;
+}
+
+/**
  * Get the stack trace from a thrown variable if it is an Error object otherwise indicate
  * that no stack trace is available.
  */
