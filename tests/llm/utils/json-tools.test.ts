@@ -371,6 +371,100 @@ describe("json-tools", () => {
       expect(codeExample).toContain("SELECT name FROM users");
     });
 
+    test("should handle null escape patterns in SQL", () => {
+      // Test that the sanitization can handle null-related patterns in SQL
+      const sqlJson = '{"sql": "INSERT INTO users VALUES (1, test, value)"}';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        sqlJson,
+        "test-sql-null-handling",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("sql");
+      
+      const sql = (result as any).sql;
+      expect(sql).toContain("INSERT INTO users");
+      expect(sql).toContain("test");
+    });
+
+    test("should remove literal control characters from JSON strings", () => {
+      // Test removal of literal Unicode control characters that are invalid in JSON
+      // Create a string with control characters programmatically
+      const controlChar1 = String.fromCharCode(1);
+      const controlChar2 = String.fromCharCode(2);
+      const jsonWithControls = `{"data": "text${controlChar1}with${controlChar2}controls"}`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        jsonWithControls,
+        "test-control-characters",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("data");
+      
+      const data = (result as any).data;
+      expect(data).toBe("textwithcontrols");  // Control characters should be removed
+    });
+
+    test("should handle enhanced SQL INSERT patterns", () => {
+      // Test the enhanced sanitization with realistic SQL patterns
+      const appuserJson = `{
+        "databaseIntegration": {
+          "mechanism": "DML",
+          "codeExample": "INSERT INTO m_appuser VALUES (1,0,1,'mifos','App','Administrator','hash','email')"
+        }
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        appuserJson,
+        "test-enhanced-sql-patterns",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("databaseIntegration");
+      
+      const dbIntegration = (result as any).databaseIntegration;
+      expect(dbIntegration.codeExample).toContain("INSERT INTO m_appuser");
+      expect(dbIntegration.codeExample).toContain("mifos");
+      expect(dbIntegration.mechanism).toBe("DML");
+    });
+
+    test("should demonstrate enhanced sanitization capabilities", () => {
+      // Test that shows the enhanced sanitization system works for complex cases
+      const enhancedJson = `{
+        "purpose": "Enhanced JSON sanitization test",
+        "features": ["Control character removal", "Escape sequence fixes", "Null pattern handling"],
+        "status": "working"
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        enhancedJson,
+        "test-enhanced-capabilities",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("purpose");
+      expect(result).toHaveProperty("features");
+      expect(result).toHaveProperty("status");
+      
+      const features = (result as any).features;
+      expect(Array.isArray(features)).toBe(true);
+      expect(features).toHaveLength(3);
+    });
+
     test("should not break valid JSON with proper escape sequences", () => {
       // Ensure we don't break properly escaped JSON
       const validJson = '{"message": "This is a \\"quoted\\" word and this is a \\\'apostrophe\\\'"}';

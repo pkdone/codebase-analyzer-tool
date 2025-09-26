@@ -15,6 +15,24 @@ function attemptJsonSanitization(jsonString: string): string {
     // Try progressive fixes for common issues
     let sanitized = jsonString;
     
+    // Fix 0: Remove literal control characters that make JSON invalid at the top level
+    // This must be done first before any other processing
+    // eslint-disable-next-line no-control-regex
+    sanitized = sanitized.replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+    
+    // Fix 0.5: Fix literal newlines after backslashes in JSON structure 
+    // Pattern: \\\n -> \\n (backslash + literal newline to properly escaped newline)
+    sanitized = sanitized.replace(/\\\n/g, '\\n');
+    
+    // Fix 0.6: Fix escaped Unicode control characters in JSON strings
+    // Pattern: \\u0001 -> '' (remove escaped control characters)
+    sanitized = sanitized.replace(/\\u000[1-9A-F]/g, '');
+    sanitized = sanitized.replace(/\\u001[0-9A-F]/g, '');
+    
+    // Fix 0.7: Fix remaining null escape patterns in JSON strings
+    // Pattern: '\\0' -> '' (remove null escape sequences in string literals)
+    sanitized = sanitized.replace(/'\\0'/g, "''");
+    
     // Fix 1: Handle over-escaped content within JSON string values
     // This is the most common issue with LLM responses containing SQL/code examples
     sanitized = fixOverEscapedStringContent(sanitized);
@@ -66,6 +84,13 @@ function fixOverEscapedSequences(content: string): string {
   // Pattern: \\\'\\' -> '' (3-backslash empty quotes)
   // eslint-disable-next-line no-useless-escape
   fixed = fixed.replace(/\\'\\\'/g, "''");
+  
+  // Fix over-escaped null characters (handle both 4 and 5 backslash patterns)
+  // Pattern: \\\\\\0 -> \\0 (reduce 5-backslash null to proper null escape)
+  fixed = fixed.replace(/\\\\\\0/g, '\\0');
+  
+  // Pattern: \\\\0 -> \\0 (reduce 4-backslash null to proper null escape)  
+  fixed = fixed.replace(/\\\\0/g, '\\0');
   
   // Clean up orphaned backslashes
   fixed = fixed.replace(/\\\\\s*,/g, ',');   // Double backslash before comma
