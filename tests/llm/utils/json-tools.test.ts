@@ -150,6 +150,132 @@ describe("json-tools", () => {
       expect(codeExample).toContain("Client Listing");
     });
 
+    test("should handle truncated JSON responses ending with comma", () => {
+      // Test truncated JSON that ends with comma (common with token limits)
+      const truncatedJson = '{"purpose": "Test script", "field": "value",';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        truncatedJson,
+        "test-truncated-comma",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("purpose");
+      expect(result).toHaveProperty("field");
+    });
+
+    test("should handle truncated JSON responses ending with colon", () => {
+      // Test truncated JSON that ends with field name and colon
+      const truncatedJson = '{"field1": "value1", "field2":';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        truncatedJson,
+        "test-truncated-colon",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("field1");
+      expect(result).toHaveProperty("field2");
+    });
+
+    test("should handle JSON with excessive backslash sequences", () => {
+      // Test patterns with 4+ backslashes that need reduction
+      const excessiveBackslashJson = '{"field": "value with normal content"}';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        excessiveBackslashJson,
+        "test-excessive-backslash",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("field");
+    });
+
+    test("should handle markdown-wrapped JSON responses", () => {
+      // Test extraction from markdown code blocks
+      const markdownJson = '```json\n{"purpose": "test", "field": "value"}\n```';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        markdownJson,
+        "test-markdown-wrapped",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("purpose");
+      expect(result).toHaveProperty("field");
+    });
+
+    test("should handle JSON surrounded by explanatory text", () => {
+      // Test extraction from responses with surrounding text
+      const textWithJson = 'Here is the analysis: {"result": "positive", "confidence": 0.95} Hope this helps!';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        textWithJson,
+        "test-surrounding-text",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("result");
+      expect(result).toHaveProperty("confidence");
+    });
+
+    test("should handle complex SQL content with mixed escaping patterns", () => {
+      // Test case inspired by actual error logs with complex SQL content
+      const complexSqlJson = `{
+        "purpose": "Database initialization script",
+        "databaseIntegration": {
+          "mechanism": "DML",
+          "codeExample": "INSERT INTO users VALUES (1, 'John Doe', 'SELECT * FROM table WHERE name = value')"
+        }
+      }`;
+      
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        complexSqlJson,
+        "test-complex-sql",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("purpose");
+      expect(result).toHaveProperty("databaseIntegration");
+      
+      const dbIntegration = (result as any).databaseIntegration;
+      expect(dbIntegration).toHaveProperty("codeExample");
+      expect(dbIntegration.codeExample).toContain("INSERT INTO");
+    });
+
+    test("should gracefully fail for genuinely invalid content", () => {
+      // Ensure genuinely invalid content still throws appropriate errors
+      const invalidContent = "This is just plain text with no JSON structure at all";
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+
+      expect(() =>
+        convertTextToJSONAndOptionallyValidate(
+          invalidContent,
+          "test-genuinely-invalid",
+          completionOptions,
+        ),
+      ).toThrow("doesn't contain valid JSON content");
+    });
+
     test("should throw error for non-string input", () => {
       const nonStringInput = 123;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };

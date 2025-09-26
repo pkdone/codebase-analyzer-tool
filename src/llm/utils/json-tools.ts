@@ -76,9 +76,15 @@ function attemptJsonSanitization(jsonString: string): string {
       }
       
       // If the string ends mid-field or with incomplete structure, try to complete it
-      if (trimmed.endsWith(',') || trimmed.endsWith(':') || trimmed.endsWith('"')) {
-        // Remove trailing comma/colon and close properly
-        sanitized = trimmed.replace(/[,:]\s*$/, '');
+      if (trimmed.endsWith(',')) {
+        // Remove trailing comma and close structure
+        sanitized = trimmed.replace(/,\s*$/, '');
+      } else if (trimmed.endsWith(':')) {
+        // Add empty string value for incomplete field and close structure
+        sanitized = trimmed + '""';
+      } else {
+        // Use the trimmed version as-is
+        sanitized = trimmed;
       }
       
       // Close open structures
@@ -168,6 +174,10 @@ function extractAndParse(textContent: string): unknown {
 
       if (endIndex !== -1) {
         jsonMatch = textContent.substring(openBraceIndex, endIndex + 1);
+      } else {
+        // Handle truncated JSON - extract from opening brace to end of content
+        // This allows sanitization logic to attempt completion
+        jsonMatch = textContent.substring(openBraceIndex);
       }
     }
   }
