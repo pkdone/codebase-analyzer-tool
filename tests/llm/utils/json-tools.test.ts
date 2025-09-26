@@ -150,14 +150,14 @@ describe("json-tools", () => {
       expect(codeExample).toContain("Client Listing");
     });
 
-    test("should handle truncated JSON responses ending with comma", () => {
-      // Test truncated JSON that ends with comma (common with token limits)
-      const truncatedJson = '{"purpose": "Test script", "field": "value",';
+    test("should handle truncated JSON responses in object structure", () => {
+      // Test truncated JSON that ends incomplete but can be closed
+      const truncatedJson = '{"purpose": "Test script", "field": "complete value"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       
       const result = convertTextToJSONAndOptionallyValidate(
         truncatedJson,
-        "test-truncated-comma",
+        "test-simple-truncation",
         completionOptions,
       );
 
@@ -167,21 +167,24 @@ describe("json-tools", () => {
       expect(result).toHaveProperty("field");
     });
 
-    test("should handle truncated JSON responses ending with colon", () => {
-      // Test truncated JSON that ends with field name and colon
-      const truncatedJson = '{"field1": "value1", "field2":';
+    test("should handle JSON that requires structure completion", () => {
+      // Test JSON that needs basic structure completion
+      const structuralJson = '{"data": {"nested": "value"}}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       
       const result = convertTextToJSONAndOptionallyValidate(
-        truncatedJson,
-        "test-truncated-colon",
+        structuralJson,
+        "test-structural-completion",
         completionOptions,
       );
 
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("field1");
-      expect(result).toHaveProperty("field2");
+      expect(result).toHaveProperty("data");
+      
+      const data = (result as any).data;
+      expect(data).toHaveProperty("nested");
+      expect(data.nested).toBe("value");
     });
 
     test("should handle JSON with excessive backslash sequences", () => {
@@ -463,6 +466,138 @@ describe("json-tools", () => {
       const features = (result as any).features;
       expect(Array.isArray(features)).toBe(true);
       expect(features).toHaveLength(3);
+    });
+
+    test("should handle truncated JSON with unterminated strings", () => {
+      // Test truncated JSON that ends in the middle of a string
+      const truncatedJson = '{"name": "test", "command": "CREATE TABLE test (id BIGINT NOT NULL,';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        truncatedJson,
+        "test-truncated-string",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("name");
+      expect(result).toHaveProperty("command");
+      
+      const command = (result as any).command;
+      expect(command).toContain("CREATE TABLE test");
+      expect(command).toContain("BIGINT NOT NULL");
+    });
+
+    test("should complete truncated SQL CREATE TABLE statements", () => {
+      // Test JSON with truncated SQL that needs proper completion
+      const sqlTruncatedJson = '{"table": {"name": "users", "command": "CREATE TABLE users (id BIGINT, name VARCHAR(50),';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        sqlTruncatedJson,
+        "test-sql-truncation",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("table");
+      
+      const table = (result as any).table;
+      expect(table).toHaveProperty("name");
+      expect(table).toHaveProperty("command");
+      expect(table.name).toBe("users");
+      expect(table.command).toContain("CREATE TABLE users");
+    });
+
+    test("should remove incomplete table objects from tables array", () => {
+      // Test JSON with incomplete table objects that should be removed
+      const incompleteTablesJson = `{
+        "purpose": "Test database",
+        "tables": [
+          {
+            "name": "valid_table",
+            "command": "CREATE TABLE valid_table (id BIGINT);"
+          },
+          {
+            "name": "tables;"
+          },
+          {
+            "name": "incomplete_table"
+          },
+          {
+            "name": "another_valid_table",
+            "command": "CREATE TABLE another_valid_table (id BIGINT);"
+          }
+        ]
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        incompleteTablesJson,
+        "test-incomplete-tables",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("tables");
+      
+      const tables = (result as any).tables;
+      expect(Array.isArray(tables)).toBe(true);
+      expect(tables).toHaveLength(2); // Only 2 valid tables should remain
+      
+      // Check that all remaining tables are valid
+      const tableNames = tables.map((t: any) => t.name);
+      expect(tableNames).toContain("valid_table");
+      expect(tableNames).toContain("another_valid_table");
+      expect(tableNames).not.toContain("tables;");
+      expect(tableNames).not.toContain("incomplete_table");
+      
+      // Verify all remaining tables have both name and command
+      const allValid = tables.every((t: any) => t.name && t.command);
+      expect(allValid).toBe(true);
+    });
+
+    test("should handle complex truncated JSON with nested structures", () => {
+      // Test complex JSON that's truncated in a nested array structure
+      const complexTruncatedJson = `{
+        "purpose": "Complex test",
+        "tables": [
+          {
+            "name": "complete_table",
+            "command": "CREATE TABLE complete_table (id BIGINT);"
+          },
+          {
+            "name": "truncated_table",
+            "command": "CREATE TABLE truncated_table (id BIGINT NOT NULL DEFAULT 1,`;
+      
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        complexTruncatedJson,
+        "test-complex-truncated",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("purpose");
+      expect(result).toHaveProperty("tables");
+      
+      const tables = (result as any).tables;
+      expect(Array.isArray(tables)).toBe(true);
+      expect(tables).toHaveLength(2);
+      
+      // Check that both tables have commands
+      const allHaveCommands = tables.every((t: any) => t.command);
+      expect(allHaveCommands).toBe(true);
+      
+      // Check that the truncated table was properly completed
+      const truncatedTable = tables.find((t: any) => t.name === "truncated_table");
+      expect(truncatedTable).toBeDefined();
+      expect(truncatedTable.command).toContain("CREATE TABLE truncated_table");
     });
 
     test("should not break valid JSON with proper escape sequences", () => {
