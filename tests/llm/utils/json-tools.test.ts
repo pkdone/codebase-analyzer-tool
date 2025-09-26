@@ -262,6 +262,70 @@ describe("json-tools", () => {
       expect(dbIntegration.codeExample).toContain("INSERT INTO");
     });
 
+    test("should handle improved JSON sanitization for common LLM over-escaping", () => {
+      // Test the improved sanitization logic with a realistic scenario
+      const overEscapedJson = '{"sql": "SELECT name AS \\"User Name\\" FROM users WHERE id = \\\'123\\\'"}';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        overEscapedJson,
+        "test-improved-sanitization",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("sql");
+      
+      const sql = (result as any).sql;
+      expect(sql).toBe('SELECT name AS "User Name" FROM users WHERE id = \'123\'');
+    });
+
+    test("should handle SQL content with mixed quotes", () => {
+      // Test case inspired by the original error - SQL with mixed quote usage
+      const sqlJson = `{
+        "purpose": "Database initialization",
+        "codeExample": "INSERT INTO reports VALUES (1, 'Report Name', 'SELECT column AS \\"Alias\\" FROM table')"
+      }`;
+      
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        sqlJson,
+        "test-sql-mixed-quotes",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("purpose");
+      expect(result).toHaveProperty("codeExample");
+      
+      const codeExample = (result as any).codeExample;
+      expect(typeof codeExample).toBe("string");
+      expect(codeExample).toContain("INSERT INTO");
+      expect(codeExample).toContain("reports");
+    });
+
+    test("should preserve properly formatted JSON", () => {
+      // Test that properly formatted JSON is not modified  
+      const properlyFormattedJson = '{"text": "Normal text with standard escaping"}';
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        properlyFormattedJson,
+        "test-properly-formatted",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("text");
+      
+      const text = (result as any).text;
+      expect(text).toBe("Normal text with standard escaping");
+    });
+
     test("should gracefully fail for genuinely invalid content", () => {
       // Ensure genuinely invalid content still throws appropriate errors
       const invalidContent = "This is just plain text with no JSON structure at all";
