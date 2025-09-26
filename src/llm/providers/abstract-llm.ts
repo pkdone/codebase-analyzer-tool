@@ -308,7 +308,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       } catch (error: unknown) {
         context.responseContentParseError = formatErrorMessage(error);
         if (doWarnOnError) logErrorMsg(formatErrorMessage(error));
-        await this.recordTestResponseToJSONErrorToFile(error, responseContent);
+        await this.recordTestResponseToJSONErrorToFile(error, responseContent, context);
         return { ...skeletonResult, status: LLMResponseStatus.INVALID };
       }
     } else {
@@ -322,6 +322,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   private async recordTestResponseToJSONErrorToFile(
     error: unknown,
     responseContent: LLMGeneratedContent,
+    context: LLMContext,    
   ): Promise<void> {
     if (typeof responseContent !== "string") return;
 
@@ -332,7 +333,8 @@ export default abstract class AbstractLLM implements LLMProvider {
       const filepath = `${errorDir}/${filename}`;
       await ensureDirectoryExists(errorDir);
       const logContent =
-        "Error messgage:\n\n```\n" +
+      "Resource: " + context.resource + "\n\n" +
+      "Error messgage:\n\n```\n" +
         formatErrorMessageAndDetail("LLM response parsing error", error) +
         "\n```\n\n\nBad LLM JSON response: \n\n\n```" +
         responseContent +
