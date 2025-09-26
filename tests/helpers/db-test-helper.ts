@@ -5,10 +5,32 @@ import { randomUUID } from "crypto";
 import { TOKENS } from "../../src/di/tokens";
 import { databaseConfig } from "../../src/config/database.config";
 import { registerAppDependencies } from "../../src/di/registration-modules";
+import { LLMProviderManager } from "../../src/llm/core/llm-provider-manager";
 
 // Store client and dbName to be accessible in teardown
 let testMongoClient: MongoClient | null = null;
 let testDbName: string | null = null;
+
+/**
+ * Get the vector dimensions from the configured LLM provider for database initialization
+ */
+async function getVectorDimensions(): Promise<number> {
+  const modelFamily = process.env.LLM;
+  if (!modelFamily) {
+    console.warn("LLM environment variable is not set. Using default 1536 dimensions.");
+    return databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
+  }
+  
+  try {
+    const manifest = await LLMProviderManager.loadManifestForModelFamily(modelFamily);
+    const dimensions = manifest.models.embeddings.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
+    console.log(`Using ${dimensions} vector dimensions for model family: ${modelFamily}`);
+    return dimensions;
+  } catch (error) {
+    console.warn(`Failed to load manifest for ${modelFamily}, using default ${databaseConfig.DEFAULT_VECTOR_DIMENSIONS} dimensions:`, error);
+    return databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
+  }
+}
 
 // Load environment variables if not already loaded
 function ensureEnvLoaded(): void {
@@ -60,7 +82,8 @@ export async function setupTestDatabase(): Promise<MongoClient> {
   const databaseInitializer = container.resolve<
     import("../../src/repositories/setup/database-initializer").DatabaseInitializer
   >(TOKENS.DatabaseInitializer);
-  await databaseInitializer.initializeDatabaseSchema(databaseConfig.DEFAULT_VECTOR_DIMENSIONS);
+  const vectorDimensions = await getVectorDimensions();
+  await databaseInitializer.initializeDatabaseSchema(vectorDimensions);
 
   console.log(`Test database '${testDbName}' created and initialized.`);
   return testMongoClient;

@@ -4,13 +4,29 @@ import { TOKENS } from "../../src/di/tokens";
 import { SourcesRepository } from "../../src/repositories/source/sources.repository.interface";
 import { SourceRecord } from "../../src/repositories/source/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/db-test-helper";
+import { LLMProviderManager } from "../../src/llm/core/llm-provider-manager";
 
-// Helper function to create test vectors of the correct size
-// Note: Using 3072 dimensions to match the vector indexes in the MongoDB cluster
-function createTestVector(seed = 0.1): number[] {
-  const CLUSTER_VECTOR_DIMENSIONS = 3072; // Match existing cluster vector indexes
+// Helper function to get the vector dimensions from the configured LLM provider
+async function getEmbeddingDimensions(): Promise<number> {
+  const modelFamily = process.env.LLM;
+  if (!modelFamily) {
+    throw new Error("LLM environment variable is not set. Cannot determine embedding dimensions.");
+  }
+  
+  try {
+    const manifest = await LLMProviderManager.loadManifestForModelFamily(modelFamily);
+    return manifest.models.embeddings.dimensions ?? 1536; // Handle potential undefined
+  } catch (error) {
+    console.warn(`Failed to load manifest for ${modelFamily}, falling back to default 1536 dimensions:`, error);
+    return 1536; // Default fallback
+  }
+}
+
+// Helper function to create test vectors of the correct size based on configured LLM
+async function createTestVector(seed = 0.1): Promise<number[]> {
+  const dimensions = await getEmbeddingDimensions();
   const vector = [];
-  for (let i = 0; i < CLUSTER_VECTOR_DIMENSIONS; i++) {
+  for (let i = 0; i < dimensions; i++) {
     // Create a deterministic but varied vector based on seed and position
     vector.push(Math.sin((seed + i) * 0.1) * 0.5 + 0.5);
   }
@@ -49,7 +65,7 @@ describe("SourcesRepository Integration Tests", () => {
           type: "ts",
           linesCount: 10,
           content: "TypeScript content for testing",
-          contentVector: createTestVector(0.1),
+          contentVector: await createTestVector(0.1),
           summary: {
             classpath: "File1Class",
             purpose: "Testing purpose",
@@ -63,7 +79,7 @@ describe("SourcesRepository Integration Tests", () => {
           type: "ts",
           linesCount: 20,
           content: "Another TypeScript file for testing",
-          contentVector: createTestVector(0.8),
+          contentVector: await createTestVector(0.8),
           summary: {
             classpath: "File2Class",
             purpose: "Another test",
@@ -77,7 +93,7 @@ describe("SourcesRepository Integration Tests", () => {
           type: "java",
           linesCount: 30,
           content: "Java content for testing",
-          contentVector: createTestVector(0.4),
+          contentVector: await createTestVector(0.4),
         },
       ];
 
@@ -86,7 +102,7 @@ describe("SourcesRepository Integration Tests", () => {
       }
 
       // Act: Query with vector close to file2.ts
-      const queryVector = createTestVector(0.75); // Should be similar to the 0.8 seed vector
+      const queryVector = await createTestVector(0.75); // Should be similar to the 0.8 seed vector
       const results = await sourcesRepository.vectorSearchProjectSourcesRawContent(
         projectName,
         "ts",
@@ -130,7 +146,7 @@ describe("SourcesRepository Integration Tests", () => {
           type: "ts",
           linesCount: 10,
           content: "TypeScript content",
-          contentVector: createTestVector(0.1),
+          contentVector: await createTestVector(0.1),
         },
         {
           projectName,
@@ -139,7 +155,7 @@ describe("SourcesRepository Integration Tests", () => {
           type: "java",
           linesCount: 15,
           content: "Java content",
-          contentVector: createTestVector(0.15), // Same vector for testing filtering
+          contentVector: await createTestVector(0.15), // Same vector for testing filtering
         },
       ];
 
@@ -151,7 +167,7 @@ describe("SourcesRepository Integration Tests", () => {
       const results = await sourcesRepository.vectorSearchProjectSourcesRawContent(
         projectName,
         "java",
-        createTestVector(0.1),
+        await createTestVector(0.1),
         10,
         5,
       );
