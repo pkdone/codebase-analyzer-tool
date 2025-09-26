@@ -511,9 +511,9 @@ describe("json-tools", () => {
       expect(table.command).toContain("CREATE TABLE users");
     });
 
-    test("should remove incomplete table objects from tables array", () => {
-      // Test JSON with incomplete table objects that should be removed
-      const incompleteTablesJson = `{
+    test("should preserve valid JSON without structural modifications", () => {
+      // Test that valid JSON with incomplete objects is preserved as-is
+      const validJsonWithIncompleteObjects = `{
         "purpose": "Test database",
         "tables": [
           {
@@ -535,8 +535,8 @@ describe("json-tools", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       
       const result = convertTextToJSONAndOptionallyValidate(
-        incompleteTablesJson,
-        "test-incomplete-tables",
+        validJsonWithIncompleteObjects,
+        "test-preserve-valid-json",
         completionOptions,
       );
 
@@ -546,16 +546,62 @@ describe("json-tools", () => {
       
       const tables = (result as any).tables;
       expect(Array.isArray(tables)).toBe(true);
-      expect(tables).toHaveLength(2); // Only 2 valid tables should remain
+      expect(tables).toHaveLength(4); // All objects preserved, including incomplete ones
       
-      // Check that all remaining tables are valid
+      // Check that both valid and incomplete tables are preserved
       const tableNames = tables.map((t: any) => t.name);
       expect(tableNames).toContain("valid_table");
       expect(tableNames).toContain("another_valid_table");
+      expect(tableNames).toContain("tables;"); // Incomplete objects preserved
+      expect(tableNames).toContain("incomplete_table"); // Incomplete objects preserved
+    });
+
+    test("should apply structural fixes only during JSON sanitization", () => {
+      // Test that structural fixes are applied when JSON requires sanitization
+      // Create JSON that's malformed and needs sanitization, which then triggers structural fixes
+      const malformedJson = `{
+        "purpose": "Test database",
+        "tables": [
+          {
+            "name": "valid_table", 
+            "command": "CREATE TABLE valid_table (id BIGINT);"
+          },
+          {
+            "name": "tables;"
+          },
+          {
+            "name": "incomplete_table"
+          }
+        ]
+      }`;
+      
+      // Add control characters to force sanitization path
+      const controlChar = String.fromCharCode(1);
+      const malformedWithControls = malformedJson.replace('"Test database"', `"Test${controlChar}database"`);
+      
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      
+      const result = convertTextToJSONAndOptionallyValidate(
+        malformedWithControls,
+        "test-structural-fixes-during-sanitization",
+        completionOptions,
+      );
+
+      expect(result).toBeDefined();
+      expect(typeof result).toBe("object");
+      expect(result).toHaveProperty("tables");
+      
+      const tables = (result as any).tables;
+      expect(Array.isArray(tables)).toBe(true);
+      expect(tables).toHaveLength(1); // Only valid table should remain after sanitization
+      
+      // Check that only valid tables remain
+      const tableNames = tables.map((t: any) => t.name);
+      expect(tableNames).toContain("valid_table");
       expect(tableNames).not.toContain("tables;");
       expect(tableNames).not.toContain("incomplete_table");
       
-      // Verify all remaining tables have both name and command
+      // Verify remaining table has both name and command
       const allValid = tables.every((t: any) => t.name && t.command);
       expect(allValid).toBe(true);
     });
