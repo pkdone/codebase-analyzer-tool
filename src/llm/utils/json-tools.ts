@@ -7,12 +7,10 @@ interface TableObject {
   command?: string;
 }
 
-/* eslint-disable @typescript-eslint/member-ordering */
 interface ParsedJsonWithTables {
-  tables?: unknown[];
   [key: string]: unknown;
+  tables?: unknown[];
 }
-/* eslint-enable @typescript-eslint/member-ordering */
 
 /**
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally
@@ -103,17 +101,13 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
     }
 
     return validation.data as T; // Cast is now safer after successful validation
+  } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
+    // TEXT format should accept any type, including numbers, for backward compatibility
+    return content as LLMGeneratedContent;
   } else {
-    // For non-JSON formats (TEXT) or when no schema validation is needed,
-    // be more permissive and allow any valid JSON-parsed content
-    if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
-      // TEXT format should accept any type, including numbers, for backward compatibility
-      return content as LLMGeneratedContent;
-    } else {
-      if (isLLMGeneratedContent(content)) return content; // Now safe, no cast needed
-      logErrorMsg(`Content is not valid LLMGeneratedContent for resource: ${resourceName}`);
-      return null;
-    }
+    if (isLLMGeneratedContent(content)) return content; // Now safe, no cast needed
+    logErrorMsg(`Content is not valid LLMGeneratedContent for resource: ${resourceName}`);
+    return null;
   }
 }
 
@@ -232,7 +226,7 @@ function attemptJsonSanitization(jsonString: string): string {
   
   // Fix 1: Handle over-escaped content within JSON string values
   // This is the most common issue with LLM responses containing SQL/code examples
-  sanitized = fixOverEscapedStringContent(sanitized);
+  sanitized = fixOverEscapedSequences(sanitized);
   
   // Fix 2: Handle structural JSON issues (incomplete objects, invalid field values)
   sanitized = fixStructuralJsonIssues(sanitized);
@@ -241,16 +235,6 @@ function attemptJsonSanitization(jsonString: string): string {
   sanitized = completeTruncatedJSON(sanitized);
   
   return sanitized;
-}
-
-/**
- * Fix over-escaped content within JSON string values while preserving JSON structure.
- * Apply sanitization globally since complex over-escaped content can break regex string detection.
- */
-function fixOverEscapedStringContent(jsonString: string): string {
-  // Apply the sanitization patterns globally to the entire JSON content
-  // This is more robust for complex over-escaped content than trying to detect string boundaries
-  return fixOverEscapedSequences(jsonString);
 }
 
 /**
@@ -307,12 +291,16 @@ function fixOverEscapedSequences(content: string): string {
 function fixStructuralJsonIssues(jsonString: string): string {
   try {
     // Attempt to parse and fix known structural issues
-    // Note: We need to see if the JSON is parseable cos this is called after  sanitization fixes
-    const parsed = JSON.parse(jsonString) as ParsedJsonWithTables;
+    // Note: We need to see if the JSON is parseable cos this is called after sanitization fixes
+    const parsed: unknown = JSON.parse(jsonString);
     
-    // Fix incomplete table objects in the tables array
-    if (parsed.tables && Array.isArray(parsed.tables)) {
-      parsed.tables = parsed.tables.filter((table: unknown): table is TableObject => {
+    // Validate and fix incomplete table objects in the tables array
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && 
+        'tables' in parsed && Array.isArray((parsed as Record<string, unknown>).tables)) {
+      // Now we can safely cast after validation
+      const typedParsed = parsed as ParsedJsonWithTables;
+      if (typedParsed.tables) {
+        typedParsed.tables = typedParsed.tables.filter((table: unknown): table is TableObject => {
         // Remove table objects that are incomplete or have invalid names
         if (!table || typeof table !== 'object') {
           return false; // Remove non-object entries
@@ -331,8 +319,11 @@ function fixStructuralJsonIssues(jsonString: string): string {
           return false;
         }
         
-        return true; // Keep valid table objects
-      });
+          return true; // Keep valid table objects
+        });
+      }
+      
+      return JSON.stringify(typedParsed);
     }
     
     return JSON.stringify(parsed);    
