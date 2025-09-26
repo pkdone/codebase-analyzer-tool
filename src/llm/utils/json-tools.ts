@@ -259,7 +259,6 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
     try {
       const sanitizedContent = attemptJsonSanitization(content);
       jsonContent = extractAndParse(sanitizedContent);
-      logErrorMsg(`JSON sanitization was applied for resource '${resourceName}' due to malformed LLM response`);
     } catch {
       throw new BadResponseContentLLMError(
         `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
