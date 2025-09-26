@@ -332,9 +332,11 @@ export default abstract class AbstractLLM implements LLMProvider {
       const filepath = `${errorDir}/${filename}`;
       await ensureDirectoryExists(errorDir);
       const logContent =
+        "Error messgage:\n\n```\n" +
         formatErrorMessageAndDetail("LLM response parsing error", error) +
-        "\n\n\n" +
-        responseContent;
+        "\n```\n\n\nBad LLM JSON response: \n\n\n```" +
+        responseContent +
+        "\n```";
       await writeFile(filepath, logContent);
 
       if (!this.hasLoggedJsonError) {

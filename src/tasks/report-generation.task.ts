@@ -30,7 +30,6 @@ export class ReportGenerationTask implements Task {
    * Generate a report from the codebase in the specified directory.
    */
   private async generateReport(): Promise<void> {
-    console.log(`ReportGenerationTask: Generating report for project: ${this.projectName}`);
     await clearDirectory(outputConfig.OUTPUT_DIR);
     console.log(`Creating report for project: ${this.projectName}`);
     await this.appReportGenerator.generateReport(

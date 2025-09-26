@@ -57,6 +57,7 @@ export default class AppReportGenerator {
     outputDir: string,
     outputFilename: string,
   ): Promise<void> {
+    console.log(`Creating report for project: ${projectName}`);
     // Consolidate all required app summary fields in a single query
     // This includes fields needed by both AppStatisticsDataProvider and CategoriesDataProvider
     const allRequiredAppSummaryFields = [

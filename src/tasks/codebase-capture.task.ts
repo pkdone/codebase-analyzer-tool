@@ -7,6 +7,8 @@ import type { EnvVars } from "../env/env.types";
 import { DatabaseInitializer } from "../repositories/setup/database-initializer";
 import { databaseConfig } from "../config/database.config";
 import { TOKENS } from "../di/tokens";
+import { clearDirectory } from "../common/utils/directory-operations";
+import { outputConfig } from "../config/output.config";
 
 /**
  * Task to capture the codebase.
@@ -38,6 +40,7 @@ export class CodebaseCaptureTask extends BaseLLMTask {
    * Execute the core task logic.
    */
   protected async run(): Promise<void> {
+    await clearDirectory(outputConfig.OUTPUT_DIR);
     await this.databaseInitializer.initializeDatabaseSchema(
       databaseConfig.DEFAULT_VECTOR_DIMENSIONS,
     );

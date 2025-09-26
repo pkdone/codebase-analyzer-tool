@@ -4,6 +4,8 @@ import type { InsightsProcessorSelector } from "../components/insights/insights-
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import { TOKENS } from "../di/tokens";
+import { outputConfig } from "../config/output.config";
+import { clearDirectory } from "../common/utils/directory-operations";
 
 /**
  * Task to generate insights.
@@ -33,6 +35,7 @@ export class InsightsGenerationTask extends BaseLLMTask {
    * Execute the core task logic.
    */
   protected async run(): Promise<void> {
+    await clearDirectory(outputConfig.OUTPUT_DIR);
     const selectedProcessor = await this.insightsProcessorSelector.selectInsightsProcessor();
     await selectedProcessor.generateAndStoreInsights();
   }
