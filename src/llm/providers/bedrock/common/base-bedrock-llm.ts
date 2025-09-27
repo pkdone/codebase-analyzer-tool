@@ -82,10 +82,11 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: BedrockConfig,
   ) {
+    if (!config.providerSpecificConfig) {
+      throw new Error("providerSpecificConfig is required but was not provided");
+    }
     super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
-    const requestTimeoutMillis =
-      config.providerSpecificConfig?.requestTimeoutMillis ??
-      llmConfig.DEFAULT_REQUEST_WAIT_TIMEOUT_MILLIS;
+    const requestTimeoutMillis = config.providerSpecificConfig.requestTimeoutMillis;
     this.client = new BedrockRuntimeClient({
       requestHandler: { requestTimeout: requestTimeoutMillis },
     });

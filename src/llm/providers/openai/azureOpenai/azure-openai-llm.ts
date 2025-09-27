@@ -39,6 +39,9 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: AzureOpenAIConfig,
   ) {
+    if (!config.providerSpecificConfig) {
+      throw new Error("providerSpecificConfig is required but was not provided");
+    }
     super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
     this.modelToDeploymentMappings = new Map();
     this.modelToDeploymentMappings.set(modelsKeys.embeddingsModelKey, config.embeddingsDeployment);
@@ -52,7 +55,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
         secondaryCompletion,
         config.secondaryCompletionsDeployment,
       );
-    const apiVersion = config.providerSpecificConfig?.apiVersion ?? "2025-01-01-preview";
+    const apiVersion = config.providerSpecificConfig.apiVersion ?? "2025-01-01-preview";
     this.client = new AzureOpenAI({ endpoint: config.endpoint, apiKey: config.apiKey, apiVersion });
   }
 

@@ -72,6 +72,9 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: VertexAIConfig,
   ) {
+    if (!config.providerSpecificConfig) {
+      throw new Error("providerSpecificConfig is required but was not provided");
+    }
     super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
     this.vertexAiApiClient = new VertexAI({ project: config.project, location: config.location });
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({

@@ -33,6 +33,9 @@ export default class OpenAILLM extends BaseOpenAILLM {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: OpenAIConfig,
   ) {
+    if (!config.providerSpecificConfig) {
+      throw new Error("providerSpecificConfig is required but was not provided");
+    }
     super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
     this.client = new OpenAI({ apiKey: config.apiKey });
   }
