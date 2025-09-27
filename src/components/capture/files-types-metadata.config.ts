@@ -99,7 +99,7 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
     contentDesc: "database DDL/DML/SQL code",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
- * A list of the tables (if any) it defines - for each table, include the table's name and a copy of the command that creates the file used to create the table (maximum first 200 chars).
+ * A list of the tables (if any) it defines - for each table, include the table's name and a copy of the command that creates the file used to create the table.
  * A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
  * A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
  * The most prominent type of database integration it employs (if any), stating the mechanism used ('NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), a description of the integration and an example code snippet (maximum 6 lines of code) that performs the database integration`,
