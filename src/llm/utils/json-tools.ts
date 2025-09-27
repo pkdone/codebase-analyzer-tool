@@ -92,15 +92,26 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
     completionOptions.jsonSchema
   ) {
     // Zod's safeParse can safely handle unknown inputs and provide type-safe output
-    const validation = completionOptions.jsonSchema.safeParse(content);
+    let validation = completionOptions.jsonSchema.safeParse(content);
 
     if (!validation.success) {
-      const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(validation.error.issues)}`;
-      if (doWarnOnError) logErrorMsg(errorMessage);
-      return null;
+      // Attempt auto-repair for common partially generated patterns (e.g. truncated / malformed table objects)
+      const repaired = attemptContentAutoRepair(content);
+      
+      if (repaired !== content) {
+        validation = completionOptions.jsonSchema.safeParse(repaired);
+      }
+
+      if (!validation.success) {
+        const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(validation.error.issues)}`;
+        if (doWarnOnError) logErrorMsg(errorMessage);
+        return null;
+      }
+
+      return validation.data as T; // Successful after repair
     }
 
-    return validation.data as T; // Cast is now safer after successful validation
+    return validation.data as T; // Cast is now safer after successful validation (no repair needed)
   } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
     // TEXT format should accept any type, including numbers, for backward compatibility
     return content as LLMGeneratedContent;
@@ -233,6 +244,9 @@ function attemptJsonSanitization(jsonString: string): string {
   
   // Fix 3: Handle truncated JSON by attempting to close open structures
   sanitized = completeTruncatedJSON(sanitized);
+
+  // Final structural pass AFTER truncation completion to remove malformed nested objects
+  sanitized = fixStructuralJsonIssues(sanitized);
   
   return sanitized;
 }
@@ -331,6 +345,38 @@ function fixStructuralJsonIssues(jsonString: string): string {
     // If parsing fails, return the original string - final extraction will handle it
     return jsonString;
   }
+}
+
+/**
+ * Attempt to auto-repair common validation issues (currently focuses on removing malformed
+ * table objects missing required properties). Returns the (possibly) modified content.
+ */
+function attemptContentAutoRepair(content: unknown): unknown {
+  if (!content || typeof content !== 'object' || Array.isArray(content)) return content;
+  const clone: Record<string, unknown> = { ...(content as Record<string, unknown>) };
+
+  if (Array.isArray(clone.tables)) {
+    const tables = clone.tables as unknown[];
+
+  interface PartialTable { [k: string]: unknown; name?: unknown; command?: unknown }
+    const isValidTable = (t: unknown): t is TableObject => {
+      if (!t || typeof t !== 'object' || Array.isArray(t)) return false;
+      const pt = t as PartialTable;
+      return (
+        typeof pt.name === 'string' && pt.name.length > 0 &&
+        typeof pt.command === 'string' && pt.command.length > 5
+      );
+    };
+
+  const repairedTables: TableObject[] = tables.filter(isValidTable);
+    // Only mutate if we actually fixed something (removed invalid entries)
+    if (repairedTables.length !== tables.length) {
+      clone.tables = repairedTables;
+      return clone;
+    }
+  }
+
+  return content;
 }
 
 /**
