@@ -845,5 +845,44 @@ describe("json-tools", () => {
       expect(trgNames).not.toContain("tinyPurpose");
       expect(trg).toHaveLength(1);
     });
+
+    describe("databaseIntegration inference auto-repair", () => {
+      const base = { purpose: "P", implementation: "Impl" };
+      test("infers DDL when tables array present", () => {
+        const content = { ...base, tables: [{ name: "t", command: "CREATE TABLE t (id INT);" }] };
+        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true, databaseIntegration: true });
+        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-ddl");
+        expect(res).not.toBeNull();
+        expect((res as any).databaseIntegration.mechanism).toBe("DDL");
+      });
+      test("infers TRIGGER when triggers present", () => {
+        const content = { ...base, triggers: [{ name: "trg", purpose: "A trigger does X logic over many lines of code.", complexity: "LOW", complexityReason: "Simple logic", linesOfCode: 12 }] };
+        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, triggers: true, databaseIntegration: true });
+        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-trigger");
+        expect(res).not.toBeNull();
+        expect((res as any).databaseIntegration.mechanism).toBe("TRIGGER");
+      });
+      test("infers STORED-PROCEDURE when storedProcedures present", () => {
+        const content = { ...base, storedProcedures: [{ name: "procA", purpose: "A stored procedure that performs a multi-step batch calculation.", complexity: "MEDIUM", complexityReason: "Moderate logic", linesOfCode: 42 }] };
+        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, storedProcedures: true, databaseIntegration: true });
+        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-proc");
+        expect(res).not.toBeNull();
+        expect((res as any).databaseIntegration.mechanism).toBe("STORED-PROCEDURE");
+      });
+      test("infers DML when only INSERT patterns present (no tables)", () => {
+        const content = { ...base, implementation: "INSERT INTO t (id) VALUES (1);" };
+        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, databaseIntegration: true });
+        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-dml");
+        expect(res).not.toBeNull();
+        expect((res as any).databaseIntegration.mechanism).toBe("DML");
+      });
+      test("infers SQL fallback when no explicit signals present but field required by schema (edge)", () => {
+        const content = { ...base };
+        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, databaseIntegration: true });
+        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-sql");
+        expect(res).not.toBeNull();
+        expect((res as any).databaseIntegration.mechanism).toBe("SQL");
+      });
+    });
   });
 });
