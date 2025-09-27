@@ -30,6 +30,7 @@ describe("RetryStrategy", () => {
     requestTimeoutMillis: 60000,
     maxRetryAttempts: 3,
     minRetryDelayMillis: 1000,
+    maxRetryDelayMillis: 5000,
   };
 
   const mockContext: LLMContext = {
@@ -165,6 +166,7 @@ describe("RetryStrategy", () => {
         requestTimeoutMillis: 60000,
         maxRetryAttempts: 1,
         minRetryDelayMillis: 100,
+        maxRetryDelayMillis: 500,
       };
 
       (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(mockSuccessResponse);

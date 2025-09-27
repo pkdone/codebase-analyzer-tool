@@ -50,9 +50,10 @@ export const openAIProviderManifest: LLMProviderManifest = {
   },
   errorPatterns: OPENAI_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
-    requestTimeoutMillis: 5 * 60 * 1000, // 5 minutes - OpenAI is generally faster than Azure
-    maxRetryAttempts: 3, // Standard retry attempts
-    minRetryDelayMillis: 15 * 1000, // 15 seconds - faster retry for OpenAI
+    requestTimeoutMillis: 5 * 60 * 1000,
+    maxRetryAttempts: 3,
+    minRetryDelayMillis: 15 * 1000,
+    maxRetryDelayMillis: 90 * 1000,
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: OpenAIConfig = {

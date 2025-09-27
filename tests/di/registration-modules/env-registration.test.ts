@@ -49,6 +49,7 @@ describe("Environment Registration Module", () => {
       requestTimeoutMillis: 60000,
       maxRetryAttempts: 3,
       minRetryDelayMillis: 1000,
+      maxRetryDelayMillis: 5000,
     },
     factory: jest.fn(),
   };

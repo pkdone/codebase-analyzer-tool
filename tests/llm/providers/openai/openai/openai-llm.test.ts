@@ -126,6 +126,7 @@ describe("OpenAI LLM Provider", () => {
         requestTimeoutMillis: 60000,
         maxRetryAttempts: 3,
         minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 5000,
       }
     };
     openAILLM = new OpenAILLM(mockModelsKeys, mockModelsMetadata, mockErrorPatterns, config);

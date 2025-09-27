@@ -41,9 +41,10 @@ export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
-    requestTimeoutMillis: 10 * 60 * 1000, // 10 minutes - Bedrock Deepseek can be slower
-    maxRetryAttempts: 3, // Standard retry attempts
-    minRetryDelayMillis: 30 * 1000, // 30 seconds for Bedrock rate limiting
+    requestTimeoutMillis: 8 * 60 * 1000,
+    maxRetryAttempts: 3,
+    minRetryDelayMillis: 30 * 1000,
+    maxRetryDelayMillis: 240 * 1000,
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: BedrockConfig = {

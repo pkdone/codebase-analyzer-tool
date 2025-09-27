@@ -61,6 +61,7 @@ class TestLLM extends AbstractLLM {
       requestTimeoutMillis: 60000,
       maxRetryAttempts: 3,
       minRetryDelayMillis: 1000,
+      maxRetryDelayMillis: 5000,
     };
 
     super(modelsKeys, testModelsMetadata, errorPatterns, providerConfig);
@@ -167,6 +168,7 @@ describe("Abstract LLM Token Extraction", () => {
         requestTimeoutMillis: 60000,
         maxRetryAttempts: 3,
         minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 5000,
       };
 
       class TestLlamaLLM extends AbstractLLM {

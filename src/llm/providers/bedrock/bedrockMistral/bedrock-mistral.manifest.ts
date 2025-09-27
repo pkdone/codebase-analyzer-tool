@@ -52,9 +52,10 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
-    requestTimeoutMillis: 8 * 60 * 1000, // 8 minutes - Mistral models are reasonably fast
-    maxRetryAttempts: 3, // Standard retries for Mistral
-    minRetryDelayMillis: 25 * 1000, // 25 seconds
+    requestTimeoutMillis: 8 * 60 * 1000,
+    maxRetryAttempts: 3, 
+    minRetryDelayMillis: 30 * 1000,
+    maxRetryDelayMillis: 200 * 1000,
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: BedrockConfig = {
