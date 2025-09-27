@@ -55,17 +55,22 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
   }
 
   // Perform Zod schema validation
+  let validationIssues: unknown = null;
   const validatedContent = validateSchemaIfNeededAndReturnResponse<T>(
-    jsonContent, 
+    jsonContent,
     completionOptions,
     resourceName,
     doWarnOnError,
+    (issues) => {
+      validationIssues = issues;
+    },
   );
-  
+
   if (validatedContent === null) {
     const contentTextWithNoNewlines = content.replace(/\n/g, " ");
+    const issuesText = validationIssues ? ` Validation issues: ${JSON.stringify(validationIssues)}` : "";
     throw new BadResponseContentLLMError(
-      `LLM response for resource '${resourceName}' can be turned into JSON but doesn't validate with the supplied JSON schema`,
+      `LLM response for resource '${resourceName}' can be turned into JSON but doesn't validate with the supplied JSON schema.${issuesText}`,
       contentTextWithNoNewlines,
     );
   }
@@ -85,25 +90,30 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
   completionOptions: LLMCompletionOptions,
   resourceName: string,
   doWarnOnError = false,
+  onValidationIssues?: (issues: unknown) => void,
 ): T | LLMGeneratedContent | null {
   if (
     content &&
     completionOptions.outputFormat === LLMOutputFormat.JSON &&
     completionOptions.jsonSchema
   ) {
+    // Pre-validation heuristic repair: attempt to trim obviously invalid table entries early
+    content = attemptContentAutoRepair(content);
     // Zod's safeParse can safely handle unknown inputs and provide type-safe output
     let validation = completionOptions.jsonSchema.safeParse(content);
 
     if (!validation.success) {
       // Attempt auto-repair for common partially generated patterns (e.g. truncated / malformed table objects)
       const repaired = attemptContentAutoRepair(content);
-      
+
       if (repaired !== content) {
         validation = completionOptions.jsonSchema.safeParse(repaired);
       }
 
       if (!validation.success) {
-        const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(validation.error.issues)}`;
+        const issues = validation.error.issues;
+        if (onValidationIssues) onValidationIssues(issues);
+        const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(issues)}`;
         if (doWarnOnError) logErrorMsg(errorMessage);
         return null;
       }
@@ -354,6 +364,7 @@ function fixStructuralJsonIssues(jsonString: string): string {
 function attemptContentAutoRepair(content: unknown): unknown {
   if (!content || typeof content !== 'object' || Array.isArray(content)) return content;
   const clone: Record<string, unknown> = { ...(content as Record<string, unknown>) };
+  let mutated = false;
 
   if (Array.isArray(clone.tables)) {
     const tables = clone.tables as unknown[];
@@ -362,21 +373,67 @@ function attemptContentAutoRepair(content: unknown): unknown {
     const isValidTable = (t: unknown): t is TableObject => {
       if (!t || typeof t !== 'object' || Array.isArray(t)) return false;
       const pt = t as PartialTable;
-      return (
-        typeof pt.name === 'string' && pt.name.length > 0 &&
-        typeof pt.command === 'string' && pt.command.length > 5
-      );
+      if (typeof pt.name !== 'string' || pt.name.length === 0) return false;
+      if (pt.name.includes(';')) return false; // invalid - semicolon suggests mis-split
+      if (typeof pt.command !== 'string' || pt.command.length < 10) return false; // too short to be real DDL
+      // Heuristic: very obviously truncated commands (ending mid-keyword)
+      const truncatedPatterns = /(CREAT$|CREATE TABL$|DEFAULT CHARSET=UT|ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;\\".*?\\".*?)/i;
+      if (truncatedPatterns.test(pt.command)) return false;
+      return true;
     };
 
-  const repairedTables: TableObject[] = tables.filter(isValidTable);
+    const repairedTables: TableObject[] = tables.filter(isValidTable);
     // Only mutate if we actually fixed something (removed invalid entries)
     if (repairedTables.length !== tables.length) {
       clone.tables = repairedTables;
-      return clone;
+      mutated = true;
     }
   }
 
-  return content;
+  // Apply similar auto-repair heuristics for storedProcedures and triggers for parity
+  const sanitizeProceduresOrTriggers = (items: unknown[]): unknown[] => {
+    interface PartialPT { [k: string]: unknown; name?: unknown; purpose?: unknown; complexity?: unknown; complexityReason?: unknown; linesOfCode?: unknown }
+    const VALID_COMPLEXITIES = new Set(['LOW', 'MEDIUM', 'HIGH']);
+    const MIN_PURPOSE_LEN = 20; // Purpose should be at least a meaningful sentence fragment
+    const MIN_REASON_LEN = 10; // Short but non-trivial
+    return items.filter((it) => {
+      if (!it || typeof it !== 'object' || Array.isArray(it)) return false;
+      const pt = it as PartialPT;
+      if (typeof pt.name !== 'string' || pt.name.length === 0) return false;
+      if (pt.name.includes(';')) return false; // very unlikely valid identifier
+      if (typeof pt.purpose !== 'string' || pt.purpose.length < MIN_PURPOSE_LEN) return false;
+      if (typeof pt.complexity !== 'string' || !VALID_COMPLEXITIES.has(pt.complexity)) return false;
+      if (typeof pt.complexityReason !== 'string' || pt.complexityReason.length < MIN_REASON_LEN) return false;
+      if (typeof pt.linesOfCode !== 'number' || pt.linesOfCode <= 0 || !Number.isFinite(pt.linesOfCode)) return false;
+      return true;
+    });
+  };
+
+  interface CloneWithDbArrays {
+    storedProcedures?: unknown[];
+    triggers?: unknown[];
+  }
+  const typed = clone as CloneWithDbArrays;
+
+  if (Array.isArray(typed.storedProcedures)) {
+    const original = typed.storedProcedures;
+    const repaired = sanitizeProceduresOrTriggers(original);
+    if (repaired.length !== original.length) {
+      typed.storedProcedures = repaired;
+      mutated = true;
+    }
+  }
+
+  if (Array.isArray(typed.triggers)) {
+    const original = typed.triggers;
+    const repaired = sanitizeProceduresOrTriggers(original);
+    if (repaired.length !== original.length) {
+      typed.triggers = repaired;
+      mutated = true;
+    }
+  }
+
+  return mutated ? clone : content;
 }
 
 /**
