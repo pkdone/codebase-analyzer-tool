@@ -156,7 +156,6 @@ describe("LLM Router tests", () => {
     const testRetryConfig = {
       maxRetryAttempts: 2,
       minRetryDelayMillis: 10,
-      maxRetryAdditionalDelayMillis: 10,
       requestTimeoutMillis: 1000,
       ...retryConfig,
     };
@@ -210,7 +209,6 @@ describe("LLM Router tests", () => {
       const { router, mockProvider } = createLLMRouter({
         maxRetryAttempts: 5,
         minRetryDelayMillis: 100,
-        maxRetryAdditionalDelayMillis: 500,
         requestTimeoutMillis: 30000,
       });
 
@@ -729,7 +727,6 @@ describe("LLM Router tests", () => {
       const { router, mockProvider } = createLLMRouter({
         maxRetryAttempts: 2,
         minRetryDelayMillis: 10,
-        maxRetryAdditionalDelayMillis: 10,
         requestTimeoutMillis: 1000,
       });
 
@@ -769,7 +766,6 @@ describe("LLM Router tests", () => {
       const { router, mockProvider } = createLLMRouter({
         maxRetryAttempts: 2,
         minRetryDelayMillis: 10,
-        maxRetryAdditionalDelayMillis: 10,
         requestTimeoutMillis: 1000,
       });
 

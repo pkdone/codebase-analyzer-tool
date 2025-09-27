@@ -20,8 +20,6 @@ export interface LLMRetryConfig {
   maxRetryAttempts: number;
   /** Minimum delay between retries in milliseconds */
   minRetryDelayMillis: number;
-  /** Maximum additional random delay to add between retries in milliseconds */
-  maxRetryAdditionalDelayMillis: number;
 }
 
 /**

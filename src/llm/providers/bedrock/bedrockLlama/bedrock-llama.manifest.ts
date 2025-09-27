@@ -60,7 +60,6 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     requestTimeoutMillis: 10 * 60 * 1000, // 10 minutes - Llama models can be very slow for large requests
     maxRetryAttempts: 4, // More retries for large models that may have capacity issues
     minRetryDelayMillis: 35 * 1000, // 35 seconds - longer delay for large models
-    maxRetryAdditionalDelayMillis: 50 * 1000, // 50 seconds additional random delay
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: BedrockConfig = {

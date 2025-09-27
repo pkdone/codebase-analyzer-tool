@@ -71,7 +71,6 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     requestTimeoutMillis: 8 * 60 * 1000, // 8 minutes - Bedrock can be slower, especially for large models
     maxRetryAttempts: 6, // More retries for Bedrock due to capacity limits
     minRetryDelayMillis: 45 * 1000, // 45 seconds - longer delay for throttled Bedrock new claude models
-    maxRetryAdditionalDelayMillis: 60 * 1000, // 60 seconds additional random delay for throttled Bedrock new claude models
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: BedrockConfig = {

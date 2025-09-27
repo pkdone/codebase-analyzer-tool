@@ -51,10 +51,9 @@ export const bedrockNovaProviderManifest: LLMProviderManifest = {
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
-    requestTimeoutMillis: 9 * 60 * 1000, // 9 minutes - Nova models can be slower
-    maxRetryAttempts: 4, // More retries for newer models
-    minRetryDelayMillis: 25 * 1000, // 25 seconds
-    maxRetryAdditionalDelayMillis: 40 * 1000, // 40 seconds additional random delay
+    requestTimeoutMillis: 9 * 60 * 1000, // 9 minutes - Bedrock Nova can be slower
+    maxRetryAttempts: 3, // Standard retry attempts
+    minRetryDelayMillis: 30 * 1000, // 30 seconds for Bedrock rate limiting
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: BedrockConfig = {

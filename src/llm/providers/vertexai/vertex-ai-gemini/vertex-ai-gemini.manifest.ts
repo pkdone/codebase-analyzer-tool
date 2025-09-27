@@ -57,10 +57,9 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
-    requestTimeoutMillis: 6 * 60 * 1000, // Shorter timeout for GCP
-    maxRetryAttempts: 3, // Standard retries for Vertex AI
-    minRetryDelayMillis: 40 * 1000, // Fair amount delay for GCP
-    maxRetryAdditionalDelayMillis: 100 * 1000, // Fair amount ofadditional random delay
+    requestTimeoutMillis: 8 * 60 * 1000, // 8 minutes - Vertex AI can take longer than other providers due to safety checks
+    maxRetryAttempts: 3, // Standard retry attempts
+    minRetryDelayMillis: 60 * 1000, // 60 seconds - longer delay for Vertex AI due to common rate limiting
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: VertexAIConfig = {
