@@ -307,7 +307,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     };
 
     const requestOptions = {
-      timeout: config.requestTimeoutMillis ?? llmConfig.DEFAULT_REQUEST_WAIT_TIMEOUT_MILLIS,
+      timeout: config.requestTimeoutMillis,
     } as RequestOptions;
 
     return { modelParams, requestOptions };

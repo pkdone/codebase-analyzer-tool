@@ -8,7 +8,6 @@ import type {
 } from "../../types/llm.types";
 import { LLMResponseStatus } from "../../types/llm.types";
 import type { LLMRetryConfig } from "../../providers/llm-provider.types";
-import { llmConfig } from "../../llm.config";
 import LLMStats from "../tracking/llm-stats";
 import { TOKENS } from "../../../di/tokens";
 
@@ -48,8 +47,6 @@ export class RetryStrategy {
     providerRetryConfig: LLMRetryConfig,
     completionOptions?: LLMCompletionOptions,
   ): Promise<LLMFunctionResponse | null> {
-    const retryConfig = this.getRetryConfiguration(providerRetryConfig);
-
     try {
       return await pRetry(
         async () => {
@@ -64,8 +61,8 @@ export class RetryStrategy {
           return result;
         },
         {
-          retries: retryConfig.maxAttempts - 1, // p-retry uses `retries` (number of retries, not total attempts)
-          minTimeout: retryConfig.minRetryDelayMillis,
+          retries: providerRetryConfig.maxRetryAttempts - 1, // p-retry uses `retries` (number of retries, not total attempts)
+          minTimeout: providerRetryConfig.minRetryDelayMillis,
           onFailedAttempt: (error: FailedAttemptError) => {
             if (isRetryableError(error)) {
               this.classifyAndRecordRetry(error);
@@ -77,23 +74,6 @@ export class RetryStrategy {
       // p-retry throws if all attempts fail - we catch it and return null
       return null;
     }
-  }
-
-  /**
-   * Get retry configuration from provider-specific config with fallbacks to global config.
-   */
-  private getRetryConfiguration(providerRetryConfig: LLMRetryConfig) {
-    return {
-      maxAttempts:
-        providerRetryConfig.maxRetryAttempts ?? llmConfig.DEFAULT_INVOKE_LLM_NUM_ATTEMPTS,
-      minRetryDelayMillis:
-        providerRetryConfig.minRetryDelayMillis ?? llmConfig.DEFAULT_MIN_RETRY_DELAY_MILLIS,
-      maxRetryAdditionalDelayMillis:
-        providerRetryConfig.maxRetryAdditionalDelayMillis ??
-        llmConfig.DEFAULT_MAX_RETRY_ADDITIONAL_MILLIS,
-      requestTimeoutMillis:
-        providerRetryConfig.requestTimeoutMillis ?? llmConfig.DEFAULT_REQUEST_WAIT_TIMEOUT_MILLIS,
-    };
   }
 
   /**

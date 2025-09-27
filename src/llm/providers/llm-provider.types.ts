@@ -15,13 +15,13 @@ import { EnvVars } from "../../env/env.types";
  */
 export interface LLMRetryConfig {
   /** Request timeout in milliseconds */
-  requestTimeoutMillis?: number;
+  requestTimeoutMillis: number;
   /** Number of retry attempts for failed requests */
-  maxRetryAttempts?: number;
+  maxRetryAttempts: number;
   /** Minimum delay between retries in milliseconds */
-  minRetryDelayMillis?: number;
+  minRetryDelayMillis: number;
   /** Maximum additional random delay to add between retries in milliseconds */
-  maxRetryAdditionalDelayMillis?: number;
+  maxRetryAdditionalDelayMillis: number;
 }
 
 /**
@@ -62,14 +62,14 @@ export interface LLMProviderManifest {
   /** Provider-specific error patterns for token limits/overload */
   errorPatterns: readonly LLMErrorMsgRegExPattern[];
   /** Provider-specific operational configuration */
-  providerSpecificConfig?: LLMProviderSpecificConfig;
+  providerSpecificConfig: LLMProviderSpecificConfig;
   /** Factory function to create an instance of the provider's LLMProviderImpl */
   factory: (
     envConfig: EnvVars,
     modelsKeysSet: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig?: LLMProviderSpecificConfig,
+    providerSpecificConfig: LLMProviderSpecificConfig,
   ) => LLMProvider;
 }
 

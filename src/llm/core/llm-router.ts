@@ -54,7 +54,7 @@ export default class LLMRouter {
     this.llm = this.llmProviderManager.getLLMProvider(this.envVars);
     this.modelsMetadata = this.llm.getModelsMetadata();
     const llmManifest = this.llmProviderManager.getLLMManifest();
-    this.providerRetryConfig = llmManifest.providerSpecificConfig ?? {};
+    this.providerRetryConfig = llmManifest.providerSpecificConfig;
     this.completionCandidates = buildCompletionCandidates(this.llm);
 
     if (this.completionCandidates.length === 0) {

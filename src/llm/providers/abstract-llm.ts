@@ -23,6 +23,7 @@ import { convertTextToJSONAndOptionallyValidate } from "../utils/json-tools";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../../config/llm-provider.config";
+import { llmConfig } from "../llm.config";
 import { writeFile } from "../../common/utils/file-operations";
 import { ensureDirectoryExists } from "../../common/utils/directory-operations";
 
@@ -49,7 +50,12 @@ export default abstract class AbstractLLM implements LLMProvider {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig = {},
+    providerSpecificConfig: LLMProviderSpecificConfig = {
+      requestTimeoutMillis: llmConfig.DEFAULT_REQUEST_WAIT_TIMEOUT_MILLIS,
+      maxRetryAttempts: llmConfig.DEFAULT_INVOKE_LLM_NUM_ATTEMPTS,
+      minRetryDelayMillis: llmConfig.DEFAULT_MIN_RETRY_DELAY_MILLIS,
+      maxRetryAdditionalDelayMillis: llmConfig.DEFAULT_MAX_RETRY_ADDITIONAL_MILLIS,
+    },
   ) {
     this.modelsKeys = modelsKeys;
     this.llmModelsMetadata = modelsMetadata;

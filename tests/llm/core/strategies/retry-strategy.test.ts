@@ -27,6 +27,7 @@ describe("RetryStrategy", () => {
   let mockLLMStats: jest.Mocked<LLMStats>;
 
   const mockProviderRetryConfig: LLMRetryConfig = {
+    requestTimeoutMillis: 60000,
     maxRetryAttempts: 3,
     minRetryDelayMillis: 1000,
     maxRetryAdditionalDelayMillis: 5000,
@@ -159,9 +160,14 @@ describe("RetryStrategy", () => {
       expect(mockPRetry).toHaveBeenCalled();
     });
 
-    test("should handle missing retry config with defaults", async () => {
+    test("should handle minimal retry config with all required properties", async () => {
       const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
-      const minimalConfig: LLMRetryConfig = {};
+      const minimalConfig: LLMRetryConfig = {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 1,
+        minRetryDelayMillis: 100,
+        maxRetryAdditionalDelayMillis: 200,
+      };
 
       (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(mockSuccessResponse);
       (mockPRetry as jest.MockedFunction<typeof mockPRetry>).mockResolvedValue(mockSuccessResponse);

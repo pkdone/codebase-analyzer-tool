@@ -136,6 +136,7 @@ describe("Bedrock Claude Provider Tests", () => {
         bedrockClaudeModelKeysSet,
         bedrockClaudeModelsMetadata,
         bedrockClaudeProviderManifest.errorPatterns,
+        bedrockClaudeProviderManifest.providerSpecificConfig,
       );
       expect(llm.getModelFamily()).toBe("BedrockClaude");
     });
@@ -146,6 +147,7 @@ describe("Bedrock Claude Provider Tests", () => {
         bedrockClaudeModelKeysSet,
         bedrockClaudeModelsMetadata,
         bedrockClaudeProviderManifest.errorPatterns,
+        bedrockClaudeProviderManifest.providerSpecificConfig,
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });

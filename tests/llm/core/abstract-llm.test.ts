@@ -57,7 +57,12 @@ class TestLLM extends AbstractLLM {
       primaryCompletionModelKey: GPT_COMPLETIONS_GPT4_32k,
     };
     const errorPatterns: LLMErrorMsgRegExPattern[] = [];
-    const providerConfig: LLMProviderSpecificConfig = {};
+    const providerConfig: LLMProviderSpecificConfig = {
+      requestTimeoutMillis: 60000,
+      maxRetryAttempts: 3,
+      minRetryDelayMillis: 1000,
+      maxRetryAdditionalDelayMillis: 5000,
+    };
 
     super(modelsKeys, testModelsMetadata, errorPatterns, providerConfig);
   }
@@ -159,7 +164,12 @@ describe("Abstract LLM Token Extraction", () => {
         primaryCompletionModelKey: AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT,
       };
       const errorPatterns: LLMErrorMsgRegExPattern[] = [];
-      const providerConfig: LLMProviderSpecificConfig = {};
+      const providerConfig: LLMProviderSpecificConfig = {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryAdditionalDelayMillis: 5000,
+      };
 
       class TestLlamaLLM extends AbstractLLM {
         private mockTokenUsage: LLMResponseTokensUsage = {

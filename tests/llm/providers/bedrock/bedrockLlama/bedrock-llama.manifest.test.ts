@@ -133,6 +133,7 @@ describe("Bedrock Llama Provider Tests", () => {
         bedrockLlamaModelKeysSet,
         bedrockLlamaModelsMetadata,
         bedrockLlamaProviderManifest.errorPatterns,
+        bedrockLlamaProviderManifest.providerSpecificConfig,
       );
       expect(llm.getModelFamily()).toBe("BedrockLlama");
     });
@@ -143,6 +144,7 @@ describe("Bedrock Llama Provider Tests", () => {
         bedrockLlamaModelKeysSet,
         bedrockLlamaModelsMetadata,
         bedrockLlamaProviderManifest.errorPatterns,
+        bedrockLlamaProviderManifest.providerSpecificConfig,
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });

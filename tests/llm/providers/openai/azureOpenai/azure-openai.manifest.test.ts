@@ -132,6 +132,7 @@ describe("Azure OpenAI Provider Tests", () => {
         azureOpenAIModelKeysSet,
         azureOpenAIModelsMetadata,
         azureOpenAIProviderManifest.errorPatterns,
+        azureOpenAIProviderManifest.providerSpecificConfig,
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });
@@ -142,6 +143,7 @@ describe("Azure OpenAI Provider Tests", () => {
         azureOpenAIModelKeysSet,
         azureOpenAIModelsMetadata,
         azureOpenAIProviderManifest.errorPatterns,
+        azureOpenAIProviderManifest.providerSpecificConfig,
       );
       expect(llm.getModelFamily()).toBe("AzureOpenAI");
     });
