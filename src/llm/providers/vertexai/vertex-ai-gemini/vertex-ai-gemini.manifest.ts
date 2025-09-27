@@ -57,7 +57,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
-    requestTimeoutMillis: 8 * 60 * 1000,
+    requestTimeoutMillis: 10 * 60 * 1000,
     maxRetryAttempts: 3,
     minRetryDelayMillis: 60 * 1000,
     maxRetryDelayMillis: 180 * 1000,
