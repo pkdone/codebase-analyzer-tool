@@ -808,6 +808,56 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect((result as any).sql).toBe("SELECT * ");
     });
+
+    test("should handle chained publicConstants referencing earlier constants (BatchHelper style)", () => {
+      const json = `{
+        "publicConstants": [
+          { "name": "BATCH_API_URL", "value": "/fineract-provider/api/v1/batches?" + Utils.TENANT_IDENTIFIER, "type": "String" },
+          { "name": "BATCH_API_URL_EXT", "value": BATCH_API_URL + "&enclosingTransaction=true", "type": "String" },
+          { "name": "BATCH_API_WITHOUT_ENCLOSING_URL_EXT", "value": BATCH_API_URL + "&enclosingTransaction=false", "type": "String" }
+        ]
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      const result = convertTextToJSONAndOptionallyValidate(
+        json,
+        "test-batchhelper-constants",
+        completionOptions,
+      );
+      expect(result).toBeDefined();
+      const constants = (result as any).publicConstants;
+      expect(constants).toHaveLength(3);
+      expect(constants[0].value).toBe("/fineract-provider/api/v1/batches?");
+      // After collapse, identifier-leading chain keeps only first literal segment of the expression: here that's the beginning of the appended string
+      expect(constants[1].value).toBe("&enclosingTransaction=true");
+    });
+
+    test("should collapse identifier-leading single literal concatenation to that literal", () => {
+      const json = `{
+        "value": SOME_CONST + "Actual Literal Value"
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      const result = convertTextToJSONAndOptionallyValidate(
+        json,
+        "test-ident-leading",
+        completionOptions,
+      );
+      expect(result).toBeDefined();
+      expect((result as any).value).toBe("Actual Literal Value");
+    });
+
+    test("should collapse identifier-leading chain with trailing identifiers and literals to first literal only", () => {
+      const json = `{
+        "path": BASE_URL + "segment" + anotherVar + "ignoredTail"
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      const result = convertTextToJSONAndOptionallyValidate(
+        json,
+        "test-ident-leading-mixed",
+        completionOptions,
+      );
+      expect(result).toBeDefined();
+      expect((result as any).path).toBe("segment");
+    });
   });
 
   describe("validateSchemaIfNeededAndReturnResponse", () => {

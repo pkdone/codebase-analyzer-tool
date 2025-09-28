@@ -2,6 +2,20 @@ import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../t
 import { logErrorMsg } from "../../common/utils/logging";
 import { BadResponseContentLLMError } from "../types/llm-errors.types";
 
+// ---------------------------------------------------------------------------
+// Shared Regex Constants (centralized to avoid duplication & complexity)
+// ---------------------------------------------------------------------------
+/** Matches identifier-leading concatenation chains ending with a literal: key: IDENT + IDENT2 + "literal" */
+const IDENT_LEADING_WITH_LITERAL_REGEX = /(:\s*)(?:[A-Za-z_][A-Za-z0-9_.()]*\s*\+\s*)+"([^"\n]*)"/g;
+/** Matches first literal followed by any trailing chain content up to a terminator (comma, brace, newline). */
+const FIRST_LITERAL_WITH_TAIL_REGEX = /(:\s*)"([^"\n]*)"([^,}\n]*)/g;
+/** Matches identifier-only concatenation chain (no string literals) so it can be collapsed to an empty string. */
+// Matches identifier-only concatenation: "key": IDENT + IDENT2 (+ IDENT3 ...) with no string literal
+const IDENT_ONLY_CHAIN_REGEX =
+  /("[^"]+"\s*:\s*)([A-Za-z_][A-Za-z0-9_.()]*)(?:\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*)+(?=\s*[},\n])/g;
+/** Simple chain segment used for iterative collapsing of mixed literal/identifier chains. */
+const SIMPLE_CHAIN_SEGMENT_REGEX = /"[^"\n]*"\s*\+\s*(?:"[^"\n]*"|[A-Za-z_][A-Za-z0-9_.()]*)/;
+
 interface TableObject {
   name?: string;
   command?: string;
@@ -34,6 +48,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
   // Try to extract and parse the JSON content
   try {
     if (typeof content === "string") {
+      // Pre-sanitization now fully handles identifier-only and identifier-leading chains
       const pre = preSanitizeConcatenations(content);
       jsonContent = extractAndParse(pre);
     } else {
@@ -237,14 +252,39 @@ function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
  * collapsing obvious concatenation chains to maximize chance of a first-pass JSON.parse success.
  */
 function preSanitizeConcatenations(raw: string): string {
-  if (!/"\s*\+\s*(?:"|[A-Za-z_])/.test(raw)) return raw;
-  // Simpler pattern: match opening literal then following + segments lazily until terminator
-  // Simpler approach: iterative replacement of limited-length chains (avoid high regex complexity)
-  const simpleChain = /"[^"\n]*"\s*\+\s*(?:"[^"\n]*"|[A-Za-z_][A-Za-z0-9_.()]*)/;
+  if (!raw.includes("+") || !raw.includes('"')) return raw;
+  const simpleChain = SIMPLE_CHAIN_SEGMENT_REGEX;
   let updated = raw;
+  // 1. Collapse identifier-only chains (no literals) -> empty string literal
+  updated = updated.replace(IDENT_ONLY_CHAIN_REGEX, (_m, pfx) => `${pfx}""`);
+  // 1b. Handle identifier-only chain WITHOUT trailing comma/brace yet (e.g. end of object before sanitization closes it)
+  updated = updated.replace(
+    /(:\s*)([A-Za-z_][A-Za-z0-9_.()]*\s*(?:\+\s*[A-Za-z_][A-Za-z0-9_.()]*)+)(?=\s*[}\n])/g,
+    (_m, pfx) => `${pfx}""`,
+  );
+  // 2. Collapse identifier-leading chains ending with a literal -> keep that literal
+  updated = updated.replace(IDENT_LEADING_WITH_LITERAL_REGEX, (_m, pfx, lit) => `${pfx}"${lit}"`);
+  // 3. Trim everything after first literal if chain contains any identifier(s)
+  updated = updated.replace(
+    FIRST_LITERAL_WITH_TAIL_REGEX,
+    (m: string, pfx: string, lit: string, tail: string) => {
+      if (!tail || typeof tail !== "string" || !tail.includes("+")) {
+        return m; // no concatenation
+      }
+      if (/[+]\s*[A-Za-z_][A-Za-z0-9_.()]*/.test(tail)) {
+        return `${pfx}"${lit}"`;
+      }
+      return m;
+    },
+  );
   let safety = 0;
   while (simpleChain.test(updated) && safety < 50) {
     safety += 1;
+    // 0. Identifier-leading simple chains: key: IDENT + "literal" -> keep literal only
+    updated = updated.replace(
+      /(:\s*)[A-Za-z_][A-Za-z0-9_.()]*\s*\+\s*"([^"\n]*)"/g,
+      (_m, pfx, lit) => `${pfx}"${lit}"`,
+    );
     // 1a. Collapse chains with multiple literals before an identifier to only the first literal
     updated = updated.replace(
       /"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,12}\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b[^,}\]]*/g,
@@ -260,6 +300,14 @@ function preSanitizeConcatenations(raw: string): string {
       const firstLit = reFirst.exec(match);
       return firstLit ? firstLit[0] : match;
     });
+    // 1c. After collapsing, strip any remaining literal+identifier(+literal) sequences to just the first literal
+    updated = updated.replace(
+      /(:\s*)"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
+      (full, pfx) => {
+        const lit = /"[^"\n]*"/.exec(full);
+        return lit ? `${pfx}${lit[0]}` : full;
+      },
+    );
     // Then merge pure literal-only limited chains
     updated = updated.replace(/"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,6}(?=\s*[,}\]])/g, (chain) => {
       const tokens = chain
@@ -278,6 +326,14 @@ function preSanitizeConcatenations(raw: string): string {
       return `"${merged}"`;
     });
   }
+  // Final pass: any chain with an identifier anywhere: "lit" + IDENT (+ "lit" ... ) -> "lit"
+  updated = updated.replace(
+    /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
+    (m) => {
+      const first = /"[^"\n]*"/.exec(m);
+      return first ? first[0] : m;
+    },
+  );
   return updated;
 }
 
@@ -286,12 +342,45 @@ function preSanitizeConcatenations(raw: string): string {
  * Applies broader merging & cleanup than the pre-pass.
  */
 function normalizeConcatenations(input: string): string {
-  if (!/"\s*\+\s*(?:"|[A-Za-z_])/.test(input)) return input;
-  const simpleChain = /"[^"\n]*"\s*\+\s*(?:"[^"\n]*"|[A-Za-z_][A-Za-z0-9_.()]*)/;
+  if (!input.includes("+") || !input.includes('"')) return input;
+  const simpleChain = SIMPLE_CHAIN_SEGMENT_REGEX;
   let updated = input;
+  // 1. Identifier-only chains -> empty string
+  updated = updated.replace(IDENT_ONLY_CHAIN_REGEX, (_m, pfx) => `${pfx}""`);
+  // 1a. Identifier-only chains at end of object or before newline
+  updated = updated.replace(
+    /(:\s*)([A-Za-z_][A-Za-z0-9_.()]*\s*(?:\+\s*[A-Za-z_][A-Za-z0-9_.()]*)+)(?=\s*[}\n])/g,
+    (_m, pfx) => `${pfx}""`,
+  );
+  // 2. Identifier-leading chains ending with literal -> keep literal
+  updated = updated.replace(IDENT_LEADING_WITH_LITERAL_REGEX, (_m, pfx, lit) => `${pfx}"${lit}"`);
+  // 3. Trim after first literal if identifiers appear later
+  updated = updated.replace(
+    FIRST_LITERAL_WITH_TAIL_REGEX,
+    (m: string, pfx: string, lit: string, tail: string) => {
+      if (!tail || typeof tail !== "string" || !tail.includes("+")) {
+        return m;
+      }
+      if (/[+]\s*[A-Za-z_][A-Za-z0-9_.()]*/.test(tail)) {
+        return `${pfx}"${lit}"`;
+      }
+      return m;
+    },
+  );
   let guard = 0;
   while (simpleChain.test(updated) && guard < 80) {
     guard += 1;
+    // 0. Identifier-leading simple chains
+    updated = updated.replace(
+      /(:\s*)[A-Za-z_][A-Za-z0-9_.()]*\s*\+\s*"([^"\n]*)"/g,
+      (_m, pfx, lit) => `${pfx}"${lit}"`,
+    );
+    // 0. Identifier-leading chains inside normalization (same simple collapse)
+    updated = updated.replace(/(:\s*)[A-Za-z_][A-Za-z0-9_.()]*\s*\+\s*"[^"\n]*"/g, (full, pfx) => {
+      const reLit = /"[^"\n]*"/;
+      const lit = reLit.exec(full);
+      return lit ? `${pfx}${lit[0]}` : full;
+    });
     // 2a. Collapse chains with multiple literals before an identifier
     updated = updated.replace(
       /"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,20}\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b[^,}\]]*/g,
@@ -308,6 +397,14 @@ function normalizeConcatenations(input: string): string {
         const reFirst = /^"[^"\n]*"/;
         const first = reFirst.exec(match);
         return first ? first[0] : match;
+      },
+    );
+    // 2c. Literal + identifier (+ literals) collapse within key context
+    updated = updated.replace(
+      /(:\s*)"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
+      (full, pfx) => {
+        const lit = /"[^"\n]*"/.exec(full);
+        return lit ? `${pfx}${lit[0]}` : full;
       },
     );
     // Additional collapse for mixed chains where identifier appears after intermediate literals
@@ -337,13 +434,12 @@ function normalizeConcatenations(input: string): string {
       return `"${merged}"`;
     });
   }
-  // Final minimal cleanup: remove any lingering + identifier segments if present (unlikely after above)
+  // Final cleanup: chains with identifier anywhere collapse to first literal
   updated = updated.replace(
-    /(:\s*)"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*[^,}\]]*/g,
-    (m, pfx) => {
-      const reFirst = /"[^"\n]*"/;
-      const first = reFirst.exec(m);
-      return first ? `${pfx}${first[0]}` : m;
+    /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
+    (m) => {
+      const first = /"[^"\n]*"/.exec(m);
+      return first ? first[0] : m;
     },
   );
   return updated;
