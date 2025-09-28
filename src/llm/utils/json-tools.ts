@@ -120,31 +120,16 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
     completionOptions.outputFormat === LLMOutputFormat.JSON &&
     completionOptions.jsonSchema
   ) {
-    // Pre-validation heuristic repair: attempt to trim obviously invalid table entries early
-    content = attemptContentAutoRepair(content);
     // Zod's safeParse can safely handle unknown inputs and provide type-safe output
-    let validation = completionOptions.jsonSchema.safeParse(content);
-
+    const validation = completionOptions.jsonSchema.safeParse(content);
     if (!validation.success) {
-      // Attempt auto-repair for common partially generated patterns (e.g. truncated / malformed table objects)
-      const repaired = attemptContentAutoRepair(content);
-
-      if (repaired !== content) {
-        validation = completionOptions.jsonSchema.safeParse(repaired);
-      }
-
-      if (!validation.success) {
-        const issues = validation.error.issues;
-        if (onValidationIssues) onValidationIssues(issues);
-        const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(issues)}`;
-        if (doWarnOnError) logErrorMsg(errorMessage);
-        return null;
-      }
-
-      return validation.data as T; // Successful after repair
+      const issues = validation.error.issues;
+      if (onValidationIssues) onValidationIssues(issues);
+      const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(issues)}`;
+      if (doWarnOnError) logErrorMsg(errorMessage);
+      return null;
     }
-
-    return validation.data as T; // Cast is now safer after successful validation (no repair needed)
+    return validation.data as T; // Successful validation
   } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
     // TEXT format should accept any type, including numbers, for backward compatibility
     return content as LLMGeneratedContent;
@@ -600,44 +585,8 @@ function fixStructuralJsonIssues(jsonString: string): string {
  * Attempt to auto-repair common validation issues (currently focuses on removing malformed
  * table objects missing required properties). Returns the (possibly) modified content.
  */
-function attemptContentAutoRepair(content: unknown): unknown {
-  if (!content || typeof content !== "object" || Array.isArray(content)) return content;
-  const clone: Record<string, unknown> = { ...(content as Record<string, unknown>) };
-  let mutated = false;
-
-  if (Array.isArray(clone.tables)) {
-    const tables = clone.tables as unknown[];
-
-    interface PartialTable {
-      [k: string]: unknown;
-      name?: unknown;
-      command?: unknown;
-    }
-    const isValidTable = (t: unknown): t is TableObject => {
-      if (!t || typeof t !== "object" || Array.isArray(t)) return false;
-      const pt = t as PartialTable;
-      if (typeof pt.name !== "string" || pt.name.length === 0) return false;
-      if (pt.name.includes(";")) return false; // invalid - semicolon suggests mis-split
-      if (typeof pt.command !== "string" || pt.command.length < 10) return false; // too short to be real DDL
-      // Heuristic: very obviously truncated commands (ending mid-keyword)
-      const truncatedPatterns =
-        /(CREAT$|CREATE TABL$|DEFAULT CHARSET=UT|ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;\\".*?\\".*?)/i;
-      if (truncatedPatterns.test(pt.command)) return false;
-      return true;
-    };
-
-    const repairedTables: TableObject[] = tables.filter(isValidTable);
-    // Only mutate if we actually fixed something (removed invalid entries)
-    if (repairedTables.length !== tables.length) {
-      clone.tables = repairedTables;
-      mutated = true;
-    }
-  }
-
-  // (Removed) automatic synthesis of databaseIntegration field
-
-  return mutated ? clone : content;
-}
+// (Removed) previous attemptContentAutoRepair heuristic; structural fixes now only occur during
+// sanitization (see fixStructuralJsonIssues) to avoid silent mutation after successful parse.
 
 /**
  * Attempt to complete truncated JSON structures.

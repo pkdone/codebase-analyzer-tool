@@ -703,38 +703,6 @@ describe("json-tools", () => {
       ).toThrow("LLM response for resource");
     });
 
-    test("should auto-repair invalid table objects missing required fields post-parse", () => {
-      // Simulate an LLM response that structurally parses but fails schema due to invalid table entries
-      const jsonWithInvalidTables = `{
-        "purpose": "Test SQL file",
-        "implementation": "Defines some tables",
-        "tables": [
-          { "name": "valid_table", "command": "CREATE TABLE valid_table (id INT);", "fields": "id INT" },
-          { "name": "invalid_table_missing_command", "fields": "id INT" },
-          { "command": "CREATE TABLE missing_name (id INT);", "fields": "id INT" },
-          { "name": "vt2", "command": "CREATE TABLE vt2 (id INT);", "fields": "id INT" }
-        ]
-      }`;
-      const completionOptions = {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }),
-      } as any;
-
-      const result = convertTextToJSONAndOptionallyValidate(
-        jsonWithInvalidTables,
-        "test-auto-repair-tables",
-        completionOptions,
-      );
-
-      expect(result).toBeDefined();
-      const tables = (result as any).tables;
-      expect(Array.isArray(tables)).toBe(true);
-      // Only 2 valid tables should remain after auto-repair
-      expect(tables).toHaveLength(2);
-      const names = tables.map((t: any) => t.name);
-      expect(names).toContain("valid_table");
-      expect(names).toContain("vt2");
-    });
 
     test("should fix truncated JSON then apply structural filtering of malformed tables", () => {
       // Truncated table list where last malformed entry causes initial failure
