@@ -45,7 +45,7 @@ export const databaseIntegrationSchema = z
 export const tablesSchema = z
   .object({
     name: z.string().describe("The name of the table."),
-    command: z.string().describe("The DDL command for creating the table, if known, otherwise just state `n/a."),
+    fields: z.string().describe("The names of the fields in the table, comma seperated, if known."),
   })
   .passthrough();
 
