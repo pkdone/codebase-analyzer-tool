@@ -16,16 +16,6 @@ const IDENT_ONLY_CHAIN_REGEX =
 /** Simple chain segment used for iterative collapsing of mixed literal/identifier chains. */
 const SIMPLE_CHAIN_SEGMENT_REGEX = /"[^"\n]*"\s*\+\s*(?:"[^"\n]*"|[A-Za-z_][A-Za-z0-9_.()]*)/;
 
-interface TableObject {
-  name?: string;
-  command?: string;
-}
-
-interface ParsedJsonWithTables {
-  [key: string]: unknown;
-  tables?: unknown[];
-}
-
 /**
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally
  * validate it against a Zod schema.
@@ -464,14 +454,8 @@ function attemptJsonSanitization(jsonString: string): string {
   // This is the most common issue with LLM responses containing SQL/code examples
   sanitized = fixOverEscapedSequences(sanitized);
 
-  // Handle structural JSON issues (incomplete objects, invalid field values)
-  sanitized = fixStructuralJsonIssues(sanitized);
-
   // Handle truncated JSON by attempting to close open structures
   sanitized = completeTruncatedJSON(sanitized);
-
-  // Final structural pass AFTER truncation completion to remove malformed nested objects
-  sanitized = fixStructuralJsonIssues(sanitized);
 
   return sanitized;
 }
@@ -522,71 +506,6 @@ function fixOverEscapedSequences(content: string): string {
 
   return fixed;
 }
-
-/**
- * Fix structural JSON issues like incomplete objects and invalid field values.
- * This handles issues where the JSON structure is malformed due to incomplete generation.
- */
-function fixStructuralJsonIssues(jsonString: string): string {
-  try {
-    // Attempt to parse and fix known structural issues
-    // Note: We need to see if the JSON is parseable cos this is called after sanitization fixes
-    const parsed: unknown = JSON.parse(jsonString);
-
-    // Validate and fix incomplete table objects in the tables array
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      !Array.isArray(parsed) &&
-      "tables" in parsed &&
-      Array.isArray((parsed as Record<string, unknown>).tables)
-    ) {
-      // Now we can safely cast after validation
-      const typedParsed = parsed as ParsedJsonWithTables;
-      if (typedParsed.tables) {
-        typedParsed.tables = typedParsed.tables.filter((table: unknown): table is TableObject => {
-          // Remove table objects that are incomplete or have invalid names
-          if (!table || typeof table !== "object") {
-            return false; // Remove non-object entries
-          }
-
-          const tableObj = table as TableObject;
-
-          // Remove entries with invalid table names (like "tables;")
-          if (
-            !tableObj.name ||
-            typeof tableObj.name !== "string" ||
-            tableObj.name.includes(";") ||
-            tableObj.name.length < 2
-          ) {
-            return false;
-          }
-
-          // Remove entries missing the command field
-          if (!tableObj.command || typeof tableObj.command !== "string") {
-            return false;
-          }
-
-          return true; // Keep valid table objects
-        });
-      }
-
-      return JSON.stringify(typedParsed);
-    }
-
-    return JSON.stringify(parsed);
-  } catch {
-    // If parsing fails, return the original string - final extraction will handle it
-    return jsonString;
-  }
-}
-
-/**
- * Attempt to auto-repair common validation issues (currently focuses on removing malformed
- * table objects missing required properties). Returns the (possibly) modified content.
- */
-// (Removed) previous attemptContentAutoRepair heuristic; structural fixes now only occur during
-// sanitization (see fixStructuralJsonIssues) to avoid silent mutation after successful parse.
 
 /**
  * Attempt to complete truncated JSON structures.

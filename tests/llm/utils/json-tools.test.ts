@@ -563,58 +563,6 @@ describe("json-tools", () => {
       expect(tableNames).toContain("incomplete_table"); // Incomplete objects preserved
     });
 
-    test("should apply structural fixes only during JSON sanitization", () => {
-      // Test that structural fixes are applied when JSON requires sanitization
-      // Create JSON that's malformed and needs sanitization, which then triggers structural fixes
-      const malformedJson = `{
-        "purpose": "Test database",
-        "tables": [
-          {
-            "name": "valid_table", 
-            "command": "CREATE TABLE valid_table (id BIGINT);"
-          },
-          {
-            "name": "tables;"
-          },
-          {
-            "name": "incomplete_table"
-          }
-        ]
-      }`;
-
-      // Add control characters to force sanitization path
-      const controlChar = String.fromCharCode(1);
-      const malformedWithControls = malformedJson.replace(
-        '"Test database"',
-        `"Test${controlChar}database"`,
-      );
-
-      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-
-      const result = convertTextToJSONAndOptionallyValidate(
-        malformedWithControls,
-        "test-structural-fixes-during-sanitization",
-        completionOptions,
-      );
-
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("tables");
-
-      const tables = (result as any).tables;
-      expect(Array.isArray(tables)).toBe(true);
-      expect(tables).toHaveLength(1); // Only valid table should remain after sanitization
-
-      // Check that only valid tables remain
-      const tableNames = tables.map((t: any) => t.name);
-      expect(tableNames).toContain("valid_table");
-      expect(tableNames).not.toContain("tables;");
-      expect(tableNames).not.toContain("incomplete_table");
-
-      // Verify remaining table has both name and command
-      const allValid = tables.every((t: any) => t.name && t.command);
-      expect(allValid).toBe(true);
-    });
 
     test("should handle complex truncated JSON with nested structures", () => {
       // Test complex JSON that's truncated in a nested array structure
@@ -703,33 +651,6 @@ describe("json-tools", () => {
       ).toThrow("LLM response for resource");
     });
 
-
-    test("should fix truncated JSON then apply structural filtering of malformed tables", () => {
-      // Truncated table list where last malformed entry causes initial failure
-      const truncatedWithMalformed = `{
-        "purpose": "DDL file",
-        "implementation": "Creates tables",
-        "tables": [
-          { "name": "t1", "command": "CREATE TABLE t1 (id INT);", "fields": "id INT" },
-          { "name": "bad_table"`;
-      const completionOptions = {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }),
-      } as any;
-
-      const result = convertTextToJSONAndOptionallyValidate(
-        truncatedWithMalformed,
-        "test-truncated-auto-repair",
-        completionOptions,
-      );
-
-      expect(result).toBeDefined();
-      const tables = (result as any).tables;
-      expect(Array.isArray(tables)).toBe(true);
-      // Malformed second table removed
-      expect(tables).toHaveLength(1);
-      expect(tables[0].name).toBe("t1");
-    });
 
     test("should sanitize Java style string concatenations retaining first literal", () => {
       const jsonWithConcat = `{
