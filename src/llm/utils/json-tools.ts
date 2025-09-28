@@ -634,62 +634,6 @@ function attemptContentAutoRepair(content: unknown): unknown {
     }
   }
 
-  // Apply similar auto-repair heuristics for storedProcedures and triggers for parity
-  const sanitizeProceduresOrTriggers = (items: unknown[]): unknown[] => {
-    interface PartialPT {
-      [k: string]: unknown;
-      name?: unknown;
-      purpose?: unknown;
-      complexity?: unknown;
-      complexityReason?: unknown;
-      linesOfCode?: unknown;
-    }
-    const VALID_COMPLEXITIES = new Set(["LOW", "MEDIUM", "HIGH"]);
-    const MIN_PURPOSE_LEN = 20; // Purpose should be at least a meaningful sentence fragment
-    const MIN_REASON_LEN = 10; // Short but non-trivial
-    return items.filter((it) => {
-      if (!it || typeof it !== "object" || Array.isArray(it)) return false;
-      const pt = it as PartialPT;
-      if (typeof pt.name !== "string" || pt.name.length === 0) return false;
-      if (pt.name.includes(";")) return false; // very unlikely valid identifier
-      if (typeof pt.purpose !== "string" || pt.purpose.length < MIN_PURPOSE_LEN) return false;
-      if (typeof pt.complexity !== "string" || !VALID_COMPLEXITIES.has(pt.complexity)) return false;
-      if (typeof pt.complexityReason !== "string" || pt.complexityReason.length < MIN_REASON_LEN)
-        return false;
-      if (
-        typeof pt.linesOfCode !== "number" ||
-        pt.linesOfCode <= 0 ||
-        !Number.isFinite(pt.linesOfCode)
-      )
-        return false;
-      return true;
-    });
-  };
-
-  interface CloneWithDbArrays {
-    storedProcedures?: unknown[];
-    triggers?: unknown[];
-  }
-  const typed = clone as CloneWithDbArrays;
-
-  if (Array.isArray(typed.storedProcedures)) {
-    const original = typed.storedProcedures;
-    const repaired = sanitizeProceduresOrTriggers(original);
-    if (repaired.length !== original.length) {
-      typed.storedProcedures = repaired;
-      mutated = true;
-    }
-  }
-
-  if (Array.isArray(typed.triggers)) {
-    const original = typed.triggers;
-    const repaired = sanitizeProceduresOrTriggers(original);
-    if (repaired.length !== original.length) {
-      typed.triggers = repaired;
-      mutated = true;
-    }
-  }
-
   // Synthesize missing databaseIntegration for SQL summaries (parity with required schema fields)
   if (!("databaseIntegration" in clone)) {
     // Heuristic signals

@@ -709,10 +709,10 @@ describe("json-tools", () => {
         "purpose": "Test SQL file",
         "implementation": "Defines some tables",
         "tables": [
-          { "name": "valid_table", "command": "CREATE TABLE valid_table (id INT);" },
-          { "name": "invalid_table_missing_command" },
-          { "command": "CREATE TABLE missing_name (id INT);" },
-          { "name": "vt2", "command": "CREATE TABLE vt2 (id INT);" }
+          { "name": "valid_table", "command": "CREATE TABLE valid_table (id INT);", "fields": "id INT" },
+          { "name": "invalid_table_missing_command", "fields": "id INT" },
+          { "command": "CREATE TABLE missing_name (id INT);", "fields": "id INT" },
+          { "name": "vt2", "command": "CREATE TABLE vt2 (id INT);", "fields": "id INT" }
         ]
       }`;
       const completionOptions = {
@@ -742,7 +742,7 @@ describe("json-tools", () => {
         "purpose": "DDL file",
         "implementation": "Creates tables",
         "tables": [
-          { "name": "t1", "command": "CREATE TABLE t1 (id INT);" },
+          { "name": "t1", "command": "CREATE TABLE t1 (id INT);", "fields": "id INT" },
           { "name": "bad_table"`;
       const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
@@ -906,142 +906,9 @@ describe("json-tools", () => {
       }
     });
 
-    test("should drop tables with semicolons in name and truncated commands via auto-repair", () => {
-      const content = {
-        purpose: "Test",
-        implementation: "Impl",
-        tables: [
-          { name: "valid", command: "CREATE TABLE valid (id INT);" },
-          { name: "bad;table", command: "CREATE TABLE bad (id INT);" },
-          { name: "shortcmd", command: "CREATE T" },
-          { name: "another", command: "CREATE TABLE another (id BIGINT);" },
-        ],
-      };
-      const options = {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }),
-      } as any;
-      const result = validateSchemaIfNeededAndReturnResponse(
-        content,
-        options,
-        "test-auto-repair-extended",
-      );
-      expect(result).not.toBeNull();
-      const tables = (result as any).tables;
-      const names = tables.map((t: any) => t.name);
-      expect(names).toContain("valid");
-      expect(names).toContain("another");
-      expect(names).not.toContain("bad;table");
-      expect(names).not.toContain("shortcmd");
-      expect(tables).toHaveLength(2);
-    });
-
-    test("should drop malformed storedProcedures and triggers via parity auto-repair", () => {
-      const content = {
-        purpose: "Test",
-        implementation: "Impl",
-        storedProcedures: [
-          {
-            name: "goodProc",
-            purpose: "This procedure does meaningful work across modules.",
-            complexity: "LOW",
-            complexityReason: "Simple logic",
-            linesOfCode: 12,
-          },
-          {
-            name: "bad;proc",
-            purpose: "Has semicolon in name",
-            complexity: "LOW",
-            complexityReason: "ok",
-            linesOfCode: 5,
-          },
-          {
-            name: "shortPurpose",
-            purpose: "Too short",
-            complexity: "MEDIUM",
-            complexityReason: "Complex calculations",
-            linesOfCode: 30,
-          },
-          {
-            name: "noLines",
-            purpose: "Valid purpose length but no linesOfCode",
-            complexity: "HIGH",
-            complexityReason: "Intricate logic",
-            linesOfCode: 0,
-          },
-        ],
-        triggers: [
-          {
-            name: "goodTrigger",
-            purpose: "Trigger updates audit table when rows change.",
-            complexity: "MEDIUM",
-            complexityReason: "Multiple conditions",
-            linesOfCode: 25,
-          },
-          {
-            name: "bad;trig",
-            purpose: "Has semicolon in name and should be dropped.",
-            complexity: "HIGH",
-            complexityReason: "Complex branching",
-            linesOfCode: 40,
-          },
-          {
-            name: "tinyPurpose",
-            purpose: "short",
-            complexity: "LOW",
-            complexityReason: "Simple",
-            linesOfCode: 10,
-          },
-        ],
-      };
-      const options = {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: sourceSummarySchema.pick({
-          purpose: true,
-          implementation: true,
-          storedProcedures: true,
-          triggers: true,
-        }),
-      } as any;
-      const result = validateSchemaIfNeededAndReturnResponse(
-        content,
-        options,
-        "test-auto-repair-parity",
-      );
-      expect(result).not.toBeNull();
-      const sp = (result as any).storedProcedures;
-      const trg = (result as any).triggers;
-      const spNames = sp.map((p: any) => p.name);
-      const trgNames = trg.map((p: any) => p.name);
-      expect(spNames).toContain("goodProc");
-      expect(spNames).not.toContain("bad;proc");
-      expect(spNames).not.toContain("shortPurpose");
-      expect(spNames).not.toContain("noLines");
-      expect(sp).toHaveLength(1);
-      expect(trgNames).toContain("goodTrigger");
-      expect(trgNames).not.toContain("bad;trig");
-      expect(trgNames).not.toContain("tinyPurpose");
-      expect(trg).toHaveLength(1);
-    });
-
+    // (Removed) table auto-repair test no longer applicable
     describe("databaseIntegration inference auto-repair", () => {
       const base = { purpose: "P", implementation: "Impl" };
-      test("infers DDL when tables array present", () => {
-        const content = { ...base, tables: [{ name: "t", command: "CREATE TABLE t (id INT);" }] };
-        const schema = sourceSummarySchema.pick({
-          purpose: true,
-          implementation: true,
-          tables: true,
-          databaseIntegration: true,
-        });
-        const res = validateSchemaIfNeededAndReturnResponse(
-          content,
-          { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any,
-          "infer-ddl",
-        );
-        expect(res).not.toBeNull();
-        expect((res as any).databaseIntegration.mechanism).toBe("DDL");
-      });
       test("infers TRIGGER when triggers present", () => {
         const content = {
           ...base,
