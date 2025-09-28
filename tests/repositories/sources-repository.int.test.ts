@@ -12,12 +12,15 @@ async function getEmbeddingDimensions(): Promise<number> {
   if (!modelFamily) {
     throw new Error("LLM environment variable is not set. Cannot determine embedding dimensions.");
   }
-  
+
   try {
     const manifest = await LLMProviderManager.loadManifestForModelFamily(modelFamily);
     return manifest.models.embeddings.dimensions ?? 1536; // Handle potential undefined
   } catch (error) {
-    console.warn(`Failed to load manifest for ${modelFamily}, falling back to default 1536 dimensions:`, error);
+    console.warn(
+      `Failed to load manifest for ${modelFamily}, falling back to default 1536 dimensions:`,
+      error,
+    );
     return 1536; // Default fallback
   }
 }

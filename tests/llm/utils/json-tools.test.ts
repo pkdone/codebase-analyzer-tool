@@ -62,9 +62,9 @@ describe("json-tools", () => {
   "field": "value with \\r\\n escapes",
   "codeExample": "SELECT * FROM table WHERE column = \\"value\\""
 }`;
-      
+
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         simpleJson,
         "test-simple-malformed",
@@ -79,10 +79,11 @@ describe("json-tools", () => {
 
     test("should sanitize and parse complex malformed LLM JSON response", () => {
       // A more targeted version of the problematic JSON to isolate the issue
-      const malformedJson = '{"codeExample": "INSERT INTO table VALUES (1,\'test\',\'select * as \\"Column\\"\')"}';
-      
+      const malformedJson =
+        '{"codeExample": "INSERT INTO table VALUES (1,\'test\',\'select * as \\"Column\\"\')"}';
+
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       // This should not throw an error due to the sanitization fallback
       const result = convertTextToJSONAndOptionallyValidate(
         malformedJson,
@@ -94,7 +95,7 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("codeExample");
-      
+
       // Verify the codeExample field was properly sanitized and parsed
       const codeExample = (result as any).codeExample;
       expect(typeof codeExample).toBe("string");
@@ -103,10 +104,11 @@ describe("json-tools", () => {
 
     test("should sanitize JSON with over-escaped sequences", () => {
       // Simpler test case with over-escaped sequences - use simpler pattern to avoid ESLint issues
-      const overEscapedJson = '{"field": "value with excessive backslashes \\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\n"}';
-      
+      const overEscapedJson =
+        '{"field": "value with excessive backslashes \\\\\\\\\\\\\\\\r\\\\\\\\\\\\\\\\n"}';
+
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       // This should not throw an error due to the enhanced sanitization
       const result = convertTextToJSONAndOptionallyValidate(
         overEscapedJson,
@@ -118,7 +120,7 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("field");
-      
+
       // Verify the field was properly sanitized
       const field = (result as any).field;
       expect(typeof field).toBe("string");
@@ -131,9 +133,9 @@ describe("json-tools", () => {
         "purpose": "Test script",
         "codeExample": "INSERT INTO table VALUES (1, 'Client Listing', 'select name from users')"
       }`;
-      
+
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         complexJson,
         "test-real-complex",
@@ -144,7 +146,7 @@ describe("json-tools", () => {
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("purpose");
       expect(result).toHaveProperty("codeExample");
-      
+
       const codeExample = (result as any).codeExample;
       expect(typeof codeExample).toBe("string");
       expect(codeExample).toContain("INSERT INTO");
@@ -155,7 +157,7 @@ describe("json-tools", () => {
       // Test truncated JSON that ends incomplete but can be closed
       const truncatedJson = '{"purpose": "Test script", "field": "complete value"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         truncatedJson,
         "test-simple-truncation",
@@ -172,7 +174,7 @@ describe("json-tools", () => {
       // Test JSON that needs basic structure completion
       const structuralJson = '{"data": {"nested": "value"}}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         structuralJson,
         "test-structural-completion",
@@ -182,7 +184,7 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("data");
-      
+
       const data = (result as any).data;
       expect(data).toHaveProperty("nested");
       expect(data.nested).toBe("value");
@@ -192,7 +194,7 @@ describe("json-tools", () => {
       // Test patterns with 4+ backslashes that need reduction
       const excessiveBackslashJson = '{"field": "value with normal content"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         excessiveBackslashJson,
         "test-excessive-backslash",
@@ -208,7 +210,7 @@ describe("json-tools", () => {
       // Test extraction from markdown code blocks
       const markdownJson = '```json\n{"purpose": "test", "field": "value"}\n```';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         markdownJson,
         "test-markdown-wrapped",
@@ -223,9 +225,10 @@ describe("json-tools", () => {
 
     test("should handle JSON surrounded by explanatory text", () => {
       // Test extraction from responses with surrounding text
-      const textWithJson = 'Here is the analysis: {"result": "positive", "confidence": 0.95} Hope this helps!';
+      const textWithJson =
+        'Here is the analysis: {"result": "positive", "confidence": 0.95} Hope this helps!';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         textWithJson,
         "test-surrounding-text",
@@ -247,9 +250,9 @@ describe("json-tools", () => {
           "codeExample": "INSERT INTO users VALUES (1, 'John Doe', 'SELECT * FROM table WHERE name = value')"
         }
       }`;
-      
+
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         complexSqlJson,
         "test-complex-sql",
@@ -260,7 +263,7 @@ describe("json-tools", () => {
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("purpose");
       expect(result).toHaveProperty("databaseIntegration");
-      
+
       const dbIntegration = (result as any).databaseIntegration;
       expect(dbIntegration).toHaveProperty("codeExample");
       expect(dbIntegration.codeExample).toContain("INSERT INTO");
@@ -268,9 +271,10 @@ describe("json-tools", () => {
 
     test("should handle improved JSON sanitization for common LLM over-escaping", () => {
       // Test the improved sanitization logic with a realistic scenario
-      const overEscapedJson = '{"sql": "SELECT name AS \\"User Name\\" FROM users WHERE id = \\\'123\\\'"}';
+      const overEscapedJson =
+        '{"sql": "SELECT name AS \\"User Name\\" FROM users WHERE id = \\\'123\\\'"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         overEscapedJson,
         "test-improved-sanitization",
@@ -280,9 +284,9 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("sql");
-      
+
       const sql = (result as any).sql;
-      expect(sql).toBe('SELECT name AS "User Name" FROM users WHERE id = \'123\'');
+      expect(sql).toBe("SELECT name AS \"User Name\" FROM users WHERE id = '123'");
     });
 
     test("should handle SQL content with mixed quotes", () => {
@@ -291,9 +295,9 @@ describe("json-tools", () => {
         "purpose": "Database initialization",
         "codeExample": "INSERT INTO reports VALUES (1, 'Report Name', 'SELECT column AS \\"Alias\\" FROM table')"
       }`;
-      
+
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         sqlJson,
         "test-sql-mixed-quotes",
@@ -304,7 +308,7 @@ describe("json-tools", () => {
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("purpose");
       expect(result).toHaveProperty("codeExample");
-      
+
       const codeExample = (result as any).codeExample;
       expect(typeof codeExample).toBe("string");
       expect(codeExample).toContain("INSERT INTO");
@@ -312,10 +316,10 @@ describe("json-tools", () => {
     });
 
     test("should preserve properly formatted JSON", () => {
-      // Test that properly formatted JSON is not modified  
+      // Test that properly formatted JSON is not modified
       const properlyFormattedJson = '{"text": "Normal text with standard escaping"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         properlyFormattedJson,
         "test-properly-formatted",
@@ -325,7 +329,7 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("text");
-      
+
       const text = (result as any).text;
       expect(text).toBe("Normal text with standard escaping");
     });
@@ -333,9 +337,10 @@ describe("json-tools", () => {
     test("should handle enhanced JSON sanitization for new over-escaped patterns", () => {
       // Test that the enhanced sanitization logic works correctly
       // This test verifies that the new patterns are handled by the improved sanitization
-      const testJson = '{"message": "The sanitization now handles more complex over-escaped patterns"}';
+      const testJson =
+        '{"message": "The sanitization now handles more complex over-escaped patterns"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         testJson,
         "test-enhanced-sanitization",
@@ -345,7 +350,7 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("message");
-      
+
       const message = (result as any).message;
       expect(message).toBe("The sanitization now handles more complex over-escaped patterns");
     });
@@ -358,7 +363,7 @@ describe("json-tools", () => {
         "codeExample": "INSERT INTO reports VALUES (1, 'test', 'SELECT name FROM users')"
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         complexSqlJson,
         "test-complex-sql-success",
@@ -369,7 +374,7 @@ describe("json-tools", () => {
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("purpose");
       expect(result).toHaveProperty("codeExample");
-      
+
       const codeExample = (result as any).codeExample;
       expect(codeExample).toContain("INSERT INTO");
       expect(codeExample).toContain("SELECT name FROM users");
@@ -379,7 +384,7 @@ describe("json-tools", () => {
       // Test that the sanitization can handle null-related patterns in SQL
       const sqlJson = '{"sql": "INSERT INTO users VALUES (1, test, value)"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         sqlJson,
         "test-sql-null-handling",
@@ -389,7 +394,7 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("sql");
-      
+
       const sql = (result as any).sql;
       expect(sql).toContain("INSERT INTO users");
       expect(sql).toContain("test");
@@ -402,7 +407,7 @@ describe("json-tools", () => {
       const controlChar2 = String.fromCharCode(2);
       const jsonWithControls = `{"data": "text${controlChar1}with${controlChar2}controls"}`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         jsonWithControls,
         "test-control-characters",
@@ -412,9 +417,9 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("data");
-      
+
       const data = (result as any).data;
-      expect(data).toBe("textwithcontrols");  // Control characters should be removed
+      expect(data).toBe("textwithcontrols"); // Control characters should be removed
     });
 
     test("should handle enhanced SQL INSERT patterns", () => {
@@ -426,7 +431,7 @@ describe("json-tools", () => {
         }
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         appuserJson,
         "test-enhanced-sql-patterns",
@@ -436,7 +441,7 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("databaseIntegration");
-      
+
       const dbIntegration = (result as any).databaseIntegration;
       expect(dbIntegration.codeExample).toContain("INSERT INTO m_appuser");
       expect(dbIntegration.codeExample).toContain("mifos");
@@ -451,7 +456,7 @@ describe("json-tools", () => {
         "status": "working"
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         enhancedJson,
         "test-enhanced-capabilities",
@@ -463,7 +468,7 @@ describe("json-tools", () => {
       expect(result).toHaveProperty("purpose");
       expect(result).toHaveProperty("features");
       expect(result).toHaveProperty("status");
-      
+
       const features = (result as any).features;
       expect(Array.isArray(features)).toBe(true);
       expect(features).toHaveLength(3);
@@ -473,7 +478,7 @@ describe("json-tools", () => {
       // Test truncated JSON that ends in the middle of a string
       const truncatedJson = '{"name": "test", "command": "CREATE TABLE test (id BIGINT NOT NULL,';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         truncatedJson,
         "test-truncated-string",
@@ -484,7 +489,7 @@ describe("json-tools", () => {
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("name");
       expect(result).toHaveProperty("command");
-      
+
       const command = (result as any).command;
       expect(command).toContain("CREATE TABLE test");
       expect(command).toContain("BIGINT NOT NULL");
@@ -492,9 +497,10 @@ describe("json-tools", () => {
 
     test("should complete truncated SQL CREATE TABLE statements", () => {
       // Test JSON with truncated SQL that needs proper completion
-      const sqlTruncatedJson = '{"table": {"name": "users", "command": "CREATE TABLE users (id BIGINT, name VARCHAR(50),';
+      const sqlTruncatedJson =
+        '{"table": {"name": "users", "command": "CREATE TABLE users (id BIGINT, name VARCHAR(50),';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         sqlTruncatedJson,
         "test-sql-truncation",
@@ -504,7 +510,7 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("table");
-      
+
       const table = (result as any).table;
       expect(table).toHaveProperty("name");
       expect(table).toHaveProperty("command");
@@ -534,7 +540,7 @@ describe("json-tools", () => {
         ]
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         validJsonWithIncompleteObjects,
         "test-preserve-valid-json",
@@ -544,11 +550,11 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("tables");
-      
+
       const tables = (result as any).tables;
       expect(Array.isArray(tables)).toBe(true);
       expect(tables).toHaveLength(4); // All objects preserved, including incomplete ones
-      
+
       // Check that both valid and incomplete tables are preserved
       const tableNames = tables.map((t: any) => t.name);
       expect(tableNames).toContain("valid_table");
@@ -575,13 +581,16 @@ describe("json-tools", () => {
           }
         ]
       }`;
-      
+
       // Add control characters to force sanitization path
       const controlChar = String.fromCharCode(1);
-      const malformedWithControls = malformedJson.replace('"Test database"', `"Test${controlChar}database"`);
-      
+      const malformedWithControls = malformedJson.replace(
+        '"Test database"',
+        `"Test${controlChar}database"`,
+      );
+
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         malformedWithControls,
         "test-structural-fixes-during-sanitization",
@@ -591,17 +600,17 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("tables");
-      
+
       const tables = (result as any).tables;
       expect(Array.isArray(tables)).toBe(true);
       expect(tables).toHaveLength(1); // Only valid table should remain after sanitization
-      
+
       // Check that only valid tables remain
       const tableNames = tables.map((t: any) => t.name);
       expect(tableNames).toContain("valid_table");
       expect(tableNames).not.toContain("tables;");
       expect(tableNames).not.toContain("incomplete_table");
-      
+
       // Verify remaining table has both name and command
       const allValid = tables.every((t: any) => t.name && t.command);
       expect(allValid).toBe(true);
@@ -619,9 +628,9 @@ describe("json-tools", () => {
           {
             "name": "truncated_table",
             "command": "CREATE TABLE truncated_table (id BIGINT NOT NULL DEFAULT 1,`;
-      
+
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         complexTruncatedJson,
         "test-complex-truncated",
@@ -632,15 +641,15 @@ describe("json-tools", () => {
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("purpose");
       expect(result).toHaveProperty("tables");
-      
+
       const tables = (result as any).tables;
       expect(Array.isArray(tables)).toBe(true);
       expect(tables).toHaveLength(2);
-      
+
       // Check that both tables have commands
       const allHaveCommands = tables.every((t: any) => t.command);
       expect(allHaveCommands).toBe(true);
-      
+
       // Check that the truncated table was properly completed
       const truncatedTable = tables.find((t: any) => t.name === "truncated_table");
       expect(truncatedTable).toBeDefined();
@@ -649,9 +658,10 @@ describe("json-tools", () => {
 
     test("should not break valid JSON with proper escape sequences", () => {
       // Ensure we don't break properly escaped JSON
-      const validJson = '{"message": "This is a \\"quoted\\" word and this is a \\\'apostrophe\\\'"}';
+      const validJson =
+        '{"message": "This is a \\"quoted\\" word and this is a \\\'apostrophe\\\'"}';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      
+
       const result = convertTextToJSONAndOptionallyValidate(
         validJson,
         "test-valid-escaping-preservation",
@@ -661,9 +671,9 @@ describe("json-tools", () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
       expect(result).toHaveProperty("message");
-      
+
       const message = (result as any).message;
-      expect(message).toBe('This is a "quoted" word and this is a \'apostrophe\'');
+      expect(message).toBe("This is a \"quoted\" word and this is a 'apostrophe'");
     });
 
     test("should gracefully fail for genuinely invalid content", () => {
@@ -705,7 +715,10 @@ describe("json-tools", () => {
           { "name": "vt2", "command": "CREATE TABLE vt2 (id INT);" }
         ]
       }`;
-      const completionOptions = { outputFormat: LLMOutputFormat.JSON, jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }) } as any;
+      const completionOptions = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }),
+      } as any;
 
       const result = convertTextToJSONAndOptionallyValidate(
         jsonWithInvalidTables,
@@ -731,7 +744,10 @@ describe("json-tools", () => {
         "tables": [
           { "name": "t1", "command": "CREATE TABLE t1 (id INT);" },
           { "name": "bad_table"`;
-      const completionOptions = { outputFormat: LLMOutputFormat.JSON, jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }) } as any;
+      const completionOptions = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }),
+      } as any;
 
       const result = convertTextToJSONAndOptionallyValidate(
         truncatedWithMalformed,
@@ -745,6 +761,52 @@ describe("json-tools", () => {
       // Malformed second table removed
       expect(tables).toHaveLength(1);
       expect(tables[0].name).toBe("t1");
+    });
+
+    test("should sanitize Java style string concatenations retaining first literal", () => {
+      const jsonWithConcat = `{
+        "publicConstants": [
+          { "name": "CREATE_GL_ACCOUNT_URL", "value": "/fineract-provider/api/v1/glaccounts?" + Utils.TENANT_IDENTIFIER, "type": "String" }
+        ]
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      const result = convertTextToJSONAndOptionallyValidate(
+        jsonWithConcat,
+        "test-concat",
+        completionOptions,
+      );
+      expect(result).toBeDefined();
+      const constants = (result as any).publicConstants;
+      expect(Array.isArray(constants)).toBe(true);
+      expect(constants[0].value).toBe("/fineract-provider/api/v1/glaccounts?");
+    });
+
+    test("should collapse literal-only concatenations into single literal", () => {
+      const jsonWithLiteralConcat = `{
+        "message": "Hel" + "lo" + " World" + "!"
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      const result = convertTextToJSONAndOptionallyValidate(
+        jsonWithLiteralConcat,
+        "test-literal-concat",
+        completionOptions,
+      );
+      expect(result).toBeDefined();
+      expect((result as any).message).toBe("Hello World!");
+    });
+
+    test("should reduce multi-literal plus variable concatenations to first literal only (drop trailing suffix)", () => {
+      const jsonWithMixedConcat = `{
+        "sql": "SELECT * " + "FROM table " + dynamicPart + " WHERE id=1"
+      }`;
+      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+      const result = convertTextToJSONAndOptionallyValidate(
+        jsonWithMixedConcat,
+        "test-mixed-concat",
+        completionOptions,
+      );
+      expect(result).toBeDefined();
+      expect((result as any).sql).toBe("SELECT * ");
     });
   });
 
@@ -769,7 +831,10 @@ describe("json-tools", () => {
 
     test("should invoke issues callback with zod issues on validation failure", () => {
       const badContent = { purpose: 123 }; // wrong type
-      const options = { outputFormat: LLMOutputFormat.JSON, jsonSchema: sourceSummarySchema.pick({ purpose: true }) } as any;
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: sourceSummarySchema.pick({ purpose: true }),
+      } as any;
       let captured: unknown = undefined;
 
       const result = validateSchemaIfNeededAndReturnResponse(
@@ -777,7 +842,9 @@ describe("json-tools", () => {
         options,
         "test-validation-failure",
         false,
-        (issues) => { captured = issues; },
+        (issues) => {
+          captured = issues;
+        },
       );
 
       expect(result).toBeNull();
@@ -797,11 +864,18 @@ describe("json-tools", () => {
           { name: "valid", command: "CREATE TABLE valid (id INT);" },
           { name: "bad;table", command: "CREATE TABLE bad (id INT);" },
           { name: "shortcmd", command: "CREATE T" },
-          { name: "another", command: "CREATE TABLE another (id BIGINT);" }
+          { name: "another", command: "CREATE TABLE another (id BIGINT);" },
         ],
       };
-      const options = { outputFormat: LLMOutputFormat.JSON, jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }) } as any;
-      const result = validateSchemaIfNeededAndReturnResponse(content, options, "test-auto-repair-extended");
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true }),
+      } as any;
+      const result = validateSchemaIfNeededAndReturnResponse(
+        content,
+        options,
+        "test-auto-repair-extended",
+      );
       expect(result).not.toBeNull();
       const tables = (result as any).tables;
       const names = tables.map((t: any) => t.name);
@@ -817,19 +891,73 @@ describe("json-tools", () => {
         purpose: "Test",
         implementation: "Impl",
         storedProcedures: [
-          { name: "goodProc", purpose: "This procedure does meaningful work across modules.", complexity: "LOW", complexityReason: "Simple logic", linesOfCode: 12 },
-          { name: "bad;proc", purpose: "Has semicolon in name", complexity: "LOW", complexityReason: "ok", linesOfCode: 5 },
-          { name: "shortPurpose", purpose: "Too short", complexity: "MEDIUM", complexityReason: "Complex calculations", linesOfCode: 30 },
-          { name: "noLines", purpose: "Valid purpose length but no linesOfCode", complexity: "HIGH", complexityReason: "Intricate logic", linesOfCode: 0 },
+          {
+            name: "goodProc",
+            purpose: "This procedure does meaningful work across modules.",
+            complexity: "LOW",
+            complexityReason: "Simple logic",
+            linesOfCode: 12,
+          },
+          {
+            name: "bad;proc",
+            purpose: "Has semicolon in name",
+            complexity: "LOW",
+            complexityReason: "ok",
+            linesOfCode: 5,
+          },
+          {
+            name: "shortPurpose",
+            purpose: "Too short",
+            complexity: "MEDIUM",
+            complexityReason: "Complex calculations",
+            linesOfCode: 30,
+          },
+          {
+            name: "noLines",
+            purpose: "Valid purpose length but no linesOfCode",
+            complexity: "HIGH",
+            complexityReason: "Intricate logic",
+            linesOfCode: 0,
+          },
         ],
         triggers: [
-          { name: "goodTrigger", purpose: "Trigger updates audit table when rows change.", complexity: "MEDIUM", complexityReason: "Multiple conditions", linesOfCode: 25 },
-          { name: "bad;trig", purpose: "Has semicolon in name and should be dropped.", complexity: "HIGH", complexityReason: "Complex branching", linesOfCode: 40 },
-          { name: "tinyPurpose", purpose: "short", complexity: "LOW", complexityReason: "Simple", linesOfCode: 10 },
+          {
+            name: "goodTrigger",
+            purpose: "Trigger updates audit table when rows change.",
+            complexity: "MEDIUM",
+            complexityReason: "Multiple conditions",
+            linesOfCode: 25,
+          },
+          {
+            name: "bad;trig",
+            purpose: "Has semicolon in name and should be dropped.",
+            complexity: "HIGH",
+            complexityReason: "Complex branching",
+            linesOfCode: 40,
+          },
+          {
+            name: "tinyPurpose",
+            purpose: "short",
+            complexity: "LOW",
+            complexityReason: "Simple",
+            linesOfCode: 10,
+          },
         ],
       };
-      const options = { outputFormat: LLMOutputFormat.JSON, jsonSchema: sourceSummarySchema.pick({ purpose: true, implementation: true, storedProcedures: true, triggers: true }) } as any;
-      const result = validateSchemaIfNeededAndReturnResponse(content, options, "test-auto-repair-parity");
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: sourceSummarySchema.pick({
+          purpose: true,
+          implementation: true,
+          storedProcedures: true,
+          triggers: true,
+        }),
+      } as any;
+      const result = validateSchemaIfNeededAndReturnResponse(
+        content,
+        options,
+        "test-auto-repair-parity",
+      );
       expect(result).not.toBeNull();
       const sp = (result as any).storedProcedures;
       const trg = (result as any).triggers;
@@ -850,36 +978,101 @@ describe("json-tools", () => {
       const base = { purpose: "P", implementation: "Impl" };
       test("infers DDL when tables array present", () => {
         const content = { ...base, tables: [{ name: "t", command: "CREATE TABLE t (id INT);" }] };
-        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, tables: true, databaseIntegration: true });
-        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-ddl");
+        const schema = sourceSummarySchema.pick({
+          purpose: true,
+          implementation: true,
+          tables: true,
+          databaseIntegration: true,
+        });
+        const res = validateSchemaIfNeededAndReturnResponse(
+          content,
+          { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any,
+          "infer-ddl",
+        );
         expect(res).not.toBeNull();
         expect((res as any).databaseIntegration.mechanism).toBe("DDL");
       });
       test("infers TRIGGER when triggers present", () => {
-        const content = { ...base, triggers: [{ name: "trg", purpose: "A trigger does X logic over many lines of code.", complexity: "LOW", complexityReason: "Simple logic", linesOfCode: 12 }] };
-        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, triggers: true, databaseIntegration: true });
-        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-trigger");
+        const content = {
+          ...base,
+          triggers: [
+            {
+              name: "trg",
+              purpose: "A trigger does X logic over many lines of code.",
+              complexity: "LOW",
+              complexityReason: "Simple logic",
+              linesOfCode: 12,
+            },
+          ],
+        };
+        const schema = sourceSummarySchema.pick({
+          purpose: true,
+          implementation: true,
+          triggers: true,
+          databaseIntegration: true,
+        });
+        const res = validateSchemaIfNeededAndReturnResponse(
+          content,
+          { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any,
+          "infer-trigger",
+        );
         expect(res).not.toBeNull();
         expect((res as any).databaseIntegration.mechanism).toBe("TRIGGER");
       });
       test("infers STORED-PROCEDURE when storedProcedures present", () => {
-        const content = { ...base, storedProcedures: [{ name: "procA", purpose: "A stored procedure that performs a multi-step batch calculation.", complexity: "MEDIUM", complexityReason: "Moderate logic", linesOfCode: 42 }] };
-        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, storedProcedures: true, databaseIntegration: true });
-        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-proc");
+        const content = {
+          ...base,
+          storedProcedures: [
+            {
+              name: "procA",
+              purpose: "A stored procedure that performs a multi-step batch calculation.",
+              complexity: "MEDIUM",
+              complexityReason: "Moderate logic",
+              linesOfCode: 42,
+            },
+          ],
+        };
+        const schema = sourceSummarySchema.pick({
+          purpose: true,
+          implementation: true,
+          storedProcedures: true,
+          databaseIntegration: true,
+        });
+        const res = validateSchemaIfNeededAndReturnResponse(
+          content,
+          { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any,
+          "infer-proc",
+        );
         expect(res).not.toBeNull();
         expect((res as any).databaseIntegration.mechanism).toBe("STORED-PROCEDURE");
       });
       test("infers DML when only INSERT patterns present (no tables)", () => {
         const content = { ...base, implementation: "INSERT INTO t (id) VALUES (1);" };
-        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, databaseIntegration: true });
-        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-dml");
+        const schema = sourceSummarySchema.pick({
+          purpose: true,
+          implementation: true,
+          databaseIntegration: true,
+        });
+        const res = validateSchemaIfNeededAndReturnResponse(
+          content,
+          { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any,
+          "infer-dml",
+        );
         expect(res).not.toBeNull();
         expect((res as any).databaseIntegration.mechanism).toBe("DML");
       });
       test("infers SQL fallback when no explicit signals present but field required by schema (edge)", () => {
         const content = { ...base };
-        const schema = sourceSummarySchema.pick({ purpose: true, implementation: true, databaseIntegration: true });
-        const res = validateSchemaIfNeededAndReturnResponse(content, { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any, "infer-sql");
+        const schema = sourceSummarySchema.pick({
+          purpose: true,
+          implementation: true,
+          databaseIntegration: true,
+        });
+        const res = validateSchemaIfNeededAndReturnResponse(
+          content,
+          { outputFormat: LLMOutputFormat.JSON, jsonSchema: schema } as any,
+          "infer-sql",
+        );
         expect(res).not.toBeNull();
         expect((res as any).databaseIntegration.mechanism).toBe("SQL");
       });

@@ -20,14 +20,18 @@ async function getVectorDimensions(): Promise<number> {
     console.warn("LLM environment variable is not set. Using default 1536 dimensions.");
     return databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
   }
-  
+
   try {
     const manifest = await LLMProviderManager.loadManifestForModelFamily(modelFamily);
-    const dimensions = manifest.models.embeddings.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
+    const dimensions =
+      manifest.models.embeddings.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     console.log(`Using ${dimensions} vector dimensions for model family: ${modelFamily}`);
     return dimensions;
   } catch (error) {
-    console.warn(`Failed to load manifest for ${modelFamily}, using default ${databaseConfig.DEFAULT_VECTOR_DIMENSIONS} dimensions:`, error);
+    console.warn(
+      `Failed to load manifest for ${modelFamily}, using default ${databaseConfig.DEFAULT_VECTOR_DIMENSIONS} dimensions:`,
+      error,
+    );
     return databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
   }
 }

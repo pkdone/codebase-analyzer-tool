@@ -53,7 +53,7 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
     requestTimeoutMillis: 8 * 60 * 1000,
-    maxRetryAttempts: 3, 
+    maxRetryAttempts: 3,
     minRetryDelayMillis: 30 * 1000,
     maxRetryDelayMillis: 200 * 1000,
   },

@@ -33,7 +33,13 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
 
   // Try to extract and parse the JSON content
   try {
-    jsonContent = extractAndParse(content);
+    if (typeof content === "string") {
+      const pre = preSanitizeConcatenations(content);
+      jsonContent = extractAndParse(pre);
+    } else {
+      // Should never happen due to earlier guard, but satisfies type narrowing
+      throw new Error("Unexpected non-string content");
+    }
   } catch (firstError: unknown) {
     if (firstError instanceof Error && firstError.message === "No JSON content found") {
       throw new BadResponseContentLLMError(
@@ -41,8 +47,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
         content,
       );
     }
-    
-    // Fallback: sanitize the original content and re-extract + parse
+    // For any parsing error other than no JSON found, attempt sanitization once
     try {
       const sanitizedContent = attemptJsonSanitization(content);
       jsonContent = extractAndParse(sanitizedContent);
@@ -68,7 +73,9 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
 
   if (validatedContent === null) {
     const contentTextWithNoNewlines = content.replace(/\n/g, " ");
-    const issuesText = validationIssues ? ` Validation issues: ${JSON.stringify(validationIssues)}` : "";
+    const issuesText = validationIssues
+      ? ` Validation issues: ${JSON.stringify(validationIssues)}`
+      : "";
     throw new BadResponseContentLLMError(
       `LLM response for resource '${resourceName}' can be turned into JSON but doesn't validate with the supplied JSON schema.${issuesText}`,
       contentTextWithNoNewlines,
@@ -78,6 +85,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
   // For convertTextToJSONAndOptionallyValidate, we know we're dealing with JSON content,
   // so if validation didn't occur (outputFormat !== JSON or no schema), we can safely cast
   // the JSON content to T since this function is specifically for JSON conversion
+  // At this point validatedContent either passed schema validation or outputFormat ensured JSON parse; cast to T is intentional.
   return validatedContent as T;
 }
 
@@ -165,7 +173,7 @@ function extractAndParse(textContent: string): unknown {
           continue;
         }
 
-        if (char === '\\') {
+        if (char === "\\") {
           escapeNext = true;
           continue;
         }
@@ -204,7 +212,13 @@ function extractAndParse(textContent: string): unknown {
     throw new Error("No JSON content found");
   }
 
-  return JSON.parse(jsonMatch);
+  try {
+    return JSON.parse(jsonMatch);
+  } catch {
+    // Signal to caller that we found JSON-ish content (so allow sanitization fallback) rather than no JSON at all
+    // Use a distinct message different from "No JSON content found" so caller triggers sanitization path
+    throw new Error("JsonParseFailed");
+  }
 }
 
 /**
@@ -219,6 +233,123 @@ function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
 }
 
 /**
+ * Lightweight pre-sanitization applied before initial parse attempt. Focuses solely on
+ * collapsing obvious concatenation chains to maximize chance of a first-pass JSON.parse success.
+ */
+function preSanitizeConcatenations(raw: string): string {
+  if (!/"\s*\+\s*(?:"|[A-Za-z_])/.test(raw)) return raw;
+  // Simpler pattern: match opening literal then following + segments lazily until terminator
+  // Simpler approach: iterative replacement of limited-length chains (avoid high regex complexity)
+  const simpleChain = /"[^"\n]*"\s*\+\s*(?:"[^"\n]*"|[A-Za-z_][A-Za-z0-9_.()]*)/;
+  let updated = raw;
+  let safety = 0;
+  while (simpleChain.test(updated) && safety < 50) {
+    safety += 1;
+    // 1a. Collapse chains with multiple literals before an identifier to only the first literal
+    updated = updated.replace(
+      /"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,12}\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b[^,}\]]*/g,
+      (match) => {
+        const reFirst = /^"[^"\n]*"/;
+        const first = reFirst.exec(match);
+        return first ? first[0] : match;
+      },
+    );
+    // 1b. Collapse any literal + identifier (+ literals) sequence to first literal
+    updated = updated.replace(/"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b/g, (match) => {
+      const reFirst = /^"[^"\n]*"/;
+      const firstLit = reFirst.exec(match);
+      return firstLit ? firstLit[0] : match;
+    });
+    // Then merge pure literal-only limited chains
+    updated = updated.replace(/"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,6}(?=\s*[,}\]])/g, (chain) => {
+      const tokens = chain
+        .split(/\s*\+\s*/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (!tokens.length) return chain;
+      const merged = tokens
+        .map((t) => {
+          if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+            return t.substring(1, t.length - 1);
+          }
+          return t;
+        })
+        .join("");
+      return `"${merged}"`;
+    });
+  }
+  return updated;
+}
+
+/**
+ * Full concatenation normalization used inside the heavier sanitization pipeline.
+ * Applies broader merging & cleanup than the pre-pass.
+ */
+function normalizeConcatenations(input: string): string {
+  if (!/"\s*\+\s*(?:"|[A-Za-z_])/.test(input)) return input;
+  const simpleChain = /"[^"\n]*"\s*\+\s*(?:"[^"\n]*"|[A-Za-z_][A-Za-z0-9_.()]*)/;
+  let updated = input;
+  let guard = 0;
+  while (simpleChain.test(updated) && guard < 80) {
+    guard += 1;
+    // 2a. Collapse chains with multiple literals before an identifier
+    updated = updated.replace(
+      /"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,20}\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b[^,}\]]*/g,
+      (match) => {
+        const reFirst = /^"[^"\n]*"/;
+        const first = reFirst.exec(match);
+        return first ? first[0] : match;
+      },
+    );
+    // 2b. Collapse simple literal + identifier (+ trailing literals) sequences
+    updated = updated.replace(
+      /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
+      (match) => {
+        const reFirst = /^"[^"\n]*"/;
+        const first = reFirst.exec(match);
+        return first ? first[0] : match;
+      },
+    );
+    // Additional collapse for mixed chains where identifier appears after intermediate literals
+    updated = updated.replace(
+      /"[^"\n]*"(?:\s*\+\s*"[^"\n]*")+\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*[^,}\]]*/g,
+      (match) => {
+        const reFirst = /^"[^"\n]*"/;
+        const firstLit = reFirst.exec(match);
+        return firstLit ? firstLit[0] : match;
+      },
+    );
+    // Merge pure literal chains (allow slightly longer)
+    updated = updated.replace(/"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,10}(?=\s*[,}\]])/g, (chain) => {
+      const tokens = chain
+        .split(/\s*\+\s*/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (!tokens.length) return chain;
+      const merged = tokens
+        .map((t) => {
+          if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+            return t.substring(1, t.length - 1);
+          }
+          return t;
+        })
+        .join("");
+      return `"${merged}"`;
+    });
+  }
+  // Final minimal cleanup: remove any lingering + identifier segments if present (unlikely after above)
+  updated = updated.replace(
+    /(:\s*)"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*[^,}\]]*/g,
+    (m, pfx) => {
+      const reFirst = /"[^"\n]*"/;
+      const first = reFirst.exec(m);
+      return first ? `${pfx}${first[0]}` : m;
+    },
+  );
+  return updated;
+}
+
+/**
  * Attempt to fix malformed JSON by handling common LLM response issues.
  * This function addresses various malformed JSON patterns that LLMs commonly produce.
  */
@@ -226,38 +357,41 @@ function attemptJsonSanitization(jsonString: string): string {
   // No need to check if already valid - this function is only called when parsing already failed
   // Try progressive fixes for common issues
   let sanitized = jsonString;
-  
-  // Fix 0: Remove literal control characters that make JSON invalid at the top level
+
+  // Remove literal control characters that make JSON invalid at the top level
   // This must be done first before any other processing
   // eslint-disable-next-line no-control-regex
-  sanitized = sanitized.replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, '');
-  
-  // Fix 0.5: Fix literal newlines after backslashes in JSON structure 
+  sanitized = sanitized.replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+
+  // Fix literal newlines after backslashes in JSON structure
   // Pattern: \\\n -> \\n (backslash + literal newline to properly escaped newline)
-  sanitized = sanitized.replace(/\\\n/g, '\\n');
-  
-  // Fix 0.6: Fix escaped Unicode control characters in JSON strings
+  sanitized = sanitized.replace(/\\\n/g, "\\n");
+
+  // Fix escaped Unicode control characters in JSON strings
   // Pattern: \\u0001 -> '' (remove escaped control characters)
-  sanitized = sanitized.replace(/\\u000[1-9A-F]/g, '');
-  sanitized = sanitized.replace(/\\u001[0-9A-F]/g, '');
-  
-  // Fix 0.7: Fix remaining null escape patterns in JSON strings
+  sanitized = sanitized.replace(/\\u000[1-9A-F]/g, "");
+  sanitized = sanitized.replace(/\\u001[0-9A-F]/g, "");
+
+  // Fix remaining null escape patterns in JSON strings
   // Pattern: '\\0' -> '' (remove null escape sequences in string literals)
   sanitized = sanitized.replace(/'\\0'/g, "''");
-  
-  // Fix 1: Handle over-escaped content within JSON string values
+
+  // Concatenation normalization (extracted)
+  sanitized = normalizeConcatenations(sanitized);
+
+  // Handle over-escaped content within JSON string values
   // This is the most common issue with LLM responses containing SQL/code examples
   sanitized = fixOverEscapedSequences(sanitized);
-  
-  // Fix 2: Handle structural JSON issues (incomplete objects, invalid field values)
+
+  // Handle structural JSON issues (incomplete objects, invalid field values)
   sanitized = fixStructuralJsonIssues(sanitized);
-  
-  // Fix 3: Handle truncated JSON by attempting to close open structures
+
+  // Handle truncated JSON by attempting to close open structures
   sanitized = completeTruncatedJSON(sanitized);
 
   // Final structural pass AFTER truncation completion to remove malformed nested objects
   sanitized = fixStructuralJsonIssues(sanitized);
-  
+
   return sanitized;
 }
 
@@ -267,44 +401,44 @@ function attemptJsonSanitization(jsonString: string): string {
  */
 function fixOverEscapedSequences(content: string): string {
   let fixed = content;
-  
+
   // Apply the exact same patterns that work in the manual test, in the same order
   // Pattern: \\\\\\\' -> ' (5 backslashes + single quote - most specific first)
   fixed = fixed.replace(/\\\\\\'/g, "'");
-  
-  // Pattern: \\\\\' -> ' (4 backslashes + single quote)  
+
+  // Pattern: \\\\\' -> ' (4 backslashes + single quote)
   fixed = fixed.replace(/\\\\'/g, "'");
-  
+
   // Pattern: \\\' -> ' (3 backslashes + single quote)
   fixed = fixed.replace(/\\'/g, "'");
-  
+
   // Pattern: \\\\\\\'.\\\\\\' -> '.' (5-backslash dot pattern)
   fixed = fixed.replace(/\\\\\\'\\./g, "'.");
-  
+
   // Pattern: \\\\\\'\\\\\\\' -> '' (5-backslash empty quotes)
   // eslint-disable-next-line no-useless-escape
   fixed = fixed.replace(/\\\\\\'\\\\\\\'/g, "''");
-  
-  // Pattern: \\\'.\\' -> '.' (3-backslash dot pattern) 
+
+  // Pattern: \\\'.\\' -> '.' (3-backslash dot pattern)
   fixed = fixed.replace(/\\'\\./g, "'.");
-  
+
   // Pattern: \\\'\\' -> '' (3-backslash empty quotes)
   // eslint-disable-next-line no-useless-escape
   fixed = fixed.replace(/\\'\\\'/g, "''");
-  
+
   // Fix over-escaped null characters (handle both 4 and 5 backslash patterns)
   // Pattern: \\\\\\0 -> \\0 (reduce 5-backslash null to proper null escape)
-  fixed = fixed.replace(/\\\\\\0/g, '\\0');
-  
-  // Pattern: \\\\0 -> \\0 (reduce 4-backslash null to proper null escape)  
-  fixed = fixed.replace(/\\\\0/g, '\\0');
-  
+  fixed = fixed.replace(/\\\\\\0/g, "\\0");
+
+  // Pattern: \\\\0 -> \\0 (reduce 4-backslash null to proper null escape)
+  fixed = fixed.replace(/\\\\0/g, "\\0");
+
   // Clean up orphaned backslashes
-  fixed = fixed.replace(/\\\\\s*,/g, ',');   // Double backslash before comma
-  fixed = fixed.replace(/\\\\\s*\)/g, ')');  // Double backslash before paren
-  fixed = fixed.replace(/\\,/g, ',');        // Single backslash before comma
-  fixed = fixed.replace(/\\\)/g, ')');       // Single backslash before paren
-  
+  fixed = fixed.replace(/\\\\\s*,/g, ","); // Double backslash before comma
+  fixed = fixed.replace(/\\\\\s*\)/g, ")"); // Double backslash before paren
+  fixed = fixed.replace(/\\,/g, ","); // Single backslash before comma
+  fixed = fixed.replace(/\\\)/g, ")"); // Single backslash before paren
+
   return fixed;
 }
 
@@ -317,40 +451,49 @@ function fixStructuralJsonIssues(jsonString: string): string {
     // Attempt to parse and fix known structural issues
     // Note: We need to see if the JSON is parseable cos this is called after sanitization fixes
     const parsed: unknown = JSON.parse(jsonString);
-    
+
     // Validate and fix incomplete table objects in the tables array
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && 
-        'tables' in parsed && Array.isArray((parsed as Record<string, unknown>).tables)) {
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed) &&
+      "tables" in parsed &&
+      Array.isArray((parsed as Record<string, unknown>).tables)
+    ) {
       // Now we can safely cast after validation
       const typedParsed = parsed as ParsedJsonWithTables;
       if (typedParsed.tables) {
         typedParsed.tables = typedParsed.tables.filter((table: unknown): table is TableObject => {
-        // Remove table objects that are incomplete or have invalid names
-        if (!table || typeof table !== 'object') {
-          return false; // Remove non-object entries
-        }
-        
-        const tableObj = table as TableObject;
-        
-        // Remove entries with invalid table names (like "tables;")
-        if (!tableObj.name || typeof tableObj.name !== 'string' || 
-            tableObj.name.includes(';') || tableObj.name.length < 2) {
-          return false;
-        }
-        
-        // Remove entries missing the command field
-        if (!tableObj.command || typeof tableObj.command !== 'string') {
-          return false;
-        }
-        
+          // Remove table objects that are incomplete or have invalid names
+          if (!table || typeof table !== "object") {
+            return false; // Remove non-object entries
+          }
+
+          const tableObj = table as TableObject;
+
+          // Remove entries with invalid table names (like "tables;")
+          if (
+            !tableObj.name ||
+            typeof tableObj.name !== "string" ||
+            tableObj.name.includes(";") ||
+            tableObj.name.length < 2
+          ) {
+            return false;
+          }
+
+          // Remove entries missing the command field
+          if (!tableObj.command || typeof tableObj.command !== "string") {
+            return false;
+          }
+
           return true; // Keep valid table objects
         });
       }
-      
+
       return JSON.stringify(typedParsed);
     }
-    
-    return JSON.stringify(parsed);    
+
+    return JSON.stringify(parsed);
   } catch {
     // If parsing fails, return the original string - final extraction will handle it
     return jsonString;
@@ -362,22 +505,27 @@ function fixStructuralJsonIssues(jsonString: string): string {
  * table objects missing required properties). Returns the (possibly) modified content.
  */
 function attemptContentAutoRepair(content: unknown): unknown {
-  if (!content || typeof content !== 'object' || Array.isArray(content)) return content;
+  if (!content || typeof content !== "object" || Array.isArray(content)) return content;
   const clone: Record<string, unknown> = { ...(content as Record<string, unknown>) };
   let mutated = false;
 
   if (Array.isArray(clone.tables)) {
     const tables = clone.tables as unknown[];
 
-  interface PartialTable { [k: string]: unknown; name?: unknown; command?: unknown }
+    interface PartialTable {
+      [k: string]: unknown;
+      name?: unknown;
+      command?: unknown;
+    }
     const isValidTable = (t: unknown): t is TableObject => {
-      if (!t || typeof t !== 'object' || Array.isArray(t)) return false;
+      if (!t || typeof t !== "object" || Array.isArray(t)) return false;
       const pt = t as PartialTable;
-      if (typeof pt.name !== 'string' || pt.name.length === 0) return false;
-      if (pt.name.includes(';')) return false; // invalid - semicolon suggests mis-split
-      if (typeof pt.command !== 'string' || pt.command.length < 10) return false; // too short to be real DDL
+      if (typeof pt.name !== "string" || pt.name.length === 0) return false;
+      if (pt.name.includes(";")) return false; // invalid - semicolon suggests mis-split
+      if (typeof pt.command !== "string" || pt.command.length < 10) return false; // too short to be real DDL
       // Heuristic: very obviously truncated commands (ending mid-keyword)
-      const truncatedPatterns = /(CREAT$|CREATE TABL$|DEFAULT CHARSET=UT|ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;\\".*?\\".*?)/i;
+      const truncatedPatterns =
+        /(CREAT$|CREATE TABL$|DEFAULT CHARSET=UT|ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;\\".*?\\".*?)/i;
       if (truncatedPatterns.test(pt.command)) return false;
       return true;
     };
@@ -392,19 +540,32 @@ function attemptContentAutoRepair(content: unknown): unknown {
 
   // Apply similar auto-repair heuristics for storedProcedures and triggers for parity
   const sanitizeProceduresOrTriggers = (items: unknown[]): unknown[] => {
-    interface PartialPT { [k: string]: unknown; name?: unknown; purpose?: unknown; complexity?: unknown; complexityReason?: unknown; linesOfCode?: unknown }
-    const VALID_COMPLEXITIES = new Set(['LOW', 'MEDIUM', 'HIGH']);
+    interface PartialPT {
+      [k: string]: unknown;
+      name?: unknown;
+      purpose?: unknown;
+      complexity?: unknown;
+      complexityReason?: unknown;
+      linesOfCode?: unknown;
+    }
+    const VALID_COMPLEXITIES = new Set(["LOW", "MEDIUM", "HIGH"]);
     const MIN_PURPOSE_LEN = 20; // Purpose should be at least a meaningful sentence fragment
     const MIN_REASON_LEN = 10; // Short but non-trivial
     return items.filter((it) => {
-      if (!it || typeof it !== 'object' || Array.isArray(it)) return false;
+      if (!it || typeof it !== "object" || Array.isArray(it)) return false;
       const pt = it as PartialPT;
-      if (typeof pt.name !== 'string' || pt.name.length === 0) return false;
-      if (pt.name.includes(';')) return false; // very unlikely valid identifier
-      if (typeof pt.purpose !== 'string' || pt.purpose.length < MIN_PURPOSE_LEN) return false;
-      if (typeof pt.complexity !== 'string' || !VALID_COMPLEXITIES.has(pt.complexity)) return false;
-      if (typeof pt.complexityReason !== 'string' || pt.complexityReason.length < MIN_REASON_LEN) return false;
-      if (typeof pt.linesOfCode !== 'number' || pt.linesOfCode <= 0 || !Number.isFinite(pt.linesOfCode)) return false;
+      if (typeof pt.name !== "string" || pt.name.length === 0) return false;
+      if (pt.name.includes(";")) return false; // very unlikely valid identifier
+      if (typeof pt.purpose !== "string" || pt.purpose.length < MIN_PURPOSE_LEN) return false;
+      if (typeof pt.complexity !== "string" || !VALID_COMPLEXITIES.has(pt.complexity)) return false;
+      if (typeof pt.complexityReason !== "string" || pt.complexityReason.length < MIN_REASON_LEN)
+        return false;
+      if (
+        typeof pt.linesOfCode !== "number" ||
+        pt.linesOfCode <= 0 ||
+        !Number.isFinite(pt.linesOfCode)
+      )
+        return false;
       return true;
     });
   };
@@ -434,40 +595,48 @@ function attemptContentAutoRepair(content: unknown): unknown {
   }
 
   // Synthesize missing databaseIntegration for SQL summaries (parity with required schema fields)
-  if (!('databaseIntegration' in clone)) {
+  if (!("databaseIntegration" in clone)) {
     // Heuristic signals
     const hasTables = Array.isArray(clone.tables) && (clone.tables as unknown[]).length > 0;
-    const hasProcs = Array.isArray((clone as { storedProcedures?: unknown[] }).storedProcedures) &&
+    const hasProcs =
+      Array.isArray((clone as { storedProcedures?: unknown[] }).storedProcedures) &&
       ((clone as { storedProcedures?: unknown[] }).storedProcedures?.length ?? 0) > 0;
-    const hasTriggers = Array.isArray((clone as { triggers?: unknown[] }).triggers) &&
+    const hasTriggers =
+      Array.isArray((clone as { triggers?: unknown[] }).triggers) &&
       ((clone as { triggers?: unknown[] }).triggers?.length ?? 0) > 0;
-    const implementationText = typeof clone.implementation === 'string' ? clone.implementation : '';
-    const purposeText = typeof clone.purpose === 'string' ? clone.purpose : '';
+    const implementationText = typeof clone.implementation === "string" ? clone.implementation : "";
+    const purposeText = typeof clone.purpose === "string" ? clone.purpose : "";
     const hasDml = /INSERT\s+INTO\s+/i.test(implementationText);
     const hasCreateTable = /CREATE\s+TABLE/i.test(implementationText) || hasTables;
 
     // Mechanism inference precedence (default DDL if tables else adapt)
-    let mechanism = 'DDL';
-    if (hasTriggers) mechanism = 'TRIGGER';
-    else if (hasProcs) mechanism = 'STORED-PROCEDURE';
-    else if (hasDml && !hasCreateTable) mechanism = 'DML';
-    else if (!hasCreateTable && !hasDml) mechanism = 'SQL';
+    let mechanism = "DDL";
+    if (hasTriggers) mechanism = "TRIGGER";
+    else if (hasProcs) mechanism = "STORED-PROCEDURE";
+    else if (hasDml && !hasCreateTable) mechanism = "DML";
+    else if (!hasCreateTable && !hasDml) mechanism = "SQL";
 
     // Derive a tiny code example from first table/proc/trigger if available
-    let codeExample = 'n/a';
-    const firstTable = hasTables ? (clone.tables as unknown[])[0] as { command?: unknown } : undefined;
-    if (firstTable && typeof firstTable === 'object' && typeof firstTable.command === 'string') {
+    let codeExample = "n/a";
+    const firstTable = hasTables
+      ? ((clone.tables as unknown[])[0] as { command?: unknown })
+      : undefined;
+    if (firstTable && typeof firstTable === "object" && typeof firstTable.command === "string") {
       const lines = firstTable.command.split(/\n/).slice(0, 6); // cap at 6 lines per spec
-      codeExample = lines.join('\n');
+      codeExample = lines.join("\n");
     } else if (implementationText) {
       // Fallback: extract first 3 non-empty lines from implementation sans backticks
-      const implLines = implementationText.replace(/`/g, '').split(/\n/).filter(l => l.trim().length > 0).slice(0, 3);
-      if (implLines.length > 0) codeExample = implLines.join('\n');
+      const implLines = implementationText
+        .replace(/`/g, "")
+        .split(/\n/)
+        .filter((l) => l.trim().length > 0)
+        .slice(0, 3);
+      if (implLines.length > 0) codeExample = implLines.join("\n");
     }
 
     clone.databaseIntegration = {
       mechanism,
-      description: `Inferred automatically from generated summary signals (tables:${hasTables}, procs:${hasProcs}, triggers:${hasTriggers}, DML:${hasDml}). Field was missing from original LLM output. ${purposeText ? 'Context: ' + purposeText.slice(0, 140) + '...' : ''}`,
+      description: `Inferred automatically from generated summary signals (tables:${hasTables}, procs:${hasProcs}, triggers:${hasTriggers}, DML:${hasDml}). Field was missing from original LLM output. ${purposeText ? "Context: " + purposeText.slice(0, 140) + "..." : ""}`,
       codeExample,
     };
     mutated = true;
@@ -481,51 +650,54 @@ function attemptContentAutoRepair(content: unknown): unknown {
  */
 function completeTruncatedJSON(jsonString: string): string {
   const trimmed = jsonString.trim();
-  if (trimmed && !trimmed.endsWith('}') && !trimmed.endsWith(']')) {
+  if (trimmed && !trimmed.endsWith("}") && !trimmed.endsWith("]")) {
     // Count open vs closed braces and track if we're inside a string
     let braceDepth = 0;
     let bracketDepth = 0;
     let inString = false;
     let escapeNext = false;
-    
+
     for (const [, char] of Array.from(trimmed).entries()) {
-      
       if (escapeNext) {
         escapeNext = false;
         continue;
       }
-      
-      if (char === '\\') {
+
+      if (char === "\\") {
         escapeNext = true;
         continue;
       }
-      
+
       if (char === '"') {
         inString = !inString;
         continue;
       }
-      
+
       if (!inString) {
-        if (char === '{') braceDepth++;
-        else if (char === '}') braceDepth--;
-        else if (char === '[') bracketDepth++;
-        else if (char === ']') bracketDepth--;
+        if (char === "{") braceDepth++;
+        else if (char === "}") braceDepth--;
+        else if (char === "[") bracketDepth++;
+        else if (char === "]") bracketDepth--;
       }
     }
-    
+
     let sanitized = trimmed;
-    
+
     // If we're still inside a string at the end, close it appropriately
     if (inString) {
       // Check if this looks like a truncated SQL CREATE TABLE statement
       const lastPart = sanitized.substring(Math.max(0, sanitized.length - 200));
-      if ((lastPart.includes('TABLE IF NOT EXISTS') || lastPart.includes('CREATE TABLE')) && 
-          (lastPart.includes('DEFAULT ') || lastPart.includes('tinyint') || lastPart.includes('BIGINT'))) {
+      if (
+        (lastPart.includes("TABLE IF NOT EXISTS") || lastPart.includes("CREATE TABLE")) &&
+        (lastPart.includes("DEFAULT ") ||
+          lastPart.includes("tinyint") ||
+          lastPart.includes("BIGINT"))
+      ) {
         // This looks like a truncated CREATE TABLE statement - close string cleanly
         const trimmedEnd = sanitized.trim();
-        if (trimmedEnd.endsWith(',')) {
+        if (trimmedEnd.endsWith(",")) {
           // Remove trailing comma and close string properly
-          const lastCommaIndex = sanitized.lastIndexOf(',');
+          const lastCommaIndex = sanitized.lastIndexOf(",");
           if (lastCommaIndex !== -1) {
             sanitized = sanitized.substring(0, lastCommaIndex) + '"';
           } else {
@@ -535,44 +707,44 @@ function completeTruncatedJSON(jsonString: string): string {
           // Just close the string
           sanitized += '"';
         }
-  } else {
+      } else {
         // Generic string completion
         sanitized += '"';
       }
     }
-    
+
     // Close open structures in the correct order
     // For JSON with nested objects in arrays, we need to close objects before arrays
-    
+
     // If we have both braces and brackets, close them in nested order
     if (braceDepth > 0 && bracketDepth > 0) {
       // Close one object (table object), then array, then remaining objects
-      sanitized += '}';
+      sanitized += "}";
       braceDepth--;
-      
+
       while (bracketDepth > 0) {
-        sanitized += ']';
+        sanitized += "]";
         bracketDepth--;
       }
-      
+
       while (braceDepth > 0) {
-        sanitized += '}';
+        sanitized += "}";
         braceDepth--;
       }
     } else {
       // Standard closing
       while (bracketDepth > 0) {
-        sanitized += ']';
+        sanitized += "]";
         bracketDepth--;
       }
       while (braceDepth > 0) {
-        sanitized += '}';
+        sanitized += "}";
         braceDepth--;
       }
     }
-    
+
     return sanitized;
   }
-  
+
   return jsonString;
 }
