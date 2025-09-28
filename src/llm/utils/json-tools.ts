@@ -634,53 +634,7 @@ function attemptContentAutoRepair(content: unknown): unknown {
     }
   }
 
-  // Synthesize missing databaseIntegration for SQL summaries (parity with required schema fields)
-  if (!("databaseIntegration" in clone)) {
-    // Heuristic signals
-    const hasTables = Array.isArray(clone.tables) && (clone.tables as unknown[]).length > 0;
-    const hasProcs =
-      Array.isArray((clone as { storedProcedures?: unknown[] }).storedProcedures) &&
-      ((clone as { storedProcedures?: unknown[] }).storedProcedures?.length ?? 0) > 0;
-    const hasTriggers =
-      Array.isArray((clone as { triggers?: unknown[] }).triggers) &&
-      ((clone as { triggers?: unknown[] }).triggers?.length ?? 0) > 0;
-    const implementationText = typeof clone.implementation === "string" ? clone.implementation : "";
-    const purposeText = typeof clone.purpose === "string" ? clone.purpose : "";
-    const hasDml = /INSERT\s+INTO\s+/i.test(implementationText);
-    const hasCreateTable = /CREATE\s+TABLE/i.test(implementationText) || hasTables;
-
-    // Mechanism inference precedence (default DDL if tables else adapt)
-    let mechanism = "DDL";
-    if (hasTriggers) mechanism = "TRIGGER";
-    else if (hasProcs) mechanism = "STORED-PROCEDURE";
-    else if (hasDml && !hasCreateTable) mechanism = "DML";
-    else if (!hasCreateTable && !hasDml) mechanism = "SQL";
-
-    // Derive a tiny code example from first table/proc/trigger if available
-    let codeExample = "n/a";
-    const firstTable = hasTables
-      ? ((clone.tables as unknown[])[0] as { command?: unknown })
-      : undefined;
-    if (firstTable && typeof firstTable === "object" && typeof firstTable.command === "string") {
-      const lines = firstTable.command.split(/\n/).slice(0, 6); // cap at 6 lines per spec
-      codeExample = lines.join("\n");
-    } else if (implementationText) {
-      // Fallback: extract first 3 non-empty lines from implementation sans backticks
-      const implLines = implementationText
-        .replace(/`/g, "")
-        .split(/\n/)
-        .filter((l) => l.trim().length > 0)
-        .slice(0, 3);
-      if (implLines.length > 0) codeExample = implLines.join("\n");
-    }
-
-    clone.databaseIntegration = {
-      mechanism,
-      description: `Inferred automatically from generated summary signals (tables:${hasTables}, procs:${hasProcs}, triggers:${hasTriggers}, DML:${hasDml}). Field was missing from original LLM output. ${purposeText ? "Context: " + purposeText.slice(0, 140) + "..." : ""}`,
-      codeExample,
-    };
-    mutated = true;
-  }
+  // (Removed) automatic synthesis of databaseIntegration field
 
   return mutated ? clone : content;
 }
