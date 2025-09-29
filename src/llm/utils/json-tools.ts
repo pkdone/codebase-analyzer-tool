@@ -33,41 +33,64 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
     );
   }
 
-  let jsonContent: unknown;
+  const UNSET = Symbol("unset-json");
+  let jsonContent: unknown = UNSET as unknown;
 
-  // Try to extract and parse the JSON content
-  try {
-    const pre = preSanitizeConcatenations(content);
-    jsonContent = extractAndParse(pre);
-  } catch (firstError: unknown) {
-    if (firstError instanceof Error && firstError.message === "No JSON content found") {
-      throw new BadResponseContentLLMError(
-        `LLM response for resource '${resourceName}' doesn't contain valid JSON content for text`,
-        content,
-      );
-    }
+  // Fast path: direct parse if the trimmed content is a standalone JSON object/array
+  const trimmed = content.trim();
 
+  if (
+    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+    (trimmed.startsWith("[") && trimmed.endsWith("]"))
+  ) {
     try {
-      const sanitizedContent = attemptJsonSanitization(content);
-      jsonContent = extractAndParse(sanitizedContent);
+      jsonContent = JSON.parse(trimmed) as unknown;
     } catch {
-      try {
-        const { cleaned, changed, diagnostics } = sanitizePotentialJSONResponse(content);
-        assertNoDistinctConcatenatedObjects(cleaned.trim(), content.trim(), resourceName);
-        jsonContent = JSON.parse(cleaned) as unknown;
-      
-        if (changed && doWarnOnError) { // Optionally attach diagrnostics
-          logErrorMsg(
-            `Resilient JSON sanitation applied for resource '${resourceName}'. Steps: ${diagnostics}`,
-          );
-        }
-      } catch (resilientError: unknown) {
-        const errDetail =
-          resilientError instanceof Error ? resilientError.message : String(resilientError);
+      // Ignore and fall through to extraction strategies
+    }
+  }
+
+  // Raw extraction (no pre-sanitization) if fast path failed
+  if (jsonContent === (UNSET as unknown)) {
+    try {
+      jsonContent = extractAndParse(content);
+    } catch (firstError: unknown) {
+      if (firstError instanceof Error && firstError.message === "No JSON content found") {
         throw new BadResponseContentLLMError(
-          `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
-          `${content.substring(0, 1200)}\n--- Resilient sanitation failed: ${errDetail}`,
+          `LLM response for resource '${resourceName}' doesn't contain valid JSON content for text`,
+          content,
         );
+      }
+
+      // Apply light concatenation collapsing only AFTER a raw failure
+      try {
+        const pre = preSanitizeConcatenations(content);
+        jsonContent = extractAndParse(pre);
+      } catch {
+        // Structured sanitization (attemptJsonSanitization) if light pass fails
+        try {
+          const sanitizedContent = attemptJsonSanitization(content);
+          jsonContent = extractAndParse(sanitizedContent);
+        } catch {
+          // Final resilient heuristic sanitation
+          try {
+            const { cleaned, changed, diagnostics } = sanitizePotentialJSONResponse(content);
+            assertNoDistinctConcatenatedObjects(cleaned.trim(), content.trim(), resourceName);
+            jsonContent = JSON.parse(cleaned) as unknown; // any -> unknown
+            if (changed && doWarnOnError) {
+              logErrorMsg(
+                `Resilient JSON sanitation applied for resource '${resourceName}'. Steps: ${diagnostics}`,
+              );
+            }
+          } catch (resilientError: unknown) {
+            const errDetail =
+              resilientError instanceof Error ? resilientError.message : String(resilientError);
+            throw new BadResponseContentLLMError(
+              `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
+              `${content.substring(0, 1200)}\n--- Resilient sanitation failed: ${errDetail}`,
+            );
+          }
+        }
       }
     }
   }
@@ -75,7 +98,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
   // Perform Zod schema validation
   let validationIssues: unknown = null;
   const validatedContent = validateSchemaIfNeededAndReturnResponse<T>(
-    jsonContent,
+    jsonContent === (UNSET as unknown) ? null : jsonContent,
     completionOptions,
     resourceName,
     doWarnOnError,
