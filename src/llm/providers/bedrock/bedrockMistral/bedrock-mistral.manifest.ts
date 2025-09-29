@@ -54,7 +54,7 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
   providerSpecificConfig: {
     requestTimeoutMillis: 8 * 60 * 1000,
     maxRetryAttempts: 3,
-    minRetryDelayMillis: 30 * 1000,
+    minRetryDelayMillis: 20 * 1000,
     maxRetryDelayMillis: 200 * 1000,
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {

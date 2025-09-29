@@ -64,6 +64,7 @@ export class RetryStrategy {
           retries: providerRetryConfig.maxRetryAttempts - 1, // p-retry uses `retries` (number of retries, not total attempts)
           minTimeout: providerRetryConfig.minRetryDelayMillis,
           maxTimeout: providerRetryConfig.maxRetryDelayMillis,
+          randomize: true,
           onFailedAttempt: (error: FailedAttemptError) => {
             if (isRetryableError(error)) {
               this.classifyAndRecordRetry(error);

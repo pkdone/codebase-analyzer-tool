@@ -52,7 +52,7 @@ export const openAIProviderManifest: LLMProviderManifest = {
   providerSpecificConfig: {
     requestTimeoutMillis: 5 * 60 * 1000,
     maxRetryAttempts: 3,
-    minRetryDelayMillis: 15 * 1000,
+    minRetryDelayMillis: 10 * 1000,
     maxRetryDelayMillis: 90 * 1000,
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {

@@ -70,7 +70,7 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
     requestTimeoutMillis: 8 * 60 * 1000,
     maxRetryAttempts: 6,
-    minRetryDelayMillis: 45 * 1000,
+    minRetryDelayMillis: 30 * 1000,
     maxRetryDelayMillis: 300 * 1000,
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {

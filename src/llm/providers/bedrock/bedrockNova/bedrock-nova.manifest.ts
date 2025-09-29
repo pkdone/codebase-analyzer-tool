@@ -53,7 +53,7 @@ export const bedrockNovaProviderManifest: LLMProviderManifest = {
   providerSpecificConfig: {
     requestTimeoutMillis: 9 * 60 * 1000,
     maxRetryAttempts: 3,
-    minRetryDelayMillis: 30 * 1000,
+    minRetryDelayMillis: 20 * 1000,
     maxRetryDelayMillis: 240 * 1000,
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {

@@ -66,7 +66,7 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     requestTimeoutMillis: 7 * 60 * 1000,
     maxRetryAttempts: 3,
-    minRetryDelayMillis: 25 * 1000,
+    minRetryDelayMillis: 15 * 1000,
     maxRetryDelayMillis: 120 * 1000,
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {

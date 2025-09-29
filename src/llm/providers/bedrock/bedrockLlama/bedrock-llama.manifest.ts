@@ -59,7 +59,7 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
   providerSpecificConfig: {
     requestTimeoutMillis: 8 * 60 * 1000,
     maxRetryAttempts: 4,
-    minRetryDelayMillis: 45 * 1000,
+    minRetryDelayMillis: 25 * 1000,
     maxRetryDelayMillis: 240 * 1000,
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
