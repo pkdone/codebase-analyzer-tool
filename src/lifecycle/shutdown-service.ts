@@ -41,7 +41,7 @@ export class ShutdownService {
           process.exit(0);
         }, 1000); // 1 second should be enough for any pending operations
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error during forced shutdown check:", error);
     }
   }

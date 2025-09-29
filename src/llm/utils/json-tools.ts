@@ -37,14 +37,8 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
 
   // Try to extract and parse the JSON content
   try {
-    if (typeof content === "string") {
-      // Pre-sanitization now fully handles identifier-only and identifier-leading chains
-      const pre = preSanitizeConcatenations(content);
-      jsonContent = extractAndParse(pre);
-    } else {
-      // Should never happen due to earlier guard, but satisfies type narrowing
-      throw new Error("Unexpected non-string content");
-    }
+    const pre = preSanitizeConcatenations(content);
+    jsonContent = extractAndParse(pre);
   } catch (firstError: unknown) {
     if (firstError instanceof Error && firstError.message === "No JSON content found") {
       throw new BadResponseContentLLMError(
@@ -52,15 +46,29 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
         content,
       );
     }
-    // For any parsing error other than no JSON found, attempt sanitization once
+
     try {
       const sanitizedContent = attemptJsonSanitization(content);
       jsonContent = extractAndParse(sanitizedContent);
     } catch {
-      throw new BadResponseContentLLMError(
-        `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
-        content,
-      );
+      try {
+        const { cleaned, changed, diagnostics } = sanitizePotentialJSONResponse(content);
+        assertNoDistinctConcatenatedObjects(cleaned.trim(), content.trim(), resourceName);
+        jsonContent = JSON.parse(cleaned) as unknown;
+      
+        if (changed && doWarnOnError) { // Optionally attach diagrnostics
+          logErrorMsg(
+            `Resilient JSON sanitation applied for resource '${resourceName}'. Steps: ${diagnostics}`,
+          );
+        }
+      } catch (resilientError: unknown) {
+        const errDetail =
+          resilientError instanceof Error ? resilientError.message : String(resilientError);
+        throw new BadResponseContentLLMError(
+          `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
+          `${content.substring(0, 1200)}\n--- Resilient sanitation failed: ${errDetail}`,
+        );
+      }
     }
   }
 
@@ -110,24 +118,189 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
     completionOptions.outputFormat === LLMOutputFormat.JSON &&
     completionOptions.jsonSchema
   ) {
-    // Zod's safeParse can safely handle unknown inputs and provide type-safe output
     const validation = completionOptions.jsonSchema.safeParse(content);
-    if (!validation.success) {
+
+    if (validation.success) {
+      return validation.data as T;
+    } else {
       const issues = validation.error.issues;
       if (onValidationIssues) onValidationIssues(issues);
       const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(issues)}`;
       if (doWarnOnError) logErrorMsg(errorMessage);
       return null;
     }
-    return validation.data as T; // Successful validation
   } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
-    // TEXT format should accept any type, including numbers, for backward compatibility
     return content as LLMGeneratedContent;
+  } else if (isLLMGeneratedContent(content)) {
+    return content;
   } else {
-    if (isLLMGeneratedContent(content)) return content; // Now safe, no cast needed
     logErrorMsg(`Content is not valid LLMGeneratedContent for resource: ${resourceName}`);
     return null;
   }
+}
+
+/**
+ * Heuristically clean LLM JSON-like output by removing markdown fences, duplicated identical
+ * objects, trailing commas, control characters, and extracting the largest balanced JSON span.
+ * This is deliberately conservative and only used as a last-resort fallback.
+ */
+export function sanitizePotentialJSONResponse(raw: string): {
+  cleaned: string;
+  changed: boolean;
+  diagnostics: string;
+} {
+  let working = raw;
+  const original = raw;
+  const steps: string[] = [];
+
+  // Strip code fences
+  if (working.includes("```")) {
+    const fenceStripped = working
+      .replace(/```json\s*/gi, "")
+      .replace(/```javascript\s*/gi, "")
+      .replace(/```ts\s*/gi, "")
+      .replace(/```/g, "");
+    if (fenceStripped !== working) {
+      steps.push("Removed code fences");
+      working = fenceStripped;
+    }
+  }
+
+  // Remove zero-width + non-printable control chars (except \r\n\t)
+  const ctrlCleaned = removeZeroWidthAndControlChars(working);
+  if (ctrlCleaned !== working) {
+    steps.push("Removed control / zero-width characters");
+    working = ctrlCleaned;
+  }
+
+  // Extract largest JSON object/bracket span
+  const firstBrace = working.indexOf("{");
+  const firstBracket = working.indexOf("[");
+  let start = -1;
+  let startChar = "";
+  if (!(firstBrace === -1 && firstBracket === -1)) {
+    // Choose the earlier of the first '{' or '[' (whichever exists)
+    if (firstBrace === -1 || (firstBracket !== -1 && firstBracket < firstBrace)) {
+      start = firstBracket;
+      startChar = "[";
+    } else {
+      start = firstBrace;
+      startChar = "{";
+    }
+  }
+
+  if (start >= 0) {
+    const endChar = startChar === "{" ? "}" : "]";
+    let depth = 0;
+    let inString = false;
+    let escapeNext = false;
+    let endIndex = -1;
+    for (let i = start; i < working.length; i++) {
+      const ch = working[i];
+      if (escapeNext) {
+        escapeNext = false;
+        continue;
+      }
+      if (ch === "\\") {
+        escapeNext = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (!inString) {
+        if (ch === startChar) depth++;
+        else if (ch === endChar) {
+          depth--;
+          if (depth === 0) {
+            endIndex = i;
+            break;
+          }
+        }
+      }
+    }
+    if (endIndex !== -1) {
+      const sliced = working.slice(start, endIndex + 1).trim();
+      if (sliced !== working.trim()) {
+        steps.push("Extracted largest JSON span");
+        working = sliced;
+      }
+    }
+  }
+
+  // Collapse duplicated identical JSON objects concatenated
+  const dupPattern = /^(\{[\s\S]+\})\s*\1\s*$/;
+  if (dupPattern.test(working)) {
+    working = working.replace(dupPattern, "$1");
+    steps.push("Collapsed duplicated identical JSON object");
+  }
+
+  // Remove trailing commas before } or ]
+  const noTrailingCommas = working.replace(/,\s*([}\]])/g, "$1");
+  if (noTrailingCommas !== working) {
+    steps.push("Removed trailing commas");
+    working = noTrailingCommas;
+  }
+
+  // Final trim
+  const trimmed = working.trim();
+  if (trimmed !== working) {
+    working = trimmed;
+    steps.push("Trimmed whitespace");
+  }
+
+  return {
+    cleaned: working,
+    changed: working !== original,
+    diagnostics: steps.length ? steps.join(" | ") : "No changes",
+  };
+}
+/**
+ * Safety check: detect if sanitized content contains two different concatenated JSON objects.
+ * If both objects exist and differ, throw an error to avoid ambiguous parsing.
+ */
+function assertNoDistinctConcatenatedObjects(
+  sanitizedTrimmed: string,
+  originalTrimmed: string,
+  resourceName: string,
+): void {
+  const multiObjRegex = /^\s*(\{[\s\S]*\})\s*(\{[\s\S]*\})\s*$/;
+  const multiObjMatch = multiObjRegex.exec(sanitizedTrimmed);
+  if (multiObjMatch && multiObjMatch[1] !== multiObjMatch[2]) {
+    throw new BadResponseContentLLMError(
+      `LLM response for resource '${resourceName}' appears to contain two different concatenated JSON objects and is considered invalid`,
+      originalTrimmed.substring(0, 500),
+    );
+  }
+}
+
+/**
+ * @internal Test-only wrapper to exercise safety detection logic directly without relying on
+ * sanitation side-effects that normally remove the second object. Not part of the public API.
+ */
+export function __test_assertNoDistinctConcatenatedObjects(
+  sanitizedTrimmed: string,
+  originalTrimmed: string,
+  resourceName: string,
+): void {
+  assertNoDistinctConcatenatedObjects(sanitizedTrimmed, originalTrimmed, resourceName);
+}
+
+/**
+ * Remove zero-width characters and disallowed control characters (everything under 0x20 except \n, \r, \t)
+ * without triggering no-control-regex lint rule by iterating code points.
+ */
+function removeZeroWidthAndControlChars(input: string): string {
+  if (!input) return input;
+  let out = "";
+  for (const ch of input) {
+    const code = ch.charCodeAt(0);
+    if (code === 0x200b || code === 0x200c || code === 0x200d || code === 0xfeff) continue;
+    if (code < 0x20 && code !== 9 && code !== 10 && code !== 13) continue;
+    out += ch;
+  }
+  return out;
 }
 
 /**

@@ -24,7 +24,7 @@ export async function runTask(taskToken: symbol): Promise<void> {
     try {
       const shutdownService = container.resolve<ShutdownService>(TOKENS.ShutdownService);
       await shutdownService.gracefulShutdown();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to perform graceful shutdown:", error);
     }
   }

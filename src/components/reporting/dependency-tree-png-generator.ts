@@ -173,7 +173,7 @@ export class DependencyTreePngGenerator {
       const buffer = canvas.toBuffer(this.FILE.FORMAT);
       await writeBinaryFile(filepath, buffer);
       return filename + this.FILE.EXTENSION;
-    } catch (error) {
+    } catch (error: unknown) {
       logWarningMsg(`Failed to generate dependency tree for ${classpath}: ${String(error)}`);
       throw error; // Re-throw since we removed the fallback to simplified PNG
     }
@@ -211,7 +211,7 @@ export class DependencyTreePngGenerator {
     return classpath
       .replace(/[^a-zA-Z0-9.-]/g, "_")
       .replace(/_+/g, "_")
-      .replace(/^_|_$/g, "");
+      .replace(/(?:^_)|(?:_$)/g, "");
   }
 
   /**
@@ -587,21 +587,19 @@ export class DependencyTreePngGenerator {
       fromY = fromNode.y;
       toX = toCenterX;
       toY = toNode.y + toNode.height;
-    } else {
+    } else if (deltaX > 0) {
       // Primarily horizontal connection (or upward with significant horizontal component)
-      if (deltaX > 0) {
-        // Target is to the right - connect from right of source to left of target
-        fromX = fromNode.x + fromNode.width;
-        fromY = fromCenterY;
-        toX = toNode.x;
-        toY = toCenterY;
-      } else {
-        // Target is to the left - connect from left of source to right of target
-        fromX = fromNode.x;
-        fromY = fromCenterY;
-        toX = toNode.x + toNode.width;
-        toY = toCenterY;
-      }
+      // Target is to the right - connect from right of source to left of target
+      fromX = fromNode.x + fromNode.width;
+      fromY = fromCenterY;
+      toX = toNode.x;
+      toY = toCenterY;
+    } else {
+      // Target is to the left - connect from left of source to right of target
+      fromX = fromNode.x;
+      fromY = fromCenterY;
+      toX = toNode.x + toNode.width;
+      toY = toCenterY;
     }
 
     return { fromX, fromY, toX, toY };
