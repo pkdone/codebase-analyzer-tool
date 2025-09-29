@@ -253,6 +253,7 @@ function preSanitizeConcatenations(raw: string): string {
     },
   );
   let safety = 0;
+
   while (simpleChain.test(updated) && safety < 50) {
     safety += 1;
     // 0. Identifier-leading simple chains: key: IDENT + "literal" -> keep literal only
@@ -301,6 +302,7 @@ function preSanitizeConcatenations(raw: string): string {
       return `"${merged}"`;
     });
   }
+
   // Final pass: any chain with an identifier anywhere: "lit" + IDENT (+ "lit" ... ) -> "lit"
   updated = updated.replace(
     /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
@@ -343,6 +345,7 @@ function normalizeConcatenations(input: string): string {
     },
   );
   let guard = 0;
+
   while (simpleChain.test(updated) && guard < 80) {
     guard += 1;
     // 0. Identifier-leading simple chains
@@ -409,6 +412,7 @@ function normalizeConcatenations(input: string): string {
       return `"${merged}"`;
     });
   }
+  
   // Final cleanup: chains with identifier anywhere collapse to first literal
   updated = updated.replace(
     /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
