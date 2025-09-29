@@ -563,7 +563,6 @@ describe("json-tools", () => {
       expect(tableNames).toContain("incomplete_table"); // Incomplete objects preserved
     });
 
-
     test("should handle complex truncated JSON with nested structures", () => {
       // Test complex JSON that's truncated in a nested array structure
       const complexTruncatedJson = `{
@@ -650,7 +649,6 @@ describe("json-tools", () => {
         ),
       ).toThrow("LLM response for resource");
     });
-
 
     test("should sanitize Java style string concatenations retaining first literal", () => {
       const jsonWithConcat = `{
@@ -794,6 +792,5 @@ describe("json-tools", () => {
         expect(serialized).toContain("purpose");
       }
     });
-
   });
 });

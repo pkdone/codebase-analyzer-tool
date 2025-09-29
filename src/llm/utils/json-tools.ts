@@ -412,7 +412,7 @@ function normalizeConcatenations(input: string): string {
       return `"${merged}"`;
     });
   }
-  
+
   // Final cleanup: chains with identifier anywhere collapse to first literal
   updated = updated.replace(
     /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
