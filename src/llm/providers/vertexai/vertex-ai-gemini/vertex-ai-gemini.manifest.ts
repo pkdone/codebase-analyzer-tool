@@ -60,7 +60,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     requestTimeoutMillis: 10 * 60 * 1000,
     maxRetryAttempts: 3,
     minRetryDelayMillis: 30 * 1000,
-    maxRetryDelayMillis: 180 * 1000,
+    maxRetryDelayMillis: 200 * 1000,
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: VertexAIConfig = {
