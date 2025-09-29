@@ -13,7 +13,7 @@ import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
-import { validateSchemaIfNeededAndReturnResponse } from "../utils/json-tools";
+import { applyOptionalSchemaValidationToContent } from "../json-processing/parse-and-validate-llm-json";
 import { log, logErrorWithContext, logWithContext } from "./tracking/llm-router-logging";
 import LLMStats from "./tracking/llm-stats";
 import { TOKENS } from "../../di/tokens";
@@ -63,7 +63,7 @@ export class LLMExecutionPipeline {
 
       if (result) {
         const defaultOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.TEXT };
-        const validatedResult = await validateSchemaIfNeededAndReturnResponse(
+  const validatedResult = await applyOptionalSchemaValidationToContent(
           result,
           completionOptions ?? defaultOptions,
           resourceName,

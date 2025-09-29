@@ -1,4 +1,4 @@
-import { convertTextToJSONAndOptionallyValidate } from "../../../src/llm/utils/json-tools";
+import { parseAndValidateLLMJsonContent } from "../../../src/llm/json-processing/parse-and-validate-llm-json";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 
 // Test interfaces for generic type testing
@@ -44,7 +44,7 @@ describe("JSON utilities", () => {
 
     test.each(validJsonTestData)("with $description", ({ input, expected }) => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = convertTextToJSONAndOptionallyValidate(input, "content", completionOptions);
+  const result = parseAndValidateLLMJsonContent(input, "content", completionOptions);
       expect(result).toEqual(expected);
     });
 
@@ -52,7 +52,7 @@ describe("JSON utilities", () => {
       const text = "No JSON here";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       expect(() =>
-        convertTextToJSONAndOptionallyValidate(text, "content", completionOptions),
+  parseAndValidateLLMJsonContent(text, "content", completionOptions),
       ).toThrow("doesn't contain valid JSON content for text");
     });
 
@@ -62,7 +62,7 @@ describe("JSON utilities", () => {
 
       testCases.forEach(({ input }) => {
         expect(() =>
-          convertTextToJSONAndOptionallyValidate(input, "content", completionOptions),
+          parseAndValidateLLMJsonContent(input, "content", completionOptions),
         ).toThrow("LLM response for resource");
       });
     });
@@ -71,7 +71,7 @@ describe("JSON utilities", () => {
       const userJson =
         'Text before {"name": "John Doe", "age": 30, "email": "john@example.com"} text after';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const user = convertTextToJSONAndOptionallyValidate<TestUser>(
+  const user = parseAndValidateLLMJsonContent<TestUser>(
         userJson,
         "content",
         completionOptions,
@@ -87,7 +87,7 @@ describe("JSON utilities", () => {
       const configJson =
         'Prefix {"enabled": true, "settings": {"timeout": 5000, "retries": 3}} suffix';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const config = convertTextToJSONAndOptionallyValidate<TestConfig>(
+  const config = parseAndValidateLLMJsonContent<TestConfig>(
         configJson,
         "content",
         completionOptions,
@@ -102,7 +102,7 @@ describe("JSON utilities", () => {
     test("defaults to Record<string, unknown> when no type parameter provided", () => {
       const input = 'Text {"dynamic": "content", "count": 42} more text';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = convertTextToJSONAndOptionallyValidate(input, "content", completionOptions); // No type parameter
+  const result = parseAndValidateLLMJsonContent(input, "content", completionOptions); // No type parameter
 
       expect(result).toEqual({ dynamic: "content", count: 42 });
       // The result should be of type Record<string, unknown>

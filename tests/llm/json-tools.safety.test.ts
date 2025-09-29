@@ -1,4 +1,4 @@
-import { __test_assertNoDistinctConcatenatedObjects } from "../../src/llm/utils/json-tools";
+import { __testEnsureNoDistinctConcatenatedObjects } from "../../src/llm/json-processing/parse-and-validate-llm-json";
 
 // We test only the explicit error path where two distinct concatenated objects should raise.
 // Normal parsing path often collapses or extracts the first object; this focuses solely on
@@ -10,7 +10,7 @@ describe("json-tools safety detection", () => {
     const second = '{"b":2}';
     const combined = first + second;
     expect(() => {
-      __test_assertNoDistinctConcatenatedObjects(combined, combined, "safety-resource");
+  __testEnsureNoDistinctConcatenatedObjects(combined, combined, "safety-resource");
     }).toThrow(/two different concatenated JSON objects/i);
   });
 
@@ -18,7 +18,7 @@ describe("json-tools safety detection", () => {
     const first = '{"a":1}';
     const combined = first + first;
     expect(() => {
-      __test_assertNoDistinctConcatenatedObjects(combined, combined, "safety-resource");
+  __testEnsureNoDistinctConcatenatedObjects(combined, combined, "safety-resource");
     }).not.toThrow();
   });
 });

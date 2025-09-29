@@ -19,7 +19,7 @@ import {
   formatErrorMessageAndDetail,
 } from "../../common/utils/error-formatters";
 import { logErrorMsg, logWarningMsg, logErrorMsgAndDetail } from "../../common/utils/logging";
-import { convertTextToJSONAndOptionallyValidate } from "../utils/json-tools";
+import { parseAndValidateLLMJsonContent } from "../json-processing/parse-and-validate-llm-json";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../../config/llm-provider.config";
@@ -293,7 +293,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       try {
         const generatedContent =
           completionOptions.outputFormat === LLMOutputFormat.JSON
-            ? convertTextToJSONAndOptionallyValidate(
+            ? parseAndValidateLLMJsonContent(
                 responseContent,
                 context.resource,
                 completionOptions,

@@ -1,5 +1,10 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../types/llm.types";
 import { logErrorMsg } from "../../common/utils/logging";
+import { removeCodeFences } from "./sanitizers/remove-code-fences";
+import { removeControlChars } from "./sanitizers/remove-control-chars";
+import { extractLargestJsonSpan } from "./sanitizers/extract-largest-json-span";
+import { removeTrailingCommas } from "./sanitizers/remove-trailing-commas";
+import type { Sanitizer } from "./sanitizers/sanitizers-types";
 import { BadResponseContentLLMError } from "../types/llm-errors.types";
 
 // ---------------------------------------------------------------------------
@@ -20,7 +25,7 @@ const SIMPLE_CHAIN_SEGMENT_REGEX = /"[^"\n]*"\s*\+\s*(?:"[^"\n]*"|[A-Za-z_][A-Za
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally
  * validate it against a Zod schema.
  */
-export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknown>>(
+export function parseAndValidateLLMJsonContent<T = Record<string, unknown>>(
   content: LLMGeneratedContent,
   resourceName: string,
   completionOptions: LLMCompletionOptions,
@@ -33,72 +38,23 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
     );
   }
 
-  const UNSET = Symbol("unset-json");
-  let jsonContent: unknown = UNSET as unknown;
+  const { parsed, steps, resilientDiagnostics } = parseJsonUsingProgressiveStrategies(
+    content,
+    resourceName,
+  );
 
-  // Fast path: direct parse if the trimmed content is a standalone JSON object/array
-  const trimmed = content.trim();
-
-  if (
-    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-    (trimmed.startsWith("[") && trimmed.endsWith("]"))
-  ) {
-    try {
-      jsonContent = JSON.parse(trimmed) as unknown;
-    } catch {
-      // Ignore and fall through to extraction strategies
-    }
-  }
-
-  // Raw extraction (no pre-sanitization) if fast path failed
-  if (jsonContent === (UNSET as unknown)) {
-    try {
-      jsonContent = extractAndParse(content);
-    } catch (firstError: unknown) {
-      if (firstError instanceof Error && firstError.message === "No JSON content found") {
-        throw new BadResponseContentLLMError(
-          `LLM response for resource '${resourceName}' doesn't contain valid JSON content for text`,
-          content,
-        );
-      }
-
-      // Apply light concatenation collapsing only AFTER a raw failure
-      try {
-        const pre = preSanitizeConcatenations(content);
-        jsonContent = extractAndParse(pre);
-      } catch {
-        // Structured sanitization (attemptJsonSanitization) if light pass fails
-        try {
-          const sanitizedContent = attemptJsonSanitization(content);
-          jsonContent = extractAndParse(sanitizedContent);
-        } catch {
-          // Final resilient heuristic sanitation
-          try {
-            const { cleaned, changed, diagnostics } = sanitizePotentialJSONResponse(content);
-            assertNoDistinctConcatenatedObjects(cleaned.trim(), content.trim(), resourceName);
-            jsonContent = JSON.parse(cleaned) as unknown; // any -> unknown
-            if (changed && doWarnOnError) {
-              logErrorMsg(
-                `Resilient JSON sanitation applied for resource '${resourceName}'. Steps: ${diagnostics}`,
-              );
-            }
-          } catch (resilientError: unknown) {
-            const errDetail =
-              resilientError instanceof Error ? resilientError.message : String(resilientError);
-            throw new BadResponseContentLLMError(
-              `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
-              `${content.substring(0, 1200)}\n--- Resilient sanitation failed: ${errDetail}`,
-            );
-          }
-        }
-      }
-    }
+  // Log sanitation steps (excluding pure fast path) when debugging is requested
+  if (doWarnOnError && steps.length && steps[0] !== "fast-parse") {
+    const diagSuffix = resilientDiagnostics ? ` | Resilient: ${resilientDiagnostics}` : "";
+    logErrorMsg(
+      `JSON sanitation steps for resource '${resourceName}': ${steps.join(" -> ")}${diagSuffix}`,
+    );
   }
 
   // Perform Zod schema validation
   let validationIssues: unknown = null;
-  const validatedContent = validateSchemaIfNeededAndReturnResponse<T>(
-    jsonContent === (UNSET as unknown) ? null : jsonContent,
+  const validatedContent = applyOptionalSchemaValidationToContent<T>(
+    parsed,
     completionOptions,
     resourceName,
     doWarnOnError,
@@ -118,10 +74,6 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
     );
   }
 
-  // For convertTextToJSONAndOptionallyValidate, we know we're dealing with JSON content,
-  // so if validation didn't occur (outputFormat !== JSON or no schema), we can safely cast
-  // the JSON content to T since this function is specifically for JSON conversion
-  // At this point validatedContent either passed schema validation or outputFormat ensured JSON parse; cast to T is intentional.
   return validatedContent as T;
 }
 
@@ -129,7 +81,7 @@ export function convertTextToJSONAndOptionallyValidate<T = Record<string, unknow
  * Validate the LLM response content against a Zod schema if provided returning null if validation
  * fails (having logged the error).
  */
-export function validateSchemaIfNeededAndReturnResponse<T>(
+export function applyOptionalSchemaValidationToContent<T>(
   content: unknown, // Accept unknown values to be safely handled by Zod validation
   completionOptions: LLMCompletionOptions,
   resourceName: string,
@@ -163,167 +115,80 @@ export function validateSchemaIfNeededAndReturnResponse<T>(
 }
 
 /**
- * Heuristically clean LLM JSON-like output by removing markdown fences, duplicated identical
- * objects, trailing commas, control characters, and extracting the largest balanced JSON span.
- * This is deliberately conservative and only used as a last-resort fallback.
+ * Internal helper providing a linear set of parsing strategies while collecting which steps
+ * were required. This replaces the previous deeply nested try/catch control-flow while keeping
+ * the exact ordering semantics to avoid regressions.
  */
-export function sanitizePotentialJSONResponse(raw: string): {
-  cleaned: string;
-  changed: boolean;
-  diagnostics: string;
-} {
-  let working = raw;
-  const original = raw;
-  const steps: string[] = [];
-
-  // Strip code fences
-  if (working.includes("```")) {
-    const fenceStripped = working
-      .replace(/```json\s*/gi, "")
-      .replace(/```javascript\s*/gi, "")
-      .replace(/```ts\s*/gi, "")
-      .replace(/```/g, "");
-    if (fenceStripped !== working) {
-      steps.push("Removed code fences");
-      working = fenceStripped;
-    }
-  }
-
-  // Remove zero-width + non-printable control chars (except \r\n\t)
-  const ctrlCleaned = removeZeroWidthAndControlChars(working);
-  if (ctrlCleaned !== working) {
-    steps.push("Removed control / zero-width characters");
-    working = ctrlCleaned;
-  }
-
-  // Extract largest JSON object/bracket span
-  const firstBrace = working.indexOf("{");
-  const firstBracket = working.indexOf("[");
-  let start = -1;
-  let startChar = "";
-  if (!(firstBrace === -1 && firstBracket === -1)) {
-    // Choose the earlier of the first '{' or '[' (whichever exists)
-    if (firstBrace === -1 || (firstBracket !== -1 && firstBracket < firstBrace)) {
-      start = firstBracket;
-      startChar = "[";
-    } else {
-      start = firstBrace;
-      startChar = "{";
-    }
-  }
-
-  if (start >= 0) {
-    const endChar = startChar === "{" ? "}" : "]";
-    let depth = 0;
-    let inString = false;
-    let escapeNext = false;
-    let endIndex = -1;
-    for (let i = start; i < working.length; i++) {
-      const ch = working[i];
-      if (escapeNext) {
-        escapeNext = false;
-        continue;
-      }
-      if (ch === "\\") {
-        escapeNext = true;
-        continue;
-      }
-      if (ch === '"') {
-        inString = !inString;
-        continue;
-      }
-      if (!inString) {
-        if (ch === startChar) depth++;
-        else if (ch === endChar) {
-          depth--;
-          if (depth === 0) {
-            endIndex = i;
-            break;
-          }
-        }
-      }
-    }
-    if (endIndex !== -1) {
-      const sliced = working.slice(start, endIndex + 1).trim();
-      if (sliced !== working.trim()) {
-        steps.push("Extracted largest JSON span");
-        working = sliced;
-      }
-    }
-  }
-
-  // Collapse duplicated identical JSON objects concatenated
-  const dupPattern = /^(\{[\s\S]+\})\s*\1\s*$/;
-  if (dupPattern.test(working)) {
-    working = working.replace(dupPattern, "$1");
-    steps.push("Collapsed duplicated identical JSON object");
-  }
-
-  // Remove trailing commas before } or ]
-  const noTrailingCommas = working.replace(/,\s*([}\]])/g, "$1");
-  if (noTrailingCommas !== working) {
-    steps.push("Removed trailing commas");
-    working = noTrailingCommas;
-  }
-
-  // Final trim
-  const trimmed = working.trim();
-  if (trimmed !== working) {
-    working = trimmed;
-    steps.push("Trimmed whitespace");
-  }
-
-  return {
-    cleaned: working,
-    changed: working !== original,
-    diagnostics: steps.length ? steps.join(" | ") : "No changes",
-  };
-}
-/**
- * Safety check: detect if sanitized content contains two different concatenated JSON objects.
- * If both objects exist and differ, throw an error to avoid ambiguous parsing.
- */
-function assertNoDistinctConcatenatedObjects(
-  sanitizedTrimmed: string,
-  originalTrimmed: string,
+function parseJsonUsingProgressiveStrategies(
+  content: string,
   resourceName: string,
-): void {
-  const multiObjRegex = /^\s*(\{[\s\S]*\})\s*(\{[\s\S]*\})\s*$/;
-  const multiObjMatch = multiObjRegex.exec(sanitizedTrimmed);
-  if (multiObjMatch && multiObjMatch[1] !== multiObjMatch[2]) {
+): { parsed: unknown; steps: string[]; resilientDiagnostics?: string } {
+  const steps: string[] = [];
+  const trimmed = content.trim();
+
+  // Strategy 1: Fast direct parse
+  if (
+    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+    (trimmed.startsWith("[") && trimmed.endsWith("]"))
+  ) {
+    try {
+      const json = JSON.parse(trimmed) as unknown;
+      steps.push("fast-parse");
+      return { parsed: json, steps };
+    } catch {
+      // swallow and proceed
+    }
+  }
+
+  // Strategy 2: Raw extract & parse
+  try {
+  const parsed = extractBalancedJsonThenParse(content);
+    steps.push("extract");
+    return { parsed, steps };
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === "No JSON content found") {
+      throw new BadResponseContentLLMError(
+        `LLM response for resource '${resourceName}' doesn't contain valid JSON content for text`,
+        content,
+      );
+    }
+  }
+
+  // Strategy 3: Pre-concatenation collapse + extract
+  try {
+  const pre = lightCollapseConcatenationChains(content);
+  const parsed = extractBalancedJsonThenParse(pre);
+    steps.push("pre-concat+extract");
+    return { parsed, steps };
+  } catch {
+    // continue
+  }
+
+  // Strategy 4: Structured attempt sanitization + extract
+  try {
+  const sanitized = quickRepairMalformedJson(content);
+    const parsed = extractBalancedJsonThenParse(sanitized);
+    steps.push("attempt-sanitization+extract");
+    return { parsed, steps };
+  } catch {
+    // continue
+  }
+
+  // Strategy 5: Resilient sanitation (last resort)
+  try {
+  const { cleaned, changed, diagnostics } = applyResilientSanitationPipeline(content);
+    ensureNoDistinctConcatenatedObjects(cleaned.trim(), content.trim(), resourceName);
+    const parsed = JSON.parse(cleaned) as unknown;
+    steps.push("resilient-sanitization" + (changed ? "(changed)" : ""));
+    return { parsed, steps, resilientDiagnostics: diagnostics };
+  } catch (resilientError: unknown) {
+    const errDetail =
+      resilientError instanceof Error ? resilientError.message : String(resilientError);
     throw new BadResponseContentLLMError(
-      `LLM response for resource '${resourceName}' appears to contain two different concatenated JSON objects and is considered invalid`,
-      originalTrimmed.substring(0, 500),
+      `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
+      `${content.substring(0, 1200)}\n--- Resilient sanitation failed: ${errDetail}`,
     );
   }
-}
-
-/**
- * @internal Test-only wrapper to exercise safety detection logic directly without relying on
- * sanitation side-effects that normally remove the second object. Not part of the public API.
- */
-export function __test_assertNoDistinctConcatenatedObjects(
-  sanitizedTrimmed: string,
-  originalTrimmed: string,
-  resourceName: string,
-): void {
-  assertNoDistinctConcatenatedObjects(sanitizedTrimmed, originalTrimmed, resourceName);
-}
-
-/**
- * Remove zero-width characters and disallowed control characters (everything under 0x20 except \n, \r, \t)
- * without triggering no-control-regex lint rule by iterating code points.
- */
-function removeZeroWidthAndControlChars(input: string): string {
-  if (!input) return input;
-  let out = "";
-  for (const ch of input) {
-    const code = ch.charCodeAt(0);
-    if (code === 0x200b || code === 0x200c || code === 0x200d || code === 0xfeff) continue;
-    if (code < 0x20 && code !== 9 && code !== 10 && code !== 13) continue;
-    out += ch;
-  }
-  return out;
 }
 
 /**
@@ -331,7 +196,7 @@ function removeZeroWidthAndControlChars(input: string): string {
  * Handles both markdown-wrapped JSON and raw JSON content.
  * Improved algorithm to handle complex nested content with proper string awareness.
  */
-function extractAndParse(textContent: string): unknown {
+function extractBalancedJsonThenParse(textContent: string): unknown {
   // Find JSON content by looking for balanced braces/brackets, handling nested structures
   let jsonMatch: string | null = null;
   const markdownMatch = /```(?:json)?\s*([{[][\s\S]*?[}\]])\s*```/.exec(textContent);
@@ -408,21 +273,10 @@ function extractAndParse(textContent: string): unknown {
 }
 
 /**
- * Type guard to validate that a value conforms to the LLMGeneratedContent type.
- */
-function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
-  if (value === null) return true;
-  if (typeof value === "string") return true;
-  if (Array.isArray(value)) return true;
-  if (typeof value === "object" && !Array.isArray(value)) return true;
-  return false;
-}
-
-/**
  * Lightweight pre-sanitization applied before initial parse attempt. Focuses solely on
  * collapsing obvious concatenation chains to maximize chance of a first-pass JSON.parse success.
  */
-function preSanitizeConcatenations(raw: string): string {
+function lightCollapseConcatenationChains(raw: string): string {
   if (!raw.includes("+") || !raw.includes('"')) return raw;
   const simpleChain = SIMPLE_CHAIN_SEGMENT_REGEX;
   let updated = raw;
@@ -511,10 +365,150 @@ function preSanitizeConcatenations(raw: string): string {
 }
 
 /**
+ * Attempt to fix malformed JSON by handling common LLM response issues.
+ * This function addresses various malformed JSON patterns that LLMs commonly produce.
+ */
+function quickRepairMalformedJson(jsonString: string): string {
+  // No need to check if already valid - this function is only called when parsing already failed
+  // Try progressive fixes for common issues
+  let sanitized = jsonString;
+
+  // Remove literal control characters that make JSON invalid at the top level
+  // This must be done first before any other processing
+  // eslint-disable-next-line no-control-regex
+  sanitized = sanitized.replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+
+  // Fix literal newlines after backslashes in JSON structure
+  // Pattern: \\\n -> \\n (backslash + literal newline to properly escaped newline)
+  sanitized = sanitized.replace(/\\\n/g, "\\n");
+
+  // Fix escaped Unicode control characters in JSON strings
+  // Pattern: \\u0001 -> '' (remove escaped control characters)
+  sanitized = sanitized.replace(/\\u000[1-9A-F]/g, "");
+  sanitized = sanitized.replace(/\\u001[0-9A-F]/g, "");
+
+  // Fix remaining null escape patterns in JSON strings
+  // Pattern: '\\0' -> '' (remove null escape sequences in string literals)
+  sanitized = sanitized.replace(/'\\0'/g, "''");
+
+  // Concatenation normalization (extracted)
+  sanitized = normalizeConcatenationChains(sanitized);
+
+  // Handle over-escaped content within JSON string values
+  // This is the most common issue with LLM responses containing SQL/code examples
+  sanitized = repairOverEscapedStringSequences(sanitized);
+
+  // Handle truncated JSON by attempting to close open structures
+  sanitized = completeTruncatedJsonStructures(sanitized);
+
+  return sanitized;
+}
+
+/**
+ * Heuristically clean LLM JSON-like output by removing markdown fences, duplicated identical
+ * objects, trailing commas, control characters, and extracting the largest balanced JSON span.
+ * This is deliberately conservative and only used as a last-resort fallback.
+ */
+/**
+ * LAST-RESORT resilient sanitation pipeline. Applied only after faster strategies fail.
+ * @internal Use only via parseAndValidateLLMJsonContent
+ */
+function applyResilientSanitationPipeline(raw: string): {
+  cleaned: string;
+  changed: boolean;
+  diagnostics: string;
+} {
+  const original = raw;
+  let working = raw;
+  const steps: string[] = [];
+
+  const pipeline: Sanitizer[] = [
+    removeCodeFences,
+    removeControlChars,
+    extractLargestJsonSpan,
+    // duplicate object collapse (inline sanitizer)
+    (input) => {
+      const dupPattern = /^(\{[\s\S]+\})\s*\1\s*$/;
+      if (dupPattern.test(input)) {
+        return {
+          content: input.replace(dupPattern, "$1"),
+          changed: true,
+          description: "Collapsed duplicated identical JSON object",
+        };
+      }
+      return { content: input, changed: false };
+    },
+    removeTrailingCommas,
+    // final trim
+    (input) => {
+      const trimmed = input.trim();
+      if (trimmed !== input) {
+        return { content: trimmed, changed: true, description: "Trimmed whitespace" };
+      }
+      return { content: input, changed: false };
+    },
+  ];
+
+  for (const sanitizer of pipeline) {
+    const { content, changed, description } = sanitizer(working);
+    if (changed && description) steps.push(description);
+    working = content;
+  }
+
+  return {
+    cleaned: working,
+    changed: working !== original,
+    diagnostics: steps.length ? steps.join(" | ") : "No changes",
+  };
+}
+
+/**
+ * Safety check: detect if sanitized content contains two different concatenated JSON objects.
+ * If both objects exist and differ, throw an error to avoid ambiguous parsing.
+ */
+function ensureNoDistinctConcatenatedObjects(
+  sanitizedTrimmed: string,
+  originalTrimmed: string,
+  resourceName: string,
+): void {
+  const multiObjRegex = /^\s*(\{[\s\S]*\})\s*(\{[\s\S]*\})\s*$/;
+  const multiObjMatch = multiObjRegex.exec(sanitizedTrimmed);
+  if (multiObjMatch && multiObjMatch[1] !== multiObjMatch[2]) {
+    throw new BadResponseContentLLMError(
+      `LLM response for resource '${resourceName}' appears to contain two different concatenated JSON objects and is considered invalid`,
+      originalTrimmed.substring(0, 500),
+    );
+  }
+}
+
+/**
+ * @internal Test-only wrapper to exercise safety detection logic directly without relying on
+ * sanitation side-effects that normally remove the second object. Not part of the public API.
+ */
+export function __testEnsureNoDistinctConcatenatedObjects(
+  sanitizedTrimmed: string,
+  originalTrimmed: string,
+  resourceName: string,
+): void {
+  ensureNoDistinctConcatenatedObjects(sanitizedTrimmed, originalTrimmed, resourceName);
+}
+
+/**
+ * Type guard to validate that a value conforms to the LLMGeneratedContent type.
+ */
+function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
+  if (value === null) return true;
+  if (typeof value === "string") return true;
+  if (Array.isArray(value)) return true;
+  if (typeof value === "object" && !Array.isArray(value)) return true;
+  return false;
+}
+
+/**
  * Full concatenation normalization used inside the heavier sanitization pipeline.
  * Applies broader merging & cleanup than the pre-pass.
  */
-function normalizeConcatenations(input: string): string {
+function normalizeConcatenationChains(input: string): string {
   if (!input.includes("+") || !input.includes('"')) return input;
   const simpleChain = SIMPLE_CHAIN_SEGMENT_REGEX;
   let updated = input;
@@ -621,50 +615,10 @@ function normalizeConcatenations(input: string): string {
 }
 
 /**
- * Attempt to fix malformed JSON by handling common LLM response issues.
- * This function addresses various malformed JSON patterns that LLMs commonly produce.
- */
-function attemptJsonSanitization(jsonString: string): string {
-  // No need to check if already valid - this function is only called when parsing already failed
-  // Try progressive fixes for common issues
-  let sanitized = jsonString;
-
-  // Remove literal control characters that make JSON invalid at the top level
-  // This must be done first before any other processing
-  // eslint-disable-next-line no-control-regex
-  sanitized = sanitized.replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, "");
-
-  // Fix literal newlines after backslashes in JSON structure
-  // Pattern: \\\n -> \\n (backslash + literal newline to properly escaped newline)
-  sanitized = sanitized.replace(/\\\n/g, "\\n");
-
-  // Fix escaped Unicode control characters in JSON strings
-  // Pattern: \\u0001 -> '' (remove escaped control characters)
-  sanitized = sanitized.replace(/\\u000[1-9A-F]/g, "");
-  sanitized = sanitized.replace(/\\u001[0-9A-F]/g, "");
-
-  // Fix remaining null escape patterns in JSON strings
-  // Pattern: '\\0' -> '' (remove null escape sequences in string literals)
-  sanitized = sanitized.replace(/'\\0'/g, "''");
-
-  // Concatenation normalization (extracted)
-  sanitized = normalizeConcatenations(sanitized);
-
-  // Handle over-escaped content within JSON string values
-  // This is the most common issue with LLM responses containing SQL/code examples
-  sanitized = fixOverEscapedSequences(sanitized);
-
-  // Handle truncated JSON by attempting to close open structures
-  sanitized = completeTruncatedJSON(sanitized);
-
-  return sanitized;
-}
-
-/**
  * Fix over-escaped sequences within a JSON string content.
  * This handles the actual content between quotes, not the JSON structure.
  */
-function fixOverEscapedSequences(content: string): string {
+function repairOverEscapedStringSequences(content: string): string {
   let fixed = content;
 
   // Apply the exact same patterns that work in the manual test, in the same order
@@ -710,7 +664,7 @@ function fixOverEscapedSequences(content: string): string {
 /**
  * Attempt to complete truncated JSON structures.
  */
-function completeTruncatedJSON(jsonString: string): string {
+function completeTruncatedJsonStructures(jsonString: string): string {
   const trimmed = jsonString.trim();
   if (trimmed && !trimmed.endsWith("}") && !trimmed.endsWith("]")) {
     // Count open vs closed braces and track if we're inside a string
