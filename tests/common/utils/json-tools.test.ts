@@ -44,16 +44,16 @@ describe("JSON utilities", () => {
 
     test.each(validJsonTestData)("with $description", ({ input, expected }) => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-  const result = parseAndValidateLLMJsonContent(input, "content", completionOptions);
+      const result = parseAndValidateLLMJsonContent(input, "content", completionOptions);
       expect(result).toEqual(expected);
     });
 
     test("throws on invalid JSON", () => {
       const text = "No JSON here";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      expect(() =>
-  parseAndValidateLLMJsonContent(text, "content", completionOptions),
-      ).toThrow("doesn't contain valid JSON content for text");
+      expect(() => parseAndValidateLLMJsonContent(text, "content", completionOptions)).toThrow(
+        "doesn't contain valid JSON content for text",
+      );
     });
 
     test("throws on non-string input", () => {
@@ -61,9 +61,9 @@ describe("JSON utilities", () => {
       const testCases = [{ input: { key: "value" } }, { input: [1, 2, 3] }, { input: null }];
 
       testCases.forEach(({ input }) => {
-        expect(() =>
-          parseAndValidateLLMJsonContent(input, "content", completionOptions),
-        ).toThrow("LLM response for resource");
+        expect(() => parseAndValidateLLMJsonContent(input, "content", completionOptions)).toThrow(
+          "LLM response for resource",
+        );
       });
     });
 
@@ -71,11 +71,7 @@ describe("JSON utilities", () => {
       const userJson =
         'Text before {"name": "John Doe", "age": 30, "email": "john@example.com"} text after';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-  const user = parseAndValidateLLMJsonContent<TestUser>(
-        userJson,
-        "content",
-        completionOptions,
-      );
+      const user = parseAndValidateLLMJsonContent<TestUser>(userJson, "content", completionOptions);
 
       // TypeScript should now provide type safety for these properties
       expect(user.name).toBe("John Doe");
@@ -87,7 +83,7 @@ describe("JSON utilities", () => {
       const configJson =
         'Prefix {"enabled": true, "settings": {"timeout": 5000, "retries": 3}} suffix';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-  const config = parseAndValidateLLMJsonContent<TestConfig>(
+      const config = parseAndValidateLLMJsonContent<TestConfig>(
         configJson,
         "content",
         completionOptions,
@@ -102,7 +98,7 @@ describe("JSON utilities", () => {
     test("defaults to Record<string, unknown> when no type parameter provided", () => {
       const input = 'Text {"dynamic": "content", "count": 42} more text';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-  const result = parseAndValidateLLMJsonContent(input, "content", completionOptions); // No type parameter
+      const result = parseAndValidateLLMJsonContent(input, "content", completionOptions); // No type parameter
 
       expect(result).toEqual({ dynamic: "content", count: 42 });
       // The result should be of type Record<string, unknown>

@@ -10,7 +10,7 @@ describe("json-tools safety detection", () => {
     const second = '{"b":2}';
     const combined = first + second;
     expect(() => {
-  __testEnsureNoDistinctConcatenatedObjects(combined, combined, "safety-resource");
+      __testEnsureNoDistinctConcatenatedObjects(combined, combined, "safety-resource");
     }).toThrow(/two different concatenated JSON objects/i);
   });
 
@@ -18,7 +18,7 @@ describe("json-tools safety detection", () => {
     const first = '{"a":1}';
     const combined = first + first;
     expect(() => {
-  __testEnsureNoDistinctConcatenatedObjects(combined, combined, "safety-resource");
+      __testEnsureNoDistinctConcatenatedObjects(combined, combined, "safety-resource");
     }).not.toThrow();
   });
 });

@@ -63,7 +63,7 @@ export class LLMExecutionPipeline {
 
       if (result) {
         const defaultOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.TEXT };
-  const validatedResult = await applyOptionalSchemaValidationToContent(
+        const validatedResult = await applyOptionalSchemaValidationToContent(
           result,
           completionOptions ?? defaultOptions,
           resourceName,
