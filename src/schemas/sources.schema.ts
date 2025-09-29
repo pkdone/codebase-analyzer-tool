@@ -1,30 +1,45 @@
 import { z } from "zod";
 
+// Central list of valid database integration mechanism values (kept uppercase for normalization logic)
+const DATABASE_MECHANISM_VALUES = [
+  "NONE",
+  "JDBC",
+  "SPRING-DATA",
+  "SQL",
+  "HIBERNATE",
+  "JPA",
+  "MQL",
+  "ORM",
+  "EJB",
+  "DDL",
+  "DML",
+  "STORED-PROCEDURE",
+  "TRIGGER",
+  "FUNCTION",
+  "OTHER",
+] as const;
+const DATABASE_MECHANISM_SET = new Set<string>(DATABASE_MECHANISM_VALUES);
+
 /**
  * Schema for database integration information
  */
 export const databaseIntegrationSchema = z
   .object({
     mechanism: z
-      .enum([
-        "NONE",
-        "JDBC",
-        "SPRING-DATA",
-        "SQL",
-        "HIBERNATE",
-        "JPA",
-        "MQL",
-        "ORM",
-        "EJB",
-        "DDL",
-        "DML",
-        "STORED-PROCEDURE",
-        "TRIGGER",
-        "FUNCTION",
-        "OTHER",
-      ])
+      .preprocess(
+        (val) => {
+          if (typeof val === "string") {
+            const upper = val.toUpperCase();
+            // If the supplied value isn't one of the valid enumerated values, coerce to OTHER per requirement
+            return DATABASE_MECHANISM_SET.has(upper) ? upper : "OTHER";
+          }
+          return val;
+        },
+        // Cast through unknown to satisfy z.enum variadic tuple requirement without mutating readonly array
+        z.enum(DATABASE_MECHANISM_VALUES as unknown as [string, ...string[]]),
+      )
       .describe(
-        "The database integration mechanism used - it can only be one of the values specified - choose 'OTHER' if no values match.",
+        "The database integration mechanism used - only the listed values are valid; any unrecognized value will be coerced to 'OTHER'.",
       ),
     description: z
       .string()
