@@ -1,5 +1,5 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../types/llm.types";
-import { logErrorMsg } from "../../common/utils/logging";
+import { logErrorMsg, logWarningMsg } from "../../common/utils/logging";
 import { removeCodeFences } from "./sanitizers/remove-code-fences";
 import { removeControlChars } from "./sanitizers/remove-control-chars";
 import { extractLargestJsonSpan } from "./sanitizers/extract-largest-json-span";
@@ -13,6 +13,8 @@ import {
 } from "./sanitizers/fix-concatenation-chains";
 import { repairOverEscapedStringSequences } from "./sanitizers/fix-over-escaped-sequences";
 import { completeTruncatedStructures } from "./sanitizers/complete-truncated-structures";
+import { collapseDuplicateJsonObject } from "./sanitizers/collapse-duplicate-json-object";
+import { trimWhitespace } from "./sanitizers/trim-whitespace";
 
 // (Concatenation chain regex logic moved to fix-concatenation-chains sanitizer module.)
 
@@ -133,7 +135,8 @@ function progressiveParseAndValidate<T>(
 
   if (doWarnOnError && steps.length) {
     const diagSuffix = resilientDiagnostics ? ` | Resilient: ${resilientDiagnostics}` : "";
-    logErrorMsg(
+    // Use warning level (not error) since these are informative / non-failing steps.
+    logWarningMsg(
       `JSON sanitation steps for resource '${resourceName}': ${steps.join(" -> ")}${diagSuffix}`,
     );
   }
@@ -340,29 +343,16 @@ function applyResilientSanitationPipeline(raw: string): {
   const original = raw;
   let working = raw;
   const steps: string[] = [];
-  const pipeline: Sanitizer[] = [
+  // Build as const with satisfies to ensure each element conforms to Sanitizer without
+  // triggering unnecessary assertion warnings under strict lint rules.
+  const pipeline = [
     removeCodeFences,
     removeControlChars,
     extractLargestJsonSpan,
-    (input) => {
-      const dupPattern = /^(\{[\s\S]+\})\s*\1\s*$/;
-      if (dupPattern.test(input)) {
-        return {
-          content: input.replace(dupPattern, "$1"),
-          changed: true,
-          description: "Collapsed duplicated identical JSON object",
-        };
-      }
-      return { content: input, changed: false };
-    },
+    collapseDuplicateJsonObject,
     removeTrailingCommas,
-    (input) => {
-      const trimmed = input.trim();
-      if (trimmed !== input)
-        return { content: trimmed, changed: true, description: "Trimmed whitespace" };
-      return { content: input, changed: false };
-    },
-  ];
+    trimWhitespace,
+  ] satisfies Sanitizer[];
   for (const sanitizer of pipeline) {
     const { content, changed, description } = sanitizer(working);
     if (changed && description) steps.push(description);
