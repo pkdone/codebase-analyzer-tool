@@ -6,7 +6,6 @@ import { extractLargestJsonSpan } from "./sanitizers/extract-largest-json-span";
 import { removeTrailingCommas } from "./sanitizers/remove-trailing-commas";
 import type { Sanitizer } from "./sanitizers/sanitizers-types";
 import { BadResponseContentLLMError } from "../types/llm-errors.types";
-import { ParsingOutcome } from "./processing-types";
 import {
   lightCollapseConcatenationChains,
   concatenationChainSanitizer,
@@ -15,6 +14,15 @@ import { overEscapedSequencesSanitizer } from "./sanitizers/fix-over-escaped-seq
 import { completeTruncatedStructures } from "./sanitizers/complete-truncated-structures";
 import { collapseDuplicateJsonObject } from "./sanitizers/collapse-duplicate-json-object";
 import { trimWhitespace } from "./sanitizers/trim-whitespace";
+
+/**
+ * Interface to ??????????????????????????
+ */
+interface ParsingOutcome {
+  parsed: unknown;
+  steps: string[];
+  resilientDiagnostics?: string;
+}
 
 /**
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally

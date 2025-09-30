@@ -99,7 +99,6 @@ export class DependencyTreePngGenerator {
     BORDER_WIDTH_ROOT: 2,
     BORDER_WIDTH_NODE: 1,
     CONNECTION_WIDTH: 2,
-    PERCENTAGE_360: 360,
   } as const;
 
   /**
