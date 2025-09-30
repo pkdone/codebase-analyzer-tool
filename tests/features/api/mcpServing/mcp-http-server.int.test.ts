@@ -212,11 +212,12 @@ describe("McpHttpServer Integration Tests", () => {
       // Assert
       expect(res.setHeader).toHaveBeenCalledWith("Access-Control-Allow-Origin", "*");
       expect(res.writeHead).toHaveBeenCalledWith(400, { "Content-Type": "application/json" });
+      // Expect error to echo back the original request id (1)
       expect(res.end).toHaveBeenCalledWith(
         JSON.stringify({
           jsonrpc: "2.0",
           error: { code: -32000, message: "Bad Request: No valid session ID provided" },
-          id: null,
+          id: 1,
         }),
       );
     });

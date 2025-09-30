@@ -3,6 +3,7 @@ import { LLMProviderManifest } from "../../llm-provider.types";
 import OpenAILLM, { OpenAIConfig } from "./openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
+import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 // Environment variable name constants
 const OPENAI_LLM_API_KEY_KEY = "OPENAI_LLM_API_KEY";
@@ -57,8 +58,7 @@ export const openAIProviderManifest: LLMProviderManifest = {
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: OpenAIConfig = {
-      // envConfig is already the fully typed object
-      apiKey: envConfig[OPENAI_LLM_API_KEY_KEY] as string,
+      apiKey: getRequiredEnvVar(envConfig, OPENAI_LLM_API_KEY_KEY),
       providerSpecificConfig,
     };
     return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config);

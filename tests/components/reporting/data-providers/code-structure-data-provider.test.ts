@@ -72,6 +72,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
+      // With path-specific visited sets, duplicated references are preserved per branch
       const expectedOutput: HierarchicalTopLevelJavaClassDependencies[] = [
         {
           classpath: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
@@ -91,6 +92,10 @@ describe("CodeStructureDataProvider", () => {
                   ],
                 },
                 {
+                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                  originalLevel: 1,
+                },
+                {
                   classpath: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
                   originalLevel: 2,
                   dependencies: [
@@ -100,7 +105,25 @@ describe("CodeStructureDataProvider", () => {
                     },
                   ],
                 },
+                {
+                  classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
+                  originalLevel: 2,
+                },
               ],
+            },
+            {
+              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
+              originalLevel: 1,
+              dependencies: [
+                {
+                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                  originalLevel: 1,
+                },
+              ],
+            },
+            {
+              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+              originalLevel: 1,
             },
           ],
         },
@@ -392,6 +415,10 @@ describe("CodeStructureDataProvider", () => {
                   ],
                 },
                 {
+                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                  originalLevel: 1,
+                },
+                {
                   classpath: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
                   originalLevel: 2,
                   dependencies: [
@@ -401,7 +428,25 @@ describe("CodeStructureDataProvider", () => {
                     },
                   ],
                 },
+                {
+                  classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
+                  originalLevel: 2,
+                },
               ],
+            },
+            {
+              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
+              originalLevel: 1,
+              dependencies: [
+                {
+                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                  originalLevel: 1,
+                },
+              ],
+            },
+            {
+              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+              originalLevel: 1,
             },
           ],
         },
@@ -419,7 +464,7 @@ describe("CodeStructureDataProvider", () => {
 
       // Additional verification: ensure the dependency tree structure is correct
       const directDependencies = result[0].dependencies;
-      expect(directDependencies).toHaveLength(1); // Only SignOnFilter at root level (duplicates removed)
+  expect(directDependencies).toHaveLength(3); // SignOnFilter, SignOnLocalHome, SignOnLocal (duplicates preserved per branch)
 
       const classpaths = directDependencies.map((dep) => dep.classpath);
       expect(classpaths).toContain("com.sun.j2ee.blueprints.signon.web.SignOnFilter");

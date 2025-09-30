@@ -4,6 +4,7 @@ import VertexAIGeminiLLM, { VertexAIConfig } from "./vertex-ai-gemini-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
 import { VERTEXAI_COMMON_ERROR_PATTERNS } from "./vertex-ai-error-patterns";
+import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
@@ -64,9 +65,8 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
   },
   factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: VertexAIConfig = {
-      // envConfig is already the fully typed object
-      project: envConfig[VERTEXAI_PROJECTID_KEY] as string,
-      location: envConfig[VERTEXAI_LOCATION_KEY] as string,
+      project: getRequiredEnvVar(envConfig, VERTEXAI_PROJECTID_KEY),
+      location: getRequiredEnvVar(envConfig, VERTEXAI_LOCATION_KEY),
       providerSpecificConfig,
     };
     return new VertexAIGeminiLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);

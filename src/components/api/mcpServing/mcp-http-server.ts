@@ -176,11 +176,20 @@ export default class McpHttpServer {
             await this.mcpServer.connect(transport);
           } else {
             // Invalid request - no session ID or not initialization request
+            // Attempt to extract an id from the body if present per JSON-RPC 2.0
+            let requestId: string | number | null = null;
+            if (typeof body === "object" && body !== null && "id" in body) {
+              const potentialId = (body as Record<string, unknown>).id;
+              if (typeof potentialId === "string" || typeof potentialId === "number") {
+                requestId = potentialId;
+              }
+            }
             this.sendJsonRpcError(
               res,
               mcpConfig.HTTP_STATUS_BAD_REQUEST,
               mcpConfig.JSONRPC_SERVER_ERROR,
               "Bad Request: No valid session ID provided",
+              requestId,
             );
             return;
           }

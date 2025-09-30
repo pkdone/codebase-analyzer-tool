@@ -39,7 +39,7 @@ export function convertToHierarchical(
   const hierarchicalDependencies = buildHierarchicalDependencies(
     rootDependency.references,
     dependencyMap,
-    new Set(), // Track visited nodes to avoid infinite recursion
+    new Set([flatClassData.classpath]), // Start visited set with root to avoid self cycles while allowing shared children across branches
     1, // Start at level 1 for direct dependencies
   );
 
@@ -83,7 +83,7 @@ export function buildHierarchicalDependencies(
       const childDependencies = buildHierarchicalDependencies(
         dependency.references,
         dependencyMap,
-        visited, // Use the shared visited set
+        new Set(visited), // Use a copy of the visited set so siblings can include the same shared descendants
         currentLevel + 1,
       );
 
