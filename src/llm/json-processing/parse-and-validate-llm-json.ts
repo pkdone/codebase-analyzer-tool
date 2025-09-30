@@ -4,7 +4,7 @@ import { removeCodeFences } from "./sanitizers/remove-code-fences";
 import { removeControlChars } from "./sanitizers/remove-control-chars";
 import { extractLargestJsonSpan } from "./sanitizers/extract-largest-json-span";
 import { removeTrailingCommas } from "./sanitizers/remove-trailing-commas";
-import type { Sanitizer } from "./sanitizers/sanitizers-types";
+import type { Sanitizer, SanitizerResult } from "./sanitizers/sanitizers-types";
 import { BadResponseContentLLMError } from "../types/llm-errors.types";
 import { ParsingOutcome } from "./processing-types";
 import {
@@ -12,6 +12,7 @@ import {
   normalizeConcatenationChains,
 } from "./sanitizers/fix-concatenation-chains";
 import { repairOverEscapedStringSequences } from "./sanitizers/fix-over-escaped-sequences";
+import { completeTruncatedStructures } from "./sanitizers/complete-truncated-structures";
 
 // (Concatenation chain regex logic moved to fix-concatenation-chains sanitizer module.)
 
@@ -321,115 +322,14 @@ function quickRepairMalformedJson(jsonString: string): string {
     return repaired === inner ? full : `"${repaired}"`;
   });
   // Attempt to complete obviously truncated structures
-  updated = completeTruncatedJsonStructures(updated);
+  const truncatedResult: SanitizerResult = completeTruncatedStructures(updated);
+  if (truncatedResult.changed) {
+    updated = truncatedResult.content;
+  }
   return updated;
 }
 
 // (Over-escaped sequence repair now provided by imported repairOverEscapedStringSequences)
-
-/**
- * Attempt to complete truncated JSON structures.
- */
-function completeTruncatedJsonStructures(jsonString: string): string {
-  const trimmed = jsonString.trim();
-  if (trimmed && !trimmed.endsWith("}") && !trimmed.endsWith("]")) {
-    // Count open vs closed braces and track if we're inside a string
-    let braceDepth = 0;
-    let bracketDepth = 0;
-    let inString = false;
-    let escapeNext = false;
-
-    for (const [, char] of Array.from(trimmed).entries()) {
-      if (escapeNext) {
-        escapeNext = false;
-        continue;
-      }
-
-      if (char === "\\") {
-        escapeNext = true;
-        continue;
-      }
-
-      if (char === '"') {
-        inString = !inString;
-        continue;
-      }
-
-      if (!inString) {
-        if (char === "{") braceDepth++;
-        else if (char === "}") braceDepth--;
-        else if (char === "[") bracketDepth++;
-        else if (char === "]") bracketDepth--;
-      }
-    }
-
-    let sanitized = trimmed;
-
-    // If we're still inside a string at the end, close it appropriately
-    if (inString) {
-      // Check if this looks like a truncated SQL CREATE TABLE statement
-      const lastPart = sanitized.substring(Math.max(0, sanitized.length - 200));
-      if (
-        (lastPart.includes("TABLE IF NOT EXISTS") || lastPart.includes("CREATE TABLE")) &&
-        (lastPart.includes("DEFAULT ") ||
-          lastPart.includes("tinyint") ||
-          lastPart.includes("BIGINT"))
-      ) {
-        // This looks like a truncated CREATE TABLE statement - close string cleanly
-        const trimmedEnd = sanitized.trim();
-        if (trimmedEnd.endsWith(",")) {
-          // Remove trailing comma and close string properly
-          const lastCommaIndex = sanitized.lastIndexOf(",");
-          if (lastCommaIndex !== -1) {
-            sanitized = sanitized.substring(0, lastCommaIndex) + '"';
-          } else {
-            sanitized += '"';
-          }
-        } else {
-          // Just close the string
-          sanitized += '"';
-        }
-      } else {
-        // Generic string completion
-        sanitized += '"';
-      }
-    }
-
-    // Close open structures in the correct order
-    // For JSON with nested objects in arrays, we need to close objects before arrays
-
-    // If we have both braces and brackets, close them in nested order
-    if (braceDepth > 0 && bracketDepth > 0) {
-      // Close one object (table object), then array, then remaining objects
-      sanitized += "}";
-      braceDepth--;
-
-      while (bracketDepth > 0) {
-        sanitized += "]";
-        bracketDepth--;
-      }
-
-      while (braceDepth > 0) {
-        sanitized += "}";
-        braceDepth--;
-      }
-    } else {
-      // Standard closing
-      while (bracketDepth > 0) {
-        sanitized += "]";
-        bracketDepth--;
-      }
-      while (braceDepth > 0) {
-        sanitized += "}";
-        braceDepth--;
-      }
-    }
-
-    return sanitized;
-  }
-
-  return jsonString;
-}
 
 // ---------------- Resilient sanitation helpers (restored after refactor) ----------------
 function applyResilientSanitationPipeline(raw: string): {
