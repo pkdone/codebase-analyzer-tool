@@ -24,7 +24,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     const json = '{"a":1,"b":2}';
     const result = parseAndValidateLLMJsonContent(json, "fast-path", completionOptions, true);
     expect(result).toEqual({ a: 1, b: 2 });
-    // Should log nothing about sanitation steps (fast-parse is suppressed)
+    // Should log nothing about sanitation steps (fast path returns before strategies list is created)
     expect(logErrorMsg).not.toHaveBeenCalled();
   });
 

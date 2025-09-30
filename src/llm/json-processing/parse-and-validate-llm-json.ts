@@ -6,17 +6,14 @@ import { extractLargestJsonSpan } from "./sanitizers/extract-largest-json-span";
 import { removeTrailingCommas } from "./sanitizers/remove-trailing-commas";
 import type { Sanitizer } from "./sanitizers/sanitizers-types";
 import { BadResponseContentLLMError } from "../types/llm-errors.types";
+import { ParsingOutcome } from "./processing-types";
+import {
+  lightCollapseConcatenationChains,
+  normalizeConcatenationChains,
+} from "./sanitizers/fix-concatenation-chains";
+import { repairOverEscapedStringSequences } from "./sanitizers/fix-over-escaped-sequences";
 
-/** Matches identifier-leading concatenation chains ending with a literal: key: IDENT + IDENT2 + "literal" */
-const IDENT_LEADING_WITH_LITERAL_REGEX = /(:\s*)(?:[A-Za-z_][A-Za-z0-9_.()]*\s*\+\s*)+"([^"\n]*)"/g;
-/** Matches first literal followed by any trailing chain content up to a terminator (comma, brace, newline). */
-const FIRST_LITERAL_WITH_TAIL_REGEX = /(:\s*)"([^"\n]*)"([^,}\n]*)/g;
-/** Matches identifier-only concatenation chain (no string literals) so it can be collapsed to an empty string. */
-// Matches identifier-only concatenation: "key": IDENT + IDENT2 (+ IDENT3 ...) with no string literal
-const IDENT_ONLY_CHAIN_REGEX =
-  /("[^"]+"\s*:\s*)([A-Za-z_][A-Za-z0-9_.()]*)(?:\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*)+(?=\s*[},\n])/g;
-/** Simple chain segment used for iterative collapsing of mixed literal/identifier chains. */
-const SIMPLE_CHAIN_SEGMENT_REGEX = /"[^"\n]*"\s*\+\s*(?:"[^"\n]*"|[A-Za-z_][A-Za-z0-9_.()]*)/;
+// (Concatenation chain regex logic moved to fix-concatenation-chains sanitizer module.)
 
 /**
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally
@@ -34,44 +31,17 @@ export function parseAndValidateLLMJsonContent<T = Record<string, unknown>>(
       JSON.stringify(content),
     );
   }
-
-  const { parsed, steps, resilientDiagnostics } = parseJsonUsingProgressiveStrategies(
+  // Attempt a fast path parse+validate first (returns null if fallback needed)
+  const fastPath = tryFastPathParseAndValidate<T>(
     content,
     resourceName,
-  );
-
-  // Log sanitation steps (excluding pure fast path) when debugging is requested
-  if (doWarnOnError && steps.length && steps[0] !== "fast-parse") {
-    const diagSuffix = resilientDiagnostics ? ` | Resilient: ${resilientDiagnostics}` : "";
-    logErrorMsg(
-      `JSON sanitation steps for resource '${resourceName}': ${steps.join(" -> ")}${diagSuffix}`,
-    );
-  }
-
-  // Perform Zod schema validation
-  let validationIssues: unknown = null;
-  const validatedContent = applyOptionalSchemaValidationToContent<T>(
-    parsed,
     completionOptions,
-    resourceName,
     doWarnOnError,
-    (issues) => {
-      validationIssues = issues;
-    },
   );
+  if (fastPath !== null) return fastPath;
 
-  if (validatedContent === null) {
-    const contentTextWithNoNewlines = content.replace(/\n/g, " ");
-    const issuesText = validationIssues
-      ? ` Validation issues: ${JSON.stringify(validationIssues)}`
-      : "";
-    throw new BadResponseContentLLMError(
-      `LLM response for resource '${resourceName}' can be turned into JSON but doesn't validate with the supplied JSON schema.${issuesText}`,
-      contentTextWithNoNewlines,
-    );
-  }
-
-  return validatedContent as T;
+  // Otherwise run progressive strategies + validation
+  return progressiveParseAndValidate<T>(content, resourceName, completionOptions, doWarnOnError);
 }
 
 /**
@@ -112,6 +82,87 @@ export function applyOptionalSchemaValidationToContent<T>(
 }
 
 /**
+ * Attempt direct parse & optional schema validation when the content already appears to be a
+ * complete JSON object/array. Returns null if we should fall back to progressive strategies.
+ */
+function tryFastPathParseAndValidate<T>(
+  content: string,
+  resourceName: string,
+  completionOptions: LLMCompletionOptions,
+  doWarnOnError: boolean,
+): T | null {
+  const trimmed = content.trim();
+
+  if (
+    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+    (trimmed.startsWith("[") && trimmed.endsWith("]"))
+  ) {
+    try {
+      const direct = JSON.parse(trimmed) as unknown;
+      const validatedDirect = applyOptionalSchemaValidationToContent<T>(
+        direct,
+        completionOptions,
+        resourceName,
+        doWarnOnError,
+      );
+      if (validatedDirect !== null) return validatedDirect as T; // No sanitation steps needed
+    } catch {
+      // Swallow and fall through to progressive path
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Execute progressive parsing strategies and then apply optional schema validation. Throws with
+ * contextual details if validation ultimately fails.
+ */
+function progressiveParseAndValidate<T>(
+  originalContent: string,
+  resourceName: string,
+  completionOptions: LLMCompletionOptions,
+  doWarnOnError: boolean,
+): T {
+  const progressiveResult: ParsingOutcome = parseJsonUsingProgressiveStrategies(
+    originalContent,
+    resourceName,
+  );
+  const { parsed, steps, resilientDiagnostics } = progressiveResult;
+
+  if (doWarnOnError && steps.length) {
+    const diagSuffix = resilientDiagnostics ? ` | Resilient: ${resilientDiagnostics}` : "";
+    logErrorMsg(
+      `JSON sanitation steps for resource '${resourceName}': ${steps.join(" -> ")}${diagSuffix}`,
+    );
+  }
+
+  let validationIssues: unknown = null;
+  const validatedContent = applyOptionalSchemaValidationToContent<T>(
+    parsed,
+    completionOptions,
+    resourceName,
+    doWarnOnError,
+    (issues) => {
+      validationIssues = issues;
+    },
+  );
+
+  if (validatedContent === null) {
+    const contentTextWithNoNewlines = originalContent.replace(/\n/g, " ");
+    const issuesText = validationIssues
+      ? ` Validation issues: ${JSON.stringify(validationIssues)}`
+      : "";
+    throw new BadResponseContentLLMError(
+      `LLM response for resource '${resourceName}' can be turned into JSON but doesn't validate with the supplied JSON schema.${issuesText}`,
+      contentTextWithNoNewlines,
+    );
+  }
+
+  return validatedContent as T;
+}
+
+/**
  * Internal helper providing a linear set of parsing strategies while collecting which steps
  * were required. This replaces the previous deeply nested try/catch control-flow while keeping
  * the exact ordering semantics to avoid regressions.
@@ -119,25 +170,10 @@ export function applyOptionalSchemaValidationToContent<T>(
 function parseJsonUsingProgressiveStrategies(
   content: string,
   resourceName: string,
-): { parsed: unknown; steps: string[]; resilientDiagnostics?: string } {
+): ParsingOutcome {
   const steps: string[] = [];
-  const trimmed = content.trim();
 
-  // Strategy 1: Fast direct parse
-  if (
-    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-    (trimmed.startsWith("[") && trimmed.endsWith("]"))
-  ) {
-    try {
-      const json = JSON.parse(trimmed) as unknown;
-      steps.push("fast-parse");
-      return { parsed: json, steps };
-    } catch {
-      // swallow and proceed
-    }
-  }
-
-  // Strategy 2: Raw extract & parse
+  // Strategy 1: Raw extract & parse
   try {
     const parsed = extractBalancedJsonThenParse(content);
     steps.push("extract");
@@ -151,7 +187,7 @@ function parseJsonUsingProgressiveStrategies(
     }
   }
 
-  // Strategy 3: Pre-concatenation collapse + extract
+  // Strategy 2: Pre-concatenation collapse + extract
   try {
     const pre = lightCollapseConcatenationChains(content);
     const parsed = extractBalancedJsonThenParse(pre);
@@ -161,7 +197,7 @@ function parseJsonUsingProgressiveStrategies(
     // continue
   }
 
-  // Strategy 4: Structured attempt sanitization + extract
+  // Strategy 3: Structured attempt sanitization + extract
   try {
     const sanitized = quickRepairMalformedJson(content);
     const parsed = extractBalancedJsonThenParse(sanitized);
@@ -171,7 +207,7 @@ function parseJsonUsingProgressiveStrategies(
     // continue
   }
 
-  // Strategy 5: Resilient sanitation (last resort)
+  // Strategy 4: Resilient sanitation (last resort)
   try {
     const { cleaned, changed, diagnostics } = applyResilientSanitationPipeline(content);
     ensureNoDistinctConcatenatedObjects(cleaned.trim(), content.trim(), resourceName);
@@ -268,394 +304,28 @@ function extractBalancedJsonThenParse(textContent: string): unknown {
 }
 
 /**
- * Lightweight pre-sanitization applied before initial parse attempt. Focuses solely on
- * collapsing obvious concatenation chains to maximize chance of a first-pass JSON.parse success.
- */
-function lightCollapseConcatenationChains(raw: string): string {
-  if (!raw.includes("+") || !raw.includes('"')) return raw;
-  const simpleChain = SIMPLE_CHAIN_SEGMENT_REGEX;
-  let updated = raw;
-  // Collapse identifier-only chains (no literals) -> empty string literal
-  updated = updated.replace(IDENT_ONLY_CHAIN_REGEX, (_m, pfx) => `${pfx}""`);
-  // Handle identifier-only chain WITHOUT trailing comma/brace yet (e.g. end of object before sanitization closes it)
-  updated = updated.replace(
-    /(:\s*)([A-Za-z_][A-Za-z0-9_.()]*\s*(?:\+\s*[A-Za-z_][A-Za-z0-9_.()]*)+)(?=\s*[}\n])/g,
-    (_m, pfx) => `${pfx}""`,
-  );
-  // Collapse identifier-leading chains ending with a literal -> keep that literal
-  updated = updated.replace(IDENT_LEADING_WITH_LITERAL_REGEX, (_m, pfx, lit) => `${pfx}"${lit}"`);
-  // Trim everything after first literal if chain contains any identifier(s)
-  updated = updated.replace(
-    FIRST_LITERAL_WITH_TAIL_REGEX,
-    (m: string, pfx: string, lit: string, tail: string) => {
-      if (!tail || typeof tail !== "string" || !tail.includes("+")) {
-        return m; // no concatenation
-      }
-      if (/[+]\s*[A-Za-z_][A-Za-z0-9_.()]*/.test(tail)) {
-        return `${pfx}"${lit}"`;
-      }
-      return m;
-    },
-  );
-  let safety = 0;
-
-  while (simpleChain.test(updated) && safety < 50) {
-    safety += 1;
-    // Identifier-leading simple chains: key: IDENT + "literal" -> keep literal only
-    updated = updated.replace(
-      /(:\s*)[A-Za-z_][A-Za-z0-9_.()]*\s*\+\s*"([^"\n]*)"/g,
-      (_m, pfx, lit) => `${pfx}"${lit}"`,
-    );
-    // Collapse chains with multiple literals before an identifier to only the first literal
-    updated = updated.replace(
-      /"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,12}\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b[^,}\]]*/g,
-      (match) => {
-        const reFirst = /^"[^"\n]*"/;
-        const first = reFirst.exec(match);
-        return first ? first[0] : match;
-      },
-    );
-    // Collapse any literal + identifier (+ literals) sequence to first literal
-    updated = updated.replace(/"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b/g, (match) => {
-      const reFirst = /^"[^"\n]*"/;
-      const firstLit = reFirst.exec(match);
-      return firstLit ? firstLit[0] : match;
-    });
-    // After collapsing, strip any remaining literal+identifier(+literal) sequences to just the first literal
-    updated = updated.replace(
-      /(:\s*)"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
-      (full, pfx) => {
-        const lit = /"[^"\n]*"/.exec(full);
-        return lit ? `${pfx}${lit[0]}` : full;
-      },
-    );
-    // Then merge pure literal-only limited chains
-    updated = updated.replace(/"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,6}(?=\s*[,}\]])/g, (chain) => {
-      const tokens = chain
-        .split(/\s*\+\s*/)
-        .map((t) => t.trim())
-        .filter(Boolean);
-      if (!tokens.length) return chain;
-      const merged = tokens
-        .map((t) => {
-          if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
-            return t.substring(1, t.length - 1);
-          }
-          return t;
-        })
-        .join("");
-      return `"${merged}"`;
-    });
-  }
-
-  // Final pass: any chain with an identifier anywhere: "lit" + IDENT (+ "lit" ... ) -> "lit"
-  updated = updated.replace(
-    /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
-    (m) => {
-      const first = /"[^"\n]*"/.exec(m);
-      return first ? first[0] : m;
-    },
-  );
-  return updated;
-}
-
-/**
  * Attempt to fix malformed JSON by handling common LLM response issues.
  * This function addresses various malformed JSON patterns that LLMs commonly produce.
  */
 function quickRepairMalformedJson(jsonString: string): string {
-  // No need to check if already valid - this function is only called when parsing already failed
-  // Try progressive fixes for common issues
-  let sanitized = jsonString;
-
-  // Remove literal control characters that make JSON invalid at the top level
-  // This must be done first before any other processing
+  // Only invoked after an initial parse failure; attempt targeted light repairs.
+  let updated = jsonString;
+  // Strip literal control chars that frequently appear in raw model output
   // eslint-disable-next-line no-control-regex
-  sanitized = sanitized.replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, "");
-
-  // Fix literal newlines after backslashes in JSON structure
-  // Pattern: \\\n -> \\n (backslash + literal newline to properly escaped newline)
-  sanitized = sanitized.replace(/\\\n/g, "\\n");
-
-  // Fix escaped Unicode control characters in JSON strings
-  // Pattern: \\u0001 -> '' (remove escaped control characters)
-  sanitized = sanitized.replace(/\\u000[1-9A-F]/g, "");
-  sanitized = sanitized.replace(/\\u001[0-9A-F]/g, "");
-
-  // Fix remaining null escape patterns in JSON strings
-  // Pattern: '\\0' -> '' (remove null escape sequences in string literals)
-  sanitized = sanitized.replace(/'\\0'/g, "''");
-
-  // Concatenation normalization (extracted)
-  sanitized = normalizeConcatenationChains(sanitized);
-
-  // Handle over-escaped content within JSON string values
-  // This is the most common issue with LLM responses containing SQL/code examples
-  sanitized = repairOverEscapedStringSequences(sanitized);
-
-  // Handle truncated JSON by attempting to close open structures
-  sanitized = completeTruncatedJsonStructures(sanitized);
-
-  return sanitized;
-}
-
-/**
- * Heuristically clean LLM JSON-like output by removing markdown fences, duplicated identical
- * objects, trailing commas, control characters, and extracting the largest balanced JSON span.
- * This is deliberately conservative and only used as a last-resort fallback.
- */
-/**
- * LAST-RESORT resilient sanitation pipeline. Applied only after faster strategies fail.
- * @internal Use only via parseAndValidateLLMJsonContent
- */
-function applyResilientSanitationPipeline(raw: string): {
-  cleaned: string;
-  changed: boolean;
-  diagnostics: string;
-} {
-  const original = raw;
-  let working = raw;
-  const steps: string[] = [];
-
-  const pipeline: Sanitizer[] = [
-    removeCodeFences,
-    removeControlChars,
-    extractLargestJsonSpan,
-    // duplicate object collapse (inline sanitizer)
-    (input) => {
-      const dupPattern = /^(\{[\s\S]+\})\s*\1\s*$/;
-      if (dupPattern.test(input)) {
-        return {
-          content: input.replace(dupPattern, "$1"),
-          changed: true,
-          description: "Collapsed duplicated identical JSON object",
-        };
-      }
-      return { content: input, changed: false };
-    },
-    removeTrailingCommas,
-    // final trim
-    (input) => {
-      const trimmed = input.trim();
-      if (trimmed !== input) {
-        return { content: trimmed, changed: true, description: "Trimmed whitespace" };
-      }
-      return { content: input, changed: false };
-    },
-  ];
-
-  for (const sanitizer of pipeline) {
-    const { content, changed, description } = sanitizer(working);
-    if (changed && description) steps.push(description);
-    working = content;
-  }
-
-  return {
-    cleaned: working,
-    changed: working !== original,
-    diagnostics: steps.length ? steps.join(" | ") : "No changes",
-  };
-}
-
-/**
- * Safety check: detect if sanitized content contains two different concatenated JSON objects.
- * If both objects exist and differ, throw an error to avoid ambiguous parsing.
- */
-function ensureNoDistinctConcatenatedObjects(
-  sanitizedTrimmed: string,
-  originalTrimmed: string,
-  resourceName: string,
-): void {
-  const multiObjRegex = /^\s*(\{[\s\S]*\})\s*(\{[\s\S]*\})\s*$/;
-  const multiObjMatch = multiObjRegex.exec(sanitizedTrimmed);
-
-  if (multiObjMatch && multiObjMatch[1] !== multiObjMatch[2]) {
-    throw new BadResponseContentLLMError(
-      `LLM response for resource '${resourceName}' appears to contain two different concatenated JSON objects and is considered invalid`,
-      originalTrimmed.substring(0, 500),
-    );
-  }
-}
-
-/**
- * @internal Test-only wrapper to exercise safety detection logic directly without relying on
- * sanitation side-effects that normally remove the second object. Not part of the public API.
- */
-export function __testEnsureNoDistinctConcatenatedObjects(
-  sanitizedTrimmed: string,
-  originalTrimmed: string,
-  resourceName: string,
-): void {
-  ensureNoDistinctConcatenatedObjects(sanitizedTrimmed, originalTrimmed, resourceName);
-}
-
-/**
- * Type guard to validate that a value conforms to the LLMGeneratedContent type.
- */
-function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
-  if (value === null) return true;
-  if (typeof value === "string") return true;
-  if (Array.isArray(value)) return true;
-  if (typeof value === "object" && !Array.isArray(value)) return true;
-  return false;
-}
-
-/**
- * Full concatenation normalization used inside the heavier sanitization pipeline.
- * Applies broader merging & cleanup than the pre-pass.
- */
-function normalizeConcatenationChains(input: string): string {
-  if (!input.includes("+") || !input.includes('"')) return input;
-  const simpleChain = SIMPLE_CHAIN_SEGMENT_REGEX;
-  let updated = input;
-  // Identifier-only chains -> empty string
-  updated = updated.replace(IDENT_ONLY_CHAIN_REGEX, (_m, pfx) => `${pfx}""`);
-  // Identifier-only chains at end of object or before newline
-  updated = updated.replace(
-    /(:\s*)([A-Za-z_][A-Za-z0-9_.()]*\s*(?:\+\s*[A-Za-z_][A-Za-z0-9_.()]*)+)(?=\s*[}\n])/g,
-    (_m, pfx) => `${pfx}""`,
-  );
-  // Identifier-leading chains ending with literal -> keep literal
-  updated = updated.replace(IDENT_LEADING_WITH_LITERAL_REGEX, (_m, pfx, lit) => `${pfx}"${lit}"`);
-  // Trim after first literal if identifiers appear later
-  updated = updated.replace(
-    FIRST_LITERAL_WITH_TAIL_REGEX,
-    (m: string, pfx: string, lit: string, tail: string) => {
-      if (!tail || typeof tail !== "string" || !tail.includes("+")) {
-        return m;
-      }
-      if (/[+]\s*[A-Za-z_][A-Za-z0-9_.()]*/.test(tail)) {
-        return `${pfx}"${lit}"`;
-      }
-      return m;
-    },
-  );
-  let guard = 0;
-
-  while (simpleChain.test(updated) && guard < 80) {
-    guard += 1;
-    // Identifier-leading simple chains
-    updated = updated.replace(
-      /(:\s*)[A-Za-z_][A-Za-z0-9_.()]*\s*\+\s*"([^"\n]*)"/g,
-      (_m, pfx, lit) => `${pfx}"${lit}"`,
-    );
-    // Identifier-leading chains inside normalization (same simple collapse)
-    updated = updated.replace(/(:\s*)[A-Za-z_][A-Za-z0-9_.()]*\s*\+\s*"[^"\n]*"/g, (full, pfx) => {
-      const reLit = /"[^"\n]*"/;
-      const lit = reLit.exec(full);
-      return lit ? `${pfx}${lit[0]}` : full;
-    });
-    // Collapse chains with multiple literals before an identifier
-    updated = updated.replace(
-      /"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,20}\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b[^,}\]]*/g,
-      (match) => {
-        const reFirst = /^"[^"\n]*"/;
-        const first = reFirst.exec(match);
-        return first ? first[0] : match;
-      },
-    );
-    // Collapse simple literal + identifier (+ trailing literals) sequences
-    updated = updated.replace(
-      /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
-      (match) => {
-        const reFirst = /^"[^"\n]*"/;
-        const first = reFirst.exec(match);
-        return first ? first[0] : match;
-      },
-    );
-    // Literal + identifier (+ literals) collapse within key context
-    updated = updated.replace(
-      /(:\s*)"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
-      (full, pfx) => {
-        const lit = /"[^"\n]*"/.exec(full);
-        return lit ? `${pfx}${lit[0]}` : full;
-      },
-    );
-    // Additional collapse for mixed chains where identifier appears after intermediate literals
-    updated = updated.replace(
-      /"[^"\n]*"(?:\s*\+\s*"[^"\n]*")+\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*[^,}\]]*/g,
-      (match) => {
-        const reFirst = /^"[^"\n]*"/;
-        const firstLit = reFirst.exec(match);
-        return firstLit ? firstLit[0] : match;
-      },
-    );
-    // Merge pure literal chains (allow slightly longer)
-    updated = updated.replace(/"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,10}(?=\s*[,}\]])/g, (chain) => {
-      const tokens = chain
-        .split(/\s*\+\s*/)
-        .map((t) => t.trim())
-        .filter(Boolean);
-      if (!tokens.length) return chain;
-      const merged = tokens
-        .map((t) => {
-          if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
-            return t.substring(1, t.length - 1);
-          }
-          return t;
-        })
-        .join("");
-      return `"${merged}"`;
-    });
-  }
-
-  // Final cleanup: chains with identifier anywhere collapse to first literal
-  updated = updated.replace(
-    /"[^"\n]*"\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b(?:\s*\+\s*"[^"\n]*")*/g,
-    (m) => {
-      const first = /"[^"\n]*"/.exec(m);
-      return first ? first[0] : m;
-    },
-  );
+  updated = updated.replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+  // Normalize concatenation chains (heavy logic extracted to sanitizer module)
+  updated = normalizeConcatenationChains(updated);
+  // Repair over-escaped sequences INSIDE string literals only
+  updated = updated.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g, (full, inner: string) => {
+    const repaired = repairOverEscapedStringSequences(inner);
+    return repaired === inner ? full : `"${repaired}"`;
+  });
+  // Attempt to complete obviously truncated structures
+  updated = completeTruncatedJsonStructures(updated);
   return updated;
 }
 
-/**
- * Fix over-escaped sequences within a JSON string content.
- * This handles the actual content between quotes, not the JSON structure.
- */
-function repairOverEscapedStringSequences(content: string): string {
-  let fixed = content;
-
-  // Apply the exact same patterns that work in the manual test, in the same order
-  // Pattern: \\\\\\\' -> ' (5 backslashes + single quote - most specific first)
-  fixed = fixed.replace(/\\\\\\'/g, "'");
-
-  // Pattern: \\\\\' -> ' (4 backslashes + single quote)
-  fixed = fixed.replace(/\\\\'/g, "'");
-
-  // Pattern: \\\' -> ' (3 backslashes + single quote)
-  fixed = fixed.replace(/\\'/g, "'");
-
-  // Pattern: \\\\\\\'.\\\\\\' -> '.' (5-backslash dot pattern)
-  fixed = fixed.replace(/\\\\\\'\\./g, "'.");
-
-  // Pattern: \\\\\\'\\\\\\\' -> '' (5-backslash empty quotes)
-  // eslint-disable-next-line no-useless-escape
-  fixed = fixed.replace(/\\\\\\'\\\\\\\'/g, "''");
-
-  // Pattern: \\\'.\\' -> '.' (3-backslash dot pattern)
-  fixed = fixed.replace(/\\'\\./g, "'.");
-
-  // Pattern: \\\'\\' -> '' (3-backslash empty quotes)
-  // eslint-disable-next-line no-useless-escape
-  fixed = fixed.replace(/\\'\\\'/g, "''");
-
-  // Fix over-escaped null characters (handle both 4 and 5 backslash patterns)
-  // Pattern: \\\\\\0 -> \\0 (reduce 5-backslash null to proper null escape)
-  fixed = fixed.replace(/\\\\\\0/g, "\\0");
-
-  // Pattern: \\\\0 -> \\0 (reduce 4-backslash null to proper null escape)
-  fixed = fixed.replace(/\\\\0/g, "\\0");
-
-  // Clean up orphaned backslashes
-  fixed = fixed.replace(/\\\\\s*,/g, ","); // Double backslash before comma
-  fixed = fixed.replace(/\\\\\s*\)/g, ")"); // Double backslash before paren
-  fixed = fixed.replace(/\\,/g, ","); // Single backslash before comma
-  fixed = fixed.replace(/\\\)/g, ")"); // Single backslash before paren
-
-  return fixed;
-}
+// (Over-escaped sequence repair now provided by imported repairOverEscapedStringSequences)
 
 /**
  * Attempt to complete truncated JSON structures.
@@ -759,4 +429,80 @@ function completeTruncatedJsonStructures(jsonString: string): string {
   }
 
   return jsonString;
+}
+
+// ---------------- Resilient sanitation helpers (restored after refactor) ----------------
+function applyResilientSanitationPipeline(raw: string): {
+  cleaned: string;
+  changed: boolean;
+  diagnostics: string;
+} {
+  const original = raw;
+  let working = raw;
+  const steps: string[] = [];
+  const pipeline: Sanitizer[] = [
+    removeCodeFences,
+    removeControlChars,
+    extractLargestJsonSpan,
+    (input) => {
+      const dupPattern = /^(\{[\s\S]+\})\s*\1\s*$/;
+      if (dupPattern.test(input)) {
+        return {
+          content: input.replace(dupPattern, "$1"),
+          changed: true,
+          description: "Collapsed duplicated identical JSON object",
+        };
+      }
+      return { content: input, changed: false };
+    },
+    removeTrailingCommas,
+    (input) => {
+      const trimmed = input.trim();
+      if (trimmed !== input)
+        return { content: trimmed, changed: true, description: "Trimmed whitespace" };
+      return { content: input, changed: false };
+    },
+  ];
+  for (const sanitizer of pipeline) {
+    const { content, changed, description } = sanitizer(working);
+    if (changed && description) steps.push(description);
+    working = content;
+  }
+  return {
+    cleaned: working,
+    changed: working !== original,
+    diagnostics: steps.length ? steps.join(" | ") : "No changes",
+  };
+}
+
+function ensureNoDistinctConcatenatedObjects(
+  sanitizedTrimmed: string,
+  originalTrimmed: string,
+  resourceName: string,
+): void {
+  const multiObjRegex = /^\s*(\{[\s\S]*\})\s*(\{[\s\S]*\})\s*$/;
+  const multiObjMatch = multiObjRegex.exec(sanitizedTrimmed);
+  if (multiObjMatch && multiObjMatch[1] !== multiObjMatch[2]) {
+    throw new BadResponseContentLLMError(
+      `LLM response for resource '${resourceName}' appears to contain two different concatenated JSON objects and is considered invalid`,
+      originalTrimmed.substring(0, 500),
+    );
+  }
+}
+
+// Test-only named export (kept stable to avoid modifying existing test suite)
+export function __testEnsureNoDistinctConcatenatedObjects(
+  sanitizedTrimmed: string,
+  originalTrimmed: string,
+  resourceName: string,
+): void {
+  ensureNoDistinctConcatenatedObjects(sanitizedTrimmed, originalTrimmed, resourceName);
+}
+
+function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
+  if (value === null) return true;
+  if (typeof value === "string") return true;
+  if (Array.isArray(value)) return true;
+  if (typeof value === "object" && !Array.isArray(value)) return true;
+  return false;
 }
