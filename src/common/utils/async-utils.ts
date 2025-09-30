@@ -41,7 +41,8 @@ export async function processItemsConcurrently<T, R>(
         } catch {
           itemIdentifier = String(items[index]);
         }
-        logErrorMsgAndDetail(`Failed to process ${itemName}: ${itemIdentifier}`, result.reason);
+        const reason: unknown = result.reason; // treat promise rejection reason defensively
+        logErrorMsgAndDetail(`Failed to process ${itemName}: ${itemIdentifier}`, reason);
       }
       return acc;
     },
