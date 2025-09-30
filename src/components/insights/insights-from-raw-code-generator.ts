@@ -4,7 +4,7 @@ import LLMRouter from "../../llm/core/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import { TOKENS } from "../../di/tokens";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
-import { convertCodebaseToMarkdown } from "../../common/utils/codebase-processing";
+import { bundleCodebaseIntoMarkdown } from "../../common/utils/codebase-processing";
 import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
@@ -45,7 +45,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Generate insights from raw code and store in the database
    */
   async generateAndStoreInsights(): Promise<void> {
-    const codeBlocksContent = await convertCodebaseToMarkdown(this.env.CODEBASE_DIR_PATH);
+  const codeBlocksContent = await bundleCodebaseIntoMarkdown(this.env.CODEBASE_DIR_PATH);
     await this.generateDataForAllCategories(codeBlocksContent);
   }
 

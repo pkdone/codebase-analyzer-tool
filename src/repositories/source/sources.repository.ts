@@ -265,9 +265,10 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Get top level Java classes for a project.
+   * Get top level Java classes for a project ordered by dependency count.
+   * (Renamed from getMostComplextProjectTopLevelJavaClasses to fix typo and clarify meaning.)
    */
-  async getMostComplextProjectTopLevelJavaClasses(
+  async getTopLevelJavaClassesByDependencyCount(
     projectName: string,
   ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
     const MAX_DEPENDENCY_DEPTH = 8;

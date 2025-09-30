@@ -24,7 +24,7 @@ export class CodeStructureDataProvider {
     projectName: string,
   ): Promise<HierarchicalTopLevelJavaClassDependencies[]> {
     const flatData: ProjectedTopLevelJavaClassDependencies[] =
-      await this.sourcesRepository.getMostComplextProjectTopLevelJavaClasses(projectName);
+      await this.sourcesRepository.getTopLevelJavaClassesByDependencyCount(projectName);
     return flatData.map(
       (
         classData: ProjectedTopLevelJavaClassDependencies,

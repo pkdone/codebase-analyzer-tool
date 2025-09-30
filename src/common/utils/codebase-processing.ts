@@ -10,7 +10,7 @@ import { readFile } from "./file-operations";
  * @param codebaseDirPath - The path to the codebase directory
  * @returns Promise resolving to markdown content containing all source files as code blocks
  */
-export async function convertCodebaseToMarkdown(codebaseDirPath: string): Promise<string> {
+export async function bundleCodebaseIntoMarkdown(codebaseDirPath: string): Promise<string> {
   // Remove trailing slashes from the directory path
   const srcDirPath = codebaseDirPath.replace(pathsConfig.TRAILING_SLASH_PATTERN, "");
 

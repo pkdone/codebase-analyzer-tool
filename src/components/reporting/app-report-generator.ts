@@ -106,7 +106,10 @@ export default class AppReportGenerator {
     // Prepare data for both writers
     const preparedJsonData = this.prepareJsonData(reportData);
     const htmlFilePath = path.join(outputDir, outputFilename);
-    const preparedHtmlData = await this.prepareHtmlData(reportData, htmlFilePath);
+    const preparedHtmlData = await this.generateHtmlReportAssetsAndViewModel(
+      reportData,
+      htmlFilePath,
+    );
 
     // Generate reports using prepared data
     await this.jsonWriter.writeAllJSONFiles(preparedJsonData);
@@ -156,7 +159,8 @@ export default class AppReportGenerator {
   /**
    * Prepares HTML template data by processing all report data, generating assets, and creating view models.
    */
-  private async prepareHtmlData(
+  // Renamed from prepareHtmlData to make side effects (asset generation) explicit
+  private async generateHtmlReportAssetsAndViewModel(
     reportData: ReportData,
     htmlFilePath: string,
   ): Promise<PreparedHtmlReportData> {

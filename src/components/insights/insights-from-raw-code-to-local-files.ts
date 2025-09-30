@@ -14,7 +14,7 @@ import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatErrorMessage } from "../../common/utils/error-formatters";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { convertCodebaseToMarkdown } from "../../common/utils/codebase-processing";
+import { bundleCodebaseIntoMarkdown } from "../../common/utils/codebase-processing";
 import { formatDateForFilename } from "../../common/utils/date-utils";
 
 /**
@@ -68,7 +68,7 @@ export class RawCodeToInsightsFileGenerator {
     llmName: string,
     prompts: FileRequirementPrompt[],
   ): Promise<string[]> {
-    const codeBlocksContent = await convertCodebaseToMarkdown(srcDirPath);
+  const codeBlocksContent = await bundleCodebaseIntoMarkdown(srcDirPath);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {
