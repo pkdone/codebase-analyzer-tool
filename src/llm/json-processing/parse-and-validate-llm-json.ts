@@ -32,7 +32,7 @@ export function parseAndValidateLLMJsonContent<T = Record<string, unknown>>(
   content: LLMGeneratedContent,
   resourceName: string,
   completionOptions: LLMCompletionOptions,
-  doWarnOnError = false,
+  logSanitizationSteps = false,
 ): T {
   if (typeof content !== "string") {
     throw new BadResponseContentLLMError(
@@ -45,12 +45,12 @@ export function parseAndValidateLLMJsonContent<T = Record<string, unknown>>(
     content,
     resourceName,
     completionOptions,
-    doWarnOnError,
+    logSanitizationSteps,
   );
   if (fastPath !== null) return fastPath;
 
   // Otherwise run progressive strategies + validation
-  return progressiveParseAndValidate<T>(content, resourceName, completionOptions, doWarnOnError);
+  return progressiveParseAndValidate<T>(content, resourceName, completionOptions, logSanitizationSteps);
 }
 
 /**
@@ -61,7 +61,7 @@ export function applyOptionalSchemaValidationToContent<T>(
   content: unknown, // Accept unknown values to be safely handled by Zod validation
   completionOptions: LLMCompletionOptions,
   resourceName: string,
-  doWarnOnError = false,
+  logSanitizationSteps = false,
   onValidationIssues?: (issues: unknown) => void,
 ): T | LLMGeneratedContent | null {
   if (
@@ -77,7 +77,7 @@ export function applyOptionalSchemaValidationToContent<T>(
       const issues = validation.error.issues;
       if (onValidationIssues) onValidationIssues(issues);
       const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(issues)}`;
-      if (doWarnOnError) logErrorMsg(errorMessage);
+      if (logSanitizationSteps) logErrorMsg(errorMessage);
       return null;
     }
   } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
@@ -93,31 +93,29 @@ export function applyOptionalSchemaValidationToContent<T>(
 /**
  * Attempt direct parse & optional schema validation when the content already appears to be a
  * complete JSON object/array. Returns null if we should fall back to progressive strategies.
+ * This enhanced fast path tries to parse the content directly before any sanitization,
+ * significantly improving performance for well-formed JSON responses.
  */
 function tryFastPathParseAndValidate<T>(
   content: string,
   resourceName: string,
   completionOptions: LLMCompletionOptions,
-  doWarnOnError: boolean,
+  logSanitizationSteps: boolean,
 ): T | null {
+  // Try parsing the content directly after trimming (handles whitespace gracefully)
   const trimmed = content.trim();
 
-  if (
-    (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-    (trimmed.startsWith("[") && trimmed.endsWith("]"))
-  ) {
-    try {
-      const direct = JSON.parse(trimmed) as unknown;
-      const validatedDirect = applyOptionalSchemaValidationToContent<T>(
-        direct,
-        completionOptions,
-        resourceName,
-        doWarnOnError,
-      );
-      if (validatedDirect !== null) return validatedDirect as T; // No sanitation steps needed
-    } catch {
-      // Swallow and fall through to progressive path
-    }
+  try {
+    const direct = JSON.parse(trimmed) as unknown;
+    const validatedDirect = applyOptionalSchemaValidationToContent<T>(
+      direct,
+      completionOptions,
+      resourceName,
+      logSanitizationSteps,
+    );
+    if (validatedDirect !== null) return validatedDirect as T; // No sanitation steps needed
+  } catch {
+    // Parsing failed, fall through to progressive strategies
   }
 
   return null;
@@ -131,7 +129,7 @@ function progressiveParseAndValidate<T>(
   originalContent: string,
   resourceName: string,
   completionOptions: LLMCompletionOptions,
-  doWarnOnError: boolean,
+  logSanitizationSteps: boolean,
 ): T {
   const progressiveResult: ParsingOutcome = parseJsonUsingProgressiveStrategies(
     originalContent,
@@ -139,7 +137,7 @@ function progressiveParseAndValidate<T>(
   );
   const { parsed, steps, resilientDiagnostics } = progressiveResult;
 
-  if (doWarnOnError && steps.length) {
+  if (logSanitizationSteps && steps.length) {
     const diagSuffix = resilientDiagnostics ? ` | Resilient: ${resilientDiagnostics}` : "";
     // Use warning level (not error) since these are informative / non-failing steps.
     logWarningMsg(
@@ -152,7 +150,7 @@ function progressiveParseAndValidate<T>(
     parsed,
     completionOptions,
     resourceName,
-    doWarnOnError,
+    logSanitizationSteps,
     (issues) => {
       validationIssues = issues;
     },
@@ -163,8 +161,9 @@ function progressiveParseAndValidate<T>(
     const issuesText = validationIssues
       ? ` Validation issues: ${JSON.stringify(validationIssues)}`
       : "";
+    const stepsHistory = steps.length > 0 ? ` (Applied sanitization: ${steps.join(" -> ")})` : "";
     throw new BadResponseContentLLMError(
-      `LLM response for resource '${resourceName}' can be turned into JSON but doesn't validate with the supplied JSON schema.${issuesText}`,
+      `LLM response for resource '${resourceName}' can be turned into JSON but doesn't validate with the supplied JSON schema.${issuesText}${stepsHistory}`,
       contentTextWithNoNewlines,
     );
   }
