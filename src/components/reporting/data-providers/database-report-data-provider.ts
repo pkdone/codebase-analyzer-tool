@@ -75,39 +75,29 @@ export class DatabaseReportDataProvider {
 
   /**
    * Aggregate database objects (procedures or triggers) for report generation
+   * Combines aggregation and mapping in a single pass for better performance
    */
   private aggregateProcsOrTriggersForReport(
     items: ProcOrTrigItem[],
     type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
   ): ProcsAndTriggers["procs"] {
-    const stats = this.calculateComplexityStats(items);
-    const list = items.map((item) => this.mapItemToReportFormat(item, type));
-
-    return {
-      ...stats,
-      list,
+    const initialState = {
+      total: 0,
+      low: 0,
+      medium: 0,
+      high: 0,
+      list: [] as ReturnType<typeof this.mapItemToReportFormat>[],
     };
-  }
 
-  /**
-   * Calculate complexity statistics for a collection of items
-   */
-  private calculateComplexityStats(items: ProcOrTrigItem[]): {
-    total: number;
-    low: number;
-    medium: number;
-    high: number;
-  } {
-    return items.reduce(
-      (stats, item) => {
-        const complexity = this.normalizeComplexity(item.complexity, item.name);
-        stats.total++;
-        const lowercaseComplexity = complexity.toLowerCase() as "low" | "medium" | "high";
-        stats[lowercaseComplexity]++;
-        return stats;
-      },
-      { total: 0, low: 0, medium: 0, high: 0 },
-    );
+    return items.reduce((acc, item) => {
+      const complexity = this.normalizeComplexity(item.complexity, item.name);
+
+      acc.total++;
+      acc[complexity.toLowerCase() as "low" | "medium" | "high"]++;
+      acc.list.push(this.mapItemToReportFormat(item, type));
+
+      return acc;
+    }, initialState);
   }
 
   /**

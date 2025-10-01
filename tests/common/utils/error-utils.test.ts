@@ -16,7 +16,7 @@ describe("Error utilities", () => {
       },
       {
         input: "string error",
-        expected: '<unknown-type>. "string error"',
+        expected: "<unknown-type>. 'string error'",
         description: "primitive value",
       },
       {
@@ -36,7 +36,11 @@ describe("Error utilities", () => {
       circularObj.self = circularObj;
 
       const result = formatErrorMessage(circularObj);
-      expect(result).toBe("<unknown-type>. (Unserializable object)");
+      // util.inspect handles circular references gracefully with [Circular *1] notation
+      expect(result).toContain("<unknown-type>.");
+      expect(result).toContain("name");
+      expect(result).toContain("test");
+      expect(result).toContain("Circular");
     });
   });
 

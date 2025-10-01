@@ -259,30 +259,28 @@ export default class AppReportGenerator {
 
   /**
    * Counts unique dependencies in a hierarchical dependency structure, excluding the root element.
+   * Uses an iterative approach with a stack to avoid potential stack overflow with deep trees.
    */
   private countUniqueDependencies(
     dependencies: readonly HierarchicalJavaClassDependency[],
   ): number {
     const uniqueClasspaths = new Set<string>();
-    this.collectUniqueClasspaths(dependencies, uniqueClasspaths);
-    return uniqueClasspaths.size;
-  }
+    const stack = [...dependencies]; // Initialize stack with top-level dependencies
 
-  /**
-   * Recursively collects unique classpaths from hierarchical dependencies.
-   */
-  private collectUniqueClasspaths(
-    dependencies: readonly HierarchicalJavaClassDependency[],
-    uniqueClasspaths: Set<string>,
-  ): void {
-    for (const dependency of dependencies) {
-      // Add this dependency to the unique set
+    while (stack.length > 0) {
+      const dependency = stack.pop();
+      if (!dependency) continue;
+
       uniqueClasspaths.add(dependency.classpath);
 
-      // Recursively collect from nested dependencies
+      // Add children to the stack to be processed
       if (dependency.dependencies && dependency.dependencies.length > 0) {
-        this.collectUniqueClasspaths(dependency.dependencies, uniqueClasspaths);
+        for (const child of dependency.dependencies) {
+          stack.push(child);
+        }
       }
     }
+
+    return uniqueClasspaths.size;
   }
 }

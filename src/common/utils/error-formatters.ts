@@ -1,3 +1,5 @@
+import { inspect } from "node:util";
+
 /**
  * Type predicate to check if an object has a message property
  */
@@ -7,17 +9,16 @@ function hasMessageProperty(obj: unknown): obj is { message: unknown } {
 
 /**
  * Get the error text from a thrown variable which may or may not be an Error object.
+ * Uses util.inspect for robust serialization that handles circular references.
  */
 export function formatErrorMessage(error: unknown): string {
   if (!error) return "<unknown-type>. No error message available";
   if (error instanceof Error) return `${error.constructor.name}. ${error.message}`;
   if (hasMessageProperty(error)) return `<unknown-type>. ${String(error.message)}`;
 
-  try {
-    return `<unknown-type>. ${JSON.stringify(error)}`;
-  } catch {
-    return `<unknown-type>. (Unserializable object)`;
-  }
+  // Use util.inspect for safe and detailed object serialization
+  // depth: 2 limits recursion, breakLength: Infinity keeps output on single line
+  return `<unknown-type>. ${inspect(error, { depth: 2, breakLength: Infinity })}`;
 }
 
 /**

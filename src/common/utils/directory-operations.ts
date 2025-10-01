@@ -61,19 +61,22 @@ export async function findFilesRecursively(
     ...folderIgnoreList.map((folder) => `**/${folder}/**`),
     `**/${filenameIgnorePrefix}*`,
   ];
-  const baseGlobOptions = {
+
+  // Build glob options dynamically to avoid code duplication
+  const globOptions = {
     cwd: srcDirPath,
     absolute: true,
     onlyFiles: true,
     ignore: ignorePatterns,
+    ...(orderByLargestSizeFileFirst && { stats: true }),
   };
 
+  const files = await glob("**/*", globOptions);
+
   if (orderByLargestSizeFileFirst) {
-    // Use fast-glob's stats option to get file stats efficiently in a single operation
-    const filesWithStats = await glob("**/*", {
-      ...baseGlobOptions,
-      stats: true,
-    });
+    // When stats is true, glob returns Entry[] with stats property
+    const filesWithStats = files as unknown as Entry[];
+
     // Helper function to check if entry has valid stats
     const hasValidStats = (entry: Entry): entry is Entry & { stats: { size: number } } => {
       if (entry.stats && typeof entry.stats.size === "number") {
@@ -86,14 +89,15 @@ export async function findFilesRecursively(
         return false;
       }
     };
+
     return filesWithStats
       .filter(hasValidStats)
       .toSorted((a, b) => b.stats.size - a.stats.size)
       .map((entry) => entry.path);
-  } else {
-    // If not ordering by size, return files in natural ordering from glob
-    return await glob("**/*", baseGlobOptions);
   }
+
+  // When stats is not set, glob returns string[]
+  return files;
 }
 
 /**
