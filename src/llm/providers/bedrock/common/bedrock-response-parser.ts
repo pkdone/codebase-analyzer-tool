@@ -44,15 +44,13 @@ export function extractGenericCompletionResponse(
   if (!validation.success)
     throw new BadResponseContentLLMError(`Invalid ${providerName} response structure`, llmResponse);
   const response = validation.data as Record<string, unknown>;
-  const contentPaths = [
-    pathConfig.contentPath,
-    pathConfig.alternativeContentPath,
-  ].filter(isDefined);
+  const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
+    isDefined,
+  );
   const responseContent = getNestedValueWithFallbacks<string>(response, contentPaths) ?? "";
-  const stopReasonPaths = [
-    pathConfig.stopReasonPath,
-    pathConfig.alternativeStopReasonPath,
-  ].filter(isDefined);
+  const stopReasonPaths = [pathConfig.stopReasonPath, pathConfig.alternativeStopReasonPath].filter(
+    isDefined,
+  );
   const finishReason = getNestedValueWithFallbacks<string>(response, stopReasonPaths) ?? "";
   const finishReasonLowercase = finishReason.toLowerCase();
   const isIncompleteResponse =

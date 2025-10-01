@@ -464,7 +464,7 @@ describe("CodeStructureDataProvider", () => {
 
       // Additional verification: ensure the dependency tree structure is correct
       const directDependencies = result[0].dependencies;
-  expect(directDependencies).toHaveLength(3); // SignOnFilter, SignOnLocalHome, SignOnLocal (duplicates preserved per branch)
+      expect(directDependencies).toHaveLength(3); // SignOnFilter, SignOnLocalHome, SignOnLocal (duplicates preserved per branch)
 
       const classpaths = directDependencies.map((dep) => dep.classpath);
       expect(classpaths).toContain("com.sun.j2ee.blueprints.signon.web.SignOnFilter");

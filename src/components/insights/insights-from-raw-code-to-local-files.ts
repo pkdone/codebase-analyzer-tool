@@ -68,7 +68,7 @@ export class RawCodeToInsightsFileGenerator {
     llmName: string,
     prompts: FileRequirementPrompt[],
   ): Promise<string[]> {
-  const codeBlocksContent = await bundleCodebaseIntoMarkdown(srcDirPath);
+    const codeBlocksContent = await bundleCodebaseIntoMarkdown(srcDirPath);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {

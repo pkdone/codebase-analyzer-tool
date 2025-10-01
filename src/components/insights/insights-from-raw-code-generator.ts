@@ -45,7 +45,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Generate insights from raw code and store in the database
    */
   async generateAndStoreInsights(): Promise<void> {
-  const codeBlocksContent = await bundleCodebaseIntoMarkdown(this.env.CODEBASE_DIR_PATH);
+    const codeBlocksContent = await bundleCodebaseIntoMarkdown(this.env.CODEBASE_DIR_PATH);
     await this.generateDataForAllCategories(codeBlocksContent);
   }
 

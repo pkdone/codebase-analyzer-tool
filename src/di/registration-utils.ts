@@ -19,10 +19,7 @@ interface ComponentRegistration<T = unknown> {
  * @param components Array of component registrations
  * @param logMessage Message to log after successful registration
  */
-export function registerComponents(
-  components: ComponentRegistration[],
-  logMessage: string,
-): void {
+export function registerComponents(components: ComponentRegistration[], logMessage: string): void {
   components.forEach(({ token, implementation }) => {
     container.registerSingleton(token, implementation);
   });

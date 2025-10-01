@@ -49,7 +49,6 @@ describe("bedrock-response-parser", () => {
       usage: { input_tokens: 3, output_tokens: 4 },
     } as any; // alt path not part of schema but allowed via unknown properties
 
-
     const summary = extractGenericCompletionResponse(
       response,
       schema,

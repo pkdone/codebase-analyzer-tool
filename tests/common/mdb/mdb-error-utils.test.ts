@@ -1,5 +1,8 @@
 import { MongoServerError } from "mongodb";
-import { isMongoServerErrorWithResponse, logMongoValidationErrorIfPresent } from "../../../src/common/mdb/mdb-error-utils";
+import {
+  isMongoServerErrorWithResponse,
+  logMongoValidationErrorIfPresent,
+} from "../../../src/common/mdb/mdb-error-utils";
 
 // Simple spy for logging (avoid importing real logger implementation)
 jest.mock("../../../src/common/utils/logging", () => ({
@@ -8,7 +11,9 @@ jest.mock("../../../src/common/utils/logging", () => ({
 import { logErrorMsg } from "../../../src/common/utils/logging";
 
 describe("mdb-error-utils", () => {
-  function buildMongoError(partial: Partial<MongoServerError> & { errorResponse?: any }): MongoServerError {
+  function buildMongoError(
+    partial: Partial<MongoServerError> & { errorResponse?: any },
+  ): MongoServerError {
     // Create a plain object and set prototype to MongoServerError to satisfy instanceof check
     const obj: any = { ...partial };
     Object.setPrototypeOf(obj, MongoServerError.prototype);

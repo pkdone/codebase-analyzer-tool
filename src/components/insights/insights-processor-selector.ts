@@ -27,7 +27,7 @@ export class InsightsProcessorSelector {
   async selectInsightsProcessor(): Promise<InsightsFromDBGenerator | InsightsFromRawCodeGenerator> {
     const manifest = await LLMProviderManager.loadManifestForModelFamily(this.envVars.LLM);
     const primaryCompletionTokens = manifest.models.primaryCompletion.maxTotalTokens;
-  const codeBlocksContent = await bundleCodebaseIntoMarkdown(this.envVars.CODEBASE_DIR_PATH);
+    const codeBlocksContent = await bundleCodebaseIntoMarkdown(this.envVars.CODEBASE_DIR_PATH);
     const codeBlockContentTokensEstimate =
       codeBlocksContent.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
     console.log(
