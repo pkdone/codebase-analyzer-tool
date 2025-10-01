@@ -1,8 +1,6 @@
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import {
-  parseAndValidateLLMJsonContent,
-  applyOptionalSchemaValidationToContent,
-} from "../../../src/llm/json-processing/parse-and-validate-llm-json";
+import { parseAndValidateLLMJsonContent } from "../../../src/llm/json-processing/parse-and-validate-llm-json";
+import { applyOptionalSchemaValidationToContent } from "../../../src/llm/json-processing/json-validator";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 
 describe("json-tools", () => {
@@ -759,7 +757,7 @@ describe("json-tools", () => {
         options,
         "test-validation-failure",
         false,
-        (issues) => {
+        (issues: unknown) => {
           captured = issues;
         },
       );

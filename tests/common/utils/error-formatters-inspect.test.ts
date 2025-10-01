@@ -177,4 +177,3 @@ describe("error-formatters - util.inspect integration", () => {
     });
   });
 });
-

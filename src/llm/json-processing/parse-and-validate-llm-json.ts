@@ -1,5 +1,5 @@
-import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../types/llm.types";
-import { logErrorMsg, logWarningMsg } from "../../common/utils/logging";
+import { LLMGeneratedContent, LLMCompletionOptions } from "../types/llm.types";
+import { logWarningMsg } from "../../common/utils/logging";
 import { removeCodeFences } from "./sanitizers/remove-code-fences";
 import { removeControlChars } from "./sanitizers/remove-control-chars";
 import { extractLargestJsonSpan } from "./sanitizers/extract-largest-json-span";
@@ -14,15 +14,8 @@ import { overEscapedSequencesSanitizer } from "./sanitizers/fix-over-escaped-seq
 import { completeTruncatedStructures } from "./sanitizers/complete-truncated-structures";
 import { collapseDuplicateJsonObject } from "./sanitizers/collapse-duplicate-json-object";
 import { trimWhitespace } from "./sanitizers/trim-whitespace";
-
-/**
- * Interface to ??????????????????????????
- */
-interface ParsingOutcome {
-  parsed: unknown;
-  steps: string[];
-  resilientDiagnostics?: string;
-}
+import { applyOptionalSchemaValidationToContent } from "./json-validator";
+import { extractBalancedJsonThenParse, type ParsingOutcome } from "./json-extractor";
 
 /**
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally
@@ -50,44 +43,12 @@ export function parseAndValidateLLMJsonContent<T = Record<string, unknown>>(
   if (fastPath !== null) return fastPath;
 
   // Otherwise run progressive strategies + validation
-  return progressiveParseAndValidate<T>(content, resourceName, completionOptions, logSanitizationSteps);
-}
-
-/**
- * Validate the LLM response content against a Zod schema if provided returning null if validation
- * fails (having logged the error).
- */
-export function applyOptionalSchemaValidationToContent<T>(
-  content: unknown, // Accept unknown values to be safely handled by Zod validation
-  completionOptions: LLMCompletionOptions,
-  resourceName: string,
-  logSanitizationSteps = false,
-  onValidationIssues?: (issues: unknown) => void,
-): T | LLMGeneratedContent | null {
-  if (
-    content &&
-    completionOptions.outputFormat === LLMOutputFormat.JSON &&
-    completionOptions.jsonSchema
-  ) {
-    const validation = completionOptions.jsonSchema.safeParse(content);
-
-    if (validation.success) {
-      return validation.data as T;
-    } else {
-      const issues = validation.error.issues;
-      if (onValidationIssues) onValidationIssues(issues);
-      const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(issues)}`;
-      if (logSanitizationSteps) logErrorMsg(errorMessage);
-      return null;
-    }
-  } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
-    return content as LLMGeneratedContent;
-  } else if (isLLMGeneratedContent(content)) {
-    return content;
-  } else {
-    logErrorMsg(`Content is not valid LLMGeneratedContent for resource: ${resourceName}`);
-    return null;
-  }
+  return progressiveParseAndValidate<T>(
+    content,
+    resourceName,
+    completionOptions,
+    logSanitizationSteps,
+  );
 }
 
 /**
@@ -243,85 +204,6 @@ function parseJsonUsingProgressiveStrategies(
 }
 
 /**
- * Extract JSON content from text and parse it.
- * Handles both markdown-wrapped JSON and raw JSON content.
- * Improved algorithm to handle complex nested content with proper string awareness.
- */
-function extractBalancedJsonThenParse(textContent: string): unknown {
-  // Find JSON content by looking for balanced braces/brackets, handling nested structures
-  let jsonMatch: string | null = null;
-  const markdownMatch = /```(?:json)?\s*([{[][\s\S]*?[}\]])\s*```/.exec(textContent);
-
-  if (markdownMatch) {
-    jsonMatch = markdownMatch[1];
-  } else {
-    // Look for the first opening brace or bracket and find its matching closing one
-    const openBraceIndex = textContent.search(/[{[]/);
-
-    if (openBraceIndex !== -1) {
-      const startChar = textContent[openBraceIndex];
-      const endChar = startChar === "{" ? "}" : "]";
-      let depth = 0;
-      let endIndex = -1;
-      let inString = false;
-      let escapeNext = false;
-
-      for (let i = openBraceIndex; i < textContent.length; i++) {
-        const char = textContent[i];
-
-        // Handle escape sequences
-        if (escapeNext) {
-          escapeNext = false;
-          continue;
-        }
-
-        if (char === "\\") {
-          escapeNext = true;
-          continue;
-        }
-
-        // Handle string boundaries
-        if (char === '"') {
-          inString = !inString;
-          continue;
-        }
-
-        // Only count braces when not inside a string
-        if (!inString) {
-          if (char === startChar) {
-            depth++;
-          } else if (char === endChar) {
-            depth--;
-            if (depth === 0) {
-              endIndex = i;
-              break;
-            }
-          }
-        }
-      }
-
-      if (endIndex !== -1) {
-        jsonMatch = textContent.substring(openBraceIndex, endIndex + 1);
-      } else {
-        // Handle truncated JSON - extract from opening brace to end of content
-        // This allows sanitization logic to attempt completion
-        jsonMatch = textContent.substring(openBraceIndex);
-      }
-    }
-  }
-
-  if (!jsonMatch) throw new Error("No JSON content found");
-
-  try {
-    return JSON.parse(jsonMatch);
-  } catch {
-    // Signal to caller that we found JSON-ish content (so allow sanitization fallback) rather than no JSON at all
-    // Use a distinct message different from "No JSON content found" so caller triggers sanitization path
-    throw new Error("JsonParseFailed");
-  }
-}
-
-/**
  * Applies a resilient sanitation pipeline to the given raw input.
  */
 function applyResilientSanitationPipeline(raw: string): {
@@ -373,24 +255,4 @@ function ensureNoDistinctConcatenatedObjects(
       originalTrimmed.substring(0, 500),
     );
   }
-}
-
-/**
- * Checks if the given value is LLM-generated content.
- */
-function isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
-  if (value === null) return true;
-  if (typeof value === "string") return true;
-  if (Array.isArray(value)) return true;
-  if (typeof value === "object" && !Array.isArray(value)) return true;
-  return false;
-}
-
-// Test-only named export (kept stable to avoid modifying existing test suite)
-export function __testEnsureNoDistinctConcatenatedObjects(
-  sanitizedTrimmed: string,
-  originalTrimmed: string,
-  resourceName: string,
-): void {
-  ensureNoDistinctConcatenatedObjects(sanitizedTrimmed, originalTrimmed, resourceName);
 }

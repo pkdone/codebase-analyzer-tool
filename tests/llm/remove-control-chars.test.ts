@@ -100,4 +100,3 @@ describe("removeControlChars - regex optimization", () => {
     expect(duration).toBeLessThan(100);
   });
 });
-

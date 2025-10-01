@@ -194,4 +194,3 @@ describe("AppReportGenerator - iterative tree traversal", () => {
     });
   });
 });
-
