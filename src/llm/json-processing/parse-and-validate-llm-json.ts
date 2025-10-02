@@ -14,6 +14,7 @@ import { overEscapedSequencesSanitizer } from "./sanitizers/fix-over-escaped-seq
 import { completeTruncatedStructures } from "./sanitizers/complete-truncated-structures";
 import { collapseDuplicateJsonObject } from "./sanitizers/collapse-duplicate-json-object";
 import { trimWhitespace } from "./sanitizers/trim-whitespace";
+import { fixMismatchedDelimiters } from "./sanitizers/fix-mismatched-delimiters";
 import { applyOptionalSchemaValidationToContent } from "./json-validator";
 import { extractBalancedJsonThenParse, type ParsingOutcome } from "./json-extractor";
 
@@ -221,6 +222,7 @@ function applyResilientSanitationPipeline(raw: string): {
     removeControlChars,
     extractLargestJsonSpan,
     collapseDuplicateJsonObject,
+    fixMismatchedDelimiters,
     removeTrailingCommas,
     concatenationChainSanitizer,
     overEscapedSequencesSanitizer,
