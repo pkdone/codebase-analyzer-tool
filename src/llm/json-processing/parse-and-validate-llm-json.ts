@@ -16,6 +16,7 @@ import { collapseDuplicateJsonObject } from "./sanitizers/collapse-duplicate-jso
 import { trimWhitespace } from "./sanitizers/trim-whitespace";
 import { fixMismatchedDelimiters } from "./sanitizers/fix-mismatched-delimiters";
 import { unwrapJsonSchema } from "./sanitizers/unwrap-json-schema";
+import { addMissingPropertyCommas } from "./sanitizers/add-missing-property-commas";
 import { applyOptionalSchemaValidationToContent } from "./json-validator";
 import { extractBalancedJsonThenParse, type ParsingOutcome } from "./json-extractor";
 import { unwrapJsonSchemaStructure } from "./post-parse-transforms";
@@ -231,6 +232,7 @@ function applyResilientSanitationPipeline(raw: string): {
     unwrapJsonSchema,
     collapseDuplicateJsonObject,
     fixMismatchedDelimiters,
+    addMissingPropertyCommas,
     removeTrailingCommas,
     concatenationChainSanitizer,
     overEscapedSequencesSanitizer,
