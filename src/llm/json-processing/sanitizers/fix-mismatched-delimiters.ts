@@ -19,7 +19,12 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
   }
 
   const stack: { opener: string; index: number }[] = [];
-  const corrections: { index: number; wrongChar: string; correctChar: string; insertAfter?: string }[] = [];
+  const corrections: {
+    index: number;
+    wrongChar: string;
+    correctChar: string;
+    insertAfter?: string;
+  }[] = [];
   let inString = false;
   let escapeNext = false;
 
@@ -62,16 +67,16 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
           if (!top) continue;
           const { opener } = top;
           const expectedCloser = opener === "{" ? "}" : "]";
-          
+
           // Check if the closing delimiter matches the opener
           if (char !== expectedCloser) {
             // Special case: We see ] but expected }, AND there's a [ on the stack
             // This likely means the LLM wrote ] when it meant }], missing the }
             // We detect this by checking if the next non-whitespace char is " (a property name)
             if (
-              char === "]" && 
-              expectedCloser === "}" && 
-              stack.length >= 1 && 
+              char === "]" &&
+              expectedCloser === "}" &&
+              stack.length >= 1 &&
               stack[stack.length - 1].opener === "["
             ) {
               const nextChar = peekNextNonWhitespace(i);
@@ -134,4 +139,3 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
     description: `Fixed ${corrections.length} mismatched delimiter${corrections.length > 1 ? "s" : ""}`,
   };
 };
-

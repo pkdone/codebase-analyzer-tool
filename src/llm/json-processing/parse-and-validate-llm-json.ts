@@ -15,8 +15,10 @@ import { completeTruncatedStructures } from "./sanitizers/complete-truncated-str
 import { collapseDuplicateJsonObject } from "./sanitizers/collapse-duplicate-json-object";
 import { trimWhitespace } from "./sanitizers/trim-whitespace";
 import { fixMismatchedDelimiters } from "./sanitizers/fix-mismatched-delimiters";
+import { unwrapJsonSchema } from "./sanitizers/unwrap-json-schema";
 import { applyOptionalSchemaValidationToContent } from "./json-validator";
 import { extractBalancedJsonThenParse, type ParsingOutcome } from "./json-extractor";
+import { unwrapJsonSchemaStructure } from "./post-parse-transforms";
 
 /**
  * Convert text content to JSON, trimming the content to only include the JSON part and optionally
@@ -69,8 +71,10 @@ function tryFastPathParseAndValidate<T>(
 
   try {
     const direct = JSON.parse(trimmed) as unknown;
+    // Apply post-parse transformations before validation
+    const transformed = unwrapJsonSchemaStructure(direct);
     const validatedDirect = applyOptionalSchemaValidationToContent<T>(
-      direct,
+      transformed,
       completionOptions,
       resourceName,
       logSanitizationSteps,
@@ -99,6 +103,9 @@ function progressiveParseAndValidate<T>(
   );
   const { parsed, steps, resilientDiagnostics } = progressiveResult;
 
+  // Apply post-parse transformations before validation
+  const transformed = unwrapJsonSchemaStructure(parsed);
+
   if (logSanitizationSteps && steps.length) {
     const diagSuffix = resilientDiagnostics ? ` | Resilient: ${resilientDiagnostics}` : "";
     // Use warning level (not error) since these are informative / non-failing steps.
@@ -109,7 +116,7 @@ function progressiveParseAndValidate<T>(
 
   let validationIssues: unknown = null;
   const validatedContent = applyOptionalSchemaValidationToContent<T>(
-    parsed,
+    transformed,
     completionOptions,
     resourceName,
     logSanitizationSteps,
@@ -221,6 +228,7 @@ function applyResilientSanitationPipeline(raw: string): {
     removeCodeFences,
     removeControlChars,
     extractLargestJsonSpan,
+    unwrapJsonSchema,
     collapseDuplicateJsonObject,
     fixMismatchedDelimiters,
     removeTrailingCommas,

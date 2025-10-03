@@ -227,15 +227,14 @@ describe("fixMismatchedDelimiters", () => {
       // Create a large but malformed structure
       const items = Array.from({ length: 100 }, (_, i) => `{"id": ${i}, "value": "item${i}"]`);
       const input = `[${items.join(", ")}`;
-      
+
       const start = Date.now();
       const result = fixMismatchedDelimiters(input);
       const elapsed = Date.now() - start;
-      
+
       expect(result.changed).toBe(true);
       expect(elapsed).toBeLessThan(100); // Should be fast
       expect(result.description).toContain("Fixed 100 mismatched delimiter");
     });
   });
 });
-

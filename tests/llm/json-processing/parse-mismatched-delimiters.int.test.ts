@@ -146,7 +146,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
           completionOptions,
           false,
         );
-        
+
         // Verify the result is valid
         expect(result).toBeDefined();
         expect(typeof result).toBe("object");
@@ -325,4 +325,3 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
     });
   });
 });
-
