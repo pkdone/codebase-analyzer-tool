@@ -39,6 +39,32 @@ describe("addMissingPropertyCommas sanitizer", () => {
     expect(parsed).toHaveProperty("internalReferences");
   });
 
+  it("handles the GroupController case from error log", () => {
+    const input = `{
+  "purpose": "This file defines a GroupController for the MifosX application",
+  "implementation": "The implementation extends the mifosX.controllers module with a GroupController that manages scope variables for groups display including pagination settings, search functionality, and filtering capabilities."
+  "internalReferences": [],
+  "externalReferences": ["mifosX", "_"],
+  "databaseIntegration": {
+    "mechanism": "NONE",
+    "description": "This controller does not contain direct database integration code.",
+    "codeExample": "n/a"
+  }
+}`;
+    const result = addMissingPropertyCommas(input);
+    expect(result.changed).toBe(true);
+    expect(result.content).toContain(
+      '"implementation": "The implementation extends the mifosX.controllers module with a GroupController that manages scope variables for groups display including pagination settings, search functionality, and filtering capabilities.",',
+    );
+    // Verify the result is valid JSON
+    expect(() => JSON.parse(result.content)).not.toThrow();
+    const parsed = JSON.parse(result.content);
+    expect(parsed).toHaveProperty("purpose");
+    expect(parsed).toHaveProperty("implementation");
+    expect(parsed).toHaveProperty("internalReferences");
+    expect(parsed).toHaveProperty("databaseIntegration");
+  });
+
   it("handles multiple missing commas", () => {
     const input = `{
   "a": "value1"

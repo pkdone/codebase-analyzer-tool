@@ -27,6 +27,7 @@ export const addMissingPropertyCommas: Sanitizer = (input) => {
   let changed = false;
   let inString = false;
   let escapeNext = false;
+  let stringStartPos = -1; // Track where the current string started
   const insertions: { position: number; char: string }[] = [];
 
   for (let i = 0; i < trimmed.length - 1; i++) {
@@ -44,42 +45,42 @@ export const addMissingPropertyCommas: Sanitizer = (input) => {
     }
 
     if (char === '"') {
-      inString = !inString;
-
-      // If we just closed a string (now outside string), check if next non-whitespace is a quote
       if (!inString) {
-        // Look ahead for pattern: closing quote, whitespace, opening quote
-        // This suggests: "value"<whitespace>"nextProp" - missing comma
+        // Opening a string
+        stringStartPos = i;
+        inString = true;
+      } else {
+        // Closing a string
+        inString = false;
+
+        // Check if next non-whitespace is a quote (suggesting missing comma)
         let j = i + 1;
         while (j < trimmed.length && /\s/.test(trimmed[j])) {
           j++;
         }
 
-        // Check if next non-whitespace character is a quote (property name)
-        // and the previous non-whitespace before closing quote wasn't a comma or opening brace/bracket
+        // If next non-whitespace character is a quote (property name)
         if (j < trimmed.length && trimmed[j] === '"') {
-          // Look back to see what came before the closing quote (on current line or previous)
-          // We want to avoid cases like: {"a": "value"} or ["value"]
-          // But catch cases like: "prop1": "value"\n  "prop2": ...
+          // Look backward from the opening quote of our just-closed string
+          // to see if there's a colon (indicating this was a property value)
+          let foundColon = false;
+          let k = stringStartPos - 1;
 
-          // Check what character came right before our value by looking back
-          let k = i - 1;
+          // Skip whitespace before the opening quote
           while (k >= 0 && /\s/.test(trimmed[k])) {
             k--;
           }
 
-          // If we find a colon before the string value, this is a property value
-          // and if the next quote indicates a new property, we need a comma
-          let foundColon = false;
-          let tempK = k;
-          while (tempK >= 0) {
-            if (trimmed[tempK] === ":") {
+          // Now look backward to find : or a delimiter that would indicate we're not in a property
+          while (k >= 0) {
+            if (trimmed[k] === ":") {
               foundColon = true;
               break;
-            } else if (trimmed[tempK] === "," || trimmed[tempK] === "{" || trimmed[tempK] === "[") {
+            } else if (trimmed[k] === "," || trimmed[k] === "{" || trimmed[k] === "[") {
+              // Hit a delimiter before finding colon - not a property value
               break;
             }
-            tempK--;
+            k--;
           }
 
           if (foundColon) {
@@ -91,6 +92,7 @@ export const addMissingPropertyCommas: Sanitizer = (input) => {
             i = j - 1;
           }
         }
+        stringStartPos = -1;
       }
       continue;
     }
