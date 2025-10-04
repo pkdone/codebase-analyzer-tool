@@ -25,7 +25,7 @@ const COMMON_INSTRUCTIONS = {
  */
 export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
   java: {
-    contentDesc: "Java code",
+    contentDesc: "code",
     instructions: `* The name of the main public class/interface of the file
  * Its class type ('class' or 'interface')
  * Its classpath
@@ -88,10 +88,12 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
   default: {
     contentDesc: "project file content",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}.`,
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
     schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
+      databaseIntegration: true,
     }),
     hasComplexSchema: false,
   },

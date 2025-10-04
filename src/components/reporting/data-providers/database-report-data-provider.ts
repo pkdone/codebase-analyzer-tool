@@ -1,5 +1,4 @@
 import { injectable, inject } from "tsyringe";
-import { fileProcessingConfig } from "../../../config/file-processing.config";
 import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../../di/tokens";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
@@ -21,8 +20,6 @@ type ProcOrTrigItem = z.infer<typeof procedureTriggerSchema> & { filepath: strin
  */
 @injectable()
 export class DatabaseReportDataProvider {
-  private readonly codeFileExtensions = [...fileProcessingConfig.CODE_FILE_EXTENSIONS];
-
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
   ) {}
@@ -31,10 +28,7 @@ export class DatabaseReportDataProvider {
    * Returns a list of database integrations.
    */
   async getDatabaseInteractions(projectName: string): Promise<DatabaseIntegrationInfo[]> {
-    const records = await this.sourcesRepository.getProjectDatabaseIntegrations(
-      projectName,
-      this.codeFileExtensions,
-    );
+    const records = await this.sourcesRepository.getProjectDatabaseIntegrations(projectName);
     return records.flatMap((record) => {
       const { summary } = record;
       if (summary?.databaseIntegration) {
@@ -55,10 +49,7 @@ export class DatabaseReportDataProvider {
    * Returns an aggregated summary of stored procedures and triggers from pre-generated summaries.
    */
   async getSummarizedProceduresAndTriggers(projectName: string): Promise<ProcsAndTriggers> {
-    const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(
-      projectName,
-      this.codeFileExtensions,
-    );
+    const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(projectName);
     const allProcs = records.flatMap(
       (record) =>
         record.summary?.storedProcedures?.map((proc) => ({ ...proc, filepath: record.filepath })) ??

@@ -334,7 +334,6 @@ describe("SourcesRepositoryImpl", () => {
     describe("getProjectDatabaseIntegrations", () => {
       it("should construct correct query for database integrations", async () => {
         const projectName = "test-project";
-        const fileTypes = ["java", "ts"];
         const mockResults = [
           {
             summary: {
@@ -350,13 +349,12 @@ describe("SourcesRepositoryImpl", () => {
         ];
         mockFindCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectDatabaseIntegrations(projectName, fileTypes);
+        const result = await repository.getProjectDatabaseIntegrations(projectName);
 
         expect(result).toEqual(mockResults);
         expect(mockCollection.find).toHaveBeenCalledWith(
           {
             projectName,
-            type: { $in: fileTypes },
             "summary.databaseIntegration": { $exists: true, $ne: null },
             "summary.databaseIntegration.mechanism": { $ne: "NONE" },
           },
@@ -370,6 +368,7 @@ describe("SourcesRepositoryImpl", () => {
               filepath: 1,
             },
             sort: {
+              // Order of keys is not semantically important, but we mirror implementation for clarity
               "summary.databaseIntegration.mechanism": 1,
               "summary.classpath": 1,
             },
@@ -381,7 +380,6 @@ describe("SourcesRepositoryImpl", () => {
     describe("getProjectStoredProceduresAndTriggers", () => {
       it("should construct correct complex query with $or condition", async () => {
         const projectName = "test-project";
-        const fileTypes = ["sql"];
         const mockResults = [
           {
             summary: {
@@ -393,17 +391,13 @@ describe("SourcesRepositoryImpl", () => {
         ];
         mockFindCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectStoredProceduresAndTriggers(
-          projectName,
-          fileTypes,
-        );
+        const result = await repository.getProjectStoredProceduresAndTriggers(projectName);
 
         expect(result).toEqual(mockResults);
         expect(mockCollection.find).toHaveBeenCalledWith(
           {
             $and: [
               { projectName },
-              { type: { $in: fileTypes } },
               {
                 $or: [
                   { "summary.storedProcedures": { $exists: true, $ne: [] } },

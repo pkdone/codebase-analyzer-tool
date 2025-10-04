@@ -1,4 +1,4 @@
-import { Sort, Document, OptionalId } from "mongodb";
+import { MongoClient, Sort, Document, OptionalId } from "mongodb";
 import { Double } from "bson";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
@@ -11,13 +11,12 @@ import {
   ProjectedFileTypesCountAndLines,
   ProjectedTopLevelJavaClassDependencies,
   SourceRecord,
+  getJSONSchema,
 } from "./sources.model";
 import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
-import { getJSONSchema } from "./sources.model";
 import { BaseRepository } from "../base-repository";
-import { MongoClient } from "mongodb";
 import { TOKENS } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
@@ -103,11 +102,9 @@ export default class SourcesRepositoryImpl
    */
   async getProjectDatabaseIntegrations(
     projectName: string,
-    fileTypes: string[],
   ): Promise<ProjectedDatabaseIntegrationFields[]> {
     const query = {
       projectName,
-      type: { $in: fileTypes },
       "summary.databaseIntegration": { $exists: true, $ne: null },
       "summary.databaseIntegration.mechanism": { $ne: "NONE" },
     };
@@ -133,12 +130,10 @@ export default class SourcesRepositoryImpl
    */
   async getProjectStoredProceduresAndTriggers(
     projectName: string,
-    fileTypes: string[],
   ): Promise<ProjectedSourceFilePathAndSummary[]> {
     const query = {
       $and: [
         { projectName },
-        { type: { $in: fileTypes } },
         {
           $or: [
             { "summary.storedProcedures": { $exists: true, $ne: [] } },

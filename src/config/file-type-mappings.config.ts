@@ -4,6 +4,8 @@
 export const fileTypeMappingsConfig = {
   FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map([
     ["java", "java"],
+    ["kt", "java"],
+    ["kts", "java"],
     ["js", "javascript"],
     ["ts", "javascript"],
     ["javascript", "javascript"],

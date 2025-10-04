@@ -420,10 +420,7 @@ describe("SourcesRepository Integration Tests", () => {
       }
 
       // Act
-      const results = await sourcesRepository.getProjectDatabaseIntegrations(projectName, [
-        "ts",
-        "java",
-      ]);
+      const results = await sourcesRepository.getProjectDatabaseIntegrations(projectName);
 
       // Assert
       expect(results).toHaveLength(2);

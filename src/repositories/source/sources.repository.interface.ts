@@ -40,7 +40,6 @@ export interface SourcesRepository {
    */
   getProjectDatabaseIntegrations(
     projectName: string,
-    fileTypes: string[],
   ): Promise<ProjectedDatabaseIntegrationFields[]>;
 
   /**
@@ -48,7 +47,6 @@ export interface SourcesRepository {
    */
   getProjectStoredProceduresAndTriggers(
     projectName: string,
-    fileTypes: string[],
   ): Promise<ProjectedSourceFilePathAndSummary[]>;
 
   /**
