@@ -217,7 +217,7 @@ export default class AppReportGenerator {
       reportData.topLevelJavaClasses.map(async (classData) => {
         // Generate PNG file for this class's dependency tree
         const pngFileName = await this.pngGenerator.generateHierarchicalDependencyTreePng(
-          classData.classpath,
+          classData.namespace,
           classData.dependencies,
           pngDir,
         );
@@ -226,7 +226,7 @@ export default class AppReportGenerator {
         const pngRelativePath = htmlReportConstants.paths.DEPENDENCY_TREES_DIR + pngFileName;
         const classpathLink = htmlReportConstants.html.LINK_TEMPLATE(
           pngRelativePath,
-          classData.classpath,
+          classData.namespace,
         );
 
         // Count total dependencies from hierarchical structure
@@ -271,7 +271,7 @@ export default class AppReportGenerator {
       const dependency = stack.pop();
       if (!dependency) continue;
 
-      uniqueClasspaths.add(dependency.classpath);
+      uniqueClasspaths.add(dependency.namespace);
 
       // Add children to the stack to be processed
       if (dependency.dependencies && dependency.dependencies.length > 0) {

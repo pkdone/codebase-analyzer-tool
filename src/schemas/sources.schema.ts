@@ -156,12 +156,12 @@ export const sourceSummarySchema = z
       .describe(
         "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences.",
       ),
-    classname: z.string().optional().describe("The name of the main public class or interface."),
-    classpath: z.string().optional().describe("The fully qualified classpath."),
-    classType: z
+    name: z.string().optional().describe("The name of the main public class or interface."),
+    namespace: z.string().optional().describe("The fully qualified namespace."),
+    kind: z
       .enum(["class", "interface", "record", "struct"])
       .optional()
-      .describe("The type of the main entity, e.g., 'class', 'interface', `record`, struct`."),
+      .describe("The kind of the main entity, e.g., 'class', 'interface', `record`, struct`."),
     internalReferences: z
       .array(z.string())
       .optional()

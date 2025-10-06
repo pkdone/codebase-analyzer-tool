@@ -34,7 +34,7 @@ export class DatabaseReportDataProvider {
       if (summary?.databaseIntegration) {
         return [
           {
-            path: summary.classpath ?? record.filepath,
+            path: summary.namespace ?? record.filepath,
             mechanism: summary.databaseIntegration.mechanism,
             description: summary.databaseIntegration.description,
             codeExample: summary.databaseIntegration.codeExample,

@@ -90,7 +90,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
         continue;
       }
 
-      const fileLabel = record.summary.classpath ?? record.filepath;
+      const fileLabel = record.summary.namespace ?? record.filepath;
       const purpose = record.summary.purpose;
       const implementation = record.summary.implementation;
       srcFilesList.push(`* ${fileLabel}: ${purpose} ${implementation}`);

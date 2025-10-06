@@ -27,11 +27,11 @@ describe("CodeStructureDataProvider", () => {
       // Arrange
       const inputData: ProjectedTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
+          namespace: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
           dependencies: [
             {
               level: 1, // Note: Converting from Long('1') to number
-              classpath: "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
+              namespace: "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
               references: [
                 "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
                 "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
@@ -41,12 +41,12 @@ describe("CodeStructureDataProvider", () => {
             },
             {
               level: 1,
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+              namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
               references: [],
             },
             {
               level: 0,
-              classpath: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
+              namespace: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
               references: [
                 "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
                 "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
@@ -55,17 +55,17 @@ describe("CodeStructureDataProvider", () => {
             },
             {
               level: 1,
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
+              namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
               references: ["com.sun.j2ee.blueprints.signon.ejb.SignOnLocal"],
             },
             {
               level: 2,
-              classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
+              namespace: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
               references: [],
             },
             {
               level: 2,
-              classpath: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
+              namespace: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
               references: ["com.sun.j2ee.blueprints.signon.web.ProtectedResource"],
             },
           ],
@@ -75,54 +75,54 @@ describe("CodeStructureDataProvider", () => {
       // With path-specific visited sets, duplicated references are preserved per branch
       const expectedOutput: HierarchicalTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
+          namespace: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
           dependencies: [
             {
-              classpath: "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
+              namespace: "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
               originalLevel: 1,
               dependencies: [
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
+                  namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
                   originalLevel: 1,
                   dependencies: [
                     {
-                      classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                      namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
                       originalLevel: 1,
                     },
                   ],
                 },
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                  namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
                   originalLevel: 1,
                 },
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
+                  namespace: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
                   originalLevel: 2,
                   dependencies: [
                     {
-                      classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
+                      namespace: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
                       originalLevel: 2,
                     },
                   ],
                 },
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
+                  namespace: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
                   originalLevel: 2,
                 },
               ],
             },
             {
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
+              namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
               originalLevel: 1,
               dependencies: [
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                  namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
                   originalLevel: 1,
                 },
               ],
             },
             {
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+              namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
               originalLevel: 1,
             },
           ],
@@ -147,14 +147,14 @@ describe("CodeStructureDataProvider", () => {
       // Arrange
       const inputData: ProjectedTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.example.EmptyClass",
+          namespace: "com.example.EmptyClass",
           dependencies: [],
         },
       ];
 
       const expectedOutput: HierarchicalTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.example.EmptyClass",
+          namespace: "com.example.EmptyClass",
           dependencies: [],
         },
       ];
@@ -174,16 +174,16 @@ describe("CodeStructureDataProvider", () => {
       // Arrange
       const inputData: ProjectedTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.example.NoRootClass",
+          namespace: "com.example.NoRootClass",
           dependencies: [
             {
               level: 1,
-              classpath: "com.example.Child1",
+              namespace: "com.example.Child1",
               references: [],
             },
             {
               level: 2,
-              classpath: "com.example.Child2",
+              namespace: "com.example.Child2",
               references: [],
             },
           ],
@@ -192,7 +192,7 @@ describe("CodeStructureDataProvider", () => {
 
       const expectedOutput: HierarchicalTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.example.NoRootClass",
+          namespace: "com.example.NoRootClass",
           dependencies: [],
         },
       ];
@@ -212,21 +212,21 @@ describe("CodeStructureDataProvider", () => {
       // Arrange
       const inputData: ProjectedTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.example.CircularClass",
+          namespace: "com.example.CircularClass",
           dependencies: [
             {
               level: 0,
-              classpath: "com.example.CircularClass",
+              namespace: "com.example.CircularClass",
               references: ["com.example.Child1"],
             },
             {
               level: 1,
-              classpath: "com.example.Child1",
+              namespace: "com.example.Child1",
               references: ["com.example.Child2"],
             },
             {
               level: 2,
-              classpath: "com.example.Child2",
+              namespace: "com.example.Child2",
               references: ["com.example.Child1"], // Circular reference
             },
           ],
@@ -235,14 +235,14 @@ describe("CodeStructureDataProvider", () => {
 
       const expectedOutput: HierarchicalTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.example.CircularClass",
+          namespace: "com.example.CircularClass",
           dependencies: [
             {
-              classpath: "com.example.Child1",
+              namespace: "com.example.Child1",
               originalLevel: 1,
               dependencies: [
                 {
-                  classpath: "com.example.Child2",
+                  namespace: "com.example.Child2",
                   originalLevel: 2,
                   // Child1 is not included again due to circular reference protection
                   // No dependencies property since it's a leaf node
@@ -268,36 +268,36 @@ describe("CodeStructureDataProvider", () => {
       // Arrange
       const inputData: ProjectedTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.example.ComplexClass",
+          namespace: "com.example.ComplexClass",
           dependencies: [
             {
               level: 0,
-              classpath: "com.example.ComplexClass",
+              namespace: "com.example.ComplexClass",
               references: ["com.example.Level1A", "com.example.Level1B"],
             },
             {
               level: 1,
-              classpath: "com.example.Level1A",
+              namespace: "com.example.Level1A",
               references: ["com.example.Level2A"],
             },
             {
               level: 1,
-              classpath: "com.example.Level1B",
+              namespace: "com.example.Level1B",
               references: ["com.example.Level2B", "com.example.Level2C"],
             },
             {
               level: 2,
-              classpath: "com.example.Level2A",
+              namespace: "com.example.Level2A",
               references: [],
             },
             {
               level: 2,
-              classpath: "com.example.Level2B",
+              namespace: "com.example.Level2B",
               references: [],
             },
             {
               level: 2,
-              classpath: "com.example.Level2C",
+              namespace: "com.example.Level2C",
               references: [],
             },
           ],
@@ -306,28 +306,28 @@ describe("CodeStructureDataProvider", () => {
 
       const expectedOutput: HierarchicalTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.example.ComplexClass",
+          namespace: "com.example.ComplexClass",
           dependencies: [
             {
-              classpath: "com.example.Level1A",
+              namespace: "com.example.Level1A",
               originalLevel: 1,
               dependencies: [
                 {
-                  classpath: "com.example.Level2A",
+                  namespace: "com.example.Level2A",
                   originalLevel: 2,
                 },
               ],
             },
             {
-              classpath: "com.example.Level1B",
+              namespace: "com.example.Level1B",
               originalLevel: 1,
               dependencies: [
                 {
-                  classpath: "com.example.Level2B",
+                  namespace: "com.example.Level2B",
                   originalLevel: 2,
                 },
                 {
-                  classpath: "com.example.Level2C",
+                  namespace: "com.example.Level2C",
                   originalLevel: 2,
                 },
               ],
@@ -351,11 +351,11 @@ describe("CodeStructureDataProvider", () => {
       // Arrange - This is the user's specific example
       const inputData: ProjectedTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
+          namespace: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
           dependencies: [
             {
               level: 1,
-              classpath: "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
+              namespace: "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
               references: [
                 "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
                 "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
@@ -365,12 +365,12 @@ describe("CodeStructureDataProvider", () => {
             },
             {
               level: 1,
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+              namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
               references: [],
             },
             {
               level: 0,
-              classpath: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
+              namespace: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
               references: [
                 "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
                 "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
@@ -379,17 +379,17 @@ describe("CodeStructureDataProvider", () => {
             },
             {
               level: 1,
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
+              namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
               references: ["com.sun.j2ee.blueprints.signon.ejb.SignOnLocal"],
             },
             {
               level: 2,
-              classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
+              namespace: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
               references: [],
             },
             {
               level: 2,
-              classpath: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
+              namespace: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
               references: ["com.sun.j2ee.blueprints.signon.web.ProtectedResource"],
             },
           ],
@@ -398,54 +398,54 @@ describe("CodeStructureDataProvider", () => {
 
       const expectedOutput: HierarchicalTopLevelJavaClassDependencies[] = [
         {
-          classpath: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
+          namespace: "com.sun.j2ee.blueprints.signon.web.CreateUserServlet",
           dependencies: [
             {
-              classpath: "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
+              namespace: "com.sun.j2ee.blueprints.signon.web.SignOnFilter",
               originalLevel: 1,
               dependencies: [
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
+                  namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
                   originalLevel: 1,
                   dependencies: [
                     {
-                      classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                      namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
                       originalLevel: 1,
                     },
                   ],
                 },
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                  namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
                   originalLevel: 1,
                 },
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
+                  namespace: "com.sun.j2ee.blueprints.signon.web.SignOnDAO",
                   originalLevel: 2,
                   dependencies: [
                     {
-                      classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
+                      namespace: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
                       originalLevel: 2,
                     },
                   ],
                 },
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
+                  namespace: "com.sun.j2ee.blueprints.signon.web.ProtectedResource",
                   originalLevel: 2,
                 },
               ],
             },
             {
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
+              namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocalHome",
               originalLevel: 1,
               dependencies: [
                 {
-                  classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+                  namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
                   originalLevel: 1,
                 },
               ],
             },
             {
-              classpath: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
+              namespace: "com.sun.j2ee.blueprints.signon.ejb.SignOnLocal",
               originalLevel: 1,
             },
           ],
@@ -466,8 +466,8 @@ describe("CodeStructureDataProvider", () => {
       const directDependencies = result[0].dependencies;
       expect(directDependencies).toHaveLength(3); // SignOnFilter, SignOnLocalHome, SignOnLocal (duplicates preserved per branch)
 
-      const classpaths = directDependencies.map((dep) => dep.classpath);
-      expect(classpaths).toContain("com.sun.j2ee.blueprints.signon.web.SignOnFilter");
+      const namespaces = directDependencies.map((dep) => dep.namespace);
+      expect(namespaces).toContain("com.sun.j2ee.blueprints.signon.web.SignOnFilter");
     });
   });
 });

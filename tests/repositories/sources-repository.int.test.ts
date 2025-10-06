@@ -70,7 +70,7 @@ describe("SourcesRepository Integration Tests", () => {
           content: "TypeScript content for testing",
           contentVector: await createTestVector(0.1),
           summary: {
-            classpath: "File1Class",
+            namespace: "File1Class",
             purpose: "Testing purpose",
             implementation: "Test implementation",
           },
@@ -84,7 +84,7 @@ describe("SourcesRepository Integration Tests", () => {
           content: "Another TypeScript file for testing",
           contentVector: await createTestVector(0.8),
           summary: {
-            classpath: "File2Class",
+            namespace: "File2Class",
             purpose: "Another test",
             implementation: "Another implementation",
           },
@@ -298,7 +298,7 @@ describe("SourcesRepository Integration Tests", () => {
           linesCount: 100,
           content: "service content",
           summary: {
-            classpath: "UserService",
+            namespace: "UserService",
             purpose: "Manages user operations",
             implementation: "Implements CRUD operations for users",
           },
@@ -311,7 +311,7 @@ describe("SourcesRepository Integration Tests", () => {
           linesCount: 80,
           content: "controller content",
           summary: {
-            classpath: "UserController",
+            namespace: "UserController",
             purpose: "Handles HTTP requests",
             implementation: "REST API controller for user endpoints",
           },
@@ -324,7 +324,7 @@ describe("SourcesRepository Integration Tests", () => {
           linesCount: 50,
           content: "model content",
           summary: {
-            classpath: "UserModel",
+            namespace: "UserModel",
             purpose: "Data model",
             implementation: "JPA entity for user data",
           },
@@ -341,13 +341,13 @@ describe("SourcesRepository Integration Tests", () => {
       // Assert
       expect(results).toHaveLength(2);
 
-      // Should be sorted by classpath
-      expect(results[0].summary?.classpath).toBe("UserController");
-      expect(results[1].summary?.classpath).toBe("UserService");
+      // Should be sorted by namespace
+      expect(results[0].summary?.namespace).toBe("UserController");
+      expect(results[1].summary?.namespace).toBe("UserService");
 
       // Check structure
       results.forEach((result) => {
-        expect(result.summary?.classpath).toBeDefined();
+        expect(result.summary?.namespace).toBeDefined();
         expect(result.summary?.purpose).toBeDefined();
         expect(result.summary?.implementation).toBeDefined();
         expect(result.filepath).toBeDefined();
@@ -366,7 +366,7 @@ describe("SourcesRepository Integration Tests", () => {
           linesCount: 100,
           content: "service content",
           summary: {
-            classpath: "DatabaseService",
+            namespace: "DatabaseService",
             purpose: "Database operations",
             implementation: "Service layer",
             databaseIntegration: {
@@ -384,7 +384,7 @@ describe("SourcesRepository Integration Tests", () => {
           linesCount: 150,
           content: "repository content",
           summary: {
-            classpath: "UserRepository",
+            namespace: "UserRepository",
             purpose: "Data access",
             implementation: "Repository pattern",
             databaseIntegration: {
@@ -402,7 +402,7 @@ describe("SourcesRepository Integration Tests", () => {
           linesCount: 50,
           content: "utility content",
           summary: {
-            classpath: "Utility",
+            namespace: "Utility",
             purpose: "Helper functions",
             implementation: "Utility methods",
             // No database integration
@@ -423,7 +423,7 @@ describe("SourcesRepository Integration Tests", () => {
       results.forEach((result) => {
         expect(result.summary?.databaseIntegration).toBeDefined();
         expect(result.summary?.databaseIntegration?.mechanism).not.toBe("NONE");
-        expect(result.summary?.classpath).toBeDefined();
+        expect(result.summary?.namespace).toBeDefined();
         expect(result.filepath).toBeDefined();
       });
     }, 30000);

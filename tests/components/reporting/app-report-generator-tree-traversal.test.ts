@@ -42,9 +42,9 @@ describe("AppReportGenerator - iterative tree traversal", () => {
   describe("countUniqueDependencies - iterative approach", () => {
     test("should count dependencies in flat structure", () => {
       const deps: HierarchicalJavaClassDependency[] = [
-        { classpath: "com.example.A", dependencies: [] },
-        { classpath: "com.example.B", dependencies: [] },
-        { classpath: "com.example.C", dependencies: [] },
+        { namespace: "com.example.A", dependencies: [] },
+        { namespace: "com.example.B", dependencies: [] },
+        { namespace: "com.example.C", dependencies: [] },
       ];
 
       expect(countDeps(deps)).toBe(3);
@@ -53,10 +53,10 @@ describe("AppReportGenerator - iterative tree traversal", () => {
     test("should count dependencies in nested structure", () => {
       const deps: HierarchicalJavaClassDependency[] = [
         {
-          classpath: "com.example.A",
+          namespace: "com.example.A",
           dependencies: [
-            { classpath: "com.example.B", dependencies: [] },
-            { classpath: "com.example.C", dependencies: [] },
+            { namespace: "com.example.B", dependencies: [] },
+            { namespace: "com.example.C", dependencies: [] },
           ],
         },
       ];
@@ -67,13 +67,13 @@ describe("AppReportGenerator - iterative tree traversal", () => {
     test("should handle deeply nested dependencies without stack overflow", () => {
       // Create a very deep dependency tree (1000 levels)
       let current: HierarchicalJavaClassDependency = {
-        classpath: "com.example.Deep999",
+        namespace: "com.example.Deep999",
         dependencies: [],
       };
 
       for (let i = 998; i >= 0; i--) {
         current = {
-          classpath: `com.example.Deep${i}`,
+          namespace: `com.example.Deep${i}`,
           dependencies: [current],
         };
       }
@@ -85,13 +85,13 @@ describe("AppReportGenerator - iterative tree traversal", () => {
     test("should deduplicate repeated classpaths", () => {
       const deps: HierarchicalJavaClassDependency[] = [
         {
-          classpath: "com.example.A",
-          dependencies: [{ classpath: "com.example.B", dependencies: [] }],
+          namespace: "com.example.A",
+          dependencies: [{ namespace: "com.example.B", dependencies: [] }],
         },
         {
-          classpath: "com.example.C",
+          namespace: "com.example.C",
           dependencies: [
-            { classpath: "com.example.B", dependencies: [] }, // Duplicate
+            { namespace: "com.example.B", dependencies: [] }, // Duplicate
           ],
         },
       ];
@@ -107,21 +107,21 @@ describe("AppReportGenerator - iterative tree traversal", () => {
     test("should handle complex multi-level tree", () => {
       const deps: HierarchicalJavaClassDependency[] = [
         {
-          classpath: "com.example.Root1",
+          namespace: "com.example.Root1",
           dependencies: [
             {
-              classpath: "com.example.Child1",
+              namespace: "com.example.Child1",
               dependencies: [
-                { classpath: "com.example.GrandChild1", dependencies: [] },
-                { classpath: "com.example.GrandChild2", dependencies: [] },
+                { namespace: "com.example.GrandChild1", dependencies: [] },
+                { namespace: "com.example.GrandChild2", dependencies: [] },
               ],
             },
-            { classpath: "com.example.Child2", dependencies: [] },
+            { namespace: "com.example.Child2", dependencies: [] },
           ],
         },
         {
-          classpath: "com.example.Root2",
-          dependencies: [{ classpath: "com.example.Child3", dependencies: [] }],
+          namespace: "com.example.Root2",
+          dependencies: [{ namespace: "com.example.Child3", dependencies: [] }],
         },
       ];
 
@@ -132,11 +132,11 @@ describe("AppReportGenerator - iterative tree traversal", () => {
     test("should handle wide tree with many siblings", () => {
       const siblings: HierarchicalJavaClassDependency[] = [];
       for (let i = 0; i < 100; i++) {
-        siblings.push({ classpath: `com.example.Sibling${i}`, dependencies: [] });
+        siblings.push({ namespace: `com.example.Sibling${i}`, dependencies: [] });
       }
 
       const deps: HierarchicalJavaClassDependency[] = [
-        { classpath: "com.example.Root", dependencies: siblings },
+        { namespace: "com.example.Root", dependencies: siblings },
       ];
 
       // 1 root + 100 siblings = 101
@@ -145,25 +145,25 @@ describe("AppReportGenerator - iterative tree traversal", () => {
 
     test("should handle tree with duplicate classpaths at different levels", () => {
       const shared: HierarchicalJavaClassDependency = {
-        classpath: "com.example.Shared",
+        namespace: "com.example.Shared",
         dependencies: [],
       };
 
       const deps: HierarchicalJavaClassDependency[] = [
         {
-          classpath: "com.example.A",
+          namespace: "com.example.A",
           dependencies: [
             {
-              classpath: "com.example.B",
+              namespace: "com.example.B",
               dependencies: [shared],
             },
           ],
         },
         {
-          classpath: "com.example.C",
+          namespace: "com.example.C",
           dependencies: [
             {
-              classpath: "com.example.D",
+              namespace: "com.example.D",
               dependencies: [shared], // Same reference/classpath
             },
           ],
@@ -179,11 +179,11 @@ describe("AppReportGenerator - iterative tree traversal", () => {
       // this tests that we handle the same classpath appearing multiple times
       const deps: HierarchicalJavaClassDependency[] = [
         {
-          classpath: "com.example.A",
+          namespace: "com.example.A",
           dependencies: [
             {
-              classpath: "com.example.B",
-              dependencies: [{ classpath: "com.example.A", dependencies: [] }],
+              namespace: "com.example.B",
+              dependencies: [{ namespace: "com.example.A", dependencies: [] }],
             },
           ],
         },

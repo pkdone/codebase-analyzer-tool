@@ -5,26 +5,26 @@ describe("dependency-tree-builder", () => {
   test("shared child appears under multiple branches (no over-pruning)", () => {
     // Flat data simulating: Root -> A, Root -> B, and A -> Shared, B -> Shared
     const flat: ProjectedTopLevelJavaClassDependencies = {
-      classpath: "Root",
+      namespace: "Root",
       dependencies: [
-        { level: 0, classpath: "Root", references: ["A", "B"] },
-        { level: 1, classpath: "A", references: ["Shared"] },
-        { level: 1, classpath: "B", references: ["Shared"] },
-        { level: 2, classpath: "Shared", references: [] },
+        { level: 0, namespace: "Root", references: ["A", "B"] },
+        { level: 1, namespace: "A", references: ["Shared"] },
+        { level: 1, namespace: "B", references: ["Shared"] },
+        { level: 2, namespace: "Shared", references: [] },
       ],
     };
 
     const hierarchical = convertToHierarchical(flat);
-    expect(hierarchical.classpath).toBe("Root");
+    expect(hierarchical.namespace).toBe("Root");
     expect(hierarchical.dependencies).toHaveLength(2);
 
-    const aBranch = hierarchical.dependencies.find((d) => d.classpath === "A");
-    const bBranch = hierarchical.dependencies.find((d) => d.classpath === "B");
+    const aBranch = hierarchical.dependencies.find((d) => d.namespace === "A");
+    const bBranch = hierarchical.dependencies.find((d) => d.namespace === "B");
     expect(aBranch).toBeDefined();
     expect(bBranch).toBeDefined();
     expect(aBranch?.dependencies).toHaveLength(1);
     expect(bBranch?.dependencies).toHaveLength(1);
-    expect(aBranch?.dependencies?.[0].classpath).toBe("Shared");
-    expect(bBranch?.dependencies?.[0].classpath).toBe("Shared");
+    expect(aBranch?.dependencies?.[0].namespace).toBe("Shared");
+    expect(bBranch?.dependencies?.[0].namespace).toBe("Shared");
   });
 });

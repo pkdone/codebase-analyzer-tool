@@ -95,9 +95,9 @@ describe("File Handler Configuration", () => {
       // We can't directly test the type at runtime, but we can verify it works with assignments
 
       const javaSummary: SourceSummaryType = {
-        classname: "TestClass",
-        classType: "class",
-        classpath: "com.example.TestClass",
+        name: "TestClass",
+        kind: "class",
+        namespace: "com.example.TestClass",
         purpose: "Test purpose",
         implementation: "Test implementation",
         internalReferences: [],

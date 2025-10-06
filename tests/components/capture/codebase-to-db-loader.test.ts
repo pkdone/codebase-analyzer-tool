@@ -71,7 +71,7 @@ describe("CodebaseToDBLoader", () => {
     // Mock FileSummarizer
     mockFileSummarizer = {
       getFileSummaryAsJSON: jest.fn().mockResolvedValue({
-        classpath: "TestClass",
+        namespace: "TestClass",
         purpose: "Testing component",
       }),
     } as unknown as jest.Mocked<FileSummarizer>;
@@ -257,7 +257,7 @@ describe("CodebaseToDBLoader", () => {
     it("should generate summary and embeddings successfully", async () => {
       const mockFiles = ["/src/file1.ts"];
       const mockSummary = {
-        classpath: "TestClass",
+        namespace: "TestClass",
         purpose: "Test component",
         implementation:
           "This is a test component implementation that provides testing functionality.",
@@ -352,7 +352,7 @@ describe("CodebaseToDBLoader", () => {
     it("should handle partial embedding failures", async () => {
       const mockFiles = ["/src/file1.ts"];
       const mockSummary = {
-        classpath: "TestClass",
+        namespace: "TestClass",
         purpose: "Test component",
         implementation:
           "This is a test component implementation that provides testing functionality.",

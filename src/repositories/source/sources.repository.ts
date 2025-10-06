@@ -87,12 +87,12 @@ export default class SourcesRepositoryImpl
     const options: { projection: Document; sort: Sort } = {
       projection: {
         _id: 0,
-        "summary.classpath": 1,
+        "summary.namespace": 1,
         "summary.purpose": 1,
         "summary.implementation": 1,
         filepath: 1,
       },
-      sort: { "summary.classpath": 1 },
+      sort: { "summary.namespace": 1 },
     };
     return this.collection.find<ProjectedSourceSummaryFields>(query, options).toArray();
   }
@@ -111,7 +111,7 @@ export default class SourcesRepositoryImpl
     const options: { projection: Document; sort: Sort } = {
       projection: {
         _id: 0,
-        "summary.classpath": 1,
+        "summary.namespace": 1,
         "summary.databaseIntegration.mechanism": 1,
         "summary.databaseIntegration.description": 1,
         "summary.databaseIntegration.codeExample": 1,
@@ -119,7 +119,7 @@ export default class SourcesRepositoryImpl
       },
       sort: {
         "summary.databaseIntegration.mechanism": 1,
-        "summary.classpath": 1,
+        "summary.namespace": 1,
       },
     };
     return await this.collection.find<ProjectedDatabaseIntegrationFields>(query, options).toArray();
@@ -278,7 +278,7 @@ export default class SourcesRepositoryImpl
       {
         $project: {
           _id: 0,
-          references: { $concatArrays: [["$summary.classpath"], "$summary.internalReferences"] },
+          references: { $concatArrays: [["$summary.namespace"], "$summary.internalReferences"] },
         },
       },
       {
@@ -307,7 +307,7 @@ export default class SourcesRepositoryImpl
           from: "sources",
           startWith: "$_id",
           connectFromField: "summary.internalReferences",
-          connectToField: "summary.classpath",
+          connectToField: "summary.namespace",
           depthField: "level",
           maxDepth: MAX_DEPENDENCY_DEPTH,
           as: "dependency_documents",
@@ -316,7 +316,7 @@ export default class SourcesRepositoryImpl
       {
         $project: {
           _id: 0,
-          classpath: "$_id",
+          namespace: "$_id",
           dependency_count: { $size: "$dependency_documents" },
           dependencies: {
             $map: {
@@ -324,7 +324,7 @@ export default class SourcesRepositoryImpl
               as: "dependency",
               in: {
                 level: "$$dependency.level",
-                classpath: "$$dependency.summary.classpath",
+                namespace: "$$dependency.summary.namespace",
                 references: "$$dependency.summary.internalReferences",
               },
             },

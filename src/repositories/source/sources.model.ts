@@ -52,7 +52,7 @@ export type ProjectedSourceMetataContentAndSummary = z.infer<
  */
 export interface ProjectedSourceSummaryFields {
   filepath: SourceRecord["filepath"];
-  summary?: Pick<z.infer<typeof sourceSummarySchema>, "classpath" | "purpose" | "implementation">;
+  summary?: Pick<z.infer<typeof sourceSummarySchema>, "namespace" | "purpose" | "implementation">;
 }
 
 /**
@@ -61,7 +61,7 @@ export interface ProjectedSourceSummaryFields {
  */
 export interface ProjectedDatabaseIntegrationFields {
   filepath: SourceRecord["filepath"];
-  summary?: Pick<z.infer<typeof sourceSummarySchema>, "classpath" | "databaseIntegration">;
+  summary?: Pick<z.infer<typeof sourceSummarySchema>, "namespace" | "databaseIntegration">;
 }
 
 /**
@@ -78,7 +78,7 @@ export interface ProjectedFileTypesCountAndLines {
  */
 export interface JavaClassDependency {
   readonly level: number;
-  readonly classpath: string;
+  readonly namespace: string;
   readonly references: readonly string[];
 }
 
@@ -86,7 +86,7 @@ export interface JavaClassDependency {
  * Interface representing a hierarchical Java class dependency node
  */
 export interface HierarchicalJavaClassDependency {
-  readonly classpath: string;
+  readonly namespace: string;
   readonly originalLevel?: number; // Preserve original level from flat data
   readonly dependencies?: readonly HierarchicalJavaClassDependency[];
 }
@@ -95,7 +95,7 @@ export interface HierarchicalJavaClassDependency {
  * Interface representing a top-level Java class with its hierarchical dependencies
  */
 export interface HierarchicalTopLevelJavaClassDependencies {
-  readonly classpath: string;
+  readonly namespace: string;
   readonly dependencies: readonly HierarchicalJavaClassDependency[];
 }
 
@@ -103,7 +103,7 @@ export interface HierarchicalTopLevelJavaClassDependencies {
  * Interface representing a top-level Java class with its dependencies (flat structure)
  */
 export interface ProjectedTopLevelJavaClassDependencies {
-  readonly classpath: string;
+  readonly namespace: string;
   readonly dependencies: readonly JavaClassDependency[];
 }
 

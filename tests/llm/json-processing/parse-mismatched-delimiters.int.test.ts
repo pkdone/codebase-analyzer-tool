@@ -41,9 +41,9 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
       // This is the exact malformed JSON from the error log that failed
       // Note: The actual error log has this PLUS it's truncated mid-word, but testing the delimiter issue specifically
       const malformedJson = `{
-  "classname": "AccountAssociations",
-  "classType": "class",
-  "classpath": "org.apache.fineract.portfolio.account.domain.AccountAssociations",
+  "name": "AccountAssociations",
+  "kind": "class",
+  "namespace": "org.apache.fineract.portfolio.account.domain.AccountAssociations",
   "purpose": "The AccountAssociations class serves as a JPA entity that represents the relationships between different types of financial accounts within the Apache Fineract portfolio management system. It acts as a bridge entity that establishes associations between loan accounts and savings accounts, allowing the system to track and manage complex relationships between various financial products. The class enables the creation of linked account structures where one account can be associated with another for business purposes such as automatic transfers, collateral arrangements, or integrated financial product offerings. This entity is crucial for maintaining referential integrity and business logic consistency across different account types in the financial portfolio management domain.",
   "implementation": "The implementation extends AbstractPersistableCustom to inherit common persistence functionality and uses JPA annotations to map to the m_portfolio_account_associations database table. The class maintains four main relationship fields using @ManyToOne annotations: loanAccount, savingsAccount, linkedLoanAccount, and linkedSavingsAccount, allowing flexible associations between different account types. It includes an associationType field to categorize the nature of the association and an active boolean flag to manage the lifecycle of associations without physical deletion. The class provides static factory methods associateSavingsAccount with different parameter combinations to create specific types of associations, following the factory pattern for controlled object creation. The implementation includes methods for accessing and updating linked savings accounts, ensuring encapsulation while providing necessary business operations for account association management.",
   "internalReferences": [
@@ -151,7 +151,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
         expect(result).toBeDefined();
         expect(typeof result).toBe("object");
         // Type assertion needed because result is 'unknown' from parseAndValidateLLMJsonContent
-        expect((result as any).classname).toBe("AccountAssociations");
+        expect((result as any).name).toBe("AccountAssociations");
         expect((result as any).publicMethods).toHaveLength(4);
       }).not.toThrow();
     });

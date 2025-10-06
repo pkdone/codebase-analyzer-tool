@@ -66,7 +66,7 @@ describe("SourcesRepositoryImpl", () => {
         linesCount: 10,
         content: "console.log('test');",
         summary: {
-          classpath: "Test",
+          namespace: "Test",
           purpose: "Testing",
           implementation: "This is a test implementation for testing purposes.",
         },
@@ -147,7 +147,7 @@ describe("SourcesRepositoryImpl", () => {
           filepath: "src/test.ts",
           type: "ts",
           content: "test content",
-          summary: { classpath: "Test" },
+          summary: { namespace: "Test" },
         },
       ];
 
@@ -298,7 +298,7 @@ describe("SourcesRepositoryImpl", () => {
         const fileTypes = ["ts", "js"];
         const mockResults = [
           {
-            summary: { classpath: "Class1", purpose: "Purpose1", implementation: "Impl1" },
+            summary: { namespace: "Class1", purpose: "Purpose1", implementation: "Impl1" },
             filepath: "src/test1.ts",
           },
         ];
@@ -312,12 +312,12 @@ describe("SourcesRepositoryImpl", () => {
           {
             projection: {
               _id: 0,
-              "summary.classpath": 1,
+              "summary.namespace": 1,
               "summary.purpose": 1,
               "summary.implementation": 1,
               filepath: 1,
             },
-            sort: { "summary.classpath": 1 },
+            sort: { "summary.namespace": 1 },
           },
         );
       });
@@ -329,7 +329,7 @@ describe("SourcesRepositoryImpl", () => {
         const mockResults = [
           {
             summary: {
-              classpath: "DatabaseService",
+              namespace: "DatabaseService",
               databaseIntegration: {
                 mechanism: "JPA",
                 description: "Uses JPA for data access",
@@ -353,7 +353,7 @@ describe("SourcesRepositoryImpl", () => {
           {
             projection: {
               _id: 0,
-              "summary.classpath": 1,
+              "summary.namespace": 1,
               "summary.databaseIntegration.mechanism": 1,
               "summary.databaseIntegration.description": 1,
               "summary.databaseIntegration.codeExample": 1,
@@ -362,7 +362,7 @@ describe("SourcesRepositoryImpl", () => {
             sort: {
               // Order of keys is not semantically important, but we mirror implementation for clarity
               "summary.databaseIntegration.mechanism": 1,
-              "summary.classpath": 1,
+              "summary.namespace": 1,
             },
           },
         );

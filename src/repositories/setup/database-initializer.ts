@@ -68,11 +68,11 @@ export class DatabaseInitializer {
     await this.createStandardIndexIfNotExists(this.sourcesCollection, {
       projectName: 1,
       type: 1,
-      "summary.classpath": 1,
+      "summary.namespace": 1,
     });
     // Add index to optimize graphLookup performance (albeit doesn't query on projectid too)
     await this.createStandardIndexIfNotExists(this.sourcesCollection, {
-      "summary.internalRclasspatheferences": 1,
+      "summary.internalReferences": 1,
     });
     await this.createSourcesVectorSearchIndexes(numDimensions);
     await this.createStandardIndexIfNotExists(this.appSummariesCollection, { projectName: 1 });

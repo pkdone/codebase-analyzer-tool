@@ -11,7 +11,7 @@ const COMMON_INSTRUCTIONS = {
   DB_INTEGRATION:
     "The type of direct database integration via a driver / library / ORM / API it employs, if any (stating ONE recognized mechanism value in capitals, or NONE if the code does not interact with a database directly), plus: (a) a description of the integration mentioning technologies, tables / collections / models if inferable, and (b) an example code snippet that performs the database integration (keep snippet concise). Mechanism must be one of the enumerated values; unrecognized values will be coerced to OTHER.",
   INTERNAL_REFS_JAVA:
-    "A list of the internal references to classpaths of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)",
+    "A list of the internal references to the namespaces of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)",
   INTERNAL_REFS_JS:
     "A list of the internal references to other modules used by this source file (by using `require` or `import` keywords) belonging to the same application referenced by the code in this source file (do not include external or 3rd party modules/libraries in the list of internal references)",
   EXTERNAL_REFS_JAVA:
@@ -27,8 +27,8 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
   java: {
     contentDesc: "code",
     instructions: `* The name of the main public class/interface of the file
- * Its class type ('class' or 'interface')
- * Its classpath
+ * Its kind ('class' or 'interface')
+ * Its namespace
  * ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
  * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JAVA}
@@ -52,9 +52,9 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
     (note, JMS and JNDI are not related to interacting with a dataase)`,
     schema: sourceSummarySchema
       .pick({
-        classname: true,
-        classType: true,
-        classpath: true,
+        name: true,
+        kind: true,
+        namespace: true,
         purpose: true,
         implementation: true,
         internalReferences: true,
@@ -67,10 +67,10 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
         // Add descriptions for LLM prompts
         internalReferences: z
           .array(z.string())
-          .describe("A list of internal classpaths referenced."),
+          .describe("A list of internal class namespaces referenced."),
         externalReferences: z
           .array(z.string())
-          .describe("A list of third-party classpaths referenced."),
+          .describe("A list of third-party class namespaces referenced."),
       }),
     hasComplexSchema: false,
   },
@@ -194,9 +194,9 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
    - Creates database functions or executes function creation scripts => mechanism: 'FUNCTION'
    - Otherwise when no DB interaction present => mechanism: 'NONE'`,
     schema: sourceSummarySchema.pick({
-      classname: true,
-      classType: true,
-      classpath: true,
+      name: true,
+      kind: true,
+      namespace: true,
       purpose: true,
       implementation: true,
       internalReferences: true,

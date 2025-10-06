@@ -19,10 +19,10 @@ const MAX_RECURSION_DEPTH = 4;
 export function convertToHierarchical(
   flatClassData: ProjectedTopLevelJavaClassDependencies,
 ): HierarchicalTopLevelJavaClassDependencies {
-  // Create a map for quick lookup of dependencies by classpath
+  // Create a map for quick lookup of dependencies by namespace
   const dependencyMap = new Map<string, JavaClassDependency>();
   flatClassData.dependencies.forEach((dep) => {
-    dependencyMap.set(dep.classpath, dep);
+    dependencyMap.set(dep.namespace, dep);
   });
 
   // Find the root node (level 0)
@@ -30,7 +30,7 @@ export function convertToHierarchical(
   if (!rootDependency) {
     // If no root found, return empty structure
     return {
-      classpath: flatClassData.classpath,
+      namespace: flatClassData.namespace,
       dependencies: [],
     };
   }
@@ -39,12 +39,12 @@ export function convertToHierarchical(
   const hierarchicalDependencies = buildHierarchicalDependencies(
     rootDependency.references,
     dependencyMap,
-    new Set([flatClassData.classpath]), // Start visited set with root to avoid self cycles while allowing shared children across branches
+    new Set([flatClassData.namespace]), // Start visited set with root to avoid self cycles while allowing shared children across branches
     1, // Start at level 1 for direct dependencies
   );
 
   return {
-    classpath: flatClassData.classpath,
+    namespace: flatClassData.namespace,
     dependencies: hierarchicalDependencies,
   };
 }
@@ -67,16 +67,16 @@ export function buildHierarchicalDependencies(
 
   const hierarchicalDeps: HierarchicalJavaClassDependency[] = [];
 
-  for (const refClasspath of references) {
+  for (const refNamespace of references) {
     // Skip if already visited to avoid circular dependencies
-    if (visited.has(refClasspath)) {
+    if (visited.has(refNamespace)) {
       continue;
     }
 
     // Add to visited set (shared across all references at this level)
-    visited.add(refClasspath);
+    visited.add(refNamespace);
 
-    const dependency = dependencyMap.get(refClasspath);
+    const dependency = dependencyMap.get(refNamespace);
 
     if (dependency && dependency.references.length > 0) {
       // Has child dependencies - recursively build them
@@ -89,21 +89,21 @@ export function buildHierarchicalDependencies(
 
       if (childDependencies.length > 0) {
         hierarchicalDeps.push({
-          classpath: refClasspath,
+          namespace: refNamespace,
           originalLevel: dependency.level,
           dependencies: childDependencies,
         });
       } else {
         // No actual child dependencies found
         hierarchicalDeps.push({
-          classpath: refClasspath,
+          namespace: refNamespace,
           originalLevel: dependency.level,
         });
       }
     } else {
       // Leaf node - no child dependencies
       hierarchicalDeps.push({
-        classpath: refClasspath,
+        namespace: refNamespace,
         originalLevel: dependency?.level,
       });
     }

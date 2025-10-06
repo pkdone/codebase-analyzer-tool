@@ -242,14 +242,14 @@ export class DependencyTreePngGenerator {
   ): HierarchicalTreeNode[] {
     return hierarchicalDeps.map((dep: HierarchicalJavaClassDependency): HierarchicalTreeNode => {
       // Check if this node already exists
-      const existingNode = nodeRegistry.get(dep.classpath);
+      const existingNode = nodeRegistry.get(dep.namespace);
       // Use original level from flat data, defaulting to 1 if not provided
       const properLevel = dep.originalLevel ?? 1;
 
       if (existingNode) {
         // Create a reference node instead of a duplicate
         return {
-          classpath: dep.classpath,
+          classpath: dep.namespace,
           level: properLevel,
           x: 0,
           y: 0,
@@ -262,7 +262,7 @@ export class DependencyTreePngGenerator {
       } else {
         // Create a new node with original level
         const newNode: HierarchicalTreeNode = {
-          classpath: dep.classpath,
+          classpath: dep.namespace,
           level: properLevel,
           x: 0,
           y: 0,
@@ -272,7 +272,7 @@ export class DependencyTreePngGenerator {
         };
 
         // Register the node before processing children to handle circular references
-        nodeRegistry.set(dep.classpath, newNode);
+        nodeRegistry.set(dep.namespace, newNode);
 
         // Process children
         newNode.children = dep.dependencies
