@@ -11,11 +11,11 @@ const COMMON_INSTRUCTIONS = {
   DB_INTEGRATION:
     "The type of direct database integration via a driver / library / ORM / API it employs, if any (stating ONE recognized mechanism value in capitals, or NONE if the code does not interact with a database directly), plus: (a) a description of the integration mentioning technologies, tables / collections / models if inferable, and (b) an example code snippet that performs the database integration (keep snippet concise). Mechanism must be one of the enumerated values; unrecognized values will be coerced to OTHER.",
   INTERNAL_REFS_JAVA:
-    "A list of the internal references to the namespaces of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)",
+    "A list of the internal references to the classpaths of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)",
   INTERNAL_REFS_JS:
     "A list of the internal references to other modules used by this source file (by using `require` or `import` keywords) belonging to the same application referenced by the code in this source file (do not include external or 3rd party modules/libraries in the list of internal references)",
   EXTERNAL_REFS_JAVA:
-    "A list of the external references to third-party classes used by this source file, which do not belong to this same application that this class/interface file is part of",
+    "A list of the external references to third-party classpath used by this source file, which do not belong to this same application that this class/interface file is part of",
   EXTERNAL_REFS_JS:
     "A list of the external references to other external modules/libraries used by this source file (by using `require` or `import` keywords), which do not belong to this same application that this source file is part of",
 } as const;
@@ -28,7 +28,7 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
     contentDesc: "code",
     instructions: `* The name of the main public class/interface of the file
  * Its kind ('class' or 'interface')
- * Its namespace
+ * Its namespace (classpath)
  * ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
  * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JAVA}
@@ -67,10 +67,10 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
         // Add descriptions for LLM prompts
         internalReferences: z
           .array(z.string())
-          .describe("A list of internal class namespaces referenced."),
+          .describe("A list of internal classpaths referenced."),
         externalReferences: z
           .array(z.string())
-          .describe("A list of third-party class namespaces referenced."),
+          .describe("A list of third-party classpaths referenced."),
       }),
     hasComplexSchema: false,
   },
@@ -175,11 +175,11 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
     contentDesc: "C# source code",
     instructions: `* The name of the main public class/interface/record/struct of the file
  * Its kind ('class', 'interface', 'record', or 'struct')
- * Its namespace (fully qualified)
+ * Its Fully qualified type name (namespace)
  * ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
- * A list of the internal references to other application classes/namespaces (only include 'using' directives that clearly belong to this same application's code – exclude BCL / System.* and third-party packages)
- * A list of the external references to 3rd party / NuGet package namespaces it depends on (exclude System.* where possible)
+ * A list of the internal references to other application classes - fully qualified type names (only include 'using' directives that clearly belong to this same application's code – exclude BCL / System.* and third-party packages)
+ * A list of the external references to 3rd party / NuGet package classes (Fully qualified type names) it depends on (exclude System.* where possible)
  * A list of public constants / readonly static fields (if any) – include name, value (redact secrets), and a short type/role description
  * A list of its public methods (if any) – for each method list: name, purpose (detailed), parameters (name and type), return type, async/sync indicator, and a very detailed implementation description highlighting notable control flow, LINQ queries, awaits, exception handling, and important business logic decisions
  * The type of database integration it employs (if any), stating a mechanism (choose ONE of: 'ORM', 'SQL', 'DRIVER', 'DDL', or 'NONE'), a description of the integration, and a concise example snippet (max 8 lines) that performs the database integration. Apply these mapping rules:
@@ -209,7 +209,10 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
   },
   ruby: {
     contentDesc: "Ruby code",
-    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+    instructions: `* The name of the main public class/module of the file
+ * Its kind ('class', 'module', or 'enum')
+ * Its namespace (fully qualified module path)
+ * ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
  * A list of the internal references to other Ruby source files in the same project that this file depends on (only include paths required via require or require_relative that clearly belong to this same application; exclude Ruby standard library and external gem dependencies) 
  * A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)
@@ -228,6 +231,9 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
    - Creates functions / stored routines => mechanism: 'FUNCTION'
    - Otherwise, if no database interaction is evident => mechanism: 'NONE'`,
     schema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
       purpose: true,
       implementation: true,
       internalReferences: true,

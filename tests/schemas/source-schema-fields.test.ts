@@ -10,8 +10,7 @@ describe("Source Schema Fields - NEW Names", () => {
     it("should have field named 'name'", () => {
       const testData = {
         purpose: "Test purpose for testing schema validation.",
-        implementation:
-          "Test implementation details that include business logic and processing.",
+        implementation: "Test implementation details that include business logic and processing.",
         name: "TestClass",
       };
 
@@ -25,8 +24,7 @@ describe("Source Schema Fields - NEW Names", () => {
     it("should have field named 'kind' with enum values", () => {
       const testData = {
         purpose: "Test purpose for testing schema validation.",
-        implementation:
-          "Test implementation details that include business logic and processing.",
+        implementation: "Test implementation details that include business logic and processing.",
         kind: "class" as const,
       };
 
@@ -38,18 +36,20 @@ describe("Source Schema Fields - NEW Names", () => {
     });
 
     it("should accept all valid kind enum values", () => {
-      const validTypes: ("class" | "interface" | "record" | "struct")[] = [
-        "class",
-        "interface",
-        "record",
-        "struct",
-      ];
+      const validTypes: (
+        | "class"
+        | "interface"
+        | "record"
+        | "struct"
+        | "enum"
+        | "annotation-type"
+        | "module"
+      )[] = ["class", "interface", "record", "struct", "enum", "annotation-type", "module"];
 
       validTypes.forEach((type) => {
         const testData = {
           purpose: "Test purpose for testing schema validation.",
-          implementation:
-            "Test implementation details that include business logic and processing.",
+          implementation: "Test implementation details that include business logic and processing.",
           kind: type,
         };
 
@@ -64,8 +64,7 @@ describe("Source Schema Fields - NEW Names", () => {
     it("should have field named 'namespace'", () => {
       const testData = {
         purpose: "Test purpose for testing schema validation.",
-        implementation:
-          "Test implementation details that include business logic and processing.",
+        implementation: "Test implementation details that include business logic and processing.",
         namespace: "com.example.TestClass",
       };
 
@@ -79,8 +78,7 @@ describe("Source Schema Fields - NEW Names", () => {
     it("should allow all three fields together", () => {
       const testData = {
         purpose: "Test purpose for testing schema validation.",
-        implementation:
-          "Test implementation details that include business logic and processing.",
+        implementation: "Test implementation details that include business logic and processing.",
         name: "TestClass",
         kind: "class" as const,
         namespace: "com.example.TestClass",
@@ -98,8 +96,7 @@ describe("Source Schema Fields - NEW Names", () => {
     it("should make name, kind, and namespace optional", () => {
       const testData = {
         purpose: "Test purpose for testing schema validation.",
-        implementation:
-          "Test implementation details that include business logic and processing.",
+        implementation: "Test implementation details that include business logic and processing.",
       };
 
       const result = sourceSummarySchema.safeParse(testData);
@@ -175,8 +172,7 @@ describe("Source Schema Fields - NEW Names", () => {
       // This test verifies that TypeScript correctly infers the types
       const summary: SourceSummary = {
         purpose: "Test purpose for testing schema validation.",
-        implementation:
-          "Test implementation details that include business logic and processing.",
+        implementation: "Test implementation details that include business logic and processing.",
         name: "InferredClass",
         kind: "struct",
         namespace: "com.test.InferredClass",
@@ -184,7 +180,15 @@ describe("Source Schema Fields - NEW Names", () => {
 
       // Type assertions to ensure the fields exist with correct types
       const name: string | undefined = summary.name;
-      const kind: "class" | "interface" | "record" | "struct" | undefined = summary.kind;
+      const kind:
+        | "class"
+        | "interface"
+        | "record"
+        | "struct"
+        | "enum"
+        | "annotation-type"
+        | "module"
+        | undefined = summary.kind;
       const namespace: string | undefined = summary.namespace;
 
       expect(name).toBe("InferredClass");
@@ -193,4 +197,3 @@ describe("Source Schema Fields - NEW Names", () => {
     });
   });
 });
-
