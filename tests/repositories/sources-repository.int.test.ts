@@ -108,7 +108,6 @@ describe("SourcesRepository Integration Tests", () => {
       const queryVector = await createTestVector(0.75); // Should be similar to the 0.8 seed vector
       const results = await sourcesRepository.vectorSearchProjectSourcesRawContent(
         projectName,
-        "ts",
         queryVector,
         10,
         2,
@@ -139,8 +138,8 @@ describe("SourcesRepository Integration Tests", () => {
       }
     }, 30000);
 
-    it("should filter by file type correctly in vector search", async () => {
-      // Arrange: Insert mixed file types
+    it("should perform vector search without file type filtering (mixed types present)", async () => {
+      // Arrange: Insert mixed file types (filtering removed from repository method)
       const testData: SourceRecord[] = [
         {
           projectName,
@@ -158,7 +157,7 @@ describe("SourcesRepository Integration Tests", () => {
           type: "java",
           linesCount: 15,
           content: "Java content",
-          contentVector: await createTestVector(0.15), // Same vector for testing filtering
+          contentVector: await createTestVector(0.15),
         },
       ];
 
@@ -166,25 +165,21 @@ describe("SourcesRepository Integration Tests", () => {
         await sourcesRepository.insertSource(record);
       }
 
-      // Act: Search for only Java files
+      // Act: Perform search (no type filtering applied inside repository now)
       const results = await sourcesRepository.vectorSearchProjectSourcesRawContent(
         projectName,
-        "java",
-        await createTestVector(0.1),
+        await createTestVector(0.12),
         10,
         5,
       );
 
-      // Assert: Vector search might return 0 results in new databases due to index sync timing
-      console.log(`Vector search returned ${results.length} results for Java files`);
+      // Assert: Accept 0 results due to potential indexing delay; otherwise validate project field
+      console.log(`Vector search returned ${results.length} results (mixed types)`);
       if (results.length > 0) {
-        expect(results[0].type).toBe("java");
-        expect(results[0].filepath).toBe("src/test.java");
-        console.log("Vector search filtering working correctly");
-      } else {
-        console.log(
-          "Vector search returned 0 results - this is acceptable for fresh test databases",
-        );
+        results.forEach((r) => {
+          expect(r.projectName).toBe(projectName);
+          expect(["ts", "java"]).toContain(r.type);
+        });
       }
     }, 30000);
   });

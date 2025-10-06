@@ -9,7 +9,7 @@ const COMMON_INSTRUCTIONS = {
   PURPOSE: "A detailed definition of its purpose",
   IMPLEMENTATION: "A detailed definition of its implementation",
   DB_INTEGRATION:
-    "The type of direct database integration via a driver/library/API it employs, if any (stating the mechanism used in capitals, or NONE if no code does not interact with a database directly), a description of the database integration and an example code snippet that performs the database integration",
+    "The type of direct database integration via a driver / library / ORM / API it employs, if any (stating ONE recognized mechanism value in capitals, or NONE if the code does not interact with a database directly), plus: (a) a description of the integration mentioning technologies, tables / collections / models if inferable, and (b) an example code snippet that performs the database integration (keep snippet concise). Mechanism must be one of the enumerated values; unrecognized values will be coerced to OTHER.",
   INTERNAL_REFS_JAVA:
     "A list of the internal references to classpaths of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)",
   INTERNAL_REFS_JS:
@@ -36,14 +36,19 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
  * A list of public constants (name, value and type) it defines (if any)
  * A list of its public methods (if any) - for each public method, include the method's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation
  * The type of database integration it employs (if any), stating the mechanism used, a description of the integration and an example code snippet that performs the database integration - if any of the following elements are true in the code, you MUST assume that there is database interaction (if you know the table names the code interacts with, include these table names in the description):
-    - Code uses a JDBC driver or JDBC API (set mechanism: 'JDBC')
-    - Code contains SQL code (set mechanism: 'SQL')
-    - Code uses a database driver or library (set mechanism: 'DRIVER')
-    - Code uses a database Object-Relational-Mapper (ORM) like JPA, TopLink, Hibernate, etc, (set mechanism: 'ORM')
-    - Code uses a Spring Data API (set mechanism: 'SPRING-DATA')
-    - Code has a Java class integrating with a database by an Enterprise Java Bean (EJB), which also could be CMP or BMP based (set mechanism: 'EJB')
-    - Code uses a 3rd party framework/library for database access (set mechanism: 'OTHER')
-    - Otherwise, if the code does not use a database, then set mechanism: 'NONE'
+   - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
+   - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) => mechanism: 'SQL'
+   - Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'
+   - Uses JPA, Hibernate, TopLink, EclipseLink, or other JPA-based ORMs => mechanism: 'ORM' (or 'HIBERNATE' / 'JPA' if explicitly distinguishable)
+   - Uses Spring Data repositories / CrudRepository / JpaRepository => mechanism: 'SPRING-DATA'
+   - Uses Enterprise Java Beans for persistence (CMP/BMP) => mechanism: 'EJB'
+   - Defines DDL / migration style schema changes inline => mechanism: 'DDL'
+   - Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'
+   - Uses stored procedure invocation (CallableStatement etc.) => mechanism: 'STORED-PROCEDURE'
+   - Uses trigger management code => mechanism: 'TRIGGER'
+   - References a function creation / invocation construct => mechanism: 'FUNCTION'
+   - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
+   - Otherwise, if the code does not use a database => mechanism: 'NONE'
     (note, JMS and JNDI are not related to interacting with a dataase)`,
     schema: sourceSummarySchema
       .pick({
@@ -163,6 +168,73 @@ export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
     schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
+    }),
+    hasComplexSchema: false,
+  },
+  csharp: {
+    contentDesc: "C# source code",
+    instructions: `* The name of the main public class/interface/record/struct of the file
+ * Its kind ('class', 'interface', 'record', or 'struct')
+ * Its namespace (fully qualified)
+ * ${COMMON_INSTRUCTIONS.PURPOSE}
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A list of the internal references to other application classes/namespaces (only include 'using' directives that clearly belong to this same application's code – exclude BCL / System.* and third-party packages)
+ * A list of the external references to 3rd party / NuGet package namespaces it depends on (exclude System.* where possible)
+ * A list of public constants / readonly static fields (if any) – include name, value (redact secrets), and a short type/role description
+ * A list of its public methods (if any) – for each method list: name, purpose (detailed), parameters (name and type), return type, async/sync indicator, and a very detailed implementation description highlighting notable control flow, LINQ queries, awaits, exception handling, and important business logic decisions
+ * The type of database integration it employs (if any), stating a mechanism (choose ONE of: 'ORM', 'SQL', 'DRIVER', 'DDL', or 'NONE'), a description of the integration, and a concise example snippet (max 8 lines) that performs the database integration. Apply these mapping rules:
+   - Uses Entity Framework / EF Core DbContext / LINQ-to-Entities => mechanism: 'EF-CORE'
+   - Uses Dapper extension methods / micro ORM => mechanism: 'DAPPER' (or 'MICRO-ORM' if pattern is generic and not clearly Dapper)
+   - Uses another identifiable micro ORM (e.g., NPoco, ServiceStack.OrmLite) => mechanism: 'MICRO-ORM'
+   - Executes raw SQL strings or stored procedure calls via ADO.NET (SqlCommand, DbCommand, etc.) => mechanism: 'SQL'
+   - Invokes stored procedures explicitly (CommandType.StoredProcedure) => mechanism: 'STORED-PROCEDURE'
+   - Uses lower-level provider / driver-specific APIs directly (e.g., NpgsqlConnection, SqlConnection without ORM abstractions) => mechanism: 'ADO-NET' (if clearly ADO.NET primitives) else 'DRIVER'
+   - Contains explicit migration / schema DDL (CREATE/ALTER/DROP TABLE) => mechanism: 'DDL'
+   - Performs primarily data manipulation statements distinct from schema (bulk INSERT batches, multi-row UPDATE sequences) => mechanism: 'DML'
+   - Creates database functions or executes function creation scripts => mechanism: 'FUNCTION'
+   - Otherwise when no DB interaction present => mechanism: 'NONE'`,
+    schema: sourceSummarySchema.pick({
+      classname: true,
+      classType: true,
+      classpath: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
+    }),
+    hasComplexSchema: false,
+  },
+  ruby: {
+    contentDesc: "Ruby code",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A list of the internal references to other Ruby source files in the same project that this file depends on (only include paths required via require or require_relative that clearly belong to this same application; exclude Ruby standard library and external gem dependencies) 
+ * A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)
+ * A list of public (non-internal) constants it defines (if any) – for each constant include its name, value (redact secrets), and a short type/role description
+ * A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals
+ * The type of database integration it employs (if any), stating the mechanism used, a description of the integration and an example code snippet (max 8 lines) that performs the database integration. If any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
+   - Uses ActiveRecord models, migrations, or associations => mechanism: 'ACTIVE-RECORD'
+   - Uses Sequel ORM DSL => mechanism: 'SEQUEL'
+   - Uses other Ruby ORM / micro ORM (ROM.rb etc.) => mechanism: 'ORM' (or 'MICRO-ORM' if clearly a lightweight micro ORM abstraction)
+   - Executes raw SQL strings (SELECT / INSERT / etc.) => mechanism: 'SQL'
+   - Invokes stored procedures (via connection.exec with call syntax) => mechanism: 'STORED-PROCEDURE'
+   - Uses database driver / adapter directly (e.g., PG, mysql2) without ORM abstractions => mechanism: 'DRIVER'
+   - Defines migration DSL altering/creating tables (create_table / add_column ...) => mechanism: 'DDL'
+   - Performs data manipulation DML-only scripts distinct from schema (bulk insert helpers, data seeding logic) => mechanism: 'DML'
+   - Creates triggers (via execute or DSL) => mechanism: 'TRIGGER'
+   - Creates functions / stored routines => mechanism: 'FUNCTION'
+   - Otherwise, if no database interaction is evident => mechanism: 'NONE'`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
     }),
     hasComplexSchema: false,
   },

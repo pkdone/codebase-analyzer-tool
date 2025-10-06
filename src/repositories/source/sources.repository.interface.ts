@@ -54,7 +54,6 @@ export interface SourcesRepository {
    */
   vectorSearchProjectSourcesRawContent(
     projectName: string,
-    fileType: string,
     queryVector: number[],
     numCandidates: number,
     limit: number,

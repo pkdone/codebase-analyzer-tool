@@ -10,6 +10,8 @@ export const fileTypeMappingsConfig = {
     ["ts", "javascript"],
     ["javascript", "javascript"],
     ["typescript", "javascript"],
+    ["rb", "ruby"],
+    ["cs", "csharp"],
     ["ddl", "sql"],
     ["sql", "sql"],
     ["xml", "xml"],

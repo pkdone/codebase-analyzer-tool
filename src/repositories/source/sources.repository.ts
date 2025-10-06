@@ -153,7 +153,6 @@ export default class SourcesRepositoryImpl
    */
   async vectorSearchProjectSourcesRawContent(
     projectName: string,
-    fileType: string,
     queryVector: number[],
     numCandidates: number,
     limit: number,
@@ -168,7 +167,7 @@ export default class SourcesRepositoryImpl
           index: databaseConfig.CONTENT_VECTOR_INDEX_NAME,
           path: databaseConfig.CONTENT_VECTOR_FIELD,
           filter: {
-            $and: [{ projectName: { $eq: projectName } }, { type: { $eq: fileType } }],
+            projectName: { $eq: projectName },
           },
           queryVector: queryVectorDoubles,
           numCandidates,

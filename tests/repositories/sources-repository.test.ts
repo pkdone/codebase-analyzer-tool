@@ -137,7 +137,6 @@ describe("SourcesRepositoryImpl", () => {
   describe("vectorSearchProjectSourcesRawContent", () => {
     it("should construct correct aggregation pipeline", async () => {
       const projectName = "test-project";
-      const fileType = "ts";
       const queryVector = [1.0, 2.0, 3.0];
       const numCandidates = 100;
       const limit = 10;
@@ -146,7 +145,7 @@ describe("SourcesRepositoryImpl", () => {
         {
           projectName,
           filepath: "src/test.ts",
-          type: fileType,
+          type: "ts",
           content: "test content",
           summary: { classpath: "Test" },
         },
@@ -156,7 +155,6 @@ describe("SourcesRepositoryImpl", () => {
 
       const result = await repository.vectorSearchProjectSourcesRawContent(
         projectName,
-        fileType,
         queryVector,
         numCandidates,
         limit,
@@ -169,7 +167,7 @@ describe("SourcesRepositoryImpl", () => {
             index: databaseConfig.CONTENT_VECTOR_INDEX_NAME,
             path: databaseConfig.CONTENT_VECTOR_FIELD,
             filter: {
-              $and: [{ projectName: { $eq: projectName } }, { type: { $eq: fileType } }],
+              projectName: { $eq: projectName },
             },
             queryVector: [new Double(1.0), new Double(2.0), new Double(3.0)],
             numCandidates,
@@ -200,7 +198,6 @@ describe("SourcesRepositoryImpl", () => {
 
       await repository.vectorSearchProjectSourcesRawContent(
         "test-project",
-        "ts",
         queryVector,
         100,
         10,
@@ -225,7 +222,7 @@ describe("SourcesRepositoryImpl", () => {
       } as any);
 
       await expect(
-        repository.vectorSearchProjectSourcesRawContent("test", "ts", [1, 2, 3], 100, 10),
+        repository.vectorSearchProjectSourcesRawContent("test", [1, 2, 3], 100, 10),
       ).rejects.toThrow(mongoError);
 
       expect(mockLogging.logErrorMsgAndDetail).toHaveBeenCalledWith(

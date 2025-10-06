@@ -10,12 +10,21 @@ const DATABASE_MECHANISM_VALUES = [
   "JPA",
   "MQL",
   "ORM",
+  "DRIVER",
   "EJB",
   "DDL",
   "DML",
   "STORED-PROCEDURE",
   "TRIGGER",
   "FUNCTION",
+  "EF-CORE",
+  "ADO-NET",
+  "DAPPER",
+  "ACTIVE-RECORD",
+  "SEQUEL",
+  "MONGOOSE",
+  "PRISMA",
+  "MICRO-ORM",
   "OTHER",
 ] as const;
 const DATABASE_MECHANISM_SET = new Set<string>(DATABASE_MECHANISM_VALUES);
@@ -150,9 +159,9 @@ export const sourceSummarySchema = z
     classname: z.string().optional().describe("The name of the main public class or interface."),
     classpath: z.string().optional().describe("The fully qualified classpath."),
     classType: z
-      .enum(["class", "interface"])
+      .enum(["class", "interface", "record", "struct"])
       .optional()
-      .describe("The type of the main entity, e.g., 'class' or 'interface'."),
+      .describe("The type of the main entity, e.g., 'class', 'interface', `record`, struct`."),
     internalReferences: z
       .array(z.string())
       .optional()

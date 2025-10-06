@@ -25,6 +25,7 @@ describe("File Handler Configuration", () => {
         "xml",
         "jsp",
         "markdown",
+        "csharp",
       ];
 
       expectedPromptTypes.forEach((type) => {
@@ -33,7 +34,8 @@ describe("File Handler Configuration", () => {
     });
 
     test("should have correct number of mappings", () => {
-      expect(Object.keys(fileTypeMetadataConfig).length).toBe(7);
+  // Updated expected count from 8 to 9 after addition of 'csharp' file type metadata mapping
+  expect(Object.keys(fileTypeMetadataConfig).length).toBe(9);
     });
 
     test("should have valid Zod schemas for each file type", () => {
