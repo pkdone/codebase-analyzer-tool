@@ -196,12 +196,7 @@ describe("SourcesRepositoryImpl", () => {
 
       mockAggregationCursor.toArray.mockResolvedValue(mockResults);
 
-      await repository.vectorSearchProjectSourcesRawContent(
-        "test-project",
-        queryVector,
-        100,
-        10,
-      );
+      await repository.vectorSearchProjectSourcesRawContent("test-project", queryVector, 100, 10);
 
       // Verify that aggregate was called with the expected pipeline structure
       expect(mockCollection.aggregate).toHaveBeenCalledWith(
