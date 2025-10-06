@@ -35,16 +35,10 @@ export class InsightsProcessorSelector {
     );
     const supportsFullCodebaseAnalysis = codeBlockContentTokensEstimate < primaryCompletionTokens;
 
-    console.log(this.rawCodeGenerator);
-    console.log(supportsFullCodebaseAnalysis);
-    return this.dbGenerator;
-    // TODO: revert
-    /*
     if (supportsFullCodebaseAnalysis) {
       return this.rawCodeGenerator;
     } else {
       return this.dbGenerator;
     }
-      */
   }
 }
