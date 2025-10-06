@@ -164,10 +164,19 @@ export const sourceSummarySchema = z
         "The fully qualified namespace including class/object name (e.g. classpath in Java).",
       ),
     kind: z
-      .enum(["class", "interface", "record", "struct", "enum", "annotation-type", "module"])
+      .enum([
+        "class",
+        "interface",
+        "record",
+        "struct",
+        "enum",
+        "annotation-type",
+        "module",
+        "union",
+      ])
       .optional()
       .describe(
-        "The kind of the main entity, e.g., 'class', 'interface', `record`, 'struct`, 'enum', 'annotation-type', 'module'.",
+        "The kind of the main entity, e.g., 'class', 'interface', `record`, 'struct`, 'enum', 'annotation-type', 'module', 'union'.",
       ),
     internalReferences: z
       .array(z.string())

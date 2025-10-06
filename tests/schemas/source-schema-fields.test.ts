@@ -44,7 +44,17 @@ describe("Source Schema Fields - NEW Names", () => {
         | "enum"
         | "annotation-type"
         | "module"
-      )[] = ["class", "interface", "record", "struct", "enum", "annotation-type", "module"];
+        | "union"
+      )[] = [
+        "class",
+        "interface",
+        "record",
+        "struct",
+        "enum",
+        "annotation-type",
+        "module",
+        "union",
+      ];
 
       validTypes.forEach((type) => {
         const testData = {
@@ -188,6 +198,7 @@ describe("Source Schema Fields - NEW Names", () => {
         | "enum"
         | "annotation-type"
         | "module"
+        | "union"
         | undefined = summary.kind;
       const namespace: string | undefined = summary.namespace;
 
