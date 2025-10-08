@@ -72,7 +72,7 @@ export default class AppSummariesRepositoryImpl
    */
   async getProjectAppSummaryFields<K extends keyof AppSummaryRecordWithId>(
     projectName: string,
-    fieldNames: K[],
+    fieldNames: readonly K[],
   ): Promise<Pick<AppSummaryRecordWithId, K> | null> {
     if (fieldNames.length === 0) return null;
     const query = { projectName };

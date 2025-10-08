@@ -190,7 +190,7 @@
     </style>
   </head>
   <body>
-    <h1>Codebase Analysis Tools (CAT) Report <a href="<%= jsonFilesConfig.dataFiles.completeReport %>.json" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h1>
+    <h1>Codebase Analysis Tools (CAT) Report <a href="<%= jsonFilesConfig.jsonDataFiles.completeReport %>.json" target="_blank" style="font-size: 0.7em; margin-left: 10px; text-decoration: none; color: #007cba;">[JSON]</a></h1>
     <hr/>
     <%- include('partials/app-statistics', { appStats: appStats, jsonFilesConfig: jsonFilesConfig }) %>
     <%- include('partials/file-types-summary', { fileTypesData: fileTypesData, fileTypesPieChartPath: fileTypesPieChartPath, fileTypesTableViewModel: fileTypesTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>

@@ -16,7 +16,7 @@ import { TableViewModel, type DisplayableTableRow } from "./view-models/table-vi
 import { convertToDisplayName } from "../../common/utils/text-utils";
 import { ensureDirectoryExists } from "../../common/utils/directory-operations";
 import { htmlReportConstants } from "./html-report.constants";
-import { jsonFilesConfig } from "./json-files.config";
+import { insightsConfig } from "./insights.config";
 import path from "path";
 
 /**
@@ -57,26 +57,11 @@ export default class AppReportGenerator {
     outputDir: string,
     outputFilename: string,
   ): Promise<void> {
-    console.log(`Creating report for project: ${projectName}`);
-    // Consolidate all required app summary fields in a single query
-    // This includes fields needed by both AppStatisticsDataProvider and CategoriesDataProvider
-    const allRequiredAppSummaryFields = [
-      "appDescription",
-      "llmProvider",
-      "technologies",
-      "businessProcesses",
-      "boundedContexts",
-      "aggregates",
-      "entities",
-      "repositories",
-      "potentialMicroservices",
-    ];
-
     const [appSummaryData, fileTypesData, dbInteractions, procsAndTriggers, topLevelJavaClasses] =
       await Promise.all([
         this.appSummariesRepository.getProjectAppSummaryFields(
           projectName,
-          allRequiredAppSummaryFields,
+          insightsConfig.allRequiredAppSummaryFields,
         ),
         this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
         this.databaseDataProvider.getDatabaseInteractions(projectName),
@@ -93,7 +78,6 @@ export default class AppReportGenerator {
     // Generate data using consolidated app summary data
     const appStats = await this.appStatsDataProvider.getAppStatistics(projectName, appSummaryData);
     const categorizedData = this.categoriesDataProvider.getCategorizedData(appSummaryData);
-
     const reportData: ReportData = {
       appStats,
       fileTypesData,
@@ -128,19 +112,21 @@ export default class AppReportGenerator {
       procsAndTriggers: reportData.procsAndTriggers,
       topLevelJavaClasses: reportData.topLevelJavaClasses,
     };
-
     const preparedData: PreparedJsonData[] = [
-      { filename: `${jsonFilesConfig.dataFiles.completeReport}.json`, data: completeReportData },
-      { filename: jsonFilesConfig.dataFiles.appStats, data: reportData.appStats },
+      { filename: `${insightsConfig.jsonDataFiles.completeReport}.json`, data: completeReportData },
+      { filename: insightsConfig.jsonDataFiles.appStats, data: reportData.appStats },
       {
-        filename: jsonFilesConfig.dataFiles.appDescription,
+        filename: insightsConfig.jsonDataFiles.appDescription,
         data: { appDescription: reportData.appStats.appDescription },
       },
-      { filename: jsonFilesConfig.dataFiles.fileTypes, data: reportData.fileTypesData },
-      { filename: jsonFilesConfig.dataFiles.dbInteractions, data: reportData.dbInteractions },
-      { filename: jsonFilesConfig.dataFiles.procsAndTriggers, data: reportData.procsAndTriggers },
+      { filename: insightsConfig.jsonDataFiles.fileTypes, data: reportData.fileTypesData },
+      { filename: insightsConfig.jsonDataFiles.dbInteractions, data: reportData.dbInteractions },
       {
-        filename: jsonFilesConfig.dataFiles.topLevelJavaClasses,
+        filename: insightsConfig.jsonDataFiles.procsAndTriggers,
+        data: reportData.procsAndTriggers,
+      },
+      {
+        filename: insightsConfig.jsonDataFiles.topLevelJavaClasses,
         data: reportData.topLevelJavaClasses,
       },
     ];
@@ -148,7 +134,7 @@ export default class AppReportGenerator {
     // Add categorized data files
     reportData.categorizedData.forEach((categoryData) => {
       preparedData.push({
-        filename: jsonFilesConfig.getCategoryFilename(categoryData.category),
+        filename: insightsConfig.getCategoryJSONFilename(categoryData.category),
         data: categoryData.data,
       });
     });
@@ -248,7 +234,7 @@ export default class AppReportGenerator {
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
       topLevelJavaClasses: reportData.topLevelJavaClasses,
-      jsonFilesConfig,
+      jsonFilesConfig: insightsConfig,
       convertToDisplayName,
       fileTypesTableViewModel,
       dbInteractionsTableViewModel,

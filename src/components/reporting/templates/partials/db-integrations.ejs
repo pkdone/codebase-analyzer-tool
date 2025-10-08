@@ -1,7 +1,7 @@
-<%- include('section-header', { title: 'Database Interactions', jsonFile: jsonFilesConfig.dataFiles.dbInteractions }) %>
+<%- include('section-header', { title: 'Database Interactions', jsonFile: jsonFilesConfig.jsonDataFiles.dbInteractions }) %>
 <%- include('table', { viewModel: dbInteractionsTableViewModel }) %>
 
-<%- include('section-header', { title: 'Database Stored Procedures & Triggers', jsonFile: jsonFilesConfig.dataFiles.procsAndTriggers }) %>
+<%- include('section-header', { title: 'Database Stored Procedures & Triggers', jsonFile: jsonFilesConfig.jsonDataFiles.procsAndTriggers }) %>
 <p>Stored Procedures: <b><%= procsAndTriggers.procs.total %></b>&nbsp;&nbsp;&nbsp;&nbsp;(complexity: low = <%= procsAndTriggers.procs.low %>, medium = <%= procsAndTriggers.procs.medium %>, high = <%= procsAndTriggers.procs.high %>)</p>
 <p>Triggers: <b><%= procsAndTriggers.trigs.total %></b>&nbsp;&nbsp;&nbsp;&nbsp;(complexity: low = <%= procsAndTriggers.trigs.low %>, medium = <%= procsAndTriggers.trigs.medium %>, high = <%= procsAndTriggers.trigs.high %>)</p>
 

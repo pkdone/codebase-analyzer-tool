@@ -31,7 +31,7 @@ export interface AppSummariesRepository {
    */
   getProjectAppSummaryFields<K extends keyof AppSummaryRecordWithId>(
     projectName: string,
-    fieldNames: K[],
+    fieldNames: readonly K[],
   ): Promise<Pick<AppSummaryRecordWithId, K> | null>;
 
   /**

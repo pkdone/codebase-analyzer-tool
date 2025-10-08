@@ -1,14 +1,30 @@
 import { outputConfig } from "../../config/output.config";
 
 /**
- * Configuration for JSON file generation in HTML reports.
+ * Configuration for insights and report generation.
  * Maps data types to their corresponding JSON filenames.
  */
-export const jsonFilesConfig = {
+export const insightsConfig = {
+  /**
+   * All required app summary fields for report generation.
+   * This includes fields needed by both AppStatisticsDataProvider and CategoriesDataProvider.
+   */
+  allRequiredAppSummaryFields: [
+    "appDescription",
+    "llmProvider",
+    "technologies",
+    "businessProcesses",
+    "boundedContexts",
+    "aggregates",
+    "entities",
+    "repositories",
+    "potentialMicroservices",
+  ],
+
   /**
    * Filenames for additional data section JSON files
    */
-  dataFiles: {
+  jsonDataFiles: {
     completeReport: outputConfig.OUTPUT_SUMMARY_FILENAME,
     appStats: "app-stats.json",
     appDescription: "app-description.json",
@@ -21,5 +37,5 @@ export const jsonFilesConfig = {
   /**
    * Generate category filename from category key
    */
-  getCategoryFilename: (category: string): string => `${category}.json`,
+  getCategoryJSONFilename: (category: string): string => `${category}.json`,
 } as const;

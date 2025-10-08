@@ -305,15 +305,10 @@ export class DependencyTreePngGenerator {
   ): void {
     // Only collect actual nodes, not references
     if (!node.isReference) {
-      if (!nodesByLevel.has(node.level)) {
-        nodesByLevel.set(node.level, []);
-      }
+      if (!nodesByLevel.has(node.level)) nodesByLevel.set(node.level, []);
       const nodes = nodesByLevel.get(node.level);
-      if (nodes) {
-        nodes.push(node);
-      }
+      if (nodes) nodes.push(node);
 
-      // Recursively collect children
       for (const child of node.children) {
         this.collectNodesByLevel(child, nodesByLevel);
       }

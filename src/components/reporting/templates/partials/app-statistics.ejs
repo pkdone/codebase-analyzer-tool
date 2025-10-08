@@ -1,9 +1,9 @@
-<%- include('section-header', { title: 'Application Statistics', jsonFile: jsonFilesConfig.dataFiles.appStats }) %>
+<%- include('section-header', { title: 'Application Statistics', jsonFile: jsonFilesConfig.jsonDataFiles.appStats }) %>
 <p>Application: <b><%= appStats.projectName %></b></p>
 <p>Snapshot date/time: <b><%= appStats.currentDate %></b></p>
 <p>LLM provider: <b><%= appStats.llmProvider %></b></p>
 <p>Files count: <b><%= appStats.fileCount %></b></p>
 <p>Lines of code: <b><%= appStats.linesOfCode %></b></p>
 
-<%- include('section-header', { title: 'Application Description', jsonFile: jsonFilesConfig.dataFiles.appDescription }) %>
+<%- include('section-header', { title: 'Application Description', jsonFile: jsonFilesConfig.jsonDataFiles.appDescription }) %>
 <p><%= appStats.appDescription %></p> 

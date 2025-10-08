@@ -265,8 +265,9 @@ export default class SourcesRepositoryImpl
   async getTopLevelJavaClassesByDependencyCount(
     projectName: string,
   ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
-    const MAX_DEPENDENCY_DEPTH = 8;
-    const RESULT_LIMIT = 25;
+    // TODO: This is inneficient and should be optimized.
+    const MAX_DEPENDENCY_DEPTH = 1;
+    const RESULT_LIMIT = 5;
 
     const pipeline: Document[] = [
       {
