@@ -76,6 +76,9 @@ describe("CodebaseToDBLoader", () => {
       }),
     } as unknown as jest.Mocked<FileSummarizer>;
 
+    // Default mock for sortFilesBySize - returns files in same order
+    mockDirectoryOperations.sortFilesBySize.mockImplementation(async (files) => files);
+
     loader = new CodebaseToDBLoader(mockSourcesRepository, mockLLMRouter, mockFileSummarizer);
   });
 
@@ -101,8 +104,8 @@ describe("CodebaseToDBLoader", () => {
         "/src",
         fileProcessingConfig.FOLDER_IGNORE_LIST,
         fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-        true,
       );
+      expect(mockDirectoryOperations.sortFilesBySize).toHaveBeenCalledWith(mockFiles);
       expect(mockSourcesRepository.deleteSourcesByProject).toHaveBeenCalledWith("testProject");
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
     });

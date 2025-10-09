@@ -6,6 +6,7 @@ import {
   listDirectoryEntries,
   clearDirectory,
   findFilesRecursively,
+  sortFilesBySize,
 } from "../../../src/common/utils/directory-operations";
 import { readAndFilterLines } from "../../../src/common/utils/file-content-utils";
 
@@ -278,17 +279,15 @@ line3
       const folderIgnoreList = ["node_modules", "dist", ".git"];
       const filenameIgnorePrefix = ".";
 
-      const files = await findFilesRecursively(
-        "/project",
-        folderIgnoreList,
-        filenameIgnorePrefix,
-        true,
-      );
+      const files = await findFilesRecursively("/project", folderIgnoreList, filenameIgnorePrefix);
 
-      expect(files.length).toBeGreaterThan(0);
+      // Sort files by size to get largest first
+      const sortedFiles = await sortFilesBySize(files);
+
+      expect(sortedFiles.length).toBeGreaterThan(0);
 
       // Check that largest file comes first (large-file.md should be largest)
-      const firstFile = path.relative("/project", files[0]);
+      const firstFile = path.relative("/project", sortedFiles[0]);
       expect(firstFile).toBe("large-file.md");
     });
 

@@ -1,6 +1,6 @@
 import { promises as fs, Dirent } from "fs";
 import path from "path";
-import glob, { Entry } from "fast-glob";
+import glob from "fast-glob";
 import { logErrorMsgAndDetail } from "./logging";
 
 /**
@@ -46,58 +46,48 @@ export async function clearDirectory(dirPath: string): Promise<void> {
 }
 
 /**
- * Build the list of files descending from a directory
- *
- * If `orderByLargestSizeFileFirst` is true, the files are sorted by size, largest first, otherwise
- * they are just ordered in the natural (arbitrary) order they are discovered by glob.
+ * Build the list of files descending from a directory.
+ * Files are returned in the natural (arbitrary) order they are discovered by glob.
  */
 export async function findFilesRecursively(
   srcDirPath: string,
   folderIgnoreList: readonly string[],
   filenameIgnorePrefix: string,
-  orderByLargestSizeFileFirst = false,
 ): Promise<string[]> {
   const ignorePatterns = [
     ...folderIgnoreList.map((folder) => `**/${folder}/**`),
     `**/${filenameIgnorePrefix}*`,
   ];
 
-  // Build glob options dynamically to avoid code duplication
   const globOptions = {
     cwd: srcDirPath,
     absolute: true,
     onlyFiles: true,
     ignore: ignorePatterns,
-    ...(orderByLargestSizeFileFirst && { stats: true }),
   };
 
   const files = await glob("**/*", globOptions);
-
-  if (orderByLargestSizeFileFirst) {
-    // When stats is true, glob returns Entry[] with stats property
-    const filesWithStats = files as unknown as Entry[];
-
-    // Helper function to check if entry has valid stats
-    const hasValidStats = (entry: Entry): entry is Entry & { stats: { size: number } } => {
-      if (entry.stats && typeof entry.stats.size === "number") {
-        return true;
-      } else {
-        logErrorMsgAndDetail(
-          `Unable to get file size for: ${entry.path}`,
-          new Error("Stats not available"),
-        );
-        return false;
-      }
-    };
-
-    return filesWithStats
-      .filter(hasValidStats)
-      .toSorted((a, b) => b.stats.size - a.stats.size)
-      .map((entry) => entry.path);
-  }
-
-  // When stats is not set, glob returns string[]
   return files;
+}
+
+/**
+ * Sort files by size, largest first.
+ * This is useful for distributing work more evenly when processing files concurrently.
+ */
+export async function sortFilesBySize(filepaths: string[]): Promise<string[]> {
+  const filesWithSizes = await Promise.all(
+    filepaths.map(async (filepath) => {
+      try {
+        const stats = await fs.stat(filepath);
+        return { filepath, size: stats.size };
+      } catch (statError: unknown) {
+        logErrorMsgAndDetail(`Unable to get file size for: ${filepath}`, statError);
+        return { filepath, size: 0 };
+      }
+    }),
+  );
+
+  return filesWithSizes.sort((a, b) => b.size - a.size).map((entry) => entry.filepath);
 }
 
 /**

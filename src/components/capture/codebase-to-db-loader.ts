@@ -3,7 +3,7 @@ import type LLMRouter from "../../llm/core/llm-router";
 import path from "path";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { readFile } from "../../common/utils/file-operations";
-import { findFilesRecursively } from "../../common/utils/directory-operations";
+import { findFilesRecursively, sortFilesBySize } from "../../common/utils/directory-operations";
 import { getFileExtension } from "../../common/utils/path-utils";
 import { countLines } from "../../common/utils/text-utils";
 import { processItemsConcurrently } from "../../common/utils/async-utils";
@@ -39,10 +39,11 @@ export default class CodebaseToDBLoader {
       srcDirPath,
       fileProcessingConfig.FOLDER_IGNORE_LIST,
       fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-      true,
     );
+    // Sort files by size (largest first) to distribute work more evenly during concurrent processing
+    const sortedFilepaths = await sortFilesBySize(srcFilepaths);
     await this.processAndStoreSourceFilesIntoDB(
-      srcFilepaths,
+      sortedFilepaths,
       projectName,
       srcDirPath,
       skipIfAlreadyCaptured,

@@ -1,60 +1,30 @@
-import { findFilesRecursively } from "../../../src/common/utils/directory-operations";
+import {
+  findFilesRecursively,
+  sortFilesBySize,
+} from "../../../src/common/utils/directory-operations";
 import glob from "fast-glob";
+import { promises as fs } from "fs";
 
 jest.mock("fast-glob");
+jest.mock("fs", () => ({
+  promises: {
+    stat: jest.fn(),
+  },
+}));
 
 describe("directory-operations", () => {
-  describe("findFilesRecursively - dynamic glob options", () => {
+  describe("findFilesRecursively", () => {
     const mockGlob = glob as jest.MockedFunction<typeof glob>;
 
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
-    test("should call glob once with stats option when ordering by size", async () => {
-      const mockFiles = [
-        { path: "/test/file1.ts", stats: { size: 100 } },
-        { path: "/test/file2.ts", stats: { size: 50 } },
-        { path: "/test/file3.ts", stats: { size: 200 } },
-      ];
-      mockGlob.mockResolvedValue(mockFiles as any);
-
-      const result = await findFilesRecursively(
-        "/test",
-        ["node_modules", "dist"],
-        ".",
-        true, // orderByLargestSizeFileFirst
-      );
-
-      // Verify glob was called only once
-      expect(mockGlob).toHaveBeenCalledTimes(1);
-
-      // Verify glob was called with stats option
-      expect(mockGlob).toHaveBeenCalledWith(
-        "**/*",
-        expect.objectContaining({
-          cwd: "/test",
-          absolute: true,
-          onlyFiles: true,
-          stats: true,
-          ignore: ["**/node_modules/**", "**/dist/**", "**/.*"],
-        }),
-      );
-
-      // Verify files are sorted by size (largest first)
-      expect(result).toEqual(["/test/file3.ts", "/test/file1.ts", "/test/file2.ts"]);
-    });
-
-    test("should call glob once without stats option when not ordering by size", async () => {
+    test("should call glob with correct options", async () => {
       const mockFiles = ["/test/file1.ts", "/test/file2.ts", "/test/file3.ts"];
       mockGlob.mockResolvedValue(mockFiles as any);
 
-      const result = await findFilesRecursively(
-        "/test",
-        ["node_modules"],
-        ".",
-        false, // orderByLargestSizeFileFirst
-      );
+      const result = await findFilesRecursively("/test", ["node_modules"], ".");
 
       // Verify glob was called only once
       expect(mockGlob).toHaveBeenCalledTimes(1);
@@ -70,31 +40,17 @@ describe("directory-operations", () => {
         }),
       );
 
-      // Verify stats is not in the options (dynamic spreading didn't add it)
+      // Verify stats is not in the options
       const callArgs = mockGlob.mock.calls[0][1];
       expect(callArgs).not.toHaveProperty("stats");
 
       expect(result).toEqual(mockFiles);
     });
 
-    test("should handle files with missing stats gracefully", async () => {
-      const mockFiles = [
-        { path: "/test/file1.ts", stats: { size: 100 } },
-        { path: "/test/file2.ts", stats: undefined }, // Missing stats
-        { path: "/test/file3.ts", stats: { size: 50 } },
-      ];
-      mockGlob.mockResolvedValue(mockFiles as any);
-
-      const result = await findFilesRecursively("/test", [], ".", true);
-
-      // Should only include files with valid stats
-      expect(result).toEqual(["/test/file1.ts", "/test/file3.ts"]);
-    });
-
     test("should build ignore patterns correctly", async () => {
       mockGlob.mockResolvedValue([]);
 
-      await findFilesRecursively("/test", ["node_modules", "dist", ".git"], "_temp", false);
+      await findFilesRecursively("/test", ["node_modules", "dist", ".git"], "_temp");
 
       expect(mockGlob).toHaveBeenCalledWith(
         "**/*",
@@ -104,17 +60,103 @@ describe("directory-operations", () => {
       );
     });
 
-    test("should sort files correctly when ordering by size", async () => {
-      const mockFiles = [
-        { path: "/test/small.ts", stats: { size: 10 } },
-        { path: "/test/large.ts", stats: { size: 1000 } },
-        { path: "/test/medium.ts", stats: { size: 100 } },
-      ];
+    test("should return files in natural order from glob", async () => {
+      const mockFiles = ["/test/file1.ts", "/test/file3.ts", "/test/file2.ts"];
       mockGlob.mockResolvedValue(mockFiles as any);
 
-      const result = await findFilesRecursively("/test", [], ".", true);
+      const result = await findFilesRecursively("/test", [], ".");
+
+      expect(result).toEqual(mockFiles);
+    });
+
+    test("should handle empty results", async () => {
+      mockGlob.mockResolvedValue([]);
+
+      const result = await findFilesRecursively("/test", [], ".");
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("sortFilesBySize", () => {
+    const mockStat = fs.stat as jest.MockedFunction<typeof fs.stat>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test("should sort files by size, largest first", async () => {
+      const files = ["/test/small.ts", "/test/large.ts", "/test/medium.ts"];
+
+      mockStat
+        .mockResolvedValueOnce({ size: 10 } as any) // small.ts
+        .mockResolvedValueOnce({ size: 1000 } as any) // large.ts
+        .mockResolvedValueOnce({ size: 100 } as any); // medium.ts
+
+      const result = await sortFilesBySize(files);
 
       expect(result).toEqual(["/test/large.ts", "/test/medium.ts", "/test/small.ts"]);
+      expect(mockStat).toHaveBeenCalledTimes(3);
+    });
+
+    test("should handle files with stat errors gracefully", async () => {
+      const files = ["/test/file1.ts", "/test/missing.ts", "/test/file3.ts"];
+
+      mockStat
+        .mockResolvedValueOnce({ size: 100 } as any) // file1.ts
+        .mockRejectedValueOnce(new Error("File not found")) // missing.ts
+        .mockResolvedValueOnce({ size: 50 } as any); // file3.ts
+
+      const result = await sortFilesBySize(files);
+
+      // File with error should be at the end (size 0)
+      expect(result).toEqual(["/test/file1.ts", "/test/file3.ts", "/test/missing.ts"]);
+      expect(mockStat).toHaveBeenCalledTimes(3);
+    });
+
+    test("should handle empty file list", async () => {
+      const result = await sortFilesBySize([]);
+
+      expect(result).toEqual([]);
+      expect(mockStat).not.toHaveBeenCalled();
+    });
+
+    test("should handle single file", async () => {
+      const files = ["/test/single.ts"];
+
+      mockStat.mockResolvedValueOnce({ size: 42 } as any);
+
+      const result = await sortFilesBySize(files);
+
+      expect(result).toEqual(["/test/single.ts"]);
+      expect(mockStat).toHaveBeenCalledTimes(1);
+    });
+
+    test("should handle files with same size", async () => {
+      const files = ["/test/file1.ts", "/test/file2.ts", "/test/file3.ts"];
+
+      mockStat
+        .mockResolvedValueOnce({ size: 100 } as any)
+        .mockResolvedValueOnce({ size: 100 } as any)
+        .mockResolvedValueOnce({ size: 100 } as any);
+
+      const result = await sortFilesBySize(files);
+
+      // Order should be stable for same-size files
+      expect(result).toHaveLength(3);
+      expect(result).toEqual(expect.arrayContaining(files));
+    });
+
+    test("should handle files with zero size", async () => {
+      const files = ["/test/empty.ts", "/test/nonempty.ts"];
+
+      mockStat
+        .mockResolvedValueOnce({ size: 0 } as any) // empty.ts
+        .mockResolvedValueOnce({ size: 100 } as any); // nonempty.ts
+
+      const result = await sortFilesBySize(files);
+
+      expect(result).toEqual(["/test/nonempty.ts", "/test/empty.ts"]);
     });
   });
 });

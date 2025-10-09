@@ -4,80 +4,11 @@
       <tr>
         <% 
           const headers = viewModel.getDisplayHeaders();
+          const columnClasses = viewModel.getColumnClasses();
           const rows = viewModel.getProcessedRows();
-          
-          // Function to determine column type based on header name and content
-          function getColumnClass(headerName, columnIndex) {
-            const headerLower = headerName.toLowerCase();
-            
-            // Check for numeric columns
-            if (headerLower.includes('count') || headerLower.includes('total') || 
-                headerLower.includes('number') || headerLower.includes('#') ||
-                headerLower === 'complexity') {
-              return 'col-narrow numeric';
-            }
-            
-            // Check for small identifier columns
-            if (headerLower.includes('type') || headerLower.includes('category') || 
-                headerLower.includes('status') || headerLower.includes('level') ||
-                (headerLower.length <= 8 && !headerLower.includes('entities') && !headerLower.includes('endpoint'))) {
-              return 'col-small';
-            }
-            
-            // Check for description-like columns (widest)
-            if (headerLower.includes('description') || headerLower.includes('details') || 
-                headerLower.includes('content') || headerLower.includes('summary') ||
-                headerLower.includes('comment') || headerLower.includes('note')) {
-              return 'col-description';
-            }
-            
-            // Check for data-rich columns that need more space
-            if (headerLower.includes('entities') || headerLower.includes('endpoints') || 
-                headerLower.includes('operations') || headerLower.includes('methods') ||
-                headerLower.includes('attributes') || headerLower.includes('properties') ||
-                headerLower.includes('fields')) {
-              return 'col-wide';
-            }
-            
-            // Check content length and complexity to determine if it's a wide column
-            let hasComplexContent = false;
-            if (rows.length > 0 && columnIndex < rows[0].length) {
-              const sampleCells = rows.slice(0, Math.min(3, rows.length));
-              hasComplexContent = sampleCells.some(row => {
-                const cell = row[columnIndex];
-                if (!cell || !cell.content) return false;
-                
-                // Check for list-type content
-                if (cell.type === 'list' && cell.content.length > 1) {
-                  return true;
-                }
-                
-                // Check for long text content
-                const contentStr = cell.content.toString();
-                if (contentStr.length > 100) {
-                  return true;
-                }
-                
-                // Check for structured content indicators
-                if (contentStr.includes('•') || contentStr.includes('|') || 
-                    contentStr.includes(':') && contentStr.length > 30) {
-                  return true;
-                }
-                
-                return false;
-              });
-            }
-            
-            if (hasComplexContent) {
-              return 'col-wide';
-            }
-            
-            // Default to medium
-            return 'col-medium';
-          }
         %>
         <% headers.forEach((header, index) => { %>
-          <th class="<%= getColumnClass(header, index) %>"><%= header %></th>
+          <th class="<%= columnClasses[index] %>"><%= header %></th>
         <% }); %>
       </tr>
     </thead>
@@ -85,10 +16,7 @@
       <% rows.forEach(row => { %>
         <tr>
           <% row.forEach((cell, columnIndex) => { %>
-            <% 
-              const headerName = headers[columnIndex] || '';
-              const columnClass = getColumnClass(headerName, columnIndex);
-            %>
+            <% const columnClass = columnClasses[columnIndex]; %>
             <% if (cell.type === 'link') { %>
               <td class="<%= columnClass %>"><a href="<%= cell.content %>" target="_blank">Link</a></td>
             <% } else if (cell.type === 'code') { %>
