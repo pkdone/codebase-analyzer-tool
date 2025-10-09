@@ -12,6 +12,13 @@ import { TOKENS } from "../../../di/tokens";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 /**
+ * Type guard to check if an unknown value is a JSON-RPC body with an id field.
+ */
+function isJsonRpcBody(body: unknown): body is { id: string | number | null } {
+  return typeof body === "object" && body !== null && !Array.isArray(body) && "id" in body;
+}
+
+/**
  * Class to handle HTTP requests and responses for the Model Context Protocol (MCP) server using raw Node.js HTTP server.
  */
 @injectable()
@@ -178,11 +185,11 @@ export default class McpHttpServer {
             // Invalid request - no session ID or not initialization request
             // Attempt to extract an id from the body if present per JSON-RPC 2.0
             let requestId: string | number | null = null;
-            if (typeof body === "object" && body !== null && "id" in body) {
-              const potentialId = (body as Record<string, unknown>).id;
-              if (typeof potentialId === "string" || typeof potentialId === "number") {
-                requestId = potentialId;
-              }
+            if (
+              isJsonRpcBody(body) &&
+              (typeof body.id === "string" || typeof body.id === "number")
+            ) {
+              requestId = body.id;
             }
             this.sendJsonRpcError(
               res,

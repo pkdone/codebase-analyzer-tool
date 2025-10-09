@@ -17,18 +17,14 @@ describe("security-utils", () => {
       const url = "mongodb://username:password@localhost:27017/mydb";
       const result = redactUrl(url);
 
-      expect(result).toBe(
-        "mongodb://REDACTED:REDACTED@localhost:27017/mydb",
-      );
+      expect(result).toBe("mongodb://REDACTED:REDACTED@localhost:27017/mydb");
     });
 
     test("redacts only username when no password", () => {
       const url = "mongodb://username@localhost:27017/mydb";
       const result = redactUrl(url);
 
-      expect(result).toBe(
-        "mongodb://REDACTED:REDACTED@localhost:27017/mydb",
-      );
+      expect(result).toBe("mongodb://REDACTED:REDACTED@localhost:27017/mydb");
     });
 
     test("handles URL without credentials", () => {
@@ -52,9 +48,7 @@ describe("security-utils", () => {
       const url = "mongodb://user%40domain:p%40ssw0rd@localhost:27017/mydb";
       const result = redactUrl(url);
 
-      expect(result).toBe(
-        "mongodb://REDACTED:REDACTED@localhost:27017/mydb",
-      );
+      expect(result).toBe("mongodb://REDACTED:REDACTED@localhost:27017/mydb");
     });
 
     test("returns REDACTED_URL when URL parsing fails", () => {

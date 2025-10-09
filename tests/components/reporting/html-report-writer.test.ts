@@ -21,26 +21,68 @@ describe("HtmlReportWriter", () => {
   let mockConsoleLog: jest.SpyInstance;
 
   const mockPreparedData: PreparedHtmlReportData = {
-    appStats: { fileCount: 100, linesOfCode: 5000 },
-    fileTypesData: { javascript: 50, typescript: 30 },
+    appStats: {
+      projectName: "test-project",
+      currentDate: "2025-10-09",
+      llmProvider: "test-provider",
+      fileCount: 100,
+      linesOfCode: 5000,
+      appDescription: "Test application",
+    },
+    fileTypesData: [
+      { fileType: "javascript", lines: 1000, files: 50 },
+      { fileType: "typescript", lines: 2000, files: 30 },
+    ],
     fileTypesPieChartPath: "/path/to/chart.png",
     categorizedData: [
       {
         category: "entities",
         label: "Business Entities",
         data: [{ name: "User", description: "User entity" }],
-        tableViewModel: {},
+        tableViewModel: new (jest.requireActual(
+          "../../../src/components/reporting/view-models/table-view-model",
+        ).TableViewModel)([]),
       },
     ],
-    dbInteractions: { queries: 10, connections: 3 },
-    procsAndTriggers: { procedures: 5, triggers: 2 },
-    topLevelJavaClasses: { classes: 25 },
-    jsonFilesConfig: { enabled: true },
+    dbInteractions: [
+      {
+        path: "/src/db.ts",
+        mechanism: "MongoDB",
+        description: "Database connection",
+        codeExample: "const db = new MongoClient()",
+      },
+    ],
+    procsAndTriggers: {
+      procs: { total: 5, low: 2, medium: 2, high: 1, list: [] },
+      trigs: { total: 2, low: 1, medium: 1, high: 0, list: [] },
+    },
+    topLevelJavaClasses: [{ namespace: "com.example.MyClass", dependencies: [] }],
+    jsonFilesConfig: {
+      allRequiredAppSummaryFields: ["appDescription", "llmProvider"],
+      jsonDataFiles: {
+        completeReport: "complete-report",
+        appStats: "app-stats.json",
+        appDescription: "app-description.json",
+        fileTypes: "file-types.json",
+        dbInteractions: "db-interactions.json",
+        procsAndTriggers: "procs-and-triggers.json",
+        topLevelJavaClasses: "top-level-java-classes.json",
+      },
+      getCategoryJSONFilename: (category: string) => `${category}.json`,
+    },
     convertToDisplayName: (text: string) => text.replace(/_/g, " "),
-    fileTypesTableViewModel: {},
-    dbInteractionsTableViewModel: {},
-    procsAndTriggersTableViewModel: {},
-    topLevelJavaClassesTableViewModel: {},
+    fileTypesTableViewModel: new (jest.requireActual(
+      "../../../src/components/reporting/view-models/table-view-model",
+    ).TableViewModel)([]),
+    dbInteractionsTableViewModel: new (jest.requireActual(
+      "../../../src/components/reporting/view-models/table-view-model",
+    ).TableViewModel)([]),
+    procsAndTriggersTableViewModel: new (jest.requireActual(
+      "../../../src/components/reporting/view-models/table-view-model",
+    ).TableViewModel)([]),
+    topLevelJavaClassesTableViewModel: new (jest.requireActual(
+      "../../../src/components/reporting/view-models/table-view-model",
+    ).TableViewModel)([]),
   };
 
   beforeEach(() => {

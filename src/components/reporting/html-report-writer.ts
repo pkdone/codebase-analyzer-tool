@@ -3,26 +3,37 @@ import path from "path";
 import ejs from "ejs";
 import { outputConfig } from "../../config/output.config";
 import { writeFile } from "../../common/utils/file-operations";
+import type { AppStatistics, ProcsAndTriggers, DatabaseIntegrationInfo } from "./report-gen.types";
+import type {
+  ProjectedFileTypesCountAndLines,
+  HierarchicalTopLevelJavaClassDependencies,
+} from "../../repositories/source/sources.model";
+import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
+import type { TableViewModel } from "./view-models/table-view-model";
 
 export interface PreparedHtmlReportData {
-  appStats: unknown;
-  fileTypesData: unknown;
+  appStats: AppStatistics;
+  fileTypesData: ProjectedFileTypesCountAndLines[];
   fileTypesPieChartPath: string;
   categorizedData: {
     category: string;
     label: string;
-    data: unknown[];
-    tableViewModel: unknown;
+    data: AppSummaryNameDescArray;
+    tableViewModel: TableViewModel;
   }[];
-  dbInteractions: unknown;
-  procsAndTriggers: unknown;
-  topLevelJavaClasses: unknown;
-  jsonFilesConfig: unknown;
+  dbInteractions: DatabaseIntegrationInfo[];
+  procsAndTriggers: ProcsAndTriggers;
+  topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
+  jsonFilesConfig: {
+    readonly allRequiredAppSummaryFields: readonly string[];
+    readonly jsonDataFiles: Record<string, string>;
+    readonly getCategoryJSONFilename: (category: string) => string;
+  };
   convertToDisplayName: (text: string) => string;
-  fileTypesTableViewModel: unknown;
-  dbInteractionsTableViewModel: unknown;
-  procsAndTriggersTableViewModel: unknown;
-  topLevelJavaClassesTableViewModel: unknown;
+  fileTypesTableViewModel: TableViewModel;
+  dbInteractionsTableViewModel: TableViewModel;
+  procsAndTriggersTableViewModel: TableViewModel;
+  topLevelJavaClassesTableViewModel: TableViewModel;
 }
 
 /**

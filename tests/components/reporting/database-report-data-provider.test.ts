@@ -229,4 +229,194 @@ describe("DatabaseReportDataProvider", () => {
       expect(result.trigs.low).toBe(1);
     });
   });
+
+  describe("switch statement for complexity mapping", () => {
+    test("should correctly map LOW complexity using switch statement", async () => {
+      mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([
+        {
+          filepath: "/path/to/file.sql",
+          summary: {
+            purpose: "Test file",
+            implementation: "Test implementation",
+            storedProcedures: [
+              {
+                name: "lowProc",
+                complexity: "LOW",
+                linesOfCode: 10,
+                purpose: "Low complexity procedure",
+                complexityReason: "Simple logic",
+              },
+            ],
+          },
+        },
+      ]);
+
+      const result = await provider.getSummarizedProceduresAndTriggers("test-project");
+
+      expect(result.procs.low).toBe(1);
+      expect(result.procs.medium).toBe(0);
+      expect(result.procs.high).toBe(0);
+    });
+
+    test("should correctly map MEDIUM complexity using switch statement", async () => {
+      mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([
+        {
+          filepath: "/path/to/file.sql",
+          summary: {
+            purpose: "Test file",
+            implementation: "Test implementation",
+            storedProcedures: [
+              {
+                name: "medProc",
+                complexity: "MEDIUM",
+                linesOfCode: 50,
+                purpose: "Medium complexity procedure",
+                complexityReason: "Moderate logic",
+              },
+            ],
+          },
+        },
+      ]);
+
+      const result = await provider.getSummarizedProceduresAndTriggers("test-project");
+
+      expect(result.procs.low).toBe(0);
+      expect(result.procs.medium).toBe(1);
+      expect(result.procs.high).toBe(0);
+    });
+
+    test("should correctly map HIGH complexity using switch statement", async () => {
+      mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([
+        {
+          filepath: "/path/to/file.sql",
+          summary: {
+            purpose: "Test file",
+            implementation: "Test implementation",
+            storedProcedures: [
+              {
+                name: "highProc",
+                complexity: "HIGH",
+                linesOfCode: 100,
+                purpose: "High complexity procedure",
+                complexityReason: "Complex logic",
+              },
+            ],
+          },
+        },
+      ]);
+
+      const result = await provider.getSummarizedProceduresAndTriggers("test-project");
+
+      expect(result.procs.low).toBe(0);
+      expect(result.procs.medium).toBe(0);
+      expect(result.procs.high).toBe(1);
+    });
+
+    test("should handle switch statement with all complexity types in one aggregation", async () => {
+      mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([
+        {
+          filepath: "/path/to/file.sql",
+          summary: {
+            purpose: "Test file with all complexities",
+            implementation: "Test implementation",
+            storedProcedures: [
+              {
+                name: "proc1",
+                complexity: "LOW",
+                linesOfCode: 10,
+                purpose: "Low",
+                complexityReason: "Simple",
+              },
+              {
+                name: "proc2",
+                complexity: "LOW",
+                linesOfCode: 15,
+                purpose: "Low",
+                complexityReason: "Simple",
+              },
+              {
+                name: "proc3",
+                complexity: "MEDIUM",
+                linesOfCode: 50,
+                purpose: "Medium",
+                complexityReason: "Moderate",
+              },
+              {
+                name: "proc4",
+                complexity: "MEDIUM",
+                linesOfCode: 60,
+                purpose: "Medium",
+                complexityReason: "Moderate",
+              },
+              {
+                name: "proc5",
+                complexity: "MEDIUM",
+                linesOfCode: 70,
+                purpose: "Medium",
+                complexityReason: "Moderate",
+              },
+              {
+                name: "proc6",
+                complexity: "HIGH",
+                linesOfCode: 100,
+                purpose: "High",
+                complexityReason: "Complex",
+              },
+            ],
+          },
+        },
+      ]);
+
+      const result = await provider.getSummarizedProceduresAndTriggers("test-project");
+
+      // Verify switch statement correctly counts all branches
+      expect(result.procs.total).toBe(6);
+      expect(result.procs.low).toBe(2);
+      expect(result.procs.medium).toBe(3);
+      expect(result.procs.high).toBe(1);
+    });
+
+    test("should ensure switch statement is type-safe and exhaustive", async () => {
+      // This test verifies that the switch statement handles all Complexity values
+      // If a new complexity type is added to the Complexity type, TypeScript will
+      // catch it at compile time if the switch statement is not exhaustive
+      mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([
+        {
+          filepath: "/path/to/file.sql",
+          summary: {
+            purpose: "Test file",
+            implementation: "Test implementation",
+            storedProcedures: [
+              {
+                name: "proc1",
+                complexity: "LOW",
+                linesOfCode: 10,
+                purpose: "Test",
+                complexityReason: "Test",
+              },
+              {
+                name: "proc2",
+                complexity: "MEDIUM",
+                linesOfCode: 50,
+                purpose: "Test",
+                complexityReason: "Test",
+              },
+              {
+                name: "proc3",
+                complexity: "HIGH",
+                linesOfCode: 100,
+                purpose: "Test",
+                complexityReason: "Test",
+              },
+            ],
+          },
+        },
+      ]);
+
+      const result = await provider.getSummarizedProceduresAndTriggers("test-project");
+
+      // All three complexity levels should be handled
+      expect(result.procs.low + result.procs.medium + result.procs.high).toBe(result.procs.total);
+    });
+  });
 });

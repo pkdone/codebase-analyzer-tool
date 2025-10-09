@@ -24,11 +24,11 @@ export interface ProcessedListItem {
 /**
  * View model for table data that pre-processes data for display
  */
-export class TableViewModel {
-  private readonly data: DisplayableTableRow[];
+export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow> {
+  private readonly data: T[];
   private readonly headers: string[];
 
-  constructor(data: DisplayableTableRow[]) {
+  constructor(data: T[]) {
     this.data = data;
     this.headers = this.data.length > 0 ? Object.keys(this.data[0]) : [];
   }
@@ -57,7 +57,7 @@ export class TableViewModel {
   /**
    * Process a single row into display-ready format
    */
-  private processRow(row: DisplayableTableRow): ProcessedTableCell[] {
+  private processRow(row: T): ProcessedTableCell[] {
     return this.headers.map((key) => this.processCell(key, row[key]));
   }
 

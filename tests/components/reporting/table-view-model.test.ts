@@ -400,4 +400,94 @@ describe("TableViewModel", () => {
       expect(() => vm.getProcessedRows()).toThrow();
     });
   });
+
+  describe("generic type parameter", () => {
+    it("should work with strongly-typed data structures", () => {
+      interface FileTypeData extends Record<string, unknown> {
+        fileType: string;
+        lines: number;
+        files: number;
+      }
+
+      const fileTypesData: FileTypeData[] = [
+        { fileType: "TypeScript", lines: 1000, files: 50 },
+        { fileType: "JavaScript", lines: 500, files: 25 },
+      ];
+
+      const vm = new TableViewModel<FileTypeData>(fileTypesData);
+
+      expect(vm.hasData()).toBe(true);
+      expect(vm.getDisplayHeaders()).toEqual(["File Type", "Lines", "Files"]);
+      expect(vm.getProcessedRows()).toHaveLength(2);
+    });
+
+    it("should work with nested typed structures", () => {
+      interface DatabaseIntegration extends Record<string, unknown> {
+        path: string;
+        mechanism: string;
+        description: string;
+        codeExample: string;
+      }
+
+      const dbData: DatabaseIntegration[] = [
+        {
+          path: "/src/db/connection.ts",
+          mechanism: "MongoDB",
+          description: "Database connection handler",
+          codeExample: "const client = new MongoClient(url);",
+        },
+      ];
+
+      const vm = new TableViewModel<DatabaseIntegration>(dbData);
+
+      expect(vm.hasData()).toBe(true);
+      expect(vm.getDisplayHeaders()).toEqual(["Path", "Mechanism", "Description", "Code Example"]);
+
+      const rows = vm.getProcessedRows();
+      expect(rows[0][3]).toEqual({
+        type: "code",
+        content: "const client = new MongoClient(url);",
+      });
+    });
+
+    it("should maintain type safety with default parameter", () => {
+      const genericData = [
+        { key: "value1", count: 10 },
+        { key: "value2", count: 20 },
+      ];
+
+      // Should work without explicit type parameter
+      const vm = new TableViewModel(genericData);
+
+      expect(vm.hasData()).toBe(true);
+      expect(vm.getProcessedRows()).toHaveLength(2);
+    });
+
+    it("should handle complex union types in generic parameter", () => {
+      interface ProcedureItem extends Record<string, unknown> {
+        name: string;
+        type: "STORED PROCEDURE";
+        complexity: "LOW" | "MEDIUM" | "HIGH";
+      }
+
+      interface TriggerItem extends Record<string, unknown> {
+        name: string;
+        type: "TRIGGER";
+        complexity: "LOW" | "MEDIUM" | "HIGH";
+      }
+
+      type DatabaseObject = ProcedureItem | TriggerItem;
+
+      const items: DatabaseObject[] = [
+        { name: "GetUser", type: "STORED PROCEDURE", complexity: "LOW" },
+        { name: "AfterInsert", type: "TRIGGER", complexity: "MEDIUM" },
+      ];
+
+      const vm = new TableViewModel<DatabaseObject>(items);
+
+      expect(vm.hasData()).toBe(true);
+      expect(vm.getDisplayHeaders()).toEqual(["Name", "Type", "Complexity"]);
+      expect(vm.getProcessedRows()).toHaveLength(2);
+    });
+  });
 });

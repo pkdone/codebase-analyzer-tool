@@ -336,10 +336,10 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
 
     // Flatten the arrays from all partial results into a single combined list
     const combinedData = partialResults.flatMap((result) => {
-      const categoryData = result[categoryKey as keyof typeof result];
+      const categoryData = result[category];
       // Type guard to ensure we're working with arrays
       if (Array.isArray(categoryData)) {
-        return categoryData as unknown[];
+        return categoryData;
       }
       return [];
     });
