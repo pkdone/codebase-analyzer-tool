@@ -1,8 +1,8 @@
 import { logErrorMsgAndDetail } from "./logging";
 
-// Exported constants
-export const REDACTED_URL = "REDACTED_URL";
-export const REDACTED_CREDENTIALS = "REDACTED";
+// Internal constants - not exported
+const REDACTED_URL = "REDACTED_URL";
+const REDACTED_CREDENTIALS = "REDACTED";
 
 /**
  * Redacts sensitive credentials from a MongoDB connection string.

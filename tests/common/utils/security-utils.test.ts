@@ -1,8 +1,4 @@
-import {
-  redactUrl,
-  REDACTED_URL,
-  REDACTED_CREDENTIALS,
-} from "../../../src/common/utils/security-utils";
+import { redactUrl } from "../../../src/common/utils/security-utils";
 import { logErrorMsgAndDetail } from "../../../src/common/utils/logging";
 
 // Mock the logging module
@@ -22,7 +18,7 @@ describe("security-utils", () => {
       const result = redactUrl(url);
 
       expect(result).toBe(
-        `mongodb://${REDACTED_CREDENTIALS}:${REDACTED_CREDENTIALS}@localhost:27017/mydb`,
+        "mongodb://REDACTED:REDACTED@localhost:27017/mydb",
       );
     });
 
@@ -31,7 +27,7 @@ describe("security-utils", () => {
       const result = redactUrl(url);
 
       expect(result).toBe(
-        `mongodb://${REDACTED_CREDENTIALS}:${REDACTED_CREDENTIALS}@localhost:27017/mydb`,
+        "mongodb://REDACTED:REDACTED@localhost:27017/mydb",
       );
     });
 
@@ -48,7 +44,7 @@ describe("security-utils", () => {
       const result = redactUrl(url);
 
       expect(result).toBe(
-        `mongodb+srv://${REDACTED_CREDENTIALS}:${REDACTED_CREDENTIALS}@cluster0.example.mongodb.net/mydb?retryWrites=true&w=majority`,
+        "mongodb+srv://REDACTED:REDACTED@cluster0.example.mongodb.net/mydb?retryWrites=true&w=majority",
       );
     });
 
@@ -57,7 +53,7 @@ describe("security-utils", () => {
       const result = redactUrl(url);
 
       expect(result).toBe(
-        `mongodb://${REDACTED_CREDENTIALS}:${REDACTED_CREDENTIALS}@localhost:27017/mydb`,
+        "mongodb://REDACTED:REDACTED@localhost:27017/mydb",
       );
     });
 
@@ -65,7 +61,7 @@ describe("security-utils", () => {
       const invalidUrl = "not-a-valid-url";
       const result = redactUrl(invalidUrl);
 
-      expect(result).toBe(REDACTED_URL);
+      expect(result).toBe("REDACTED_URL");
       expect(mockLogErrorMsgAndDetail).toHaveBeenCalledWith(
         "Could not parse URL for redaction",
         expect.anything(),
@@ -75,7 +71,7 @@ describe("security-utils", () => {
     test("handles empty string", () => {
       const result = redactUrl("");
 
-      expect(result).toBe(REDACTED_URL);
+      expect(result).toBe("REDACTED_URL");
       expect(mockLogErrorMsgAndDetail).toHaveBeenCalledWith(
         "Could not parse URL for redaction",
         expect.anything(),
