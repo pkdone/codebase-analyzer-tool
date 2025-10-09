@@ -272,7 +272,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
         const jsonSchema = zodToJsonSchemaWithoutSchemaProperty(options.jsonSchema);
 
         if (isVertexAICompatibleSchema(jsonSchema)) {
-          generationConfig.responseSchema = jsonSchema as Record<string, unknown>;
+          generationConfig.responseSchema = jsonSchema;
         } else {
           logWarningMsg(
             "Generated JSON schema is not compatible with VertexAI SDK's Schema type. " +

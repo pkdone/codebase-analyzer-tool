@@ -29,7 +29,13 @@ export function applyOptionalSchemaValidationToContent<T>(
       return null;
     }
   } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
-    return content as LLMGeneratedContent;
+    if (isLLMGeneratedContent(content)) {
+      return content;
+    }
+    logErrorMsg(
+      `Content for TEXT format is not valid LLMGeneratedContent for resource: ${resourceName}`,
+    );
+    return null;
   } else if (isLLMGeneratedContent(content)) {
     return content;
   } else {

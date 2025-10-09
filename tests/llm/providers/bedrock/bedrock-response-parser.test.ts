@@ -105,4 +105,77 @@ describe("bedrock-response-parser", () => {
       ),
     ).toThrow(BadResponseContentLLMError);
   });
+
+  it("safely handles undefined content using type guard", () => {
+    const response = {
+      // content field completely missing
+      stop_reason: "end_turn",
+      usage: { input_tokens: 1, output_tokens: 2 },
+    };
+
+    const summary = extractGenericCompletionResponse(
+      response,
+      schema,
+      {
+        contentPath: "content[0].text",
+        promptTokensPath: "usage.input_tokens",
+        completionTokensPath: "usage.output_tokens",
+        stopReasonPath: "stop_reason",
+        stopReasonValueForLength: "max_tokens",
+      },
+      "TestProvider",
+    );
+
+    // Type guard should convert undefined to empty string
+    expect(summary.responseContent).toBe("");
+  });
+
+  it("safely handles undefined token counts using type guard", () => {
+    const response = {
+      content: [{ text: "hello" }],
+      stop_reason: "end_turn",
+      // usage field completely missing
+    };
+
+    const summary = extractGenericCompletionResponse(
+      response,
+      schema,
+      {
+        contentPath: "content[0].text",
+        promptTokensPath: "usage.input_tokens",
+        completionTokensPath: "usage.output_tokens",
+        stopReasonPath: "stop_reason",
+        stopReasonValueForLength: "max_tokens",
+      },
+      "TestProvider",
+    );
+
+    // Type guards should convert undefined to -1
+    expect(summary.tokenUsage.promptTokens).toBe(-1);
+    expect(summary.tokenUsage.completionTokens).toBe(-1);
+  });
+
+  it("safely handles undefined stop reason using type guard", () => {
+    const response = {
+      content: [{ text: "hello" }],
+      // stop_reason field completely missing
+      usage: { input_tokens: 1, output_tokens: 2 },
+    };
+
+    const summary = extractGenericCompletionResponse(
+      response,
+      schema,
+      {
+        contentPath: "content[0].text",
+        promptTokensPath: "usage.input_tokens",
+        completionTokensPath: "usage.output_tokens",
+        stopReasonPath: "stop_reason",
+        stopReasonValueForLength: "max_tokens",
+      },
+      "TestProvider",
+    );
+
+    // Type guard should convert undefined to empty string, making response not incomplete
+    expect(summary.isIncompleteResponse).toBe(false);
+  });
 });

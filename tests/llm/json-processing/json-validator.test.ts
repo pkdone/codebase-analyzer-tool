@@ -69,6 +69,33 @@ describe("json-validator", () => {
       expect(result).toBe(content);
     });
 
+    it("should return null for invalid content in TEXT output format", () => {
+      const content = undefined; // Not valid LLMGeneratedContent
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+
+      expect(result).toBeNull();
+    });
+
+    it("should use type guard for TEXT format to validate content safety", () => {
+      const validContent = { key: "value" }; // Valid LLMGeneratedContent
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = applyOptionalSchemaValidationToContent(validContent, options, "test-resource");
+
+      expect(result).toEqual(validContent);
+    });
+
+    it("should handle number as invalid content for TEXT format", () => {
+      const content = 42; // Number is not valid LLMGeneratedContent
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+
+      expect(result).toBeNull();
+    });
+
     it("should return content when no schema is provided for JSON format", () => {
       const content = { name: "John", age: 30 };
       const options = { outputFormat: LLMOutputFormat.JSON };

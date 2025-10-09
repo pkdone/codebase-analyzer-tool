@@ -1,11 +1,12 @@
 /**
  * Helper function to safely get a nested property value from an object using a dot-notation path.
  * Uses modern JavaScript features for cleaner implementation.
+ * Returns unknown to force callers to validate the type with a type guard.
  * @param obj The object to extract the value from
  * @param path The dot-notation path (e.g., "response.choices[0].message.content")
- * @returns The value at the specified path, or undefined if not found
+ * @returns The value at the specified path as unknown, or undefined if not found
  */
-export function getNestedValue<T = unknown>(obj: unknown, path: string): T | undefined {
+export function getNestedValue(obj: unknown, path: string): unknown {
   if (path === "") return undefined;
   if (path.includes("][")) return undefined; // Double bracket notation not supported
   const normalizedPath = path.replace(/\[(\d+)\]/g, ".$1"); // Normalize path: 'choices[0].message' -> 'choices.0.message'
@@ -20,22 +21,20 @@ export function getNestedValue<T = unknown>(obj: unknown, path: string): T | und
     current = (current as Record<string, unknown>)[key];
   }
 
-  return current as T | undefined;
+  return current;
 }
 
 /**
  * Helper function to get a nested property value from an object using multiple fallback paths.
  * Tries each path in order and returns the first non-null/non-undefined value found.
+ * Returns unknown to force callers to validate the type with a type guard.
  * @param obj The object to extract the value from
  * @param paths Array of dot-notation paths to try in order
- * @returns The first value found at any of the specified paths, or undefined if none found
+ * @returns The first value found at any of the specified paths as unknown, or undefined if none found
  */
-export function getNestedValueWithFallbacks<T = unknown>(
-  obj: unknown,
-  paths: string[],
-): T | undefined {
+export function getNestedValueWithFallbacks(obj: unknown, paths: string[]): unknown {
   for (const path of paths) {
-    const value = getNestedValue<T>(obj, path);
+    const value = getNestedValue(obj, path);
     if (value !== null && value !== undefined) {
       return value;
     }

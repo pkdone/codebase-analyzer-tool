@@ -595,7 +595,7 @@ describe("LLM Router tests", () => {
       expect(result).toBeNull();
     });
 
-    test("should return response as-is for TEXT format even with invalid type", async () => {
+    test("should return null for TEXT format with invalid type (type guard protection)", async () => {
       const { router, mockProvider } = createLLMRouter();
       (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
@@ -614,7 +614,8 @@ describe("LLM Router tests", () => {
         null,
       );
 
-      expect(result).toBe(12345);
+      // Type guard now protects against invalid types, returning null instead
+      expect(result).toBeNull();
     });
   });
 

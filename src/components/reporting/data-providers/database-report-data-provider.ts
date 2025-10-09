@@ -14,6 +14,16 @@ const TRIGGER_TYPE = "TRIGGER" as const;
 // Define a more specific type for the items
 type ProcOrTrigItem = z.infer<typeof procedureTriggerSchema> & { filepath: string };
 
+// Type for complexity keys used in aggregation
+type ComplexityKey = "low" | "medium" | "high";
+
+/**
+ * Type guard to check if a string is a valid complexity key
+ */
+function isComplexityKey(key: string): key is ComplexityKey {
+  return key === "low" || key === "medium" || key === "high";
+}
+
 /**
  * Data provider responsible for aggregating database-related information for reports.
  * Handles database integrations, stored procedures, and triggers.
@@ -82,9 +92,12 @@ export class DatabaseReportDataProvider {
 
     return items.reduce((acc, item) => {
       const complexity = this.normalizeComplexity(item.complexity, item.name);
+      const complexityKey = complexity.toLowerCase();
 
       acc.total++;
-      acc[complexity.toLowerCase() as "low" | "medium" | "high"]++;
+      if (isComplexityKey(complexityKey)) {
+        acc[complexityKey]++;
+      }
       acc.list.push(this.mapItemToReportFormat(item, type));
 
       return acc;

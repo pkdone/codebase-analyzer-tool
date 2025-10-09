@@ -5,6 +5,33 @@ import {
 
 describe("Object Utils", () => {
   describe("getNestedValue", () => {
+    describe("return type and type safety", () => {
+      it("should return unknown type forcing callers to use type guards", () => {
+        const obj = { name: "John", age: 30 };
+
+        const nameValue = getNestedValue(obj, "name");
+        // Type guard required to use as string
+        if (typeof nameValue === "string") {
+          expect(nameValue).toBe("John");
+        }
+
+        const ageValue = getNestedValue(obj, "age");
+        // Type guard required to use as number
+        if (typeof ageValue === "number") {
+          expect(ageValue).toBe(30);
+        }
+      });
+
+      it("should handle incorrect types safely with type guards", () => {
+        const obj = { count: "123" }; // String instead of number
+
+        const countValue = getNestedValue(obj, "count");
+        const count = typeof countValue === "number" ? countValue : -1;
+
+        expect(count).toBe(-1); // Falls back to default
+      });
+    });
+
     describe("simple property access", () => {
       it("should get top-level property", () => {
         const obj = { name: "John", age: 30 };
@@ -228,6 +255,25 @@ describe("Object Utils", () => {
   });
 
   describe("getNestedValueWithFallbacks", () => {
+    describe("return type and type safety", () => {
+      it("should return unknown type forcing callers to use type guards", () => {
+        const obj = {
+          primary: "primary value",
+          count: 42,
+        };
+
+        const primaryValue = getNestedValueWithFallbacks(obj, ["primary", "secondary"]);
+        if (typeof primaryValue === "string") {
+          expect(primaryValue).toBe("primary value");
+        }
+
+        const countValue = getNestedValueWithFallbacks(obj, ["count", "fallback"]);
+        if (typeof countValue === "number") {
+          expect(countValue).toBe(42);
+        }
+      });
+    });
+
     describe("basic fallback functionality", () => {
       it("should return first available value", () => {
         const obj = {

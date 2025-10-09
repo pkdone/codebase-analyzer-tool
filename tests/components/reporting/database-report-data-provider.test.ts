@@ -124,6 +124,49 @@ describe("DatabaseReportDataProvider", () => {
       expect(result.procs.list[0].complexity).toBe("LOW");
     });
 
+    test("should use type guard for complexity keys safely", async () => {
+      mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([
+        {
+          filepath: "/path/to/file.sql",
+          summary: {
+            purpose: "File with all valid complexity levels",
+            implementation: "Test implementation",
+            storedProcedures: [
+              {
+                name: "lowProc",
+                complexity: "LOW",
+                linesOfCode: 10,
+                purpose: "Low complexity",
+                complexityReason: "Simple",
+              },
+              {
+                name: "mediumProc",
+                complexity: "MEDIUM",
+                linesOfCode: 50,
+                purpose: "Medium complexity",
+                complexityReason: "Moderate",
+              },
+              {
+                name: "highProc",
+                complexity: "HIGH",
+                linesOfCode: 100,
+                purpose: "High complexity",
+                complexityReason: "Complex",
+              },
+            ],
+          },
+        },
+      ]);
+
+      const result = await provider.getSummarizedProceduresAndTriggers("test-project");
+
+      // All complexity keys should be properly counted using type guard
+      expect(result.procs.total).toBe(3);
+      expect(result.procs.low).toBe(1);
+      expect(result.procs.medium).toBe(1);
+      expect(result.procs.high).toBe(1);
+    });
+
     test("should handle multiple files with mixed procs and triggers", async () => {
       mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([
         {

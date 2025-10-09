@@ -47,16 +47,20 @@ export function extractGenericCompletionResponse(
   const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
     isDefined,
   );
-  const responseContent = getNestedValueWithFallbacks<string>(response, contentPaths) ?? "";
+  const responseContentRaw = getNestedValueWithFallbacks(response, contentPaths);
+  const responseContent = typeof responseContentRaw === "string" ? responseContentRaw : "";
   const stopReasonPaths = [pathConfig.stopReasonPath, pathConfig.alternativeStopReasonPath].filter(
     isDefined,
   );
-  const finishReason = getNestedValueWithFallbacks<string>(response, stopReasonPaths) ?? "";
+  const finishReasonRaw = getNestedValueWithFallbacks(response, stopReasonPaths);
+  const finishReason = typeof finishReasonRaw === "string" ? finishReasonRaw : "";
   const finishReasonLowercase = finishReason.toLowerCase();
   const isIncompleteResponse =
     finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() || !responseContent;
-  const promptTokens = getNestedValue<number>(response, pathConfig.promptTokensPath) ?? -1;
-  const completionTokens = getNestedValue<number>(response, pathConfig.completionTokensPath) ?? -1;
+  const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
+  const promptTokens = typeof promptTokensRaw === "number" ? promptTokensRaw : -1;
+  const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);
+  const completionTokens = typeof completionTokensRaw === "number" ? completionTokensRaw : -1;
   const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
   const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
   return { isIncompleteResponse, responseContent, tokenUsage };
