@@ -4,7 +4,7 @@ import { registerComponents } from "../registration-utils";
 
 // Capture component imports
 import { FileSummarizer } from "../../components/capture/file-summarizer";
-import { PromptConfigFactory } from "../../components/capture/file-handler-factory";
+import { PromptConfigFactory } from "../../components/capture/prompt-config-factory";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 

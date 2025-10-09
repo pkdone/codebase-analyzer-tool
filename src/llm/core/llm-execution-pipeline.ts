@@ -14,7 +14,7 @@ import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
 import { applyOptionalSchemaValidationToContent } from "../json-processing/json-validator";
-import { log, logErrorWithContext, logWithContext } from "./tracking/llm-router-logging";
+import { log, logErrorWithContext, logWithContext } from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
 import { TOKENS } from "../../di/tokens";
 

@@ -26,7 +26,7 @@ import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provide
 // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
 // postProcessAsJSONIfNeededGeneratingNewResult have been moved to AbstractLLM class
 
-jest.mock("../../../src/llm/core/tracking/llm-router-logging", () => ({
+jest.mock("../../../src/llm/core/tracking/llm-context-logging", () => ({
   log: jest.fn(),
   logErrWithContext: jest.fn(),
   logWithContext: jest.fn(),

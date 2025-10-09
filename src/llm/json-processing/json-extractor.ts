@@ -12,7 +12,7 @@ export interface ParsingOutcome {
  * Handles both markdown-wrapped JSON and raw JSON content.
  * Improved algorithm to handle complex nested content with proper string awareness.
  */
-export function extractBalancedJsonThenParse(textContent: string): unknown {
+export function extractAndParseJson(textContent: string): unknown {
   // Find JSON content by looking for balanced braces/brackets, handling nested structures
   let jsonMatch: string | null = null;
   const markdownMatch = /```(?:json)?\s*([{[][\s\S]*?[}\]])\s*```/.exec(textContent);

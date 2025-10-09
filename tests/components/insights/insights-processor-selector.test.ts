@@ -4,7 +4,7 @@ import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { EnvVars } from "../../../src/env/env.types";
 import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../../src/components/insights/insights-from-raw-code-generator";
-import { bundleCodebaseIntoMarkdown } from "../../../src/llm/utils/codebase-processing";
+import { formatCodebaseForPrompt } from "../../../src/llm/utils/codebase-processing";
 import { llmProviderConfig } from "../../../src/config/llm-provider.config";
 import { z } from "zod";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
@@ -97,7 +97,7 @@ describe("InsightsProcessorSelector", () => {
 
   describe("selectInsightsProcessor", () => {
     it("should use LLMProviderManager instance instead of static method", async () => {
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue("test code");
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue("test code");
 
       await selector.selectInsightsProcessor();
 
@@ -107,12 +107,12 @@ describe("InsightsProcessorSelector", () => {
 
     it("should select raw code generator when codebase fits within token limit", async () => {
       const smallCodebase = "a".repeat(500); // 500 chars / 4 = 125 tokens
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue(smallCodebase);
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue(smallCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockRawCodeGenerator);
-      expect(bundleCodebaseIntoMarkdown).toHaveBeenCalledWith("/test/path");
+      expect(formatCodebaseForPrompt).toHaveBeenCalledWith("/test/path");
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining("Codebase chars length: 500"),
       );
@@ -123,12 +123,12 @@ describe("InsightsProcessorSelector", () => {
 
     it("should select db generator when codebase exceeds token limit", async () => {
       const largeCodebase = "a".repeat(5000); // 5000 chars / 4 = 1250 tokens (exceeds 1000)
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue(largeCodebase);
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue(largeCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockDbGenerator);
-      expect(bundleCodebaseIntoMarkdown).toHaveBeenCalledWith("/test/path");
+      expect(formatCodebaseForPrompt).toHaveBeenCalledWith("/test/path");
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining("Codebase chars length: 5000"),
       );
@@ -139,7 +139,7 @@ describe("InsightsProcessorSelector", () => {
 
     it("should select raw code generator when tokens exactly equal limit", async () => {
       const exactCodebase = "a".repeat(4000); // 4000 chars / 4 = 1000 tokens (exactly at limit)
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue(exactCodebase);
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue(exactCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
@@ -149,7 +149,7 @@ describe("InsightsProcessorSelector", () => {
 
     it("should select raw code generator when tokens are just below limit", async () => {
       const justBelowCodebase = "a".repeat(3996); // 3996 chars / 4 = 999 tokens (just below limit)
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue(justBelowCodebase);
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue(justBelowCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
@@ -157,7 +157,7 @@ describe("InsightsProcessorSelector", () => {
     });
 
     it("should handle empty codebase", async () => {
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue("");
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue("");
 
       const result = await selector.selectInsightsProcessor();
 
@@ -169,7 +169,7 @@ describe("InsightsProcessorSelector", () => {
 
     it("should use correct token calculation formula", async () => {
       const codebase = "test code";
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue(codebase);
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue(codebase);
 
       await selector.selectInsightsProcessor();
 
@@ -181,12 +181,12 @@ describe("InsightsProcessorSelector", () => {
 
     it("should propagate errors from bundleCodebaseIntoMarkdown", async () => {
       const bundleError = new Error("Failed to bundle codebase");
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockRejectedValue(bundleError);
+      (formatCodebaseForPrompt as jest.Mock).mockRejectedValue(bundleError);
 
       await expect(selector.selectInsightsProcessor()).rejects.toThrow("Failed to bundle codebase");
 
       expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
-      expect(bundleCodebaseIntoMarkdown).toHaveBeenCalledWith("/test/path");
+      expect(formatCodebaseForPrompt).toHaveBeenCalledWith("/test/path");
     });
 
     it("should propagate errors from getLLMManifest", async () => {
@@ -198,7 +198,7 @@ describe("InsightsProcessorSelector", () => {
       await expect(selector.selectInsightsProcessor()).rejects.toThrow("Failed to get manifest");
 
       expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
-      expect(bundleCodebaseIntoMarkdown).not.toHaveBeenCalled();
+      expect(formatCodebaseForPrompt).not.toHaveBeenCalled();
     });
 
     it("should use manifest from injected manager, not static method", async () => {
@@ -215,7 +215,7 @@ describe("InsightsProcessorSelector", () => {
       mockLLMProviderManager.getLLMManifest.mockReturnValue(customManifest);
 
       const mediumCodebase = "a".repeat(6000); // 6000 chars / 4 = 1500 tokens
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue(mediumCodebase);
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue(mediumCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
@@ -228,7 +228,7 @@ describe("InsightsProcessorSelector", () => {
   describe("dependency injection", () => {
     it("should not call static methods on LLMProviderManager", async () => {
       const staticSpy = jest.spyOn(LLMProviderManager, "loadManifestForModelFamily");
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue("test");
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue("test");
 
       await selector.selectInsightsProcessor();
 
@@ -239,13 +239,13 @@ describe("InsightsProcessorSelector", () => {
     });
 
     it("should use injected dependencies correctly", async () => {
-      (bundleCodebaseIntoMarkdown as jest.Mock).mockResolvedValue("small");
+      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue("small");
 
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockRawCodeGenerator);
       expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
-      expect(bundleCodebaseIntoMarkdown).toHaveBeenCalledWith(mockEnvVars.CODEBASE_DIR_PATH);
+      expect(formatCodebaseForPrompt).toHaveBeenCalledWith(mockEnvVars.CODEBASE_DIR_PATH);
     });
   });
 });

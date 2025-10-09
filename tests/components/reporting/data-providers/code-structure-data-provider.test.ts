@@ -16,7 +16,7 @@ describe("CodeStructureDataProvider", () => {
     // Create mock repository
     mockSourcesRepository = {
       getProjectTopLevelJavaClasses: jest.fn(),
-      getTopLevelJavaClassesByDependencyCount: jest.fn(),
+      getTopLevelJavaClassDependencies: jest.fn(),
     } as unknown as jest.Mocked<SourcesRepository>;
 
     codeStructureDataProvider = new CodeStructureDataProvider(mockSourcesRepository);
@@ -129,7 +129,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassesByDependencyCount = jest
+      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
         .fn()
         .mockResolvedValue(inputData);
 
@@ -137,7 +137,7 @@ describe("CodeStructureDataProvider", () => {
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
 
       // Assert
-      expect(mockSourcesRepository.getTopLevelJavaClassesByDependencyCount).toHaveBeenCalledWith(
+      expect(mockSourcesRepository.getTopLevelJavaClassDependencies).toHaveBeenCalledWith(
         "test-project",
       );
       expect(result).toEqual(expectedOutput);
@@ -159,7 +159,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassesByDependencyCount = jest
+      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
         .fn()
         .mockResolvedValue(inputData);
 
@@ -197,7 +197,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassesByDependencyCount = jest
+      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
         .fn()
         .mockResolvedValue(inputData);
 
@@ -253,7 +253,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassesByDependencyCount = jest
+      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
         .fn()
         .mockResolvedValue(inputData);
 
@@ -336,7 +336,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassesByDependencyCount = jest
+      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
         .fn()
         .mockResolvedValue(inputData);
 
@@ -452,7 +452,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassesByDependencyCount = jest
+      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
         .fn()
         .mockResolvedValue(inputData);
 

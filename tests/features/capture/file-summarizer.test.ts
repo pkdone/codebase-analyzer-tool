@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
-import { PromptConfigFactory } from "../../../src/components/capture/file-handler-factory";
+import { PromptConfigFactory } from "../../../src/components/capture/prompt-config-factory";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../../src/llm/types/llm-errors.types";

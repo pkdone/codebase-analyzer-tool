@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import type { LLMFunctionResponse, LLMContext } from "../../types/llm.types";
 import { LLMResponseStatus } from "../../types/llm.types";
-import { logWithContext } from "../tracking/llm-router-logging";
+import { logWithContext } from "../tracking/llm-context-logging";
 
 /**
  * Represents the outcome decision for an unsuccessful LLM call.

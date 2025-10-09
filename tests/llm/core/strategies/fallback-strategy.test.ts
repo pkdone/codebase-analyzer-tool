@@ -10,7 +10,7 @@ import {
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 
 // Mock the logging module
-jest.mock("../../../../src/llm/core/tracking/llm-router-logging", () => ({
+jest.mock("../../../../src/llm/core/tracking/llm-context-logging", () => ({
   logWithContext: jest.fn(),
 }));
 

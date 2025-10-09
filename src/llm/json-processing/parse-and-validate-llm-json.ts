@@ -18,7 +18,7 @@ import { fixMismatchedDelimiters } from "./sanitizers/fix-mismatched-delimiters"
 import { unwrapJsonSchema } from "./sanitizers/unwrap-json-schema";
 import { addMissingPropertyCommas } from "./sanitizers/add-missing-property-commas";
 import { applyOptionalSchemaValidationToContent } from "./json-validator";
-import { extractBalancedJsonThenParse, type ParsingOutcome } from "./json-extractor";
+import { extractAndParseJson, type ParsingOutcome } from "./json-extractor";
 import { unwrapJsonSchemaStructure } from "./post-parse-transforms";
 
 /**
@@ -164,7 +164,7 @@ function parseJsonUsingProgressiveStrategies(
   const strategies: Strategy[] = [
     {
       name: "extract",
-      run: () => extractBalancedJsonThenParse(content),
+      run: () => extractAndParseJson(content),
       // If we truly found no JSON at all we abort early (legacy behaviour)
       stopOnError: (err) => err instanceof Error && err.message === "No JSON content found",
     },
@@ -172,7 +172,7 @@ function parseJsonUsingProgressiveStrategies(
       name: "pre-concat+extract",
       run: () => {
         const pre = lightCollapseConcatenationChains(content);
-        return extractBalancedJsonThenParse(pre);
+        return extractAndParseJson(pre);
       },
     },
   ];

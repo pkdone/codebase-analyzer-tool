@@ -77,9 +77,10 @@ export interface SourcesRepository {
   getProjectFileTypesCountAndLines(projectName: string): Promise<ProjectedFileTypesCountAndLines[]>;
 
   /**
-   * Get top level Java classes for a project ordered by dependency count (descending)
+   * Get top level Java classes for a project with their full dependency structures.
+   * Returns the complete dependency tree for each top-level class.
    */
-  getTopLevelJavaClassesByDependencyCount(
+  getTopLevelJavaClassDependencies(
     projectName: string,
   ): Promise<ProjectedTopLevelJavaClassDependencies[]>;
 

@@ -5,7 +5,7 @@ import type LLMRouter from "../../llm/core/llm-router";
 import { TOKENS } from "../../di/tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
-import { PromptConfigFactory } from "./file-handler-factory";
+import { PromptConfigFactory } from "./prompt-config-factory";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 

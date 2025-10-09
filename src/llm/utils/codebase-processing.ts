@@ -10,11 +10,11 @@ import { readFile } from "../../common/utils/file-operations";
 const TRAILING_SLASH_PATTERN = /\/$/;
 
 /**
- * Process a codebase directory and generate markdown code blocks from all source files
+ * Process a codebase directory and format its contents for use in an LLM prompt
  * @param codebaseDirPath - The path to the codebase directory
- * @returns Promise resolving to markdown content containing all source files as code blocks
+ * @returns Promise resolving to formatted content containing all source files as markdown code blocks
  */
-export async function bundleCodebaseIntoMarkdown(codebaseDirPath: string): Promise<string> {
+export async function formatCodebaseForPrompt(codebaseDirPath: string): Promise<string> {
   // Remove trailing slashes from the directory path
   const srcDirPath = codebaseDirPath.replace(TRAILING_SLASH_PATTERN, "");
 
