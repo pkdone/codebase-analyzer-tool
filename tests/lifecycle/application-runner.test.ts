@@ -1,8 +1,10 @@
 import "reflect-metadata";
 import { bootstrapAndRunTask } from "../../src/lifecycle/application-runner";
-import { bootstrapContainer } from "../../src/di/container";
+import { bootstrapContainer, container } from "../../src/di/container";
 import { getTaskConfiguration } from "../../src/di/registration-modules/task-config-registration";
 import { runTask } from "../../src/lifecycle/task-executor";
+import { ShutdownService } from "../../src/lifecycle/shutdown-service";
+import { TOKENS } from "../../src/di/tokens";
 
 // Mock dependencies
 jest.mock("../../src/di/container");
@@ -15,6 +17,7 @@ describe("Application Runner", () => {
   let mockSetInterval: jest.SpyInstance;
   let mockClearInterval: jest.SpyInstance;
   let mockProcessExit: jest.SpyInstance;
+  let mockShutdownService: jest.Mocked<ShutdownService>;
 
   const TEST_TASK_TOKEN = Symbol("TestTask");
   const TEST_CONFIG = { requiresLLM: false, requiresMongoDB: false };
@@ -33,10 +36,24 @@ describe("Application Runner", () => {
     // Mock process.exitCode
     mockProcessExit = jest.spyOn(process, "exitCode", "set").mockImplementation();
 
+    // Mock shutdown service
+    mockShutdownService = {
+      gracefulShutdown: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<ShutdownService>;
+
     // Setup default mock implementations
     (getTaskConfiguration as jest.Mock).mockReturnValue(TEST_CONFIG);
     (bootstrapContainer as jest.Mock).mockResolvedValue(undefined);
     (runTask as jest.Mock).mockResolvedValue(undefined);
+
+    // Mock container methods
+    (container.isRegistered as jest.Mock).mockReturnValue(true);
+    (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
+      if (token === TOKENS.ShutdownService) {
+        return mockShutdownService;
+      }
+      throw new Error(`Unexpected token: ${token.toString()}`);
+    });
   });
 
   afterEach(() => {
@@ -71,6 +88,30 @@ describe("Application Runner", () => {
 
       // Verify interval is cleaned up
       expect(mockClearInterval).toHaveBeenCalledWith(123);
+    });
+
+    it("should call graceful shutdown after successful execution", async () => {
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
+
+      // Wait for async execution to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
+    });
+
+    it("should handle shutdown service not registered", async () => {
+      (container.isRegistered as jest.Mock).mockReturnValue(false);
+
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
+
+      // Wait for async execution to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(container.resolve).not.toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(mockShutdownService.gracefulShutdown).not.toHaveBeenCalled();
     });
   });
 
@@ -136,6 +177,58 @@ describe("Application Runner", () => {
 
       // Verify interval was set up and cleaned up despite error
       expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 30000);
+      expect(mockClearInterval).toHaveBeenCalledWith(123);
+    });
+
+    it("should call graceful shutdown even when task execution fails", async () => {
+      const taskError = new Error("Task execution failed");
+      (runTask as jest.Mock).mockRejectedValue(taskError);
+
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
+
+      // Wait for async execution to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
+      expect(mockProcessExit).toHaveBeenCalledWith(1);
+    });
+
+    it("should handle shutdown service errors gracefully", async () => {
+      const shutdownError = new Error("Shutdown failed");
+      mockShutdownService.gracefulShutdown.mockRejectedValue(shutdownError);
+
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
+
+      // Wait for async execution to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        "Failed to perform graceful shutdown:",
+        shutdownError,
+      );
+      expect(mockClearInterval).toHaveBeenCalledWith(123);
+    });
+
+    it("should handle shutdown service resolution errors", async () => {
+      const resolutionError = new Error("Failed to resolve shutdown service");
+      (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
+        if (token === TOKENS.ShutdownService) {
+          throw resolutionError;
+        }
+        throw new Error(`Unexpected token: ${token.toString()}`);
+      });
+
+      bootstrapAndRunTask(TEST_TASK_TOKEN);
+
+      // Wait for async execution to complete
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(mockConsoleError).toHaveBeenCalledWith(
+        "Failed to perform graceful shutdown:",
+        resolutionError,
+      );
       expect(mockClearInterval).toHaveBeenCalledWith(123);
     });
   });

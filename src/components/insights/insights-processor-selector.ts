@@ -18,6 +18,7 @@ export class InsightsProcessorSelector {
     @inject(TOKENS.InsightsFromDBGenerator) private readonly dbGenerator: InsightsFromDBGenerator,
     @inject(TOKENS.InsightsFromRawCodeGenerator)
     private readonly rawCodeGenerator: InsightsFromRawCodeGenerator,
+    @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
   ) {}
 
   /**
@@ -25,7 +26,7 @@ export class InsightsProcessorSelector {
    * Uses raw code processor if the estimated tokens for the codebase are within the model's limit.
    */
   async selectInsightsProcessor(): Promise<InsightsFromDBGenerator | InsightsFromRawCodeGenerator> {
-    const manifest = await LLMProviderManager.loadManifestForModelFamily(this.envVars.LLM);
+    const manifest = this.llmProviderManager.getLLMManifest();
     const primaryCompletionTokens = manifest.models.primaryCompletion.maxTotalTokens;
     const codeBlocksContent = await bundleCodebaseIntoMarkdown(this.envVars.CODEBASE_DIR_PATH);
     const codeBlockContentTokensEstimate =
