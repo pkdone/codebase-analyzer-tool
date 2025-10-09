@@ -2,10 +2,19 @@ import { injectable, inject } from "tsyringe";
 import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { vectorSearchConfig } from "../../config/vector-search.config";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
+
+/**
+ * Number of candidates to consider in vector search
+ */
+const VECTOR_SEARCH_NUM_CANDIDATES = 150;
+
+/**
+ * Maximum number of results to return from vector search
+ */
+const VECTOR_SEARCH_NUM_LIMIT = 6;
 
 /**
  * Creates a prompt for querying the codebase with a specific question.
@@ -52,8 +61,8 @@ export default class CodebaseQueryProcessor {
     const bestMatchFiles = await this.sourcesRepository.vectorSearchProjectSourcesRawContent(
       projectName,
       queryVector,
-      vectorSearchConfig.VECTOR_SEARCH_NUM_CANDIDATES,
-      vectorSearchConfig.VECTOR_SEARCH_NUM_LIMIT,
+      VECTOR_SEARCH_NUM_CANDIDATES,
+      VECTOR_SEARCH_NUM_LIMIT,
     );
 
     if (bestMatchFiles.length <= 0) {

@@ -1,9 +1,13 @@
 import path from "path";
-import { pathsConfig } from "../../config/paths.config";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { findFilesRecursively } from "./directory-operations";
 import { getFileExtension } from "./path-utils";
 import { readFile } from "./file-operations";
+
+/**
+ * Regex pattern to match trailing slash at end of string
+ */
+const TRAILING_SLASH_PATTERN = /\/$/;
 
 /**
  * Process a codebase directory and generate markdown code blocks from all source files
@@ -12,7 +16,7 @@ import { readFile } from "./file-operations";
  */
 export async function bundleCodebaseIntoMarkdown(codebaseDirPath: string): Promise<string> {
   // Remove trailing slashes from the directory path
-  const srcDirPath = codebaseDirPath.replace(pathsConfig.TRAILING_SLASH_PATTERN, "");
+  const srcDirPath = codebaseDirPath.replace(TRAILING_SLASH_PATTERN, "");
 
   // Find all source files recursively with ignore rules applied
   const srcFilepaths = await findFilesRecursively(

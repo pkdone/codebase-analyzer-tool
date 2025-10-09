@@ -1,12 +1,16 @@
 import { injectable } from "tsyringe";
 import { z } from "zod";
-import { pathsConfig } from "../../../config/paths.config";
 import { summaryCategoriesConfig } from "../../../config/insights.config";
 import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
 import type {
   AppSummaryNameDescArray,
   AppSummaryRecordWithId,
 } from "../../../repositories/app-summary/app-summaries.model";
+
+/**
+ * Key for the app description field
+ */
+const APP_DESCRIPTION_KEY = "appDescription";
 
 // Zod schema for validating AppSummaryNameDescArray
 const appSummaryNameDescArraySchema = z.array(nameDescSchema);
@@ -22,10 +26,8 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
 // Define valid category keys for generating structured table reports, excluding appDescription
 // This creates a type-safe readonly array of the valid keys
 const TABLE_DISPLAY_CATEGORIES = AppSummaryCategories.options.filter(
-  (
-    key,
-  ): key is Exclude<typeof AppSummaryCategories._type, typeof pathsConfig.APP_DESCRIPTION_KEY> =>
-    key !== pathsConfig.APP_DESCRIPTION_KEY,
+  (key): key is Exclude<typeof AppSummaryCategories._type, typeof APP_DESCRIPTION_KEY> =>
+    key !== APP_DESCRIPTION_KEY,
 );
 
 // Type for the valid category keys

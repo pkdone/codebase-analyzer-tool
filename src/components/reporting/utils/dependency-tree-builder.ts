@@ -52,7 +52,7 @@ export function convertToHierarchical(
 /**
  * Recursively builds hierarchical dependencies from references.
  */
-export function buildHierarchicalDependencies(
+function buildHierarchicalDependencies(
   references: readonly string[],
   dependencyMap: Map<string, JavaClassDependency>,
   visited: Set<string>,

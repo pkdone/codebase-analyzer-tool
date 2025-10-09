@@ -140,7 +140,12 @@ describe("json-tools enhanced fast path", () => {
 
     it("defaults to not logging when parameter is omitted", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
-      const result = parseAndValidateLLMJsonContent(jsonWithFence, "test-resource", baseOptions);
+      const result = parseAndValidateLLMJsonContent(
+        jsonWithFence,
+        "test-resource",
+        baseOptions,
+        false,
+      );
 
       expect(result).toEqual({ value: 42 });
       expect(logWarningMsg).not.toHaveBeenCalled();

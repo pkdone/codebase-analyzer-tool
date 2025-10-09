@@ -1,7 +1,6 @@
 import path from "path";
 import os from "os";
 import { injectable } from "tsyringe";
-import { pathsConfig } from "../../config/paths.config";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { outputConfig } from "../../config/output.config";
 import { readFile, writeFile } from "../../common/utils/file-operations";
@@ -16,6 +15,16 @@ import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { bundleCodebaseIntoMarkdown } from "../../common/utils/codebase-processing";
 import { formatDateForFilename } from "../../common/utils/date-utils";
+
+/**
+ * Folder path containing requirement prompt files
+ */
+const REQUIREMENTS_PROMPTS_FOLDERPATH = "./input/requirements";
+
+/**
+ * Regex pattern to match requirement prompt files
+ */
+const REQUIREMENTS_FILE_REGEX = /requirement\d+\.prompt$/i;
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -34,15 +43,13 @@ export class RawCodeToInsightsFileGenerator {
    * Load prompts from files in the input folder
    */
   async loadPrompts(): Promise<FileRequirementPrompt[]> {
-    const inputDir = pathsConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
+    const inputDir = REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 
     try {
       await ensureDirectoryExists(inputDir);
       const files = await listDirectoryEntries(inputDir);
-      const promptFiles = files.filter((file) =>
-        pathsConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
-      );
+      const promptFiles = files.filter((file) => REQUIREMENTS_FILE_REGEX.test(file.name));
 
       for (const file of promptFiles) {
         const filePath = path.join(inputDir, file.name);

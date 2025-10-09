@@ -1,11 +1,15 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { pathsConfig } from "../config/paths.config";
 import { readFile } from "../common/utils/file-operations";
 import { LLMModelQuality, LLMOutputFormat } from "../llm/types/llm.types";
 import LLMRouter from "../llm/core/llm-router";
 import { Task } from "./task.types";
 import { TOKENS } from "../di/tokens";
+
+/**
+ * File path to the sample prompt file
+ */
+const SAMPLE_PROMPT_FILEPATH = "./input/sample.prompt";
 
 /**
  * Task to test the LLM functionality.
@@ -28,7 +32,7 @@ export class PluggableLLMsTestTask implements Task {
    * Tests the LLM functionality.
    */
   private async runPluggableLLMs(): Promise<void> {
-    const prompt = await readFile(pathsConfig.SAMPLE_PROMPT_FILEPATH);
+    const prompt = await readFile(SAMPLE_PROMPT_FILEPATH);
     console.log("\n---PROMPT---");
     console.log(prompt);
 
