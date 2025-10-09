@@ -4,73 +4,118 @@ import type { Sanitizer } from "./sanitizers-types";
  * Fix over-escaped sequences within JSON string content.
  *
  * LLMs sometimes generate excessively escaped characters, particularly when dealing
- * with code snippets or strings that contain quotes. This function progressively
- * reduces the number of backslashes to produce valid JSON.
+ * with code snippets (especially SQL, regex, or strings that contain quotes). This
+ * function progressively reduces the number of backslashes to produce valid JSON.
  *
- * Common over-escaping patterns:
- * - Multiple backslashes before quotes: \\\\\' → '
- * - Over-escaped null characters: \\\\\0 → \0
- * - Escaped commas and parentheses: \\, → , or \\) → )
+ * ## Common Over-Escaping Patterns
  *
- * The replacements are applied in order from most-escaped to least-escaped to
- * ensure proper normalization.
+ * When LLMs embed code containing special characters in JSON strings, they may
+ * over-escape those characters multiple times:
+ * - SQL: `REPLACE(field, '.', '')` becomes `REPLACE(field, \\\\\\'.\\\\\\'\\, \\\\\\'\\\\\\')`
+ * - Path separators: `dir\file` becomes `dir\\\\file`
+ * - Nested quotes: `"it's"` becomes `"it\\\\\\'s"`
+ *
+ * ## Replacement Strategy
+ *
+ * The replacements are applied in order from most-escaped to least-escaped patterns
+ * to ensure proper normalization without over-correcting. Each regex targets a specific
+ * malformation pattern commonly seen in LLM output.
+ *
+ * ## Known Limitations
+ *
+ * This is a best-effort heuristic approach. It handles the most common cases but may
+ * not correctly handle all edge cases, especially:
+ * - Mixed escaping levels within the same string
+ * - Legitimate uses of multiple backslashes (rare in JSON but possible)
+ * - Complex nested code snippets with multiple layers of escaping
  */
 export function repairOverEscapedStringSequences(content: string): string {
   let fixed = content;
 
-  // Fix over-escaped single quotes (most to least escaped)
-  // Pattern: \\\\\' (5 backslashes + quote) → '
-  // Example: "it\\\\\\'s" → "it's"
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SINGLE QUOTE OVER-ESCAPING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Fixes 5-backslash quote: \\\\\' → '
+  // Regex: /\\\\\\'/g
+  // Literal pattern in source: 5 backslashes (escaped as 5× \\) + quote (escaped as \')
+  // What it matches in actual string: 5 backslashes + single quote
+  // Example: "it\\\\\\'s" (string with 5 backslashes before quote) → "it's"
+  // Common in SQL like: REPLACE(field, \\\\\\'.\\\\\\'\\, \\\\\\'\\\\\\')"
   fixed = fixed.replace(/\\\\\\'/g, "'");
 
-  // Pattern: \\\\' (4 backslashes + quote) → '
-  // Example: "it\\\\'s" → "it's"
+  // Fixes 4-backslash quote: \\\\' → '
+  // Regex: /\\\\'/g (4 escaped backslashes + escaped quote)
+  // Example: "value\\\\'s" → "value's"
   fixed = fixed.replace(/\\\\'/g, "'");
 
-  // Pattern: \\' (3 backslashes + quote) → '
-  // Example: "it\\'s" → "it's"
+  // Fixes 3-backslash quote: \\' → '
+  // Regex: /\\'/g (2 escaped backslashes + escaped quote)
+  // Example: "value\\'s" → "value's"
   fixed = fixed.replace(/\\'/g, "'");
 
-  // Fix over-escaped single quotes followed by period
-  // Pattern: \\\\\\'\. (5 backslashes + quote + backslash + dot) → '.
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SINGLE QUOTE + DOT COMBINATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Fixes 5-backslash quote followed by escaped dot: \\\\\\'\. → '.
+  // Regex: /\\\\\\'\\\./g
   // Example: "user\\\\\\'\.name" → "user'.name"
+  // Common in SQL column references with schemas
   fixed = fixed.replace(/\\\\\\'\\\./g, "'.");
 
-  // Pattern: \\\\\\'\\\\\\' (two 5-backslash quotes in sequence) → ''
-  // Example: "\\\\\\'\\\\\\'" → "''"
+  // Fixes consecutive 5-backslash quotes: \\\\\\'\\\\\' → ''
+  // Regex: /\\\\\\'\\\\\\'/g
+  // Example: "\\\\\\'\\\\\\'" (two heavily escaped quotes) → "''"
+  // Common in SQL empty string literals
   fixed = fixed.replace(/\\\\\\'\\\\\\'/g, "''");
 
-  // Pattern: \\'\. (backslash + quote + backslash + dot) → '.
+  // Fixes simple quote + dot: \\'\. → '.
+  // Regex: /\\'\\\./g
   // Example: "user\\'\\.name" → "user'.name"
   fixed = fixed.replace(/\\'\\\./g, "'.");
 
-  // Pattern: \\'\\\\' (backslash + quote + backslash + backslash + quote) → ''
+  // Fixes mixed quote escaping: \\'\\\\' → ''
+  // Regex: /\\'\\\\'/g
   // Example: "\\'\\\\'" → "''"
   fixed = fixed.replace(/\\'\\\\'/g, "''");
 
-  // Fix over-escaped null characters
-  // Pattern: \\\\\0 (5 backslashes + null) → \0
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NULL CHARACTER OVER-ESCAPING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Fixes 5-backslash null: \\\\\0 → \0
+  // Regex: /\\\\\\0/g
   // Example: "value\\\\\0" → "value\0"
   fixed = fixed.replace(/\\\\\\0/g, "\\0");
 
-  // Pattern: \\\\0 (4 backslashes + null) → \0
+  // Fixes 4-backslash null: \\\\0 → \0
+  // Regex: /\\\\0/g
   // Example: "value\\\\0" → "value\0"
   fixed = fixed.replace(/\\\\0/g, "\\0");
 
-  // Fix over-escaped commas and parentheses (often from code snippets)
-  // Pattern: \\\\ followed by comma → comma
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CODE SNIPPET PUNCTUATION (commas, parentheses)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Fixes 4-backslash comma: \\\\ , → ,
+  // Regex: /\\\\\s*,/g
   // Example: "a\\\\, b" → "a, b"
+  // Common in function parameters embedded in JSON
   fixed = fixed.replace(/\\\\\s*,/g, ",");
 
-  // Pattern: \\\\ followed by closing parenthesis → )
+  // Fixes 4-backslash closing paren: \\\\ ) → )
+  // Regex: /\\\\\s*\)/g
   // Example: "func()\\\\)" → "func())"
   fixed = fixed.replace(/\\\\\s*\)/g, ")");
 
-  // Pattern: \\ followed by comma → comma
+  // Fixes 2-backslash comma: \\ , → ,
+  // Regex: /\\,/g
   // Example: "a\\, b" → "a, b"
   fixed = fixed.replace(/\\,/g, ",");
 
-  // Pattern: \\ followed by closing parenthesis → )
+  // Fixes 2-backslash closing paren: \\ ) → )
+  // Regex: /\\\)/g
   // Example: "func()\\)" → "func())"
   fixed = fixed.replace(/\\\)/g, ")");
 

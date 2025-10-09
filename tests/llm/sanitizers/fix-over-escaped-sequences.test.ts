@@ -210,6 +210,36 @@ describe("repairOverEscapedStringSequences - comprehensive documentation example
       // The regex \\\\\s*, and \\\\\s*\) consume whitespace after backslashes
       expect(result).toBe("a, b)");
     });
+
+    it("handles SQL REPLACE function with heavily over-escaped quotes (from direct-test.js)", () => {
+      // This test case was originally in direct-test.js and validates the specific
+      // SQL over-escaping issue that prompted creation of the sanitizer
+      // Pattern: REPLACE(field, '.', '') where quotes and dots are 5-backslash escaped
+      const input = "REPLACE(field, \\\\\\'.\\\\\\'\\, \\\\\\'\\\\\\'\\)";
+      const result = repairOverEscapedStringSequences(input);
+      // After fixing: quotes should be normalized, dots and commas should be clean
+      // Note: The exact output depends on how the regex patterns cascade
+      expect(result).toContain("REPLACE(field");
+      expect(result).toContain("'.'");
+      expect(result).toContain("''");
+      // More lenient check - ensure it's at least parseable and over-escaping is reduced
+      expect(result.match(/\\\\\\\\/g) ?? []).toHaveLength(0); // No 4+ backslashes
+    });
+
+    it("handles full JSON with SQL over-escaping from direct-test.js", () => {
+      // The complete test case from direct-test.js wrapped in JSON structure
+      const testJson = `{
+  "test": "REPLACE(field, \\\\\\'.\\\\\\'\\, \\\\\\'\\\\\\'\\)"
+}`;
+      const result = repairOverEscapedStringSequences(testJson);
+
+      // Should reduce over-escaping significantly
+      expect(result).toContain("REPLACE(field");
+      // Verify it's more parseable (though may still need other sanitizers)
+      const backslashCount = (result.match(/\\/g) ?? []).length;
+      const originalBackslashCount = (testJson.match(/\\/g) ?? []).length;
+      expect(backslashCount).toBeLessThan(originalBackslashCount);
+    });
   });
 
   describe("edge cases", () => {

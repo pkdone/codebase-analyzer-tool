@@ -3,9 +3,72 @@ import type { Sanitizer } from "./sanitizers-types";
 /**
  * Shared regular expressions for fixing concatenation chains in LLM-generated JSON.
  *
+ * ## Problem Statement
+ *
  * These regexes address a common failure mode where LLMs output JavaScript/Java-style
  * string concatenation expressions instead of valid JSON string literals. For example,
  * the LLM might output: { "path": BASE_PATH + "/file.ts" } instead of { "path": "/file.ts" }
+ *
+ * ## Approach
+ *
+ * This sanitizer attempts to collapse concatenation chains by:
+ * 1. Removing identifier-only chains (replaced with empty string)
+ * 2. Keeping only the final string literal when identifiers precede it
+ * 3. Merging multiple string literals into a single literal
+ * 4. Removing any trailing identifiers after a valid string literal
+ *
+ * ## Known Limitations (Best-Effort Heuristic)
+ *
+ * This is an inherently fragile approach as it attempts to parse and understand another
+ * programming language's syntax using regex patterns. Be aware of these limitations:
+ *
+ * 1. **Loss of Semantic Information**: We discard identifiers/variables, which may
+ *    contain important information. The sanitizer assumes literals are more valuable
+ *    than identifiers, which may not always be correct.
+ *
+ * 2. **Identifier Recognition**: The regex assumes standard identifier patterns
+ *    (alphanumeric + underscore + dots + parens). Edge cases like:
+ *    - Unicode identifiers
+ *    - Special naming conventions (e.g., `$variable`, `@property`)
+ *    - Template literals or other string formats
+ *    will not be handled correctly.
+ *
+ * 3. **Complex Expressions**: Cannot handle:
+ *    - Nested expressions: `(BASE + DIR) + FILE`
+ *    - Function calls with arguments: `getPath("base", "file")`
+ *    - Ternary operators: `isLocal ? LOCAL_PATH : REMOTE_PATH`
+ *    - Array access: `PATHS[0] + "/file"`
+ *
+ * 4. **String Literal Priority**: When multiple string literals exist, we attempt to
+ *    merge them, but the result may not match the original intent, especially if
+ *    identifiers were meant to insert content between the literals.
+ *
+ * 5. **Safety Limits**: The while loops have guard counters (50-80 iterations) to
+ *    prevent infinite loops. This means extremely complex or malformed chains may
+ *    not be fully sanitized.
+ *
+ * 6. **Context Awareness**: The regex cannot distinguish between:
+ *    - A concatenation expression that's meant to be code
+ *    - A string that legitimately contains a "+" character
+ *    This can lead to false positives in edge cases.
+ *
+ * ## When This Sanitizer Fails
+ *
+ * If you see parsing errors related to concatenation chains after this sanitizer runs,
+ * consider:
+ * - Improving the LLM prompt to explicitly request valid JSON without code expressions
+ * - Using JSON mode/structured output features of the LLM API if available
+ * - Post-processing specific to your use case rather than relying on generic sanitization
+ *
+ * ## Testing
+ *
+ * Changes to this sanitizer should be tested against:
+ * - Simple chains: `A + "literal"`
+ * - Multiple identifiers: `A + B + C + "literal"`
+ * - Multiple literals: `"part1" + "part2" + "part3"`
+ * - Mixed chains: `A + "part1" + B + "part2"`
+ * - Identifier-only chains: `A + B + C`
+ * - Edge cases with dots/parens: `obj.prop() + "literal"`
  */
 
 /**

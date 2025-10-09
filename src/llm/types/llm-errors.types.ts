@@ -92,3 +92,53 @@ export class RejectionResponseLLMError extends LLMError {
     this.reason = JSON.stringify(reason);
   }
 }
+
+/**
+ * Error class to represent a problem during JSON processing and sanitization.
+ * This error provides rich debugging context including the original content,
+ * the sanitized result, and the list of sanitization steps that were applied.
+ */
+export class JsonProcessingError extends LLMError {
+  /**
+   * The original malformed JSON string received from the LLM.
+   */
+  readonly originalContent: string;
+
+  /**
+   * The content after all sanitization attempts were applied.
+   */
+  readonly sanitizedContent: string;
+
+  /**
+   * List of sanitization steps that were successfully applied.
+   */
+  readonly appliedSanitizers: readonly string[];
+
+  /**
+   * The underlying parsing or validation error that occurred.
+   */
+  readonly underlyingError?: Error;
+
+  /**
+   * Constructor.
+   */
+  constructor(
+    message: string,
+    originalContent: string,
+    sanitizedContent: string,
+    appliedSanitizers: string[],
+    underlyingError?: Error,
+  ) {
+    const context = {
+      originalLength: originalContent.length,
+      sanitizedLength: sanitizedContent.length,
+      appliedSanitizers,
+      underlyingError: underlyingError?.message,
+    };
+    super(JsonProcessingError.name, LLMError.buildMessage(message, context));
+    this.originalContent = originalContent;
+    this.sanitizedContent = sanitizedContent;
+    this.appliedSanitizers = appliedSanitizers;
+    this.underlyingError = underlyingError;
+  }
+}
