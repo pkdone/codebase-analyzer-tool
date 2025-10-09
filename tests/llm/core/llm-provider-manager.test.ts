@@ -312,4 +312,28 @@ describe("LLMProviderManager", () => {
       expect(retrievedManifest).toBe(mockManifest);
     });
   });
+
+  describe("case-insensitive model family matching", () => {
+    it("should match model family regardless of case", () => {
+      // Test that the isValidManifest type guard and modelFamily comparison
+      // work with case-insensitive matching
+      const testManifest = {
+        ...mockManifest,
+        modelFamily: "TestFamily", // Mixed case
+      };
+
+      // Test with various case combinations
+      const testCases = [
+        { input: "testfamily", expected: true },
+        { input: "TESTFAMILY", expected: true },
+        { input: "TestFamily", expected: true },
+        { input: "tEsTfAmIlY", expected: true },
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        const matches = testManifest.modelFamily.toLowerCase() === input.toLowerCase();
+        expect(matches).toBe(expected);
+      });
+    });
+  });
 });

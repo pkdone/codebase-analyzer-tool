@@ -41,7 +41,9 @@ You are a helpful software engineering and programming assistant, and you need t
     // Currently for v3 and lower Llama LLMs, getting this error even though left to their own devices they seem to happily default to max completions of 8192: Malformed input request: #/max_gen_len: 8192 is not less or equal to 2048, please reformat your input and try again. ValidationException: Malformed input request: #/max_gen_len: 8192 is not less or equal to 2048, please reformat your input and try again.
     // The check is broadened to include any model key containing "LLAMA" as the issue affects multiple Llama versions on Bedrock.
     if (modelKey.includes("LLAMA")) {
-      bodyObj.max_gen_len = this.llmModelsMetadata[modelKey].maxCompletionTokens;
+      // Cap the max_gen_len to respect the Bedrock API limit of 2048 for these models.
+      const maxCompletionTokens = this.llmModelsMetadata[modelKey].maxCompletionTokens ?? 2048;
+      bodyObj.max_gen_len = Math.min(maxCompletionTokens, 2048);
     }
 
     return JSON.stringify(bodyObj);

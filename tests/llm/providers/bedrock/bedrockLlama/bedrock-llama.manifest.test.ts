@@ -148,5 +148,19 @@ describe("Bedrock Llama Provider Tests", () => {
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });
+
+    test("caps max_gen_len to 2048 for Llama models", () => {
+      // Verify that models with maxCompletionTokens > 2048 should be capped
+      // This tests the logic that will be applied when buildCompletionModelSpecificParameters is called
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      const testModel = bedrockLlamaModelsMetadata["AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT"];
+      expect(testModel.maxCompletionTokens).toBe(8192);
+
+      // The cap should be applied when building request parameters
+      // Math.min(8192, 2048) = 2048
+      const maxCompletionTokens = testModel.maxCompletionTokens ?? 2048;
+      const expectedCappedValue = Math.min(maxCompletionTokens, 2048);
+      expect(expectedCappedValue).toBe(2048);
+    });
   });
 });

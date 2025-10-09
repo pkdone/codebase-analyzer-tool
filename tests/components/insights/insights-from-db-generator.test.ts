@@ -113,7 +113,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       expect(chunks).toHaveLength(0);
     });
 
-    it("should not split a single very large summary", () => {
+    it("should truncate a single very large summary that exceeds the limit", () => {
       // Single summary that exceeds the limit
       const tokenLimitPerChunk = 128000 * 0.7;
       const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
@@ -121,9 +121,19 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
       const chunks = (generator as any).chunkSummaries([veryLargeSummary]);
 
-      // Should still return one chunk with the large summary
+      // Should still return one chunk with the truncated summary
       expect(chunks).toHaveLength(1);
       expect(chunks[0]).toHaveLength(1);
+
+      // The summary should be truncated to fit within the limit
+      const truncatedSummary = chunks[0][0];
+      expect(truncatedSummary.length).toBeLessThan(veryLargeSummary.length);
+      expect(truncatedSummary.length).toBeLessThanOrEqual(Math.floor(charsPerChunk));
+
+      // Verify warning was logged
+      expect(logging.logWarningMsg).toHaveBeenCalledWith(
+        expect.stringContaining("A file summary is too large and will be truncated"),
+      );
     });
 
     it("should properly distribute summaries across chunks", () => {
@@ -137,6 +147,39 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
         0,
       );
       expect(totalSummariesInChunks).toBe(summaries.length);
+    });
+
+    it("should handle multiple oversized summaries by truncating each one", () => {
+      const tokenLimitPerChunk = 128000 * 0.7;
+      const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+
+      // Create 3 summaries that each exceed the limit
+      const oversizedSummary1 = "a".repeat(Math.floor(charsPerChunk * 1.5));
+      const oversizedSummary2 = "b".repeat(Math.floor(charsPerChunk * 2));
+      const oversizedSummary3 = "c".repeat(Math.floor(charsPerChunk * 1.2));
+
+      const chunks = (generator as any).chunkSummaries([
+        oversizedSummary1,
+        oversizedSummary2,
+        oversizedSummary3,
+      ]);
+
+      // Should have 3 chunks (each oversized summary gets its own chunk after truncation)
+      expect(chunks).toHaveLength(3);
+
+      // Each chunk should have exactly one summary
+      chunks.forEach((chunk: string[]) => {
+        expect(chunk).toHaveLength(1);
+        // Each truncated summary should be within the limit
+        const summaryLength = chunk[0].length;
+        expect(summaryLength).toBeLessThanOrEqual(Math.floor(charsPerChunk));
+      });
+
+      // Verify warning was logged 3 times (once per oversized summary)
+      expect(logging.logWarningMsg).toHaveBeenCalledTimes(3);
+      expect(logging.logWarningMsg).toHaveBeenCalledWith(
+        expect.stringContaining("A file summary is too large and will be truncated"),
+      );
     });
   });
 

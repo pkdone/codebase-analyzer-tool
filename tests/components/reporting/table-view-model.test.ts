@@ -176,14 +176,14 @@ describe("TableViewModel", () => {
   });
 
   describe("processCell - array handling", () => {
-    it("should process empty arrays as empty text", () => {
+    it("should process empty arrays as empty list", () => {
       const data = [{ items: [] }];
       const vm = new TableViewModel(data);
       const rows = vm.getProcessedRows();
 
       expect(rows[0][0]).toEqual({
-        type: "text",
-        content: "[]",
+        type: "list",
+        content: [],
       });
     });
 

@@ -106,7 +106,7 @@ export class LLMProviderManager {
 
       if (
         LLMProviderManager.isValidManifest(manifestValue) &&
-        manifestValue.modelFamily === targetModelFamily
+        manifestValue.modelFamily.toLowerCase() === targetModelFamily.toLowerCase()
       ) {
         return manifestValue;
       }

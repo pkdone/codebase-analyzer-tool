@@ -79,7 +79,7 @@ export class TableViewModel {
       };
     }
 
-    if (Array.isArray(value) && value.length > 0) {
+    if (Array.isArray(value)) {
       return {
         type: "list",
         content: this.processArrayValue(value),

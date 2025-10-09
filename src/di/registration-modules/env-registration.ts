@@ -66,9 +66,10 @@ async function loadEnvIncludingLLMVars(): Promise<EnvVars> {
     const finalSchema = baseEnvVarsSchema.merge(manifest.envSchema).passthrough();
     const parsedEnv = finalSchema.parse(rawEnv);
 
-    if (parsedEnv.LLM !== manifest.modelFamily) {
+    const llmValue = String(parsedEnv.LLM);
+    if (llmValue.toLowerCase() !== manifest.modelFamily.toLowerCase()) {
       throw new BadConfigurationLLMError(
-        `Warning: LLM environment variable ('${parsedEnv.LLM}') does not precisely match ` +
+        `Warning: LLM environment variable ('${llmValue}') does not precisely match ` +
           `modelFamily ('${manifest.modelFamily}') in the manifest for ${manifest.providerName}. `,
       );
     }

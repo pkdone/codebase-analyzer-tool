@@ -248,7 +248,18 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
 
     for (const summary of summaries) {
       // Estimate token count using character-to-token ratio
-      const summaryTokenCount = summary.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+      let summaryToProcess = summary;
+      let summaryTokenCount = summary.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+
+      // Handle summaries that are individually too large
+      if (summaryTokenCount > tokenLimitPerChunk) {
+        logWarningMsg(`A file summary is too large and will be truncated to fit token limit.`);
+        const truncatedLength = Math.floor(
+          tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN,
+        );
+        summaryToProcess = summary.substring(0, truncatedLength);
+        summaryTokenCount = tokenLimitPerChunk;
+      }
 
       // If adding this summary would exceed the limit, start a new chunk
       if (currentTokenCount + summaryTokenCount > tokenLimitPerChunk && currentChunk.length > 0) {
@@ -257,7 +268,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
         currentTokenCount = 0;
       }
 
-      currentChunk.push(summary);
+      currentChunk.push(summaryToProcess);
       currentTokenCount += summaryTokenCount;
     }
 
