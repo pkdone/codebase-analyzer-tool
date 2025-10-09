@@ -39,11 +39,11 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
   }
 
   /**
-   * Assemble the Bedrock parameters for Nova completions only.
+   * Build the request body object for Nova completions.
    */
-  protected buildCompletionModelSpecificParameters(modelKey: string, prompt: string) {
+  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
-    return JSON.stringify({
+    return {
       inferenceConfig: {
         max_new_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
         temperature: llmConfig.DEFAULT_ZERO_TEMP,
@@ -60,7 +60,7 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
           ],
         },
       ],
-    });
+    };
   }
 
   /**

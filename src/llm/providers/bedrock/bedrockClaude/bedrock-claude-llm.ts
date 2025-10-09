@@ -29,9 +29,9 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   }
 
   /**
-   * Assemble the Bedrock parameters for Claude completions only.
+   * Build the request body object for Claude completions.
    */
-  protected buildCompletionModelSpecificParameters(modelKey: string, prompt: string) {
+  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     const config = this.providerSpecificConfig;
 
@@ -56,13 +56,13 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
 
     // Only add anthropic_beta for Claude V40 model (1M-token context beta)
     if (modelKey === AWS_COMPLETIONS_CLAUDE_V40) {
-      return JSON.stringify({
+      return {
         ...baseParams,
         anthropic_beta: ["context-1m-2025-08-07"],
-      });
+      };
     }
 
-    return JSON.stringify(baseParams);
+    return baseParams;
   }
 
   /**

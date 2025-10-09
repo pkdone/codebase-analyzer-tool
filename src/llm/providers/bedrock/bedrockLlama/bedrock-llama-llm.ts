@@ -26,9 +26,9 @@ export default class BedrockLlamaLLM extends BaseBedrockLLM {
   }
 
   /**
-   * Assemble the Bedrock parameters for Llama completions only.
+   * Build the request body object for Llama completions.
    */
-  protected buildCompletionModelSpecificParameters(modelKey: string, prompt: string) {
+  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     const bodyObj: { prompt: string; temperature: number; top_p: number; max_gen_len?: number } = {
       prompt: `<|begin_of_text|><|start_header_id|>${llmConfig.LLM_ROLE_SYSTEM}<|end_header_id|>
@@ -46,7 +46,7 @@ You are a helpful software engineering and programming assistant, and you need t
       bodyObj.max_gen_len = Math.min(maxCompletionTokens, 2048);
     }
 
-    return JSON.stringify(bodyObj);
+    return bodyObj;
   }
 
   /**

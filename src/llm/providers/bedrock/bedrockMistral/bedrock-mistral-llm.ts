@@ -39,11 +39,11 @@ export default class BedrockMistralLLM extends BaseBedrockLLM {
   }
 
   /**
-   * Assemble the Bedrock parameters for Mistral completions only.
+   * Build the request body object for Mistral completions.
    */
-  protected buildCompletionModelSpecificParameters(modelKey: string, prompt: string) {
+  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
-    return JSON.stringify({
+    return {
       messages: [
         {
           role: llmConfig.LLM_ROLE_USER,
@@ -53,7 +53,7 @@ export default class BedrockMistralLLM extends BaseBedrockLLM {
       temperature: llmConfig.DEFAULT_ZERO_TEMP,
       top_p: llmConfig.DEFAULT_TOP_P_LOWEST,
       max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
-    });
+    };
   }
 
   /**

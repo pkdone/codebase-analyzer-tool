@@ -182,33 +182,33 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * the prompt.
    */
   private buildFullLLMParameters(taskType: LLMPurpose, modelKey: string, prompt: string) {
-    let body;
+    let bodyObj;
 
     if (taskType === LLMPurpose.EMBEDDINGS) {
-      body = JSON.stringify({
+      bodyObj = {
         inputText: prompt,
         //dimensions: this.getEmbeddedModelDimensions(),  // Throws error even though Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
-      });
+      };
     } else {
-      body = this.buildCompletionModelSpecificParameters(modelKey, prompt);
+      bodyObj = this.buildCompletionRequestBody(modelKey, prompt);
     }
 
     return {
       modelId: this.llmModelsMetadata[modelKey].urn,
       contentType: llmConfig.MIME_TYPE_JSON,
       accept: llmConfig.MIME_TYPE_ANY,
-      body,
+      body: JSON.stringify(bodyObj),
     };
   }
 
   /**
-   * Abstract method to be overriden. Assemble the AWS Bedrock API parameters structure for the
-   * specific completions model hosted on Bedroc.
+   * Abstract method to be overriden. Build the request body object for the specific
+   * completions model hosted on Bedrock. The base class will handle JSON stringification.
    */
-  protected abstract buildCompletionModelSpecificParameters(
+  protected abstract buildCompletionRequestBody(
     modelKey: string,
     prompt: string,
-  ): string;
+  ): Record<string, unknown>;
 
   /**
    * Abstract method to get the provider-specific response extraction configuration.
