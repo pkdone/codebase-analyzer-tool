@@ -1,8 +1,8 @@
 import path from "path";
 import { fileProcessingConfig } from "../../config/file-processing.config";
-import { findFilesRecursively } from "./directory-operations";
-import { getFileExtension } from "./path-utils";
-import { readFile } from "./file-operations";
+import { findFilesRecursively } from "../../common/utils/directory-operations";
+import { getFileExtension } from "../../common/utils/path-utils";
+import { readFile } from "../../common/utils/file-operations";
 
 /**
  * Regex pattern to match trailing slash at end of string

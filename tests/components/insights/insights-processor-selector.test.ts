@@ -4,13 +4,13 @@ import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { EnvVars } from "../../../src/env/env.types";
 import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../../src/components/insights/insights-from-raw-code-generator";
-import { bundleCodebaseIntoMarkdown } from "../../../src/common/utils/codebase-processing";
+import { bundleCodebaseIntoMarkdown } from "../../../src/llm/utils/codebase-processing";
 import { llmProviderConfig } from "../../../src/config/llm-provider.config";
 import { z } from "zod";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 
 // Mock dependencies
-jest.mock("../../../src/common/utils/codebase-processing");
+jest.mock("../../../src/llm/utils/codebase-processing");
 jest.mock("../../../src/config/llm-provider.config", () => ({
   llmProviderConfig: {
     AVERAGE_CHARS_PER_TOKEN: 4,
@@ -249,4 +249,3 @@ describe("InsightsProcessorSelector", () => {
     });
   });
 });
-

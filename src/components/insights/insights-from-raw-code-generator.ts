@@ -4,7 +4,7 @@ import LLMRouter from "../../llm/core/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import { TOKENS } from "../../di/tokens";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
-import { bundleCodebaseIntoMarkdown } from "../../common/utils/codebase-processing";
+import { bundleCodebaseIntoMarkdown } from "../../llm/utils/codebase-processing";
 import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";

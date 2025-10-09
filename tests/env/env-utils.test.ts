@@ -1,4 +1,4 @@
-import { getRequiredEnvVar, isDefined } from "../../src/env/env-utils";
+import { getRequiredEnvVar } from "../../src/env/env-utils";
 import { BadConfigurationLLMError } from "../../src/llm/types/llm-errors.types";
 
 describe("env-utils", () => {
@@ -10,10 +10,5 @@ describe("env-utils", () => {
   it("getRequiredEnvVar throws when missing", () => {
     const env = {} as any;
     expect(() => getRequiredEnvVar(env, "MISSING")).toThrow(BadConfigurationLLMError);
-  });
-
-  it("isDefined filters out null and undefined", () => {
-    const arr = ["a", undefined, null, "b"].filter(isDefined);
-    expect(arr).toEqual(["a", "b"]);
   });
 });

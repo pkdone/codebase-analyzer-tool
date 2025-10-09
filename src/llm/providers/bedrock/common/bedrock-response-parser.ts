@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getNestedValue, getNestedValueWithFallbacks } from "../../../../common/utils/object-utils";
-import { isDefined } from "../../../../env/env-utils";
+import { isDefined } from "../../../../common/utils/type-guards";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 import { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 

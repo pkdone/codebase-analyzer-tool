@@ -13,7 +13,7 @@ import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatErrorMessage } from "../../common/utils/error-formatters";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { bundleCodebaseIntoMarkdown } from "../../common/utils/codebase-processing";
+import { bundleCodebaseIntoMarkdown } from "../../llm/utils/codebase-processing";
 import { formatDateForFilename } from "../../common/utils/date-utils";
 
 /**
