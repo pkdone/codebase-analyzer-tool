@@ -9,7 +9,7 @@ export function applyOptionalSchemaValidationToContent<T>(
   content: unknown, // Accept unknown values to be safely handled by Zod validation
   completionOptions: LLMCompletionOptions,
   resourceName: string,
-  logSanitizationSteps = false,
+  logSanitizationSteps = true,
   onValidationIssues?: (issues: unknown) => void,
 ): T | LLMGeneratedContent | null {
   if (

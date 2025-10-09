@@ -29,7 +29,7 @@ export function parseAndValidateLLMJsonContent<T = Record<string, unknown>>(
   content: LLMGeneratedContent,
   resourceName: string,
   completionOptions: LLMCompletionOptions,
-  logSanitizationSteps = false,
+  logSanitizationSteps = true,
 ): T {
   if (typeof content !== "string") {
     throw new BadResponseContentLLMError(
