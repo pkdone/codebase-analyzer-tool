@@ -163,4 +163,3 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     expect(parsedBody.inputText).toBe("embed this text");
   });
 });
-
