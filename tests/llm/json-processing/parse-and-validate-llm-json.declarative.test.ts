@@ -9,7 +9,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
 
 import { logWarningMsg } from "../../../src/common/utils/logging";
 
-describe("JsonProcessor.parseAndValidate (declarative strategy pipeline)", () => {
+describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", () => {
   let jsonProcessor: JsonProcessor;
   const completionOptions = { outputFormat: LLMOutputFormat.JSON } as const;
 
@@ -28,7 +28,7 @@ describe("JsonProcessor.parseAndValidate (declarative strategy pipeline)", () =>
     expect(logWarningMsg).not.toHaveBeenCalled();
   });
 
-  it("applies extract strategy when JSON is embedded in prose", () => {
+  it("applies extract sanitizer when JSON is embedded in prose", () => {
     const txt = 'Leading words {"y":2} trailing info';
     const result = jsonProcessor.parseAndValidate(txt, "decl-extract", completionOptions, true);
     expect(result.success).toBe(true);
@@ -36,38 +36,32 @@ describe("JsonProcessor.parseAndValidate (declarative strategy pipeline)", () =>
       expect((result.data as any).y).toBe(2);
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
-    expect(calls.some((c: string) => c.includes("extract"))).toBe(true);
+    expect(calls.some((c: string) => c.includes("Extracted largest JSON span"))).toBe(true);
   });
 
-  it("falls through to pre-concat strategy for identifier-only chains", () => {
+  it("applies concatenation chain sanitizer for identifier-only chains", () => {
     const chain = '{"path": A_CONST + B_CONST + C_CONST}';
-    const result = jsonProcessor.parseAndValidate(
-      chain,
-      "decl-pre-concat",
-      completionOptions,
-      true,
-    );
+    const result = jsonProcessor.parseAndValidate(chain, "decl-concat", completionOptions, true);
     expect(result.success).toBe(true);
     if (result.success) {
       expect((result.data as any).path).toBe("");
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
-    expect(calls.some((c: string) => c.includes("pre-concat"))).toBe(true);
+    expect(calls.some((c: string) => c.includes("Normalized concatenation chains"))).toBe(true);
   });
 
-  it("invokes resilient sanitation when earlier strategies cannot parse", () => {
+  it("applies multiple sanitizers in pipeline for complex malformed JSON", () => {
     const malformed = '```json\n{"a":1,}\n``` noise after';
-    const result = jsonProcessor.parseAndValidate(
-      malformed,
-      "decl-resilient",
-      completionOptions,
-      true,
-    );
+    const result = jsonProcessor.parseAndValidate(malformed, "decl-multi", completionOptions, true);
     expect(result.success).toBe(true);
     if (result.success) {
       expect((result.data as any).a).toBe(1);
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
-    expect(calls.some((c: string) => c.includes("resilient-sanitization"))).toBe(true);
+    // Should have applied multiple sanitizers for this complex case
+    expect(calls.some((c: string) => c.includes("JSON sanitation steps"))).toBe(true);
+    // Should include at least code fence removal or trailing comma removal
+    const logMsg = calls.find((c: string) => c.includes("JSON sanitation steps"));
+    expect(logMsg).toMatch(/Removed code fences|Removed trailing commas/);
   });
 });

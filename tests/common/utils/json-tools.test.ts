@@ -62,7 +62,9 @@ describe("JSON utilities", () => {
       const result = jsonProcessor.parseAndValidate(text, "content", completionOptions);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.message).toMatch(/doesn't contain valid JSON content/);
+        expect(result.error.message).toMatch(
+          /cannot be parsed to JSON after all sanitization attempts/,
+        );
       }
     });
 

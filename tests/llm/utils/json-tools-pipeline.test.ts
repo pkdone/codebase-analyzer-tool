@@ -39,17 +39,17 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     if (result.success) {
       expect(result.data).toEqual({ hello: "world" });
     }
-    // Should log steps including 'extract'
+    // Should log steps including 'Extracted'
     const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
-    expect(calls.some((c) => c.includes("extract"))).toBe(true);
+    expect(calls.some((c) => c.includes("Extracted"))).toBe(true);
   });
 
-  test("resilient sanitation path: deliberately malformed then recoverable JSON", () => {
-    // Force earlier strategies to fail: unbalanced content with code fences & trailing comma
+  test("unified sanitization pipeline: deliberately malformed then recoverable JSON", () => {
+    // Force multiple sanitizers: content with code fences & trailing comma
     const malformed = '```json\n{"key":"value",}\n``` Extra trailing';
     const result = jsonProcessor.parseAndValidate(
       malformed,
-      "resilient-path",
+      "pipeline-test",
       completionOptions,
       true,
     );
@@ -58,8 +58,8 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
       expect(result.data).toEqual({ key: "value" });
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
-    // Should include resilient-sanitization marker
-    expect(calls.some((c) => c.includes("resilient-sanitization"))).toBe(true);
+    // Should include sanitization steps in the log
+    expect(calls.some((c) => c.includes("JSON sanitation steps"))).toBe(true);
   });
 
   test("pre-concat strategy invoked for identifier-only concatenations", () => {
