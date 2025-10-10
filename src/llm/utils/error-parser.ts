@@ -3,7 +3,7 @@ import {
   LLMErrorMsgRegExPattern,
   LLMResponseTokensUsage,
 } from "../types/llm.types";
-import { llmProviderConfig } from "../../config/llm-provider.config";
+import { llmProviderConfig } from "../llm.config";
 
 /**
  * Extract token usage information from LLM error message.

@@ -5,7 +5,7 @@ import { SourcesRepository } from "../../../src/repositories/source/sources.repo
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { llmProviderConfig } from "../../../src/config/llm-provider.config";
+import { llmProviderConfig } from "../../../src/llm/llm.config";
 import * as logging from "../../../src/common/utils/logging";
 
 // Mock the logging utilities

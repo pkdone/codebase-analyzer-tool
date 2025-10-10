@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable } from "tsyringe";
 import path from "path";
-import { llmProviderConfig } from "../../config/llm-provider.config";
+import { llmProviderConfig } from "../llm.config";
 import {
   LLMProvider,
   LLMModelKeysSet as LLMModelsKeysSet,

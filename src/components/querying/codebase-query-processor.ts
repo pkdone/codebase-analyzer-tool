@@ -5,16 +5,7 @@ import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
-
-/**
- * Number of candidates to consider in vector search
- */
-const VECTOR_SEARCH_NUM_CANDIDATES = 150;
-
-/**
- * Maximum number of results to return from vector search
- */
-const VECTOR_SEARCH_NUM_LIMIT = 6;
+import { queryingConfig } from "./querying.config";
 
 /**
  * Creates a prompt for querying the codebase with a specific question.
@@ -61,8 +52,8 @@ export default class CodebaseQueryProcessor {
     const bestMatchFiles = await this.sourcesRepository.vectorSearchProjectSourcesRawContent(
       projectName,
       queryVector,
-      VECTOR_SEARCH_NUM_CANDIDATES,
-      VECTOR_SEARCH_NUM_LIMIT,
+      queryingConfig.VECTOR_SEARCH_NUM_CANDIDATES,
+      queryingConfig.VECTOR_SEARCH_NUM_LIMIT,
     );
 
     if (bestMatchFiles.length <= 0) {

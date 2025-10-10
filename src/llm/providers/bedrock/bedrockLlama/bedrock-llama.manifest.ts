@@ -61,6 +61,7 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     maxRetryAttempts: 4,
     minRetryDelayMillis: 25 * 1000,
     maxRetryDelayMillis: 240 * 1000,
+    maxGenLenCap: 2048,
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: BedrockConfig = {

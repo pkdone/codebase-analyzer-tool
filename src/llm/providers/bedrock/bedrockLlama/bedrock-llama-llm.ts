@@ -4,11 +4,6 @@ import { BEDROCK_LLAMA } from "./bedrock-llama.manifest";
 import { z } from "zod";
 
 /**
- * Bedrock API limit for max_gen_len on Llama models
- */
-const BEDROCK_LLAMA_MAX_GEN_LEN_CAP = 2048;
-
-/**
  * Zod schema for Llama completion response validation
  */
 const LlamaCompletionResponseSchema = z.object({
@@ -47,9 +42,11 @@ You are a helpful software engineering and programming assistant, and you need t
     // The check is broadened to include any model key containing "LLAMA" as the issue affects multiple Llama versions on Bedrock.
     if (modelKey.includes("LLAMA")) {
       // Cap the max_gen_len to respect the Bedrock API limit for these models.
+      const maxGenLenCap = (this.providerSpecificConfig as unknown as { maxGenLenCap: number })
+        .maxGenLenCap;
       const maxCompletionTokens =
-        this.llmModelsMetadata[modelKey].maxCompletionTokens ?? BEDROCK_LLAMA_MAX_GEN_LEN_CAP;
-      bodyObj.max_gen_len = Math.min(maxCompletionTokens, BEDROCK_LLAMA_MAX_GEN_LEN_CAP);
+        this.llmModelsMetadata[modelKey].maxCompletionTokens ?? maxGenLenCap;
+      bodyObj.max_gen_len = Math.min(maxCompletionTokens, maxGenLenCap);
     }
 
     return bodyObj;

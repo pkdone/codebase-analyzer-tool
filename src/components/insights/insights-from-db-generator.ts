@@ -13,7 +13,7 @@ import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { PartialAppSummaryRecord, AppSummaryCategoryEnum } from "./insights.types";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
-import { llmProviderConfig } from "../../config/llm-provider.config";
+import { llmProviderConfig } from "../../llm/llm.config";
 
 // Mark schema as being easy for LLMs to digest
 const SCHEMA_HAS_VERTEXAI_INCOMPATIBILITY = false;

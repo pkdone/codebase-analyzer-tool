@@ -22,7 +22,7 @@ import { logErrorMsg, logWarningMsg, logErrorMsgAndDetail } from "../../common/u
 import { JsonProcessor } from "../json-processing/json-processor";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
-import { llmProviderConfig } from "../../config/llm-provider.config";
+import { llmProviderConfig } from "../llm.config";
 import { writeFile } from "../../common/utils/file-operations";
 import { ensureDirectoryExists } from "../../common/utils/directory-operations";
 

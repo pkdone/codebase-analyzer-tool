@@ -11,14 +11,10 @@ import {
   VectorSearchFilter,
   createVectorSearchIndexDefinition,
 } from "../../common/mdb/mdb-index-utils";
-
-// MongoDB error codes for duplicate key errors (including duplicate indexes).
-// @see https://docs.mongodb.com/manual/reference/error-codes/#DuplicateKey
-const MONGODB_DUPLICATE_OBJ_ERROR_CODES = [11000, 68];
-
-// MongoDB error code for NamespaceExists (collection already exists).
-// @see https://www.mongodb.com/docs/manual/reference/error-codes/
-const MONGODB_NAMESPACE_EXISTS_ERROR_CODE = 48;
+import {
+  MONGODB_DUPLICATE_OBJ_ERROR_CODES,
+  MONGODB_NAMESPACE_EXISTS_ERROR_CODE,
+} from "../../common/mdb/mdb.constants";
 
 /**
  * Component responsible for database schema initialization and management.
@@ -135,7 +131,7 @@ export class DatabaseInitializer {
       // Check if this is an expected duplicate error that we can safely ignore
       if (
         error instanceof MongoServerError &&
-        MONGODB_DUPLICATE_OBJ_ERROR_CODES.includes(Number(error.code))
+        (MONGODB_DUPLICATE_OBJ_ERROR_CODES as readonly number[]).includes(Number(error.code))
       ) {
         // Expected duplicate error - indexes already exist, which is fine
       } else {

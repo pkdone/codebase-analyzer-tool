@@ -2,41 +2,36 @@ import * as fs from "fs";
 import * as path from "path";
 
 /**
- * Unit tests for BedrockLlamaLLM constant extraction
+ * Unit tests for BedrockLlamaLLM - verifies maxGenLenCap is retrieved from providerSpecificConfig
  */
 describe("BedrockLlamaLLM", () => {
-  it("should have BEDROCK_LLAMA_MAX_GEN_LEN_CAP constant defined", () => {
-    // This test verifies that the constant is defined and used correctly
-    // The actual implementation details are tested through integration tests
+  it("should retrieve maxGenLenCap from providerSpecificConfig", () => {
+    // This test verifies that maxGenLenCap is accessed from providerSpecificConfig
+    // instead of being a hardcoded constant in the implementation file
 
-    // Read the file to verify the constant exists
+    // Read the file to verify the pattern exists
     const filePath = path.join(
       __dirname,
       "../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm.ts",
     );
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
-    // Verify the constant is defined
-    expect(fileContent).toContain("BEDROCK_LLAMA_MAX_GEN_LEN_CAP");
-    expect(fileContent).toContain("const BEDROCK_LLAMA_MAX_GEN_LEN_CAP = 2048");
+    // Verify that maxGenLenCap is retrieved from providerSpecificConfig
+    expect(fileContent).toContain("providerSpecificConfig");
+    expect(fileContent).toContain("maxGenLenCap");
 
-    // Verify it's used in the method
-    expect(fileContent).toContain("Math.min(maxCompletionTokens, BEDROCK_LLAMA_MAX_GEN_LEN_CAP)");
+    // Verify it's used in the calculation
+    expect(fileContent).toContain("Math.min(maxCompletionTokens, maxGenLenCap)");
   });
 
-  it("should use the constant instead of magic number", () => {
+  it("should not have a hardcoded BEDROCK_LLAMA_MAX_GEN_LEN_CAP constant", () => {
     const filePath = path.join(
       __dirname,
       "../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm.ts",
     );
     const fileContent = fs.readFileSync(filePath, "utf-8");
 
-    // Verify the constant is used in Math.min() instead of hardcoded 2048
-    expect(fileContent).toContain("Math.min(maxCompletionTokens, BEDROCK_LLAMA_MAX_GEN_LEN_CAP)");
-
-    // Verify the constant reference is also used in the fallback
-    const usagePattern =
-      /maxCompletionTokens\s*=\s*this\.llmModelsMetadata\[modelKey\]\.maxCompletionTokens\s*\?\?\s*BEDROCK_LLAMA_MAX_GEN_LEN_CAP/;
-    expect(fileContent).toMatch(usagePattern);
+    // Verify the old constant is not present (it's now in the manifest)
+    expect(fileContent).not.toContain("const BEDROCK_LLAMA_MAX_GEN_LEN_CAP");
   });
 });
