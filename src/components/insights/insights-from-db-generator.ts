@@ -3,7 +3,7 @@ import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
-import { joinArrayWithSeparators } from "../../common/utils/text-utils";
+import { joinArrayWithSeparators } from "../../common/utils/text-formatting";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../di/tokens";

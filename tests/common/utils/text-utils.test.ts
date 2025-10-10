@@ -1,4 +1,5 @@
-import { countLines, joinArrayWithSeparators } from "../../../src/common/utils/text-utils";
+import { countLines } from "../../../src/common/utils/text-analysis";
+import { joinArrayWithSeparators } from "../../../src/common/utils/text-formatting";
 
 describe("Text utilities", () => {
   describe("countLines", () => {

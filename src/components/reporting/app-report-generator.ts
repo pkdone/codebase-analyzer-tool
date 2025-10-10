@@ -13,7 +13,7 @@ import type { AppSummariesRepository } from "../../repositories/app-summary/app-
 import type { ReportData } from "./report-gen.types";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
-import { convertToDisplayName } from "../../common/utils/text-utils";
+import { convertToDisplayName } from "../../common/utils/text-formatting";
 import { ensureDirectoryExists } from "../../common/utils/directory-operations";
 import { htmlReportConstants } from "./html-report.constants";
 import { insightsConfig } from "./insights.config";

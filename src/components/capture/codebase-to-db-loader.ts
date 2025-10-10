@@ -5,7 +5,7 @@ import { fileProcessingConfig } from "../../config/file-processing.config";
 import { readFile } from "../../common/utils/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../common/utils/directory-operations";
 import { getFileExtension } from "../../common/utils/path-utils";
-import { countLines } from "../../common/utils/text-utils";
+import { countLines } from "../../common/utils/text-analysis";
 import { processItemsConcurrently } from "../../common/utils/async-utils";
 import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";

@@ -7,14 +7,14 @@ import { FileSummarizer } from "../../../src/components/capture/file-summarizer"
 import * as fileOperations from "../../../src/common/utils/file-operations";
 import * as directoryOperations from "../../../src/common/utils/directory-operations";
 import * as pathUtils from "../../../src/common/utils/path-utils";
-import * as textUtils from "../../../src/common/utils/text-utils";
+import * as textAnalysis from "../../../src/common/utils/text-analysis";
 import { fileProcessingConfig } from "../../../src/config/file-processing.config";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/file-operations");
 jest.mock("../../../src/common/utils/directory-operations");
 jest.mock("../../../src/common/utils/path-utils");
-jest.mock("../../../src/common/utils/text-utils");
+jest.mock("../../../src/common/utils/text-analysis");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
@@ -37,7 +37,7 @@ jest.mock("path", () => ({
 const mockFileOperations = fileOperations as jest.Mocked<typeof fileOperations>;
 const mockDirectoryOperations = directoryOperations as jest.Mocked<typeof directoryOperations>;
 const mockPathUtils = pathUtils as jest.Mocked<typeof pathUtils>;
-const mockTextUtils = textUtils as jest.Mocked<typeof textUtils>;
+const mockTextUtils = textAnalysis as jest.Mocked<typeof textAnalysis>;
 const mockPath = path as jest.Mocked<typeof path>;
 
 describe("CodebaseToDBLoader", () => {
