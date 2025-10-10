@@ -14,6 +14,7 @@ export const llmConfig = {
   LLM_UTF8_ENCODING: "utf8",
   MIME_TYPE_JSON: "application/json",
   MIME_TYPE_ANY: "*/*",
+  JSON_OUTPUT_TYPE: "json_object",
 } as const;
 
 /**

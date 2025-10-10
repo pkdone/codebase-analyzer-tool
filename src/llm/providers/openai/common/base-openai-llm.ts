@@ -100,7 +100,7 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
         : { ...baseParams, max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens };
 
       if (options?.outputFormat === LLMOutputFormat.JSON) {
-        params.response_format = { type: "json_object" };
+        params.response_format = { type: llmConfig.JSON_OUTPUT_TYPE };
       }
 
       return params;
