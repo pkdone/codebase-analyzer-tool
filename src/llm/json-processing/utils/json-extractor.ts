@@ -8,11 +8,14 @@ export interface ParsingOutcome {
 }
 
 /**
- * Extract JSON content from text and parse it.
+ * Extract JSON content from text without parsing it.
  * Handles both markdown-wrapped JSON and raw JSON content.
  * Improved algorithm to handle complex nested content with proper string awareness.
+ * 
+ * @param textContent - The text content to extract JSON from
+ * @returns The extracted JSON string, or null if no JSON-like structure is found
  */
-export function extractAndParseJson(textContent: string): unknown {
+export function extractJsonString(textContent: string): string | null {
   // Find JSON content by looking for balanced braces/brackets, handling nested structures
   let jsonMatch: string | null = null;
   const markdownMatch = /```(?:json)?\s*([{[][\s\S]*?[}\]])\s*```/.exec(textContent);
@@ -75,7 +78,25 @@ export function extractAndParseJson(textContent: string): unknown {
     }
   }
 
-  if (!jsonMatch) throw new Error("No JSON content found");
+  return jsonMatch;
+}
+
+/**
+ * Extract JSON content from text and parse it.
+ * Handles both markdown-wrapped JSON and raw JSON content.
+ * This function combines extraction and parsing for convenience.
+ * 
+ * @param textContent - The text content to extract and parse JSON from
+ * @returns The parsed JSON object
+ * @throws Error with message "No JSON content found" if no JSON-like structure is found
+ * @throws Error with message "JsonParseFailed" if JSON is found but cannot be parsed
+ */
+export function extractAndParseJson(textContent: string): unknown {
+  const jsonMatch = extractJsonString(textContent);
+
+  if (!jsonMatch) {
+    throw new Error("No JSON content found");
+  }
 
   try {
     return JSON.parse(jsonMatch);

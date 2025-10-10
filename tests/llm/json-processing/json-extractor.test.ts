@@ -1,6 +1,106 @@
-import { extractAndParseJson } from "../../../src/llm/json-processing/utils/json-extractor";
+import {
+  extractAndParseJson,
+  extractJsonString,
+} from "../../../src/llm/json-processing/utils/json-extractor";
 
 describe("json-extractor", () => {
+  describe("extractJsonString", () => {
+    it("should extract valid JSON object", () => {
+      const input = '{"name": "John", "age": 30}';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"name": "John", "age": 30}');
+    });
+
+    it("should extract valid JSON array", () => {
+      const input = "[1, 2, 3, 4, 5]";
+      const result = extractJsonString(input);
+      expect(result).toBe("[1, 2, 3, 4, 5]");
+    });
+
+    it("should extract JSON from markdown code fence", () => {
+      const input = '```json\n{"name": "Jane", "role": "Developer"}\n```';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"name": "Jane", "role": "Developer"}');
+    });
+
+    it("should extract JSON from code fence without language", () => {
+      const input = '```\n{"status": "success"}\n```';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"status": "success"}');
+    });
+
+    it("should extract JSON object surrounded by text", () => {
+      const input = 'Here is the data: {"value": 42} and that is all.';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"value": 42}');
+    });
+
+    it("should handle nested JSON objects", () => {
+      const input = '{"outer": {"inner": {"deep": "value"}}}';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"outer": {"inner": {"deep": "value"}}}');
+    });
+
+    it("should handle nested JSON arrays", () => {
+      const input = "[[1, 2], [3, 4], [5, 6]]";
+      const result = extractJsonString(input);
+      expect(result).toBe("[[1, 2], [3, 4], [5, 6]]");
+    });
+
+    it("should handle JSON with string containing braces", () => {
+      const input = '{"message": "Hello {world}", "data": {"key": "value"}}';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"message": "Hello {world}", "data": {"key": "value"}}');
+    });
+
+    it("should handle JSON with escaped quotes", () => {
+      const input = '{"quote": "He said \\"Hello\\"", "value": 1}';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"quote": "He said \\"Hello\\"", "value": 1}');
+    });
+
+    it("should return null when no JSON content is found", () => {
+      const input = "This is plain text with no JSON at all";
+      const result = extractJsonString(input);
+      expect(result).toBeNull();
+    });
+
+    it("should extract truncated JSON (missing closing brace)", () => {
+      const input = '{"name": "John", "age": 30';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"name": "John", "age": 30');
+    });
+
+    it("should extract first complete JSON object when multiple are present", () => {
+      const input = '{"first": 1} {"second": 2}';
+      const result = extractJsonString(input);
+      expect(result).toBe('{"first": 1}');
+    });
+
+    it("should handle JSON with whitespace", () => {
+      const input = `
+        {
+          "name": "Test",
+          "value": 123
+        }
+      `;
+      const result = extractJsonString(input);
+      expect(result).toContain('"name": "Test"');
+      expect(result).toContain('"value": 123');
+    });
+
+    it("should return null for empty string", () => {
+      const result = extractJsonString("");
+      expect(result).toBeNull();
+    });
+
+    it("should extract JSON array surrounded by text", () => {
+      const input = "Response: [1, 2, 3] - that's the data";
+      const result = extractJsonString(input);
+      expect(result).toBe("[1, 2, 3]");
+    });
+  });
+
   describe("extractAndParseJson", () => {
     it("should parse valid JSON object", () => {
       const input = '{"name": "John", "age": 30}';

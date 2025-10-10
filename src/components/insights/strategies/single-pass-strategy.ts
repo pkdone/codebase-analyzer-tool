@@ -9,8 +9,8 @@ import { TOKENS } from "../../../di/tokens";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 
-// Mark schema as being easy for LLMs to digest
-const SCHEMA_HAS_VERTEXAI_INCOMPATIBILITY = false;
+// Individual category schemas are simple and compatible with all LLM providers including VertexAI
+const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
 
 /**
  * Single-pass insight generation strategy for small to medium codebases.
@@ -43,7 +43,7 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
-          hasComplexSchema: SCHEMA_HAS_VERTEXAI_INCOMPATIBILITY,
+          hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
         },
       );
 
