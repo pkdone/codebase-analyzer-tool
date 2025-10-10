@@ -72,6 +72,8 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     maxRetryAttempts: 6,
     minRetryDelayMillis: 40 * 1000,
     maxRetryDelayMillis: 360 * 1000,
+    // Anthropic beta flags for specific features (e.g., extended context window)
+    anthropicBetaFlags: ["context-1m-2025-08-07"],
   },
   factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
     const config: BedrockConfig = {

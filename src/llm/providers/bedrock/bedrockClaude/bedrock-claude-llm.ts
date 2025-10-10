@@ -54,11 +54,11 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
       max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
     };
 
-    // Only add anthropic_beta for Claude V40 model (1M-token context beta)
-    if (modelKey === AWS_COMPLETIONS_CLAUDE_V40) {
+    // Add anthropic_beta flags for Claude V40 model (1M-token context beta) if configured
+    if (modelKey === AWS_COMPLETIONS_CLAUDE_V40 && config.anthropicBetaFlags) {
       return {
         ...baseParams,
-        anthropic_beta: ["context-1m-2025-08-07"],
+        anthropic_beta: config.anthropicBetaFlags,
       };
     }
 

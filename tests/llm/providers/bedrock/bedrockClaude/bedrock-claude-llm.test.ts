@@ -51,6 +51,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     topP: 0.95,
     topK: 40,
     apiVersion: "bedrock-2023-05-31",
+    anthropicBetaFlags: ["context-1m-2025-08-07"],
   };
 
   describe("buildCompletionRequestBody", () => {

@@ -4,6 +4,7 @@ import path from "path";
 import { writeBinaryFile } from "../../common/utils/file-operations";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 import { logWarningMsg } from "../../common/utils/logging";
+import { dependencyTreePngConfig } from "./dependency-tree-png.config";
 
 interface HierarchicalTreeNode {
   classpath: string;
@@ -33,74 +34,6 @@ interface LayoutDimensions {
  */
 @injectable()
 export class DependencyTreePngGenerator {
-  // Layout dimensions
-  private readonly NODE_WIDTH = 400;
-  private readonly NODE_HEIGHT = 45;
-  private readonly LEVEL_HEIGHT = 80;
-  private readonly HORIZONTAL_SPACING = 20;
-  private readonly VERTICAL_SPACING = 15;
-  private readonly FONT_SIZE = 12;
-  private readonly CANVAS_PADDING = 40;
-  private readonly COMPACT_NODE_WIDTH = 350;
-  private readonly COMPACT_NODE_HEIGHT = 30;
-  private readonly COMPACT_LEVEL_HEIGHT = 45;
-  private readonly COMPACT_HORIZONTAL_SPACING = 15;
-  private readonly COMPACT_VERTICAL_SPACING = 10;
-  private readonly COMPACT_FONT_SIZE = 10;
-  private readonly COMPACT_CANVAS_PADDING = 25;
-  private readonly MAX_CANVAS_WIDTH = 8000;
-  private readonly MAX_CANVAS_HEIGHT = 8000;
-  private readonly MIN_CANVAS_WIDTH = 800;
-  private readonly MIN_CANVAS_HEIGHT = 600;
-  private readonly COMPLEX_TREE_THRESHOLD = 50; // Switch to compact mode at 50+ nodes
-
-  // Colors
-  private readonly COLORS = {
-    WHITE: "#ffffff",
-    ROOT_BACKGROUND: "#e8f4fd",
-    NODE_BACKGROUND: "#f5f5f5",
-    ROOT_BORDER: "#2196F3",
-    NODE_BORDER: "#cccccc",
-    CONNECTION: "#cccccc",
-    TEXT: "#333333",
-    LEVEL_INDICATOR: "#666666",
-  } as const;
-
-  // Text constants
-  private readonly TEXT = {
-    FONT_FAMILY: "Arial",
-    FONT_WEIGHT_BOLD: "bold ",
-    LEVEL_PREFIX: "L",
-    TITLE_PREFIX: "Dependency Tree: ",
-  } as const;
-
-  // File constants
-  private readonly FILE = {
-    FORMAT: "image/png",
-    EXTENSION: ".png",
-  } as const;
-
-  // Numeric constants
-  private readonly NUMERIC = {
-    TITLE_Y_POSITION: 25,
-    TEXT_PADDING_REGULAR: 5,
-    TEXT_PADDING_COMPACT: 3,
-    LEVEL_PADDING_REGULAR: 5,
-    LEVEL_PADDING_COMPACT: 3,
-    LEVEL_Y_REGULAR: 15,
-    LEVEL_Y_COMPACT: 12,
-    STAGGER_OFFSET: 8,
-    ARROW_LENGTH: 10,
-    ARROW_ANGLE_DEGREES: 30,
-    ARROW_ANGLE_RADIANS: Math.PI / 6,
-    FONT_SIZE_TITLE_OFFSET: 4,
-    FONT_SIZE_LEVEL_OFFSET_REGULAR: 2,
-    FONT_SIZE_LEVEL_OFFSET_COMPACT: 1,
-    BORDER_WIDTH_ROOT: 2,
-    BORDER_WIDTH_NODE: 1,
-    CONNECTION_WIDTH: 2,
-  } as const;
-
   /**
    * Generate a PNG file showing the hierarchical dependency tree for a specific Java class
    */
@@ -116,7 +49,7 @@ export class DependencyTreePngGenerator {
 
       // Check if dependency tree is complex and determine layout mode
       const totalNodes = this.countTotalNodes(hierarchicalDependencies);
-      const useCompactMode = totalNodes > this.COMPLEX_TREE_THRESHOLD;
+      const useCompactMode = totalNodes > dependencyTreePngConfig.canvas.COMPLEX_TREE_THRESHOLD;
       const layout = this.getLayoutDimensions(useCompactMode);
 
       // Track nodes to avoid duplicates
@@ -153,8 +86,8 @@ export class DependencyTreePngGenerator {
       if (
         width <= 0 ||
         height <= 0 ||
-        width > this.MAX_CANVAS_WIDTH ||
-        height > this.MAX_CANVAS_HEIGHT
+        width > dependencyTreePngConfig.canvas.MAX_WIDTH ||
+        height > dependencyTreePngConfig.canvas.MAX_HEIGHT
       ) {
         throw new Error(
           `Canvas dimensions ${width}x${height} exceed limits even with compact layout`,
@@ -169,9 +102,9 @@ export class DependencyTreePngGenerator {
       this.drawHierarchicalDependencyTree(ctx, classpath, rootNode, width, height, layout);
 
       // Save to file
-      const buffer = canvas.toBuffer(this.FILE.FORMAT);
+      const buffer = canvas.toBuffer(dependencyTreePngConfig.file.FORMAT);
       await writeBinaryFile(filepath, buffer);
-      return filename + this.FILE.EXTENSION;
+      return filename + dependencyTreePngConfig.file.EXTENSION;
     } catch (error: unknown) {
       logWarningMsg(`Failed to generate dependency tree for ${classpath}: ${String(error)}`);
       throw error; // Re-throw since we removed the fallback to simplified PNG
@@ -184,22 +117,22 @@ export class DependencyTreePngGenerator {
   private getLayoutDimensions(useCompactMode: boolean): LayoutDimensions {
     return useCompactMode
       ? {
-          nodeWidth: this.COMPACT_NODE_WIDTH,
-          nodeHeight: this.COMPACT_NODE_HEIGHT,
-          levelHeight: this.COMPACT_LEVEL_HEIGHT,
-          horizontalSpacing: this.COMPACT_HORIZONTAL_SPACING,
-          verticalSpacing: this.COMPACT_VERTICAL_SPACING,
-          fontSize: this.COMPACT_FONT_SIZE,
-          canvasPadding: this.COMPACT_CANVAS_PADDING,
+          nodeWidth: dependencyTreePngConfig.compactLayout.NODE_WIDTH,
+          nodeHeight: dependencyTreePngConfig.compactLayout.NODE_HEIGHT,
+          levelHeight: dependencyTreePngConfig.compactLayout.LEVEL_HEIGHT,
+          horizontalSpacing: dependencyTreePngConfig.compactLayout.HORIZONTAL_SPACING,
+          verticalSpacing: dependencyTreePngConfig.compactLayout.VERTICAL_SPACING,
+          fontSize: dependencyTreePngConfig.compactLayout.FONT_SIZE,
+          canvasPadding: dependencyTreePngConfig.compactLayout.CANVAS_PADDING,
         }
       : {
-          nodeWidth: this.NODE_WIDTH,
-          nodeHeight: this.NODE_HEIGHT,
-          levelHeight: this.LEVEL_HEIGHT,
-          horizontalSpacing: this.HORIZONTAL_SPACING,
-          verticalSpacing: this.VERTICAL_SPACING,
-          fontSize: this.FONT_SIZE,
-          canvasPadding: this.CANVAS_PADDING,
+          nodeWidth: dependencyTreePngConfig.layout.NODE_WIDTH,
+          nodeHeight: dependencyTreePngConfig.layout.NODE_HEIGHT,
+          levelHeight: dependencyTreePngConfig.layout.LEVEL_HEIGHT,
+          horizontalSpacing: dependencyTreePngConfig.layout.HORIZONTAL_SPACING,
+          verticalSpacing: dependencyTreePngConfig.layout.VERTICAL_SPACING,
+          fontSize: dependencyTreePngConfig.layout.FONT_SIZE,
+          canvasPadding: dependencyTreePngConfig.layout.CANVAS_PADDING,
         };
   }
 
@@ -221,11 +154,11 @@ export class DependencyTreePngGenerator {
     mainClasspath: string,
     canvasWidth: number,
   ): void {
-    ctx.font = `${this.TEXT.FONT_WEIGHT_BOLD}${this.FONT_SIZE + this.NUMERIC.FONT_SIZE_TITLE_OFFSET}px ${this.TEXT.FONT_FAMILY}`;
-    ctx.fillStyle = this.COLORS.TEXT;
+    ctx.font = `${dependencyTreePngConfig.text.FONT_WEIGHT_BOLD}${dependencyTreePngConfig.layout.FONT_SIZE + dependencyTreePngConfig.numeric.FONT_SIZE_TITLE_OFFSET}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
+    ctx.fillStyle = dependencyTreePngConfig.colors.TEXT;
     ctx.textAlign = "center";
-    const titleText = `${this.TEXT.TITLE_PREFIX}${mainClasspath}`;
-    ctx.fillText(titleText, canvasWidth / 2, this.NUMERIC.TITLE_Y_POSITION);
+    const titleText = `${dependencyTreePngConfig.text.TITLE_PREFIX}${mainClasspath}`;
+    ctx.fillText(titleText, canvasWidth / 2, dependencyTreePngConfig.numeric.TITLE_Y_POSITION);
   }
 
   /**
@@ -350,13 +283,16 @@ export class DependencyTreePngGenerator {
     const nodesByLevel = new Map<number, HierarchicalTreeNode[]>();
     this.collectNodesByLevel(rootNode, nodesByLevel);
     const { maxX, maxY } = this.getMaxDimensionsFromLevels(nodesByLevel);
-    const calculatedWidth = Math.max(maxX + layout.canvasPadding, this.MIN_CANVAS_WIDTH);
+    const calculatedWidth = Math.max(
+      maxX + layout.canvasPadding,
+      dependencyTreePngConfig.canvas.MIN_WIDTH,
+    );
     const calculatedHeight = Math.max(
       maxY + layout.nodeHeight + layout.canvasPadding,
-      this.MIN_CANVAS_HEIGHT,
+      dependencyTreePngConfig.canvas.MIN_HEIGHT,
     );
-    const width = Math.min(calculatedWidth, this.MAX_CANVAS_WIDTH);
-    const height = Math.min(calculatedHeight, this.MAX_CANVAS_HEIGHT);
+    const width = Math.min(calculatedWidth, dependencyTreePngConfig.canvas.MAX_WIDTH);
+    const height = Math.min(calculatedHeight, dependencyTreePngConfig.canvas.MAX_HEIGHT);
     return { width, height };
   }
 
@@ -391,7 +327,7 @@ export class DependencyTreePngGenerator {
     canvasHeight: number,
     layout: LayoutDimensions,
   ): void {
-    ctx.fillStyle = this.COLORS.WHITE;
+    ctx.fillStyle = dependencyTreePngConfig.colors.WHITE;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     this.drawTitle(ctx, mainClasspath, canvasWidth);
     this.drawHierarchicalConnections(ctx, rootNode);
@@ -405,8 +341,8 @@ export class DependencyTreePngGenerator {
     ctx: CanvasRenderingContext2D,
     node: HierarchicalTreeNode,
   ): void {
-    ctx.strokeStyle = this.COLORS.CONNECTION;
-    ctx.lineWidth = this.NUMERIC.CONNECTION_WIDTH;
+    ctx.strokeStyle = dependencyTreePngConfig.colors.CONNECTION;
+    ctx.lineWidth = dependencyTreePngConfig.numeric.CONNECTION_WIDTH;
     // Group connections by type to handle staggering
     const allTargets: HierarchicalTreeNode[] = [];
 
@@ -455,12 +391,12 @@ export class DependencyTreePngGenerator {
 
     // Draw vertical connections normally
     for (const target of verticalTargets) {
-      this.drawConnectionLine(ctx, sourceNode, target, this.COLORS.CONNECTION);
+      this.drawConnectionLine(ctx, sourceNode, target, dependencyTreePngConfig.colors.CONNECTION);
     }
 
     // Draw horizontal connections with staggering
     if (horizontalTargets.length > 1) {
-      const staggerOffset = this.NUMERIC.STAGGER_OFFSET; // Pixels to offset each arrow
+      const staggerOffset = dependencyTreePngConfig.numeric.STAGGER_OFFSET; // Pixels to offset each arrow
       const startOffset = -((horizontalTargets.length - 1) * staggerOffset) / 2;
 
       horizontalTargets.forEach((target, index) => {
@@ -469,13 +405,18 @@ export class DependencyTreePngGenerator {
           ctx,
           sourceNode,
           target,
-          this.COLORS.CONNECTION,
+          dependencyTreePngConfig.colors.CONNECTION,
           yOffset,
         );
       });
     } else if (horizontalTargets.length === 1) {
       // Single horizontal connection - no staggering needed
-      this.drawConnectionLine(ctx, sourceNode, horizontalTargets[0], this.COLORS.CONNECTION);
+      this.drawConnectionLine(
+        ctx,
+        sourceNode,
+        horizontalTargets[0],
+        dependencyTreePngConfig.colors.CONNECTION,
+      );
     }
   }
 
@@ -493,8 +434,8 @@ export class DependencyTreePngGenerator {
     if (
       toNode.x >= 0 &&
       toNode.y >= 0 &&
-      toNode.x + toNode.width <= this.MAX_CANVAS_WIDTH &&
-      toNode.y + toNode.height <= this.MAX_CANVAS_HEIGHT
+      toNode.x + toNode.width <= dependencyTreePngConfig.canvas.MAX_WIDTH &&
+      toNode.y + toNode.height <= dependencyTreePngConfig.canvas.MAX_HEIGHT
     ) {
       // Calculate connection points with Y offset for source
       const { fromX, fromY, toX, toY } = this.calculateConnectionPoints(fromNode, toNode);
@@ -529,14 +470,14 @@ export class DependencyTreePngGenerator {
     if (
       toNode.x >= 0 &&
       toNode.y >= 0 &&
-      toNode.x + toNode.width <= this.MAX_CANVAS_WIDTH &&
-      toNode.y + toNode.height <= this.MAX_CANVAS_HEIGHT
+      toNode.x + toNode.width <= dependencyTreePngConfig.canvas.MAX_WIDTH &&
+      toNode.y + toNode.height <= dependencyTreePngConfig.canvas.MAX_HEIGHT
     ) {
       // Calculate smart connection points based on node positions
       const { fromX, fromY, toX, toY } = this.calculateConnectionPoints(fromNode, toNode);
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
-      ctx.lineWidth = this.NUMERIC.CONNECTION_WIDTH; // Consistent line thickness for all connections
+      ctx.lineWidth = dependencyTreePngConfig.numeric.CONNECTION_WIDTH; // Consistent line thickness for all connections
 
       // Draw the line
       ctx.beginPath();
@@ -611,16 +552,20 @@ export class DependencyTreePngGenerator {
     color: string,
   ): void {
     // Consistent arrow size for all connections
-    const arrowLength = this.NUMERIC.ARROW_LENGTH;
+    const arrowLength = dependencyTreePngConfig.numeric.ARROW_LENGTH;
 
     // Calculate angle of the line
     const angle = Math.atan2(toY - fromY, toX - fromX);
 
     // Calculate arrow points using predefined angle
-    const arrowX1 = toX - arrowLength * Math.cos(angle - this.NUMERIC.ARROW_ANGLE_RADIANS);
-    const arrowY1 = toY - arrowLength * Math.sin(angle - this.NUMERIC.ARROW_ANGLE_RADIANS);
-    const arrowX2 = toX - arrowLength * Math.cos(angle + this.NUMERIC.ARROW_ANGLE_RADIANS);
-    const arrowY2 = toY - arrowLength * Math.sin(angle + this.NUMERIC.ARROW_ANGLE_RADIANS);
+    const arrowX1 =
+      toX - arrowLength * Math.cos(angle - dependencyTreePngConfig.numeric.ARROW_ANGLE_RADIANS);
+    const arrowY1 =
+      toY - arrowLength * Math.sin(angle - dependencyTreePngConfig.numeric.ARROW_ANGLE_RADIANS);
+    const arrowX2 =
+      toX - arrowLength * Math.cos(angle + dependencyTreePngConfig.numeric.ARROW_ANGLE_RADIANS);
+    const arrowY2 =
+      toY - arrowLength * Math.sin(angle + dependencyTreePngConfig.numeric.ARROW_ANGLE_RADIANS);
 
     // Draw the arrow head
     ctx.fillStyle = color;
@@ -645,8 +590,8 @@ export class DependencyTreePngGenerator {
       !node.isReference &&
       node.x >= 0 &&
       node.y >= 0 &&
-      node.x + node.width <= this.MAX_CANVAS_WIDTH &&
-      node.y + node.height <= this.MAX_CANVAS_HEIGHT
+      node.x + node.width <= dependencyTreePngConfig.canvas.MAX_WIDTH &&
+      node.y + node.height <= dependencyTreePngConfig.canvas.MAX_HEIGHT
     ) {
       this.drawHierarchicalNode(ctx, node, layout);
     }
@@ -668,47 +613,53 @@ export class DependencyTreePngGenerator {
     layout: LayoutDimensions,
   ): void {
     // Determine if we're in compact mode
-    const isCompactMode = layout.nodeWidth === this.COMPACT_NODE_WIDTH;
+    const isCompactMode = layout.nodeWidth === dependencyTreePngConfig.compactLayout.NODE_WIDTH;
     const isRootLevel = node.level === 0;
 
     // Draw node background
-    ctx.fillStyle = isRootLevel ? this.COLORS.ROOT_BACKGROUND : this.COLORS.NODE_BACKGROUND;
+    ctx.fillStyle = isRootLevel
+      ? dependencyTreePngConfig.colors.ROOT_BACKGROUND
+      : dependencyTreePngConfig.colors.NODE_BACKGROUND;
     ctx.fillRect(node.x, node.y, node.width, node.height);
 
     // Draw node border
-    ctx.strokeStyle = isRootLevel ? this.COLORS.ROOT_BORDER : this.COLORS.NODE_BORDER;
-    ctx.lineWidth = isRootLevel ? this.NUMERIC.BORDER_WIDTH_ROOT : this.NUMERIC.BORDER_WIDTH_NODE;
+    ctx.strokeStyle = isRootLevel
+      ? dependencyTreePngConfig.colors.ROOT_BORDER
+      : dependencyTreePngConfig.colors.NODE_BORDER;
+    ctx.lineWidth = isRootLevel
+      ? dependencyTreePngConfig.numeric.BORDER_WIDTH_ROOT
+      : dependencyTreePngConfig.numeric.BORDER_WIDTH_NODE;
     ctx.strokeRect(node.x, node.y, node.width, node.height);
 
     // Draw class name - ALWAYS show full classpath without abbreviation or truncation
-    ctx.font = `${isRootLevel ? this.TEXT.FONT_WEIGHT_BOLD : ""}${layout.fontSize}px ${this.TEXT.FONT_FAMILY}`;
-    ctx.fillStyle = this.COLORS.TEXT;
+    ctx.font = `${isRootLevel ? dependencyTreePngConfig.text.FONT_WEIGHT_BOLD : ""}${layout.fontSize}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
+    ctx.fillStyle = dependencyTreePngConfig.colors.TEXT;
     ctx.textAlign = "left";
 
     // Always use full classpath text - no abbreviation or truncation
     const displayText = node.classpath;
 
     const textPadding = isCompactMode
-      ? this.NUMERIC.TEXT_PADDING_COMPACT
-      : this.NUMERIC.TEXT_PADDING_REGULAR;
+      ? dependencyTreePngConfig.numeric.TEXT_PADDING_COMPACT
+      : dependencyTreePngConfig.numeric.TEXT_PADDING_REGULAR;
     const textY = node.y + node.height / 2 + layout.fontSize / 2 - 2;
     ctx.fillText(displayText, node.x + textPadding, textY);
 
     // Draw level indicator (smaller in compact mode)
     const levelFontSize = isCompactMode
-      ? layout.fontSize - this.NUMERIC.FONT_SIZE_LEVEL_OFFSET_COMPACT
-      : layout.fontSize - this.NUMERIC.FONT_SIZE_LEVEL_OFFSET_REGULAR;
-    ctx.font = `${levelFontSize}px ${this.TEXT.FONT_FAMILY}`;
-    ctx.fillStyle = this.COLORS.LEVEL_INDICATOR;
+      ? layout.fontSize - dependencyTreePngConfig.numeric.FONT_SIZE_LEVEL_OFFSET_COMPACT
+      : layout.fontSize - dependencyTreePngConfig.numeric.FONT_SIZE_LEVEL_OFFSET_REGULAR;
+    ctx.font = `${levelFontSize}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
+    ctx.fillStyle = dependencyTreePngConfig.colors.LEVEL_INDICATOR;
     ctx.textAlign = "right";
     const levelPadding = isCompactMode
-      ? this.NUMERIC.LEVEL_PADDING_COMPACT
-      : this.NUMERIC.LEVEL_PADDING_REGULAR;
+      ? dependencyTreePngConfig.numeric.LEVEL_PADDING_COMPACT
+      : dependencyTreePngConfig.numeric.LEVEL_PADDING_REGULAR;
     const levelY = isCompactMode
-      ? node.y + this.NUMERIC.LEVEL_Y_COMPACT
-      : node.y + this.NUMERIC.LEVEL_Y_REGULAR;
+      ? node.y + dependencyTreePngConfig.numeric.LEVEL_Y_COMPACT
+      : node.y + dependencyTreePngConfig.numeric.LEVEL_Y_REGULAR;
     ctx.fillText(
-      `${this.TEXT.LEVEL_PREFIX}${node.level}`,
+      `${dependencyTreePngConfig.text.LEVEL_PREFIX}${node.level}`,
       node.x + node.width - levelPadding,
       levelY,
     );
