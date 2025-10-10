@@ -5,7 +5,7 @@ import { removeControlChars } from "./sanitizers/remove-control-chars";
 import { extractLargestJsonSpan } from "./sanitizers/extract-largest-json-span";
 import { removeTrailingCommas } from "./sanitizers/remove-trailing-commas";
 import type { Sanitizer } from "./sanitizers/sanitizers-types";
-import { BadResponseContentLLMError } from "../types/llm-errors.types";
+import { BadResponseContentLLMError, JsonProcessingError } from "../types/llm-errors.types";
 import {
   lightCollapseConcatenationChains,
   concatenationChainSanitizer,
@@ -28,6 +28,22 @@ import { unwrapJsonSchemaStructure } from "./utils/post-parse-transforms";
  */
 export class JsonProcessor {
   private readonly jsonValidator = new JsonValidator();
+  // The ordered pipeline of sanitizers applied when resilient sanitization is needed.
+  // Note, the order matters: earlier sanitizers prepare the content for later ones.
+  private readonly RESILIENT_SANITIZATION_PIPELINE = [
+    removeCodeFences,
+    removeControlChars,
+    extractLargestJsonSpan,
+    unwrapJsonSchema,
+    collapseDuplicateJsonObject,
+    fixMismatchedDelimiters,
+    addMissingPropertyCommas,
+    removeTrailingCommas,
+    concatenationChainSanitizer,
+    overEscapedSequencesSanitizer,
+    completeTruncatedStructures,
+    trimWhitespace,
+  ] as const satisfies readonly Sanitizer[];
   /**
    * Convert text content to JSON, trimming the content to only include the JSON part and optionally
    * validate it against a Zod schema.
@@ -46,13 +62,13 @@ export class JsonProcessor {
     }
 
     // Attempt a fast path parse+validate first (returns null if fallback needed)
-    const fastPath = this.tryFastPathParseAndValidate<T>(
+    const fastPathContent = this.tryFastPathParseAndValidate<T>(
       content,
       resourceName,
       completionOptions,
       logSanitizationSteps,
     );
-    if (fastPath !== null) return fastPath;
+    if (fastPathContent !== null) return fastPathContent;
 
     // Otherwise run progressive strategies + validation
     return this.progressiveParseAndValidate<T>(
@@ -75,12 +91,10 @@ export class JsonProcessor {
     completionOptions: LLMCompletionOptions,
     logSanitizationSteps: boolean,
   ): T | null {
-    // Try parsing the content directly after trimming (handles whitespace gracefully)
     const trimmed = content.trim();
 
     try {
       const direct = JSON.parse(trimmed) as unknown;
-      // Apply post-parse transformations before validation
       const transformed = unwrapJsonSchemaStructure(direct);
       const validatedDirect = this.jsonValidator.validate<T>(
         transformed,
@@ -111,13 +125,10 @@ export class JsonProcessor {
       resourceName,
     );
     const { parsed, steps, resilientDiagnostics } = progressiveResult;
-
-    // Apply post-parse transformations before validation
     const transformed = unwrapJsonSchemaStructure(parsed);
 
     if (logSanitizationSteps && steps.length) {
       const diagSuffix = resilientDiagnostics ? ` | Resilient: ${resilientDiagnostics}` : "";
-      // Use warning level (not error) since these are informative / non-failing steps.
       logWarningMsg(
         `JSON sanitation steps for resource '${resourceName}': ${steps.join(" -> ")}${diagSuffix}`,
       );
@@ -193,10 +204,13 @@ export class JsonProcessor {
         return { parsed, steps };
       } catch (err) {
         if (strat.stopOnError?.(err)) {
-          // Mirror legacy early failure message
-          throw new BadResponseContentLLMError(
-            `LLM response for resource '${resourceName}' doesn't contain valid JSON content for text`,
+          // Use JsonProcessingError for better debugging context
+          throw new JsonProcessingError(
+            `LLM response for resource '${resourceName}' doesn't contain valid JSON content`,
             content,
+            content, // No sanitization applied yet
+            steps,
+            err instanceof Error ? err : undefined,
           );
         }
         // otherwise continue to next strategy
@@ -204,18 +218,24 @@ export class JsonProcessor {
     }
 
     // Final resilient strategy (kept separate for special diagnostics handling)
+    let sanitizedContent = content;
+    const resilientSteps: string[] = [];
+
     try {
       const { cleaned, changed, diagnostics } = this.applyResilientSanitationPipeline(content);
+      sanitizedContent = cleaned;
+      if (changed) resilientSteps.push("resilient-sanitization");
       this.ensureNoDistinctConcatenatedObjects(cleaned.trim(), content.trim(), resourceName);
       const parsed = JSON.parse(cleaned) as unknown;
       steps.push("resilient-sanitization" + (changed ? "(changed)" : ""));
       return { parsed, steps, resilientDiagnostics: diagnostics };
     } catch (resilientError: unknown) {
-      const errDetail =
-        resilientError instanceof Error ? resilientError.message : String(resilientError);
-      throw new BadResponseContentLLMError(
-        `LLM response for resource '${resourceName}' cannot be parsed to JSON for text`,
-        `${content.substring(0, 1200)}\n--- Resilient sanitation failed: ${errDetail}`,
+      throw new JsonProcessingError(
+        `LLM response for resource '${resourceName}' cannot be parsed to JSON after all sanitization attempts`,
+        content,
+        sanitizedContent,
+        [...steps, ...resilientSteps],
+        resilientError instanceof Error ? resilientError : undefined,
       );
     }
   }
@@ -231,27 +251,13 @@ export class JsonProcessor {
     const original = raw;
     let working = raw;
     const steps: string[] = [];
-    // Build as const with satisfies to ensure each element conforms to Sanitizer without
-    // triggering unnecessary assertion warnings under strict lint rules.
-    const pipeline = [
-      removeCodeFences,
-      removeControlChars,
-      extractLargestJsonSpan,
-      unwrapJsonSchema,
-      collapseDuplicateJsonObject,
-      fixMismatchedDelimiters,
-      addMissingPropertyCommas,
-      removeTrailingCommas,
-      concatenationChainSanitizer,
-      overEscapedSequencesSanitizer,
-      completeTruncatedStructures,
-      trimWhitespace,
-    ] satisfies Sanitizer[];
-    for (const sanitizer of pipeline) {
+
+    for (const sanitizer of this.RESILIENT_SANITIZATION_PIPELINE) {
       const { content, changed, description } = sanitizer(working);
       if (changed && description) steps.push(description);
       working = content;
     }
+
     return {
       cleaned: working,
       changed: working !== original,

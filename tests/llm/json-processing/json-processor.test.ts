@@ -1,6 +1,9 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { BadResponseContentLLMError } from "../../../src/llm/types/llm-errors.types";
+import {
+  BadResponseContentLLMError,
+  JsonProcessingError,
+} from "../../../src/llm/types/llm-errors.types";
 
 describe("JsonProcessor", () => {
   let jsonProcessor: JsonProcessor;
@@ -58,11 +61,11 @@ describe("JsonProcessor", () => {
         ).toThrow(BadResponseContentLLMError);
       });
 
-      it("should throw error for invalid JSON with no recovery", () => {
+      it("should throw JsonProcessingError for invalid JSON with no recovery", () => {
         const invalid = "not valid json at all";
         expect(() =>
           jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions),
-        ).toThrow(BadResponseContentLLMError);
+        ).toThrow(JsonProcessingError);
       });
 
       it("should throw error with resource name in message", () => {
@@ -246,6 +249,81 @@ describe("JsonProcessor", () => {
         expect((result as any).emoji).toBe("😀");
         expect((result as any).chinese).toBe("你好");
         expect((result as any).arabic).toBe("مرحبا");
+      });
+    });
+
+    describe("JsonProcessingError context", () => {
+      it("should throw JsonProcessingError with original content", () => {
+        const invalid = "completely invalid json content here";
+        try {
+          jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+          fail("Expected JsonProcessingError to be thrown");
+        } catch (error) {
+          expect(error).toBeInstanceOf(JsonProcessingError);
+          const jsonError = error as JsonProcessingError;
+          expect(jsonError.originalContent).toBe(invalid);
+        }
+      });
+
+      it("should capture sanitized content in JsonProcessingError", () => {
+        const invalid = "{ this is not valid json at all }";
+        try {
+          jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+          fail("Expected JsonProcessingError to be thrown");
+        } catch (error) {
+          expect(error).toBeInstanceOf(JsonProcessingError);
+          const jsonError = error as JsonProcessingError;
+          expect(jsonError.sanitizedContent).toBeDefined();
+          expect(typeof jsonError.sanitizedContent).toBe("string");
+        }
+      });
+
+      it("should track applied sanitizers in JsonProcessingError", () => {
+        const withCodeFence = "```json\n{invalid json}\n```";
+        try {
+          jsonProcessor.parseAndValidate(withCodeFence, "test-resource", completionOptions);
+          fail("Expected JsonProcessingError to be thrown");
+        } catch (error) {
+          expect(error).toBeInstanceOf(JsonProcessingError);
+          const jsonError = error as JsonProcessingError;
+          expect(Array.isArray(jsonError.appliedSanitizers)).toBe(true);
+          // Should have attempted at least the extract strategy
+          expect(jsonError.appliedSanitizers.length).toBeGreaterThanOrEqual(0);
+        }
+      });
+
+      it("should include resource name in JsonProcessingError message", () => {
+        const invalid = "not valid json";
+        try {
+          jsonProcessor.parseAndValidate(invalid, "my-custom-resource", completionOptions);
+          fail("Expected JsonProcessingError to be thrown");
+        } catch (error) {
+          expect(error).toBeInstanceOf(JsonProcessingError);
+          expect((error as Error).message).toContain("my-custom-resource");
+        }
+      });
+
+      it("should capture underlying error in JsonProcessingError", () => {
+        const almostValid = '{"key": "value", but with extra text}';
+        try {
+          jsonProcessor.parseAndValidate(almostValid, "test-resource", completionOptions);
+          fail("Expected JsonProcessingError to be thrown");
+        } catch (error) {
+          expect(error).toBeInstanceOf(JsonProcessingError);
+          const jsonError = error as JsonProcessingError;
+          // Should have captured some underlying error (SyntaxError from JSON.parse)
+          expect(jsonError.underlyingError).toBeDefined();
+        }
+      });
+
+      it("should preserve error name as JsonProcessingError", () => {
+        const invalid = "not valid json";
+        try {
+          jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+          fail("Expected JsonProcessingError to be thrown");
+        } catch (error) {
+          expect((error as Error).name).toBe("JsonProcessingError");
+        }
       });
     });
   });

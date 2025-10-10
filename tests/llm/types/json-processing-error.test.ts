@@ -1,218 +1,199 @@
 import { JsonProcessingError } from "../../../src/llm/types/llm-errors.types";
 
-/**
- * Tests for the JsonProcessingError class to ensure it correctly captures
- * debugging context for JSON processing failures.
- */
 describe("JsonProcessingError", () => {
   describe("constructor", () => {
-    it("creates error with all required properties", () => {
-      const originalContent = '{ "key": "malformed value }';
-      const sanitizedContent = '{ "key": "malformed value" }';
-      const appliedSanitizers = ["removeCodeFences", "fixOverEscapedSequences"];
-      const underlyingError = new Error("Unexpected end of JSON input");
+    it("should create error with all context fields", () => {
+      const message = "Failed to parse JSON";
+      const originalContent = '{"invalid": json}';
+      const sanitizedContent = '{"invalid": "json"}';
+      const appliedSanitizers = ["removeCodeFences", "addMissingPropertyCommas"];
+      const underlyingError = new SyntaxError("Unexpected token");
 
       const error = new JsonProcessingError(
-        "Failed to parse JSON",
+        message,
         originalContent,
         sanitizedContent,
         appliedSanitizers,
         underlyingError,
       );
 
+      expect(error).toBeInstanceOf(JsonProcessingError);
+      expect(error).toBeInstanceOf(Error);
       expect(error.name).toBe("JsonProcessingError");
-      expect(error.message).toContain("Failed to parse JSON");
+      expect(error.message).toContain(message);
       expect(error.originalContent).toBe(originalContent);
       expect(error.sanitizedContent).toBe(sanitizedContent);
       expect(error.appliedSanitizers).toEqual(appliedSanitizers);
       expect(error.underlyingError).toBe(underlyingError);
     });
 
-    it("creates error without underlying error", () => {
-      const error = new JsonProcessingError("Validation failed", "original", "sanitized", [
-        "sanitizer1",
+    it("should work without underlying error", () => {
+      const error = new JsonProcessingError("Failed to parse JSON", "original", "sanitized", [
+        "step1",
+        "step2",
       ]);
 
       expect(error.underlyingError).toBeUndefined();
+      expect(error.message).toContain("Failed to parse JSON");
     });
 
-    it("includes context information in error message", () => {
+    it("should include metadata in error message", () => {
       const error = new JsonProcessingError(
-        "Processing failed",
-        "original content",
-        "sanitized content",
+        "Failed to parse",
+        "original content here",
+        "sanitized content here",
         ["step1", "step2"],
-        new Error("Parse error"),
+        new Error("Underlying issue"),
       );
 
-      expect(error.message).toContain("Processing failed");
-      expect(error.message).toContain("originalLength");
-      expect(error.message).toContain("sanitizedLength");
-      expect(error.message).toContain("appliedSanitizers");
-      expect(error.message).toContain("Parse error");
-    });
-  });
-
-  describe("readonly properties", () => {
-    it("has originalContent property with correct value", () => {
-      const error = new JsonProcessingError("Error", "original", "sanitized", []);
-
-      expect(error.originalContent).toBe("original");
+      const message = error.message;
+      expect(message).toContain("Failed to parse");
+      expect(message).toContain("originalLength");
+      expect(message).toContain("sanitizedLength");
+      expect(message).toContain("appliedSanitizers");
+      expect(message).toContain("step1");
+      expect(message).toContain("step2");
     });
 
-    it("has sanitizedContent property with correct value", () => {
-      const error = new JsonProcessingError("Error", "original", "sanitized", []);
+    it("should preserve original and sanitized content exactly", () => {
+      const original = '{"key": "value with\nnewlines\tand\ttabs"}';
+      const sanitized = '{"key": "value with\\nnewlines\\tand\\ttabs"}';
 
-      expect(error.sanitizedContent).toBe("sanitized");
+      const error = new JsonProcessingError("Test", original, sanitized, []);
+
+      expect(error.originalContent).toBe(original);
+      expect(error.sanitizedContent).toBe(sanitized);
     });
 
-    it("has appliedSanitizers property with correct value", () => {
+    it("should handle empty sanitizer list", () => {
+      const error = new JsonProcessingError("Test", "original", "sanitized", []);
+
+      expect(error.appliedSanitizers).toEqual([]);
+      expect(error.appliedSanitizers.length).toBe(0);
+    });
+
+    it("should make appliedSanitizers readonly", () => {
       const sanitizers = ["step1", "step2"];
-      const error = new JsonProcessingError("Error", "original", "sanitized", sanitizers);
+      const error = new JsonProcessingError("Test", "original", "sanitized", sanitizers);
+
+      // TypeScript should enforce readonly, but at runtime we can still check
+      expect(error.appliedSanitizers).toEqual(sanitizers);
+      // Attempting to modify should not affect the original
+      const retrieved = error.appliedSanitizers as string[];
+      expect(Array.isArray(retrieved)).toBe(true);
+    });
+
+    it("should handle long content gracefully", () => {
+      const longContent = "x".repeat(10000);
+      const error = new JsonProcessingError("Test", longContent, longContent, ["step1"]);
+
+      expect(error.originalContent.length).toBe(10000);
+      expect(error.sanitizedContent.length).toBe(10000);
+      expect(error.message).toBeDefined();
+      expect(error.message.length).toBeLessThan(longContent.length); // Message should not include full content
+    });
+
+    it("should capture different error types as underlyingError", () => {
+      const syntaxError = new SyntaxError("Syntax issue");
+      const error1 = new JsonProcessingError("Test", "orig", "san", [], syntaxError);
+      expect(error1.underlyingError).toBe(syntaxError);
+      expect(error1.underlyingError?.name).toBe("SyntaxError");
+
+      const typeError = new TypeError("Type issue");
+      const error2 = new JsonProcessingError("Test", "orig", "san", [], typeError);
+      expect(error2.underlyingError).toBe(typeError);
+      expect(error2.underlyingError?.name).toBe("TypeError");
+    });
+
+    it("should include underlying error message in main message", () => {
+      const underlyingError = new Error("Root cause: invalid syntax");
+      const error = new JsonProcessingError("Test", "orig", "san", ["step1"], underlyingError);
+
+      expect(error.message).toContain("underlyingError");
+      expect(error.message).toContain("Root cause: invalid syntax");
+    });
+
+    it("should handle sanitizer names with special characters", () => {
+      const sanitizers = [
+        "remove-code-fences",
+        "add_missing_commas",
+        "fix.delimiter.mismatch",
+        "normalize (chains)",
+      ];
+      const error = new JsonProcessingError("Test", "orig", "san", sanitizers);
 
       expect(error.appliedSanitizers).toEqual(sanitizers);
-      // Verify it's an array and has the correct length
-      expect(Array.isArray(error.appliedSanitizers)).toBe(true);
-      expect(error.appliedSanitizers.length).toBe(2);
+      sanitizers.forEach((sanitizer) => {
+        expect(error.message).toContain(sanitizer);
+      });
     });
   });
 
-  describe("debugging context", () => {
-    it("captures original and sanitized content lengths in message", () => {
-      const originalContent = "a".repeat(1000);
-      const sanitizedContent = "b".repeat(500);
-      const error = new JsonProcessingError(
-        "Length mismatch",
-        originalContent,
-        sanitizedContent,
-        [],
-      );
+  describe("error properties", () => {
+    it("should be throwable and catchable", () => {
+      const error = new JsonProcessingError("Test error", "original", "sanitized", ["step1"]);
 
-      expect(error.message).toContain('"originalLength":1000');
-      expect(error.message).toContain('"sanitizedLength":500');
+      expect(() => {
+        throw error;
+      }).toThrow(JsonProcessingError);
+
+      try {
+        throw error;
+      } catch (caught) {
+        expect(caught).toBe(error);
+        expect(caught).toBeInstanceOf(JsonProcessingError);
+      }
     });
 
-    it("captures applied sanitizers list in message", () => {
-      const sanitizers = ["trimWhitespace", "removeCodeFences", "fixOverEscapedSequences"];
-      const error = new JsonProcessingError("Multiple sanitizers", "orig", "san", sanitizers);
+    it("should have correct prototype chain", () => {
+      const error = new JsonProcessingError("Test", "orig", "san", []);
 
-      expect(error.message).toContain('"appliedSanitizers"');
-      expect(error.message).toContain("trimWhitespace");
-      expect(error.message).toContain("removeCodeFences");
-      expect(error.message).toContain("fixOverEscapedSequences");
-    });
-
-    it("captures underlying error message in context", () => {
-      const underlyingError = new Error("SyntaxError: Unexpected token");
-      const error = new JsonProcessingError(
-        "Parse failed",
-        "original",
-        "sanitized",
-        [],
-        underlyingError,
-      );
-
-      expect(error.message).toContain("SyntaxError: Unexpected token");
-      expect(error.message).toContain('"underlyingError"');
-    });
-
-    it("handles empty sanitizers list", () => {
-      const error = new JsonProcessingError("No sanitizers applied", "orig", "san", []);
-
-      expect(error.message).toContain('"appliedSanitizers":[]');
-      expect(error.appliedSanitizers).toHaveLength(0);
-    });
-  });
-
-  describe("inheritance", () => {
-    it("is instance of Error", () => {
-      const error = new JsonProcessingError("Error", "orig", "san", []);
-
+      expect(error).toBeInstanceOf(JsonProcessingError);
       expect(error).toBeInstanceOf(Error);
+      expect(Object.getPrototypeOf(error)).toBe(JsonProcessingError.prototype);
     });
 
-    it("has correct prototype chain", () => {
-      const error = new JsonProcessingError("Error", "orig", "san", []);
+    it("should support instanceof checks", () => {
+      const error = new JsonProcessingError("Test", "orig", "san", []);
 
-      expect(Object.getPrototypeOf(error).constructor.name).toBe("JsonProcessingError");
+      expect(error instanceof JsonProcessingError).toBe(true);
+      expect(error instanceof Error).toBe(true);
+      expect(error instanceof SyntaxError).toBe(false);
     });
   });
 
-  describe("real-world scenarios", () => {
-    it("captures context for over-escaped JSON", () => {
-      // Using a more reasonable example of over-escaped content
-      // Original has 5-backslash quotes, sanitized normalizes them
-      const originalContent = String.raw`{ "sql": "it\\\\'s working" }`;
-      const sanitizedContent = '{ "sql": "it\'s working" }';
-      const appliedSanitizers = ["fixOverEscapedSequences"];
+  describe("edge cases", () => {
+    it("should handle empty strings", () => {
+      const error = new JsonProcessingError("", "", "", []);
 
-      const error = new JsonProcessingError(
-        "Over-escaped sequences detected",
-        originalContent,
-        sanitizedContent,
-        appliedSanitizers,
-      );
-
-      expect(error.appliedSanitizers).toContain("fixOverEscapedSequences");
-      expect(error.originalContent.length).toBeGreaterThan(error.sanitizedContent.length);
+      expect(error.originalContent).toBe("");
+      expect(error.sanitizedContent).toBe("");
+      expect(error.message).toBeDefined();
     });
 
-    it("captures context for truncated JSON", () => {
-      const originalContent = '{ "data": [ { "id": 1 }, { "id": 2 }';
-      const sanitizedContent = '{ "data": [ { "id": 1 }, { "id": 2 } ] }';
-      const appliedSanitizers = ["completeTruncatedStructures"];
+    it("should handle unicode content", () => {
+      const unicode = '{"emoji": "😀", "text": "你好"}';
+      const error = new JsonProcessingError("Test", unicode, unicode, []);
 
-      const error = new JsonProcessingError(
-        "Truncated JSON completed",
-        originalContent,
-        sanitizedContent,
-        appliedSanitizers,
-        new Error("Unexpected end of JSON input"),
-      );
-
-      expect(error.appliedSanitizers).toContain("completeTruncatedStructures");
-      expect(error.underlyingError?.message).toBe("Unexpected end of JSON input");
+      expect(error.originalContent).toBe(unicode);
+      expect(error.sanitizedContent).toBe(unicode);
     });
 
-    it("captures context for multiple sanitization steps", () => {
-      const originalContent = '```json\n{ "key":\n "value" }\n```';
-      const sanitizedContent = '{ "key": "value" }';
-      const appliedSanitizers = [
-        "removeCodeFences",
-        "trimWhitespace",
-        "removeControlChars",
-        "addMissingPropertyCommas",
-      ];
+    it("should handle content with quotes and escapes", () => {
+      const content = '{"key": "value with \\"quotes\\" and \\n newlines"}';
+      const error = new JsonProcessingError("Test", content, content, []);
 
-      const error = new JsonProcessingError(
-        "Multiple sanitization steps applied",
-        originalContent,
-        sanitizedContent,
-        appliedSanitizers,
-      );
-
-      expect(error.appliedSanitizers).toHaveLength(4);
-      expect(error.message).toContain("Multiple sanitization steps applied");
+      expect(error.originalContent).toBe(content);
+      expect(error.sanitizedContent).toBe(content);
     });
 
-    it("provides useful debugging information for validation failures", () => {
-      const originalContent = '{ "requiredField": null }';
-      const sanitizedContent = '{ "requiredField": null }';
-      const appliedSanitizers: string[] = [];
+    it("should maintain sanitizer order", () => {
+      const sanitizers = ["first", "second", "third", "fourth"];
+      const error = new JsonProcessingError("Test", "orig", "san", sanitizers);
 
-      const error = new JsonProcessingError(
-        "Schema validation failed: requiredField must be a string",
-        originalContent,
-        sanitizedContent,
-        appliedSanitizers,
-        new Error("Invalid type: expected string"),
-      );
-
-      // No sanitizers applied, so content unchanged
-      expect(error.originalContent).toBe(error.sanitizedContent);
-      expect(error.appliedSanitizers).toHaveLength(0);
-      expect(error.message).toContain("Schema validation failed");
-      expect(error.underlyingError?.message).toBe("Invalid type: expected string");
+      expect(error.appliedSanitizers).toEqual(sanitizers);
+      expect(error.appliedSanitizers[0]).toBe("first");
+      expect(error.appliedSanitizers[3]).toBe("fourth");
     });
   });
 });

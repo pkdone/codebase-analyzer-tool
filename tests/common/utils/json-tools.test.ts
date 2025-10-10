@@ -57,7 +57,7 @@ describe("JSON utilities", () => {
       const text = "No JSON here";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       expect(() => jsonProcessor.parseAndValidate(text, "content", completionOptions)).toThrow(
-        "doesn't contain valid JSON content for text",
+        "doesn't contain valid JSON content",
       );
     });
 

@@ -47,7 +47,7 @@ describe("json-tools", () => {
 
       expect(() =>
         jsonProcessor.parseAndValidate(invalidJson, "content", completionOptions),
-      ).toThrow("doesn't contain valid JSON content for text");
+      ).toThrow("doesn't contain valid JSON content");
     });
 
     test("should sanitize simple malformed JSON with backslashes", () => {
