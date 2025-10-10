@@ -1,3 +1,5 @@
+import { appConfig } from "../../../config/app.config";
+
 /**
  * MCP server configuration
  */
@@ -17,7 +19,7 @@ export const mcpConfig = {
   HTTP_PROTOCOL: "http://",
   CONTENT_TYPE_HEADER: "Content-Type",
   APPLICATION_JSON: "application/json",
-  UTF8_ENCODING: "utf8",
+  UTF8_ENCODING: appConfig.UTF8_ENCODING,
 
   // HTTP Methods
   HTTP_METHOD_OPTIONS: "OPTIONS",

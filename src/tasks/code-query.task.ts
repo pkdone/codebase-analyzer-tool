@@ -5,7 +5,7 @@ import { formatErrorMessage } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
 import { TOKENS } from "../di/tokens";
-import { inputConfig } from "../config/input.config";
+import { queryingConfig } from "../components/querying/querying.config";
 
 /**
  * Task to query the codebase.
@@ -35,7 +35,7 @@ export class CodebaseQueryTask implements Task {
     console.log(
       `Performing vector search then invoking LLM for optimal results for project: ${this.projectName}`,
     );
-    const questions = await readAndFilterLines(inputConfig.QUESTIONS_PROMPTS_FILEPATH);
+    const questions = await readAndFilterLines(queryingConfig.QUESTIONS_PROMPTS_FILEPATH);
     const queryPromises = questions.map(async (question) =>
       this.codebaseQueryProcessor.queryCodebaseWithQuestion(question, this.projectName),
     );

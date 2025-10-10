@@ -14,6 +14,22 @@ const LlamaCompletionResponseSchema = z.object({
 });
 
 /**
+ * Llama chat template tokens
+ * These special tokens are used to format prompts for Llama models
+ */
+const LLAMA_BEGIN_TOKEN = "<|begin_of_text|>";
+const LLAMA_HEADER_START_TOKEN = "<|start_header_id|>";
+const LLAMA_HEADER_END_TOKEN = "<|end_header_id|>";
+const LLAMA_EOT_TOKEN = "<|eot_id|>";
+
+/**
+ * Llama system prompt template
+ * Formats a prompt with system instructions and user query according to Llama's chat format
+ */
+const LLAMA_SYSTEM_MESSAGE =
+  "You are a helpful software engineering and programming assistant, and you need to answer the question given without attempting to fill in any blanks in the question";
+
+/**
  * Class for the AWS Bedrock Llama LLMs.
  *
  */
@@ -30,10 +46,12 @@ export default class BedrockLlamaLLM extends BaseBedrockLLM {
    */
   protected buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
+    const formattedPrompt = `${LLAMA_BEGIN_TOKEN}${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_SYSTEM}${LLAMA_HEADER_END_TOKEN}
+${LLAMA_SYSTEM_MESSAGE}${LLAMA_EOT_TOKEN}
+${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_USER}${LLAMA_HEADER_END_TOKEN}${prompt}${LLAMA_EOT_TOKEN}${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_ASSISTANT}${LLAMA_HEADER_END_TOKEN}`;
+
     const bodyObj: { prompt: string; temperature: number; top_p: number; max_gen_len?: number } = {
-      prompt: `<|begin_of_text|><|start_header_id|>${llmConfig.LLM_ROLE_SYSTEM}<|end_header_id|>
-You are a helpful software engineering and programming assistant, and you need to answer the question given without attempting to fill in any blanks in the question<|eot_id|>
-<|start_header_id|>${llmConfig.LLM_ROLE_USER}<|end_header_id|>${prompt}<|eot_id|><|start_header_id|>${llmConfig.LLM_ROLE_ASSISTANT}<|end_header_id|>`,
+      prompt: formattedPrompt,
       temperature: llmConfig.DEFAULT_ZERO_TEMP,
       top_p: llmConfig.DEFAULT_TOP_P_LOWEST,
     };

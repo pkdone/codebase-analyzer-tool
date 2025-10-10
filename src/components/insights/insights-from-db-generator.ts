@@ -18,6 +18,13 @@ import { llmProviderConfig } from "../../llm/llm.config";
 // Mark schema as being easy for LLMs to digest
 const SCHEMA_HAS_VERTEXAI_INCOMPATIBILITY = false;
 
+/**
+ * Use 70% of max tokens to leave generous room for:
+ * - Prompt template and instructions (~10-15% of tokens)
+ * - LLM response output (~15-20% of tokens)
+ */
+const CHUNK_TOKEN_LIMIT_RATIO = 0.7;
+
 // Prompt template for partial insights (MAP phase)
 const PARTIAL_INSIGHTS_TEMPLATE =
   "Act as a senior developer analyzing a subset of code. Based on the list of file summaries below in 'SOURCES', return a JSON response that contains {{specificInstructions}}. This is a partial analysis of a larger codebase; focus on extracting insights from this subset only. The JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";
@@ -244,7 +251,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     const chunks: string[][] = [];
     let currentChunk: string[] = [];
     let currentTokenCount = 0;
-    const tokenLimitPerChunk = this.maxTokens * llmProviderConfig.CHUNK_TOKEN_LIMIT_RATIO;
+    const tokenLimitPerChunk = this.maxTokens * CHUNK_TOKEN_LIMIT_RATIO;
 
     for (const summary of summaries) {
       // Estimate token count using character-to-token ratio

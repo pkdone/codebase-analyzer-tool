@@ -1,8 +1,13 @@
 /**
  * Configuration for codebase querying features.
- * Contains tuning parameters for vector search operations.
+ * Contains tuning parameters for vector search operations and input paths.
  */
 export const queryingConfig = {
+  /**
+   * Path to file containing user questions/prompts for querying
+   */
+  QUESTIONS_PROMPTS_FILEPATH: "./input/questions.prompts",
+
   /**
    * Number of candidates to consider in vector search.
    * Higher values provide more comprehensive search but may impact performance.
