@@ -1,12 +1,15 @@
-import {
-  applyOptionalSchemaValidationToContent,
-  isLLMGeneratedContent,
-} from "../../../src/llm/json-processing/json-validator";
+import { JsonValidator } from "../../../src/llm/json-processing/json-validator";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { z } from "zod";
 
 describe("json-validator", () => {
-  describe("applyOptionalSchemaValidationToContent", () => {
+  let jsonValidator: JsonValidator;
+
+  beforeEach(() => {
+    jsonValidator = new JsonValidator();
+  });
+
+  describe("JsonValidator.validate", () => {
     it("should validate and return data when schema validation succeeds", () => {
       const schema = z.object({ name: z.string(), age: z.number() });
       const content = { name: "John", age: 30 };
@@ -15,7 +18,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options, "test-resource");
 
       expect(result).toEqual(content);
     });
@@ -28,7 +31,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options, "test-resource");
 
       expect(result).toBeNull();
     });
@@ -42,13 +45,7 @@ describe("json-validator", () => {
       };
       const onValidationIssues = jest.fn();
 
-      applyOptionalSchemaValidationToContent(
-        content,
-        options,
-        "test-resource",
-        false,
-        onValidationIssues,
-      );
+      jsonValidator.validate(content, options, "test-resource", false, onValidationIssues);
 
       expect(onValidationIssues).toHaveBeenCalled();
       expect(onValidationIssues.mock.calls[0][0]).toEqual(
@@ -64,7 +61,7 @@ describe("json-validator", () => {
       const content = "This is plain text content";
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options, "test-resource");
 
       expect(result).toBe(content);
     });
@@ -73,7 +70,7 @@ describe("json-validator", () => {
       const content = undefined; // Not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options, "test-resource");
 
       expect(result).toBeNull();
     });
@@ -82,7 +79,7 @@ describe("json-validator", () => {
       const validContent = { key: "value" }; // Valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = applyOptionalSchemaValidationToContent(validContent, options, "test-resource");
+      const result = jsonValidator.validate(validContent, options, "test-resource");
 
       expect(result).toEqual(validContent);
     });
@@ -91,7 +88,7 @@ describe("json-validator", () => {
       const content = 42; // Number is not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options, "test-resource");
 
       expect(result).toBeNull();
     });
@@ -100,7 +97,7 @@ describe("json-validator", () => {
       const content = { name: "John", age: 30 };
       const options = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options, "test-resource");
 
       expect(result).toEqual(content);
     });
@@ -109,43 +106,31 @@ describe("json-validator", () => {
       const content = undefined; // Not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = applyOptionalSchemaValidationToContent(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options, "test-resource");
 
       expect(result).toBeNull();
     });
   });
 
-  describe("isLLMGeneratedContent", () => {
-    it("should return true for null", () => {
-      expect(isLLMGeneratedContent(null)).toBe(true);
+  describe("instance isolation", () => {
+    it("should create independent instances", () => {
+      const validator1 = new JsonValidator();
+      const validator2 = new JsonValidator();
+      expect(validator1).not.toBe(validator2);
     });
 
-    it("should return true for string", () => {
-      expect(isLLMGeneratedContent("test string")).toBe(true);
-    });
+    it("should not share state between calls", () => {
+      const schema = z.object({ value: z.number() });
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
 
-    it("should return true for array", () => {
-      expect(isLLMGeneratedContent([1, 2, 3])).toBe(true);
-    });
+      const result1 = jsonValidator.validate({ value: 1 }, options, "resource1");
+      const result2 = jsonValidator.validate({ value: 2 }, options, "resource2");
 
-    it("should return true for object", () => {
-      expect(isLLMGeneratedContent({ key: "value" })).toBe(true);
-    });
-
-    it("should return false for undefined", () => {
-      expect(isLLMGeneratedContent(undefined)).toBe(false);
-    });
-
-    it("should return false for number", () => {
-      expect(isLLMGeneratedContent(42)).toBe(false);
-    });
-
-    it("should return false for boolean", () => {
-      expect(isLLMGeneratedContent(true)).toBe(false);
-    });
-
-    it("should return false for symbol", () => {
-      expect(isLLMGeneratedContent(Symbol("test"))).toBe(false);
+      expect(result1).toEqual({ value: 1 });
+      expect(result2).toEqual({ value: 2 });
     });
   });
 });

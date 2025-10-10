@@ -1,8 +1,13 @@
-import { parseAndValidateLLMJsonContent } from "../../../src/llm/json-processing/parse-and-validate-llm-json";
+import { JsonProcessor } from "../../../src/llm/json-processing/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { z } from "zod";
 
-describe("unwrapJsonSchema integration with parseAndValidateLLMJsonContent", () => {
+describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () => {
+  let jsonProcessor: JsonProcessor;
+
+  beforeEach(() => {
+    jsonProcessor = new JsonProcessor();
+  });
   it("should handle the exact error case from the log", () => {
     // This is the exact problematic response from the error log
     const llmResponse = `{
@@ -25,7 +30,7 @@ describe("unwrapJsonSchema integration with parseAndValidateLLMJsonContent", () 
     };
 
     // This should now succeed because the unwrapJsonSchema sanitizer will fix it
-    const result = parseAndValidateLLMJsonContent(
+    const result = jsonProcessor.parseAndValidate(
       llmResponse,
       "buildSrc/src/main/resources/instructions/step13.txt.ftl",
       completionOptions,
@@ -61,7 +66,7 @@ describe("unwrapJsonSchema integration with parseAndValidateLLMJsonContent", () 
       jsonSchema: schema,
     };
 
-    const result = parseAndValidateLLMJsonContent(
+    const result = jsonProcessor.parseAndValidate(
       llmResponse,
       "test-resource",
       completionOptions,
@@ -91,7 +96,7 @@ describe("unwrapJsonSchema integration with parseAndValidateLLMJsonContent", () 
       jsonSchema: schema,
     };
 
-    const result = parseAndValidateLLMJsonContent(
+    const result = jsonProcessor.parseAndValidate(
       llmResponse,
       "test-resource",
       completionOptions,
@@ -125,7 +130,7 @@ describe("unwrapJsonSchema integration with parseAndValidateLLMJsonContent", () 
       jsonSchema: schema,
     };
 
-    const result = parseAndValidateLLMJsonContent(
+    const result = jsonProcessor.parseAndValidate(
       llmResponse,
       "test-resource",
       completionOptions,

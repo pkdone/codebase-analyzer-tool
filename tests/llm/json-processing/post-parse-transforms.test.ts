@@ -1,4 +1,4 @@
-import { unwrapJsonSchemaStructure } from "../../../src/llm/json-processing/post-parse-transforms";
+import { unwrapJsonSchemaStructure } from "../../../src/llm/json-processing/utils/post-parse-transforms";
 
 describe("post-parse transforms", () => {
   describe("unwrapJsonSchemaStructure", () => {

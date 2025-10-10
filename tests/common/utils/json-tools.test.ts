@@ -1,4 +1,4 @@
-import { parseAndValidateLLMJsonContent } from "../../../src/llm/json-processing/parse-and-validate-llm-json";
+import { JsonProcessor } from "../../../src/llm/json-processing/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 
 // Test interfaces for generic type testing
@@ -17,6 +17,11 @@ interface TestConfig {
 }
 
 describe("JSON utilities", () => {
+  let jsonProcessor: JsonProcessor;
+
+  beforeEach(() => {
+    jsonProcessor = new JsonProcessor();
+  });
   describe("convertTextToJSON", () => {
     // Test data for convertTextToJSON function
     const validJsonTestData = [
@@ -44,14 +49,14 @@ describe("JSON utilities", () => {
 
     test.each(validJsonTestData)("with $description", ({ input, expected }) => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = parseAndValidateLLMJsonContent(input, "content", completionOptions);
+      const result = jsonProcessor.parseAndValidate(input, "content", completionOptions);
       expect(result).toEqual(expected);
     });
 
     test("throws on invalid JSON", () => {
       const text = "No JSON here";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      expect(() => parseAndValidateLLMJsonContent(text, "content", completionOptions)).toThrow(
+      expect(() => jsonProcessor.parseAndValidate(text, "content", completionOptions)).toThrow(
         "doesn't contain valid JSON content for text",
       );
     });
@@ -61,7 +66,7 @@ describe("JSON utilities", () => {
       const testCases = [{ input: { key: "value" } }, { input: [1, 2, 3] }, { input: null }];
 
       testCases.forEach(({ input }) => {
-        expect(() => parseAndValidateLLMJsonContent(input, "content", completionOptions)).toThrow(
+        expect(() => jsonProcessor.parseAndValidate(input, "content", completionOptions)).toThrow(
           "LLM response for resource",
         );
       });
@@ -71,7 +76,7 @@ describe("JSON utilities", () => {
       const userJson =
         'Text before {"name": "John Doe", "age": 30, "email": "john@example.com"} text after';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const user = parseAndValidateLLMJsonContent<TestUser>(userJson, "content", completionOptions);
+      const user = jsonProcessor.parseAndValidate<TestUser>(userJson, "content", completionOptions);
 
       // TypeScript should now provide type safety for these properties
       expect(user.name).toBe("John Doe");
@@ -83,7 +88,7 @@ describe("JSON utilities", () => {
       const configJson =
         'Prefix {"enabled": true, "settings": {"timeout": 5000, "retries": 3}} suffix';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const config = parseAndValidateLLMJsonContent<TestConfig>(
+      const config = jsonProcessor.parseAndValidate<TestConfig>(
         configJson,
         "content",
         completionOptions,
@@ -98,7 +103,7 @@ describe("JSON utilities", () => {
     test("defaults to Record<string, unknown> when no type parameter provided", () => {
       const input = 'Text {"dynamic": "content", "count": 42} more text';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = parseAndValidateLLMJsonContent(input, "content", completionOptions); // No type parameter
+      const result = jsonProcessor.parseAndValidate(input, "content", completionOptions); // No type parameter
 
       expect(result).toEqual({ dynamic: "content", count: 42 });
       // The result should be of type Record<string, unknown>

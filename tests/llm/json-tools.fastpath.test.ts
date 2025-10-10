@@ -1,4 +1,4 @@
-import { parseAndValidateLLMJsonContent } from "../../src/llm/json-processing/parse-and-validate-llm-json";
+import { JsonProcessor } from "../../src/llm/json-processing/json-processor";
 import { LLMOutputFormat } from "../../src/llm/types/llm.types";
 import { logWarningMsg } from "../../src/common/utils/logging";
 
@@ -10,16 +10,18 @@ jest.mock("../../src/common/utils/logging", () => ({
 }));
 
 describe("json-tools enhanced fast path", () => {
+  let jsonProcessor: JsonProcessor;
   const baseOptions = { outputFormat: LLMOutputFormat.JSON } as any;
 
   beforeEach(() => {
+    jsonProcessor = new JsonProcessor();
     jest.clearAllMocks();
   });
 
   describe("Fast Path Performance", () => {
     it("parses valid JSON without any sanitization steps", () => {
       const validJson = `{"purpose": "Test", "value": 42}`;
-      const result = parseAndValidateLLMJsonContent(validJson, "test-resource", baseOptions, true);
+      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
       expect(result).toEqual({ purpose: "Test", value: 42 });
       // Should not log any sanitization steps since fast path succeeded
@@ -28,7 +30,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON with leading whitespace via fast path", () => {
       const validJson = `   \n\t{"purpose": "Test", "value": 42}`;
-      const result = parseAndValidateLLMJsonContent(validJson, "test-resource", baseOptions, true);
+      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
       expect(result).toEqual({ purpose: "Test", value: 42 });
       expect(logWarningMsg).not.toHaveBeenCalled();
@@ -36,7 +38,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON with trailing whitespace via fast path", () => {
       const validJson = `{"purpose": "Test", "value": 42}\n\t   `;
-      const result = parseAndValidateLLMJsonContent(validJson, "test-resource", baseOptions, true);
+      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
       expect(result).toEqual({ purpose: "Test", value: 42 });
       expect(logWarningMsg).not.toHaveBeenCalled();
@@ -44,7 +46,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON array with whitespace via fast path", () => {
       const validJson = `  [1, 2, 3, 4, 5]  `;
-      const result = parseAndValidateLLMJsonContent(validJson, "test-resource", baseOptions, true);
+      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
       expect(result).toEqual([1, 2, 3, 4, 5]);
       expect(logWarningMsg).not.toHaveBeenCalled();
@@ -60,7 +62,7 @@ describe("json-tools enhanced fast path", () => {
           }
         }
       }`;
-      const result = parseAndValidateLLMJsonContent(validJson, "test-resource", baseOptions, true);
+      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
       expect((result as any).level1.level2.level3.value).toBe("deep");
       expect(logWarningMsg).not.toHaveBeenCalled();
@@ -70,7 +72,7 @@ describe("json-tools enhanced fast path", () => {
   describe("Fallback to Progressive Strategies", () => {
     it("falls back to progressive strategies for JSON with code fences", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         jsonWithFence,
         "test-resource",
         baseOptions,
@@ -84,7 +86,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("falls back to progressive strategies for JSON with surrounding text", () => {
       const jsonWithText = 'Here is the JSON: {"value": 42} and that\'s it';
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         jsonWithText,
         "test-resource",
         baseOptions,
@@ -97,7 +99,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("falls back to progressive strategies for invalid JSON", () => {
       const invalidJson = `{"value": 42,}`; // trailing comma
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         invalidJson,
         "test-resource",
         baseOptions,
@@ -112,7 +114,7 @@ describe("json-tools enhanced fast path", () => {
   describe("logSanitizationSteps Parameter", () => {
     it("does not log sanitization steps when parameter is false", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         jsonWithFence,
         "test-resource",
         baseOptions,
@@ -125,7 +127,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("logs sanitization steps when parameter is true", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         jsonWithFence,
         "test-resource",
         baseOptions,
@@ -140,7 +142,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("defaults to not logging when parameter is omitted", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         jsonWithFence,
         "test-resource",
         baseOptions,
@@ -155,7 +157,7 @@ describe("json-tools enhanced fast path", () => {
   describe("Complex Sanitization Scenarios", () => {
     it("logs detailed sanitization steps for heavily malformed JSON", () => {
       const malformedJson = '```\n\u200B{"a": 1, "b": [1,2,3,],}\u200C\n```';
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
         baseOptions,
@@ -183,7 +185,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithFence = '```json\n{"notValue": 42}\n```';
 
       expect(() => {
-        parseAndValidateLLMJsonContent(jsonWithFence, "test-resource", options, true);
+        jsonProcessor.parseAndValidate(jsonWithFence, "test-resource", options, true);
       }).toThrow(/Applied sanitization/);
     });
   });
@@ -191,7 +193,7 @@ describe("json-tools enhanced fast path", () => {
   describe("Edge Cases", () => {
     it("handles empty object via fast path", () => {
       const emptyObject = "{}";
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         emptyObject,
         "test-resource",
         baseOptions,
@@ -204,7 +206,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles empty array via fast path", () => {
       const emptyArray = "[]";
-      const result = parseAndValidateLLMJsonContent(emptyArray, "test-resource", baseOptions, true);
+      const result = jsonProcessor.parseAndValidate(emptyArray, "test-resource", baseOptions, true);
 
       expect(result).toEqual([]);
       expect(logWarningMsg).not.toHaveBeenCalled();
@@ -212,7 +214,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles JSON with unicode characters via fast path", () => {
       const unicodeJson = `{"emoji": "🚀", "text": "Hello, 世界"}`;
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         unicodeJson,
         "test-resource",
         baseOptions,
@@ -226,7 +228,7 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles JSON with escaped quotes via fast path", () => {
       const escapedJson = `{"text": "He said \\"Hello\\""}`;
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         escapedJson,
         "test-resource",
         baseOptions,

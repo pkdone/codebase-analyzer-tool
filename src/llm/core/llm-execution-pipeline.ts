@@ -13,7 +13,7 @@ import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
-import { applyOptionalSchemaValidationToContent } from "../json-processing/json-validator";
+import { JsonValidator } from "../json-processing/json-validator";
 import { log, logErrorWithContext, logWithContext } from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
 import { TOKENS } from "../../di/tokens";
@@ -25,6 +25,8 @@ import { TOKENS } from "../../di/tokens";
  */
 @injectable()
 export class LLMExecutionPipeline {
+  private readonly jsonValidator = new JsonValidator();
+
   constructor(
     private readonly retryStrategy: RetryStrategy,
     private readonly fallbackStrategy: FallbackStrategy,
@@ -63,7 +65,7 @@ export class LLMExecutionPipeline {
 
       if (result) {
         const defaultOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.TEXT };
-        const validatedResult = await applyOptionalSchemaValidationToContent(
+        const validatedResult = this.jsonValidator.validate(
           result,
           completionOptions ?? defaultOptions,
           resourceName,

@@ -48,4 +48,3 @@ describe("pieChartConfig", () => {
     expect(pieChartConfig.numeric.MAX_CANVAS_HEIGHT).toBe(700);
   });
 });
-

@@ -1,7 +1,12 @@
-import { parseAndValidateLLMJsonContent } from "../../../src/llm/json-processing/parse-and-validate-llm-json";
+import { JsonProcessor } from "../../../src/llm/json-processing/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 
-describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tests", () => {
+describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tests", () => {
+  let jsonProcessor: JsonProcessor;
+
+  beforeEach(() => {
+    jsonProcessor = new JsonProcessor();
+  });
   describe("exact error case from 2025-10-02 log", () => {
     it("should successfully parse JSON with mismatched delimiter in nested array", () => {
       // Simplified version that captures the essence of the error: object in array with wrong closing delimiter
@@ -24,7 +29,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
       };
 
       // This should NOT throw - fixMismatchedDelimiters will fix the ] to }, then removeTrailingCommas will clean up
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
         completionOptions,
@@ -33,7 +38,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
 
       expect(result).toBeDefined();
       expect(typeof result).toBe("object");
-      // Type assertion needed because result is 'unknown' from parseAndValidateLLMJsonContent
+      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
       expect((result as any).methods).toHaveLength(1);
     });
 
@@ -140,7 +145,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
 
       // This should NOT throw - the fixMismatchedDelimiters sanitizer should fix it
       expect(() => {
-        const result = parseAndValidateLLMJsonContent(
+        const result = jsonProcessor.parseAndValidate(
           malformedJson,
           "fineract-provider/src/main/java/org/apache/fineract/portfolio/account/domain/AccountAssociations.java",
           completionOptions,
@@ -150,7 +155,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
         // Verify the result is valid
         expect(result).toBeDefined();
         expect(typeof result).toBe("object");
-        // Type assertion needed because result is 'unknown' from parseAndValidateLLMJsonContent
+        // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
         expect((result as any).name).toBe("AccountAssociations");
         expect((result as any).publicMethods).toHaveLength(4);
       }).not.toThrow();
@@ -171,7 +176,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
         completionOptions,
@@ -179,7 +184,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
       );
 
       expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from parseAndValidateLLMJsonContent
+      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
       const resultObj = result as any;
       expect(resultObj.items).toHaveLength(3);
       expect(resultObj.items[2].name).toBe("third");
@@ -202,7 +207,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
         completionOptions,
@@ -210,7 +215,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
       );
 
       expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from parseAndValidateLLMJsonContent
+      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
       const resultObj = result as any;
       expect(resultObj.methods).toHaveLength(1);
       expect(resultObj.methods[0].params).toHaveLength(2);
@@ -232,7 +237,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
         completionOptions,
@@ -240,7 +245,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
       );
 
       expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from parseAndValidateLLMJsonContent
+      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
       const resultObj = result as any;
       expect(resultObj.outer.middle.inner).toHaveLength(1);
       expect(resultObj.outer.middle.inner[0].key).toBe("value");
@@ -262,7 +267,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
         completionOptions,
@@ -270,7 +275,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
       );
 
       expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from parseAndValidateLLMJsonContent
+      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
       const resultObj = result as any;
       expect(resultObj.correct).toHaveLength(2);
       expect(resultObj.incorrect).toHaveLength(2);
@@ -290,7 +295,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
         completionOptions,
@@ -298,7 +303,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
       );
 
       expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from parseAndValidateLLMJsonContent
+      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
       expect((result as any).items).toHaveLength(2);
     });
 
@@ -313,7 +318,7 @@ describe("parseAndValidateLLMJsonContent - Mismatched Delimiters Integration Tes
       };
 
       // Should complete the truncated structure after fixing mismatched delimiters
-      const result = parseAndValidateLLMJsonContent(
+      const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
         completionOptions,

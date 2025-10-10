@@ -48,4 +48,3 @@ describe("dependencyTreePngConfig", () => {
     expect(dependencyTreePngConfig.numeric.CONNECTION_WIDTH).toBe(2);
   });
 });
-

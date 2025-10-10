@@ -1,4 +1,4 @@
-import { extractAndParseJson } from "../../../src/llm/json-processing/json-extractor";
+import { extractAndParseJson } from "../../../src/llm/json-processing/utils/json-extractor";
 
 describe("json-extractor", () => {
   describe("extractAndParseJson", () => {
