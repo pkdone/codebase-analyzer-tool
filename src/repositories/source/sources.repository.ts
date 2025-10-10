@@ -266,9 +266,6 @@ export default class SourcesRepositoryImpl
     projectName: string,
   ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
     // TODO: This is inneficient and should be optimized.
-    const MAX_DEPENDENCY_DEPTH = 1;
-    const RESULT_LIMIT = 5;
-
     const pipeline: Document[] = [
       {
         $match: {
@@ -310,7 +307,7 @@ export default class SourcesRepositoryImpl
           connectFromField: "summary.internalReferences",
           connectToField: "summary.namespace",
           depthField: "level",
-          maxDepth: MAX_DEPENDENCY_DEPTH,
+          maxDepth: databaseConfig.DEPENDENCY_GRAPH_MAX_DEPTH,
           as: "dependency_documents",
         },
       },
@@ -337,7 +334,7 @@ export default class SourcesRepositoryImpl
           dependency_count: -1,
         },
       },
-      { $limit: RESULT_LIMIT },
+      { $limit: databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT },
     ];
 
     return this.collection.aggregate<ProjectedTopLevelJavaClassDependencies>(pipeline).toArray();

@@ -205,11 +205,10 @@ describe("json-tools enhanced fast path", () => {
       expect(logWarningMsg).toHaveBeenCalledWith(expect.stringContaining("JSON sanitation steps"));
     });
 
-    it.skip("includes sanitization history in error message on validation failure", () => {
-      // TODO: This test is skipped because validation error handling in the unified pipeline
-      // needs improvement. When validation fails after successful parsing, the pipeline
-      // currently continues trying more sanitizers instead of immediately returning a
-      // validation error. This should be fixed in a future iteration.
+    it("includes sanitization history in error message on validation failure", () => {
+      // This test verifies that when JSON parses successfully but fails schema validation,
+      // the pipeline stops immediately (instead of trying more sanitizers) and returns
+      // an error that includes the sanitization steps that were applied.
       const schema = {
         safeParse: jest.fn(() => ({
           success: false,
@@ -225,12 +224,13 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithFence = '```json\n{"notValue": 42}\n```';
       const result = jsonProcessor.parseAndValidate(jsonWithFence, "test-resource", options, true);
 
-      // With the new API, validation failures return a failure result, not throw
+      // Validation failures should return a failure result immediately
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.message).toMatch(
-          /cannot be parsed to JSON after all sanitization attempts/,
-        );
+        // The error message should indicate it was a validation failure, not a parse failure
+        expect(result.error.message).toMatch(/failed schema validation/);
+        // The error should include sanitization steps that were applied before validation failed
+        expect(result.error.appliedSanitizers).toContain("Removed code fences");
       }
     });
   });
