@@ -1,48 +1,44 @@
 import "reflect-metadata";
-import LLMRouter from "../llm/core/llm-router";
-import { MongoDBClientFactory } from "../common/mdb/mdb-client-factory";
 import { injectable } from "tsyringe";
+import { IShutdownable } from "./shutdownable.interface";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.
- * Dependencies are now injected via constructor for better testability.
+ * Uses the IShutdownable interface to handle cleanup in a generic, extensible way.
+ * Components can register themselves for cleanup by implementing IShutdownable.
  */
 @injectable()
 export class ShutdownService {
-  constructor(
-    private readonly llmRouter?: LLMRouter,
-    private readonly mongoDBClientFactory?: MongoDBClientFactory,
-  ) {}
+  private readonly shutdownables: IShutdownable[] = [];
 
   /**
-   * Perform graceful shutdown of all registered services with provider-specific handling.
-   * This method handles LLM router shutdown, MongoDB connections cleanup,
-   * and includes forced exit fallback for providers that cannot close cleanly.
+   * Register a component for graceful shutdown.
+   * Components implementing IShutdownable can register themselves to be cleaned up
+   * during application shutdown.
+   *
+   * @param shutdownable - Component implementing IShutdownable interface
+   */
+  register(shutdownable: IShutdownable): void {
+    this.shutdownables.push(shutdownable);
+  }
+
+  /**
+   * Perform graceful shutdown of all registered services.
+   * Calls shutdown() on each registered IShutdownable component and handles failures gracefully.
    */
   async gracefulShutdown(): Promise<void> {
-    const shutdownPromises = [];
-    if (this.llmRouter) shutdownPromises.push(this.llmRouter.close());
-    if (this.mongoDBClientFactory) shutdownPromises.push(this.mongoDBClientFactory.closeAll());
+    const shutdownPromises = this.shutdownables.map(async (s) => {
+      await s.shutdown();
+    });
     const results = await Promise.allSettled(shutdownPromises);
-    for (const result of results) {
-      if (result.status === "rejected") {
-        console.error("A shutdown operation failed:", result.reason);
-      }
-    }
 
-    try {
-      if (this.llmRouter?.providerNeedsForcedShutdown()) {
-        // Known Google Cloud Node.js client limitation:
-        // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
-        // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
-        // Use timeout-based cleanup as the recommended workaround
-        void setTimeout(() => {
-          console.log("Forced exit because GCP client connections cannot be closed properly");
-          process.exit(0);
-        }, 1000); // 1 second should be enough for any pending operations
+    for (const [index, result] of results.entries()) {
+      if (result.status === "rejected") {
+        console.error(
+          `Shutdown operation failed for component ${index + 1}/${this.shutdownables.length}:`,
+          result.reason,
+        );
       }
-    } catch (error: unknown) {
-      console.error("Error during forced shutdown check:", error);
     }
   }
 }

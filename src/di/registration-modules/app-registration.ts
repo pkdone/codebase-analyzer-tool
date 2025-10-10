@@ -88,16 +88,24 @@ function registerComponents(config: TaskRunnerConfig): void {
   container.registerSingleton(TOKENS.FallbackStrategy, FallbackStrategy);
   container.registerSingleton(TOKENS.LLMExecutionPipeline, LLMExecutionPipeline);
 
-  // Register lifecycle services using factory for optional dependencies
+  // Register lifecycle services using factory to register shutdownable components
   container.register(TOKENS.ShutdownService, {
     useFactory: (c) => {
-      const llmRouter = c.isRegistered(TOKENS.LLMRouter)
-        ? c.resolve<LLMRouter>(TOKENS.LLMRouter)
-        : undefined;
-      const mongoFactory = c.isRegistered(TOKENS.MongoDBClientFactory)
-        ? c.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory)
-        : undefined;
-      return new ShutdownService(llmRouter, mongoFactory);
+      const shutdownService = new ShutdownService();
+
+      // Register LLMRouter if available
+      if (c.isRegistered(TOKENS.LLMRouter)) {
+        const llmRouter = c.resolve<LLMRouter>(TOKENS.LLMRouter);
+        shutdownService.register(llmRouter);
+      }
+
+      // Register MongoDBClientFactory if available
+      if (c.isRegistered(TOKENS.MongoDBClientFactory)) {
+        const mongoFactory = c.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+        shutdownService.register(mongoFactory);
+      }
+
+      return shutdownService;
     },
   });
 

@@ -21,6 +21,7 @@ import {
   buildCompletionCandidates,
 } from "../utils/completions-models-retriever";
 import { LLMInfoProvider } from "./llm-info-provider";
+import { IShutdownable } from "../../lifecycle/shutdownable.interface";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -30,7 +31,7 @@ import { LLMInfoProvider } from "./llm-info-provider";
  * See the `README` for the LLM non-functional behaviours abstraction / protection applied.
  */
 @injectable()
-export default class LLMRouter {
+export default class LLMRouter implements IShutdownable {
   // Private fields
   private readonly llm: LLMProvider;
   private readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
@@ -80,6 +81,26 @@ export default class LLMRouter {
    */
   providerNeedsForcedShutdown(): boolean {
     return this.llm.needsForcedShutdown();
+  }
+
+  /**
+   * Implements IShutdownable interface for graceful shutdown.
+   * Closes the LLM provider and handles forced shutdown if needed.
+   */
+  async shutdown(): Promise<void> {
+    await this.close();
+
+    // Handle provider-specific forced shutdown requirements
+    if (this.providerNeedsForcedShutdown()) {
+      // Known Google Cloud Node.js client limitation:
+      // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
+      // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
+      // Use timeout-based cleanup as the recommended workaround
+      void setTimeout(() => {
+        console.log("Forced exit because GCP client connections cannot be closed properly");
+        process.exit(0);
+      }, 1000); // 1 second should be enough for any pending operations
+    }
   }
 
   /**

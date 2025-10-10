@@ -2,13 +2,14 @@ import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
 import { injectable } from "tsyringe";
 import { logErrorMsgAndDetail, logWarningMsg } from "../utils/logging";
 import { redactUrl } from "../utils/security-utils";
+import { IShutdownable } from "../../lifecycle/shutdownable.interface";
 
 /**
  * A factory class for creating and managing MongoDB client connections.
  * This replaces the singleton pattern with dependency injection.
  */
 @injectable()
-export class MongoDBClientFactory {
+export class MongoDBClientFactory implements IShutdownable {
   private readonly clients = new Map<string, MongoClient>();
 
   /**
@@ -81,5 +82,13 @@ export class MongoDBClientFactory {
 
     await Promise.allSettled(closePromises);
     this.clients.clear();
+  }
+
+  /**
+   * Implements IShutdownable interface for graceful shutdown.
+   * Delegates to closeAll() to close all MongoDB connections.
+   */
+  async shutdown(): Promise<void> {
+    await this.closeAll();
   }
 }
