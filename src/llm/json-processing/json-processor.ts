@@ -5,7 +5,7 @@ import { removeControlChars } from "./sanitizers/remove-control-chars";
 import { extractLargestJsonSpan } from "./sanitizers/extract-largest-json-span";
 import { removeTrailingCommas } from "./sanitizers/remove-trailing-commas";
 import type { Sanitizer } from "./sanitizers/sanitizers-types";
-import { BadResponseContentLLMError, JsonProcessingError } from "../types/llm-errors.types";
+import { JsonProcessingError } from "../types/llm-errors.types";
 import {
   lightCollapseConcatenationChains,
   concatenationChainSanitizer,
@@ -20,6 +20,7 @@ import { addMissingPropertyCommas } from "./sanitizers/add-missing-property-comm
 import { JsonValidator } from "./json-validator";
 import { extractAndParseJson, type ParsingOutcome } from "./utils/json-extractor";
 import { unwrapJsonSchemaStructure } from "./utils/post-parse-transforms";
+import { JsonProcessorResult } from "./json-processing-result.types";
 
 /**
  * JsonProcessor encapsulates the logic for parsing and validating JSON content from LLM responses.
@@ -46,29 +47,33 @@ export class JsonProcessor {
   ] as const satisfies readonly Sanitizer[];
   /**
    * Convert text content to JSON, trimming the content to only include the JSON part and optionally
-   * validate it against a Zod schema.
+   * validate it against a Zod schema. Returns a result object indicating success or failure.
    */
   parseAndValidate<T = Record<string, unknown>>(
     content: LLMGeneratedContent,
     resourceName: string,
     completionOptions: LLMCompletionOptions,
     logSanitizationSteps = true,
-  ): T {
+  ): JsonProcessorResult<T> {
     if (typeof content !== "string") {
-      throw new BadResponseContentLLMError(
-        `LLM response for resource '${resourceName}' is not a string, content`,
-        JSON.stringify(content),
+      const contentText = JSON.stringify(content);
+      const error = new JsonProcessingError(
+        `LLM response for resource '${resourceName}' is not a string`,
+        contentText,
+        contentText,
+        [],
       );
+      return { success: false, error };
     }
 
     // Attempt a fast path parse+validate first (returns null if fallback needed)
-    const fastPathContent = this.tryFastPathParseAndValidate<T>(
+    const fastPathResult = this.tryFastPathParseAndValidate<T>(
       content,
       resourceName,
       completionOptions,
       logSanitizationSteps,
     );
-    if (fastPathContent !== null) return fastPathContent;
+    if (fastPathResult !== null) return fastPathResult;
 
     // Otherwise run progressive strategies + validation
     return this.progressiveParseAndValidate<T>(
@@ -90,19 +95,22 @@ export class JsonProcessor {
     resourceName: string,
     completionOptions: LLMCompletionOptions,
     logSanitizationSteps: boolean,
-  ): T | null {
+  ): JsonProcessorResult<T> | null {
     const trimmed = content.trim();
 
     try {
       const direct = JSON.parse(trimmed) as unknown;
       const transformed = unwrapJsonSchemaStructure(direct);
-      const validatedDirect = this.jsonValidator.validate<T>(
+      const validationResult = this.jsonValidator.validate<T>(
         transformed,
         completionOptions,
         resourceName,
         logSanitizationSteps,
       );
-      if (validatedDirect !== null) return validatedDirect as T; // No sanitation steps needed
+
+      if (validationResult.success) {
+        return { success: true, data: validationResult.data as T, steps: [] };
+      }
     } catch {
       // Parsing failed, fall through to progressive strategies
     }
@@ -111,19 +119,34 @@ export class JsonProcessor {
   }
 
   /**
-   * Execute progressive parsing strategies and then apply optional schema validation. Throws with
-   * contextual details if validation ultimately fails.
+   * Execute progressive parsing strategies and then apply optional schema validation. Returns a
+   * result object with contextual details about success or failure.
    */
   private progressiveParseAndValidate<T>(
     originalContent: string,
     resourceName: string,
     completionOptions: LLMCompletionOptions,
     logSanitizationSteps: boolean,
-  ): T {
-    const progressiveResult: ParsingOutcome = this.parseJsonUsingProgressiveStrategies(
-      originalContent,
-      resourceName,
-    );
+  ): JsonProcessorResult<T> {
+    let progressiveResult: ParsingOutcome;
+    try {
+      progressiveResult = this.parseJsonUsingProgressiveStrategies(originalContent, resourceName);
+    } catch (err) {
+      // parseJsonUsingProgressiveStrategies throws JsonProcessingError on failure
+      if (err instanceof JsonProcessingError) {
+        return { success: false, error: err };
+      }
+      // Unexpected error type, wrap it
+      const error = new JsonProcessingError(
+        `Unexpected error during JSON parsing for resource '${resourceName}'`,
+        originalContent,
+        originalContent,
+        [],
+        err instanceof Error ? err : undefined,
+      );
+      return { success: false, error };
+    }
+
     const { parsed, steps, resilientDiagnostics } = progressiveResult;
     const transformed = unwrapJsonSchemaStructure(parsed);
 
@@ -134,30 +157,32 @@ export class JsonProcessor {
       );
     }
 
-    let validationIssues: unknown = null;
-    const validatedContent = this.jsonValidator.validate<T>(
+    const validationResult = this.jsonValidator.validate<T>(
       transformed,
       completionOptions,
       resourceName,
       logSanitizationSteps,
-      (issues) => {
-        validationIssues = issues;
-      },
     );
 
-    if (validatedContent === null) {
+    if (!validationResult.success) {
       const contentTextWithNoNewlines = originalContent.replace(/\n/g, " ");
-      const issuesText = validationIssues
-        ? ` Validation issues: ${JSON.stringify(validationIssues)}`
-        : "";
+      const issuesText = ` Validation issues: ${JSON.stringify(validationResult.issues)}`;
       const stepsHistory = steps.length > 0 ? ` (Applied sanitization: ${steps.join(" -> ")})` : "";
-      throw new BadResponseContentLLMError(
+      const error = new JsonProcessingError(
         `LLM response for resource '${resourceName}' can be turned into JSON but doesn't validate with the supplied JSON schema.${issuesText}${stepsHistory}`,
+        originalContent,
         contentTextWithNoNewlines,
+        steps,
       );
+      return { success: false, error };
     }
 
-    return validatedContent as T;
+    return {
+      success: true,
+      data: validationResult.data as T,
+      steps,
+      diagnostics: resilientDiagnostics,
+    };
   }
 
   /**
@@ -276,9 +301,11 @@ export class JsonProcessor {
     const multiObjRegex = /^\s*(\{[\s\S]*\})\s*(\{[\s\S]*\})\s*$/;
     const multiObjMatch = multiObjRegex.exec(sanitizedTrimmed);
     if (multiObjMatch && multiObjMatch[1] !== multiObjMatch[2]) {
-      throw new BadResponseContentLLMError(
+      throw new JsonProcessingError(
         `LLM response for resource '${resourceName}' appears to contain two different concatenated JSON objects and is considered invalid`,
+        originalTrimmed,
         originalTrimmed.substring(0, 500),
+        [],
       );
     }
   }

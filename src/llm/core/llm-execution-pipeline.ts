@@ -65,12 +65,19 @@ export class LLMExecutionPipeline {
 
       if (result) {
         const defaultOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.TEXT };
-        const validatedResult = this.jsonValidator.validate(
+        const validationResult = this.jsonValidator.validate(
           result,
           completionOptions ?? defaultOptions,
           resourceName,
         );
-        return validatedResult as T;
+
+        if (validationResult.success) {
+          return validationResult.data as T;
+        }
+        // Validation failed after successful LLM response
+        log(
+          `Validation failed for resource '${resourceName}': ${JSON.stringify(validationResult.issues)}`,
+        );
       }
 
       log(

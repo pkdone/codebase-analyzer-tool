@@ -22,7 +22,10 @@ describe("json-tools", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = jsonProcessor.parseAndValidate(jsonString, "content", completionOptions);
 
-      expect(result).toEqual({ key: "value", number: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ key: "value", number: 42 });
+      }
     });
 
     test("should handle JSON with surrounding text", () => {
@@ -30,7 +33,10 @@ describe("json-tools", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = jsonProcessor.parseAndValidate(textWithJson, "content", completionOptions);
 
-      expect(result).toEqual({ key: "value" });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ key: "value" });
+      }
     });
 
     test("should handle array JSON", () => {
@@ -38,16 +44,21 @@ describe("json-tools", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = jsonProcessor.parseAndValidate(arrayJson, "content", completionOptions);
 
-      expect(result).toEqual([{ item: 1 }, { item: 2 }]);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual([{ item: 1 }, { item: 2 }]);
+      }
     });
 
-    test("should throw error for invalid JSON", () => {
+    test("should return failure result for invalid JSON", () => {
       const invalidJson = "not valid json";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      expect(() =>
-        jsonProcessor.parseAndValidate(invalidJson, "content", completionOptions),
-      ).toThrow("doesn't contain valid JSON content");
+      const result = jsonProcessor.parseAndValidate(invalidJson, "content", completionOptions);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.message).toMatch(/doesn't contain valid JSON content/);
+      }
     });
 
     test("should sanitize simple malformed JSON with backslashes", () => {
@@ -65,10 +76,12 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("field");
-      expect(result).toHaveProperty("codeExample");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(typeof result.data).toBe("object");
+        expect(result.data).toHaveProperty("field");
+        expect(result.data).toHaveProperty("codeExample");
+      }
     });
 
     test("should sanitize and parse complex malformed LLM JSON response", () => {
@@ -86,12 +99,14 @@ describe("json-tools", () => {
       );
 
       // Verify the result is a valid object with expected structure
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("codeExample");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("codeExample");
 
       // Verify the codeExample field was properly sanitized and parsed
-      const codeExample = (result as any).codeExample;
+      const codeExample = (result.data as any).codeExample;
       expect(typeof codeExample).toBe("string");
       expect(codeExample).toContain("INSERT INTO");
     });
@@ -111,12 +126,14 @@ describe("json-tools", () => {
       );
 
       // Verify the result is a valid object
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("field");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("field");
 
       // Verify the field was properly sanitized
-      const field = (result as any).field;
+      const field = (result.data as any).field;
       expect(typeof field).toBe("string");
       expect(field).toContain("excessive backslashes");
     });
@@ -136,12 +153,14 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("purpose");
-      expect(result).toHaveProperty("codeExample");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const codeExample = (result as any).codeExample;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("codeExample");
+
+      const codeExample = (result.data as any).codeExample;
       expect(typeof codeExample).toBe("string");
       expect(codeExample).toContain("INSERT INTO");
       expect(codeExample).toContain("Client Listing");
@@ -158,10 +177,12 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("purpose");
-      expect(result).toHaveProperty("field");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("field");
     });
 
     test("should handle JSON that requires structure completion", () => {
@@ -175,11 +196,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("data");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const data = (result as any).data;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("data");
+
+      const data = (result.data as any).data;
       expect(data).toHaveProperty("nested");
       expect(data.nested).toBe("value");
     });
@@ -195,9 +218,11 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("field");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("field");
     });
 
     test("should handle markdown-wrapped JSON responses", () => {
@@ -211,10 +236,12 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("purpose");
-      expect(result).toHaveProperty("field");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("field");
     });
 
     test("should handle JSON surrounded by explanatory text", () => {
@@ -229,10 +256,12 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("result");
-      expect(result).toHaveProperty("confidence");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("result");
+      expect(result.data).toHaveProperty("confidence");
     });
 
     test("should handle complex SQL content with mixed escaping patterns", () => {
@@ -253,12 +282,14 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("purpose");
-      expect(result).toHaveProperty("databaseIntegration");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const dbIntegration = (result as any).databaseIntegration;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("databaseIntegration");
+
+      const dbIntegration = (result.data as any).databaseIntegration;
       expect(dbIntegration).toHaveProperty("codeExample");
       expect(dbIntegration.codeExample).toContain("INSERT INTO");
     });
@@ -275,11 +306,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("sql");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const sql = (result as any).sql;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("sql");
+
+      const sql = (result.data as any).sql;
       expect(sql).toBe("SELECT name AS \"User Name\" FROM users WHERE id = '123'");
     });
 
@@ -298,12 +331,14 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("purpose");
-      expect(result).toHaveProperty("codeExample");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const codeExample = (result as any).codeExample;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("codeExample");
+
+      const codeExample = (result.data as any).codeExample;
       expect(typeof codeExample).toBe("string");
       expect(codeExample).toContain("INSERT INTO");
       expect(codeExample).toContain("reports");
@@ -320,11 +355,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("text");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const text = (result as any).text;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("text");
+
+      const text = (result.data as any).text;
       expect(text).toBe("Normal text with standard escaping");
     });
 
@@ -341,11 +378,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("message");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const message = (result as any).message;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("message");
+
+      const message = (result.data as any).message;
       expect(message).toBe("The sanitization now handles more complex over-escaped patterns");
     });
 
@@ -364,12 +403,14 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("purpose");
-      expect(result).toHaveProperty("codeExample");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const codeExample = (result as any).codeExample;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("codeExample");
+
+      const codeExample = (result.data as any).codeExample;
       expect(codeExample).toContain("INSERT INTO");
       expect(codeExample).toContain("SELECT name FROM users");
     });
@@ -385,11 +426,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("sql");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const sql = (result as any).sql;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("sql");
+
+      const sql = (result.data as any).sql;
       expect(sql).toContain("INSERT INTO users");
       expect(sql).toContain("test");
     });
@@ -408,11 +451,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("data");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const data = (result as any).data;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("data");
+
+      const data = (result.data as any).data;
       expect(data).toBe("textwithcontrols"); // Control characters should be removed
     });
 
@@ -432,11 +477,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("databaseIntegration");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const dbIntegration = (result as any).databaseIntegration;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("databaseIntegration");
+
+      const dbIntegration = (result.data as any).databaseIntegration;
       expect(dbIntegration.codeExample).toContain("INSERT INTO m_appuser");
       expect(dbIntegration.codeExample).toContain("mifos");
       expect(dbIntegration.mechanism).toBe("DML");
@@ -457,13 +504,15 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("purpose");
-      expect(result).toHaveProperty("features");
-      expect(result).toHaveProperty("status");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const features = (result as any).features;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("features");
+      expect(result.data).toHaveProperty("status");
+
+      const features = (result.data as any).features;
       expect(Array.isArray(features)).toBe(true);
       expect(features).toHaveLength(3);
     });
@@ -479,12 +528,14 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("name");
-      expect(result).toHaveProperty("command");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const command = (result as any).command;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("name");
+      expect(result.data).toHaveProperty("command");
+
+      const command = (result.data as any).command;
       expect(command).toContain("CREATE TABLE test");
       expect(command).toContain("BIGINT NOT NULL");
     });
@@ -501,11 +552,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("table");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const table = (result as any).table;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("table");
+
+      const table = (result.data as any).table;
       expect(table).toHaveProperty("name");
       expect(table).toHaveProperty("command");
       expect(table.name).toBe("users");
@@ -541,11 +594,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("tables");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const tables = (result as any).tables;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("tables");
+
+      const tables = (result.data as any).tables;
       expect(Array.isArray(tables)).toBe(true);
       expect(tables).toHaveLength(4); // All objects preserved, including incomplete ones
 
@@ -578,12 +633,14 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("purpose");
-      expect(result).toHaveProperty("tables");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const tables = (result as any).tables;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("tables");
+
+      const tables = (result.data as any).tables;
       expect(Array.isArray(tables)).toBe(true);
       expect(tables).toHaveLength(2);
 
@@ -609,11 +666,13 @@ describe("json-tools", () => {
         completionOptions,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      expect(result).toHaveProperty("message");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
 
-      const message = (result as any).message;
+      expect(typeof result.data).toBe("object");
+      expect(result.data).toHaveProperty("message");
+
+      const message = (result.data as any).message;
       expect(message).toBe("This is a \"quoted\" word and this is a 'apostrophe'");
     });
 
@@ -622,22 +681,30 @@ describe("json-tools", () => {
       const invalidContent = "This is just plain text with no JSON structure at all";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      expect(() =>
-        jsonProcessor.parseAndValidate(invalidContent, "test-genuinely-invalid", completionOptions),
-      ).toThrow("doesn't contain valid JSON content");
+      const result = jsonProcessor.parseAndValidate(
+        invalidContent,
+        "test-genuinely-invalid",
+        completionOptions,
+      );
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.message).toMatch(/doesn't contain valid JSON content/);
+      }
     });
 
-    test("should throw error for non-string input", () => {
+    test("should return failure result for non-string input", () => {
       const nonStringInput = 123;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
-      expect(() =>
-        jsonProcessor.parseAndValidate(
-          nonStringInput as unknown as string,
-          "content",
-          completionOptions,
-        ),
-      ).toThrow("LLM response for resource");
+      const result = jsonProcessor.parseAndValidate(
+        nonStringInput as unknown as string,
+        "content",
+        completionOptions,
+      );
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.message).toMatch(/LLM response for resource/);
+      }
     });
 
     test("should sanitize Java style string concatenations retaining first literal", () => {
@@ -652,10 +719,12 @@ describe("json-tools", () => {
         "test-concat",
         completionOptions,
       );
-      expect(result).toBeDefined();
-      const constants = (result as any).publicConstants;
-      expect(Array.isArray(constants)).toBe(true);
-      expect(constants[0].value).toBe("/fineract-provider/api/v1/glaccounts?");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const constants = (result.data as any).publicConstants;
+        expect(Array.isArray(constants)).toBe(true);
+        expect(constants[0].value).toBe("/fineract-provider/api/v1/glaccounts?");
+      }
     });
 
     test("should collapse literal-only concatenations into single literal", () => {
@@ -668,8 +737,10 @@ describe("json-tools", () => {
         "test-literal-concat",
         completionOptions,
       );
-      expect(result).toBeDefined();
-      expect((result as any).message).toBe("Hello World!");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).message).toBe("Hello World!");
+      }
     });
 
     test("should reduce multi-literal plus variable concatenations to first literal only (drop trailing suffix)", () => {
@@ -682,8 +753,10 @@ describe("json-tools", () => {
         "test-mixed-concat",
         completionOptions,
       );
-      expect(result).toBeDefined();
-      expect((result as any).sql).toBe("SELECT * ");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).sql).toBe("SELECT * ");
+      }
     });
 
     test("should handle chained publicConstants referencing earlier constants (BatchHelper style)", () => {
@@ -700,8 +773,10 @@ describe("json-tools", () => {
         "test-batchhelper-constants",
         completionOptions,
       );
-      expect(result).toBeDefined();
-      const constants = (result as any).publicConstants;
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      const constants = (result.data as any).publicConstants;
       expect(constants).toHaveLength(3);
       expect(constants[0].value).toBe("/fineract-provider/api/v1/batches?");
       // After collapse, identifier-leading chain keeps only first literal segment of the expression: here that's the beginning of the appended string
@@ -714,8 +789,10 @@ describe("json-tools", () => {
       }`;
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = jsonProcessor.parseAndValidate(json, "test-ident-leading", completionOptions);
-      expect(result).toBeDefined();
-      expect((result as any).value).toBe("Actual Literal Value");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).value).toBe("Actual Literal Value");
+      }
     });
 
     test("should collapse identifier-leading chain with trailing identifiers and literals to first literal only", () => {
@@ -728,8 +805,10 @@ describe("json-tools", () => {
         "test-ident-leading-mixed",
         completionOptions,
       );
-      expect(result).toBeDefined();
-      expect((result as any).path).toBe("segment");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).path).toBe("segment");
+      }
     });
   });
 
@@ -740,7 +819,10 @@ describe("json-tools", () => {
 
       const result = jsonValidator.validate(content, options, "test-content");
 
-      expect(result).toEqual(content);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(content);
+      }
     });
 
     test("should return null for null content", () => {
@@ -749,7 +831,10 @@ describe("json-tools", () => {
 
       const result = jsonValidator.validate(content, options, "test-null-content");
 
-      expect(result).toBeNull();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeNull();
+      }
     });
 
     test("should invoke issues callback with zod issues on validation failure", () => {
@@ -758,24 +843,17 @@ describe("json-tools", () => {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: sourceSummarySchema.pick({ purpose: true }),
       } as any;
-      let captured: unknown = undefined;
 
-      const result = jsonValidator.validate(
-        badContent,
-        options,
-        "test-validation-failure",
-        false,
-        (issues: unknown) => {
-          captured = issues;
-        },
-      );
+      const result = jsonValidator.validate(badContent, options, "test-validation-failure", false);
 
-      expect(result).toBeNull();
-      expect(captured).toBeDefined();
-      // Expect an array of issues with at least one entry mentioning expected string
-      if (Array.isArray(captured)) {
-        const serialized = JSON.stringify(captured);
-        expect(serialized).toContain("purpose");
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.issues).toBeDefined();
+        // Expect an array of issues with at least one entry mentioning expected string
+        if (Array.isArray(result.issues)) {
+          const serialized = JSON.stringify(result.issues);
+          expect(serialized).toContain("purpose");
+        }
       }
     });
   });

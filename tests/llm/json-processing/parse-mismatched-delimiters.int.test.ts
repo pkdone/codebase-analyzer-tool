@@ -36,10 +36,10 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         false,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
-      expect((result as any).methods).toHaveLength(1);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).methods).toHaveLength(1);
+      }
     });
 
     it("should successfully parse the full AccountAssociations JSON with mismatched delimiter", () => {
@@ -144,21 +144,19 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
       };
 
       // This should NOT throw - the fixMismatchedDelimiters sanitizer should fix it
-      expect(() => {
-        const result = jsonProcessor.parseAndValidate(
-          malformedJson,
-          "fineract-provider/src/main/java/org/apache/fineract/portfolio/account/domain/AccountAssociations.java",
-          completionOptions,
-          false,
-        );
+      const result = jsonProcessor.parseAndValidate(
+        malformedJson,
+        "fineract-provider/src/main/java/org/apache/fineract/portfolio/account/domain/AccountAssociations.java",
+        completionOptions,
+        false,
+      );
 
-        // Verify the result is valid
-        expect(result).toBeDefined();
-        expect(typeof result).toBe("object");
-        // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
-        expect((result as any).name).toBe("AccountAssociations");
-        expect((result as any).publicMethods).toHaveLength(4);
-      }).not.toThrow();
+      // Verify the result is valid
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).name).toBe("AccountAssociations");
+        expect((result.data as any).publicMethods).toHaveLength(4);
+      }
     });
   });
 
@@ -183,11 +181,12 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         false,
       );
 
-      expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
-      const resultObj = result as any;
-      expect(resultObj.items).toHaveLength(3);
-      expect(resultObj.items[2].name).toBe("third");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const resultObj = result.data as any;
+        expect(resultObj.items).toHaveLength(3);
+        expect(resultObj.items[2].name).toBe("third");
+      }
     });
 
     it("should handle nested parameters array with mismatched delimiters", () => {
@@ -214,12 +213,13 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         false,
       );
 
-      expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
-      const resultObj = result as any;
-      expect(resultObj.methods).toHaveLength(1);
-      expect(resultObj.methods[0].params).toHaveLength(2);
-      expect(resultObj.methods[0].params[0].type).toBe("String");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const resultObj = result.data as any;
+        expect(resultObj.methods).toHaveLength(1);
+        expect(resultObj.methods[0].params).toHaveLength(2);
+        expect(resultObj.methods[0].params[0].type).toBe("String");
+      }
     });
 
     it("should handle multiple levels of nested mismatches", () => {
@@ -244,11 +244,12 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         false,
       );
 
-      expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
-      const resultObj = result as any;
-      expect(resultObj.outer.middle.inner).toHaveLength(1);
-      expect(resultObj.outer.middle.inner[0].key).toBe("value");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const resultObj = result.data as any;
+        expect(resultObj.outer.middle.inner).toHaveLength(1);
+        expect(resultObj.outer.middle.inner[0].key).toBe("value");
+      }
     });
 
     it("should handle mixed correct and incorrect delimiters", () => {
@@ -274,11 +275,12 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         false,
       );
 
-      expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
-      const resultObj = result as any;
-      expect(resultObj.correct).toHaveLength(2);
-      expect(resultObj.incorrect).toHaveLength(2);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const resultObj = result.data as any;
+        expect(resultObj.correct).toHaveLength(2);
+        expect(resultObj.incorrect).toHaveLength(2);
+      }
     });
   });
 
@@ -302,9 +304,10 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         false,
       );
 
-      expect(result).toBeDefined();
-      // Type assertion needed because result is 'unknown' from jsonProcessor.parseAndValidate
-      expect((result as any).items).toHaveLength(2);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).items).toHaveLength(2);
+      }
     });
 
     it("should handle mismatched delimiters in truncated JSON", () => {
@@ -325,8 +328,10 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         false,
       );
 
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(typeof result.data).toBe("object");
+      }
     });
   });
 });

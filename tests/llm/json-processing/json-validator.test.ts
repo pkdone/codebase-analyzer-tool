@@ -20,10 +20,13 @@ describe("json-validator", () => {
 
       const result = jsonValidator.validate(content, options, "test-resource");
 
-      expect(result).toEqual(content);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(content);
+      }
     });
 
-    it("should return null when schema validation fails", () => {
+    it("should return failure result when schema validation fails", () => {
       const schema = z.object({ name: z.string(), age: z.number() });
       const content = { name: "John", age: "thirty" }; // Invalid age type
       const options = {
@@ -33,28 +36,33 @@ describe("json-validator", () => {
 
       const result = jsonValidator.validate(content, options, "test-resource");
 
-      expect(result).toBeNull();
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.issues).toBeDefined();
+        expect(Array.isArray(result.issues)).toBe(true);
+      }
     });
 
-    it("should call onValidationIssues callback when validation fails", () => {
+    it("should include validation issues in failure result", () => {
       const schema = z.object({ name: z.string(), age: z.number() });
       const content = { name: "John", age: "thirty" };
       const options = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
       };
-      const onValidationIssues = jest.fn();
 
-      jsonValidator.validate(content, options, "test-resource", false, onValidationIssues);
+      const result = jsonValidator.validate(content, options, "test-resource", false);
 
-      expect(onValidationIssues).toHaveBeenCalled();
-      expect(onValidationIssues.mock.calls[0][0]).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            path: ["age"],
-          }),
-        ]),
-      );
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.issues).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              path: ["age"],
+            }),
+          ]),
+        );
+      }
     });
 
     it("should return content as-is for TEXT output format", () => {
@@ -63,16 +71,19 @@ describe("json-validator", () => {
 
       const result = jsonValidator.validate(content, options, "test-resource");
 
-      expect(result).toBe(content);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBe(content);
+      }
     });
 
-    it("should return null for invalid content in TEXT output format", () => {
+    it("should return failure result for invalid content in TEXT output format", () => {
       const content = undefined; // Not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
       const result = jsonValidator.validate(content, options, "test-resource");
 
-      expect(result).toBeNull();
+      expect(result.success).toBe(false);
     });
 
     it("should use type guard for TEXT format to validate content safety", () => {
@@ -81,7 +92,10 @@ describe("json-validator", () => {
 
       const result = jsonValidator.validate(validContent, options, "test-resource");
 
-      expect(result).toEqual(validContent);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(validContent);
+      }
     });
 
     it("should handle number as invalid content for TEXT format", () => {
@@ -90,7 +104,7 @@ describe("json-validator", () => {
 
       const result = jsonValidator.validate(content, options, "test-resource");
 
-      expect(result).toBeNull();
+      expect(result.success).toBe(false);
     });
 
     it("should return content when no schema is provided for JSON format", () => {
@@ -99,16 +113,19 @@ describe("json-validator", () => {
 
       const result = jsonValidator.validate(content, options, "test-resource");
 
-      expect(result).toEqual(content);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(content);
+      }
     });
 
-    it("should return null for invalid content when no schema and not TEXT format", () => {
+    it("should return failure result for invalid content when no schema and not TEXT format", () => {
       const content = undefined; // Not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.JSON };
 
       const result = jsonValidator.validate(content, options, "test-resource");
 
-      expect(result).toBeNull();
+      expect(result.success).toBe(false);
     });
   });
 
@@ -129,8 +146,12 @@ describe("json-validator", () => {
       const result1 = jsonValidator.validate({ value: 1 }, options, "resource1");
       const result2 = jsonValidator.validate({ value: 2 }, options, "resource2");
 
-      expect(result1).toEqual({ value: 1 });
-      expect(result2).toEqual({ value: 2 });
+      expect(result1.success).toBe(true);
+      expect(result2.success).toBe(true);
+      if (result1.success && result2.success) {
+        expect(result1.data).toEqual({ value: 1 });
+        expect(result2.data).toEqual({ value: 2 });
+      }
     });
   });
 });

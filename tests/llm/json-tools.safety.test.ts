@@ -23,7 +23,10 @@ describe("json-tools concatenated objects handling", () => {
     );
 
     // Should extract the first object
-    expect(result).toEqual({ a: 1 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ a: 1 });
+    }
   });
 
   it("handles malformed concatenated objects with trailing commas", () => {
@@ -38,7 +41,10 @@ describe("json-tools concatenated objects handling", () => {
     );
 
     // Should sanitize and extract the first valid object
-    expect(result).toEqual({ a: 1 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ a: 1 });
+    }
   });
 
   it("successfully parses when identical objects are concatenated", () => {
@@ -53,7 +59,10 @@ describe("json-tools concatenated objects handling", () => {
     );
 
     // Should successfully extract one of the objects
-    expect(result).toEqual({ a: 1 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ a: 1 });
+    }
   });
 
   it("extracts valid JSON from text with surrounding content", () => {
@@ -67,6 +76,9 @@ describe("json-tools concatenated objects handling", () => {
       false,
     );
 
-    expect(result).toEqual({ value: 42 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ value: 42 });
+    }
   });
 });

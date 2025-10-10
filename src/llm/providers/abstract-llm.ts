@@ -291,26 +291,36 @@ export default abstract class AbstractLLM implements LLMProvider {
     doWarnOnError = false,
   ): Promise<LLMFunctionResponse> {
     if (taskType === LLMPurpose.COMPLETIONS) {
-      try {
-        const generatedContent =
-          completionOptions.outputFormat === LLMOutputFormat.JSON
-            ? this.jsonProcessor.parseAndValidate(
-                responseContent,
-                context.resource,
-                completionOptions,
-                doWarnOnError,
-              )
-            : responseContent;
+      if (completionOptions.outputFormat === LLMOutputFormat.JSON) {
+        const parseResult = this.jsonProcessor.parseAndValidate(
+          responseContent,
+          context.resource,
+          completionOptions,
+          doWarnOnError,
+        );
+
+        if (parseResult.success) {
+          return {
+            ...skeletonResult,
+            status: LLMResponseStatus.COMPLETED,
+            generated: parseResult.data,
+          };
+        } else {
+          context.responseContentParseError = formatErrorMessage(parseResult.error);
+          if (doWarnOnError) logErrorMsg(formatErrorMessage(parseResult.error));
+          await this.recordTestResponseToJSONErrorToFile(
+            parseResult.error,
+            responseContent,
+            context,
+          );
+          return { ...skeletonResult, status: LLMResponseStatus.INVALID };
+        }
+      } else {
         return {
           ...skeletonResult,
           status: LLMResponseStatus.COMPLETED,
-          generated: generatedContent,
+          generated: responseContent,
         };
-      } catch (error: unknown) {
-        context.responseContentParseError = formatErrorMessage(error);
-        if (doWarnOnError) logErrorMsg(formatErrorMessage(error));
-        await this.recordTestResponseToJSONErrorToFile(error, responseContent, context);
-        return { ...skeletonResult, status: LLMResponseStatus.INVALID };
       }
     } else {
       return { ...skeletonResult, status: LLMResponseStatus.COMPLETED, generated: responseContent };

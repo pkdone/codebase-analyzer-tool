@@ -23,7 +23,10 @@ describe("json-tools enhanced fast path", () => {
       const validJson = `{"purpose": "Test", "value": 42}`;
       const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
-      expect(result).toEqual({ purpose: "Test", value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ purpose: "Test", value: 42 });
+      }
       // Should not log any sanitization steps since fast path succeeded
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
@@ -32,7 +35,10 @@ describe("json-tools enhanced fast path", () => {
       const validJson = `   \n\t{"purpose": "Test", "value": 42}`;
       const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
-      expect(result).toEqual({ purpose: "Test", value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ purpose: "Test", value: 42 });
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
@@ -40,7 +46,10 @@ describe("json-tools enhanced fast path", () => {
       const validJson = `{"purpose": "Test", "value": 42}\n\t   `;
       const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
-      expect(result).toEqual({ purpose: "Test", value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ purpose: "Test", value: 42 });
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
@@ -48,7 +57,10 @@ describe("json-tools enhanced fast path", () => {
       const validJson = `  [1, 2, 3, 4, 5]  `;
       const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
-      expect(result).toEqual([1, 2, 3, 4, 5]);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual([1, 2, 3, 4, 5]);
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
@@ -64,7 +76,10 @@ describe("json-tools enhanced fast path", () => {
       }`;
       const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions, true);
 
-      expect((result as any).level1.level2.level3.value).toBe("deep");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).level1.level2.level3.value).toBe("deep");
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
   });
@@ -79,7 +94,10 @@ describe("json-tools enhanced fast path", () => {
         true,
       );
 
-      expect(result).toEqual({ value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ value: 42 });
+      }
       // Should log sanitization steps since progressive strategies were used
       expect(logWarningMsg).toHaveBeenCalled();
     });
@@ -93,7 +111,10 @@ describe("json-tools enhanced fast path", () => {
         true,
       );
 
-      expect(result).toEqual({ value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ value: 42 });
+      }
       expect(logWarningMsg).toHaveBeenCalled();
     });
 
@@ -106,7 +127,10 @@ describe("json-tools enhanced fast path", () => {
         true,
       );
 
-      expect(result).toEqual({ value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ value: 42 });
+      }
       expect(logWarningMsg).toHaveBeenCalled();
     });
   });
@@ -121,7 +145,10 @@ describe("json-tools enhanced fast path", () => {
         false,
       );
 
-      expect(result).toEqual({ value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ value: 42 });
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
@@ -134,7 +161,10 @@ describe("json-tools enhanced fast path", () => {
         true,
       );
 
-      expect(result).toEqual({ value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ value: 42 });
+      }
       expect(logWarningMsg).toHaveBeenCalledWith(
         expect.stringContaining("JSON sanitation steps for resource 'test-resource':"),
       );
@@ -149,7 +179,10 @@ describe("json-tools enhanced fast path", () => {
         false,
       );
 
-      expect(result).toEqual({ value: 42 });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ value: 42 });
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
   });
@@ -164,8 +197,11 @@ describe("json-tools enhanced fast path", () => {
         true,
       );
 
-      expect((result as any).a).toBe(1);
-      expect((result as any).b).toEqual([1, 2, 3]);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).a).toBe(1);
+        expect((result.data as any).b).toEqual([1, 2, 3]);
+      }
       expect(logWarningMsg).toHaveBeenCalledWith(expect.stringContaining("Resilient:"));
     });
 
@@ -183,10 +219,13 @@ describe("json-tools enhanced fast path", () => {
       } as any;
 
       const jsonWithFence = '```json\n{"notValue": 42}\n```';
+      const result = jsonProcessor.parseAndValidate(jsonWithFence, "test-resource", options, true);
 
-      expect(() => {
-        jsonProcessor.parseAndValidate(jsonWithFence, "test-resource", options, true);
-      }).toThrow(/Applied sanitization/);
+      // With the new API, validation failures return a failure result, not throw
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.message).toMatch(/Applied sanitization/);
+      }
     });
   });
 
@@ -200,7 +239,10 @@ describe("json-tools enhanced fast path", () => {
         true,
       );
 
-      expect(result).toEqual({});
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({});
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
@@ -208,7 +250,10 @@ describe("json-tools enhanced fast path", () => {
       const emptyArray = "[]";
       const result = jsonProcessor.parseAndValidate(emptyArray, "test-resource", baseOptions, true);
 
-      expect(result).toEqual([]);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual([]);
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
@@ -221,8 +266,11 @@ describe("json-tools enhanced fast path", () => {
         true,
       );
 
-      expect((result as any).emoji).toBe("🚀");
-      expect((result as any).text).toBe("Hello, 世界");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).emoji).toBe("🚀");
+        expect((result.data as any).text).toBe("Hello, 世界");
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
@@ -235,7 +283,10 @@ describe("json-tools enhanced fast path", () => {
         true,
       );
 
-      expect((result as any).text).toBe('He said "Hello"');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).text).toBe('He said "Hello"');
+      }
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
   });

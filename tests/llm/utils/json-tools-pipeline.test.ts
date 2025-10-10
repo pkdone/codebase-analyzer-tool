@@ -24,7 +24,10 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
   test("fast path: valid JSON returns with no sanitation steps logged", () => {
     const json = '{"a":1,"b":2}';
     const result = jsonProcessor.parseAndValidate(json, "fast-path", completionOptions, true);
-    expect(result).toEqual({ a: 1, b: 2 });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ a: 1, b: 2 });
+    }
     // Should log nothing about sanitation steps (fast path returns before strategies list is created)
     expect(logWarningMsg).not.toHaveBeenCalled();
   });
@@ -32,7 +35,10 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
   test("extraction path: JSON embedded in text triggers extraction step logging", () => {
     const text = 'Intro text before JSON {"hello":"world"} trailing commentary';
     const result = jsonProcessor.parseAndValidate(text, "extract-path", completionOptions, true);
-    expect(result).toEqual({ hello: "world" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ hello: "world" });
+    }
     // Should log steps including 'extract'
     const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
     expect(calls.some((c) => c.includes("extract"))).toBe(true);
@@ -47,7 +53,10 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
       completionOptions,
       true,
     );
-    expect(result).toEqual({ key: "value" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ key: "value" });
+    }
     const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
     // Should include resilient-sanitization marker
     expect(calls.some((c) => c.includes("resilient-sanitization"))).toBe(true);
@@ -61,7 +70,10 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
       completionOptions,
       true,
     );
-    expect((result as any).path).toBe("");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.data as any).path).toBe("");
+    }
     const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
     expect(calls.some((c) => c.includes("pre-concat"))).toBe(true);
   });

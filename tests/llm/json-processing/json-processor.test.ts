@@ -1,9 +1,6 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import {
-  BadResponseContentLLMError,
-  JsonProcessingError,
-} from "../../../src/llm/types/llm-errors.types";
+import { JsonProcessingError } from "../../../src/llm/types/llm-errors.types";
 
 describe("JsonProcessor", () => {
   let jsonProcessor: JsonProcessor;
@@ -31,48 +28,70 @@ describe("JsonProcessor", () => {
       it("should parse valid JSON string", () => {
         const json = '{"key": "value", "number": 42}';
         const result = jsonProcessor.parseAndValidate(json, "test-resource", completionOptions);
-        expect(result).toEqual({ key: "value", number: 42 });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ key: "value", number: 42 });
+        }
       });
 
       it("should parse valid JSON array", () => {
         const json = '[{"item": 1}, {"item": 2}]';
         const result = jsonProcessor.parseAndValidate(json, "test-resource", completionOptions);
-        expect(result).toEqual([{ item: 1 }, { item: 2 }]);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual([{ item: 1 }, { item: 2 }]);
+        }
       });
 
       it("should handle JSON with whitespace", () => {
         const json = '  \n\t  {"key": "value"}  \n\t  ';
         const result = jsonProcessor.parseAndValidate(json, "test-resource", completionOptions);
-        expect(result).toEqual({ key: "value" });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ key: "value" });
+        }
       });
 
       it("should parse nested JSON objects", () => {
         const json = '{"outer": {"inner": {"deep": "value"}}}';
         const result = jsonProcessor.parseAndValidate(json, "test-resource", completionOptions);
-        expect(result).toEqual({ outer: { inner: { deep: "value" } } });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ outer: { inner: { deep: "value" } } });
+        }
       });
     });
 
     describe("error handling", () => {
-      it("should throw error for non-string content", () => {
+      it("should return failure result for non-string content", () => {
         const nonString = 12345 as any;
-        expect(() =>
-          jsonProcessor.parseAndValidate(nonString, "test-resource", completionOptions),
-        ).toThrow(BadResponseContentLLMError);
+        const result = jsonProcessor.parseAndValidate(
+          nonString,
+          "test-resource",
+          completionOptions,
+        );
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
+        }
       });
 
-      it("should throw JsonProcessingError for invalid JSON with no recovery", () => {
+      it("should return JsonProcessingError for invalid JSON with no recovery", () => {
         const invalid = "not valid json at all";
-        expect(() =>
-          jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions),
-        ).toThrow(JsonProcessingError);
+        const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
+        }
       });
 
-      it("should throw error with resource name in message", () => {
+      it("should include resource name in error message", () => {
         const invalid = "not valid json";
-        expect(() =>
-          jsonProcessor.parseAndValidate(invalid, "my-resource", completionOptions),
-        ).toThrow(/my-resource/);
+        const result = jsonProcessor.parseAndValidate(invalid, "my-resource", completionOptions);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.message).toMatch(/my-resource/);
+        }
       });
     });
 
@@ -80,7 +99,10 @@ describe("JsonProcessor", () => {
       it("should use fast path for clean JSON", () => {
         const json = '{"simple": true}';
         const result = jsonProcessor.parseAndValidate(json, "test", completionOptions, false);
-        expect(result).toEqual({ simple: true });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ simple: true });
+        }
       });
 
       it("should handle multiple types via fast path", () => {
@@ -94,7 +116,10 @@ describe("JsonProcessor", () => {
 
         testCases.forEach(({ input, expected }) => {
           const result = jsonProcessor.parseAndValidate(input, "test", completionOptions);
-          expect(result).toEqual(expected);
+          expect(result.success).toBe(true);
+          if (result.success) {
+            expect(result.data).toEqual(expected);
+          }
         });
       });
     });
@@ -103,31 +128,46 @@ describe("JsonProcessor", () => {
       it("should extract JSON from surrounding text", () => {
         const text = 'Some text before {"key": "value"} some text after';
         const result = jsonProcessor.parseAndValidate(text, "test", completionOptions);
-        expect(result).toEqual({ key: "value" });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ key: "value" });
+        }
       });
 
       it("should handle JSON in code fences", () => {
         const fenced = '```json\n{"key": "value"}\n```';
         const result = jsonProcessor.parseAndValidate(fenced, "test", completionOptions);
-        expect(result).toEqual({ key: "value" });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ key: "value" });
+        }
       });
 
       it("should handle malformed JSON with trailing commas", () => {
         const malformed = '{"key": "value",}';
         const result = jsonProcessor.parseAndValidate(malformed, "test", completionOptions);
-        expect(result).toEqual({ key: "value" });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ key: "value" });
+        }
       });
 
       it("should fix over-escaped sequences", () => {
         const overEscaped = '{"text": "Line 1\\\\nLine 2"}';
         const result = jsonProcessor.parseAndValidate(overEscaped, "test", completionOptions);
-        expect((result as any).text).toContain("Line");
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect((result.data as any).text).toContain("Line");
+        }
       });
 
       it("should handle concatenated identical objects", () => {
         const duplicated = '{"a":1}{"a":1}';
         const result = jsonProcessor.parseAndValidate(duplicated, "test", completionOptions);
-        expect(result).toEqual({ a: 1 });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ a: 1 });
+        }
       });
     });
 
@@ -136,7 +176,10 @@ describe("JsonProcessor", () => {
         // This JSON has multiple issues: code fence, trailing comma, whitespace
         const messy = '```json\n  {"key": "value",}  \n```';
         const result = jsonProcessor.parseAndValidate(messy, "test", completionOptions);
-        expect(result).toEqual({ key: "value" });
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({ key: "value" });
+        }
       });
 
       it("should handle complex real-world malformed JSON", () => {
@@ -148,8 +191,11 @@ describe("JsonProcessor", () => {
           ],
         }`;
         const result = jsonProcessor.parseAndValidate(complex, "test", completionOptions);
-        expect((result as any).purpose).toBe("Test");
-        expect((result as any).items).toHaveLength(2);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect((result.data as any).purpose).toBe("Test");
+          expect((result.data as any).items).toHaveLength(2);
+        }
       });
     });
 
@@ -161,8 +207,12 @@ describe("JsonProcessor", () => {
         const result1 = jsonProcessor.parseAndValidate(json1, "test1", completionOptions);
         const result2 = jsonProcessor.parseAndValidate(json2, "test2", completionOptions);
 
-        expect(result1).toEqual({ first: 1 });
-        expect(result2).toEqual({ second: 2 });
+        expect(result1.success).toBe(true);
+        expect(result2.success).toBe(true);
+        if (result1.success && result2.success) {
+          expect(result1.data).toEqual({ first: 1 });
+          expect(result2.data).toEqual({ second: 2 });
+        }
       });
 
       it("should not share state between different instances", () => {
@@ -172,8 +222,12 @@ describe("JsonProcessor", () => {
         const result1 = processor1.parseAndValidate('{"a": 1}', "test", completionOptions);
         const result2 = processor2.parseAndValidate('{"b": 2}', "test", completionOptions);
 
-        expect(result1).toEqual({ a: 1 });
-        expect(result2).toEqual({ b: 2 });
+        expect(result1.success).toBe(true);
+        expect(result2.success).toBe(true);
+        if (result1.success && result2.success) {
+          expect(result1.data).toEqual({ a: 1 });
+          expect(result2.data).toEqual({ b: 2 });
+        }
       });
     });
 
@@ -186,34 +240,36 @@ describe("JsonProcessor", () => {
       it("should support generic type parameter", () => {
         const json = '{"name": "Test", "value": 42}';
         const result = jsonProcessor.parseAndValidate<TestType>(json, "test", completionOptions);
-        expect(result.name).toBe("Test");
-        expect(result.value).toBe(42);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data.name).toBe("Test");
+          expect(result.data.value).toBe(42);
+        }
       });
 
       it("should support array types", () => {
         const json = '[{"name": "A", "value": 1}, {"name": "B", "value": 2}]';
         const result = jsonProcessor.parseAndValidate<TestType[]>(json, "test", completionOptions);
-        expect(result).toHaveLength(2);
-        expect(result[0].name).toBe("A");
-        expect(result[1].value).toBe(2);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toHaveLength(2);
+          expect(result.data[0].name).toBe("A");
+          expect(result.data[1].value).toBe(2);
+        }
       });
     });
 
     describe("sanitization logging", () => {
       it("should not log when disabled", () => {
         const json = 'Some text {"key": "value"} after';
-        // Just ensure it doesn't throw - we're testing the logSanitizationSteps parameter
-        expect(() =>
-          jsonProcessor.parseAndValidate(json, "test", completionOptions, false),
-        ).not.toThrow();
+        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions, false);
+        expect(result.success).toBe(true);
       });
 
       it("should handle logging enabled", () => {
         const json = 'Prefix {"key": "value"} suffix';
-        // Just ensure it doesn't throw when logging is enabled
-        expect(() =>
-          jsonProcessor.parseAndValidate(json, "test", completionOptions, true),
-        ).not.toThrow();
+        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions, true);
+        expect(result.success).toBe(true);
       });
     });
 
@@ -221,108 +277,125 @@ describe("JsonProcessor", () => {
       it("should handle empty object", () => {
         const json = "{}";
         const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
-        expect(result).toEqual({});
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual({});
+        }
       });
 
       it("should handle empty array", () => {
         const json = "[]";
         const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
-        expect(result).toEqual([]);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(result.data).toEqual([]);
+        }
       });
 
       it("should handle deeply nested structures", () => {
         const json = '{"a":{"b":{"c":{"d":{"e":"deep"}}}}}';
         const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
-        expect((result as any).a.b.c.d.e).toBe("deep");
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect((result.data as any).a.b.c.d.e).toBe("deep");
+        }
       });
 
       it("should handle large arrays", () => {
         const largeArray = JSON.stringify(Array.from({ length: 1000 }, (_, i) => ({ id: i })));
         const result = jsonProcessor.parseAndValidate(largeArray, "test", completionOptions);
-        expect(Array.isArray(result)).toBe(true);
-        expect((result as unknown as any[]).length).toBe(1000);
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect(Array.isArray(result.data)).toBe(true);
+          expect((result.data as unknown as any[]).length).toBe(1000);
+        }
       });
 
       it("should handle unicode characters", () => {
         const json = '{"emoji": "😀", "chinese": "你好", "arabic": "مرحبا"}';
         const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
-        expect((result as any).emoji).toBe("😀");
-        expect((result as any).chinese).toBe("你好");
-        expect((result as any).arabic).toBe("مرحبا");
+        expect(result.success).toBe(true);
+        if (result.success) {
+          expect((result.data as any).emoji).toBe("😀");
+          expect((result.data as any).chinese).toBe("你好");
+          expect((result.data as any).arabic).toBe("مرحبا");
+        }
       });
     });
 
     describe("JsonProcessingError context", () => {
-      it("should throw JsonProcessingError with original content", () => {
+      it("should return failure result with original content", () => {
         const invalid = "completely invalid json content here";
-        try {
-          jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
-          fail("Expected JsonProcessingError to be thrown");
-        } catch (error) {
-          expect(error).toBeInstanceOf(JsonProcessingError);
-          const jsonError = error as JsonProcessingError;
-          expect(jsonError.originalContent).toBe(invalid);
+        const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
+          expect(result.error.originalContent).toBe(invalid);
         }
       });
 
       it("should capture sanitized content in JsonProcessingError", () => {
         const invalid = "{ this is not valid json at all }";
-        try {
-          jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
-          fail("Expected JsonProcessingError to be thrown");
-        } catch (error) {
-          expect(error).toBeInstanceOf(JsonProcessingError);
-          const jsonError = error as JsonProcessingError;
-          expect(jsonError.sanitizedContent).toBeDefined();
-          expect(typeof jsonError.sanitizedContent).toBe("string");
+        const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
+          expect(result.error.sanitizedContent).toBeDefined();
+          expect(typeof result.error.sanitizedContent).toBe("string");
         }
       });
 
       it("should track applied sanitizers in JsonProcessingError", () => {
         const withCodeFence = "```json\n{invalid json}\n```";
-        try {
-          jsonProcessor.parseAndValidate(withCodeFence, "test-resource", completionOptions);
-          fail("Expected JsonProcessingError to be thrown");
-        } catch (error) {
-          expect(error).toBeInstanceOf(JsonProcessingError);
-          const jsonError = error as JsonProcessingError;
-          expect(Array.isArray(jsonError.appliedSanitizers)).toBe(true);
+        const result = jsonProcessor.parseAndValidate(
+          withCodeFence,
+          "test-resource",
+          completionOptions,
+        );
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
+          expect(Array.isArray(result.error.appliedSanitizers)).toBe(true);
           // Should have attempted at least the extract strategy
-          expect(jsonError.appliedSanitizers.length).toBeGreaterThanOrEqual(0);
+          expect(result.error.appliedSanitizers.length).toBeGreaterThanOrEqual(0);
         }
       });
 
       it("should include resource name in JsonProcessingError message", () => {
         const invalid = "not valid json";
-        try {
-          jsonProcessor.parseAndValidate(invalid, "my-custom-resource", completionOptions);
-          fail("Expected JsonProcessingError to be thrown");
-        } catch (error) {
-          expect(error).toBeInstanceOf(JsonProcessingError);
-          expect((error as Error).message).toContain("my-custom-resource");
+        const result = jsonProcessor.parseAndValidate(
+          invalid,
+          "my-custom-resource",
+          completionOptions,
+        );
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
+          expect(result.error.message).toContain("my-custom-resource");
         }
       });
 
       it("should capture underlying error in JsonProcessingError", () => {
         const almostValid = '{"key": "value", but with extra text}';
-        try {
-          jsonProcessor.parseAndValidate(almostValid, "test-resource", completionOptions);
-          fail("Expected JsonProcessingError to be thrown");
-        } catch (error) {
-          expect(error).toBeInstanceOf(JsonProcessingError);
-          const jsonError = error as JsonProcessingError;
+        const result = jsonProcessor.parseAndValidate(
+          almostValid,
+          "test-resource",
+          completionOptions,
+        );
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
           // Should have captured some underlying error (SyntaxError from JSON.parse)
-          expect(jsonError.underlyingError).toBeDefined();
+          expect(result.error.underlyingError).toBeDefined();
         }
       });
 
       it("should preserve error name as JsonProcessingError", () => {
         const invalid = "not valid json";
-        try {
-          jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
-          fail("Expected JsonProcessingError to be thrown");
-        } catch (error) {
-          expect((error as Error).name).toBe("JsonProcessingError");
+        const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.name).toBe("JsonProcessingError");
         }
       });
     });

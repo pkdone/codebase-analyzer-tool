@@ -37,10 +37,13 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       true,
     );
 
-    expect(result).toHaveProperty("purpose");
-    expect(result).toHaveProperty("implementation");
-    expect(typeof result.purpose).toBe("string");
-    expect(typeof result.implementation).toBe("string");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveProperty("purpose");
+      expect(result.data).toHaveProperty("implementation");
+      expect(typeof (result.data as any).purpose).toBe("string");
+      expect(typeof (result.data as any).implementation).toBe("string");
+    }
   });
 
   it("should handle JSON Schema pattern with additional metadata", () => {
@@ -73,11 +76,14 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       true,
     );
 
-    expect(result).toEqual({
-      field1: "value1",
-      field2: "value2",
-      field3: "value3",
-    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        field1: "value1",
+        field2: "value2",
+        field3: "value3",
+      });
+    }
   });
 
   it("should still handle normal JSON responses without changes", () => {
@@ -103,10 +109,13 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       false,
     );
 
-    expect(result).toEqual({
-      purpose: "Normal purpose",
-      implementation: "Normal implementation",
-    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        purpose: "Normal purpose",
+        implementation: "Normal implementation",
+      });
+    }
   });
 
   it("should handle JSON Schema wrapped in code fences", () => {
@@ -137,9 +146,12 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       true,
     );
 
-    expect(result).toEqual({
-      name: "John Doe",
-      age: 30,
-    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        name: "John Doe",
+        age: 30,
+      });
+    }
   });
 });

@@ -11,7 +11,7 @@ export interface ParsingOutcome {
  * Extract JSON content from text without parsing it.
  * Handles both markdown-wrapped JSON and raw JSON content.
  * Improved algorithm to handle complex nested content with proper string awareness.
- * 
+ *
  * @param textContent - The text content to extract JSON from
  * @returns The extracted JSON string, or null if no JSON-like structure is found
  */
@@ -85,7 +85,7 @@ export function extractJsonString(textContent: string): string | null {
  * Extract JSON content from text and parse it.
  * Handles both markdown-wrapped JSON and raw JSON content.
  * This function combines extraction and parsing for convenience.
- * 
+ *
  * @param textContent - The text content to extract and parse JSON from
  * @returns The parsed JSON object
  * @throws Error with message "No JSON content found" if no JSON-like structure is found

@@ -1,5 +1,7 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../types/llm.types";
 import { logErrorMsg } from "../../common/utils/logging";
+import { JsonValidatorResult } from "./json-processing-result.types";
+import { z } from "zod";
 
 /**
  * JsonValidator handles validation of LLM response content against optional Zod schemas
@@ -7,16 +9,15 @@ import { logErrorMsg } from "../../common/utils/logging";
  */
 export class JsonValidator {
   /**
-   * Validate the LLM response content against a Zod schema if provided, returning null if validation
-   * fails (having logged the error).
+   * Validate the LLM response content against a Zod schema if provided, returning a result object
+   * that indicates success or failure with detailed context.
    */
   validate<T>(
     content: unknown, // Accept unknown values to be safely handled by Zod validation
     completionOptions: LLMCompletionOptions,
     resourceName: string,
     logSanitizationSteps = true,
-    onValidationIssues?: (issues: unknown) => void,
-  ): T | LLMGeneratedContent | null {
+  ): JsonValidatorResult<T | LLMGeneratedContent> {
     if (
       content &&
       completionOptions.outputFormat === LLMOutputFormat.JSON &&
@@ -25,25 +26,26 @@ export class JsonValidator {
       const validation = completionOptions.jsonSchema.safeParse(content);
 
       if (validation.success) {
-        return validation.data as T;
+        return { success: true, data: validation.data as T };
       } else {
         const issues = validation.error.issues;
-        if (onValidationIssues) onValidationIssues(issues);
-        const errorMessage = `Zod schema validation failed for '${resourceName}' so returning null. Validation issues: ${JSON.stringify(issues)}`;
+        const errorMessage = `Zod schema validation failed for '${resourceName}'. Validation issues: ${JSON.stringify(issues)}`;
         if (logSanitizationSteps) logErrorMsg(errorMessage);
-        return null;
+        return { success: false, issues };
       }
     } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
-      if (this.isLLMGeneratedContent(content)) return content;
+      if (this.isLLMGeneratedContent(content)) {
+        return { success: true, data: content };
+      }
       logErrorMsg(
         `Content for TEXT format is not valid LLMGeneratedContent for resource: ${resourceName}`,
       );
-      return null;
+      return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     } else if (this.isLLMGeneratedContent(content)) {
-      return content;
+      return { success: true, data: content };
     } else {
       logErrorMsg(`Content is not valid LLMGeneratedContent for resource: ${resourceName}`);
-      return null;
+      return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     }
   }
 
@@ -56,5 +58,18 @@ export class JsonValidator {
     if (Array.isArray(value)) return true;
     if (typeof value === "object" && !Array.isArray(value)) return true;
     return false;
+  }
+
+  /**
+   * Creates a generic validation issue for non-schema validation failures.
+   */
+  private createValidationIssue(message: string): z.ZodIssue[] {
+    return [
+      {
+        code: z.ZodIssueCode.custom,
+        path: [],
+        message,
+      },
+    ];
   }
 }

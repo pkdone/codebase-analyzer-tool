@@ -50,25 +50,32 @@ describe("JSON utilities", () => {
     test.each(validJsonTestData)("with $description", ({ input, expected }) => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = jsonProcessor.parseAndValidate(input, "content", completionOptions);
-      expect(result).toEqual(expected);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(expected);
+      }
     });
 
-    test("throws on invalid JSON", () => {
+    test("returns failure result for invalid JSON", () => {
       const text = "No JSON here";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      expect(() => jsonProcessor.parseAndValidate(text, "content", completionOptions)).toThrow(
-        "doesn't contain valid JSON content",
-      );
+      const result = jsonProcessor.parseAndValidate(text, "content", completionOptions);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.message).toMatch(/doesn't contain valid JSON content/);
+      }
     });
 
-    test("throws on non-string input", () => {
+    test("returns failure result for non-string input", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const testCases = [{ input: { key: "value" } }, { input: [1, 2, 3] }, { input: null }];
 
       testCases.forEach(({ input }) => {
-        expect(() => jsonProcessor.parseAndValidate(input, "content", completionOptions)).toThrow(
-          "LLM response for resource",
-        );
+        const result = jsonProcessor.parseAndValidate(input, "content", completionOptions);
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.message).toMatch(/LLM response for resource/);
+        }
       });
     });
 
@@ -76,28 +83,38 @@ describe("JSON utilities", () => {
       const userJson =
         'Text before {"name": "John Doe", "age": 30, "email": "john@example.com"} text after';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const user = jsonProcessor.parseAndValidate<TestUser>(userJson, "content", completionOptions);
+      const result = jsonProcessor.parseAndValidate<TestUser>(
+        userJson,
+        "content",
+        completionOptions,
+      );
 
-      // TypeScript should now provide type safety for these properties
-      expect(user.name).toBe("John Doe");
-      expect(user.age).toBe(30);
-      expect(user.email).toBe("john@example.com");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // TypeScript should now provide type safety for these properties
+        expect(result.data.name).toBe("John Doe");
+        expect(result.data.age).toBe(30);
+        expect(result.data.email).toBe("john@example.com");
+      }
     });
 
     test("returns complex typed result with nested objects", () => {
       const configJson =
         'Prefix {"enabled": true, "settings": {"timeout": 5000, "retries": 3}} suffix';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const config = jsonProcessor.parseAndValidate<TestConfig>(
+      const result = jsonProcessor.parseAndValidate<TestConfig>(
         configJson,
         "content",
         completionOptions,
       );
 
-      // TypeScript should provide type safety for nested properties
-      expect(config.enabled).toBe(true);
-      expect(config.settings.timeout).toBe(5000);
-      expect(config.settings.retries).toBe(3);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // TypeScript should provide type safety for nested properties
+        expect(result.data.enabled).toBe(true);
+        expect(result.data.settings.timeout).toBe(5000);
+        expect(result.data.settings.retries).toBe(3);
+      }
     });
 
     test("defaults to Record<string, unknown> when no type parameter provided", () => {
@@ -105,9 +122,12 @@ describe("JSON utilities", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = jsonProcessor.parseAndValidate(input, "content", completionOptions); // No type parameter
 
-      expect(result).toEqual({ dynamic: "content", count: 42 });
-      // The result should be of type Record<string, unknown>
-      expect(typeof result).toBe("object");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({ dynamic: "content", count: 42 });
+        // The result data should be of type Record<string, unknown>
+        expect(typeof result.data).toBe("object");
+      }
     });
   });
 });

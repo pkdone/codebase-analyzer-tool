@@ -12,8 +12,10 @@ describe("json-tools identifier-only chain handling", () => {
   it("collapses identifier-only concatenation chain to empty string literal", () => {
     const json = '{"path": SOME_CONST + OTHER_CONST + THIRD_CONST}';
     const result = jsonProcessor.parseAndValidate(json, "test-ident-only-chain", completionOptions);
-    expect(result).toBeDefined();
-    expect((result as any).path).toBe("");
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.data as any).path).toBe("");
+    }
   });
 
   it("keeps surrounding structure when collapsing identifier-only chain", () => {
@@ -23,9 +25,11 @@ describe("json-tools identifier-only chain handling", () => {
       "test-ident-only-chain-struct",
       completionOptions,
     );
-    expect(result).toBeDefined();
-    expect((result as any).a).toBe(1);
-    expect((result as any).b).toBe("");
-    expect((result as any).c).toBe(3);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.data as any).a).toBe(1);
+      expect((result.data as any).b).toBe("");
+      expect((result.data as any).c).toBe(3);
+    }
   });
 });
