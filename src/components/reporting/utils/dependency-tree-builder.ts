@@ -21,9 +21,9 @@ export function convertToHierarchical(
 ): HierarchicalTopLevelJavaClassDependencies {
   // Create a map for quick lookup of dependencies by namespace
   const dependencyMap = new Map<string, JavaClassDependency>();
-  flatClassData.dependencies.forEach((dep) => {
+  for (const dep of flatClassData.dependencies) {
     dependencyMap.set(dep.namespace, dep);
-  });
+  }
 
   // Find the root node (level 0)
   const rootDependency = flatClassData.dependencies.find((dep) => dep.level === 0);

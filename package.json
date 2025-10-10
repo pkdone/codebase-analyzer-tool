@@ -5,7 +5,7 @@
   "scripts": {
     "compile": "tsc && npm run copy-templates",
     "build": "tsc && npm run copy-templates",
-    "copy-templates": "node scripts/copy-assets.js",
+    "copy-templates": "node scripts/copy-assets.mjs",
     "test": "jest",
     "test:verbose": "jest --verbose",
     "test:int": "jest --testPathIgnorePatterns=\"/node_modules/\" --testPathPattern=\"\\\\.int\\\\.test\\\\.ts$\"",

@@ -204,7 +204,7 @@ export class PieChartGenerator {
     ctx.font = `${pieChartConfig.layout.FONT_SIZE}px ${pieChartConfig.text.FONT_FAMILY}`;
     ctx.textAlign = "left";
 
-    slices.forEach((slice, index) => {
+    for (const [index, slice] of slices.entries()) {
       const y = pieChartConfig.layout.LEGEND_Y + index * pieChartConfig.layout.LEGEND_ITEM_HEIGHT;
 
       // Draw color box
@@ -234,7 +234,7 @@ export class PieChartGenerator {
         pieChartConfig.layout.LEGEND_X + pieChartConfig.numeric.LEGEND_TEXT_OFFSET,
         y,
       );
-    });
+    }
   }
 
   /**

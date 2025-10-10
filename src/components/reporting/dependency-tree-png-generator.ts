@@ -399,7 +399,7 @@ export class DependencyTreePngGenerator {
       const staggerOffset = dependencyTreePngConfig.numeric.STAGGER_OFFSET; // Pixels to offset each arrow
       const startOffset = -((horizontalTargets.length - 1) * staggerOffset) / 2;
 
-      horizontalTargets.forEach((target, index) => {
+      for (const [index, target] of horizontalTargets.entries()) {
         const yOffset = startOffset + index * staggerOffset;
         this.drawConnectionLineWithYOffset(
           ctx,
@@ -408,7 +408,7 @@ export class DependencyTreePngGenerator {
           dependencyTreePngConfig.colors.CONNECTION,
           yOffset,
         );
-      });
+      }
     } else if (horizontalTargets.length === 1) {
       // Single horizontal connection - no staggering needed
       this.drawConnectionLine(

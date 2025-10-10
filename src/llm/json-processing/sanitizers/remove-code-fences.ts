@@ -10,7 +10,7 @@ export const removeCodeFences: Sanitizer = (input) => {
   if (!input.includes("```")) return { content: input, changed: false };
   let updated = input;
   for (const r of FENCE_REGEXES) {
-    updated = updated.replace(r, "");
+    updated = updated.replaceAll(r, "");
   }
   if (updated !== input) {
     return { content: updated, changed: true, description: "Removed code fences" };

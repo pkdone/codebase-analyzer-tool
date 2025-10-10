@@ -158,5 +158,28 @@ describe("directory-operations", () => {
 
       expect(result).toEqual(["/test/nonempty.ts", "/test/empty.ts"]);
     });
+
+    test("should not mutate the internal filesWithSizes array (immutable sort)", async () => {
+      const files = ["/test/file1.ts", "/test/file2.ts", "/test/file3.ts"];
+
+      mockStat
+        .mockResolvedValueOnce({ size: 50 } as any)
+        .mockResolvedValueOnce({ size: 200 } as any)
+        .mockResolvedValueOnce({ size: 100 } as any);
+
+      const result = await sortFilesBySize(files);
+
+      // Verify the result is correctly sorted
+      expect(result).toEqual(["/test/file2.ts", "/test/file3.ts", "/test/file1.ts"]);
+
+      // Call again with the same mock data to ensure internal state wasn't mutated
+      mockStat
+        .mockResolvedValueOnce({ size: 50 } as any)
+        .mockResolvedValueOnce({ size: 200 } as any)
+        .mockResolvedValueOnce({ size: 100 } as any);
+
+      const result2 = await sortFilesBySize(files);
+      expect(result2).toEqual(["/test/file2.ts", "/test/file3.ts", "/test/file1.ts"]);
+    });
   });
 });

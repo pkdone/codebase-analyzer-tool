@@ -142,8 +142,9 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
 
   /**
    * Check to see if error code indicates potential token limit has been exceeded.
+   * Type guard that narrows the error type to ValidationException when true.
    */
-  protected isTokenLimitExceeded(error: unknown): boolean {
+  protected isTokenLimitExceeded(error: unknown): error is ValidationException {
     if (!(error instanceof ValidationException)) return false;
     const errorKeywords = [
       "too many input tokens",

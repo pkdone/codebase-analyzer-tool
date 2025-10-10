@@ -24,11 +24,11 @@ export class ShutdownService {
     if (this.llmRouter) shutdownPromises.push(this.llmRouter.close());
     if (this.mongoDBClientFactory) shutdownPromises.push(this.mongoDBClientFactory.closeAll());
     const results = await Promise.allSettled(shutdownPromises);
-    results.forEach((result) => {
+    for (const result of results) {
       if (result.status === "rejected") {
         console.error("A shutdown operation failed:", result.reason);
       }
-    });
+    }
 
     try {
       if (this.llmRouter?.providerNeedsForcedShutdown()) {

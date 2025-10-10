@@ -147,7 +147,14 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
   private async invokeEmbeddingsLLM(params: OpenAI.EmbeddingCreateParams) {
     // Invoke LLM
     const llmResponses = await this.getClient().embeddings.create(params);
-    const llmResponse = llmResponses.data[0];
+    const llmResponse = llmResponses.data.at(0);
+
+    if (!llmResponse) {
+      throw new BadResponseContentLLMError(
+        "No embedding data returned from OpenAI API",
+        llmResponses,
+      );
+    }
 
     // Capture response content
     const responseContent = llmResponse.embedding;
@@ -174,7 +181,14 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
         "Received an unexpected response type from OpenAI completions API",
         llmResponses,
       );
-    const llmResponse = llmResponses.choices[0];
+    const llmResponse = llmResponses.choices.at(0);
+
+    if (!llmResponse) {
+      throw new BadResponseContentLLMError(
+        "No completion choices returned from OpenAI API",
+        llmResponses,
+      );
+    }
 
     // Capture response content
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

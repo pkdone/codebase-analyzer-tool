@@ -87,7 +87,7 @@ export async function sortFilesBySize(filepaths: string[]): Promise<string[]> {
     }),
   );
 
-  return filesWithSizes.sort((a, b) => b.size - a.size).map((entry) => entry.filepath);
+  return filesWithSizes.toSorted((a, b) => b.size - a.size).map((entry) => entry.filepath);
 }
 
 /**

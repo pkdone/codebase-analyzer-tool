@@ -42,17 +42,17 @@ export function repairOverEscapedStringSequences(content: string): string {
   // What it matches in actual string: 5 backslashes + single quote
   // Example: "it\\\\\\'s" (string with 5 backslashes before quote) → "it's"
   // Common in SQL like: REPLACE(field, \\\\\\'.\\\\\\'\\, \\\\\\'\\\\\\')"
-  fixed = fixed.replace(/\\\\\\'/g, "'");
+  fixed = fixed.replaceAll(/\\\\\\'/g, "'");
 
   // Fixes 4-backslash quote: \\\\' → '
   // Regex: /\\\\'/g (4 escaped backslashes + escaped quote)
   // Example: "value\\\\'s" → "value's"
-  fixed = fixed.replace(/\\\\'/g, "'");
+  fixed = fixed.replaceAll(/\\\\'/g, "'");
 
   // Fixes 3-backslash quote: \\' → '
   // Regex: /\\'/g (2 escaped backslashes + escaped quote)
   // Example: "value\\'s" → "value's"
-  fixed = fixed.replace(/\\'/g, "'");
+  fixed = fixed.replaceAll(/\\'/g, "'");
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SINGLE QUOTE + DOT COMBINATIONS
@@ -62,23 +62,23 @@ export function repairOverEscapedStringSequences(content: string): string {
   // Regex: /\\\\\\'\\\./g
   // Example: "user\\\\\\'\.name" → "user'.name"
   // Common in SQL column references with schemas
-  fixed = fixed.replace(/\\\\\\'\\\./g, "'.");
+  fixed = fixed.replaceAll(/\\\\\\'\\\./g, "'.");
 
   // Fixes consecutive 5-backslash quotes: \\\\\\'\\\\\' → ''
   // Regex: /\\\\\\'\\\\\\'/g
   // Example: "\\\\\\'\\\\\\'" (two heavily escaped quotes) → "''"
   // Common in SQL empty string literals
-  fixed = fixed.replace(/\\\\\\'\\\\\\'/g, "''");
+  fixed = fixed.replaceAll(/\\\\\\'\\\\\\'/g, "''");
 
   // Fixes simple quote + dot: \\'\. → '.
   // Regex: /\\'\\\./g
   // Example: "user\\'\\.name" → "user'.name"
-  fixed = fixed.replace(/\\'\\\./g, "'.");
+  fixed = fixed.replaceAll(/\\'\\\./g, "'.");
 
   // Fixes mixed quote escaping: \\'\\\\' → ''
   // Regex: /\\'\\\\'/g
   // Example: "\\'\\\\'" → "''"
-  fixed = fixed.replace(/\\'\\\\'/g, "''");
+  fixed = fixed.replaceAll(/\\'\\\\'/g, "''");
 
   // ═══════════════════════════════════════════════════════════════════════════
   // NULL CHARACTER OVER-ESCAPING
@@ -87,12 +87,12 @@ export function repairOverEscapedStringSequences(content: string): string {
   // Fixes 5-backslash null: \\\\\0 → \0
   // Regex: /\\\\\\0/g
   // Example: "value\\\\\0" → "value\0"
-  fixed = fixed.replace(/\\\\\\0/g, "\\0");
+  fixed = fixed.replaceAll(/\\\\\\0/g, "\\0");
 
   // Fixes 4-backslash null: \\\\0 → \0
   // Regex: /\\\\0/g
   // Example: "value\\\\0" → "value\0"
-  fixed = fixed.replace(/\\\\0/g, "\\0");
+  fixed = fixed.replaceAll(/\\\\0/g, "\\0");
 
   // ═══════════════════════════════════════════════════════════════════════════
   // CODE SNIPPET PUNCTUATION (commas, parentheses)
@@ -102,22 +102,22 @@ export function repairOverEscapedStringSequences(content: string): string {
   // Regex: /\\\\\s*,/g
   // Example: "a\\\\, b" → "a, b"
   // Common in function parameters embedded in JSON
-  fixed = fixed.replace(/\\\\\s*,/g, ",");
+  fixed = fixed.replaceAll(/\\\\\s*,/g, ",");
 
   // Fixes 4-backslash closing paren: \\\\ ) → )
   // Regex: /\\\\\s*\)/g
   // Example: "func()\\\\)" → "func())"
-  fixed = fixed.replace(/\\\\\s*\)/g, ")");
+  fixed = fixed.replaceAll(/\\\\\s*\)/g, ")");
 
   // Fixes 2-backslash comma: \\ , → ,
   // Regex: /\\,/g
   // Example: "a\\, b" → "a, b"
-  fixed = fixed.replace(/\\,/g, ",");
+  fixed = fixed.replaceAll(/\\,/g, ",");
 
   // Fixes 2-backslash closing paren: \\ ) → )
   // Regex: /\\\)/g
   // Example: "func()\\)" → "func())"
-  fixed = fixed.replace(/\\\)/g, ")");
+  fixed = fixed.replaceAll(/\\\)/g, ")");
 
   return fixed;
 }

@@ -30,7 +30,20 @@ export class FallbackStrategy {
   ): FallbackDecision {
     const canSwitchModel = currentLLMFunctionIndex + 1 < totalLLMCount;
 
-    switch (llmResponse?.status) {
+    // Handle null response explicitly
+    if (llmResponse === null) {
+      logWithContext(
+        `LLM problem processing prompt with current LLM model - null response received, possibly due to overload or timeout even after retries`,
+        context,
+      );
+      return {
+        shouldTerminate: !canSwitchModel,
+        shouldCropPrompt: false,
+        shouldSwitchToNextLLM: canSwitchModel,
+      };
+    }
+
+    switch (llmResponse.status) {
       case LLMResponseStatus.INVALID:
         logWithContext(
           `Unable to extract a valid response from the current LLM model - invalid JSON being received even after retries `,
@@ -43,7 +56,6 @@ export class FallbackStrategy {
         };
 
       case LLMResponseStatus.OVERLOADED:
-      case undefined: // Treat null response as overloaded
         logWithContext(
           `LLM problem processing prompt with current LLM model because it is overloaded, or timing out, even after retries `,
           context,
@@ -91,7 +103,7 @@ export class FallbackStrategy {
       case LLMResponseStatus.UNKNOWN:
       default:
         logWithContext(
-          `An unknown error occurred while LLMRouter attempted to process the LLM invocation and response for resource '${resourceName}' - terminating response processing - response status received: '${llmResponse?.status ?? "null"}'`,
+          `An unknown error occurred while LLMRouter attempted to process the LLM invocation and response for resource '${resourceName}' - terminating response processing - response status received: '${llmResponse.status}'`,
           context,
         );
         return {

@@ -132,12 +132,12 @@ export default class AppReportGenerator {
     ];
 
     // Add categorized data files
-    reportData.categorizedData.forEach((categoryData) => {
+    for (const categoryData of reportData.categorizedData) {
       preparedData.push({
         filename: insightsConfig.getCategoryJSONFilename(categoryData.category),
         data: categoryData.data,
       });
-    });
+    }
 
     return preparedData;
   }

@@ -102,12 +102,6 @@ describe("DI Container Integration Tests", () => {
 
       expect(resolvedTask).toBeInstanceOf(ReportGenerationTask);
     }, 30000);
-
-    it("should successfully resolve InsightsGenerationTask with real DB and mocked LLM dependencies", async () => {
-      // Skip this test - LLM configuration is complex and not needed for DB integration testing
-      console.log("Skipping LLM-dependent test - focus on DB integration tests");
-      return;
-    }, 30000);
   });
 
   describe("Dependency Chain Validation", () => {
@@ -148,12 +142,6 @@ describe("DI Container Integration Tests", () => {
         const appSummariesRepo = container.resolve<any>(TOKENS.AppSummariesRepository);
         expect(appSummariesRepo).toBeDefined();
       }).not.toThrow();
-    }, 30000);
-
-    it("should verify dependency chain for tasks with multiple dependencies", async () => {
-      // Skip this test - LLM configuration is complex and not needed for DB integration testing
-      console.log("Skipping LLM-dependent test - focus on DB integration tests");
-      return;
     }, 30000);
   });
 
@@ -347,12 +335,6 @@ describe("DI Container Integration Tests", () => {
       expect(typeof sourcesSchema).toBe("object");
       expect(summariesSchema).toBeDefined();
       expect(typeof summariesSchema).toBe("object");
-    }, 30000);
-
-    it("should ensure tasks have access to their required dependencies", async () => {
-      // Skip this test - LLM configuration is complex and not needed for DB integration testing
-      console.log("Skipping LLM-dependent test - focus on DB integration tests");
-      return;
     }, 30000);
   });
 });

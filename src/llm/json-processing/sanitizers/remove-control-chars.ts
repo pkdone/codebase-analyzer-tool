@@ -25,5 +25,5 @@ function strip(input: string): string {
   // Preserves: \t (0x09), \n (0x0A), \r (0x0D)
   // eslint-disable-next-line no-control-regex
   const controlCharRegex = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u200B-\u200D\uFEFF]/g;
-  return input.replace(controlCharRegex, "");
+  return input.replaceAll(controlCharRegex, "");
 }
