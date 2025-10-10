@@ -80,5 +80,7 @@ export const dependencyTreePngConfig = {
     BORDER_WIDTH_ROOT: 2,
     BORDER_WIDTH_NODE: 1,
     CONNECTION_WIDTH: 2,
+    /** Maximum recursion depth to prevent infinite loops or excessive memory usage */
+    MAX_RECURSION_DEPTH: 4,
   } as const,
 } as const;

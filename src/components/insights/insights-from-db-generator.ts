@@ -5,7 +5,7 @@ import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging"
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../di/tokens";
-import { summaryCategoriesConfig } from "../../config/insights.config";
+import { summaryCategoriesConfig, insightsTuningConfig } from "../../config/insights.config";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { AppSummaryCategoryEnum } from "./insights.types";
@@ -14,13 +14,6 @@ import { llmProviderConfig } from "../../llm/llm.config";
 import { IInsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";
 import { SinglePassInsightStrategy } from "./strategies/single-pass-strategy";
 import { MapReduceInsightStrategy } from "./strategies/map-reduce-strategy";
-
-/**
- * Use 70% of max tokens to leave generous room for:
- * - Prompt template and instructions (~10-15% of tokens)
- * - LLM response output (~15-20% of tokens)
- */
-const CHUNK_TOKEN_LIMIT_RATIO = 0.7;
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -161,7 +154,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     const chunks: string[][] = [];
     let currentChunk: string[] = [];
     let currentTokenCount = 0;
-    const tokenLimitPerChunk = this.maxTokens * CHUNK_TOKEN_LIMIT_RATIO;
+    const tokenLimitPerChunk = this.maxTokens * insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO;
 
     for (const summary of summaries) {
       // Estimate token count using character-to-token ratio

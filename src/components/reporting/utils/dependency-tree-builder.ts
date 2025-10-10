@@ -5,13 +5,11 @@ import type {
   JavaClassDependency,
 } from "../../../repositories/source/sources.model";
 import { logWarningMsg } from "../../../common/utils/logging";
+import { dependencyTreePngConfig } from "../dependency-tree-png.config";
 
 /**
  * Utility functions for transforming flat dependency structures into hierarchical trees.
  */
-
-/** Maximum recursion depth to prevent infinite loops or excessive memory usage */
-const MAX_RECURSION_DEPTH = 4;
 
 /**
  * Converts flat dependency structure to hierarchical structure.
@@ -58,9 +56,9 @@ function buildHierarchicalDependencies(
   visited: Set<string>,
   currentLevel: number,
 ): HierarchicalJavaClassDependency[] {
-  if (currentLevel >= MAX_RECURSION_DEPTH) {
+  if (currentLevel >= dependencyTreePngConfig.numeric.MAX_RECURSION_DEPTH) {
     logWarningMsg(
-      `Maximum recursion depth of ${MAX_RECURSION_DEPTH} reached in buildHierarchicalDependencies. Stopping further recursion to prevent stack overflow.`,
+      `Maximum recursion depth of ${dependencyTreePngConfig.numeric.MAX_RECURSION_DEPTH} reached in buildHierarchicalDependencies. Stopping further recursion to prevent stack overflow.`,
     );
     return [];
   }

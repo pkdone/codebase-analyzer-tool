@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
-import { summaryCategoriesConfig } from "../../../config/insights.config";
+import { summaryCategoriesConfig, insightsTuningConfig } from "../../../config/insights.config";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-formatting";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
@@ -13,13 +13,6 @@ import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.typ
 
 // Mark schema as being easy for LLMs to digest
 const SCHEMA_HAS_VERTEXAI_INCOMPATIBILITY = false;
-
-/**
- * Use 70% of max tokens to leave generous room for:
- * - Prompt template and instructions (~10-15% of tokens)
- * - LLM response output (~15-20% of tokens)
- */
-const CHUNK_TOKEN_LIMIT_RATIO = 0.7;
 
 // Prompt template for partial insights (MAP phase)
 const PARTIAL_INSIGHTS_TEMPLATE =
@@ -116,7 +109,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const chunks: string[][] = [];
     let currentChunk: string[] = [];
     let currentTokenCount = 0;
-    const tokenLimitPerChunk = this.maxTokens * CHUNK_TOKEN_LIMIT_RATIO;
+    const tokenLimitPerChunk = this.maxTokens * insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO;
 
     for (const summary of summaries) {
       // Estimate token count using character-to-token ratio

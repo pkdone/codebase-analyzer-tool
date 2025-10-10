@@ -47,4 +47,15 @@ describe("dependencyTreePngConfig", () => {
     expect(dependencyTreePngConfig.numeric.ARROW_LENGTH).toBe(10);
     expect(dependencyTreePngConfig.numeric.CONNECTION_WIDTH).toBe(2);
   });
+
+  it("should have MAX_RECURSION_DEPTH defined", () => {
+    expect(dependencyTreePngConfig.numeric.MAX_RECURSION_DEPTH).toBeDefined();
+    expect(dependencyTreePngConfig.numeric.MAX_RECURSION_DEPTH).toBe(4);
+  });
+
+  it("should have MAX_RECURSION_DEPTH as a positive integer", () => {
+    expect(typeof dependencyTreePngConfig.numeric.MAX_RECURSION_DEPTH).toBe("number");
+    expect(dependencyTreePngConfig.numeric.MAX_RECURSION_DEPTH).toBeGreaterThan(0);
+    expect(Number.isInteger(dependencyTreePngConfig.numeric.MAX_RECURSION_DEPTH)).toBe(true);
+  });
 });
