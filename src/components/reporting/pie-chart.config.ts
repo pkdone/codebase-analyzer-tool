@@ -86,3 +86,4 @@ export const pieChartConfig = {
     LEGEND_WIDTH_PADDING: 50,
   } as const,
 } as const;
+

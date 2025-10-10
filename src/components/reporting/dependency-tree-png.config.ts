@@ -82,3 +82,4 @@ export const dependencyTreePngConfig = {
     CONNECTION_WIDTH: 2,
   } as const,
 } as const;
+

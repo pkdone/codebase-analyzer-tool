@@ -13,3 +13,4 @@ describe("inputConfig", () => {
     expect(config).toHaveProperty("QUESTIONS_PROMPTS_FILEPATH");
   });
 });
+
