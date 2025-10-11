@@ -25,10 +25,7 @@ import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
 import { writeFile } from "../../common/utils/file-operations";
 import { ensureDirectoryExists } from "../../common/utils/directory-operations";
-
-// Constants for error logging
-const ERROR_LOG_DIRECTORY = "output/errors";
-const ERROR_LOG_FILENAME_TEMPLATE = "response-error-{timestamp}.log";
+import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../config/logging.config";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be

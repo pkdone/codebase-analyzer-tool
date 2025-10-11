@@ -9,6 +9,7 @@ import {
 } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../llm.config";
 import { BedrockConfig } from "../common/base-bedrock-llm";
+import { DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS } from "../common/bedrock-defaults.config";
 
 // Environment variable name constants
 const BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY";
@@ -68,7 +69,7 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     temperature: llmConfig.DEFAULT_ZERO_TEMP,
     topP: llmConfig.DEFAULT_TOP_P_LOWEST,
     topK: llmConfig.DEFAULT_TOP_K_LOWEST,
-    requestTimeoutMillis: 8 * 60 * 1000,
+    requestTimeoutMillis: DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS,
     maxRetryAttempts: 6,
     minRetryDelayMillis: 40 * 1000,
     maxRetryDelayMillis: 360 * 1000,
