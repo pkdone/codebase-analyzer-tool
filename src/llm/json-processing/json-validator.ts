@@ -1,6 +1,6 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../types/llm.types";
-import { logErrorMsg } from "../../common/utils/logging";
 import { JsonValidatorResult } from "./json-processing-result.types";
+import { JsonProcessingLogger } from "./json-processing-logger";
 import { z } from "zod";
 
 /**
@@ -18,6 +18,8 @@ export class JsonValidator {
     resourceName: string,
     logSanitizationSteps = true,
   ): JsonValidatorResult<T | LLMGeneratedContent> {
+    const logger = new JsonProcessingLogger(resourceName);
+
     if (
       content &&
       completionOptions.outputFormat === LLMOutputFormat.JSON &&
@@ -29,22 +31,21 @@ export class JsonValidator {
         return { success: true, data: validation.data as T };
       } else {
         const issues = validation.error.issues;
-        const errorMessage = `Zod schema validation failed for '${resourceName}'. Validation issues: ${JSON.stringify(issues)}`;
-        if (logSanitizationSteps) logErrorMsg(errorMessage);
+        if (logSanitizationSteps) {
+          logger.logValidationIssues(JSON.stringify(issues));
+        }
         return { success: false, issues };
       }
     } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
       if (this.isLLMGeneratedContent(content)) {
         return { success: true, data: content };
       }
-      logErrorMsg(
-        `Content for TEXT format is not valid LLMGeneratedContent for resource: ${resourceName}`,
-      );
+      logger.logTextFormatValidationError();
       return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     } else if (this.isLLMGeneratedContent(content)) {
       return { success: true, data: content };
     } else {
-      logErrorMsg(`Content is not valid LLMGeneratedContent for resource: ${resourceName}`);
+      logger.logContentValidationError();
       return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     }
   }

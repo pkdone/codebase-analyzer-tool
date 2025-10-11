@@ -1,8 +1,8 @@
 import { LLMGeneratedContent, LLMCompletionOptions } from "../types/llm.types";
-import { logWarningMsg } from "../../common/utils/logging";
 import { JsonProcessingError } from "../types/llm-errors.types";
 import { JsonValidator } from "./json-validator";
 import { unwrapJsonSchemaStructure } from "./utils/post-parse-transforms";
+import { JsonProcessingLogger } from "./json-processing-logger";
 import { JsonProcessorResult } from "./json-processing-result.types";
 import {
   trimWhitespace,
@@ -100,6 +100,7 @@ export class JsonProcessor {
     completionOptions: LLMCompletionOptions,
     logSanitizationSteps: boolean,
   ): JsonProcessorResult<T> {
+    const logger = new JsonProcessingLogger(resourceName);
     let workingContent = originalContent;
     const appliedSteps: string[] = [];
     const appliedDescriptions: string[] = [];
@@ -132,9 +133,7 @@ export class JsonProcessor {
       // Success - return the data
       if (parseResult.success) {
         if (logSanitizationSteps && appliedSteps.length > 0) {
-          logWarningMsg(
-            `JSON sanitation steps for resource '${resourceName}': ${appliedSteps.join(" -> ")}`,
-          );
+          logger.logSanitizationSummary(appliedSteps);
         }
 
         return {

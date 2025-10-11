@@ -166,7 +166,7 @@ describe("json-tools enhanced fast path", () => {
         expect(result.data).toEqual({ value: 42 });
       }
       expect(logWarningMsg).toHaveBeenCalledWith(
-        expect.stringContaining("JSON sanitation steps for resource 'test-resource':"),
+        expect.stringContaining("[test-resource] Applied"),
       );
     });
 
@@ -202,7 +202,7 @@ describe("json-tools enhanced fast path", () => {
         expect((result.data as any).a).toBe(1);
         expect((result.data as any).b).toEqual([1, 2, 3]);
       }
-      expect(logWarningMsg).toHaveBeenCalledWith(expect.stringContaining("JSON sanitation steps"));
+      expect(logWarningMsg).toHaveBeenCalledWith(expect.stringContaining("Applied"));
     });
 
     it("includes sanitization history in error message on validation failure", () => {

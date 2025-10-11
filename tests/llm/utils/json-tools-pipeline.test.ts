@@ -59,7 +59,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
     // Should include sanitization steps in the log
-    expect(calls.some((c) => c.includes("JSON sanitation steps"))).toBe(true);
+    expect(calls.some((c) => c.includes("Applied"))).toBe(true);
   });
 
   test("pre-concat strategy invoked for identifier-only concatenations", () => {

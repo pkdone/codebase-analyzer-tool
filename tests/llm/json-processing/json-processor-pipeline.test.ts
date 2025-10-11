@@ -268,7 +268,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       expect(logWarningMsg).toHaveBeenCalled();
       const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
       expect(calls.some((c: string) => c.includes("logged-resource"))).toBe(true);
-      expect(calls.some((c: string) => c.includes("JSON sanitation steps"))).toBe(true);
+      expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
     });
 
     it("should not log sanitization steps when disabled", () => {

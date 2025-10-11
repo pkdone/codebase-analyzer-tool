@@ -1,7 +1,44 @@
 import { Sanitizer } from "./sanitizers-types";
 
 /**
- * Extracts the largest JSON span from a given input string.
+ * Extracts the largest valid JSON structure from content that includes extra text.
+ *
+ * ## Purpose
+ * LLMs sometimes include explanatory text before or after the JSON content,
+ * such as:
+ * - "Here's the JSON: { ... }"
+ * - "{ ... } This represents the data structure."
+ * - "I've generated the following:\n\n{ ... }\n\nLet me know if..."
+ *
+ * This sanitizer identifies and extracts the complete JSON object or array.
+ *
+ * ## Algorithm
+ * 1. Finds the first opening delimiter: `{` or `[`
+ * 2. Tracks depth by counting opening/closing delimiters
+ * 3. Respects string boundaries (doesn't count delimiters inside strings)
+ * 4. Handles escape sequences within strings
+ * 5. Extracts from the opening to matching closing delimiter
+ *
+ * ## Examples
+ * Before: `Here is your JSON: {"name": "John", "age": 30}`
+ * After:  `{"name": "John", "age": 30}`
+ *
+ * Before: `The data: [1, 2, 3] is ready`
+ * After:  `[1, 2, 3]`
+ *
+ * ## Limitations
+ * - Assumes the first delimiter starts the JSON (doesn't try multiple candidates)
+ * - Returns unchanged if no complete JSON structure is found
+ * - Doesn't handle multiple separate JSON structures (returns first one only)
+ * - May fail on malformed JSON where delimiters are mismatched
+ *
+ * ## Implementation Notes
+ * - Properly handles escaped quotes: `"value with \" quote"`
+ * - Properly handles nested structures: `{"obj": {"nested": [1, 2]}}`
+ * - Trims the extracted content before returning
+ *
+ * @param input - The raw string content to sanitize
+ * @returns Sanitizer result with extracted JSON if found and different from input
  */
 export const extractLargestJsonSpan: Sanitizer = (input) => {
   const firstBrace = input.indexOf("{");
