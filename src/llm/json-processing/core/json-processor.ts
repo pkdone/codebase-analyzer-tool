@@ -1,9 +1,9 @@
-import { LLMGeneratedContent, LLMCompletionOptions } from "../types/llm.types";
-import { JsonProcessingError } from "../types/llm-errors.types";
+import { LLMGeneratedContent, LLMCompletionOptions } from "../../types/llm.types";
+import { JsonProcessingError } from "../../types/llm-errors.types";
 import { JsonValidator } from "./json-validator";
-import { unwrapJsonSchemaStructure } from "./utils/post-parse-transforms";
+import { unwrapJsonSchemaStructure } from "../utils/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";
-import { JsonProcessorResult } from "./json-processing-result.types";
+import { JsonProcessorResult } from "../json-processing-result.types";
 import {
   trimWhitespace,
   removeCodeFences,
@@ -18,7 +18,7 @@ import {
   overEscapedSequencesSanitizer,
   completeTruncatedStructures,
   type Sanitizer,
-} from "./sanitizers";
+} from "../sanitizers";
 
 /**
  * Types of errors that can occur during JSON parsing and validation.

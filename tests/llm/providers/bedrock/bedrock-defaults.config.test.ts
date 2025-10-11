@@ -94,4 +94,3 @@ describe("bedrock-defaults.config", () => {
     });
   });
 });
-

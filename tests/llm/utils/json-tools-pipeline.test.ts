@@ -1,5 +1,5 @@
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { JsonProcessor } from "../../../src/llm/json-processing/json-processor";
+import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 
 // We'll mock the logging utility to capture sanitation step logging
 jest.mock("../../../src/common/utils/logging", () => {

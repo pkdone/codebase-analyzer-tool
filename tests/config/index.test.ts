@@ -5,10 +5,7 @@ import { fileProcessingConfig } from "../../src/config/file-processing.config";
 import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
 import { insightsTuningConfig, summaryCategoriesConfig } from "../../src/config/insights.config";
 import { outputConfig } from "../../src/config/output.config";
-import {
-  ERROR_LOG_DIRECTORY,
-  ERROR_LOG_FILENAME_TEMPLATE,
-} from "../../src/config/logging.config";
+import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../src/config/logging.config";
 
 describe("config/index", () => {
   describe("exports all configuration modules", () => {
@@ -72,4 +69,3 @@ describe("config/index", () => {
     });
   });
 });
-

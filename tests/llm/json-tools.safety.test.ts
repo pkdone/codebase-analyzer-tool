@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../src/llm/json-processing/json-processor";
+import { JsonProcessor } from "../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../src/llm/types/llm.types";
 
 // Tests for handling concatenated JSON objects through the public API.

@@ -155,7 +155,7 @@ describe("removeControlChars", () => {
     });
 
     it("should handle mixed content and control chars", () => {
-      const input = 'Normal\u200Btext\u0000with\u200Ccontrol\uFEFFchars';
+      const input = "Normal\u200Btext\u0000with\u200Ccontrol\uFEFFchars";
       const result = removeControlChars(input);
 
       expect(result.changed).toBe(true);
@@ -196,4 +196,3 @@ describe("removeControlChars", () => {
     });
   });
 });
-

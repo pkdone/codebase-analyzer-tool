@@ -13,7 +13,7 @@ import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
-import { JsonValidator } from "../json-processing/json-validator";
+import { JsonValidator } from "../json-processing/core/json-validator";
 import { log, logErrorWithContext, logWithContext } from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
 import { TOKENS } from "../../di/tokens";

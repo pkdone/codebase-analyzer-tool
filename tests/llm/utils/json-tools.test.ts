@@ -1,6 +1,6 @@
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { JsonProcessor } from "../../../src/llm/json-processing/json-processor";
-import { JsonValidator } from "../../../src/llm/json-processing/json-validator";
+import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { JsonValidator } from "../../../src/llm/json-processing/core/json-validator";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 
 describe("json-tools", () => {

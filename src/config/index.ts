@@ -10,4 +10,3 @@ export { fileTypeMappingsConfig } from "./file-type-mappings.config";
 export { insightsTuningConfig, summaryCategoriesConfig } from "./insights.config";
 export { outputConfig } from "./output.config";
 export { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "./logging.config";
-

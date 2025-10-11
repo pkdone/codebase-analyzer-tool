@@ -1,4 +1,4 @@
-import { logWarningMsg, logErrorMsg } from "../../common/utils/logging";
+import { logWarningMsg, logErrorMsg } from "../../../common/utils/logging";
 
 /**
  * Centralized logger for JSON processing operations.
@@ -57,18 +57,14 @@ export class JsonProcessingLogger {
    * @param issues - Description of validation issues or a structured error object
    */
   logValidationIssues(issues: string): void {
-    logErrorMsg(
-      `[${this.resourceName}] Schema validation failed. Validation issues: ${issues}`,
-    );
+    logErrorMsg(`[${this.resourceName}] Schema validation failed. Validation issues: ${issues}`);
   }
 
   /**
    * Logs validation issues for TEXT format content.
    */
   logTextFormatValidationError(): void {
-    logErrorMsg(
-      `[${this.resourceName}] Content for TEXT format is not valid LLMGeneratedContent`,
-    );
+    logErrorMsg(`[${this.resourceName}] Content for TEXT format is not valid LLMGeneratedContent`);
   }
 
   /**
@@ -78,4 +74,3 @@ export class JsonProcessingLogger {
     logErrorMsg(`[${this.resourceName}] Content is not valid LLMGeneratedContent`);
   }
 }
-

@@ -8,7 +8,12 @@ import {
   AWS_EMBEDDINGS_TITAN_V1,
 } from "../common/bedrock-models.constants";
 import { BedrockConfig } from "../common/base-bedrock-llm";
-import { DEFAULT_BEDROCK_MAX_RETRY_ATTEMPTS, DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS, DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS, DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS } from "../common/bedrock-defaults.config";
+import {
+  DEFAULT_BEDROCK_MAX_RETRY_ATTEMPTS,
+  DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
+  DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS,
+  DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS,
+} from "../common/bedrock-defaults.config";
 
 // Environment variable name constants
 const BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY";

@@ -1,4 +1,4 @@
-import { JsonProcessingLogger } from "../../../src/llm/json-processing/json-processing-logger";
+import { JsonProcessingLogger } from "../../../src/llm/json-processing/core/json-processing-logger";
 import { logWarningMsg, logErrorMsg } from "../../../src/common/utils/logging";
 
 // Mock the logging utilities
@@ -187,4 +187,3 @@ describe("JsonProcessingLogger", () => {
     });
   });
 });
-

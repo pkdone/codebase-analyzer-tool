@@ -27,4 +27,3 @@ describe("logging.config", () => {
     });
   });
 });
-

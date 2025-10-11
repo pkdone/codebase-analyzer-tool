@@ -19,7 +19,7 @@ import {
   formatErrorMessageAndDetail,
 } from "../../common/utils/error-formatters";
 import { logErrorMsg, logWarningMsg, logErrorMsgAndDetail } from "../../common/utils/logging";
-import { JsonProcessor } from "../json-processing/json-processor";
+import { JsonProcessor } from "../json-processing/core/json-processor";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
