@@ -109,7 +109,7 @@ export class JsonProcessor {
 
     for (const sanitizer of unifiedPipeline) {
       // Apply sanitizer if present
-      // Null means skip sanitization, i.e. for first iteration where want to try just the raw input
+      // Null means skip sanitization, ie. for first iteration when want to parse just the raw input
       if (sanitizer !== null) {
         const { content, changed, description } = sanitizer(workingContent);
         if (!changed) continue; // Skip if sanitizer didn't change anything

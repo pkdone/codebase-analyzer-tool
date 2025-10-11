@@ -1,4 +1,5 @@
 import type { Sanitizer } from "./sanitizers-types";
+import { concatenationConfig } from "../config/sanitization.config";
 
 /**
  * Shared regular expressions for fixing concatenation chains in LLM-generated JSON.
@@ -172,7 +173,7 @@ export function lightCollapseConcatenationChains(raw: string): string {
   );
   let safety = 0;
 
-  while (simpleChain.test(updated) && safety < 50) {
+  while (simpleChain.test(updated) && safety < concatenationConfig.LIGHT_COLLAPSE_MAX_ITERATIONS) {
     safety += 1;
     // Identifier-leading simple chains: key: IDENT + "literal" -> keep literal only
     updated = updated.replace(
@@ -181,7 +182,10 @@ export function lightCollapseConcatenationChains(raw: string): string {
     );
     // Collapse chains with multiple literals before an identifier to only the first literal
     updated = updated.replace(
-      /"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,12}\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b[^,}\]]*/g,
+      new RegExp(
+        `"[^"\\n]*"(?:\\s*\\+\\s*"[^"\\n]*"){1,${concatenationConfig.MIXED_CHAIN_LITERAL_LIMIT}}\\s*\\+\\s*[A-Za-z_][A-Za-z0-9_.()]*\\b[^,}\\]]*`,
+        "g",
+      ),
       (match) => {
         const reFirst = /^"[^"\n]*"/;
         const first = reFirst.exec(match);
@@ -203,22 +207,28 @@ export function lightCollapseConcatenationChains(raw: string): string {
       },
     );
     // Merge pure literal-only limited chains
-    updated = updated.replace(/"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,6}(?=\s*[,}\]])/g, (chain) => {
-      const tokens = chain
-        .split(/\s*\+\s*/)
-        .map((t) => t.trim())
-        .filter(Boolean);
-      if (!tokens.length) return chain;
-      const merged = tokens
-        .map((t) => {
-          if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
-            return t.substring(1, t.length - 1);
-          }
-          return t;
-        })
-        .join("");
-      return `"${merged}"`;
-    });
+    updated = updated.replace(
+      new RegExp(
+        `"[^"\\n]*"(?:\\s*\\+\\s*"[^"\\n]*"){1,${concatenationConfig.LIGHT_COLLAPSE_LITERAL_CHAIN_LIMIT}}(?=\\s*[,}\\]])`,
+        "g",
+      ),
+      (chain) => {
+        const tokens = chain
+          .split(/\s*\+\s*/)
+          .map((t) => t.trim())
+          .filter(Boolean);
+        if (!tokens.length) return chain;
+        const merged = tokens
+          .map((t) => {
+            if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+              return t.substring(1, t.length - 1);
+            }
+            return t;
+          })
+          .join("");
+        return `"${merged}"`;
+      },
+    );
   }
 
   // Final pass: any chain with an identifier anywhere: "lit" + IDENT (+ "lit" ... ) -> "lit"
@@ -263,7 +273,7 @@ export function normalizeConcatenationChains(input: string): string {
   );
   let guard = 0;
 
-  while (simpleChain.test(updated) && guard < 80) {
+  while (simpleChain.test(updated) && guard < concatenationConfig.FULL_NORMALIZE_MAX_ITERATIONS) {
     guard += 1;
     // Identifier-leading simple chains
     updated = updated.replace(
@@ -278,7 +288,10 @@ export function normalizeConcatenationChains(input: string): string {
     });
     // Collapse chains with multiple literals before an identifier
     updated = updated.replace(
-      /"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,20}\s*\+\s*[A-Za-z_][A-Za-z0-9_.()]*\b[^,}\]]*/g,
+      new RegExp(
+        `"[^"\\n]*"(?:\\s*\\+\\s*"[^"\\n]*"){1,${concatenationConfig.COMPLEX_CHAIN_LITERAL_LIMIT}}\\s*\\+\\s*[A-Za-z_][A-Za-z0-9_.()]*\\b[^,}\\]]*`,
+        "g",
+      ),
       (match) => {
         const reFirst = /^"[^"\n]*"/;
         const first = reFirst.exec(match);
@@ -312,22 +325,28 @@ export function normalizeConcatenationChains(input: string): string {
       },
     );
     // Merge pure literal chains (allow slightly longer)
-    updated = updated.replace(/"[^"\n]*"(?:\s*\+\s*"[^"\n]*"){1,10}(?=\s*[,}\]])/g, (chain) => {
-      const tokens = chain
-        .split(/\s*\+\s*/)
-        .map((t) => t.trim())
-        .filter(Boolean);
-      if (!tokens.length) return chain;
-      const merged = tokens
-        .map((t) => {
-          if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
-            return t.substring(1, t.length - 1);
-          }
-          return t;
-        })
-        .join("");
-      return `"${merged}"`;
-    });
+    updated = updated.replace(
+      new RegExp(
+        `"[^"\\n]*"(?:\\s*\\+\\s*"[^"\\n]*"){1,${concatenationConfig.FULL_NORMALIZE_LITERAL_CHAIN_LIMIT}}(?=\\s*[,}\\]])`,
+        "g",
+      ),
+      (chain) => {
+        const tokens = chain
+          .split(/\s*\+\s*/)
+          .map((t) => t.trim())
+          .filter(Boolean);
+        if (!tokens.length) return chain;
+        const merged = tokens
+          .map((t) => {
+            if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+              return t.substring(1, t.length - 1);
+            }
+            return t;
+          })
+          .join("");
+        return `"${merged}"`;
+      },
+    );
   }
 
   // Final cleanup: chains with identifier anywhere collapse to first literal

@@ -1,3 +1,5 @@
+import { isString } from "./type-guards";
+
 /**
  * Interface to represent parsing outcome
  */
@@ -16,6 +18,11 @@ export interface ParsingOutcome {
  * @returns The extracted JSON string, or null if no JSON-like structure is found
  */
 export function extractJsonString(textContent: string): string | null {
+  // Validate input
+  if (!isString(textContent) || textContent.length === 0) {
+    return null;
+  }
+
   // Find JSON content by looking for balanced braces/brackets, handling nested structures
   let jsonMatch: string | null = null;
   const markdownMatch = /```(?:json)?\s*([{[][\s\S]*?[}\]])\s*```/.exec(textContent);
