@@ -9,8 +9,7 @@ describe("llmConfig", () => {
     expect(llmConfig.DEFAULT_ZERO_TEMP).toBe(0);
     expect(llmConfig.DEFAULT_TOP_P_LOWEST).toBe(0);
     expect(llmConfig.DEFAULT_TOP_K_LOWEST).toBe(1);
-    expect(llmConfig.MIME_TYPE_JSON).toBe("application/json");
-    expect(llmConfig.MIME_TYPE_ANY).toBe("*/*");
+    expect(llmConfig.JSON_OUTPUT_TYPE).toBe("json_object");
   });
 
   it("should be a const object", () => {

@@ -6,6 +6,7 @@ import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns"
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
+  BEDROCK_CLAUDE_FAMILY,
 } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../llm.config";
 import { BedrockConfig } from "../common/base-bedrock-llm";
@@ -15,8 +16,8 @@ import { DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS } from "../common/bedrock-defaul
 const BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY";
 const BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY";
 
-// Exported constants
-export const BEDROCK_CLAUDE = "BedrockClaude";
+// Re-export for backward compatibility
+export const BEDROCK_CLAUDE = BEDROCK_CLAUDE_FAMILY;
 const AWS_COMPLETIONS_CLAUDE_V37 = "AWS_COMPLETIONS_CLAUDE_V37";
 export const AWS_COMPLETIONS_CLAUDE_V40 = "AWS_COMPLETIONS_CLAUDE_V40";
 
@@ -31,7 +32,7 @@ export const AWS_COMPLETIONS_CLAUDE_V40 = "AWS_COMPLETIONS_CLAUDE_V40";
 
 export const bedrockClaudeProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Claude",
-  modelFamily: BEDROCK_CLAUDE,
+  modelFamily: BEDROCK_CLAUDE_FAMILY,
   envSchema: z.object({
     [BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY]: z.string().min(1),
     [BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),

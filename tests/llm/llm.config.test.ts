@@ -12,11 +12,6 @@ describe("llmConfig", () => {
     expect(llmConfig.LLM_ROLE_SYSTEM).toBe("system");
   });
 
-  it("should have MIME type constants defined", () => {
-    expect(llmConfig.MIME_TYPE_JSON).toBe("application/json");
-    expect(llmConfig.MIME_TYPE_ANY).toBe("*/*");
-  });
-
   it("should have default temperature and sampling constants defined", () => {
     expect(llmConfig.DEFAULT_ZERO_TEMP).toBe(0);
     expect(llmConfig.DEFAULT_TOP_P_LOWEST).toBe(0);
@@ -27,10 +22,6 @@ describe("llmConfig", () => {
     expect(llmConfig.COMPLETION_MAX_TOKENS_LIMIT_BUFFER).toBe(5);
     expect(llmConfig.MAX_COMPLETION_REDUCTION_RATIO).toBe(0.75);
     expect(llmConfig.MAX_PROMPT_REDUCTION_RATIO).toBe(0.85);
-  });
-
-  it("should have UTF8 encoding constant defined", () => {
-    expect(llmConfig.LLM_UTF8_ENCODING).toBe("utf8");
   });
 
   it("should be typed as const", () => {

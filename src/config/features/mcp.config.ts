@@ -15,35 +15,18 @@ export const mcpConfig = {
   DEFAULT_MCP_HOSTNAME: "localhost",
   DEFAULT_MCP_PORT: 3001,
 
-  // HTTP Protocol constants
-  HTTP_PROTOCOL: "http://",
-  CONTENT_TYPE_HEADER: "Content-Type",
+  // Application constants referenced from appConfig
   APPLICATION_JSON: appConfig.MIME_TYPE_JSON,
   UTF8_ENCODING: appConfig.UTF8_ENCODING,
-
-  // HTTP Methods
-  HTTP_METHOD_OPTIONS: "OPTIONS",
-  HTTP_METHOD_POST: "POST",
-
-  // HTTP Status Codes
-  HTTP_STATUS_OK: 200,
-  HTTP_STATUS_BAD_REQUEST: 400,
-  HTTP_STATUS_NOT_FOUND: 404,
-  HTTP_STATUS_INTERNAL_ERROR: 500,
 
   // JSON-RPC constants
   JSONRPC_VERSION: "2.0",
   JSONRPC_INTERNAL_ERROR: -32603,
   JSONRPC_SERVER_ERROR: -32000,
 
-  // CORS Configuration
-  CORS_ALLOW_ORIGIN: "Access-Control-Allow-Origin",
-  CORS_ALLOW_ALL: "*",
-  CORS_ALLOW_HEADERS: "Access-Control-Allow-Headers",
+  // MCP-specific CORS header values
   CORS_ALLOWED_HEADERS_VALUE: "Content-Type, Mcp-Session-Id",
-  CORS_EXPOSE_HEADERS: "Access-Control-Expose-Headers",
   CORS_EXPOSED_HEADERS_VALUE: "Mcp-Session-Id",
-  CORS_ALLOW_METHODS: "Access-Control-Allow-Methods",
   CORS_ALLOWED_METHODS_VALUE: "GET, POST, DELETE, OPTIONS",
 
   // MCP Session

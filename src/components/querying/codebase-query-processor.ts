@@ -5,7 +5,7 @@ import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
-import { queryingConfig } from "./config/querying.config";
+import { inputConfig } from "./config/input.config";
 
 /**
  * Creates a prompt for querying the codebase with a specific question.
@@ -52,8 +52,8 @@ export default class CodebaseQueryProcessor {
     const bestMatchFiles = await this.sourcesRepository.vectorSearchProjectSourcesRawContent(
       projectName,
       queryVector,
-      queryingConfig.VECTOR_SEARCH_NUM_CANDIDATES,
-      queryingConfig.VECTOR_SEARCH_NUM_LIMIT,
+      inputConfig.VECTOR_SEARCH_NUM_CANDIDATES,
+      inputConfig.VECTOR_SEARCH_NUM_LIMIT,
     );
 
     if (bestMatchFiles.length <= 0) {

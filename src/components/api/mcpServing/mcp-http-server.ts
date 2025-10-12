@@ -7,6 +7,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { logErrorMsgAndDetail } from "../../../common/utils/logging";
 import { mcpConfig } from "../../../config/features/mcp.config";
+import { httpConfig } from "../../../config/http.config";
 import McpServerConfigurator from "./mcp-server-configurator";
 import { TOKENS } from "../../../di/tokens";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -46,7 +47,7 @@ export default class McpHttpServer {
     this.server = createServer((req, res) => {
       const url = new URL(
         req.url ?? "",
-        `${mcpConfig.HTTP_PROTOCOL}${req.headers.host ?? mcpConfig.DEFAULT_MCP_HOSTNAME}`,
+        `${httpConfig.HTTP_PROTOCOL}${req.headers.host ?? mcpConfig.DEFAULT_MCP_HOSTNAME}`,
       );
 
       // Handle MCP requests
@@ -57,7 +58,7 @@ export default class McpHttpServer {
           if (!res.headersSent) {
             this.sendJsonRpcError(
               res,
-              mcpConfig.HTTP_STATUS_INTERNAL_ERROR,
+              httpConfig.HTTP_STATUS_INTERNAL_ERROR,
               mcpConfig.JSONRPC_INTERNAL_ERROR,
               "Internal Server Error",
             );
@@ -65,8 +66,8 @@ export default class McpHttpServer {
         });
       } else {
         // Handle other requests with a simple 404 response
-        res.writeHead(mcpConfig.HTTP_STATUS_NOT_FOUND, {
-          [mcpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
+        res.writeHead(httpConfig.HTTP_STATUS_NOT_FOUND, {
+          [httpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
         });
         res.end(
           JSON.stringify({
@@ -85,7 +86,7 @@ export default class McpHttpServer {
             reject(error);
           } else {
             console.log(
-              `MCP server listening on ${mcpConfig.HTTP_PROTOCOL}${mcpConfig.DEFAULT_MCP_HOSTNAME}:${mcpConfig.DEFAULT_MCP_PORT}`,
+              `MCP server listening on ${httpConfig.HTTP_PROTOCOL}${mcpConfig.DEFAULT_MCP_HOSTNAME}:${mcpConfig.DEFAULT_MCP_PORT}`,
             );
             resolve();
           }
@@ -124,14 +125,14 @@ export default class McpHttpServer {
     return async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
       try {
         // Set CORS headers for all MCP requests
-        res.setHeader(mcpConfig.CORS_ALLOW_ORIGIN, mcpConfig.CORS_ALLOW_ALL);
-        res.setHeader(mcpConfig.CORS_ALLOW_HEADERS, mcpConfig.CORS_ALLOWED_HEADERS_VALUE);
-        res.setHeader(mcpConfig.CORS_EXPOSE_HEADERS, mcpConfig.CORS_EXPOSED_HEADERS_VALUE);
-        res.setHeader(mcpConfig.CORS_ALLOW_METHODS, mcpConfig.CORS_ALLOWED_METHODS_VALUE);
+        res.setHeader(httpConfig.CORS_ALLOW_ORIGIN, httpConfig.CORS_ALLOW_ALL);
+        res.setHeader(httpConfig.CORS_ALLOW_HEADERS, mcpConfig.CORS_ALLOWED_HEADERS_VALUE);
+        res.setHeader(httpConfig.CORS_EXPOSE_HEADERS, mcpConfig.CORS_EXPOSED_HEADERS_VALUE);
+        res.setHeader(httpConfig.CORS_ALLOW_METHODS, mcpConfig.CORS_ALLOWED_METHODS_VALUE);
 
         // Handle preflight requests
-        if (req.method === mcpConfig.HTTP_METHOD_OPTIONS) {
-          res.writeHead(mcpConfig.HTTP_STATUS_OK);
+        if (req.method === httpConfig.HTTP_METHOD_OPTIONS) {
+          res.writeHead(httpConfig.HTTP_STATUS_OK);
           res.end();
           return;
         }
@@ -151,7 +152,7 @@ export default class McpHttpServer {
           } else {
             this.sendJsonRpcError(
               res,
-              mcpConfig.HTTP_STATUS_BAD_REQUEST,
+              httpConfig.HTTP_STATUS_BAD_REQUEST,
               mcpConfig.JSONRPC_SERVER_ERROR,
               "Bad Request: Invalid session ID",
             );
@@ -161,7 +162,7 @@ export default class McpHttpServer {
           // Parse request body
           body = await this.parseRequestBody(req);
 
-          if (req.method === mcpConfig.HTTP_METHOD_POST && isInitializeRequest(body)) {
+          if (req.method === httpConfig.HTTP_METHOD_POST && isInitializeRequest(body)) {
             // Create new transport for initialization request
             transport = new StreamableHTTPServerTransport({
               sessionIdGenerator: () => randomUUID(),
@@ -193,7 +194,7 @@ export default class McpHttpServer {
             }
             this.sendJsonRpcError(
               res,
-              mcpConfig.HTTP_STATUS_BAD_REQUEST,
+              httpConfig.HTTP_STATUS_BAD_REQUEST,
               mcpConfig.JSONRPC_SERVER_ERROR,
               "Bad Request: No valid session ID provided",
               requestId,
@@ -209,7 +210,7 @@ export default class McpHttpServer {
         if (error instanceof Error && error.message.startsWith("Failed to parse JSON")) {
           this.sendJsonRpcError(
             res,
-            mcpConfig.HTTP_STATUS_BAD_REQUEST,
+            httpConfig.HTTP_STATUS_BAD_REQUEST,
             -32700, // JSON-RPC Parse Error
             "Parse error",
           );
@@ -221,7 +222,7 @@ export default class McpHttpServer {
         if (!res.headersSent) {
           this.sendJsonRpcError(
             res,
-            mcpConfig.HTTP_STATUS_INTERNAL_ERROR,
+            httpConfig.HTTP_STATUS_INTERNAL_ERROR,
             mcpConfig.JSONRPC_INTERNAL_ERROR,
             "Internal Server Error",
           );
@@ -247,7 +248,7 @@ export default class McpHttpServer {
     id: string | number | null = null,
   ): void {
     res.writeHead(httpStatusCode, {
-      [mcpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
+      [httpConfig.CONTENT_TYPE_HEADER]: mcpConfig.APPLICATION_JSON,
     });
     res.end(
       JSON.stringify({

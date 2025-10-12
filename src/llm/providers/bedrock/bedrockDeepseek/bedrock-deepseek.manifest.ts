@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
+  BEDROCK_DEEPSEEK_FAMILY,
 } from "../common/bedrock-models.constants";
 import { BedrockConfig } from "../common/base-bedrock-llm";
 import {
@@ -18,13 +19,13 @@ import {
 // Environment variable name constants
 const BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY";
 
-// Exported constants
-export const BEDROCK_DEEPSEEK = "BedrockDeepseek";
+// Re-export for backward compatibility
+export const BEDROCK_DEEPSEEK = BEDROCK_DEEPSEEK_FAMILY;
 const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";
 
 export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Deepseek",
-  modelFamily: BEDROCK_DEEPSEEK,
+  modelFamily: BEDROCK_DEEPSEEK_FAMILY,
   envSchema: z.object({
     [BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY]: z.string().min(1),
     [BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),

@@ -1,6 +1,7 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { BEDROCK_LLAMA } from "./bedrock-llama.manifest";
+import { bedrockLlamaConfig } from "./bedrock-llama.config";
 import { z } from "zod";
 
 /**
@@ -12,22 +13,6 @@ const LlamaCompletionResponseSchema = z.object({
   prompt_token_count: z.number().optional(),
   generation_token_count: z.number().optional(),
 });
-
-/**
- * Llama chat template tokens
- * These special tokens are used to format prompts for Llama models
- */
-const LLAMA_BEGIN_TOKEN = "<|begin_of_text|>";
-const LLAMA_HEADER_START_TOKEN = "<|start_header_id|>";
-const LLAMA_HEADER_END_TOKEN = "<|end_header_id|>";
-const LLAMA_EOT_TOKEN = "<|eot_id|>";
-
-/**
- * Llama system prompt template
- * Formats a prompt with system instructions and user query according to Llama's chat format
- */
-const LLAMA_SYSTEM_MESSAGE =
-  "You are a helpful software engineering and programming assistant, and you need to answer the question given without attempting to fill in any blanks in the question";
 
 /**
  * Class for the AWS Bedrock Llama LLMs.
@@ -46,9 +31,9 @@ export default class BedrockLlamaLLM extends BaseBedrockLLM {
    */
   protected buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
-    const formattedPrompt = `${LLAMA_BEGIN_TOKEN}${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_SYSTEM}${LLAMA_HEADER_END_TOKEN}
-${LLAMA_SYSTEM_MESSAGE}${LLAMA_EOT_TOKEN}
-${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_USER}${LLAMA_HEADER_END_TOKEN}${prompt}${LLAMA_EOT_TOKEN}${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_ASSISTANT}${LLAMA_HEADER_END_TOKEN}`;
+    const formattedPrompt = `${bedrockLlamaConfig.LLAMA_BEGIN_TOKEN}${bedrockLlamaConfig.LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_SYSTEM}${bedrockLlamaConfig.LLAMA_HEADER_END_TOKEN}
+${bedrockLlamaConfig.LLAMA_SYSTEM_MESSAGE}${bedrockLlamaConfig.LLAMA_EOT_TOKEN}
+${bedrockLlamaConfig.LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_USER}${bedrockLlamaConfig.LLAMA_HEADER_END_TOKEN}${prompt}${bedrockLlamaConfig.LLAMA_EOT_TOKEN}${bedrockLlamaConfig.LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_ASSISTANT}${bedrockLlamaConfig.LLAMA_HEADER_END_TOKEN}`;
 
     const bodyObj: { prompt: string; temperature: number; top_p: number; max_gen_len?: number } = {
       prompt: formattedPrompt,

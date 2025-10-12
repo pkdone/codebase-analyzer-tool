@@ -12,7 +12,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
 } from "../../../types/llm.types";
-import { llmConfig } from "../../../llm.config";
+import { appConfig } from "../../../../config/app.config";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { formatErrorMessage } from "../../../../common/utils/error-formatters";
 import { logErrorMsgAndDetail } from "../../../../common/utils/logging";
@@ -112,7 +112,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const command = new InvokeModelCommand(fullParameters);
     const rawResponse = await this.client.send(command);
     const llmResponse: unknown = JSON.parse(
-      Buffer.from(rawResponse.body).toString(llmConfig.LLM_UTF8_ENCODING),
+      Buffer.from(rawResponse.body).toString(appConfig.UTF8_ENCODING),
     );
 
     if (taskType === LLMPurpose.EMBEDDINGS) {
@@ -196,8 +196,8 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
 
     return {
       modelId: this.llmModelsMetadata[modelKey].urn,
-      contentType: llmConfig.MIME_TYPE_JSON,
-      accept: llmConfig.MIME_TYPE_ANY,
+      contentType: appConfig.MIME_TYPE_JSON,
+      accept: appConfig.MIME_TYPE_ANY,
       body: JSON.stringify(bodyObj),
     };
   }

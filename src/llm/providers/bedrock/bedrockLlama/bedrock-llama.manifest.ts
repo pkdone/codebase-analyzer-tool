@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
+  BEDROCK_LLAMA_FAMILY,
 } from "../common/bedrock-models.constants";
 import { BedrockConfig } from "../common/base-bedrock-llm";
 import {
@@ -19,8 +20,8 @@ import {
 const BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY";
 const BEDROCK_LLAMA_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_LLAMA_COMPLETIONS_MODEL_SECONDARY";
 
-// Exported constants
-export const BEDROCK_LLAMA = "BedrockLlama";
+// Re-export for backward compatibility
+export const BEDROCK_LLAMA = BEDROCK_LLAMA_FAMILY;
 export const AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT = "AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT";
 const AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT = "AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT";
 const AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT = "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT";
@@ -32,7 +33,7 @@ const AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT = "AWS_COMPLETIONS_LLAMA_V33_70B_IN
 
 export const bedrockLlamaProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Llama",
-  modelFamily: BEDROCK_LLAMA,
+  modelFamily: BEDROCK_LLAMA_FAMILY,
   envSchema: z.object({
     [BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY]: z.string().min(1),
     [BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),

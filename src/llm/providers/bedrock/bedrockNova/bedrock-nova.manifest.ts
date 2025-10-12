@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
+  BEDROCK_NOVA_FAMILY,
 } from "../common/bedrock-models.constants";
 import { BedrockConfig } from "../common/base-bedrock-llm";
 import {
@@ -19,14 +20,14 @@ import {
 const BEDROCK_NOVA_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_NOVA_COMPLETIONS_MODEL_PRIMARY";
 const BEDROCK_NOVA_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_NOVA_COMPLETIONS_MODEL_SECONDARY";
 
-// Exported model key constants
-export const BEDROCK_NOVA = "BedrockNova";
+// Re-export for backward compatibility
+export const BEDROCK_NOVA = BEDROCK_NOVA_FAMILY;
 const AWS_COMPLETIONS_NOVA_LITE_V1 = "AWS_COMPLETIONS_NOVA_LITE_V1";
 const AWS_COMPLETIONS_NOVA_PRO_V1 = "AWS_COMPLETIONS_NOVA_PRO_V1";
 
 export const bedrockNovaProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Nova",
-  modelFamily: BEDROCK_NOVA,
+  modelFamily: BEDROCK_NOVA_FAMILY,
   envSchema: z.object({
     [BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY]: z.string().min(1),
     [BEDROCK_NOVA_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),

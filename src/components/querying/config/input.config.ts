@@ -1,12 +1,22 @@
 /**
- * Configuration for codebase querying features.
- * Contains tuning parameters for vector search operations and input paths.
+ * Configuration for input files and codebase querying features.
+ * Contains paths to input files and tuning parameters for vector search operations.
  */
-export const queryingConfig = {
+export const inputConfig = {
   /**
    * Path to file containing user questions/prompts for querying
    */
   QUESTIONS_PROMPTS_FILEPATH: "./input/questions.prompts",
+
+  /**
+   * Path to folder containing requirement prompt files
+   */
+  REQUIREMENTS_PROMPTS_FOLDERPATH: "./input/requirements",
+
+  /**
+   * Regex pattern to match requirement prompt files
+   */
+  REQUIREMENTS_FILE_REGEX: /requirement\d+\.prompt$/i,
 
   /**
    * Number of candidates to consider in vector search.

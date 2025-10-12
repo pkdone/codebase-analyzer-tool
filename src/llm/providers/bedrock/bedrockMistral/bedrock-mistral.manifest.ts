@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
+  BEDROCK_MISTRAL_FAMILY,
 } from "../common/bedrock-models.constants";
 import { BedrockConfig } from "../common/base-bedrock-llm";
 import {
@@ -20,14 +21,14 @@ const BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_MISTRAL_COMPLETIO
 const BEDROCK_MISTRAL_COMPLETIONS_MODEL_SECONDARY_KEY =
   "BEDROCK_MISTRAL_COMPLETIONS_MODEL_SECONDARY";
 
-// Exported constants
-export const BEDROCK_MISTRAL = "BedrockMistral";
+// Re-export for backward compatibility
+export const BEDROCK_MISTRAL = BEDROCK_MISTRAL_FAMILY;
 const AWS_COMPLETIONS_MISTRAL_LARGE = "AWS_COMPLETIONS_MISTRAL_LARGE";
 const AWS_COMPLETIONS_MISTRAL_LARGE2 = "AWS_COMPLETIONS_MISTRAL_LARGE2";
 
 export const bedrockMistralProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Mistral",
-  modelFamily: BEDROCK_MISTRAL,
+  modelFamily: BEDROCK_MISTRAL_FAMILY,
   envSchema: z.object({
     [BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY]: z.string().min(1),
     [BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
