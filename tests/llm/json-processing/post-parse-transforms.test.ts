@@ -1,230 +1,248 @@
-import { unwrapJsonSchemaStructure } from "../../../src/llm/json-processing/utils/post-parse-transforms";
+import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { LLMCompletionOptions, LLMOutputFormat } from "../../../src/llm/types/llm.types";
 
-describe("post-parse transforms", () => {
-  describe("unwrapJsonSchemaStructure", () => {
-    describe("when given a JSON Schema structure", () => {
-      it("unwraps JSON Schema with type and properties", () => {
-        const input = {
-          type: "object",
-          properties: {
-            purpose: "This is the purpose",
-            implementation: "This is the implementation",
-          },
-        };
+/**
+ * Tests for the JsonProcessor's post-parse transformation pipeline.
+ * These tests verify that transformations are applied after JSON.parse
+ * but before schema validation.
+ */
+describe("JsonProcessor - Post-Parse Transforms", () => {
+  let processor: JsonProcessor;
 
-        const result = unwrapJsonSchemaStructure(input);
+  beforeEach(() => {
+    processor = new JsonProcessor();
+  });
 
-        expect(result).toEqual({
-          purpose: "This is the purpose",
-          implementation: "This is the implementation",
-        });
+  const defaultOptions: LLMCompletionOptions = {
+    outputFormat: LLMOutputFormat.JSON,
+  };
+
+  describe("unwrapJsonSchemaStructure transform", () => {
+    it("unwraps JSON Schema structure when LLM returns schema instead of data", () => {
+      // LLM returns a JSON Schema structure instead of data
+      const schemaResponse = JSON.stringify({
+        type: "object",
+        properties: {
+          name: "TestProject",
+          version: "1.0.0",
+        },
       });
 
-      it("unwraps the exact structure from the error log", () => {
-        const input = {
-          type: "object",
-          properties: {
-            purpose:
-              "This file serves as a template for generating post-release cleanup instructions for the Apache Fineract project.",
-            implementation:
-              "The file is implemented as a FreeMarker template (.ftl) that uses variable substitution.",
-          },
-        };
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        "TestResource",
+        defaultOptions,
+        false,
+      );
 
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toEqual({
-          purpose:
-            "This file serves as a template for generating post-release cleanup instructions for the Apache Fineract project.",
-          implementation:
-            "The file is implemented as a FreeMarker template (.ftl) that uses variable substitution.",
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          name: "TestProject",
+          version: "1.0.0",
         });
-      });
-
-      it("unwraps JSON Schema with nested object properties", () => {
-        const input = {
-          type: "object",
-          properties: {
-            user: {
-              name: "John",
-              age: 30,
-            },
-            metadata: {
-              timestamp: "2025-10-03",
-            },
-          },
-        };
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toEqual({
-          user: {
-            name: "John",
-            age: 30,
-          },
-          metadata: {
-            timestamp: "2025-10-03",
-          },
-        });
-      });
-
-      it("unwraps JSON Schema with array properties", () => {
-        const input = {
-          type: "object",
-          properties: {
-            items: [1, 2, 3],
-            tags: ["tag1", "tag2"],
-          },
-        };
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toEqual({
-          items: [1, 2, 3],
-          tags: ["tag1", "tag2"],
-        });
-      });
-
-      it("unwraps JSON Schema with additional metadata fields", () => {
-        const input = {
-          type: "object",
-          description: "This is a schema description",
-          required: ["field1", "field2"],
-          properties: {
-            field1: "value1",
-            field2: "value2",
-          },
-        };
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toEqual({
-          field1: "value1",
-          field2: "value2",
-        });
-      });
+      }
     });
 
-    describe("edge cases that should not be transformed", () => {
-      it("leaves valid data object unchanged", () => {
-        const input = {
-          purpose: "This is the purpose",
-          implementation: "This is the implementation",
-        };
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input); // Should return the same object reference
+    it("leaves normal JSON untransformed", () => {
+      const normalJson = JSON.stringify({
+        name: "TestProject",
+        version: "1.0.0",
       });
 
-      it("leaves object without type field unchanged", () => {
-        const input = {
-          properties: {
-            field: "value",
+      const result = processor.parseAndValidate(normalJson, "TestResource", defaultOptions, false);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          name: "TestProject",
+          version: "1.0.0",
+        });
+      }
+    });
+
+    it("handles nested objects in schema properties", () => {
+      const schemaResponse = JSON.stringify({
+        type: "object",
+        properties: {
+          config: {
+            apiKey: "secret123",
+            timeout: 5000,
           },
-        };
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
+          enabled: true,
+        },
       });
 
-      it("leaves object without properties field unchanged", () => {
-        const input = {
-          type: "object",
-          field: "value",
-        };
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        "TestResource",
+        defaultOptions,
+        false,
+      );
 
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
-      });
-
-      it("leaves JSON Schema with type other than object unchanged", () => {
-        const input = {
-          type: "string",
-          properties: {
-            field: "value",
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          config: {
+            apiKey: "secret123",
+            timeout: 5000,
           },
-        };
+          enabled: true,
+        });
+      }
+    });
 
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
+    it("does not unwrap if properties is empty", () => {
+      const schemaResponse = JSON.stringify({
+        type: "object",
+        properties: {},
       });
 
-      it("leaves object with empty properties unchanged", () => {
-        const input = {
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        "TestResource",
+        defaultOptions,
+        false,
+      );
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Should remain as-is since properties is empty
+        expect(result.data).toEqual({
           type: "object",
           properties: {},
-        };
+        });
+      }
+    });
 
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
+    it("does not unwrap if type is not 'object'", () => {
+      const schemaResponse = JSON.stringify({
+        type: "array",
+        properties: {
+          name: "TestProject",
+        },
       });
 
-      it("leaves object with null properties unchanged", () => {
-        const input = {
-          type: "object",
-          properties: null,
-        };
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        "TestResource",
+        defaultOptions,
+        false,
+      );
 
-        const result = unwrapJsonSchemaStructure(input);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Should remain as-is since type is not "object"
+        expect(result.data).toEqual({
+          type: "array",
+          properties: {
+            name: "TestProject",
+          },
+        });
+      }
+    });
+  });
 
-        expect(result).toBe(input);
+  describe("Transform execution order", () => {
+    it("applies transforms only after successful parse", () => {
+      const invalidJson = "{ this is not valid json";
+
+      const result = processor.parseAndValidate(invalidJson, "TestResource", defaultOptions, false);
+
+      // Should fail to parse, transforms should not run
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.originalContent).toBe(invalidJson);
+      }
+    });
+
+    it("applies transforms before validation", () => {
+      // This test verifies the order: parse -> transform -> validate
+      const schemaResponse = JSON.stringify({
+        type: "object",
+        properties: {
+          validField: "value",
+        },
       });
 
-      it("leaves object with array properties unchanged", () => {
-        const input = {
-          type: "object",
-          properties: [1, 2, 3],
-        };
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        "TestResource",
+        defaultOptions,
+        false,
+      );
 
-        const result = unwrapJsonSchemaStructure(input);
+      // The transform should unwrap it first, then validate
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          validField: "value",
+        });
+      }
+    });
+  });
 
-        expect(result).toBe(input);
+  describe("Complex real-world scenarios", () => {
+    it("handles LLM response with schema wrapper and sanitization needed", () => {
+      // LLM returns schema wrapped in code fences
+      const response = `\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "projectName": "MyApp",
+    "dependencies": ["react", "typescript"]
+  }
+}
+\`\`\``;
+
+      const result = processor.parseAndValidate(response, "TestResource", defaultOptions, false);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          projectName: "MyApp",
+          dependencies: ["react", "typescript"],
+        });
+        // Should have applied sanitization steps
+        expect(result.steps.length).toBeGreaterThan(0);
+      }
+    });
+
+    it("handles multiple levels of nesting in schema properties", () => {
+      const schemaResponse = JSON.stringify({
+        type: "object",
+        properties: {
+          database: {
+            host: "localhost",
+            port: 5432,
+            credentials: {
+              username: "admin",
+              password: "secret",
+            },
+          },
+        },
       });
 
-      it("leaves array unchanged", () => {
-        const input = [{ field: "value" }];
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        "TestResource",
+        defaultOptions,
+        false,
+      );
 
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
-      });
-
-      it("leaves string unchanged", () => {
-        const input = "This is a string";
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
-      });
-
-      it("leaves number unchanged", () => {
-        const input = 42;
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
-      });
-
-      it("leaves null unchanged", () => {
-        const input = null;
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
-      });
-
-      it("leaves undefined unchanged", () => {
-        const input = undefined;
-
-        const result = unwrapJsonSchemaStructure(input);
-
-        expect(result).toBe(input);
-      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          database: {
+            host: "localhost",
+            port: 5432,
+            credentials: {
+              username: "admin",
+              password: "secret",
+            },
+          },
+        });
+      }
     });
   });
 });

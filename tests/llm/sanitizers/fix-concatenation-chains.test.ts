@@ -1,8 +1,4 @@
-import {
-  concatenationChainSanitizer,
-  lightCollapseConcatenationChains,
-  normalizeConcatenationChains,
-} from "../../../src/llm/json-processing/sanitizers/fix-concatenation-chains";
+import { concatenationChainSanitizer } from "../../../src/llm/json-processing/sanitizers/fix-concatenation-chains";
 
 /**
  * Tests for the simplified concatenation chain sanitizer.
@@ -77,22 +73,6 @@ describe("concatenationChainSanitizer", () => {
     expect(result.content).toBe('{"message": "Hello World!"}');
     expect(result.diagnostics).toBeDefined();
     expect(result.diagnostics).toEqual(expect.arrayContaining([expect.stringContaining("Merged")]));
-  });
-});
-
-describe("legacy function wrappers", () => {
-  it("lightCollapseConcatenationChains delegates to concatenationChainSanitizer", () => {
-    const input = '{"k": partA + partB + partC}';
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const output = lightCollapseConcatenationChains(input);
-    expect(output).toBe('{"k": ""}');
-  });
-
-  it("normalizeConcatenationChains delegates to concatenationChainSanitizer", () => {
-    const input = '{"k": "hello" + someVar}';
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const output = normalizeConcatenationChains(input);
-    expect(output).toBe('{"k": "hello"}');
   });
 });
 

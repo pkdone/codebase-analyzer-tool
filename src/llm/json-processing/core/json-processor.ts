@@ -42,7 +42,28 @@ type ParseAndValidateResult<T> =
  */
 export class JsonProcessor {
   private readonly jsonValidator = new JsonValidator();
-  // The unified, ordered pipeline of sanitizers, this pipeline starts with basic sanitizers
+
+  /**
+   * Unified, ordered pipeline of sanitizers.
+   *
+   * The order is critical for effective JSON repair:
+   *
+   * 1. trimWhitespace - Remove leading/trailing whitespace to simplify subsequent regex matching
+   * 2. removeCodeFences - Strip markdown code fences (```json) before attempting to find JSON span
+   * 3. removeControlChars - Remove control characters that would break JSON parsing
+   * 4. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
+   * 5. unwrapJsonSchema - Handle LLMs that return JSON Schema instead of data
+   * 6. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
+   * 7. fixMismatchedDelimiters - Correct bracket/brace mismatches
+   * 8. addMissingPropertyCommas - Insert missing commas between object properties
+   * 9. removeTrailingCommas - Remove invalid trailing commas
+   * 10. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
+   * 11. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
+   * 12. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
+   *
+   * Each sanitizer only runs if it makes changes. Parsing is attempted after each step,
+   * so earlier sanitizers have priority in fixing issues.
+   */
   private readonly SANITIZATION_ORDERED_PIPELINE = [
     trimWhitespace,
     removeCodeFences,
@@ -57,6 +78,15 @@ export class JsonProcessor {
     overEscapedSequencesSanitizer,
     completeTruncatedStructures,
   ] as const satisfies readonly Sanitizer[];
+
+  /**
+   * Post-parse transformations applied after successful JSON.parse but before validation.
+   * These operate on the parsed object structure rather than raw strings.
+   *
+   * Currently contains:
+   * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data
+   */
+  private readonly POST_PARSE_TRANSFORMS = [unwrapJsonSchemaStructure] as const;
 
   /**
    * Convert text content to JSON, trimming the content to only include the JSON part and optionally
@@ -115,15 +145,8 @@ export class JsonProcessor {
         const { content, changed, description, diagnostics } = sanitizer(workingContent);
         if (!changed) continue; // Skip if sanitizer didn't change anything
         workingContent = content;
-
-        if (description) {
-          appliedSteps.push(description);
-        }
-
-        // Collect diagnostics from sanitizers for detailed debugging
-        if (diagnostics && diagnostics.length > 0) {
-          allDiagnostics.push(...diagnostics);
-        }
+        if (description) appliedSteps.push(description);
+        if (diagnostics && diagnostics.length > 0) allDiagnostics.push(...diagnostics);
       }
 
       // Try parsing and validating after sanitization (or with raw input on first iteration)
@@ -134,7 +157,6 @@ export class JsonProcessor {
         logSanitizationSteps,
       );
 
-      // Success - return the data
       if (parseResult.success) {
         if (logSanitizationSteps && appliedSteps.length > 0) {
           logger.logSanitizationSummary(appliedSteps, allDiagnostics);
@@ -201,7 +223,13 @@ export class JsonProcessor {
       };
     }
 
-    const transformed = unwrapJsonSchemaStructure(parsed);
+    // Apply post-parse transformations
+    let transformed = parsed;
+
+    for (const transform of this.POST_PARSE_TRANSFORMS) {
+      transformed = transform(transformed);
+    }
+
     const validationResult = this.jsonValidator.validate<T>(
       transformed,
       completionOptions,

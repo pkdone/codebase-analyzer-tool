@@ -142,24 +142,3 @@ export const concatenationChainSanitizer: Sanitizer = (input) => {
     diagnostics,
   };
 };
-
-/**
- * Light version of concatenation chain collapse for early-stage sanitization.
- * This is a simpler version that can be called before the main pipeline.
- *
- * @deprecated Use concatenationChainSanitizer instead for consistency
- */
-export function lightCollapseConcatenationChains(raw: string): string {
-  const result = concatenationChainSanitizer(raw);
-  return result.content;
-}
-
-/**
- * Full normalization of concatenation chains.
- *
- * @deprecated Use concatenationChainSanitizer instead for consistency
- */
-export function normalizeConcatenationChains(input: string): string {
-  const result = concatenationChainSanitizer(input);
-  return result.content;
-}
