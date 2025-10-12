@@ -8,8 +8,8 @@ import {
   aggregatesSchema,
   repositoriesSchema,
   potentialMicroservicesSchema,
-} from "../schemas/app-summaries.schema";
-import { AppSummaryCategoryEnum } from "../components/insights/insights.types";
+} from "../../schemas/app-summaries.schema";
+import { AppSummaryCategoryEnum } from "./insights.types";
 
 /**
  * Tuning parameters for insights generation.

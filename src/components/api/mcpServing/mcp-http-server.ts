@@ -6,7 +6,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { logErrorMsgAndDetail } from "../../../common/utils/logging";
-import { mcpConfig } from "../../../config/features/mcp.config";
+import { mcpConfig } from "./mcp.config";
 import { httpConfig } from "../../../config/http.config";
 import McpServerFactory from "./mcp-server-configurator";
 import { TOKENS } from "../../../tokens";

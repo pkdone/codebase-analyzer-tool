@@ -16,7 +16,7 @@ import { TableViewModel, type DisplayableTableRow } from "./view-models/table-vi
 import { convertToDisplayName } from "../../common/utils/text-utils";
 import { ensureDirectoryExists } from "../../common/fs/directory-operations";
 import { htmlReportConstants } from "./html-report.constants";
-import { reportSectionsConfig } from "../../config/features/report-sections.config";
+import { reportSectionsConfig } from "./report-sections.config";
 import path from "path";
 
 /**

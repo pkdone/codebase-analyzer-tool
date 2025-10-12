@@ -4,7 +4,7 @@ import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import {
   summaryCategoriesConfig,
   insightsTuningConfig,
-} from "../../../config/insights-generation.config";
+} from "../insights-generation.config";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";

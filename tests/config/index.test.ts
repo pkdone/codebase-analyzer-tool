@@ -3,10 +3,6 @@ import { appConfig } from "../../src/config/app.config";
 import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
 import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
-import {
-  insightsTuningConfig,
-  summaryCategoriesConfig,
-} from "../../src/config/insights-generation.config";
 import { outputConfig } from "../../src/config/output.config";
 import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../src/config/logging.config";
 
@@ -32,16 +28,6 @@ describe("config/index", () => {
       expect(configExports.fileTypeMappingsConfig).toBe(fileTypeMappingsConfig);
     });
 
-    it("should export insightsTuningConfig", () => {
-      expect(configExports.insightsTuningConfig).toBeDefined();
-      expect(configExports.insightsTuningConfig).toBe(insightsTuningConfig);
-    });
-
-    it("should export summaryCategoriesConfig", () => {
-      expect(configExports.summaryCategoriesConfig).toBeDefined();
-      expect(configExports.summaryCategoriesConfig).toBe(summaryCategoriesConfig);
-    });
-
     it("should export outputConfig", () => {
       expect(configExports.outputConfig).toBeDefined();
       expect(configExports.outputConfig).toBe(outputConfig);
@@ -59,9 +45,9 @@ describe("config/index", () => {
   });
 
   describe("config consistency", () => {
-    it("should export at least 9 config items", () => {
+    it("should export at least 7 config items", () => {
       const exportedKeys = Object.keys(configExports);
-      expect(exportedKeys.length).toBeGreaterThanOrEqual(9);
+      expect(exportedKeys.length).toBeGreaterThanOrEqual(7);
     });
 
     it("should not export any undefined values", () => {

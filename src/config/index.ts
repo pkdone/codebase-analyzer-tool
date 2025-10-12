@@ -7,6 +7,5 @@ export { appConfig } from "./app.config";
 export { databaseConfig } from "./database.config";
 export { fileProcessingConfig } from "./file-processing.config";
 export { fileTypeMappingsConfig } from "./file-type-mappings.config";
-export { insightsTuningConfig, summaryCategoriesConfig } from "./insights-generation.config";
 export { outputConfig } from "./output.config";
 export { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "./logging.config";

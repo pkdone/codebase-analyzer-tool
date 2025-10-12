@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 import { z } from "zod";
-import { summaryCategoriesConfig } from "../../../config/insights-generation.config";
+import { summaryCategoriesConfig } from "../../insights/insights-generation.config";
 import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
 import type {
   AppSummaryNameDescArray,

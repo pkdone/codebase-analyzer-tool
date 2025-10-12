@@ -8,7 +8,7 @@ import { TOKENS } from "../../tokens";
 import {
   summaryCategoriesConfig,
   insightsTuningConfig,
-} from "../../config/insights-generation.config";
+} from "./insights-generation.config";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { AppSummaryCategoryEnum } from "./insights.types";
