@@ -227,10 +227,10 @@ export class JsonProcessor {
     resourceName: string,
     completionOptions: LLMCompletionOptions,
   ): ParseAndValidateResult<T> {
-    let parsed: unknown;
+    let parsedContent: unknown;
 
     try {
-      parsed = JSON.parse(content);
+      parsedContent = JSON.parse(content);
     } catch (err) {
       const parseErrorType: ParseErrorType = "parse";
       return {
@@ -241,14 +241,14 @@ export class JsonProcessor {
     }
 
     // Apply post-parse transformations
-    let transformed = parsed;
+    let transformedContent = parsedContent;
 
     for (const transform of this.POST_PARSE_TRANSFORMS) {
-      transformed = transform(transformed);
+      transformedContent = transform(transformedContent);
     }
 
     const validationResult = this.jsonValidator.validate<T>(
-      transformed,
+      transformedContent,
       completionOptions,
       resourceName,
       this.loggingEnabled,
