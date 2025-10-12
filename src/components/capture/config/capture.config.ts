@@ -1,6 +1,6 @@
-import { sourceSummarySchema, databaseIntegrationSchema } from "../../schemas/sources.schema";
+import { sourceSummarySchema, databaseIntegrationSchema } from "../../../schemas/sources.schema";
 import { z } from "zod";
-import { DynamicPromptConfig } from "../../llm/utils/prompt-templator";
+import { DynamicPromptConfig } from "../../../llm/types/llm.types";
 
 /**
  * Common instruction phrases used across multiple file type templates

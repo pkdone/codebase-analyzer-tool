@@ -1,7 +1,7 @@
 import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
 import { injectable } from "tsyringe";
 import { logErrorMsgAndDetail, logWarningMsg } from "../utils/logging";
-import { redactUrl } from "../utils/security-utils";
+import { redactUrl } from "./utils/security-utils";
 import { IShutdownable } from "../interfaces/shutdownable.interface";
 
 /**

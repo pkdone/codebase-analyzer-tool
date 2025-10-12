@@ -1,8 +1,8 @@
-import { redactUrl } from "../../../src/common/mdb/utils/security-utils";
-import { logErrorMsgAndDetail } from "../../../src/common/utils/logging";
+import { redactUrl } from "../../../../src/common/mdb/utils/security-utils";
+import { logErrorMsgAndDetail } from "../../../../src/common/utils/logging";
 
 // Mock the logging module
-jest.mock("../../../src/common/utils/logging");
+jest.mock("../../../../src/common/utils/logging");
 const mockLogErrorMsgAndDetail = logErrorMsgAndDetail as jest.MockedFunction<
   typeof logErrorMsgAndDetail
 >;

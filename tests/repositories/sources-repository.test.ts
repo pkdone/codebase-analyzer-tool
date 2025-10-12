@@ -428,6 +428,7 @@ describe("SourcesRepositoryImpl", () => {
   describe("getTopLevelJavaClassDependencies", () => {
     it("should construct correct aggregation pipeline using config constants", async () => {
       const projectName = "test-project";
+      const fileType = "java";
       const mockResults = [
         {
           namespace: "com.example.TopLevelClass",
@@ -443,7 +444,7 @@ describe("SourcesRepositoryImpl", () => {
       ];
       mockAggregationCursor.toArray.mockResolvedValue(mockResults);
 
-      const result = await repository.getTopLevelJavaClassDependencies(projectName);
+      const result = await repository.getTopLevelClassDependencies(projectName, fileType);
 
       expect(result).toEqual(mockResults);
 
@@ -466,17 +467,37 @@ describe("SourcesRepositoryImpl", () => {
       expect(limitStage?.$limit).toBe(databaseConfig.DEPENDENCY_GRAPH_RESULT_LIMIT);
     });
 
-    it("should filter Java files and exclude javax references", async () => {
+    it("should accept fileType parameter and use it in query", async () => {
       const projectName = "test-project";
+      const fileType = "java";
       mockAggregationCursor.toArray.mockResolvedValue([]);
 
-      await repository.getTopLevelJavaClassDependencies(projectName);
+      await repository.getTopLevelClassDependencies(projectName, fileType);
 
       const aggregateCalls = mockCollection.aggregate.mock.calls;
       expect(aggregateCalls.length).toBeGreaterThan(0);
       const pipeline = aggregateCalls[0][0]!;
 
-      // Verify Java file type matching
+      // Verify fileType parameter is used in the $match stage
+      const matchStage = pipeline.find((stage: any) => stage.$match?.type !== undefined);
+      expect(matchStage?.$match).toEqual({
+        projectName: "test-project",
+        type: "java",
+      });
+    });
+
+    it("should filter files and exclude javax references", async () => {
+      const projectName = "test-project";
+      const fileType = "java";
+      mockAggregationCursor.toArray.mockResolvedValue([]);
+
+      await repository.getTopLevelClassDependencies(projectName, fileType);
+
+      const aggregateCalls = mockCollection.aggregate.mock.calls;
+      expect(aggregateCalls.length).toBeGreaterThan(0);
+      const pipeline = aggregateCalls[0][0]!;
+
+      // Verify file type matching
       const matchStage = pipeline.find((stage: any) => stage.$match?.type !== undefined);
       expect(matchStage).toBeDefined();
 
@@ -489,13 +510,14 @@ describe("SourcesRepositoryImpl", () => {
 
     it("should return top-level classes sorted by dependency count", async () => {
       const projectName = "test-project";
+      const fileType = "java";
       const mockResults = [
         { namespace: "Class1", dependency_count: 10, dependencies: [] },
         { namespace: "Class2", dependency_count: 5, dependencies: [] },
       ];
       mockAggregationCursor.toArray.mockResolvedValue(mockResults);
 
-      const result = await repository.getTopLevelJavaClassDependencies(projectName);
+      const result = await repository.getTopLevelClassDependencies(projectName, fileType);
 
       expect(result).toEqual(mockResults);
 

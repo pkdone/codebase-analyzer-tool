@@ -6,6 +6,7 @@ import type {
 } from "../../../repositories/source/sources.model";
 import { TOKENS } from "../../../di/tokens";
 import { convertToHierarchical } from "../utils/dependency-tree-builder";
+import { fileTypeMappingsConfig } from "../../../config/file-type-mappings.config";
 
 /**
  * Data provider responsible for aggregating code structure information for reports.
@@ -24,7 +25,10 @@ export class CodeStructureDataProvider {
     projectName: string,
   ): Promise<HierarchicalTopLevelJavaClassDependencies[]> {
     const flatData: ProjectedTopLevelJavaClassDependencies[] =
-      await this.sourcesRepository.getTopLevelJavaClassDependencies(projectName);
+      await this.sourcesRepository.getTopLevelClassDependencies(
+        projectName,
+        fileTypeMappingsConfig.JAVA_FILE_TYPE,
+      );
     return flatData.map(
       (
         classData: ProjectedTopLevelJavaClassDependencies,

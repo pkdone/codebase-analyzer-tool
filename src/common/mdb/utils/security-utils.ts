@@ -1,4 +1,4 @@
-import { logErrorMsgAndDetail } from "./logging";
+import { logErrorMsgAndDetail } from "../../utils/logging";
 
 // Internal constants - not exported
 const REDACTED_URL = "REDACTED_URL";

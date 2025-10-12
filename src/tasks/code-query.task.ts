@@ -5,7 +5,7 @@ import { formatErrorMessage } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
 import { TOKENS } from "../di/tokens";
-import { queryingConfig } from "../config/features/querying.config";
+import { queryingConfig } from "../components/querying/config/querying.config";
 
 /**
  * Task to query the codebase.

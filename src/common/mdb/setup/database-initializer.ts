@@ -1,19 +1,16 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
-import { TOKENS } from "../../di/tokens";
-import { databaseConfig } from "../../config/database.config";
-import { logErrorMsgAndDetail } from "../../common/utils/logging";
-import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
-import {
-  VectorSearchFilter,
-  createVectorSearchIndexDefinition,
-} from "../../common/mdb/mdb-index-utils";
+import { TOKENS } from "../../../di/tokens";
+import { databaseConfig } from "../../../config/database.config";
+import { logErrorMsgAndDetail } from "../../utils/logging";
+import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
+import type { AppSummariesRepository } from "../../../repositories/app-summary/app-summaries.repository.interface";
+import { VectorSearchFilter, createVectorSearchIndexDefinition } from "../mdb-index-utils";
 import {
   MONGODB_DUPLICATE_OBJ_ERROR_CODES,
   MONGODB_NAMESPACE_EXISTS_ERROR_CODE,
-} from "../../common/mdb/mdb.constants";
+} from "../mdb.constants";
 
 /**
  * Component responsible for database schema initialization and management.

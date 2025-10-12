@@ -29,7 +29,7 @@ import {
 } from "../../../types/llm-errors.types";
 import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { zodToJsonSchemaWithoutSchemaProperty } from "../../../../common/utils/json-schema-utils";
+import { zodToJsonSchemaWithoutSchemaProperty } from "../../../../common/mdb/utils/json-schema-utils";
 
 /**
  * Configuration object for VertexAI Gemini LLM provider.

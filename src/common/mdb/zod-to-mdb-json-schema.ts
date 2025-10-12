@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ignoreOverride } from "zod-to-json-schema";
 import type { JsonSchema7Type } from "zod-to-json-schema";
 import { ObjectId, Decimal128 } from "bson";
-import { zodToJsonSchemaWithoutSchemaProperty } from "../utils/json-schema-utils";
+import { zodToJsonSchemaWithoutSchemaProperty } from "./utils/json-schema-utils";
 
 export const zBsonObjectId = z.instanceof(ObjectId).describe("bson:objectId");
 export const zBsonDecimal128 = z.instanceof(Decimal128).describe("bson:decimal128");

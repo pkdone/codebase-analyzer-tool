@@ -1,4 +1,4 @@
-import { getRequiredEnvVar } from "../../src/env/utils/env-utils";
+import { getRequiredEnvVar } from "../../../src/env/utils/env-utils";
 
 describe("env-utils", () => {
   it("getRequiredEnvVar returns value when present", () => {

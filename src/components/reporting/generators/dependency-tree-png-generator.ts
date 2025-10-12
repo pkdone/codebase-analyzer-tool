@@ -4,7 +4,7 @@ import path from "path";
 import { writeBinaryFile } from "../../../common/fs/file-operations";
 import type { HierarchicalJavaClassDependency } from "../../../repositories/source/sources.model";
 import { logWarningMsg } from "../../../common/utils/logging";
-import { dependencyTreePngConfig } from "../../../config/features/dependency-tree-png.config";
+import { dependencyTreePngConfig } from "../config/dependency-tree-png.config";
 
 interface HierarchicalTreeNode {
   classpath: string;

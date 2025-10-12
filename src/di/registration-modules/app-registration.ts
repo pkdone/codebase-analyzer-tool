@@ -48,7 +48,7 @@ import LLMRouter from "../../llm/core/llm-router";
 import { MongoDBClientFactory } from "../../common/mdb/mdb-client-factory";
 
 // Database component imports
-import { DatabaseInitializer } from "../../tasks/setup/database-initializer";
+import { DatabaseInitializer } from "../../common/mdb/setup/database-initializer";
 
 /**
  * Register all application-level dependencies (repositories, components, and tasks).

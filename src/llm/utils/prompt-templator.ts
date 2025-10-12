@@ -10,16 +10,6 @@ NEVER use " or ' quote symbols as part of the text you use for JSON description 
 ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.`;
 
 /**
- * Configuration for prompts that need file type and instructions
- */
-export interface DynamicPromptConfig<T extends z.ZodType = z.ZodType> {
-  schema: T;
-  contentDesc: string;
-  instructions: string;
-  hasComplexSchema: boolean;
-}
-
-/**
  * Convenience function for creating prompts
  */
 export function createPromptFromConfig(

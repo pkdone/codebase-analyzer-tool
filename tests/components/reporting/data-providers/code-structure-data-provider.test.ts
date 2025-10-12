@@ -129,16 +129,15 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
-        .fn()
-        .mockResolvedValue(inputData);
+      mockSourcesRepository.getTopLevelClassDependencies = jest.fn().mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
 
       // Assert
-      expect(mockSourcesRepository.getTopLevelJavaClassDependencies).toHaveBeenCalledWith(
+      expect(mockSourcesRepository.getTopLevelClassDependencies).toHaveBeenCalledWith(
         "test-project",
+        "java",
       );
       expect(result).toEqual(expectedOutput);
     });
@@ -159,9 +158,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
-        .fn()
-        .mockResolvedValue(inputData);
+      mockSourcesRepository.getTopLevelClassDependencies = jest.fn().mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -197,9 +194,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
-        .fn()
-        .mockResolvedValue(inputData);
+      mockSourcesRepository.getTopLevelClassDependencies = jest.fn().mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -253,9 +248,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
-        .fn()
-        .mockResolvedValue(inputData);
+      mockSourcesRepository.getTopLevelClassDependencies = jest.fn().mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -336,9 +329,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
-        .fn()
-        .mockResolvedValue(inputData);
+      mockSourcesRepository.getTopLevelClassDependencies = jest.fn().mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");
@@ -452,9 +443,7 @@ describe("CodeStructureDataProvider", () => {
         },
       ];
 
-      mockSourcesRepository.getTopLevelJavaClassDependencies = jest
-        .fn()
-        .mockResolvedValue(inputData);
+      mockSourcesRepository.getTopLevelClassDependencies = jest.fn().mockResolvedValue(inputData);
 
       // Act
       const result = await codeStructureDataProvider.getTopLevelJavaClasses("test-project");

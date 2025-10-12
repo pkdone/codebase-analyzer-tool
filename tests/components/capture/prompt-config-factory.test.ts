@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { jest } from "@jest/globals";
 import { PromptConfigFactory } from "../../../src/components/capture/prompt-config-factory";
-import { fileTypeMetadataConfig } from "../../../src/config/features/capture.config";
+import { fileTypeMetadataConfig } from "../../../src/components/capture/config/capture.config";
 
 // Mock the file type mappings config module
 jest.mock("../../../src/config/file-type-mappings.config", () => ({

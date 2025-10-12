@@ -19,7 +19,6 @@ import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-uti
 import { BaseRepository } from "../base-repository";
 import { TOKENS } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
-import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
 /**
  * MongoDB implementation of the Sources repository
@@ -259,18 +258,21 @@ export default class SourcesRepositoryImpl
   }
 
   /**
-   * Get top level Java classes for a project with their full dependency structures.
+   * Get top level classes for a project with their full dependency structures.
    * Returns the complete dependency tree for each top-level class.
+   * @param projectName The project name to filter by
+   * @param fileType The file type to filter by (e.g., "java")
    */
-  async getTopLevelJavaClassDependencies(
+  async getTopLevelClassDependencies(
     projectName: string,
+    fileType: string,
   ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
     // TODO: This is inneficient and should be optimized.
     const pipeline: Document[] = [
       {
         $match: {
           projectName,
-          type: fileTypeMappingsConfig.JAVA_FILE_TYPE,
+          type: fileType,
         },
       },
       {
