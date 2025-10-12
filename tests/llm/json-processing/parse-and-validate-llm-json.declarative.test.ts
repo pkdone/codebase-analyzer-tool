@@ -47,7 +47,9 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
       expect((result.data as any).path).toBe("");
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
-    expect(calls.some((c: string) => c.includes("Normalized concatenation chains"))).toBe(true);
+    expect(
+      calls.some((c: string) => c.includes("Fixed") && c.includes("concatenation chain")),
+    ).toBe(true);
   });
 
   it("applies multiple sanitizers in pipeline for complex malformed JSON", () => {

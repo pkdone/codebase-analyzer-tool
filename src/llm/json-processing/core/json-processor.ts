@@ -103,7 +103,7 @@ export class JsonProcessor {
     const logger = new JsonProcessingLogger(resourceName);
     let workingContent = originalContent;
     const appliedSteps: string[] = [];
-    const appliedDescriptions: string[] = [];
+    const allDiagnostics: string[] = [];
     let lastParseError: Error | undefined;
     // Create a unified pipeline: null represents "try raw input first", followed by sanitizers
     const unifiedPipeline: (Sanitizer | null)[] = [null, ...this.SANITIZATION_ORDERED_PIPELINE];
@@ -112,13 +112,17 @@ export class JsonProcessor {
       // Apply sanitizer if present
       // Null means skip sanitization, ie. for first iteration when want to parse just the raw input
       if (sanitizer !== null) {
-        const { content, changed, description } = sanitizer(workingContent);
+        const { content, changed, description, diagnostics } = sanitizer(workingContent);
         if (!changed) continue; // Skip if sanitizer didn't change anything
         workingContent = content;
 
         if (description) {
           appliedSteps.push(description);
-          appliedDescriptions.push(description);
+        }
+
+        // Collect diagnostics from sanitizers for detailed debugging
+        if (diagnostics && diagnostics.length > 0) {
+          allDiagnostics.push(...diagnostics);
         }
       }
 
@@ -133,14 +137,14 @@ export class JsonProcessor {
       // Success - return the data
       if (parseResult.success) {
         if (logSanitizationSteps && appliedSteps.length > 0) {
-          logger.logSanitizationSummary(appliedSteps);
+          logger.logSanitizationSummary(appliedSteps, allDiagnostics);
         }
 
         return {
           success: true,
           data: parseResult.data,
           steps: appliedSteps,
-          diagnostics: appliedDescriptions.length > 0 ? appliedDescriptions.join(" | ") : undefined,
+          diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
         };
       }
 

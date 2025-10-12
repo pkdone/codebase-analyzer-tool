@@ -42,12 +42,20 @@ export class JsonProcessingLogger {
    * successful sanitization to provide an overview of transformations.
    *
    * @param steps - Array of step descriptions that were applied
+   * @param diagnostics - Optional array of detailed diagnostic messages from sanitizers
    */
-  logSanitizationSummary(steps: readonly string[]): void {
+  logSanitizationSummary(steps: readonly string[], diagnostics?: readonly string[]): void {
     if (steps.length > 0) {
       logWarningMsg(
         `[${this.resourceName}] Applied ${steps.length} sanitization steps: ${steps.join(" -> ")}`,
       );
+
+      // Log detailed diagnostics if available (helpful for debugging)
+      if (diagnostics && diagnostics.length > 0) {
+        logWarningMsg(
+          `[${this.resourceName}] Sanitization diagnostics: ${diagnostics.join(" | ")}`,
+        );
+      }
     }
   }
 

@@ -6,6 +6,7 @@ describe("addMissingPropertyCommas sanitizer", () => {
     const result = addMissingPropertyCommas(input);
     expect(result.changed).toBe(false);
     expect(result.content).toBe(input);
+    expect(result.diagnostics).toBeUndefined();
   });
 
   it("adds missing comma between two string properties on separate lines", () => {
@@ -16,6 +17,8 @@ describe("addMissingPropertyCommas sanitizer", () => {
     const result = addMissingPropertyCommas(input);
     expect(result.changed).toBe(true);
     expect(result.content).toContain('"prop1": "value1",');
+    expect(result.diagnostics).toBeDefined();
+    expect(result.diagnostics?.length).toBeGreaterThan(0);
     expect(() => JSON.parse(result.content)).not.toThrow();
   });
 
@@ -75,6 +78,8 @@ describe("addMissingPropertyCommas sanitizer", () => {
     expect(result.changed).toBe(true);
     expect(result.content).toContain('"a": "value1",');
     expect(result.content).toContain('"b": "value2",');
+    expect(result.diagnostics).toBeDefined();
+    expect(result.diagnostics?.length).toBeGreaterThanOrEqual(2);
     expect(() => JSON.parse(result.content)).not.toThrow();
   });
 
@@ -154,5 +159,25 @@ describe("addMissingPropertyCommas sanitizer", () => {
     const result = addMissingPropertyCommas(input);
     expect(result.changed).toBe(false);
     expect(() => JSON.parse(result.content)).not.toThrow();
+  });
+
+  it("provides diagnostics for each comma added", () => {
+    const input = `{
+  "first": "value1"
+  "second": "value2"
+}`;
+    const result = addMissingPropertyCommas(input);
+    expect(result.changed).toBe(true);
+    expect(result.diagnostics).toBeDefined();
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([expect.stringContaining("Added comma")]),
+    );
+  });
+
+  it("does not provide diagnostics when no changes are made", () => {
+    const input = '{"a": "value1", "b": "value2"}';
+    const result = addMissingPropertyCommas(input);
+    expect(result.changed).toBe(false);
+    expect(result.diagnostics).toBeUndefined();
   });
 });
