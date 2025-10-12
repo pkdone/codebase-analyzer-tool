@@ -8,9 +8,9 @@ export function logErrorMsgAndDetail(msg: string | null, error: unknown): void {
 }
 
 /**
- * Log an error and its stack to the console.
+ * Log a thrown error object and its stack to the console.
  */
-export function logErrorDetail(error: unknown): void {
+export function logThrownError(error: unknown): void {
   logErrorMsgAndDetail(null, error);
 }
 

@@ -1,5 +1,5 @@
 import { LLMContext } from "../../types/llm.types";
-import { logErrorDetail } from "../../../common/utils/logging";
+import { logThrownError } from "../../../common/utils/logging";
 
 /**
  * Log info/error text to the console or a redirected-to file
@@ -13,7 +13,7 @@ export function log(text: string): void {
  * error occurred, add the context to the error object and then throw the augmented error.
  */
 export function logErrorWithContext(error: unknown, context: LLMContext): void {
-  logErrorDetail(error);
+  logThrownError(error);
   logContext(context);
 }
 

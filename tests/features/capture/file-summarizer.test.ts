@@ -188,7 +188,7 @@ describe("FileSummarizer", () => {
     fileSummarizer = new FileSummarizer(mockLLMRouter, mockPromptConfigFactory);
   });
 
-  describe("getFileSummaryAsJSON", () => {
+  describe("summarizeFile", () => {
     const mockSuccessResponse = {
       purpose: "This is a test file purpose",
       implementation: "This is a test implementation",
@@ -207,7 +207,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
@@ -228,7 +228,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
       });
@@ -240,7 +240,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
       });
@@ -265,7 +265,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(ddlResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(ddlResponse);
       });
@@ -277,7 +277,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(filepath, expect.any(String), {
@@ -294,7 +294,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
       });
@@ -306,7 +306,7 @@ describe("FileSummarizer", () => {
         const type = "js";
         const content = "";
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toThrow(
+        await expect(fileSummarizer.summarizeFile(filepath, type, content)).rejects.toThrow(
           "File is empty",
         );
 
@@ -318,7 +318,7 @@ describe("FileSummarizer", () => {
         const type = "js";
         const content = "   \n\t  \n  ";
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toThrow(
+        await expect(fileSummarizer.summarizeFile(filepath, type, content)).rejects.toThrow(
           "File is empty",
         );
 
@@ -334,7 +334,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockRejectedValue(llmError);
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toThrow(
+        await expect(fileSummarizer.summarizeFile(filepath, type, content)).rejects.toThrow(
           llmError,
         );
 
@@ -351,7 +351,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockRejectedValue("String error");
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toBe(
+        await expect(fileSummarizer.summarizeFile(filepath, type, content)).rejects.toBe(
           "String error",
         );
       });
@@ -363,7 +363,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(null);
 
-        await expect(fileSummarizer.getFileSummaryAsJSON(filepath, type, content)).rejects.toThrow(
+        await expect(fileSummarizer.summarizeFile(filepath, type, content)).rejects.toThrow(
           BadResponseContentLLMError,
         );
       });
@@ -377,7 +377,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
@@ -397,7 +397,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
@@ -428,7 +428,7 @@ describe("FileSummarizer", () => {
           },
         });
 
-        await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
@@ -448,7 +448,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        await fileSummarizer.summarizeFile(filepath, type, content);
 
         // Should use markdown handler due to README filename, not txt handler
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
@@ -469,7 +469,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        await fileSummarizer.summarizeFile(filepath, type, content);
 
         // Should use markdown handler due to LICENSE filename mapping
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
@@ -493,7 +493,7 @@ describe("FileSummarizer", () => {
         for (const testCase of testCases) {
           mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-          await fileSummarizer.getFileSummaryAsJSON(
+          await fileSummarizer.summarizeFile(
             `test.${testCase.type}`,
             testCase.type,
             "test content",
@@ -522,7 +522,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(filepath, expect.any(String), {
@@ -539,7 +539,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
@@ -562,7 +562,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledTimes(1);
@@ -579,7 +579,7 @@ describe("FileSummarizer", () => {
 
         const promises = files.map(
           async (file) =>
-            await fileSummarizer.getFileSummaryAsJSON(file.filepath, file.type, file.content),
+            await fileSummarizer.summarizeFile(file.filepath, file.type, file.content),
         );
 
         const results = await Promise.all(promises);
@@ -598,7 +598,7 @@ describe("FileSummarizer", () => {
 
         mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
 
-        const result = await fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+        const result = await fileSummarizer.summarizeFile(filepath, type, content);
 
         expect(result).toEqual(mockSuccessResponse);
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(filepath, expect.any(String), {

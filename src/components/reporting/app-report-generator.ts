@@ -88,7 +88,7 @@ export default class AppReportGenerator {
     };
 
     // Prepare data for both writers
-    const preparedJsonData = this.prepareJsonData(reportData);
+    const preparedJsonData = this.structureDataForJsonFiles(reportData);
     const htmlFilePath = path.join(outputDir, outputFilename);
     const preparedHtmlData = await this.generateHtmlReportAssetsAndViewModel(
       reportData,
@@ -101,9 +101,9 @@ export default class AppReportGenerator {
   }
 
   /**
-   * Prepares JSON data for writing by structuring all report data into filename/data pairs.
+   * Structures report data into filename/data pairs for JSON file output.
    */
-  private prepareJsonData(reportData: ReportData): PreparedJsonData[] {
+  private structureDataForJsonFiles(reportData: ReportData): PreparedJsonData[] {
     const completeReportData = {
       appStats: reportData.appStats,
       fileTypesData: reportData.fileTypesData,

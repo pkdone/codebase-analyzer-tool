@@ -15,7 +15,7 @@ export interface LLMProvider {
     secondaryCompletion?: string;
   };
   getAvailableCompletionModelQualities(): LLMModelQuality[];
-  getEmbeddedModelDimensions(): number | undefined;
+  getEmbeddingModelDimensions(): number | undefined;
   getModelFamily(): string;
   getModelsMetadata(): Readonly<Record<string, ResolvedLLMModelMetadata>>;
   getProviderSpecificConfig(): Readonly<Record<string, unknown>>;

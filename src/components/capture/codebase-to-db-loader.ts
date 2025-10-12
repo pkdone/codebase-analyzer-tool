@@ -128,7 +128,7 @@ export default class CodebaseToDBLoader {
     let summaryVector: number[] | undefined;
 
     try {
-      summary = await this.fileSummarizer.getFileSummaryAsJSON(filepath, type, content);
+      summary = await this.fileSummarizer.summarizeFile(filepath, type, content);
       const summaryVectorResult = await this.getContentEmbeddings(
         filepath,
         JSON.stringify(summary),

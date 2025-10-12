@@ -46,11 +46,7 @@ export class FileSummarizer {
    * Generate a strongly-typed summary for the given file content.
    * Throws an error if summarization fails.
    */
-  async getFileSummaryAsJSON(
-    filepath: string,
-    type: string,
-    content: string,
-  ): Promise<SourceSummaryType> {
+  async summarizeFile(filepath: string, type: string, content: string): Promise<SourceSummaryType> {
     try {
       if (content.trim().length === 0) throw new Error("File is empty");
       const config = this.promptConfigFactory.createConfig(filepath, type);

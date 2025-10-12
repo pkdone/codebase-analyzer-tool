@@ -70,7 +70,7 @@ describe("CodebaseToDBLoader", () => {
 
     // Mock FileSummarizer
     mockFileSummarizer = {
-      getFileSummaryAsJSON: jest.fn().mockResolvedValue({
+      summarizeFile: jest.fn().mockResolvedValue({
         namespace: "TestClass",
         purpose: "Testing component",
       }),
@@ -270,7 +270,7 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockResolvedValue("file content");
       mockTextUtils.countLines.mockReturnValue(10);
-      mockFileSummarizer.getFileSummaryAsJSON.mockResolvedValue(mockSummary);
+      mockFileSummarizer.summarizeFile.mockResolvedValue(mockSummary);
       mockLLMRouter.generateEmbeddings
         .mockResolvedValueOnce([1, 2, 3]) // summary embedding
         .mockResolvedValueOnce([4, 5, 6]); // content embedding
@@ -280,7 +280,7 @@ describe("CodebaseToDBLoader", () => {
 
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
-      expect(mockFileSummarizer.getFileSummaryAsJSON).toHaveBeenCalledWith(
+      expect(mockFileSummarizer.summarizeFile).toHaveBeenCalledWith(
         "file1.ts",
         "ts",
         "file content",
@@ -309,7 +309,7 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockResolvedValue("file content");
       mockTextUtils.countLines.mockReturnValue(10);
-      mockFileSummarizer.getFileSummaryAsJSON.mockRejectedValue(summaryError);
+      mockFileSummarizer.summarizeFile.mockRejectedValue(summaryError);
       mockLLMRouter.generateEmbeddings.mockResolvedValue([4, 5, 6]); // content embedding
 
       mockPath.relative.mockReturnValue("file1.ts");
@@ -365,7 +365,7 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockResolvedValue("file content");
       mockTextUtils.countLines.mockReturnValue(10);
-      mockFileSummarizer.getFileSummaryAsJSON.mockResolvedValue(mockSummary);
+      mockFileSummarizer.summarizeFile.mockResolvedValue(mockSummary);
       mockLLMRouter.generateEmbeddings
         .mockResolvedValueOnce([1, 2, 3]) // summary embedding success
         .mockResolvedValueOnce(null); // content embedding failure

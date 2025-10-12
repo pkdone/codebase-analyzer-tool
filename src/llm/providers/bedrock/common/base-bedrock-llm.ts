@@ -188,7 +188,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     if (taskType === LLMPurpose.EMBEDDINGS) {
       bodyObj = {
         inputText: prompt,
-        //dimensions: this.getEmbeddedModelDimensions(),  // Throws error even though Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
+        //dimensions: this.getEmbeddingModelDimensions(),  // Throws error even though Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
       };
     } else {
       bodyObj = this.buildCompletionRequestBody(modelKey, prompt);

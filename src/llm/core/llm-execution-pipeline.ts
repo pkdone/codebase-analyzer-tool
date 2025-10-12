@@ -43,7 +43,7 @@ export class LLMExecutionPipeline {
    * Context is just an optional object of key value pairs which will be retained with the LLM
    * request and subsequent response for convenient debugging and error logging context.
    */
-  async executeWithPipeline<T = LLMGeneratedContent>(
+  async execute<T = LLMGeneratedContent>(
     resourceName: string,
     prompt: string,
     context: LLMContext,

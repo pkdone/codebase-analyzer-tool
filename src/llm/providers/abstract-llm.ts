@@ -91,9 +91,9 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
-   * Get the model key for the embeddings model.
+   * Get the dimensions for the embeddings model.
    */
-  getEmbeddedModelDimensions() {
+  getEmbeddingModelDimensions() {
     return this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey].dimensions;
   }
 

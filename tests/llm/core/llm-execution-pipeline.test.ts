@@ -67,7 +67,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.executeWithPipeline(
+      await pipeline.execute(
         "test-resource",
         "test prompt",
         context,
@@ -101,7 +101,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.executeWithPipeline(
+      await pipeline.execute(
         "test-resource",
         "test prompt",
         context,
@@ -135,7 +135,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.executeWithPipeline(
+      await pipeline.execute(
         "test-resource",
         "test prompt",
         context,
@@ -172,7 +172,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.executeWithPipeline(
+      await pipeline.execute(
         "test-resource",
         "test prompt",
         context,
@@ -206,7 +206,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.executeWithPipeline(
+      await pipeline.execute(
         "test-resource",
         "test prompt",
         context,
@@ -239,7 +239,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.executeWithPipeline(
+      await pipeline.execute(
         "test-resource",
         "test prompt",
         context,
@@ -278,7 +278,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.executeWithPipeline(
+      await pipeline.execute(
         "test-resource",
         "test prompt",
         context,

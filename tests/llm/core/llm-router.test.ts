@@ -110,7 +110,7 @@ describe("LLM Router tests", () => {
         LLMModelQuality.PRIMARY,
         LLMModelQuality.SECONDARY,
       ]),
-      getEmbeddedModelDimensions: jest.fn(() => 1536),
+      getEmbeddingModelDimensions: jest.fn(() => 1536),
       getModelFamily: jest.fn(() => "OpenAI"),
       getModelsMetadata: jest.fn(() => ({
         GPT_COMPLETIONS_GPT4: mockPrimaryModelMetadata,
@@ -231,7 +231,7 @@ describe("LLM Router tests", () => {
 
     test("should return embedded model dimensions", () => {
       const { router } = createLLMRouter();
-      expect(router.getEmbeddedModelDimensions()).toBe(1536);
+      expect(router.getEmbeddingModelDimensions()).toBe(1536);
     });
 
     test("should call close on provider", async () => {
@@ -664,7 +664,7 @@ describe("LLM Router tests", () => {
       });
 
       // Mock the execution pipeline to return null when prompt becomes empty after cropping
-      jest.spyOn((router as any).executionPipeline, "executeWithPipeline").mockResolvedValue(null);
+      jest.spyOn((router as any).executionPipeline, "execute").mockResolvedValue(null);
 
       const result = await router.executeCompletion(
         "test-resource",

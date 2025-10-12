@@ -118,10 +118,10 @@ export default class LLMRouter implements IShutdownable {
   }
 
   /**
-   * Get the maximum number of tokens for the given model quality.
+   * Get the dimensions for the embeddings model.
    */
-  getEmbeddedModelDimensions(): number | undefined {
-    return this.llm.getEmbeddedModelDimensions();
+  getEmbeddingModelDimensions(): number | undefined {
+    return this.llm.getEmbeddingModelDimensions();
   }
 
   /**
@@ -132,7 +132,7 @@ export default class LLMRouter implements IShutdownable {
       resource: resourceName,
       purpose: LLMPurpose.EMBEDDINGS,
     };
-    const contentResponse = await this.executionPipeline.executeWithPipeline(
+    const contentResponse = await this.executionPipeline.execute(
       resourceName,
       content,
       context,
@@ -180,7 +180,7 @@ export default class LLMRouter implements IShutdownable {
       modelQuality: candidatesToUse[0].modelQuality,
       outputFormat: options.outputFormat,
     };
-    return await this.executionPipeline.executeWithPipeline<T>(
+    return await this.executionPipeline.execute<T>(
       resourceName,
       prompt,
       context,

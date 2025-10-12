@@ -11,7 +11,7 @@ import {
 @injectable()
 export default class LLMStats {
   // Private fields
-  private readonly doPrintEventTicks: boolean;
+  private readonly shouldPrintEventTicks: boolean;
   private readonly statusTypes: Record<keyof LLMStatsCategoriesBase, LLMStatsCategoryStatus> = {
     SUCCESS: { description: "LLM invocation succeeded", symbol: ">", count: 0 },
     FAILURE: { description: "LLM invocation failed (no data produced)", symbol: "!", count: 0 },
@@ -46,7 +46,7 @@ export default class LLMStats {
    * Constructor.
    */
   constructor() {
-    this.doPrintEventTicks = true;
+    this.shouldPrintEventTicks = true;
   }
 
   /**
@@ -130,6 +130,6 @@ export default class LLMStats {
    */
   private record(statusType: LLMStatsCategoryStatus) {
     statusType.count++;
-    if (this.doPrintEventTicks) console.log(statusType.symbol);
+    if (this.shouldPrintEventTicks) console.log(statusType.symbol);
   }
 }
