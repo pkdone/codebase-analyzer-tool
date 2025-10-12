@@ -138,10 +138,64 @@ export class JsonProcessor {
     completionOptions: LLMCompletionOptions,
   ): JsonProcessorResult<T> {
     const logger = new JsonProcessingLogger(resourceName);
-    let workingContent = originalContent;
     const appliedSteps: string[] = [];
     const allDiagnostics: string[] = [];
+
+    const result = this._runPipelineLoop<T>(
+      originalContent,
+      resourceName,
+      completionOptions,
+      appliedSteps,
+      allDiagnostics,
+    );
+
+    if (result.success) {
+      this.logSanitizationIfEnabled(logger, appliedSteps, allDiagnostics);
+      return {
+        success: true,
+        data: result.data,
+        steps: appliedSteps,
+        diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
+      };
+    }
+
+    // Check if this is a validation error (which should be returned as-is)
+    if (
+      result.lastParseError instanceof JsonProcessingError &&
+      result.lastParseError.type === "validation"
+    ) {
+      return { success: false, error: result.lastParseError };
+    }
+
+    // All sanitizers exhausted without success - return comprehensive parse error
+    const error = new JsonProcessingError(
+      "parse",
+      `LLM response for resource '${resourceName}' cannot be parsed to JSON after all sanitization attempts`,
+      originalContent,
+      result.workingContent,
+      appliedSteps,
+      result.lastParseError,
+    );
+    return { success: false, error };
+  }
+
+  /**
+   * Iterates through the sanitization pipeline, applying each sanitizer and attempting
+   * to parse after each change. Returns success with data if parsing succeeds, or
+   * returns failure info if all sanitizers are exhausted.
+   */
+  private _runPipelineLoop<T>(
+    originalContent: string,
+    resourceName: string,
+    completionOptions: LLMCompletionOptions,
+    appliedSteps: string[],
+    allDiagnostics: string[],
+  ):
+    | { success: true; data: T }
+    | { success: false; workingContent: string; lastParseError?: Error } {
+    let workingContent = originalContent;
     let lastParseError: Error | undefined;
+
     // Create a unified pipeline: null represents "try raw input first", followed by sanitizers
     const unifiedPipeline: (Sanitizer | null)[] = [null, ...this.SANITIZATION_ORDERED_PIPELINE];
 
@@ -164,13 +218,7 @@ export class JsonProcessor {
       );
 
       if (parseResult.success) {
-        this.logSanitizationIfEnabled(logger, appliedSteps, allDiagnostics);
-        return {
-          success: true,
-          data: parseResult.data,
-          steps: appliedSteps,
-          diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
-        };
+        return { success: true, data: parseResult.data };
       }
 
       // Validation error - stop immediately (sanitizers can't fix schema issues)
@@ -185,23 +233,14 @@ export class JsonProcessor {
           appliedSteps,
           parseResult.error,
         );
-        return { success: false, error };
+        return { success: false, workingContent, lastParseError: error };
       }
 
       // Parse error - continue to next sanitizer
       lastParseError = parseResult.error;
     }
 
-    // All sanitizers exhausted without success - return comprehensive error
-    const error = new JsonProcessingError(
-      "parse",
-      `LLM response for resource '${resourceName}' cannot be parsed to JSON after all sanitization attempts`,
-      originalContent,
-      workingContent,
-      appliedSteps,
-      lastParseError,
-    );
-    return { success: false, error };
+    return { success: false, workingContent, lastParseError };
   }
 
   /**
@@ -227,10 +266,25 @@ export class JsonProcessor {
     resourceName: string,
     completionOptions: LLMCompletionOptions,
   ): ParseAndValidateResult<T> {
-    let parsedContent: unknown;
+    const parseResult = this._tryParse(content);
+    if (!parseResult.success) {
+      return parseResult;
+    }
 
+    return this._applyTransformsAndValidate<T>(parseResult.data, resourceName, completionOptions);
+  }
+
+  /**
+   * Attempts to parse a string as JSON, catching and wrapping any parse errors.
+   */
+  private _tryParse(
+    content: string,
+  ):
+    | { success: true; data: unknown }
+    | { success: false; errorType: ParseErrorType; error: Error } {
     try {
-      parsedContent = JSON.parse(content);
+      const parsedContent: unknown = JSON.parse(content);
+      return { success: true, data: parsedContent };
     } catch (err) {
       const parseErrorType: ParseErrorType = "parse";
       return {
@@ -239,9 +293,18 @@ export class JsonProcessor {
         error: err instanceof Error ? err : new Error(String(err)),
       };
     }
+  }
 
+  /**
+   * Applies post-parse transformations and validates the data against the schema.
+   */
+  private _applyTransformsAndValidate<T>(
+    parsedData: unknown,
+    resourceName: string,
+    completionOptions: LLMCompletionOptions,
+  ): ParseAndValidateResult<T> {
     // Apply post-parse transformations
-    let transformedContent = parsedContent;
+    let transformedContent = parsedData;
 
     for (const transform of this.POST_PARSE_TRANSFORMS) {
       transformedContent = transform(transformedContent);
@@ -260,8 +323,8 @@ export class JsonProcessor {
       );
       const validationErrorType: ValidationErrorType = "validation";
       return { success: false, errorType: validationErrorType, error: validationError };
-    } else {
-      return { success: true, data: validationResult.data as T };
     }
+
+    return { success: true, data: validationResult.data as T };
   }
 }

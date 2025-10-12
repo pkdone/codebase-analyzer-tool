@@ -2,6 +2,23 @@ import { Sanitizer } from "./sanitizers-types";
 import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
 
 /**
+ * JSON delimiter constants to avoid magic strings and improve readability.
+ */
+const DELIMITERS = {
+  OPEN_BRACE: "{",
+  CLOSE_BRACE: "}",
+  OPEN_BRACKET: "[",
+  CLOSE_BRACKET: "]",
+  QUOTE: '"',
+  BACKSLASH: "\\",
+  SPACE: " ",
+  NEWLINE: "\n",
+  CARRIAGE_RETURN: "\r",
+  TAB: "\t",
+  COMMA: ",",
+} as const;
+
+/**
  * Fixes mismatched closing delimiters in JSON where the wrong closing character is used.
  * For example: using ']' to close an object that was opened with '{', or vice versa.
  *
@@ -33,7 +50,13 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
   const peekNextNonWhitespace = (startIdx: number): string | null => {
     for (let j = startIdx + 1; j < input.length; j++) {
       const c = input[j];
-      if (c !== " " && c !== "\n" && c !== "\r" && c !== "\t" && c !== ",") {
+      if (
+        c !== DELIMITERS.SPACE &&
+        c !== DELIMITERS.NEWLINE &&
+        c !== DELIMITERS.CARRIAGE_RETURN &&
+        c !== DELIMITERS.TAB &&
+        c !== DELIMITERS.COMMA
+      ) {
         return c;
       }
     }
@@ -49,25 +72,26 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
       continue;
     }
 
-    if (char === "\\") {
+    if (char === DELIMITERS.BACKSLASH) {
       escapeNext = true;
       continue;
     }
 
-    if (char === '"') {
+    if (char === DELIMITERS.QUOTE) {
       inString = !inString;
       continue;
     }
 
     if (!inString) {
-      if (char === "{" || char === "[") {
+      if (char === DELIMITERS.OPEN_BRACE || char === DELIMITERS.OPEN_BRACKET) {
         stack.push({ opener: char, index: i });
-      } else if (char === "}" || char === "]") {
+      } else if (char === DELIMITERS.CLOSE_BRACE || char === DELIMITERS.CLOSE_BRACKET) {
         if (stack.length > 0) {
           const top = stack.pop();
           if (!top) continue;
           const { opener } = top;
-          const expectedCloser = opener === "{" ? "}" : "]";
+          const expectedCloser =
+            opener === DELIMITERS.OPEN_BRACE ? DELIMITERS.CLOSE_BRACE : DELIMITERS.CLOSE_BRACKET;
 
           // Check if the closing delimiter matches the opener
           if (char !== expectedCloser) {
@@ -75,20 +99,20 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
             // This likely means the LLM wrote ] when it meant }], missing the }
             // We detect this by checking if the next non-whitespace char is " (a property name)
             if (
-              char === "]" &&
-              expectedCloser === "}" &&
+              char === DELIMITERS.CLOSE_BRACKET &&
+              expectedCloser === DELIMITERS.CLOSE_BRACE &&
               stack.length >= 1 &&
-              stack[stack.length - 1].opener === "["
+              stack[stack.length - 1].opener === DELIMITERS.OPEN_BRACKET
             ) {
               const nextChar = peekNextNonWhitespace(i);
-              if (nextChar === '"') {
+              if (nextChar === DELIMITERS.QUOTE) {
                 // Pattern: [{...}] but LLM wrote [{...] followed by a property
                 // Fix: change ] to }, then insert ] after it
                 corrections.push({
                   index: i,
                   wrongChar: char,
-                  correctChar: "}",
-                  insertAfter: "]",
+                  correctChar: DELIMITERS.CLOSE_BRACE,
+                  insertAfter: DELIMITERS.CLOSE_BRACKET,
                 });
                 // Pop the array opener since we're inserting its closer
                 stack.pop();
