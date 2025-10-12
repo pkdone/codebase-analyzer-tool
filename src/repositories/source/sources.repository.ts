@@ -226,14 +226,19 @@ export default class SourcesRepositoryImpl
         },
       },
     ];
-    const result = await this.collection
+    const results = await this.collection
       .aggregate<{ _id: null; fileCount: number; linesOfCode: number }>(pipeline)
       .toArray();
-    if (result.length === 0) {
+
+    if (results.length === 0) {
       return { fileCount: 0, linesOfCode: 0 };
     }
-    const stats = result[0];
-    return { fileCount: stats.fileCount, linesOfCode: stats.linesOfCode };
+
+    const stats = results[0];
+    return {
+      fileCount: stats.fileCount,
+      linesOfCode: stats.linesOfCode,
+    };
   }
 
   /**

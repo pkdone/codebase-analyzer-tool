@@ -72,7 +72,7 @@ export class DatabaseReportDataProvider {
     items: ProcOrTrigItem[],
     type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
   ): ProcsAndTriggers["procs"] {
-    const initialState = {
+    const acc = {
       total: 0,
       low: 0,
       medium: 0,
@@ -80,7 +80,7 @@ export class DatabaseReportDataProvider {
       list: [] as ReturnType<typeof this.mapItemToReportFormat>[],
     };
 
-    return items.reduce((acc, item) => {
+    for (const item of items) {
       const complexity = this.normalizeComplexity(item.complexity, item.name);
 
       acc.total++;
@@ -96,9 +96,9 @@ export class DatabaseReportDataProvider {
           break;
       }
       acc.list.push(this.mapItemToReportFormat(item, type));
+    }
 
-      return acc;
-    }, initialState);
+    return acc;
   }
 
   /**

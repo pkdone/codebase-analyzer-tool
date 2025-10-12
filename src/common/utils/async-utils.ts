@@ -28,26 +28,26 @@ export async function processItemsConcurrently<T, R>(
   const limit = pLimit(concurrency);
   const tasks = items.map(async (item) => limit(async () => processor(item)));
   const results = await Promise.allSettled(tasks);
-  const { successes, failures } = results.reduce(
-    (acc, result, index) => {
-      if (result.status === "fulfilled") {
-        acc.successes++;
-      } else {
-        acc.failures++;
-        // Use JSON.stringify for better object logging, with a fallback for circular references
-        let itemIdentifier: string;
-        try {
-          itemIdentifier = JSON.stringify(items[index]);
-        } catch {
-          itemIdentifier = String(items[index]);
-        }
-        const reason: unknown = result.reason; // treat promise rejection reason defensively
-        logErrorMsgAndDetail(`Failed to process ${itemName}: ${itemIdentifier}`, reason);
+  let successes = 0;
+  let failures = 0;
+
+  for (const [index, result] of results.entries()) {
+    if (result.status === "fulfilled") {
+      successes++;
+    } else {
+      failures++;
+      let itemIdentifier: string;
+
+      try {
+        itemIdentifier = JSON.stringify(items[index]);
+      } catch {
+        itemIdentifier = String(items[index]);
       }
-      return acc;
-    },
-    { successes: 0, failures: 0 },
-  );
+      const reason: unknown = result.reason; // treat promise rejection reason defensively
+      logErrorMsgAndDetail(`Failed to process ${itemName}: ${itemIdentifier}`, reason);
+    }
+  }
+
   console.log(
     `Processed ${items.length} ${itemName}s. Succeeded: ${successes}, Failed: ${failures}`,
   );

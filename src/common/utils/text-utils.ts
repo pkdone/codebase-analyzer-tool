@@ -20,4 +20,3 @@ export function convertToDisplayName(text: string): string {
 export function joinArrayWithSeparators(lines: string[], separator = "\n", prefix = ""): string {
   return lines.map((line) => `${prefix}${line}`).join(separator);
 }
-

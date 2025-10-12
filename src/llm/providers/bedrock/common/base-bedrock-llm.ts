@@ -111,9 +111,8 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const fullParameters = this.buildFullLLMParameters(taskType, modelKey, prompt);
     const command = new InvokeModelCommand(fullParameters);
     const rawResponse = await this.client.send(command);
-    const llmResponse: unknown = JSON.parse(
-      Buffer.from(rawResponse.body).toString(appConfig.UTF8_ENCODING),
-    );
+    const jsonString = new TextDecoder(appConfig.UTF8_ENCODING).decode(rawResponse.body);
+    const llmResponse: unknown = JSON.parse(jsonString);
 
     if (taskType === LLMPurpose.EMBEDDINGS) {
       return this.extractEmbeddingModelSpecificResponse(llmResponse);

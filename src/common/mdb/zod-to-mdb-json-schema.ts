@@ -30,8 +30,7 @@ const mongoSchemaOptions = {
     // Check for BSON-specific descriptions
     if (hasDescription(def)) {
       if (def.description === "bson:objectId") return { bsonType: "objectId" } as JsonSchema7Type;
-      if (def.description === "bson:decimal128")
-        return { bsonType: "decimal" } as JsonSchema7Type;
+      if (def.description === "bson:decimal128") return { bsonType: "decimal" } as JsonSchema7Type;
     }
 
     // Check for ZodDate type

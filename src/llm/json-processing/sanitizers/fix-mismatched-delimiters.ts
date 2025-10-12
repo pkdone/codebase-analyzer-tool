@@ -46,21 +46,12 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
   let inString = false;
   let escapeNext = false;
 
-  // Helper to peek at next non-whitespace character
+  // Helper to peek at next non-whitespace, non-comma character
   const peekNextNonWhitespace = (startIdx: number): string | null => {
-    for (let j = startIdx + 1; j < input.length; j++) {
-      const c = input[j];
-      if (
-        c !== DELIMITERS.SPACE &&
-        c !== DELIMITERS.NEWLINE &&
-        c !== DELIMITERS.CARRIAGE_RETURN &&
-        c !== DELIMITERS.TAB &&
-        c !== DELIMITERS.COMMA
-      ) {
-        return c;
-      }
-    }
-    return null;
+    const remaining = input.substring(startIdx + 1);
+    const regex = /[^\s,]/; // Match any character that is NOT whitespace or comma
+    const match = regex.exec(remaining);
+    return match ? match[0] : null;
   };
 
   // First pass: identify all mismatched delimiters

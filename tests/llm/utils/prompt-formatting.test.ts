@@ -207,4 +207,3 @@ describe("prompt-formatting", () => {
     });
   });
 });
-

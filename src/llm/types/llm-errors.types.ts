@@ -5,8 +5,8 @@ export abstract class LLMError extends Error {
   /**
    * Constructor.
    */
-  constructor(name: string, message: string) {
-    super(message);
+  constructor(name: string, message: string, options?: ErrorOptions) {
+    super(message, options);
     this.name = name;
   }
 
@@ -32,8 +32,8 @@ export class BadResponseContentLLMError extends LLMError {
   /**
    * Constructor.
    */
-  constructor(message: string, content?: unknown) {
-    super(BadResponseContentLLMError.name, LLMError.buildMessage(message, content));
+  constructor(message: string, content?: unknown, options?: ErrorOptions) {
+    super(BadResponseContentLLMError.name, LLMError.buildMessage(message, content), options);
     this.content = JSON.stringify(content);
   }
 }
@@ -51,8 +51,8 @@ export class BadResponseMetadataLLMError extends LLMError {
   /**
    * Constructor.
    */
-  constructor(message: string, metadata?: unknown) {
-    super(BadResponseMetadataLLMError.name, LLMError.buildMessage(message, metadata));
+  constructor(message: string, metadata?: unknown, options?: ErrorOptions) {
+    super(BadResponseMetadataLLMError.name, LLMError.buildMessage(message, metadata), options);
     this.metadata = JSON.stringify(metadata);
   }
 }
@@ -69,8 +69,8 @@ export class BadConfigurationLLMError extends LLMError {
   /**
    * Constructor.
    */
-  constructor(message: string, config?: unknown) {
-    super(BadConfigurationLLMError.name, LLMError.buildMessage(message, config));
+  constructor(message: string, config?: unknown, options?: ErrorOptions) {
+    super(BadConfigurationLLMError.name, LLMError.buildMessage(message, config), options);
     this.config = JSON.stringify(config);
   }
 }
@@ -87,8 +87,8 @@ export class RejectionResponseLLMError extends LLMError {
   /**
    * Constructor.
    */
-  constructor(message: string, reason?: unknown) {
-    super(RejectionResponseLLMError.name, LLMError.buildMessage(message, reason));
+  constructor(message: string, reason?: unknown, options?: ErrorOptions) {
+    super(RejectionResponseLLMError.name, LLMError.buildMessage(message, reason), options);
     this.reason = JSON.stringify(reason);
   }
 }
@@ -150,7 +150,9 @@ export class JsonProcessingError extends LLMError {
       appliedSanitizers,
       underlyingError: underlyingError?.message,
     };
-    super(JsonProcessingError.name, LLMError.buildMessage(message, context));
+    super(JsonProcessingError.name, LLMError.buildMessage(message, context), {
+      cause: underlyingError,
+    });
     this.type = type;
     this.originalContent = originalContent;
     this.sanitizedContent = sanitizedContent;

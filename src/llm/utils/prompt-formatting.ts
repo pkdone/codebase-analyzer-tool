@@ -32,4 +32,3 @@ export function formatSourcesForPrompt(
     .map((fileMetadata) => `\`\`\`${fileMetadata.type}\n${fileMetadata.content}\n\`\`\`\n\n`)
     .join("");
 }
-

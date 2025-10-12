@@ -8,7 +8,7 @@ import {
 
 /**
  * Unit tests for BedrockLlamaLLM - Type Safety Improvements
- * 
+ *
  * These tests verify that the provider-specific configuration is accessed
  * in a type-safe manner without unsafe double type assertions.
  */
@@ -36,20 +36,15 @@ describe("BedrockLlamaLLM - Type Safety", () => {
   };
 
   it("should safely access maxGenLenCap from provider config", () => {
-    const llm = new BedrockLlamaLLM(
-      mockModelKeysSet,
-      mockModelsMetadata,
-      [],
-      {
-        providerSpecificConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 10000,
-          maxGenLenCap: 2048,
-        },
+    const llm = new BedrockLlamaLLM(mockModelKeysSet, mockModelsMetadata, [], {
+      providerSpecificConfig: {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: 2048,
       },
-    );
+    });
 
     // Access the protected method via type assertion to test it
     const requestBody = (llm as any).buildCompletionRequestBody(
@@ -82,20 +77,15 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       },
     };
 
-    const llm = new BedrockLlamaLLM(
-      mockModelKeysSet,
-      modelsMetadataWithLowMax,
-      [],
-      {
-        providerSpecificConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 10000,
-          maxGenLenCap: 2048,
-        },
+    const llm = new BedrockLlamaLLM(mockModelKeysSet, modelsMetadataWithLowMax, [], {
+      providerSpecificConfig: {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: 2048,
       },
-    );
+    });
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
@@ -137,20 +127,15 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       primaryCompletionModelKey: "SOME_OTHER_MODEL",
     };
 
-    const llm = new BedrockLlamaLLM(
-      nonLlamaKeysSet,
-      nonLlamaMetadata,
-      [],
-      {
-        providerSpecificConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 10000,
-          maxGenLenCap: 2048,
-        },
+    const llm = new BedrockLlamaLLM(nonLlamaKeysSet, nonLlamaMetadata, [], {
+      providerSpecificConfig: {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: 2048,
       },
-    );
+    });
 
     const requestBody = (llm as any).buildCompletionRequestBody("SOME_OTHER_MODEL", "test prompt");
 
@@ -158,4 +143,3 @@ describe("BedrockLlamaLLM - Type Safety", () => {
     expect(requestBody.max_gen_len).toBeUndefined();
   });
 });
-
