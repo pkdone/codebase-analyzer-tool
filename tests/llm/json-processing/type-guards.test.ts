@@ -1,9 +1,7 @@
 import {
   isJsonObject,
   isJsonArray,
-  isValidJsonString,
   isString,
-  isNonEmptyString,
   isFiniteNumber,
   isBoolean,
   isNull,
@@ -63,31 +61,6 @@ describe("Type Guards", () => {
     });
   });
 
-  describe("isValidJsonString", () => {
-    it("returns true for valid JSON strings", () => {
-      expect(isValidJsonString('{"key":"value"}')).toBe(true);
-      expect(isValidJsonString('["a","b","c"]')).toBe(true);
-      expect(isValidJsonString('"string"')).toBe(true);
-      expect(isValidJsonString("123")).toBe(true);
-      expect(isValidJsonString("true")).toBe(true);
-      expect(isValidJsonString("null")).toBe(true);
-    });
-
-    it("returns false for invalid JSON strings", () => {
-      expect(isValidJsonString("{key:value}")).toBe(false);
-      expect(isValidJsonString('{"key":"value"')).toBe(false);
-      expect(isValidJsonString("not json")).toBe(false);
-      expect(isValidJsonString("undefined")).toBe(false);
-    });
-
-    it("returns true for complex nested JSON", () => {
-      const complex = JSON.stringify({
-        nested: { array: [1, 2, 3], object: { key: "value" } },
-      });
-      expect(isValidJsonString(complex)).toBe(true);
-    });
-  });
-
   describe("isString", () => {
     it("returns true for strings", () => {
       expect(isString("")).toBe(true);
@@ -112,24 +85,6 @@ describe("Type Guards", () => {
         const upper: string = value.toUpperCase();
         expect(upper).toBe("TEST");
       }
-    });
-  });
-
-  describe("isNonEmptyString", () => {
-    it("returns true for non-empty strings", () => {
-      expect(isNonEmptyString("hello")).toBe(true);
-      expect(isNonEmptyString("a")).toBe(true);
-      expect(isNonEmptyString(" ")).toBe(true);
-    });
-
-    it("returns false for empty strings", () => {
-      expect(isNonEmptyString("")).toBe(false);
-    });
-
-    it("returns false for non-strings", () => {
-      expect(isNonEmptyString(123)).toBe(false);
-      expect(isNonEmptyString(null)).toBe(false);
-      expect(isNonEmptyString(undefined)).toBe(false);
     });
   });
 

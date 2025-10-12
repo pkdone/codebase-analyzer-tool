@@ -38,27 +38,6 @@ export function isJsonArray(value: unknown): value is unknown[] {
 }
 
 /**
- * Type guard to check if a string contains valid JSON syntax.
- * Note: This performs actual parsing, so use sparingly in hot paths.
- *
- * @param value - The string to check
- * @returns true if the string can be parsed as valid JSON
- *
- * @example
- * if (isValidJsonString(content)) {
- *   const parsed = JSON.parse(content); // Safe to parse
- * }
- */
-export function isValidJsonString(value: string): boolean {
-  try {
-    JSON.parse(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Type guard to check if a value is a string.
  *
  * @param value - The value to check
@@ -74,22 +53,6 @@ export function isValidJsonString(value: string): boolean {
  */
 export function isString(value: unknown): value is string {
   return typeof value === "string";
-}
-
-/**
- * Type guard to check if a value is a non-empty string.
- *
- * @param value - The value to check
- * @returns true if value is a string with length > 0
- *
- * @example
- * if (isNonEmptyString(input)) {
- *   // input is guaranteed to be a non-empty string
- *   processText(input);
- * }
- */
-export function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.length > 0;
 }
 
 /**

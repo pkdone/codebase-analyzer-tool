@@ -22,10 +22,6 @@ const AWS_COMPLETIONS_CLAUDE_V37 = "AWS_COMPLETIONS_CLAUDE_V37";
 export const AWS_COMPLETIONS_CLAUDE_V40 = "AWS_COMPLETIONS_CLAUDE_V40";
 
 /**
- * AWS_COMPLETIONS_CLAUDE_V35: According to Anthropic site, the 'maxCompletionsTokens' should be
- * 8192 but Bedrock seems to cut this short to usually 4095 or 4096 but have seen 4090 reported for
- * some LLM responses, so using a few tokens buffer to come up with a limit of 4088
- *
  * AWS_COMPLETIONS_CLAUDE_V40: Bedrock seems to be limiting the max model response tokens to around
  * 39k when it should be 64k, and when its over 39k an "overloaded" response is always returned.
  */
