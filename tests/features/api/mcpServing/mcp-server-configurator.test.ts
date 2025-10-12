@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import McpDataServer from "../../../../src/components/api/mcpServing/mcp-server-configurator";
+import McpServerFactory from "../../../../src/components/api/mcpServing/mcp-server-configurator";
 import type InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-provider";
 import { mcpConfig } from "../../../../src/config/features/mcp.config";
 
@@ -10,8 +10,8 @@ jest.mock("@modelcontextprotocol/sdk/server/mcp.js", () => ({
   ResourceTemplate: jest.fn(),
 }));
 
-describe("McpDataServer", () => {
-  let mcpDataServer: McpDataServer;
+describe("McpServerFactory", () => {
+  let mcpServerFactory: McpServerFactory;
   let mockInsightsDataProvider: jest.Mocked<InsightsDataProvider>;
   let mockMcpServer: jest.Mocked<McpServer>;
   let mockGetBusinessProcesses: jest.MockedFunction<() => Promise<unknown>>;
@@ -40,7 +40,7 @@ describe("McpDataServer", () => {
     (ResourceTemplate as jest.Mock).mockImplementation(() => mockResourceTemplate);
 
     // Create instance
-    mcpDataServer = new McpDataServer(mockInsightsDataProvider);
+    mcpServerFactory = new McpServerFactory(mockInsightsDataProvider);
   });
 
   afterEach(() => {
@@ -50,7 +50,7 @@ describe("McpDataServer", () => {
   describe("configure", () => {
     it("should create an MCP server with correct configuration", () => {
       // Act
-      mcpDataServer.configure();
+      mcpServerFactory.configure();
 
       // Assert
       expect(McpServer).toHaveBeenCalledWith({
@@ -61,7 +61,7 @@ describe("McpDataServer", () => {
 
     it("should register the business processes resource with correct parameters", () => {
       // Act
-      mcpDataServer.configure();
+      mcpServerFactory.configure();
 
       // Assert
       expect(ResourceTemplate).toHaveBeenCalledWith(mcpConfig.BUSPROCS_RSC_TEMPLATE, {
@@ -82,7 +82,7 @@ describe("McpDataServer", () => {
 
     it("should return the configured MCP server", () => {
       // Act
-      const result = mcpDataServer.configure();
+      const result = mcpServerFactory.configure();
 
       // Assert
       expect(result).toBe(mockMcpServer);
@@ -97,7 +97,7 @@ describe("McpDataServer", () => {
       mockGetBusinessProcesses.mockResolvedValue(mockBusinessProcesses);
 
       // Act
-      mcpDataServer.configure();
+      mcpServerFactory.configure();
 
       // Extract the resource handler function from the mock call
       const registerResourceCall = mockRegisterResource.mock.calls[0];
@@ -127,7 +127,7 @@ describe("McpDataServer", () => {
       mockGetBusinessProcesses.mockRejectedValue(mockError);
 
       // Act
-      mcpDataServer.configure();
+      mcpServerFactory.configure();
 
       // Extract the resource handler function from the mock call
       const registerResourceCall = mockRegisterResource.mock.calls[0];

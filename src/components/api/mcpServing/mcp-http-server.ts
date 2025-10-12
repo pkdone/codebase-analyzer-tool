@@ -8,7 +8,7 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { logErrorMsgAndDetail } from "../../../common/utils/logging";
 import { mcpConfig } from "../../../config/features/mcp.config";
 import { httpConfig } from "../../../config/http.config";
-import McpServerConfigurator from "./mcp-server-configurator";
+import McpServerFactory from "./mcp-server-configurator";
 import { TOKENS } from "../../../tokens";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
@@ -32,9 +32,9 @@ export default class McpHttpServer {
    * Constructor.
    */
   constructor(
-    @inject(TOKENS.McpDataServer) private readonly mcpServerConfigurator: McpServerConfigurator,
+    @inject(TOKENS.McpServerFactory) private readonly mcpServerFactory: McpServerFactory,
   ) {
-    this.mcpServer = this.mcpServerConfigurator.configure();
+    this.mcpServer = this.mcpServerFactory.configure();
   }
 
   /**

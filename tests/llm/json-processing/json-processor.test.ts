@@ -21,7 +21,7 @@ describe("JsonProcessor", () => {
     });
   });
 
-  describe("parseAndValidate", () => {
+  describe("processJson", () => {
     const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
     describe("basic functionality", () => {

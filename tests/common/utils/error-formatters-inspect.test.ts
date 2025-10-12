@@ -1,10 +1,10 @@
-import { formatErrorMessage } from "../../../src/common/utils/error-formatters";
+import { formatError } from "../../../src/common/utils/error-formatters";
 
 describe("error-formatters - util.inspect integration", () => {
-  describe("formatErrorMessage with util.inspect", () => {
+  describe("formatError with util.inspect", () => {
     test("should handle Error instances", () => {
       const error = new Error("Test error");
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toBe("Error. Test error");
     });
@@ -17,7 +17,7 @@ describe("error-formatters - util.inspect integration", () => {
         }
       }
       const error = new CustomError("Custom error message");
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("CustomError");
       expect(result).toContain("Custom error message");
@@ -25,19 +25,19 @@ describe("error-formatters - util.inspect integration", () => {
 
     test("should handle objects with message property", () => {
       const error = { message: "Error object" };
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toBe("<unknown-type>. Error object");
     });
 
     test("should handle null/undefined", () => {
-      expect(formatErrorMessage(null)).toBe("<unknown-type>. No error message available");
-      expect(formatErrorMessage(undefined)).toBe("<unknown-type>. No error message available");
+      expect(formatError(null)).toBe("<unknown-type>. No error message available");
+      expect(formatError(undefined)).toBe("<unknown-type>. No error message available");
     });
 
     test("should use util.inspect for plain objects", () => {
       const error = { code: 500, status: "Internal Error", details: { nested: "value" } };
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("code");
@@ -51,7 +51,7 @@ describe("error-formatters - util.inspect integration", () => {
       error.self = error; // Create circular reference
 
       // This should not throw with util.inspect
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("CircularError");
@@ -61,7 +61,7 @@ describe("error-formatters - util.inspect integration", () => {
 
     test("should handle arrays", () => {
       const error = [1, 2, 3, "error", { nested: true }];
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("1");
@@ -69,14 +69,14 @@ describe("error-formatters - util.inspect integration", () => {
     });
 
     test("should handle primitive types", () => {
-      expect(formatErrorMessage("string error")).toContain("string error");
-      expect(formatErrorMessage(42)).toContain("42");
-      expect(formatErrorMessage(true)).toContain("true");
+      expect(formatError("string error")).toContain("string error");
+      expect(formatError(42)).toContain("42");
+      expect(formatError(true)).toContain("true");
     });
 
     test("should handle symbols", () => {
       const sym = Symbol("test");
-      const result = formatErrorMessage(sym);
+      const result = formatError(sym);
 
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("Symbol(test)");
@@ -95,7 +95,7 @@ describe("error-formatters - util.inspect integration", () => {
         },
       };
 
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("level1");
@@ -111,7 +111,7 @@ describe("error-formatters - util.inspect integration", () => {
         staticValue: "static",
       };
 
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("<unknown-type>.");
       // util.inspect should show getters
@@ -129,7 +129,7 @@ describe("error-formatters - util.inspect integration", () => {
         enumerable: true,
       });
 
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("visible");
@@ -139,7 +139,7 @@ describe("error-formatters - util.inspect integration", () => {
 
     test("should format on single line with breakLength: Infinity", () => {
       const error = { a: 1, b: 2, c: 3, d: 4, e: 5 };
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       // Should not contain multiple lines (no newlines except at boundaries)
       const contentPart = result.split("<unknown-type>. ")[1];
@@ -152,17 +152,17 @@ describe("error-formatters - util.inspect integration", () => {
         ["key1", "value1"],
         ["key2", "value2"],
       ]);
-      const resultMap = formatErrorMessage(errorMap);
+      const resultMap = formatError(errorMap);
       expect(resultMap).toContain("Map");
 
       const errorSet = new Set([1, 2, 3]);
-      const resultSet = formatErrorMessage(errorSet);
+      const resultSet = formatError(errorSet);
       expect(resultSet).toContain("Set");
     });
 
     test("should handle Date objects", () => {
       const error = new Date("2023-01-01");
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("2023");
@@ -170,7 +170,7 @@ describe("error-formatters - util.inspect integration", () => {
 
     test("should handle RegExp objects", () => {
       const error = /test-pattern/gi;
-      const result = formatErrorMessage(error);
+      const result = formatError(error);
 
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("test-pattern");

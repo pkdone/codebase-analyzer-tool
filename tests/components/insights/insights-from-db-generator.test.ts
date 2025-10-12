@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
-import { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
+import { AppSummaryRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
@@ -16,7 +16,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
 
 describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   let generator: InsightsFromDBGenerator;
-  let mockAppSummariesRepository: jest.Mocked<AppSummariesRepository>;
+  let mockAppSummaryRepository: jest.Mocked<AppSummaryRepository>;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockLLMProviderManager: jest.Mocked<LLMProviderManager>;
@@ -38,12 +38,12 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     jest.clearAllMocks();
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
 
-    mockAppSummariesRepository = {
+    mockAppSummaryRepository = {
       createOrReplaceAppSummary: jest.fn().mockResolvedValue(undefined),
       updateAppSummary: jest.fn().mockResolvedValue(undefined),
       getAppSummary: jest.fn(),
       deleteAppSummary: jest.fn(),
-    } as unknown as jest.Mocked<AppSummariesRepository>;
+    } as unknown as jest.Mocked<AppSummaryRepository>;
 
     mockSourcesRepository = {
       getProjectSourcesSummaries: jest.fn().mockResolvedValue([]),
@@ -59,7 +59,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     } as unknown as jest.Mocked<LLMProviderManager>;
 
     generator = new InsightsFromDBGenerator(
-      mockAppSummariesRepository,
+      mockAppSummaryRepository,
       mockLLMRouter,
       mockSourcesRepository,
       "test-project",
@@ -215,7 +215,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
         }),
       );
 
-      expect(mockAppSummariesRepository.updateAppSummary).toHaveBeenCalledWith(
+      expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalledWith(
         "test-project",
         mockResponse,
       );
@@ -260,7 +260,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       );
       expect(reduceCallIndex).toBeGreaterThanOrEqual(0);
 
-      expect(mockAppSummariesRepository.updateAppSummary).toHaveBeenCalledWith(
+      expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalledWith(
         "test-project",
         mockFinalResult,
       );
@@ -281,7 +281,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       await (generator as any).generateAndRecordDataForCategory("entities", summaries);
 
       // Should still proceed to REDUCE with the one valid result
-      expect(mockAppSummariesRepository.updateAppSummary).toHaveBeenCalled();
+      expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalled();
       expect(logging.logWarningMsg).not.toHaveBeenCalledWith(
         expect.stringContaining("No partial insights were generated"),
       );
@@ -299,7 +299,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       await (generator as any).generateAndRecordDataForCategory("entities", summaries);
 
       // Should not call updateAppSummary
-      expect(mockAppSummariesRepository.updateAppSummary).not.toHaveBeenCalled();
+      expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
       expect(logging.logWarningMsg).toHaveBeenCalledWith(
         expect.stringContaining("No partial insights were generated"),
       );
@@ -319,7 +319,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
       await (generator as any).generateAndRecordDataForCategory("entities", summaries);
 
-      expect(mockAppSummariesRepository.updateAppSummary).not.toHaveBeenCalled();
+      expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
       expect(logging.logWarningMsg).toHaveBeenCalledWith(
         expect.stringContaining("Failed to generate final consolidated summary"),
       );
@@ -360,13 +360,13 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       await generator.generateAndStoreInsights();
 
       // Verify app summary was created
-      expect(mockAppSummariesRepository.createOrReplaceAppSummary).toHaveBeenCalledWith({
+      expect(mockAppSummaryRepository.createOrReplaceAppSummary).toHaveBeenCalledWith({
         projectName: "test-project",
         llmProvider: "TestLLM (GPT-4)",
       });
 
       // Verify updates were made for categories (8 categories total)
-      expect(mockAppSummariesRepository.updateAppSummary).toHaveBeenCalled();
+      expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalled();
     });
 
     it("should throw error when no source summaries exist", async () => {

@@ -1,4 +1,4 @@
-import { AppSummariesRepository } from "./app-summaries.repository.interface";
+import { AppSummaryRepository } from "./app-summaries.repository.interface";
 import {
   AppSummaryRecordWithId,
   PartialAppSummaryRecord,
@@ -13,12 +13,12 @@ import { TOKENS } from "../../tokens";
 import { inject, injectable } from "tsyringe";
 
 /**
- * MongoDB implementation of the App Summaries repository
+ * MongoDB implementation of the App Summary repository
  */
 @injectable()
-export default class AppSummariesRepositoryImpl
+export default class AppSummaryRepositoryImpl
   extends BaseRepository<AppSummaryRecordWithId>
-  implements AppSummariesRepository
+  implements AppSummaryRepository
 {
   /**
    * Constructor.

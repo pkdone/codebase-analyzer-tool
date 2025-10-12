@@ -5,9 +5,9 @@ import {
 } from "./app-summaries.model";
 
 /**
- * Interface for the App Summaries repository
+ * Interface for the App Summary repository
  */
-export interface AppSummariesRepository {
+export interface AppSummaryRepository {
   /**
    * Create or replace an app summary record
    */

@@ -7,7 +7,7 @@ import { outputConfig } from "../output.config";
 export const reportSectionsConfig = {
   /**
    * All required app summary fields for report generation.
-   * This includes fields needed by both AppStatisticsDataProvider and CategoriesDataProvider.
+   * This includes fields needed by both AppStatisticsDataProvider and AppSummaryCategoriesProvider.
    */
   allRequiredAppSummaryFields: [
     "appDescription",

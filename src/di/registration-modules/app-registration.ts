@@ -3,9 +3,9 @@ import { TOKENS } from "../../tokens";
 
 // Repository imports
 import SourcesRepositoryImpl from "../../repositories/source/sources.repository";
-import AppSummariesRepositoryImpl from "../../repositories/app-summary/app-summaries.repository";
+import AppSummaryRepositoryImpl from "../../repositories/app-summary/app-summaries.repository";
 import { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import { AppSummaryRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 
 // Domain-specific registration functions
 import {
@@ -70,9 +70,9 @@ function registerRepositories(): void {
   // Register repositories as singletons
   container.registerSingleton<SourcesRepository>(TOKENS.SourcesRepository, SourcesRepositoryImpl);
 
-  container.registerSingleton<AppSummariesRepository>(
-    TOKENS.AppSummariesRepository,
-    AppSummariesRepositoryImpl,
+  container.registerSingleton<AppSummaryRepository>(
+    TOKENS.AppSummaryRepository,
+    AppSummaryRepositoryImpl,
   );
 
   console.log("Repositories registered");

@@ -21,7 +21,7 @@ import {
   LLMOutputFormat,
 } from "../../../types/llm.types";
 import { logWarningMsg, logErrorMsgAndDetail } from "../../../../common/utils/logging";
-import { formatErrorMessage } from "../../../../common/utils/error-formatters";
+import { formatError } from "../../../../common/utils/error-formatters";
 import AbstractLLM from "../../abstract-llm";
 import {
   BadConfigurationLLMError,
@@ -30,7 +30,7 @@ import {
 } from "../../../types/llm-errors.types";
 import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { zodToJsonSchemaWithoutSchemaProperty } from "../../../../common/mdb/utils/json-schema-utils";
+import { toMongoJsonSchema } from "../../../../common/mdb/utils/json-schema-utils";
 
 /**
  * Configuration object for VertexAI Gemini LLM provider.
@@ -137,7 +137,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    */
   protected isLLMOverloaded(error: unknown) {
     if (error instanceof Error) {
-      const errMsg = formatErrorMessage(error).toLowerCase() || "";
+      const errMsg = formatError(error).toLowerCase() || "";
       if (error instanceof GoogleApiError && error.code === 429) return true;
       if (error instanceof ClientError && errMsg.includes("429 too many requests")) return true;
 
@@ -160,7 +160,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    */
   protected isTokenLimitExceeded(error: unknown) {
     if (error instanceof Error) {
-      const errMsg = formatErrorMessage(error).toLowerCase() || "";
+      const errMsg = formatError(error).toLowerCase() || "";
       if (error instanceof ClientError && errMsg.includes("exceeds the maximum number of tokens"))
         return true;
       if (
@@ -270,7 +270,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       // schema definiton elements that the Vertex AI API chokes on - otherwise VertexAI throws
       // ClientError - INVALID_ARGUMENT - fieldViolations errors
       if (options.jsonSchema && !options.hasComplexSchema) {
-        const jsonSchema = zodToJsonSchemaWithoutSchemaProperty(options.jsonSchema);
+        const jsonSchema = toMongoJsonSchema(options.jsonSchema);
 
         if (isVertexAICompatibleSchema(jsonSchema)) {
           generationConfig.responseSchema = jsonSchema;

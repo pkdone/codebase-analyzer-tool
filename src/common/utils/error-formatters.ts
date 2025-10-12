@@ -8,10 +8,11 @@ function hasMessageProperty(obj: unknown): obj is { message: unknown } {
 }
 
 /**
- * Get the error text from a thrown variable which may or may not be an Error object.
+ * Formats an error for logging by serializing it to a string.
+ * Handles Error instances, plain objects with message properties, and primitives.
  * Uses util.inspect for robust serialization that handles circular references.
  */
-export function formatErrorMessage(error: unknown): string {
+export function formatError(error: unknown): string {
   if (!error) return "<unknown-type>. No error message available";
   if (error instanceof Error) return `${error.constructor.name}. ${error.message}`;
   if (hasMessageProperty(error)) return `<unknown-type>. ${String(error.message)}`;
@@ -26,7 +27,7 @@ export function formatErrorMessage(error: unknown): string {
  */
 export function formatErrorMessageAndDetail(msg: string | null, error: unknown): string {
   const prefix = msg ? `${msg}: ` : "";
-  return `${prefix}${formatErrorMessage(error)}\n-\n${getErrorStack(error)}`;
+  return `${prefix}${formatError(error)}\n-\n${getErrorStack(error)}`;
 }
 
 /**

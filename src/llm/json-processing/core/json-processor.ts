@@ -102,8 +102,8 @@ export class JsonProcessor {
   }
 
   /**
-   * Convert text content to JSON, trimming the content to only include the JSON part and optionally
-   * validate it against a Zod schema. Returns a result object indicating success or failure.
+   * Processes LLM-generated content through a multi-stage sanitization and repair pipeline,
+   * then parses and validates it against a Zod schema. Returns a result object indicating success or failure.
    */
   parseAndValidate<T = Record<string, unknown>>(
     content: LLMGeneratedContent,
@@ -141,7 +141,7 @@ export class JsonProcessor {
     const appliedSteps: string[] = [];
     const allDiagnostics: string[] = [];
 
-    const result = this._runPipelineLoop<T>(
+    const result = this.runPipelineLoop<T>(
       originalContent,
       resourceName,
       completionOptions,
@@ -184,7 +184,7 @@ export class JsonProcessor {
    * to parse after each change. Returns success with data if parsing succeeds, or
    * returns failure info if all sanitizers are exhausted.
    */
-  private _runPipelineLoop<T>(
+  private runPipelineLoop<T>(
     originalContent: string,
     resourceName: string,
     completionOptions: LLMCompletionOptions,
@@ -216,10 +216,7 @@ export class JsonProcessor {
         resourceName,
         completionOptions,
       );
-
-      if (parseResult.success) {
-        return { success: true, data: parseResult.data };
-      }
+      if (parseResult.success) return { success: true, data: parseResult.data };
 
       // Validation error - stop immediately (sanitizers can't fix schema issues)
       if (parseResult.errorType === "validation") {
@@ -266,25 +263,10 @@ export class JsonProcessor {
     resourceName: string,
     completionOptions: LLMCompletionOptions,
   ): ParseAndValidateResult<T> {
-    const parseResult = this._tryParse(content);
-    if (!parseResult.success) {
-      return parseResult;
-    }
+    let parsedContent: unknown;
 
-    return this._applyTransformsAndValidate<T>(parseResult.data, resourceName, completionOptions);
-  }
-
-  /**
-   * Attempts to parse a string as JSON, catching and wrapping any parse errors.
-   */
-  private _tryParse(
-    content: string,
-  ):
-    | { success: true; data: unknown }
-    | { success: false; errorType: ParseErrorType; error: Error } {
     try {
-      const parsedContent: unknown = JSON.parse(content);
-      return { success: true, data: parsedContent };
+      parsedContent = JSON.parse(content);
     } catch (err) {
       const parseErrorType: ParseErrorType = "parse";
       return {
@@ -293,17 +275,18 @@ export class JsonProcessor {
         error: err instanceof Error ? err : new Error(String(err)),
       };
     }
+
+    return this.applyTransformsAndValidate<T>(parsedContent, resourceName, completionOptions);
   }
 
   /**
    * Applies post-parse transformations and validates the data against the schema.
    */
-  private _applyTransformsAndValidate<T>(
+  private applyTransformsAndValidate<T>(
     parsedData: unknown,
     resourceName: string,
     completionOptions: LLMCompletionOptions,
   ): ParseAndValidateResult<T> {
-    // Apply post-parse transformations
     let transformedContent = parsedData;
 
     for (const transform of this.POST_PARSE_TRANSFORMS) {

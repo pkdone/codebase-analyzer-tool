@@ -5,10 +5,10 @@ import { mcpConfig } from "../../../config/features/mcp.config";
 import { TOKENS } from "../../../tokens";
 
 /**
- * Class for configuring the MCP server with data providers and resources.
+ * Factory class for creating and configuring MCP server instances.
  */
 @injectable()
-export default class McpServerConfigurator {
+export default class McpServerFactory {
   /**
    * Constructor.
    */

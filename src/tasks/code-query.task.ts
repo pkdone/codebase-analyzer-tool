@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readAndFilterLines } from "../common/fs/file-content-utils";
-import { formatErrorMessage } from "../common/utils/error-formatters";
+import { formatError } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
 import { TOKENS } from "../tokens";
@@ -48,7 +48,7 @@ export class CodebaseQueryTask implements Task {
         );
       } else {
         console.error(
-          `\n---------------\nFAILED QUESTION: ${question}\n\nERROR: ${formatErrorMessage(result.reason)}\n---------------\n`,
+          `\n---------------\nFAILED QUESTION: ${question}\n\nERROR: ${formatError(result.reason)}\n---------------\n`,
         );
       }
     });

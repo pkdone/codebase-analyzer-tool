@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { MongoClient, Collection } from "mongodb";
-import AppSummariesRepositoryImpl from "../../src/repositories/app-summary/app-summaries.repository";
+import AppSummaryRepositoryImpl from "../../src/repositories/app-summary/app-summaries.repository";
 import {
   AppSummaryRecord,
   PartialAppSummaryRecord,
@@ -13,8 +13,8 @@ jest.mock("../../src/common/mdb/mdb-error-utils");
 
 const mockMdbErrorUtils = mdbErrorUtils as jest.Mocked<typeof mdbErrorUtils>;
 
-describe("AppSummariesRepositoryImpl", () => {
-  let repository: AppSummariesRepositoryImpl;
+describe("AppSummaryRepositoryImpl", () => {
+  let repository: AppSummaryRepositoryImpl;
   let mockMongoClient: jest.Mocked<MongoClient>;
   let mockCollection: jest.Mocked<Collection>;
 
@@ -36,7 +36,7 @@ describe("AppSummariesRepositoryImpl", () => {
       close: jest.fn(),
     } as unknown as jest.Mocked<MongoClient>;
 
-    repository = new AppSummariesRepositoryImpl(mockMongoClient, "test-db");
+    repository = new AppSummaryRepositoryImpl(mockMongoClient, "test-db");
   });
 
   describe("createOrReplaceAppSummary", () => {

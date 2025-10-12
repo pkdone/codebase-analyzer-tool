@@ -14,7 +14,7 @@ import {
 } from "../../../types/llm.types";
 import { appConfig } from "../../../../config/app.config";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { formatErrorMessage } from "../../../../common/utils/error-formatters";
+import { formatError } from "../../../../common/utils/error-formatters";
 import { logErrorMsgAndDetail } from "../../../../common/utils/logging";
 import AbstractLLM from "../../abstract-llm";
 import { z } from "zod";
@@ -154,7 +154,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       "too large for model",
       "please reduce the length of the prompt",
     ];
-    const lowercaseContent = formatErrorMessage(error).toLowerCase();
+    const lowercaseContent = formatError(error).toLowerCase();
     return errorKeywords.some((keyword) => lowercaseContent.includes(keyword));
   }
 

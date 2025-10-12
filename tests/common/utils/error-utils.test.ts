@@ -1,4 +1,4 @@
-import { formatErrorMessage, getErrorStack } from "../../../src/common/utils/error-formatters";
+import { formatError, getErrorStack } from "../../../src/common/utils/error-formatters";
 
 describe("Error utilities", () => {
   describe("getErrorText", () => {
@@ -27,7 +27,7 @@ describe("Error utilities", () => {
     ];
 
     test.each(errorTextTestData)("with $description", ({ input, expected }) => {
-      expect(formatErrorMessage(input)).toBe(expected);
+      expect(formatError(input)).toBe(expected);
     });
 
     test("with circular reference object", () => {
@@ -35,7 +35,7 @@ describe("Error utilities", () => {
       const circularObj: Record<string, unknown> = { name: "test" };
       circularObj.self = circularObj;
 
-      const result = formatErrorMessage(circularObj);
+      const result = formatError(circularObj);
       // util.inspect handles circular references gracefully with [Circular *1] notation
       expect(result).toContain("<unknown-type>.");
       expect(result).toContain("name");

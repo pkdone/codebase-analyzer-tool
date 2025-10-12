@@ -5,7 +5,7 @@ import { Readable } from "node:stream";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import McpHttpServer from "../../../../src/components/api/mcpServing/mcp-http-server";
-import type McpDataServer from "../../../../src/components/api/mcpServing/mcp-server-configurator";
+import type McpServerFactory from "../../../../src/components/api/mcpServing/mcp-server-configurator";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 // Mock the MCP SDK
@@ -57,7 +57,7 @@ const createMockResponse = (): ServerResponse => {
 
 describe("McpHttpServer Integration Tests", () => {
   let mcpHttpServer: McpHttpServer;
-  let mockMcpDataServer: jest.Mocked<McpDataServer>;
+  let mockMcpServerFactory: jest.Mocked<McpServerFactory>;
   let mockMcpServer: jest.Mocked<McpServer>;
 
   beforeEach(() => {
@@ -67,16 +67,16 @@ describe("McpHttpServer Integration Tests", () => {
       close: jest.fn(),
     } as unknown as jest.Mocked<McpServer>;
 
-    // Mock MCP Data Server
-    mockMcpDataServer = {
+    // Mock MCP Server Factory
+    mockMcpServerFactory = {
       configure: jest.fn().mockReturnValue(mockMcpServer),
-    } as unknown as jest.Mocked<McpDataServer>;
+    } as unknown as jest.Mocked<McpServerFactory>;
 
     // Mock isInitializeRequest
     jest.mocked(isInitializeRequest).mockReturnValue(false);
 
     // Create instance
-    mcpHttpServer = new McpHttpServer(mockMcpDataServer);
+    mcpHttpServer = new McpHttpServer(mockMcpServerFactory);
   });
 
   afterEach(() => {

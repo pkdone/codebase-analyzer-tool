@@ -5,11 +5,11 @@ import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { DatabaseReportDataProvider } from "./data-providers/database-report-data-provider";
 import { CodeStructureDataProvider } from "./data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "./data-providers/app-statistics-data-provider";
-import { CategoriesDataProvider } from "./data-providers/categories-data-provider";
+import { AppSummaryCategoriesProvider } from "./data-providers/categories-data-provider";
 import { DependencyTreePngGenerator } from "./generators/dependency-tree-png-generator";
 import { PieChartGenerator } from "./generators/pie-chart-generator";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummaryRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { ReportData } from "./report-gen.types";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
@@ -31,8 +31,8 @@ export default class AppReportGenerator {
    */
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.AppSummariesRepository)
-    private readonly appSummariesRepository: AppSummariesRepository,
+    @inject(TOKENS.AppSummaryRepository)
+    private readonly appSummariesRepository: AppSummaryRepository,
     @inject(TOKENS.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
     @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
     @inject(TOKENS.DatabaseReportDataProvider)
@@ -41,8 +41,8 @@ export default class AppReportGenerator {
     private readonly codeStructureDataProvider: CodeStructureDataProvider,
     @inject(TOKENS.AppStatisticsDataProvider)
     private readonly appStatsDataProvider: AppStatisticsDataProvider,
-    @inject(TOKENS.CategoriesDataProvider)
-    private readonly categoriesDataProvider: CategoriesDataProvider,
+    @inject(TOKENS.AppSummaryCategoriesProvider)
+    private readonly categoriesDataProvider: AppSummaryCategoriesProvider,
     @inject(TOKENS.DependencyTreePngGenerator)
     private readonly pngGenerator: DependencyTreePngGenerator,
     @inject(TOKENS.PieChartGenerator)

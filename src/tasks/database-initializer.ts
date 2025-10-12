@@ -5,7 +5,7 @@ import { TOKENS } from "../tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/logging";
 import type { SourcesRepository } from "../repositories/source/sources.repository.interface";
-import type { AppSummariesRepository } from "../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummaryRepository } from "../repositories/app-summary/app-summaries.repository.interface";
 import {
   VectorSearchFilter,
   createVectorSearchIndexDefinition,
@@ -36,8 +36,8 @@ export class DatabaseInitializer {
     @inject(TOKENS.MongoClient) private readonly mongoClient: MongoClient,
     @inject(TOKENS.DatabaseName) dbName: string,
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.AppSummariesRepository)
-    private readonly appSummariesRepository: AppSummariesRepository,
+    @inject(TOKENS.AppSummaryRepository)
+    private readonly appSummariesRepository: AppSummaryRepository,
   ) {
     this.db = this.mongoClient.db(dbName);
     this.sourcesCollection = this.db.collection(databaseConfig.SOURCES_COLLECTION_NAME);

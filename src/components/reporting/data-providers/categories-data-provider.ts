@@ -34,10 +34,10 @@ const TABLE_DISPLAY_CATEGORIES = AppSummaryCategories.options.filter(
 type ValidCategoryKey = (typeof TABLE_DISPLAY_CATEGORIES)[number];
 
 /**
- * Data provider responsible for aggregating categorized data for reports.
+ * Data provider responsible for aggregating app summary categorized data for reports.
  */
 @injectable()
-export class CategoriesDataProvider {
+export class AppSummaryCategoriesProvider {
   /**
    * Build categorized data for all categories using pre-fetched app summary data.
    */

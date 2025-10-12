@@ -31,7 +31,7 @@ export class OneShotGenerateInsightsTask extends BaseLLMTask {
   /**
    * Get the task name for logging.
    */
-  protected getTaskActivityDescription(): string {
+  protected getActivityDescription(): string {
     return "Generating insights";
   }
 

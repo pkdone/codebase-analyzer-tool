@@ -1,22 +1,22 @@
 import "reflect-metadata";
 import InsightsDataProvider from "../../../src/components/api/mcpServing/insights-data-provider";
-import type { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummaryRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
 import { AppSummaryCategories } from "../../../src/schemas/app-summaries.schema";
 
 describe("InsightsDataProvider", () => {
   let insightsDataProvider: InsightsDataProvider;
-  let mockAppSummariesRepository: jest.Mocked<AppSummariesRepository>;
+  let mockAppSummaryRepository: jest.Mocked<AppSummaryRepository>;
   const testProjectName = "test-project";
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Create mock repository
-    mockAppSummariesRepository = {
+    mockAppSummaryRepository = {
       getProjectAppSummaryField: jest.fn(),
-    } as unknown as jest.Mocked<AppSummariesRepository>;
+    } as unknown as jest.Mocked<AppSummaryRepository>;
 
-    insightsDataProvider = new InsightsDataProvider(mockAppSummariesRepository, testProjectName);
+    insightsDataProvider = new InsightsDataProvider(mockAppSummaryRepository, testProjectName);
   });
 
   describe("getBusinessProcesses", () => {
@@ -35,13 +35,13 @@ describe("InsightsDataProvider", () => {
         },
       ];
 
-      mockAppSummariesRepository.getProjectAppSummaryField.mockResolvedValue(mockBusinessProcesses);
+      mockAppSummaryRepository.getProjectAppSummaryField.mockResolvedValue(mockBusinessProcesses);
 
       // Act
       const result = await insightsDataProvider.getBusinessProcesses();
 
       // Assert
-      expect(mockAppSummariesRepository.getProjectAppSummaryField).toHaveBeenCalledWith(
+      expect(mockAppSummaryRepository.getProjectAppSummaryField).toHaveBeenCalledWith(
         testProjectName,
         AppSummaryCategories.Enum.businessProcesses,
       );
@@ -50,13 +50,13 @@ describe("InsightsDataProvider", () => {
 
     it("should handle null response from repository", async () => {
       // Arrange
-      mockAppSummariesRepository.getProjectAppSummaryField.mockResolvedValue(null);
+      mockAppSummaryRepository.getProjectAppSummaryField.mockResolvedValue(null);
 
       // Act
       const result = await insightsDataProvider.getBusinessProcesses();
 
       // Assert
-      expect(mockAppSummariesRepository.getProjectAppSummaryField).toHaveBeenCalledWith(
+      expect(mockAppSummaryRepository.getProjectAppSummaryField).toHaveBeenCalledWith(
         testProjectName,
         AppSummaryCategories.Enum.businessProcesses,
       );
@@ -65,13 +65,13 @@ describe("InsightsDataProvider", () => {
 
     it("should handle empty business processes array", async () => {
       // Arrange
-      mockAppSummariesRepository.getProjectAppSummaryField.mockResolvedValue([]);
+      mockAppSummaryRepository.getProjectAppSummaryField.mockResolvedValue([]);
 
       // Act
       const result = await insightsDataProvider.getBusinessProcesses();
 
       // Assert
-      expect(mockAppSummariesRepository.getProjectAppSummaryField).toHaveBeenCalledWith(
+      expect(mockAppSummaryRepository.getProjectAppSummaryField).toHaveBeenCalledWith(
         testProjectName,
         AppSummaryCategories.Enum.businessProcesses,
       );

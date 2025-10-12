@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../llm/core/llm-router";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
-import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummaryRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../tokens";
 import {
@@ -34,8 +34,8 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
    * Creates a new InsightsFromDBGenerator with strategy-based processing.
    */
   constructor(
-    @inject(TOKENS.AppSummariesRepository)
-    private readonly appSummariesRepository: AppSummariesRepository,
+    @inject(TOKENS.AppSummaryRepository)
+    private readonly appSummariesRepository: AppSummaryRepository,
     @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
     @inject(TOKENS.ProjectName) private readonly projectName: string,

@@ -139,7 +139,7 @@ describe("DI Container Integration Tests", () => {
       }).not.toThrow();
 
       expect(() => {
-        const appSummariesRepo = container.resolve<any>(TOKENS.AppSummariesRepository);
+        const appSummariesRepo = container.resolve<any>(TOKENS.AppSummaryRepository);
         expect(appSummariesRepo).toBeDefined();
       }).not.toThrow();
     }, 30000);
@@ -316,7 +316,7 @@ describe("DI Container Integration Tests", () => {
 
       // Act: Resolve repositories and verify they have working methods
       const sourcesRepo = container.resolve<any>(TOKENS.SourcesRepository);
-      const appSummariesRepo = container.resolve<any>(TOKENS.AppSummariesRepository);
+      const appSummariesRepo = container.resolve<any>(TOKENS.AppSummaryRepository);
 
       // Assert: Repositories should have expected methods and schemas
       expect(sourcesRepo).toBeDefined();

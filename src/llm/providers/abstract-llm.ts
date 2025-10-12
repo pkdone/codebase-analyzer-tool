@@ -14,10 +14,7 @@ import {
   LLMOutputFormat,
 } from "../types/llm.types";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
-import {
-  formatErrorMessage,
-  formatErrorMessageAndDetail,
-} from "../../common/utils/error-formatters";
+import { formatError, formatErrorMessageAndDetail } from "../../common/utils/error-formatters";
 import { logErrorMsg, logWarningMsg, logErrorMsgAndDetail } from "../../common/utils/logging";
 import { JsonProcessor } from "../json-processing/core/json-processor";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
@@ -180,7 +177,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   protected debugUnhandledError(error: unknown, modelKey: string) {
     if (error instanceof Error) {
       console.log(
-        `${error.constructor.name}: ${formatErrorMessage(error)} - LLM: ${this.llmModelsMetadata[modelKey].urn}`,
+        `${error.constructor.name}: ${formatError(error)} - LLM: ${this.llmModelsMetadata[modelKey].urn}`,
       );
     }
   }
@@ -241,7 +238,7 @@ export default abstract class AbstractLLM implements LLMProvider {
           tokensUsage: calculateTokenUsageFromError(
             modelKey,
             request,
-            formatErrorMessage(error),
+            formatError(error),
             this.llmModelsMetadata,
             this.errorPatterns,
           ),
@@ -303,8 +300,8 @@ export default abstract class AbstractLLM implements LLMProvider {
             sanitizationSteps: parseResult.steps,
           };
         } else {
-          context.responseContentParseError = formatErrorMessage(parseResult.error);
-          if (doWarnOnError) logErrorMsg(formatErrorMessage(parseResult.error));
+          context.responseContentParseError = formatError(parseResult.error);
+          if (doWarnOnError) logErrorMsg(formatError(parseResult.error));
           await this.recordTestResponseToJSONErrorToFile(
             parseResult.error,
             responseContent,

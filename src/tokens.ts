@@ -17,7 +17,7 @@ export const TOKENS = {
 
   // Repositories (interface tokens)
   SourcesRepository: Symbol("ISourcesRepository"),
-  AppSummariesRepository: Symbol("IAppSummariesRepository"),
+  AppSummaryRepository: Symbol("IAppSummaryRepository"),
 
   // Tasks (formerly Services - these are top-level orchestrators for CLI commands)
   CodebaseCaptureTask: Symbol("CodebaseCaptureTask"),
@@ -48,7 +48,7 @@ export const TOKENS = {
   DatabaseReportDataProvider: Symbol("DatabaseReportDataProvider"),
   CodeStructureDataProvider: Symbol("CodeStructureDataProvider"),
   AppStatisticsDataProvider: Symbol("AppStatisticsDataProvider"),
-  CategoriesDataProvider: Symbol("CategoriesDataProvider"),
+  AppSummaryCategoriesProvider: Symbol("AppSummaryCategoriesProvider"),
   CodebaseToDBLoader: Symbol("CodebaseToDBLoader"),
   CodebaseQueryProcessor: Symbol("CodebaseQueryProcessor"),
   InsightsFromDBGenerator: Symbol("InsightsFromDBGenerator"),
@@ -58,6 +58,6 @@ export const TOKENS = {
 
   // MCP Server Components
   InsightsDataProvider: Symbol("InsightsDataProvider"),
-  McpDataServer: Symbol("McpDataServer"),
+  McpServerFactory: Symbol("McpServerFactory"),
   McpHttpServer: Symbol("McpHttpServer"),
 } as const;
