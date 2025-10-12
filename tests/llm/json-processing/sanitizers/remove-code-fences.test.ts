@@ -1,4 +1,7 @@
-import { removeCodeFences } from "../../../../src/llm/json-processing/sanitizers/remove-code-fences";
+import {
+  removeCodeFences,
+  SANITIZATION_STEP,
+} from "../../../../src/llm/json-processing/sanitizers";
 
 describe("removeCodeFences", () => {
   describe("should remove fences", () => {
@@ -8,7 +11,7 @@ describe("removeCodeFences", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('\n{ "key": "value" }\n');
-      expect(result.description).toBe("Removed code fences");
+      expect(result.description).toBe(SANITIZATION_STEP.REMOVED_CODE_FENCES);
     });
 
     it("should remove json code fences", () => {

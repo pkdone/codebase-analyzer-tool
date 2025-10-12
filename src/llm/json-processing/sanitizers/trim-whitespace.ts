@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Trims leading and trailing whitespace from JSON content.
@@ -25,5 +26,5 @@ import { Sanitizer } from "./sanitizers-types";
 export const trimWhitespace: Sanitizer = (input) => {
   const trimmed = input.trim();
   if (trimmed === input) return { content: input, changed: false };
-  return { content: trimmed, changed: true, description: "Trimmed whitespace" };
+  return { content: trimmed, changed: true, description: SANITIZATION_STEP.TRIMMED_WHITESPACE };
 };

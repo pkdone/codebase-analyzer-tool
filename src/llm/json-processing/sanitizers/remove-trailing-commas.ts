@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Removes trailing commas from JSON objects and arrays.
@@ -37,5 +38,5 @@ export const removeTrailingCommas: Sanitizer = (input) => {
   const updated = input.replaceAll(/,\s*([}\]])/g, "$1");
   return updated === input
     ? { content: input, changed: false }
-    : { content: updated, changed: true, description: "Removed trailing commas" };
+    : { content: updated, changed: true, description: SANITIZATION_STEP.REMOVED_TRAILING_COMMAS };
 };

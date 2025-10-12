@@ -1,5 +1,6 @@
 import { JsonProcessor } from "../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../src/llm/types/llm.types";
+import { SANITIZATION_STEP } from "../../src/llm/json-processing/sanitizers";
 import { logWarningMsg } from "../../src/common/utils/logging";
 
 // Mock the logging module
@@ -230,7 +231,7 @@ describe("json-tools enhanced fast path", () => {
         // The error message should indicate it was a validation failure, not a parse failure
         expect(result.error.message).toMatch(/failed schema validation/);
         // The error should include sanitization steps that were applied before validation failed
-        expect(result.error.appliedSanitizers).toContain("Removed code fences");
+        expect(result.error.appliedSanitizers).toContain(SANITIZATION_STEP.REMOVED_CODE_FENCES);
       }
     });
   });

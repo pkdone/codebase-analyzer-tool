@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Unwraps JSON content when the LLM mistakenly returns a JSON Schema definition
@@ -46,7 +47,7 @@ export const unwrapJsonSchema: Sanitizer = (input) => {
           return {
             content: JSON.stringify(unwrapped, null, 2),
             changed: true,
-            description: "Unwrapped JSON Schema to extract properties",
+            description: SANITIZATION_STEP.UNWRAPPED_JSON_SCHEMA,
           };
         }
       }

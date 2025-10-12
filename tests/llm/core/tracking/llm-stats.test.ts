@@ -61,6 +61,13 @@ describe("LLMStats", () => {
       const stats = llmStats.getStatusTypesStatistics();
       expect(stats.CROP.count).toBe(1);
     });
+
+    test("should record JSON mutated events correctly", () => {
+      llmStats.recordJsonMutated();
+
+      const stats = llmStats.getStatusTypesStatistics();
+      expect(stats.JSON_MUTATED.count).toBe(1);
+    });
   });
 
   describe("Accumulating Multiple Records", () => {
@@ -81,6 +88,7 @@ describe("LLMStats", () => {
       llmStats.recordOverloadRetry();
       llmStats.recordHopefulRetry();
       llmStats.recordCrop();
+      llmStats.recordJsonMutated();
 
       const stats = llmStats.getStatusTypesStatistics();
       expect(stats.SUCCESS.count).toBe(1);
@@ -89,6 +97,7 @@ describe("LLMStats", () => {
       expect(stats.OVERLOAD_RETRY.count).toBe(1);
       expect(stats.HOPEFUL_RETRY.count).toBe(1);
       expect(stats.CROP.count).toBe(1);
+      expect(stats.JSON_MUTATED.count).toBe(1);
     });
 
     test("should handle complex sequences of events", () => {
@@ -117,6 +126,7 @@ describe("LLMStats", () => {
       expect(stats.OVERLOAD_RETRY.count).toBe(0);
       expect(stats.HOPEFUL_RETRY.count).toBe(0);
       expect(stats.CROP.count).toBe(0);
+      expect(stats.JSON_MUTATED.count).toBe(0);
     });
 
     test("should maintain proper descriptions and symbols", () => {
@@ -139,6 +149,10 @@ describe("LLMStats", () => {
         "Cropping prompt due to excessive size, before resending",
       );
       expect(stats.CROP.symbol).toBe("-");
+      expect(stats.JSON_MUTATED.description).toBe(
+        "LLM response was mutated to force it to be valid JSON",
+      );
+      expect(stats.JSON_MUTATED.symbol).toBe("#");
     });
   });
 

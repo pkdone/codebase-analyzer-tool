@@ -161,6 +161,7 @@ export interface LLMFunctionResponse {
   readonly generated?: LLMGeneratedContent;
   readonly tokensUsage?: LLMResponseTokensUsage;
   readonly error?: unknown;
+  readonly sanitizationSteps?: readonly string[];
 }
 
 /**
@@ -200,6 +201,7 @@ export interface LLMStatsCategoriesBase {
   readonly OVERLOAD_RETRY: LLMStatsCategoryStatus;
   readonly HOPEFUL_RETRY: LLMStatsCategoryStatus;
   readonly CROP: LLMStatsCategoryStatus;
+  readonly JSON_MUTATED: LLMStatsCategoryStatus;
 }
 
 /**

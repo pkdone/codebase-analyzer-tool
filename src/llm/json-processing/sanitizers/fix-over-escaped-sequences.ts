@@ -1,4 +1,5 @@
 import type { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Fix over-escaped sequences within JSON string content.
@@ -125,7 +126,11 @@ export function repairOverEscapedStringSequences(content: string): string {
 export const overEscapedSequencesSanitizer: Sanitizer = (input) => {
   const result = repairOverEscapedStringSequences(input);
   if (result !== input) {
-    return { content: result, changed: true, description: "Fixed over-escaped sequences" };
+    return {
+      content: result,
+      changed: true,
+      description: SANITIZATION_STEP.FIXED_OVER_ESCAPED_SEQUENCES,
+    };
   }
   return { content: input, changed: false };
 };

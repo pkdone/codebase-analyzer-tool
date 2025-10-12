@@ -1,4 +1,5 @@
 import { JsonProcessingLogger } from "../../../src/llm/json-processing/core/json-processing-logger";
+import { SANITIZATION_STEP } from "../../../src/llm/json-processing/sanitizers";
 import { logWarningMsg, logErrorMsg } from "../../../src/common/utils/logging";
 
 // Mock the logging utilities
@@ -24,7 +25,7 @@ describe("JsonProcessingLogger", () => {
 
   describe("logSanitizationStep", () => {
     it("should log a single sanitization step with resource name", () => {
-      const step = "Removed code fences";
+      const step = SANITIZATION_STEP.REMOVED_CODE_FENCES;
       logger.logSanitizationStep(step);
 
       expect(logWarningMsg).toHaveBeenCalledTimes(1);
@@ -51,7 +52,11 @@ describe("JsonProcessingLogger", () => {
 
   describe("logSanitizationSummary", () => {
     it("should log summary with multiple steps", () => {
-      const steps = ["Removed code fences", "Fixed commas", "Trimmed whitespace"];
+      const steps = [
+        SANITIZATION_STEP.REMOVED_CODE_FENCES,
+        "Fixed commas",
+        SANITIZATION_STEP.TRIMMED_WHITESPACE,
+      ];
       logger.logSanitizationSummary(steps);
 
       expect(logWarningMsg).toHaveBeenCalledTimes(1);
@@ -61,7 +66,7 @@ describe("JsonProcessingLogger", () => {
     });
 
     it("should log summary with single step", () => {
-      const steps = ["Removed code fences"];
+      const steps = [SANITIZATION_STEP.REMOVED_CODE_FENCES];
       logger.logSanitizationSummary(steps);
 
       expect(logWarningMsg).toHaveBeenCalledWith(

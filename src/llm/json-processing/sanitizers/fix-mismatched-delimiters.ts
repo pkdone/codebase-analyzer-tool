@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
 
 /**
  * Fixes mismatched closing delimiters in JSON where the wrong closing character is used.
@@ -136,6 +137,6 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
   return {
     content: result,
     changed: true,
-    description: `Fixed ${corrections.length} mismatched delimiter${corrections.length > 1 ? "s" : ""}`,
+    description: SANITIZATION_STEP_TEMPLATE.fixedMismatchedDelimiters(corrections.length),
   };
 };

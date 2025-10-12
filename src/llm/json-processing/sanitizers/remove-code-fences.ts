@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Removes markdown code fences from LLM-generated content.
@@ -42,7 +43,7 @@ export const removeCodeFences: Sanitizer = (input) => {
     updated = updated.replaceAll(r, "");
   }
   if (updated !== input) {
-    return { content: updated, changed: true, description: "Removed code fences" };
+    return { content: updated, changed: true, description: SANITIZATION_STEP.REMOVED_CODE_FENCES };
   }
   return { content: input, changed: false };
 };

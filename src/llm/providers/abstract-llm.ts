@@ -301,6 +301,7 @@ export default abstract class AbstractLLM implements LLMProvider {
             ...skeletonResult,
             status: LLMResponseStatus.COMPLETED,
             generated: parseResult.data,
+            sanitizationSteps: parseResult.steps,
           };
         } else {
           context.responseContentParseError = formatErrorMessage(parseResult.error);

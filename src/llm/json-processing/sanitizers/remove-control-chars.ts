@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Removes zero-width and non-printable control characters from JSON content.
@@ -37,7 +38,7 @@ export const removeControlChars: Sanitizer = (input) => {
   const cleaned = strip(input);
   return cleaned === input
     ? { content: input, changed: false }
-    : { content: cleaned, changed: true, description: "Removed control / zero-width characters" };
+    : { content: cleaned, changed: true, description: SANITIZATION_STEP.REMOVED_CONTROL_CHARS };
 };
 
 /**

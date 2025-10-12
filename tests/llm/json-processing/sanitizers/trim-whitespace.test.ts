@@ -1,4 +1,4 @@
-import { trimWhitespace } from "../../../../src/llm/json-processing/sanitizers/trim-whitespace";
+import { trimWhitespace, SANITIZATION_STEP } from "../../../../src/llm/json-processing/sanitizers";
 
 describe("trimWhitespace", () => {
   describe("should remove whitespace", () => {
@@ -8,7 +8,7 @@ describe("trimWhitespace", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{ "key": "value" }');
-      expect(result.description).toBe("Trimmed whitespace");
+      expect(result.description).toBe(SANITIZATION_STEP.TRIMMED_WHITESPACE);
     });
 
     it("should remove trailing whitespace", () => {
@@ -17,7 +17,7 @@ describe("trimWhitespace", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{ "key": "value" }');
-      expect(result.description).toBe("Trimmed whitespace");
+      expect(result.description).toBe(SANITIZATION_STEP.TRIMMED_WHITESPACE);
     });
 
     it("should remove both leading and trailing whitespace", () => {
@@ -26,7 +26,7 @@ describe("trimWhitespace", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{ "key": "value" }');
-      expect(result.description).toBe("Trimmed whitespace");
+      expect(result.description).toBe(SANITIZATION_STEP.TRIMMED_WHITESPACE);
     });
 
     it("should remove multiple types of whitespace", () => {

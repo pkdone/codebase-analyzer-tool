@@ -1,4 +1,5 @@
 import type { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
 
 /**
  * Fixes concatenation chains in LLM-generated JSON.
@@ -138,7 +139,7 @@ export const concatenationChainSanitizer: Sanitizer = (input) => {
   return {
     content: result,
     changed: true,
-    description: `Fixed ${totalChanges} concatenation chain${totalChanges !== 1 ? "s" : ""}`,
+    description: SANITIZATION_STEP_TEMPLATE.fixedConcatenationChains(totalChanges),
     diagnostics,
   };
 };

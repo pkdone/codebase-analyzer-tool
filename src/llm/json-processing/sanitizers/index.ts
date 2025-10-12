@@ -15,3 +15,11 @@ export { overEscapedSequencesSanitizer } from "./fix-over-escaped-sequences";
 export { completeTruncatedStructures } from "./complete-truncated-structures";
 
 export type { Sanitizer, SanitizerResult } from "./sanitizers-types";
+
+// Export sanitization step constants
+export {
+  SANITIZATION_STEP,
+  SANITIZATION_STEP_TEMPLATE,
+  INSIGNIFICANT_SANITIZATION_STEPS,
+  type SanitizationStepDescription,
+} from "./sanitization-steps.constants";

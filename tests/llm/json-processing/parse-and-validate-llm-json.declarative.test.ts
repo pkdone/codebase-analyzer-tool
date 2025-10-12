@@ -1,5 +1,6 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { SANITIZATION_STEP } from "../../../src/llm/json-processing/sanitizers";
 
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
@@ -36,7 +37,9 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
       expect((result.data as any).y).toBe(2);
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
-    expect(calls.some((c: string) => c.includes("Extracted largest JSON span"))).toBe(true);
+    expect(
+      calls.some((c: string) => c.includes(SANITIZATION_STEP.EXTRACTED_LARGEST_JSON_SPAN)),
+    ).toBe(true);
   });
 
   it("applies concatenation chain sanitizer for identifier-only chains", () => {

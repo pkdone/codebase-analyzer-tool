@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
 
 /**
  * Adds missing commas between object properties where the LLM forgot to include them.
@@ -47,7 +48,7 @@ export const addMissingPropertyCommas: Sanitizer = (input) => {
   return {
     content: result,
     changed: true,
-    description: `Added ${commasAdded} missing comma${commasAdded !== 1 ? "s" : ""} between properties`,
+    description: SANITIZATION_STEP_TEMPLATE.addedMissingCommas(commasAdded),
     diagnostics,
   };
 };

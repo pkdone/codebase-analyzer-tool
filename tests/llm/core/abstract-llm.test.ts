@@ -5,7 +5,10 @@ import {
   LLMErrorMsgRegExPattern,
   LLMResponseTokensUsage,
   LLMContext,
+  LLMOutputFormat,
+  LLMResponseStatus,
 } from "../../../src/llm/types/llm.types";
+import { SANITIZATION_STEP } from "../../../src/llm/json-processing/sanitizers";
 import {
   LLMImplSpecificResponseSummary,
   LLMProviderSpecificConfig,
@@ -222,6 +225,148 @@ describe("Abstract LLM Token Extraction", () => {
         promptTokens: 243,
         maxTotalTokens: 128000,
       });
+    });
+  });
+});
+
+// Test class for JSON response testing
+class TestJSONLLM extends AbstractLLM {
+  private mockResponseContent = "";
+  private mockIsIncomplete = false;
+
+  constructor() {
+    const modelsKeys: LLMModelKeysSet = {
+      embeddingsModelKey: GPT_EMBEDDINGS_GPT4,
+      primaryCompletionModelKey: GPT_COMPLETIONS_GPT4_32k,
+    };
+    const errorPatterns: LLMErrorMsgRegExPattern[] = [];
+    const providerConfig: LLMProviderSpecificConfig = {
+      requestTimeoutMillis: 60000,
+      maxRetryAttempts: 3,
+      minRetryDelayMillis: 1000,
+      maxRetryDelayMillis: 5000,
+    };
+
+    super(modelsKeys, testModelsMetadata, errorPatterns, providerConfig);
+  }
+
+  setMockResponse(content: string, isIncomplete = false) {
+    this.mockResponseContent = content;
+    this.mockIsIncomplete = isIncomplete;
+  }
+
+  getModelFamily(): string {
+    return "test";
+  }
+
+  protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: this.mockIsIncomplete,
+      responseContent: this.mockResponseContent,
+      tokenUsage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        maxTotalTokens: 100,
+      },
+    };
+  }
+
+  protected isLLMOverloaded(): boolean {
+    return false;
+  }
+
+  protected isTokenLimitExceeded(): boolean {
+    return false;
+  }
+}
+
+describe("Abstract LLM Sanitization Steps Propagation", () => {
+  let testLLM: TestJSONLLM;
+  let testContext: LLMContext;
+
+  beforeEach(() => {
+    testLLM = new TestJSONLLM();
+    testContext = {
+      resource: "test-resource",
+      purpose: LLMPurpose.COMPLETIONS,
+    };
+  });
+
+  describe("JSON response with sanitization steps", () => {
+    test("should have empty sanitization steps for clean JSON with whitespace", async () => {
+      // JSON with leading/trailing whitespace is handled by JSON.parse naturally
+      testLLM.setMockResponse('  {"name": "test", "value": 123}  ');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.sanitizationSteps).toBeDefined();
+      expect(result.sanitizationSteps).toEqual([]);
+    });
+
+    test("should propagate sanitization steps for JSON with code fences", async () => {
+      // JSON wrapped in markdown code fence requires sanitization
+      testLLM.setMockResponse('```json\n{"name": "test", "value": 123}\n```');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.sanitizationSteps).toBeDefined();
+      expect(result.sanitizationSteps).toContain(SANITIZATION_STEP.REMOVED_CODE_FENCES);
+    });
+
+    test("should propagate sanitization steps for JSON with trailing comma", async () => {
+      // JSON with trailing comma (requires sanitization)
+      testLLM.setMockResponse('{"name": "test", "value": 123,}');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.sanitizationSteps).toBeDefined();
+      expect(result.sanitizationSteps?.length).toBeGreaterThan(0);
+    });
+
+    test("should not have sanitization steps for clean JSON", async () => {
+      // Clean JSON that doesn't need any sanitization
+      testLLM.setMockResponse('{"name":"test","value":123}');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.sanitizationSteps).toBeDefined();
+      expect(result.sanitizationSteps).toEqual([]);
+    });
+
+    test("should not have sanitization steps for text output format", async () => {
+      // When output format is TEXT, no sanitization steps should be recorded
+      testLLM.setMockResponse("This is plain text");
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.sanitizationSteps).toBeUndefined();
+    });
+
+    test("should not have sanitization steps when JSON parsing fails", async () => {
+      // Invalid JSON that cannot be fixed
+      testLLM.setMockResponse("This is not JSON at all");
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.INVALID);
+      expect(result.sanitizationSteps).toBeUndefined();
     });
   });
 });

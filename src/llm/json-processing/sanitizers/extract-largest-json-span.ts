@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Extracts the largest valid JSON structure from content that includes extra text.
@@ -88,7 +89,11 @@ export const extractLargestJsonSpan: Sanitizer = (input) => {
   if (endIndex === -1) return { content: input, changed: false };
   const sliced = input.slice(start, endIndex + 1).trim();
   if (sliced !== input.trim()) {
-    return { content: sliced, changed: true, description: "Extracted largest JSON span" };
+    return {
+      content: sliced,
+      changed: true,
+      description: SANITIZATION_STEP.EXTRACTED_LARGEST_JSON_SPAN,
+    };
   }
   return { content: input, changed: false };
 };

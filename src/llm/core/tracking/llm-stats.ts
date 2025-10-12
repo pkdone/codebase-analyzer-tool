@@ -35,6 +35,11 @@ export default class LLMStats {
       symbol: "-",
       count: 0,
     },
+    JSON_MUTATED: {
+      description: "LLM response was mutated to force it to be valid JSON",
+      symbol: "#",
+      count: 0,
+    },
   } as const;
 
   /**
@@ -85,6 +90,13 @@ export default class LLMStats {
    */
   recordCrop() {
     this.record(this.statusTypes.CROP);
+  }
+
+  /**
+   * Log that a JSON response was mutated to be valid.
+   */
+  recordJsonMutated() {
+    this.record(this.statusTypes.JSON_MUTATED);
   }
 
   /**

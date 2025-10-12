@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Collapses a pattern where the exact same JSON object text has been duplicated
@@ -12,6 +13,6 @@ export const collapseDuplicateJsonObject: Sanitizer = (input) => {
   return {
     content: input.replace(dupPattern, "$1"),
     changed: true,
-    description: "Collapsed duplicated identical JSON object",
+    description: SANITIZATION_STEP.COLLAPSED_DUPLICATE_JSON,
   };
 };

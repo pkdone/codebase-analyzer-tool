@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { SANITIZATION_STEP } from "./sanitization-steps.constants";
 
 /**
  * Attempts to complete obviously truncated JSON structures by:
@@ -51,6 +52,6 @@ export const completeTruncatedStructures: Sanitizer = (input) => {
   return {
     content: sanitized,
     changed: true,
-    description: "Completed truncated JSON structures",
+    description: SANITIZATION_STEP.COMPLETED_TRUNCATED_STRUCTURES,
   };
 };
