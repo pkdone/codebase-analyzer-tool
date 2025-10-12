@@ -3,6 +3,14 @@ import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { BEDROCK_LLAMA } from "./bedrock-llama.manifest";
 import { bedrockLlamaConfig } from "./bedrock-llama.config";
 import { z } from "zod";
+import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
+
+/**
+ * Type-safe configuration interface for Llama provider
+ */
+interface LlamaProviderConfig extends LLMProviderSpecificConfig {
+  maxGenLenCap: number;
+}
 
 /**
  * Zod schema for Llama completion response validation
@@ -45,8 +53,8 @@ ${bedrockLlamaConfig.LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_USER}${bedroc
     // The check is broadened to include any model key containing "LLAMA" as the issue affects multiple Llama versions on Bedrock.
     if (modelKey.includes("LLAMA")) {
       // Cap the max_gen_len to respect the Bedrock API limit for these models.
-      const maxGenLenCap = (this.providerSpecificConfig as unknown as { maxGenLenCap: number })
-        .maxGenLenCap;
+      const config = this.providerSpecificConfig as LlamaProviderConfig;
+      const maxGenLenCap = config.maxGenLenCap;
       const maxCompletionTokens =
         this.llmModelsMetadata[modelKey].maxCompletionTokens ?? maxGenLenCap;
       bodyObj.max_gen_len = Math.min(maxCompletionTokens, maxGenLenCap);

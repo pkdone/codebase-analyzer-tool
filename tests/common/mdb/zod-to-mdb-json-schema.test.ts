@@ -235,4 +235,76 @@ describe("zod-to-mdb-json-schema", () => {
       expect(schema.properties.nullableField).toBeDefined();
     });
   });
+
+  describe("Type Safety Improvements", () => {
+    test("should handle bson:objectId description correctly with type-safe guards", () => {
+      const schema = z.object({
+        id: zBsonObjectId,
+      });
+
+      const jsonSchema = zodToJsonSchemaForMDB(schema);
+      const schemaObj = jsonSchema as unknown as { properties: Record<string, unknown> };
+
+      expect(schemaObj.properties.id).toEqual({ bsonType: "objectId" });
+    });
+
+    test("should handle bson:decimal128 description correctly with type-safe guards", () => {
+      const schema = z.object({
+        amount: zBsonDecimal128,
+      });
+
+      const jsonSchema = zodToJsonSchemaForMDB(schema);
+      const schemaObj = jsonSchema as unknown as { properties: Record<string, unknown> };
+
+      expect(schemaObj.properties.amount).toEqual({ bsonType: "decimal" });
+    });
+
+    test("should handle ZodDate type correctly with type-safe guards", () => {
+      const schema = z.object({
+        createdAt: zBsonDate,
+      });
+
+      const jsonSchema = zodToJsonSchemaForMDB(schema);
+      const schemaObj = jsonSchema as unknown as { properties: Record<string, unknown> };
+
+      expect(schemaObj.properties.createdAt).toEqual({ bsonType: "date" });
+    });
+
+    test("should handle regular types correctly without BSON overrides", () => {
+      const schema = z.object({
+        name: z.string(),
+        age: z.number(),
+        active: z.boolean(),
+      });
+
+      const jsonSchema = zodToJsonSchemaForMDB(schema);
+      const schemaObj = jsonSchema as unknown as { properties: Record<string, unknown> };
+
+      expect(schemaObj.properties.name).toHaveProperty("type", "string");
+      expect(schemaObj.properties.age).toHaveProperty("type", "number");
+      expect(schemaObj.properties.active).toHaveProperty("type", "boolean");
+    });
+
+    test("should handle mixed BSON and regular types correctly", () => {
+      const schema = z.object({
+        _id: zBsonObjectId,
+        name: z.string(),
+        createdAt: zBsonDate,
+        balance: zBsonDecimal128,
+        count: z.number(),
+      });
+
+      const jsonSchema = zodToJsonSchemaForMDB(schema);
+      const schemaObj = jsonSchema as unknown as { properties: Record<string, unknown> };
+
+      // BSON types
+      expect(schemaObj.properties._id).toEqual({ bsonType: "objectId" });
+      expect(schemaObj.properties.createdAt).toEqual({ bsonType: "date" });
+      expect(schemaObj.properties.balance).toEqual({ bsonType: "decimal" });
+
+      // Regular types
+      expect(schemaObj.properties.name).toHaveProperty("type", "string");
+      expect(schemaObj.properties.count).toHaveProperty("type", "number");
+    });
+  });
 });

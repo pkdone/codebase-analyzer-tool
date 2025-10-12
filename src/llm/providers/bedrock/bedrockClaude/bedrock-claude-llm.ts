@@ -2,6 +2,18 @@ import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { BEDROCK_CLAUDE, AWS_COMPLETIONS_CLAUDE_V40 } from "./bedrock-claude.manifest";
 import { z } from "zod";
+import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
+
+/**
+ * Type-safe configuration interface for Claude provider
+ */
+interface ClaudeProviderConfig extends LLMProviderSpecificConfig {
+  apiVersion: string;
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+  anthropicBetaFlags?: string[];
+}
 
 /**
  * Zod schema for Claude completion response validation
@@ -33,7 +45,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
    */
   protected buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
-    const config = this.providerSpecificConfig;
+    const config = this.providerSpecificConfig as ClaudeProviderConfig;
 
     const baseParams = {
       anthropic_version: config.apiVersion,
