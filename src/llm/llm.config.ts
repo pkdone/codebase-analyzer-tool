@@ -1,3 +1,5 @@
+import { appConfig } from "../config/app.config";
+
 /**
  * LLM (Large Language Model) configuration.
  */
@@ -11,9 +13,9 @@ export const llmConfig = {
   DEFAULT_ZERO_TEMP: 0,
   DEFAULT_TOP_P_LOWEST: 0,
   DEFAULT_TOP_K_LOWEST: 1,
-  LLM_UTF8_ENCODING: "utf8",
-  MIME_TYPE_JSON: "application/json",
-  MIME_TYPE_ANY: "*/*",
+  LLM_UTF8_ENCODING: appConfig.UTF8_ENCODING,
+  MIME_TYPE_JSON: appConfig.MIME_TYPE_JSON,
+  MIME_TYPE_ANY: appConfig.MIME_TYPE_ANY,
   JSON_OUTPUT_TYPE: "json_object",
 } as const;
 

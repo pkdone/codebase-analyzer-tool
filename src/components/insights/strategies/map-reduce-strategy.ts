@@ -1,7 +1,10 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
-import { summaryCategoriesConfig, insightsTuningConfig } from "../../../config/insights.config";
+import {
+  summaryCategoriesConfig,
+  insightsTuningConfig,
+} from "../../../config/insights-generation.config";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-formatting";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";

@@ -68,6 +68,45 @@ describe("databaseConfig", () => {
     });
   });
 
+  describe("vector index configuration", () => {
+    it("should have VECTOR_INDEX_CONFIGS defined", () => {
+      expect(databaseConfig.VECTOR_INDEX_CONFIGS).toBeDefined();
+      expect(Array.isArray(databaseConfig.VECTOR_INDEX_CONFIGS)).toBe(true);
+    });
+
+    it("should have correct number of vector index configurations", () => {
+      expect(databaseConfig.VECTOR_INDEX_CONFIGS).toHaveLength(2);
+    });
+
+    it("should have content vector index configuration", () => {
+      const contentConfig = databaseConfig.VECTOR_INDEX_CONFIGS[0];
+      expect(contentConfig).toBeDefined();
+      expect(contentConfig.field).toBe("contentVector");
+      expect(contentConfig.name).toBe("contentVector_vector_index");
+    });
+
+    it("should have summary vector index configuration", () => {
+      const summaryConfig = databaseConfig.VECTOR_INDEX_CONFIGS[1];
+      expect(summaryConfig).toBeDefined();
+      expect(summaryConfig.field).toBe("summaryVector");
+      expect(summaryConfig.name).toBe("summaryVector_vector_index");
+    });
+
+    it("should have vector index configs that match field and index name constants", () => {
+      const contentConfig = databaseConfig.VECTOR_INDEX_CONFIGS.find(
+        (c) => c.field === databaseConfig.CONTENT_VECTOR_FIELD,
+      );
+      expect(contentConfig).toBeDefined();
+      expect(contentConfig?.name).toBe(databaseConfig.CONTENT_VECTOR_INDEX_NAME);
+
+      const summaryConfig = databaseConfig.VECTOR_INDEX_CONFIGS.find(
+        (c) => c.field === databaseConfig.SUMMARY_VECTOR_FIELD,
+      );
+      expect(summaryConfig).toBeDefined();
+      expect(summaryConfig?.name).toBe(databaseConfig.SUMMARY_VECTOR_INDEX_NAME);
+    });
+  });
+
   describe("immutability", () => {
     it("should be a readonly object", () => {
       const config = databaseConfig;

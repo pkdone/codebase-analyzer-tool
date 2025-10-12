@@ -3,7 +3,10 @@ import { appConfig } from "../../src/config/app.config";
 import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
 import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
-import { insightsTuningConfig, summaryCategoriesConfig } from "../../src/config/insights.config";
+import {
+  insightsTuningConfig,
+  summaryCategoriesConfig,
+} from "../../src/config/insights-generation.config";
 import { outputConfig } from "../../src/config/output.config";
 import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../src/config/logging.config";
 

@@ -7,7 +7,6 @@ import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import type { SourcesRepository } from "../source/sources.repository.interface";
 import type { AppSummariesRepository } from "../app-summary/app-summaries.repository.interface";
 import {
-  VectorIndexConfig,
   VectorSearchFilter,
   createVectorSearchIndexDefinition,
 } from "../../common/mdb/mdb-index-utils";
@@ -29,10 +28,6 @@ export class DatabaseInitializer {
   private readonly db: Db;
   private readonly sourcesCollection: Collection;
   private readonly appSummariesCollection: Collection;
-  private readonly vectorIndexConfigs: VectorIndexConfig[] = [
-    { field: databaseConfig.CONTENT_VECTOR_FIELD, name: databaseConfig.CONTENT_VECTOR_INDEX_NAME },
-    { field: databaseConfig.SUMMARY_VECTOR_FIELD, name: databaseConfig.SUMMARY_VECTOR_INDEX_NAME },
-  ];
 
   /**
    * Constructor with dependency injection.
@@ -121,7 +116,7 @@ export class DatabaseInitializer {
    */
   private async createSourcesVectorSearchIndexes(numDimensions: number): Promise<void> {
     let unknownErrorOccurred = false;
-    const vectorSearchIndexes = this.vectorIndexConfigs.map((config) =>
+    const vectorSearchIndexes = databaseConfig.VECTOR_INDEX_CONFIGS.map((config) =>
       this.createProjectScopedVectorIndexDefinition(config.name, config.field, numDimensions),
     );
 

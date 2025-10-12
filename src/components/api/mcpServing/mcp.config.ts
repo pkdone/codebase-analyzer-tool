@@ -18,7 +18,7 @@ export const mcpConfig = {
   // HTTP Protocol constants
   HTTP_PROTOCOL: "http://",
   CONTENT_TYPE_HEADER: "Content-Type",
-  APPLICATION_JSON: "application/json",
+  APPLICATION_JSON: appConfig.MIME_TYPE_JSON,
   UTF8_ENCODING: appConfig.UTF8_ENCODING,
 
   // HTTP Methods

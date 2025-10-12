@@ -15,4 +15,8 @@ export const databaseConfig = {
   VECTOR_QUANTIZATION_TYPE: "scalar", // scalar | binary
   DEPENDENCY_GRAPH_MAX_DEPTH: 1, // Maximum depth for dependency graph traversal
   DEPENDENCY_GRAPH_RESULT_LIMIT: 5, // Maximum number of top-level dependencies to return
+  VECTOR_INDEX_CONFIGS: [
+    { field: "contentVector", name: "contentVector_vector_index" },
+    { field: "summaryVector", name: "summaryVector_vector_index" },
+  ],
 } as const;

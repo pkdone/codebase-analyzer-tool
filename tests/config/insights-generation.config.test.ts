@@ -1,4 +1,7 @@
-import { insightsTuningConfig, summaryCategoriesConfig } from "../../src/config/insights.config";
+import {
+  insightsTuningConfig,
+  summaryCategoriesConfig,
+} from "../../src/config/insights-generation.config";
 import { AppSummaryCategoryEnum } from "../../src/components/insights/insights.types";
 
 describe("insightsTuningConfig", () => {
