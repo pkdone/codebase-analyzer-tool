@@ -3,9 +3,9 @@ import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../tokens";
 import { inputConfig } from "./config/input.config";
+import { formatSourcesForPrompt } from "../../llm/utils/prompt-formatting";
 
 /**
  * Creates a prompt for querying the codebase with a specific question.
@@ -61,7 +61,7 @@ export default class CodebaseQueryProcessor {
       return "Unable to answer question because no relevent code was found";
     }
 
-    const codeBlocksAsText = this.formatSourcesForPrompt(bestMatchFiles);
+    const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
     const resourceName = `Codebase query`;
     const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
     const response = await this.llmRouter.executeCompletion<string>(resourceName, prompt, {
@@ -77,17 +77,5 @@ export default class CodebaseQueryProcessor {
       );
       return "Unable to answer question because no insight was generated";
     }
-  }
-
-  /**
-   * Turns a list of content of source code file and their respective filetypes and produces one
-   * piece of text using Markdown code-block syntax to delinante the content of each source file.
-   */
-  private formatSourcesForPrompt(
-    sourceFileMetadataList: ProjectedSourceMetataContentAndSummary[],
-  ): string {
-    return sourceFileMetadataList
-      .map((fileMetadata) => `\`\`\`${fileMetadata.type}\n${fileMetadata.content}\n\`\`\`\n\n`)
-      .join("");
   }
 }

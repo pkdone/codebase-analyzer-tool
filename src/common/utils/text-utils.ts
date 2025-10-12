@@ -1,4 +1,11 @@
 /**
+ * Count the lines in a piece of text.
+ */
+export function countLines(text: string): number {
+  return text.split("\n").length;
+}
+
+/**
  * Convert camelCase or compound words to space-separated words with proper capitalization.
  * Example: "camelCaseString" -> "Camel Case String"
  */
@@ -13,3 +20,4 @@ export function convertToDisplayName(text: string): string {
 export function joinArrayWithSeparators(lines: string[], separator = "\n", prefix = ""): string {
   return lines.map((line) => `${prefix}${line}`).join(separator);
 }
+

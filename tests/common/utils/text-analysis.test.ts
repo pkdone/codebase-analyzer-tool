@@ -1,4 +1,4 @@
-import { countLines } from "../../../src/common/utils/text-analysis";
+import { countLines } from "../../../src/common/utils/text-utils";
 
 describe("text-analysis", () => {
   describe("countLines", () => {

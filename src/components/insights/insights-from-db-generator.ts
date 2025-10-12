@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../llm/core/llm-router";
 import { fileProcessingConfig } from "../../config/file-processing.config";
-import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
+import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import type { AppSummaryRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../tokens";
@@ -13,10 +13,10 @@ import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { AppSummaryCategoryEnum } from "./insights.types";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
-import { llmProviderConfig } from "../../llm/llm.config";
 import { IInsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";
 import { SinglePassInsightStrategy } from "./strategies/single-pass-strategy";
 import { MapReduceInsightStrategy } from "./strategies/map-reduce-strategy";
+import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -124,7 +124,10 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       console.log(`Processing ${categoryLabel}`);
 
       // Determine which strategy to use based on codebase size
-      const summaryChunks = this.chunkSummaries(sourceFileSummaries);
+      const summaryChunks = chunkTextByTokenLimit(sourceFileSummaries, {
+        maxTokens: this.maxTokens,
+        chunkTokenLimitRatio: insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO,
+      });
       const strategy =
         summaryChunks.length === 1 ? this.singlePassStrategy : this.mapReduceStrategy;
 
@@ -146,55 +149,5 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     } catch (error: unknown) {
       logErrorMsgAndDetail(`Unable to generate ${categoryLabel} details into database`, error);
     }
-  }
-
-  /**
-   * Splits a list of source file summaries into chunks that fit within the LLM's token limit.
-   * Uses a conservative 70% of the max token limit to leave room for prompt instructions and response.
-   * This method is used to determine which strategy to use (single-pass vs map-reduce).
-   */
-  private chunkSummaries(summaries: string[]): string[][] {
-    const chunks: string[][] = [];
-    let currentChunk: string[] = [];
-    let currentTokenCount = 0;
-    const tokenLimitPerChunk = this.maxTokens * insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO;
-
-    for (const summary of summaries) {
-      // Estimate token count using character-to-token ratio
-      let summaryToProcess = summary;
-      let summaryTokenCount = summary.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
-
-      // Handle summaries that are individually too large
-      if (summaryTokenCount > tokenLimitPerChunk) {
-        logWarningMsg(`A file summary is too large and will be truncated to fit token limit.`);
-        const truncatedLength = Math.floor(
-          tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN,
-        );
-        summaryToProcess = summary.substring(0, truncatedLength);
-        summaryTokenCount = tokenLimitPerChunk;
-      }
-
-      // If adding this summary would exceed the limit, start a new chunk
-      if (currentTokenCount + summaryTokenCount > tokenLimitPerChunk && currentChunk.length > 0) {
-        chunks.push(currentChunk);
-        currentChunk = [];
-        currentTokenCount = 0;
-      }
-
-      currentChunk.push(summaryToProcess);
-      currentTokenCount += summaryTokenCount;
-    }
-
-    // Add the last chunk if it has any content
-    if (currentChunk.length > 0) {
-      chunks.push(currentChunk);
-    }
-
-    // Edge case: if no chunks were created but we have summaries, force a single chunk
-    if (chunks.length === 0 && summaries.length > 0) {
-      chunks.push(summaries);
-    }
-
-    return chunks;
   }
 }

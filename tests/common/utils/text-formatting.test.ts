@@ -1,7 +1,7 @@
 import {
   convertToDisplayName,
   joinArrayWithSeparators,
-} from "../../../src/common/utils/text-formatting";
+} from "../../../src/common/utils/text-utils";
 
 describe("text-formatting", () => {
   describe("convertToDisplayName", () => {

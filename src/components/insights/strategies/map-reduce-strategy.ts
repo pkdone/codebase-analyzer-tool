@@ -6,7 +6,7 @@ import {
   insightsTuningConfig,
 } from "../../../config/insights-generation.config";
 import { logWarningMsg } from "../../../common/utils/logging";
-import { joinArrayWithSeparators } from "../../../common/utils/text-formatting";
+import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
 import { TOKENS } from "../../../tokens";
 import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";

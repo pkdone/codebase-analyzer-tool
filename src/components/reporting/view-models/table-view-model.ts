@@ -1,4 +1,4 @@
-import { convertToDisplayName } from "../../../common/utils/text-formatting";
+import { convertToDisplayName } from "../../../common/utils/text-utils";
 
 /**
  * Interface for a table row that can be displayed
