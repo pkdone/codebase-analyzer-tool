@@ -18,6 +18,7 @@ import {
   overEscapedSequencesSanitizer,
   completeTruncatedStructures,
   type Sanitizer,
+  type PostParseTransform,
 } from "../sanitizers";
 
 /**
@@ -42,6 +43,7 @@ type ParseAndValidateResult<T> =
  */
 export class JsonProcessor {
   private readonly jsonValidator = new JsonValidator();
+  private readonly loggingEnabled: boolean;
 
   /**
    * Unified, ordered pipeline of sanitizers.
@@ -86,7 +88,18 @@ export class JsonProcessor {
    * Currently contains:
    * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data
    */
-  private readonly POST_PARSE_TRANSFORMS = [unwrapJsonSchemaStructure] as const;
+  private readonly POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
+    unwrapJsonSchemaStructure,
+  ] as const;
+
+  /**
+   * Creates a new JsonProcessor instance.
+   *
+   * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
+   */
+  constructor(loggingEnabled = true) {
+    this.loggingEnabled = loggingEnabled;
+  }
 
   /**
    * Convert text content to JSON, trimming the content to only include the JSON part and optionally
@@ -96,7 +109,6 @@ export class JsonProcessor {
     content: LLMGeneratedContent,
     resourceName: string,
     completionOptions: LLMCompletionOptions,
-    logSanitizationSteps = true,
   ): JsonProcessorResult<T> {
     if (typeof content !== "string") {
       const contentText = JSON.stringify(content);
@@ -109,12 +121,7 @@ export class JsonProcessor {
       return { success: false, error };
     }
 
-    return this.runSanitizationPipeline<T>(
-      content,
-      resourceName,
-      completionOptions,
-      logSanitizationSteps,
-    );
+    return this.runSanitizationPipeline<T>(content, resourceName, completionOptions);
   }
 
   /**
@@ -128,7 +135,6 @@ export class JsonProcessor {
     originalContent: string,
     resourceName: string,
     completionOptions: LLMCompletionOptions,
-    logSanitizationSteps: boolean,
   ): JsonProcessorResult<T> {
     const logger = new JsonProcessingLogger(resourceName);
     let workingContent = originalContent;
@@ -154,13 +160,10 @@ export class JsonProcessor {
         workingContent,
         resourceName,
         completionOptions,
-        logSanitizationSteps,
       );
 
       if (parseResult.success) {
-        if (logSanitizationSteps && appliedSteps.length > 0) {
-          logger.logSanitizationSummary(appliedSteps, allDiagnostics);
-        }
+        this.logSanitizationIfEnabled(logger, appliedSteps, allDiagnostics);
 
         return {
           success: true,
@@ -200,6 +203,19 @@ export class JsonProcessor {
   }
 
   /**
+   * Logs sanitization summary if logging is enabled and steps were applied.
+   */
+  private logSanitizationIfEnabled(
+    logger: JsonProcessingLogger,
+    appliedSteps: string[],
+    allDiagnostics: string[],
+  ): void {
+    if (this.loggingEnabled && appliedSteps.length > 0) {
+      logger.logSanitizationSummary(appliedSteps, allDiagnostics);
+    }
+  }
+
+  /**
    * Attempts to parse the given content as JSON and validate it against the schema.
    * Returns a result indicating success or failure, distinguishing between parse errors
    * (JSON syntax issues) and validation errors (valid JSON that doesn't match schema).
@@ -208,7 +224,6 @@ export class JsonProcessor {
     content: string,
     resourceName: string,
     completionOptions: LLMCompletionOptions,
-    logValidationIssues: boolean,
   ): ParseAndValidateResult<T> {
     let parsed: unknown;
 
@@ -234,7 +249,7 @@ export class JsonProcessor {
       transformed,
       completionOptions,
       resourceName,
-      logValidationIssues,
+      this.loggingEnabled,
     );
 
     if (!validationResult.success) {

@@ -23,7 +23,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
 
   test("fast path: valid JSON returns with no sanitation steps logged", () => {
     const json = '{"a":1,"b":2}';
-    const result = jsonProcessor.parseAndValidate(json, "fast-path", completionOptions, true);
+    const result = jsonProcessor.parseAndValidate(json, "fast-path", completionOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual({ a: 1, b: 2 });
@@ -34,7 +34,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
 
   test("extraction path: JSON embedded in text triggers extraction step logging", () => {
     const text = 'Intro text before JSON {"hello":"world"} trailing commentary';
-    const result = jsonProcessor.parseAndValidate(text, "extract-path", completionOptions, true);
+    const result = jsonProcessor.parseAndValidate(text, "extract-path", completionOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual({ hello: "world" });
@@ -47,12 +47,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
   test("unified sanitization pipeline: deliberately malformed then recoverable JSON", () => {
     // Force multiple sanitizers: content with code fences & trailing comma
     const malformed = '```json\n{"key":"value",}\n``` Extra trailing';
-    const result = jsonProcessor.parseAndValidate(
-      malformed,
-      "pipeline-test",
-      completionOptions,
-      true,
-    );
+    const result = jsonProcessor.parseAndValidate(malformed, "pipeline-test", completionOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual({ key: "value" });
@@ -64,12 +59,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
 
   test("pre-concat strategy invoked for identifier-only concatenations", () => {
     const withConcat = '{"path": SOME_CONST + OTHER_CONST + THIRD_CONST}';
-    const result = jsonProcessor.parseAndValidate(
-      withConcat,
-      "pre-concat",
-      completionOptions,
-      true,
-    );
+    const result = jsonProcessor.parseAndValidate(withConcat, "pre-concat", completionOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect((result.data as any).path).toBe("");

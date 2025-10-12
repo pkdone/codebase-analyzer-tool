@@ -1,4 +1,7 @@
-import { repairOverEscapedStringSequences } from "../../../src/llm/json-processing/sanitizers/fix-over-escaped-sequences";
+import {
+  repairOverEscapedStringSequences,
+  overEscapedSequencesSanitizer,
+} from "../../../src/llm/json-processing/sanitizers/fix-over-escaped-sequences";
 
 /**
  * Guards the extracted over-escaped sequence repair logic to ensure no regressions.
@@ -265,6 +268,42 @@ describe("repairOverEscapedStringSequences - comprehensive documentation example
       const input = "test\\\\\\'end";
       const result = repairOverEscapedStringSequences(input);
       expect(result).toBe("test'end");
+    });
+  });
+
+  describe("data-driven refactoring verification", () => {
+    it("returns unchanged content and changed=false when no patterns match", () => {
+      const input = "clean content without escapes";
+      const result = overEscapedSequencesSanitizer(input);
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+      expect(result.description).toBeUndefined();
+    });
+
+    it("returns changed content and changed=true when patterns match", () => {
+      const input = "test\\\\\\'content";
+      const result = overEscapedSequencesSanitizer(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe("test'content");
+      expect(result.description).toBeDefined();
+      expect(result.description).toContain("over-escaped");
+    });
+
+    it("applies all patterns in the defined order", () => {
+      // Test that verifies multiple patterns are applied in sequence
+      const input = "it\\\\\\'s good\\, right\\)?";
+      const result = repairOverEscapedStringSequences(input);
+      expect(result).toBe("it's good, right)?");
+      // Verifies: 5-backslash quote → single quote, comma escape → comma, paren escape → paren
+    });
+
+    it("maintains idempotency after refactoring", () => {
+      // Applying the function twice should give the same result
+      const input = "test\\\\\\'multiple\\, fixes\\)";
+      const firstPass = repairOverEscapedStringSequences(input);
+      const secondPass = repairOverEscapedStringSequences(firstPass);
+      expect(firstPass).toBe(secondPass);
+      expect(firstPass).toBe("test'multiple, fixes)");
     });
   });
 });

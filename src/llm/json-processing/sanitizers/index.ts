@@ -14,7 +14,7 @@ export { concatenationChainSanitizer } from "./fix-concatenation-chains";
 export { overEscapedSequencesSanitizer } from "./fix-over-escaped-sequences";
 export { completeTruncatedStructures } from "./complete-truncated-structures";
 
-export type { Sanitizer, SanitizerResult } from "./sanitizers-types";
+export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 
 // Export sanitization step constants
 export {

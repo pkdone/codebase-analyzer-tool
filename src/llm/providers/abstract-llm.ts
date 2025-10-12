@@ -293,7 +293,6 @@ export default abstract class AbstractLLM implements LLMProvider {
           responseContent,
           context.resource,
           completionOptions,
-          doWarnOnError,
         );
 
         if (parseResult.success) {

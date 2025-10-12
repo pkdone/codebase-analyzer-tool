@@ -33,7 +33,6 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         malformedJson,
         "test-resource",
         completionOptions,
-        false,
       );
 
       expect(result.success).toBe(true);
@@ -148,7 +147,6 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         malformedJson,
         "fineract-provider/src/main/java/org/apache/fineract/portfolio/account/domain/AccountAssociations.java",
         completionOptions,
-        false,
       );
 
       // Verify the result is valid
@@ -178,7 +176,6 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         malformedJson,
         "test-resource",
         completionOptions,
-        false,
       );
 
       expect(result.success).toBe(true);
@@ -210,7 +207,6 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         malformedJson,
         "test-resource",
         completionOptions,
-        false,
       );
 
       expect(result.success).toBe(true);
@@ -241,7 +237,6 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         malformedJson,
         "test-resource",
         completionOptions,
-        false,
       );
 
       expect(result.success).toBe(true);
@@ -272,7 +267,6 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         malformedJson,
         "test-resource",
         completionOptions,
-        false,
       );
 
       expect(result.success).toBe(true);
@@ -301,7 +295,6 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         malformedJson,
         "test-resource",
         completionOptions,
-        false,
       );
 
       expect(result.success).toBe(true);
@@ -325,7 +318,6 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         malformedJson,
         "test-resource",
         completionOptions,
-        false,
       );
 
       expect(result.success).toBe(true);

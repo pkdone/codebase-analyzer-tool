@@ -22,7 +22,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
   describe("Pipeline execution order", () => {
     it("should attempt parsing without any sanitization first", () => {
       const validJson = '{"clean": "json"}';
-      const result = jsonProcessor.parseAndValidate(validJson, "test", completionOptions, true);
+      const result = jsonProcessor.parseAndValidate(validJson, "test", completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -35,7 +35,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should stop pipeline as soon as parsing succeeds", () => {
       // This JSON needs code fence removal but nothing else
       const jsonInFence = '```json\n{"key": "value"}\n```';
-      const result = jsonProcessor.parseAndValidate(jsonInFence, "test", completionOptions, false);
+      const result = jsonProcessor.parseAndValidate(jsonInFence, "test", completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -49,7 +49,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should apply sanitizers in sequence until parsing succeeds", () => {
       // This needs both code fence removal and trailing comma removal
       const malformed = '```json\n{"a": 1,}\n```';
-      const result = jsonProcessor.parseAndValidate(malformed, "test", completionOptions, true);
+      const result = jsonProcessor.parseAndValidate(malformed, "test", completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -62,12 +62,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should track all applied sanitization steps", () => {
       const complexMalformed = '```json\n  {"x": 1,}  \n```';
-      const result = jsonProcessor.parseAndValidate(
-        complexMalformed,
-        "test",
-        completionOptions,
-        false,
-      );
+      const result = jsonProcessor.parseAndValidate(complexMalformed, "test", completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -189,7 +184,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should apply sanitizers progressively and stop early", () => {
       // This should succeed after just code fence removal
       const simpleCase = '```\n{"simple": true}\n```';
-      const result = jsonProcessor.parseAndValidate(simpleCase, "test", completionOptions, false);
+      const result = jsonProcessor.parseAndValidate(simpleCase, "test", completionOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -263,7 +258,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
   describe("Logging behavior", () => {
     it("should log sanitization steps when enabled", () => {
       const malformed = '```json\n{"test": true}\n```';
-      jsonProcessor.parseAndValidate(malformed, "logged-resource", completionOptions, true);
+      jsonProcessor.parseAndValidate(malformed, "logged-resource", completionOptions);
 
       expect(logWarningMsg).toHaveBeenCalled();
       const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
@@ -272,22 +267,23 @@ describe("JsonProcessor - Unified Pipeline", () => {
     });
 
     it("should not log sanitization steps when disabled", () => {
+      const processorWithoutLogging = new JsonProcessor(false);
       const malformed = '```json\n{"test": true}\n```';
-      jsonProcessor.parseAndValidate(malformed, "not-logged-resource", completionOptions, false);
+      processorWithoutLogging.parseAndValidate(malformed, "not-logged-resource", completionOptions);
 
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
     it("should not log when no sanitization was needed", () => {
       const clean = '{"clean": "json"}';
-      jsonProcessor.parseAndValidate(clean, "clean-resource", completionOptions, true);
+      jsonProcessor.parseAndValidate(clean, "clean-resource", completionOptions);
 
       expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
     it("should include all applied steps in log message", () => {
       const multiIssue = '```json\n{"a": 1,}\n```';
-      jsonProcessor.parseAndValidate(multiIssue, "multi-resource", completionOptions, true);
+      jsonProcessor.parseAndValidate(multiIssue, "multi-resource", completionOptions);
 
       expect(logWarningMsg).toHaveBeenCalled();
       const calls = (logWarningMsg as jest.Mock).mock.calls.flat();

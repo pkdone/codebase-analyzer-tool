@@ -28,12 +28,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
-        schemaResponse,
-        "TestResource",
-        defaultOptions,
-        false,
-      );
+      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -50,7 +45,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         version: "1.0.0",
       });
 
-      const result = processor.parseAndValidate(normalJson, "TestResource", defaultOptions, false);
+      const result = processor.parseAndValidate(normalJson, "TestResource", defaultOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -73,12 +68,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
-        schemaResponse,
-        "TestResource",
-        defaultOptions,
-        false,
-      );
+      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -98,12 +88,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         properties: {},
       });
 
-      const result = processor.parseAndValidate(
-        schemaResponse,
-        "TestResource",
-        defaultOptions,
-        false,
-      );
+      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -123,12 +108,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
-        schemaResponse,
-        "TestResource",
-        defaultOptions,
-        false,
-      );
+      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -147,7 +127,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
     it("applies transforms only after successful parse", () => {
       const invalidJson = "{ this is not valid json";
 
-      const result = processor.parseAndValidate(invalidJson, "TestResource", defaultOptions, false);
+      const result = processor.parseAndValidate(invalidJson, "TestResource", defaultOptions);
 
       // Should fail to parse, transforms should not run
       expect(result.success).toBe(false);
@@ -165,12 +145,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
-        schemaResponse,
-        "TestResource",
-        defaultOptions,
-        false,
-      );
+      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
 
       // The transform should unwrap it first, then validate
       expect(result.success).toBe(true);
@@ -195,7 +170,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
 }
 \`\`\``;
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions, false);
+      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -223,12 +198,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
-        schemaResponse,
-        "TestResource",
-        defaultOptions,
-        false,
-      );
+      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
 
       expect(result.success).toBe(true);
       if (result.success) {

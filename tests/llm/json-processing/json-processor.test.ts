@@ -98,7 +98,7 @@ describe("JsonProcessor", () => {
     describe("fast path optimization", () => {
       it("should use fast path for clean JSON", () => {
         const json = '{"simple": true}';
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions, false);
+        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ simple: true });
@@ -262,13 +262,13 @@ describe("JsonProcessor", () => {
     describe("sanitization logging", () => {
       it("should not log when disabled", () => {
         const json = 'Some text {"key": "value"} after';
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions, false);
+        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
         expect(result.success).toBe(true);
       });
 
       it("should handle logging enabled", () => {
         const json = 'Prefix {"key": "value"} suffix';
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions, true);
+        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
         expect(result.success).toBe(true);
       });
     });

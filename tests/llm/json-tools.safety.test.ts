@@ -15,12 +15,9 @@ describe("json-tools concatenated objects handling", () => {
     // When multiple objects are concatenated, the parser extracts the first complete one
     const concatenated = '{"a":1}{"b":2}';
 
-    const result = jsonProcessor.parseAndValidate(
-      concatenated,
-      "concat-resource",
-      { outputFormat: LLMOutputFormat.JSON },
-      false,
-    );
+    const result = jsonProcessor.parseAndValidate(concatenated, "concat-resource", {
+      outputFormat: LLMOutputFormat.JSON,
+    });
 
     // Should extract the first object
     expect(result.success).toBe(true);
@@ -37,7 +34,6 @@ describe("json-tools concatenated objects handling", () => {
       malformedConcatenated,
       "malformed-concat-resource",
       { outputFormat: LLMOutputFormat.JSON },
-      false,
     );
 
     // Should sanitize and extract the first valid object
@@ -55,7 +51,6 @@ describe("json-tools concatenated objects handling", () => {
       duplicateConcatenated,
       "duplicate-concat-resource",
       { outputFormat: LLMOutputFormat.JSON },
-      false,
     );
 
     // Should successfully extract one of the objects
@@ -69,12 +64,9 @@ describe("json-tools concatenated objects handling", () => {
     // Parser should extract JSON even when surrounded by other text
     const textWithJson = 'Here is some data: {"value": 42} and more text';
 
-    const result = jsonProcessor.parseAndValidate(
-      textWithJson,
-      "text-wrapped-resource",
-      { outputFormat: LLMOutputFormat.JSON },
-      false,
-    );
+    const result = jsonProcessor.parseAndValidate(textWithJson, "text-wrapped-resource", {
+      outputFormat: LLMOutputFormat.JSON,
+    });
 
     expect(result.success).toBe(true);
     if (result.success) {

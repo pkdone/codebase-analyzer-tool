@@ -101,7 +101,7 @@ describe("json-tools resilient parsing", () => {
   it("resilient sanitation path still parses fenced JSON when earlier strategies fail intentionally", () => {
     // Craft input that defeats raw extract by adding leading noise without braces, then fenced JSON
     const fenced = "Noise before block\n```json\n" + sampleValid + "\n```   trailing";
-    const result = jsonProcessor.parseAndValidate(fenced, "res9", baseOptions, true);
+    const result = jsonProcessor.parseAndValidate(fenced, "res9", baseOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect((result.data as any).nested.a).toBe(1);

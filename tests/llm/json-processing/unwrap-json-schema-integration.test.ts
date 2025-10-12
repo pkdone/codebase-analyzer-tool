@@ -34,7 +34,6 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       llmResponse,
       "buildSrc/src/main/resources/instructions/step13.txt.ftl",
       completionOptions,
-      true,
     );
 
     expect(result.success).toBe(true);
@@ -69,12 +68,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(
-      llmResponse,
-      "test-resource",
-      completionOptions,
-      true,
-    );
+    const result = jsonProcessor.parseAndValidate(llmResponse, "test-resource", completionOptions);
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -102,12 +96,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(
-      llmResponse,
-      "test-resource",
-      completionOptions,
-      false,
-    );
+    const result = jsonProcessor.parseAndValidate(llmResponse, "test-resource", completionOptions);
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -139,12 +128,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(
-      llmResponse,
-      "test-resource",
-      completionOptions,
-      true,
-    );
+    const result = jsonProcessor.parseAndValidate(llmResponse, "test-resource", completionOptions);
 
     expect(result.success).toBe(true);
     if (result.success) {

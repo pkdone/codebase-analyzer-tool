@@ -15,13 +15,13 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
   const completionOptions = { outputFormat: LLMOutputFormat.JSON } as const;
 
   beforeEach(() => {
-    jsonProcessor = new JsonProcessor();
+    jsonProcessor = new JsonProcessor(true);
     jest.clearAllMocks();
   });
 
   it("returns fast path untouched JSON with no sanitation log", () => {
     const json = '{"x":1}';
-    const result = jsonProcessor.parseAndValidate(json, "decl-fast", completionOptions, true);
+    const result = jsonProcessor.parseAndValidate(json, "decl-fast", completionOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data).toEqual({ x: 1 });
@@ -31,7 +31,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
 
   it("applies extract sanitizer when JSON is embedded in prose", () => {
     const txt = 'Leading words {"y":2} trailing info';
-    const result = jsonProcessor.parseAndValidate(txt, "decl-extract", completionOptions, true);
+    const result = jsonProcessor.parseAndValidate(txt, "decl-extract", completionOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect((result.data as any).y).toBe(2);
@@ -44,7 +44,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
 
   it("applies concatenation chain sanitizer for identifier-only chains", () => {
     const chain = '{"path": A_CONST + B_CONST + C_CONST}';
-    const result = jsonProcessor.parseAndValidate(chain, "decl-concat", completionOptions, true);
+    const result = jsonProcessor.parseAndValidate(chain, "decl-concat", completionOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect((result.data as any).path).toBe("");
@@ -57,7 +57,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
 
   it("applies multiple sanitizers in pipeline for complex malformed JSON", () => {
     const malformed = '```json\n{"a":1,}\n``` noise after';
-    const result = jsonProcessor.parseAndValidate(malformed, "decl-multi", completionOptions, true);
+    const result = jsonProcessor.parseAndValidate(malformed, "decl-multi", completionOptions);
     expect(result.success).toBe(true);
     if (result.success) {
       expect((result.data as any).a).toBe(1);

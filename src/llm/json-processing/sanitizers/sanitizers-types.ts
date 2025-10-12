@@ -17,3 +17,10 @@ export interface SanitizerResult {
  * Type definition for a sanitizer function.
  */
 export type Sanitizer = (input: string) => SanitizerResult;
+
+/**
+ * Type definition for a post-parse transformation function.
+ * These operate on the parsed object structure rather than raw strings,
+ * and are applied after successful JSON.parse but before validation.
+ */
+export type PostParseTransform = (data: unknown) => unknown;
