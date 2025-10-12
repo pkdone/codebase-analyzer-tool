@@ -1,4 +1,4 @@
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 import { registerComponents } from "../registration-utils";
 
 // API component imports

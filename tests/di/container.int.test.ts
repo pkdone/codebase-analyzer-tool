@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { bootstrapContainer, container } from "../../src/di/container";
-import { TOKENS } from "../../src/di/tokens";
+import { TOKENS } from "../../src/tokens";
 import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
 import { MDBConnectionTestTask } from "../../src/tasks/mdb-connection-test.task";
 import { ReportGenerationTask } from "../../src/tasks/report-generation.task";

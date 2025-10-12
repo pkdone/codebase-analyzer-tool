@@ -1,4 +1,4 @@
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 import { TaskRunnerConfig } from "../../tasks/task.types";
 
 /**

@@ -9,7 +9,7 @@ import { logErrorMsgAndDetail } from "../../../common/utils/logging";
 import { mcpConfig } from "../../../config/features/mcp.config";
 import { httpConfig } from "../../../config/http.config";
 import McpServerConfigurator from "./mcp-server-configurator";
-import { TOKENS } from "../../../di/tokens";
+import { TOKENS } from "../../../tokens";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 /**

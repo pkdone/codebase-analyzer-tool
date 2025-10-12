@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 
 // Querying component imports
 import CodebaseQueryProcessor from "../../components/querying/codebase-query-processor";

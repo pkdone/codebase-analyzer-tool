@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 import { registerComponents } from "../registration-utils";
 
 // Capture component imports

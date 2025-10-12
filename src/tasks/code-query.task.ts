@@ -4,7 +4,7 @@ import { readAndFilterLines } from "../common/fs/file-content-utils";
 import { formatErrorMessage } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
-import { TOKENS } from "../di/tokens";
+import { TOKENS } from "../tokens";
 import { inputConfig } from "../components/querying/config/input.config";
 
 /**

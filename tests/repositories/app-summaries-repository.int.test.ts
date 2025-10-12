@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { TOKENS } from "../../src/di/tokens";
+import { TOKENS } from "../../src/tokens";
 import { AppSummariesRepository } from "../../src/repositories/app-summary/app-summaries.repository.interface";
 import { MongoClient } from "mongodb";
 import {

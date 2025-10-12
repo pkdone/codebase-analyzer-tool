@@ -9,7 +9,7 @@ import type {
 import { LLMResponseStatus } from "../../types/llm.types";
 import type { LLMRetryConfig } from "../../providers/llm-provider.types";
 import LLMStats from "../tracking/llm-stats";
-import { TOKENS } from "../../../di/tokens";
+import { TOKENS } from "../../../tokens";
 
 /**
  * Custom error class for retryable LLM operations

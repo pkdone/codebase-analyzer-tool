@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { z } from "zod";
 import { container } from "tsyringe";
-import { TOKENS } from "../../../src/di/tokens";
+import { TOKENS } from "../../../src/tokens";
 import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,

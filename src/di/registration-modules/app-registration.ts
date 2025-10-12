@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 
 // Repository imports
 import SourcesRepositoryImpl from "../../repositories/source/sources.repository";
@@ -48,7 +48,7 @@ import LLMRouter from "../../llm/core/llm-router";
 import { MongoDBClientFactory } from "../../common/mdb/mdb-client-factory";
 
 // Database component imports
-import { DatabaseInitializer } from "../../common/mdb/setup/database-initializer";
+import { DatabaseInitializer } from "../../tasks/database-initializer";
 
 /**
  * Register all application-level dependencies (repositories, components, and tasks).

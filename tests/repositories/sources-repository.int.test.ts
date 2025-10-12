@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { TOKENS } from "../../src/di/tokens";
+import { TOKENS } from "../../src/tokens";
 import { SourcesRepository } from "../../src/repositories/source/sources.repository.interface";
 import { SourceRecord } from "../../src/repositories/source/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/db-test-helper";

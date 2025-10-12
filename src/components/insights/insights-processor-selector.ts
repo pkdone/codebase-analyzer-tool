@@ -1,5 +1,5 @@
 import { inject, injectable } from "tsyringe";
-import { TOKENS } from "../../di/tokens";
+import { TOKENS } from "../../tokens";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./insights-from-db-generator";

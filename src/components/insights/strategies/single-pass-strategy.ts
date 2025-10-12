@@ -5,7 +5,7 @@ import { summaryCategoriesConfig } from "../../../config/insights-generation.con
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-formatting";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
-import { TOKENS } from "../../../di/tokens";
+import { TOKENS } from "../../../tokens";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 

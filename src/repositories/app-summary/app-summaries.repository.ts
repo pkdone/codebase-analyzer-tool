@@ -9,7 +9,7 @@ import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-uti
 import { getJSONSchema } from "./app-summaries.model";
 import { BaseRepository } from "../base-repository";
 import { MongoClient } from "mongodb";
-import { TOKENS } from "../../di/tokens";
+import { TOKENS } from "../../tokens";
 import { inject, injectable } from "tsyringe";
 
 /**

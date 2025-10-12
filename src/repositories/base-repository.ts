@@ -1,6 +1,6 @@
 import { inject } from "tsyringe";
 import { MongoClient, Collection, Document } from "mongodb";
-import { TOKENS } from "../di/tokens";
+import { TOKENS } from "../tokens";
 
 /**
  * Base repository class that provides common MongoDB setup.

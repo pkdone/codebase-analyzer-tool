@@ -4,7 +4,7 @@ import AzureOpenAILLM, { AzureOpenAIConfig } from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { llmConfig } from "../../../llm.config";
-import { getRequiredEnvVar } from "../../../../env/utils/env-utils";
+import { getRequiredEnvVar } from "../../../../common/utils/env-utils";
 
 // Environment variable name constants
 const AZURE_OPENAI_LLM_API_KEY = "AZURE_OPENAI_LLM_API_KEY";

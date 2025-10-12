@@ -5,7 +5,7 @@ import LLMStats from "../../llm/core/tracking/llm-stats";
 import { LLMStatsReporter } from "../../llm/core/tracking/llm-stats-reporter";
 import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
 import { LLMInfoProvider } from "../../llm/core/llm-info-provider";
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 
 /**
  * Register LLM provider management services in the DI container.

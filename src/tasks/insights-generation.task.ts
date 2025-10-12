@@ -3,7 +3,7 @@ import { injectable, inject } from "tsyringe";
 import type { InsightsProcessorSelector } from "../components/insights/insights-processor-selector";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
-import { TOKENS } from "../di/tokens";
+import { TOKENS } from "../tokens";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
 

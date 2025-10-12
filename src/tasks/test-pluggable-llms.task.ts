@@ -4,7 +4,7 @@ import { readFile } from "../common/fs/file-operations";
 import { LLMModelQuality, LLMOutputFormat } from "../llm/types/llm.types";
 import LLMRouter from "../llm/core/llm-router";
 import { Task } from "./task.types";
-import { TOKENS } from "../di/tokens";
+import { TOKENS } from "../tokens";
 
 /**
  * File path to the sample prompt file

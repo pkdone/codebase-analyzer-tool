@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import McpHttpServer from "../components/api/mcpServing/mcp-http-server";
 import { Task } from "./task.types";
-import { TOKENS } from "../di/tokens";
+import { TOKENS } from "../tokens";
 
 /**
  * Task to run the MCP insights server.

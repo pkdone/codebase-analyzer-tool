@@ -7,7 +7,7 @@ import type LLMRouter from "../llm/core/llm-router";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
-import { TOKENS } from "../di/tokens";
+import { TOKENS } from "../tokens";
 
 /**
  * Task to generate inline insights.

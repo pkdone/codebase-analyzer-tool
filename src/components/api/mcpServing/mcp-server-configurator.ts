@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import InsightsDataProvider from "./insights-data-provider";
 import { mcpConfig } from "../../../config/features/mcp.config";
-import { TOKENS } from "../../../di/tokens";
+import { TOKENS } from "../../../tokens";
 
 /**
  * Class for configuring the MCP server with data providers and resources.

@@ -4,9 +4,9 @@ import CodebaseToDBLoader from "../components/capture/codebase-to-db-loader";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
-import { DatabaseInitializer } from "../common/mdb/setup/database-initializer";
+import { DatabaseInitializer } from "./database-initializer";
 import { databaseConfig } from "../config/database.config";
-import { TOKENS } from "../di/tokens";
+import { TOKENS } from "../tokens";
 import { clearDirectory } from "../common/fs/directory-operations";
 import { outputConfig } from "../config/output.config";
 

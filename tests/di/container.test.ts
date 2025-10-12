@@ -1,6 +1,6 @@
 import { bootstrapContainer, container } from "../../src/di/container";
 import { TaskRunnerConfig } from "../../src/tasks/task.types";
-import { TOKENS } from "../../src/di/tokens";
+import { TOKENS } from "../../src/tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests
 jest.mock("../../src/llm/core/llm-provider-manager");

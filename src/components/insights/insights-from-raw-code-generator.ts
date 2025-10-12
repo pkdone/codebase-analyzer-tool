@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../llm/core/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
-import { TOKENS } from "../../di/tokens";
+import { TOKENS } from "../../tokens";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";

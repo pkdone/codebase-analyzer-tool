@@ -4,7 +4,7 @@ import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
-import { TOKENS } from "../../di/tokens";
+import { TOKENS } from "../../tokens";
 import { inputConfig } from "./config/input.config";
 
 /**

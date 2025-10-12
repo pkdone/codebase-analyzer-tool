@@ -4,7 +4,7 @@ import type {
   ProjectedTopLevelJavaClassDependencies,
   HierarchicalTopLevelJavaClassDependencies,
 } from "../../../repositories/source/sources.model";
-import { TOKENS } from "../../../di/tokens";
+import { TOKENS } from "../../../tokens";
 import { convertToHierarchical } from "../utils/dependency-tree-builder";
 import { fileTypeMappingsConfig } from "../../../config/file-type-mappings.config";
 

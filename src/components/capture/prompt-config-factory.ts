@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { DynamicPromptConfig } from "../../llm/types/llm.types";
 import { fileTypeMetadataConfig } from "./config/capture.config";
 import { resolveFileType, type FileTypeMappingsConfig } from "./utils/file-type-resolver";
-import { TOKENS } from "../../di/tokens";
+import { TOKENS } from "../../tokens";
 
 /**
  * Factory class responsible for creating appropriate prompt configurations based on file type.

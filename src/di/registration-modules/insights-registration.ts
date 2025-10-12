@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";

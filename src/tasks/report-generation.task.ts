@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { Task } from "./task.types";
-import { TOKENS } from "../di/tokens";
+import { TOKENS } from "../tokens";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
 import AppReportGenerator from "../components/reporting/app-report-generator";

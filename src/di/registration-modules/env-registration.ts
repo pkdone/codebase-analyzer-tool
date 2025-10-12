@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import { loadBaseEnvVarsOnly } from "../../env/env";

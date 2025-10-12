@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../tokens";
+import { TOKENS } from "../../tokens";
 import { MongoDBClientFactory } from "../../common/mdb/mdb-client-factory";
 import { databaseConfig } from "../../config/database.config";
 import type { EnvVars } from "../../env/env.types";
