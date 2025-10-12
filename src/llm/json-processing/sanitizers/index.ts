@@ -5,7 +5,6 @@ export { trimWhitespace } from "./trim-whitespace";
 export { removeCodeFences } from "./remove-code-fences";
 export { removeControlChars } from "./remove-control-chars";
 export { extractLargestJsonSpan } from "./extract-largest-json-span";
-export { unwrapJsonSchema } from "./unwrap-json-schema";
 export { collapseDuplicateJsonObject } from "./collapse-duplicate-json-object";
 export { fixMismatchedDelimiters } from "./fix-mismatched-delimiters";
 export { addMissingPropertyCommas } from "./add-missing-property-commas";

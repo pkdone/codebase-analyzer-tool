@@ -94,11 +94,24 @@ export class RejectionResponseLLMError extends LLMError {
 }
 
 /**
+ * Type of JSON processing error that occurred.
+ * - 'parse': JSON syntax error, cannot be parsed
+ * - 'validation': Valid JSON but doesn't match the expected schema
+ */
+export type JsonProcessingErrorType = "parse" | "validation";
+
+/**
  * Error class to represent a problem during JSON processing and sanitization.
  * This error provides rich debugging context including the original content,
- * the sanitized result, and the list of sanitization steps that were applied.
+ * the sanitized result, the list of sanitization steps that were applied,
+ * and the type of error (parse vs validation) to enable programmatic error handling.
  */
 export class JsonProcessingError extends LLMError {
+  /**
+   * The type of error that occurred (parse or validation).
+   */
+  readonly type: JsonProcessingErrorType;
+
   /**
    * The original malformed JSON string received from the LLM.
    */
@@ -123,6 +136,7 @@ export class JsonProcessingError extends LLMError {
    * Constructor.
    */
   constructor(
+    type: JsonProcessingErrorType,
     message: string,
     originalContent: string,
     sanitizedContent: string,
@@ -130,12 +144,14 @@ export class JsonProcessingError extends LLMError {
     underlyingError?: Error,
   ) {
     const context = {
+      type,
       originalLength: originalContent.length,
       sanitizedLength: sanitizedContent.length,
       appliedSanitizers,
       underlyingError: underlyingError?.message,
     };
     super(JsonProcessingError.name, LLMError.buildMessage(message, context));
+    this.type = type;
     this.originalContent = originalContent;
     this.sanitizedContent = sanitizedContent;
     this.appliedSanitizers = appliedSanitizers;

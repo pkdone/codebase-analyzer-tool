@@ -9,7 +9,6 @@ import {
   removeCodeFences,
   removeControlChars,
   extractLargestJsonSpan,
-  unwrapJsonSchema,
   collapseDuplicateJsonObject,
   fixMismatchedDelimiters,
   addMissingPropertyCommas,
@@ -54,14 +53,16 @@ export class JsonProcessor {
    * 2. removeCodeFences - Strip markdown code fences (```json) before attempting to find JSON span
    * 3. removeControlChars - Remove control characters that would break JSON parsing
    * 4. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
-   * 5. unwrapJsonSchema - Handle LLMs that return JSON Schema instead of data
-   * 6. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
-   * 7. fixMismatchedDelimiters - Correct bracket/brace mismatches
-   * 8. addMissingPropertyCommas - Insert missing commas between object properties
-   * 9. removeTrailingCommas - Remove invalid trailing commas
-   * 10. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
-   * 11. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
-   * 12. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
+   * 5. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
+   * 6. fixMismatchedDelimiters - Correct bracket/brace mismatches
+   * 7. addMissingPropertyCommas - Insert missing commas between object properties
+   * 8. removeTrailingCommas - Remove invalid trailing commas
+   * 9. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
+   * 10. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
+   * 11. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
+   *
+   * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
+   * which is more efficient than attempting to parse during sanitization.
    *
    * Each sanitizer only runs if it makes changes. Parsing is attempted after each step,
    * so earlier sanitizers have priority in fixing issues.
@@ -71,7 +72,6 @@ export class JsonProcessor {
     removeCodeFences,
     removeControlChars,
     extractLargestJsonSpan,
-    unwrapJsonSchema,
     collapseDuplicateJsonObject,
     fixMismatchedDelimiters,
     addMissingPropertyCommas,
@@ -113,6 +113,7 @@ export class JsonProcessor {
     if (typeof content !== "string") {
       const contentText = JSON.stringify(content);
       const error = new JsonProcessingError(
+        "parse",
         `LLM response for resource '${resourceName}' is not a string`,
         contentText,
         contentText,
@@ -164,7 +165,6 @@ export class JsonProcessor {
 
       if (parseResult.success) {
         this.logSanitizationIfEnabled(logger, appliedSteps, allDiagnostics);
-
         return {
           success: true,
           data: parseResult.data,
@@ -176,6 +176,7 @@ export class JsonProcessor {
       // Validation error - stop immediately (sanitizers can't fix schema issues)
       if (parseResult.errorType === "validation") {
         const error = new JsonProcessingError(
+          "validation",
           appliedSteps.length === 0
             ? `LLM response for resource '${resourceName}' parsed successfully but failed schema validation`
             : `LLM response for resource '${resourceName}' parsed successfully but failed schema validation after sanitization`,
@@ -193,6 +194,7 @@ export class JsonProcessor {
 
     // All sanitizers exhausted without success - return comprehensive error
     const error = new JsonProcessingError(
+      "parse",
       `LLM response for resource '${resourceName}' cannot be parsed to JSON after all sanitization attempts`,
       originalContent,
       workingContent,
