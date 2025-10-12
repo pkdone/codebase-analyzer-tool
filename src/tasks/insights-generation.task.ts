@@ -5,7 +5,7 @@ import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import { TOKENS } from "../di/tokens";
 import { outputConfig } from "../config/output.config";
-import { clearDirectory } from "../common/utils/directory-operations";
+import { clearDirectory } from "../common/fs/directory-operations";
 
 /**
  * Task to generate insights.

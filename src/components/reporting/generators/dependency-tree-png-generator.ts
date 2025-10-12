@@ -1,10 +1,10 @@
 import { injectable } from "tsyringe";
 import { createCanvas, CanvasRenderingContext2D } from "canvas";
 import path from "path";
-import { writeBinaryFile } from "../../common/utils/file-operations";
-import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
-import { logWarningMsg } from "../../common/utils/logging";
-import { dependencyTreePngConfig } from "./dependency-tree-png.config";
+import { writeBinaryFile } from "../../../common/fs/file-operations";
+import type { HierarchicalJavaClassDependency } from "../../../repositories/source/sources.model";
+import { logWarningMsg } from "../../../common/utils/logging";
+import { dependencyTreePngConfig } from "../../../config/features/dependency-tree-png.config";
 
 interface HierarchicalTreeNode {
   classpath: string;

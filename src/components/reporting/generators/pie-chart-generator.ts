@@ -1,9 +1,9 @@
 import { injectable } from "tsyringe";
 import { createCanvas, CanvasRenderingContext2D } from "canvas";
 import path from "path";
-import { writeBinaryFile } from "../../common/utils/file-operations";
-import type { ProjectedFileTypesCountAndLines } from "../../repositories/source/sources.model";
-import { pieChartConfig } from "./pie-chart.config";
+import { writeBinaryFile } from "../../../common/fs/file-operations";
+import type { ProjectedFileTypesCountAndLines } from "../../../repositories/source/sources.model";
+import { pieChartConfig } from "../../../config/features/pie-chart.config";
 
 interface PieSlice {
   label: string;

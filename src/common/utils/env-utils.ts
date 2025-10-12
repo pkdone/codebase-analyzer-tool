@@ -1,5 +1,4 @@
-import { BadConfigurationLLMError } from "../llm/types/llm-errors.types";
-import { EnvVars } from "./env.types";
+import { EnvVars } from "../../env/env.types";
 
 /**
  * Helper to retrieve a required environment variable from the already validated EnvVars object.
@@ -9,8 +8,7 @@ import { EnvVars } from "./env.types";
 export function getRequiredEnvVar(env: EnvVars, key: string): string {
   const value = env[key];
   if (typeof value === "string" && value.length > 0) return value;
-  throw new BadConfigurationLLMError(
-    `Required environment variable '${key}' is missing or not a non-empty string`,
-    { key, value },
+  throw new Error(
+    `Required environment variable '${key}' is missing or not a non-empty string. Key: ${key}, Value: ${String(value)}`,
   );
 }

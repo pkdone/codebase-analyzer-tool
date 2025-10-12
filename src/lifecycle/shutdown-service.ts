@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { injectable } from "tsyringe";
-import { IShutdownable } from "./shutdownable.interface";
+import { IShutdownable } from "../common/interfaces/shutdownable.interface";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.

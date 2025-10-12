@@ -5,7 +5,7 @@ import type {
   JavaClassDependency,
 } from "../../../repositories/source/sources.model";
 import { logWarningMsg } from "../../../common/utils/logging";
-import { dependencyTreePngConfig } from "../dependency-tree-png.config";
+import { dependencyTreePngConfig } from "../../../config/features/dependency-tree-png.config";
 
 /**
  * Utility functions for transforming flat dependency structures into hierarchical trees.

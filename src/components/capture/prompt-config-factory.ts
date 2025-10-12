@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { DynamicPromptConfig } from "../../llm/utils/prompt-templator";
-import { fileTypeMetadataConfig } from "./files-types-metadata.config";
+import { fileTypeMetadataConfig } from "../../config/features/capture.config";
 import { resolveFileType, type FileTypeMappingsConfig } from "./utils/file-type-resolver";
 import { TOKENS } from "../../di/tokens";
 

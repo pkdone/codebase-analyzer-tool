@@ -3,7 +3,7 @@ import { injectable, inject } from "tsyringe";
 import { Task } from "./task.types";
 import { TOKENS } from "../di/tokens";
 import { outputConfig } from "../config/output.config";
-import { clearDirectory } from "../common/utils/directory-operations";
+import { clearDirectory } from "../common/fs/directory-operations";
 import AppReportGenerator from "../components/reporting/app-report-generator";
 
 /**

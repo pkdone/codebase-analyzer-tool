@@ -6,17 +6,17 @@ import { DatabaseReportDataProvider } from "./data-providers/database-report-dat
 import { CodeStructureDataProvider } from "./data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "./data-providers/app-statistics-data-provider";
 import { CategoriesDataProvider } from "./data-providers/categories-data-provider";
-import { DependencyTreePngGenerator } from "./dependency-tree-png-generator";
-import { PieChartGenerator } from "./pie-chart-generator";
+import { DependencyTreePngGenerator } from "./generators/dependency-tree-png-generator";
+import { PieChartGenerator } from "./generators/pie-chart-generator";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { ReportData } from "./report-gen.types";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 import { convertToDisplayName } from "../../common/utils/text-formatting";
-import { ensureDirectoryExists } from "../../common/utils/directory-operations";
+import { ensureDirectoryExists } from "../../common/fs/directory-operations";
 import { htmlReportConstants } from "./html-report.constants";
-import { insightsConfig } from "./insights.config";
+import { reportSectionsConfig } from "../../config/features/report-sections.config";
 import path from "path";
 
 /**
@@ -61,7 +61,7 @@ export default class AppReportGenerator {
       await Promise.all([
         this.appSummariesRepository.getProjectAppSummaryFields(
           projectName,
-          insightsConfig.allRequiredAppSummaryFields,
+          reportSectionsConfig.allRequiredAppSummaryFields,
         ),
         this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
         this.databaseDataProvider.getDatabaseInteractions(projectName),
@@ -113,20 +113,26 @@ export default class AppReportGenerator {
       topLevelJavaClasses: reportData.topLevelJavaClasses,
     };
     const preparedData: PreparedJsonData[] = [
-      { filename: `${insightsConfig.jsonDataFiles.completeReport}.json`, data: completeReportData },
-      { filename: insightsConfig.jsonDataFiles.appStats, data: reportData.appStats },
       {
-        filename: insightsConfig.jsonDataFiles.appDescription,
+        filename: `${reportSectionsConfig.jsonDataFiles.completeReport}.json`,
+        data: completeReportData,
+      },
+      { filename: reportSectionsConfig.jsonDataFiles.appStats, data: reportData.appStats },
+      {
+        filename: reportSectionsConfig.jsonDataFiles.appDescription,
         data: { appDescription: reportData.appStats.appDescription },
       },
-      { filename: insightsConfig.jsonDataFiles.fileTypes, data: reportData.fileTypesData },
-      { filename: insightsConfig.jsonDataFiles.dbInteractions, data: reportData.dbInteractions },
+      { filename: reportSectionsConfig.jsonDataFiles.fileTypes, data: reportData.fileTypesData },
       {
-        filename: insightsConfig.jsonDataFiles.procsAndTriggers,
+        filename: reportSectionsConfig.jsonDataFiles.dbInteractions,
+        data: reportData.dbInteractions,
+      },
+      {
+        filename: reportSectionsConfig.jsonDataFiles.procsAndTriggers,
         data: reportData.procsAndTriggers,
       },
       {
-        filename: insightsConfig.jsonDataFiles.topLevelJavaClasses,
+        filename: reportSectionsConfig.jsonDataFiles.topLevelJavaClasses,
         data: reportData.topLevelJavaClasses,
       },
     ];
@@ -134,7 +140,7 @@ export default class AppReportGenerator {
     // Add categorized data files
     for (const categoryData of reportData.categorizedData) {
       preparedData.push({
-        filename: insightsConfig.getCategoryJSONFilename(categoryData.category),
+        filename: reportSectionsConfig.getCategoryJSONFilename(categoryData.category),
         data: categoryData.data,
       });
     }
@@ -234,7 +240,7 @@ export default class AppReportGenerator {
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
       topLevelJavaClasses: reportData.topLevelJavaClasses,
-      jsonFilesConfig: insightsConfig,
+      jsonFilesConfig: reportSectionsConfig,
       convertToDisplayName,
       fileTypesTableViewModel,
       dbInteractionsTableViewModel,

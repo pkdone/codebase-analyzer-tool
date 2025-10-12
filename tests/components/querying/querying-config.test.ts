@@ -1,4 +1,4 @@
-import { queryingConfig } from "../../../src/components/querying/querying.config";
+import { queryingConfig } from "../../../src/config/features/querying.config";
 
 describe("queryingConfig", () => {
   it("should be defined", () => {

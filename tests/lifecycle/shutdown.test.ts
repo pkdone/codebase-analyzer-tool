@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { ShutdownService } from "../../src/lifecycle/shutdown-service";
-import { IShutdownable } from "../../src/lifecycle/shutdownable.interface";
+import { IShutdownable } from "../../src/common/interfaces/shutdownable.interface";
 
 // Mock tsyringe decorators
 jest.mock("tsyringe", () => ({

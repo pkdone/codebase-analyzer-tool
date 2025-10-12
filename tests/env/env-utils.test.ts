@@ -1,5 +1,4 @@
-import { getRequiredEnvVar } from "../../src/env/env-utils";
-import { BadConfigurationLLMError } from "../../src/llm/types/llm-errors.types";
+import { getRequiredEnvVar } from "../../src/common/utils/env-utils";
 
 describe("env-utils", () => {
   it("getRequiredEnvVar returns value when present", () => {
@@ -9,6 +8,19 @@ describe("env-utils", () => {
 
   it("getRequiredEnvVar throws when missing", () => {
     const env = {} as any;
-    expect(() => getRequiredEnvVar(env, "MISSING")).toThrow(BadConfigurationLLMError);
+    expect(() => getRequiredEnvVar(env, "MISSING")).toThrow(Error);
+    expect(() => getRequiredEnvVar(env, "MISSING")).toThrow(
+      /Required environment variable 'MISSING' is missing/,
+    );
+  });
+
+  it("getRequiredEnvVar throws when value is empty string", () => {
+    const env = { EMPTY: "" } as any;
+    expect(() => getRequiredEnvVar(env, "EMPTY")).toThrow(Error);
+  });
+
+  it("getRequiredEnvVar throws when value is not a string", () => {
+    const env = { NUMBER: 123 } as any;
+    expect(() => getRequiredEnvVar(env, "NUMBER")).toThrow(Error);
   });
 });

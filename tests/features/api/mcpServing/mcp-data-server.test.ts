@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import McpDataServer from "../../../../src/components/api/mcpServing/mcp-server-configurator";
 import type InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-provider";
-import { mcpConfig } from "../../../../src/components/api/mcpServing/mcp.config";
+import { mcpConfig } from "../../../../src/config/features/mcp.config";
 
 // Mock the MCP SDK
 jest.mock("@modelcontextprotocol/sdk/server/mcp.js", () => ({

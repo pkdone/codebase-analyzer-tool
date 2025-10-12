@@ -3,7 +3,7 @@ import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.types";
-import * as directoryOperations from "../../../src/common/utils/directory-operations";
+import * as directoryOperations from "../../../src/common/fs/directory-operations";
 
 // Mock dependencies
 jest.mock("../../../src/llm/llm.config", () => ({
@@ -19,7 +19,7 @@ jest.mock("../../../src/llm/llm.config", () => ({
   },
 }));
 
-jest.mock("../../../src/common/utils/directory-operations");
+jest.mock("../../../src/common/fs/directory-operations");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
   logWarningMsg: jest.fn(),

@@ -1,4 +1,4 @@
-import { getFileExtension, getProjectNameFromPath } from "../../../src/common/utils/path-utils";
+import { getFileExtension, getProjectNameFromPath } from "../../../src/common/fs/path-utils";
 
 describe("Path utilities", () => {
   describe("getFileExtension", () => {

@@ -23,8 +23,8 @@ import { JsonProcessor } from "../json-processing/core/json-processor";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
-import { writeFile } from "../../common/utils/file-operations";
-import { ensureDirectoryExists } from "../../common/utils/directory-operations";
+import { writeFile } from "../../common/fs/file-operations";
+import { ensureDirectoryExists } from "../../common/fs/directory-operations";
 import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../config/logging.config";
 
 /**

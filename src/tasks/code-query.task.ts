@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { readAndFilterLines } from "../common/utils/file-content-utils";
+import { readAndFilterLines } from "../common/fs/file-content-utils";
 import { formatErrorMessage } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
 import { TOKENS } from "../di/tokens";
-import { queryingConfig } from "../components/querying/querying.config";
+import { queryingConfig } from "../config/features/querying.config";
 
 /**
  * Task to query the codebase.

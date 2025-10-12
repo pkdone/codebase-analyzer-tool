@@ -84,7 +84,7 @@ export async function setupTestDatabase(): Promise<MongoClient> {
 
   // Initialize the schema in the new test database
   const databaseInitializer = container.resolve<
-    import("../../src/repositories/setup/database-initializer").DatabaseInitializer
+    import("../../src/tasks/setup/database-initializer").DatabaseInitializer
   >(TOKENS.DatabaseInitializer);
   const vectorDimensions = await getVectorDimensions();
   await databaseInitializer.initializeDatabaseSchema(vectorDimensions);

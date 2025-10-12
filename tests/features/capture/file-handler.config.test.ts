@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { fileTypeMetadataConfig } from "../../../src/components/capture/files-types-metadata.config";
+import { fileTypeMetadataConfig } from "../../../src/config/features/capture.config";
 import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";

@@ -4,16 +4,16 @@ import CodebaseToDBLoader from "../../../src/components/capture/codebase-to-db-l
 import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
-import * as fileOperations from "../../../src/common/utils/file-operations";
-import * as directoryOperations from "../../../src/common/utils/directory-operations";
-import * as pathUtils from "../../../src/common/utils/path-utils";
+import * as fileOperations from "../../../src/common/fs/file-operations";
+import * as directoryOperations from "../../../src/common/fs/directory-operations";
+import * as pathUtils from "../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../src/common/utils/text-analysis";
 import { fileProcessingConfig } from "../../../src/config/file-processing.config";
 
 // Mock dependencies
-jest.mock("../../../src/common/utils/file-operations");
-jest.mock("../../../src/common/utils/directory-operations");
-jest.mock("../../../src/common/utils/path-utils");
+jest.mock("../../../src/common/fs/file-operations");
+jest.mock("../../../src/common/fs/directory-operations");
+jest.mock("../../../src/common/fs/path-utils");
 jest.mock("../../../src/common/utils/text-analysis");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),

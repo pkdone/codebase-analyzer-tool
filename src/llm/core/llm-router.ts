@@ -21,7 +21,7 @@ import {
   buildCompletionCandidates,
 } from "../utils/completions-models-retriever";
 import { LLMInfoProvider } from "./llm-info-provider";
-import { IShutdownable } from "../../lifecycle/shutdownable.interface";
+import { IShutdownable } from "../../common/interfaces/shutdownable.interface";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying

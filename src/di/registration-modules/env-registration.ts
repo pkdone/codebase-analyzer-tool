@@ -6,7 +6,7 @@ import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { BadConfigurationLLMError } from "../../llm/types/llm-errors.types";
 import { getErrorStack } from "../../common/utils/error-formatters";
-import { getProjectNameFromPath } from "../../common/utils/path-utils";
+import { getProjectNameFromPath } from "../../common/fs/path-utils";
 import dotenv from "dotenv";
 
 /**

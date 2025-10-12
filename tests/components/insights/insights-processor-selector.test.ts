@@ -4,13 +4,13 @@ import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { EnvVars } from "../../../src/env/env.types";
 import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../../src/components/insights/insights-from-raw-code-generator";
-import { formatCodebaseForPrompt } from "../../../src/llm/utils/codebase-processing";
+import { formatCodebaseForPrompt } from "../../../src/components/insights/utils/codebase-formatter";
 import { llmProviderConfig } from "../../../src/llm/llm.config";
 import { z } from "zod";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 
 // Mock dependencies
-jest.mock("../../../src/llm/utils/codebase-processing");
+jest.mock("../../../src/components/insights/utils/codebase-formatter");
 jest.mock("../../../src/llm/llm.config", () => ({
   llmConfig: {
     LLM_ROLE_USER: "user",

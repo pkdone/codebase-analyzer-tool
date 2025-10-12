@@ -2,7 +2,7 @@ import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
 import { injectable } from "tsyringe";
 import { logErrorMsgAndDetail, logWarningMsg } from "../utils/logging";
 import { redactUrl } from "../utils/security-utils";
-import { IShutdownable } from "../../lifecycle/shutdownable.interface";
+import { IShutdownable } from "../interfaces/shutdownable.interface";
 
 /**
  * A factory class for creating and managing MongoDB client connections.

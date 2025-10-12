@@ -1,14 +1,14 @@
 import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import mockFs from "mock-fs";
 import path from "path";
-import { readFile, writeFile, appendFile } from "../../../src/common/utils/file-operations";
+import { readFile, writeFile, appendFile } from "../../../src/common/fs/file-operations";
 import {
   listDirectoryEntries,
   clearDirectory,
   findFilesRecursively,
   sortFilesBySize,
-} from "../../../src/common/utils/directory-operations";
-import { readAndFilterLines } from "../../../src/common/utils/file-content-utils";
+} from "../../../src/common/fs/directory-operations";
+import { readAndFilterLines } from "../../../src/common/fs/file-content-utils";
 
 // Mock the logging module to avoid actual logging during tests
 jest.mock("../../../src/common/utils/logging", () => ({

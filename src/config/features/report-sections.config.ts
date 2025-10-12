@@ -1,10 +1,10 @@
-import { outputConfig } from "../../config/output.config";
+import { outputConfig } from "../output.config";
 
 /**
- * Configuration for insights and report generation.
- * Maps data types to their corresponding JSON filenames.
+ * Configuration for report generation sections.
+ * Maps data types to their corresponding JSON filenames and defines required fields.
  */
-export const insightsConfig = {
+export const reportSectionsConfig = {
   /**
    * All required app summary fields for report generation.
    * This includes fields needed by both AppStatisticsDataProvider and CategoriesDataProvider.

@@ -1,7 +1,4 @@
-import {
-  findFilesRecursively,
-  sortFilesBySize,
-} from "../../../src/common/utils/directory-operations";
+import { findFilesRecursively, sortFilesBySize } from "../../../src/common/fs/directory-operations";
 import glob from "fast-glob";
 import { promises as fs } from "fs";
 

@@ -38,7 +38,7 @@ jest.mock("../../../src/config/file-type-mappings.config", () => ({
 }));
 
 // Fix the mock to use the correct export name
-jest.mock("../../../src/components/capture/files-types-metadata.config", () => ({
+jest.mock("../../../src/config/features/capture.config", () => ({
   fileTypeMetadataConfig: {
     java: {
       contentDesc: "Java code",

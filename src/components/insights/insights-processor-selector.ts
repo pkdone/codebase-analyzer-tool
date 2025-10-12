@@ -4,7 +4,7 @@ import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./insights-from-db-generator";
 import type InsightsFromRawCodeGenerator from "./insights-from-raw-code-generator";
-import { formatCodebaseForPrompt } from "../../llm/utils/codebase-processing";
+import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import { llmProviderConfig } from "../../llm/llm.config";
 
 /**

@@ -7,10 +7,10 @@ import {
   PreparedHtmlReportData,
 } from "../../../src/components/reporting/html-report-writer";
 import { outputConfig } from "../../../src/config/output.config";
-import { writeFile } from "../../../src/common/utils/file-operations";
+import { writeFile } from "../../../src/common/fs/file-operations";
 
 // Mock dependencies
-jest.mock("../../../src/common/utils/file-operations");
+jest.mock("../../../src/common/fs/file-operations");
 jest.mock("ejs");
 
 const mockWriteFile = writeFile as jest.MockedFunction<typeof writeFile>;

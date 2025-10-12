@@ -3,17 +3,14 @@ import os from "os";
 import { injectable } from "tsyringe";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { outputConfig } from "../../config/output.config";
-import { readFile, writeFile } from "../../common/utils/file-operations";
-import {
-  listDirectoryEntries,
-  ensureDirectoryExists,
-} from "../../common/utils/directory-operations";
+import { readFile, writeFile } from "../../common/fs/file-operations";
+import { listDirectoryEntries, ensureDirectoryExists } from "../../common/fs/directory-operations";
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatErrorMessage } from "../../common/utils/error-formatters";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { formatCodebaseForPrompt } from "../../llm/utils/codebase-processing";
+import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import { formatDateForFilename } from "../../common/utils/date-utils";
 
 /**

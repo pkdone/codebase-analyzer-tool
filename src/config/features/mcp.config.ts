@@ -1,4 +1,4 @@
-import { appConfig } from "../../../config/app.config";
+import { appConfig } from "../app.config";
 
 /**
  * MCP server configuration

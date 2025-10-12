@@ -4,8 +4,8 @@ import { TOKENS } from "../tokens";
 // Reporting component imports
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
-import { DependencyTreePngGenerator } from "../../components/reporting/dependency-tree-png-generator";
-import { PieChartGenerator } from "../../components/reporting/pie-chart-generator";
+import { DependencyTreePngGenerator } from "../../components/reporting/generators/dependency-tree-png-generator";
+import { PieChartGenerator } from "../../components/reporting/generators/pie-chart-generator";
 import { DatabaseReportDataProvider } from "../../components/reporting/data-providers/database-report-data-provider";
 import { CodeStructureDataProvider } from "../../components/reporting/data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/data-providers/app-statistics-data-provider";

@@ -5,7 +5,7 @@ import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
 import { TOKENS } from "../../di/tokens";
-import { queryingConfig } from "./querying.config";
+import { queryingConfig } from "../../config/features/querying.config";
 
 /**
  * Creates a prompt for querying the codebase with a specific question.

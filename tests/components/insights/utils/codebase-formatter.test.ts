@@ -1,14 +1,14 @@
-import { formatCodebaseForPrompt } from "../../../src/llm/utils/codebase-processing";
-import { findFilesRecursively } from "../../../src/common/utils/directory-operations";
-import { getFileExtension } from "../../../src/common/utils/path-utils";
-import { readFile } from "../../../src/common/utils/file-operations";
-import { fileProcessingConfig } from "../../../src/config/file-processing.config";
+import { formatCodebaseForPrompt } from "../../../../src/components/insights/utils/codebase-formatter";
+import { findFilesRecursively } from "../../../../src/common/fs/directory-operations";
+import { getFileExtension } from "../../../../src/common/fs/path-utils";
+import { readFile } from "../../../../src/common/fs/file-operations";
+import { fileProcessingConfig } from "../../../../src/config/file-processing.config";
 
 // Mock dependencies
-jest.mock("../../../src/common/utils/directory-operations");
-jest.mock("../../../src/common/utils/path-utils");
-jest.mock("../../../src/common/utils/file-operations");
-jest.mock("../../../src/config/file-processing.config", () => ({
+jest.mock("../../../../src/common/fs/directory-operations");
+jest.mock("../../../../src/common/fs/path-utils");
+jest.mock("../../../../src/common/fs/file-operations");
+jest.mock("../../../../src/config/file-processing.config", () => ({
   fileProcessingConfig: {
     FOLDER_IGNORE_LIST: ["node_modules", "dist"],
     FILENAME_PREFIX_IGNORE: ["."],
@@ -16,7 +16,7 @@ jest.mock("../../../src/config/file-processing.config", () => ({
   },
 }));
 
-describe("codebase-processing", () => {
+describe("codebase-formatter", () => {
   const mockFindFilesRecursively = findFilesRecursively as jest.MockedFunction<
     typeof findFilesRecursively
   >;
