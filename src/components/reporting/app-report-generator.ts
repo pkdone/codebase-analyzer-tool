@@ -156,25 +156,14 @@ export default class AppReportGenerator {
     reportData: ReportData,
     htmlFilePath: string,
   ): Promise<PreparedHtmlReportData> {
-    // Create directories for PNG files and charts
     const htmlDir = path.dirname(htmlFilePath);
-    const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
-    const chartsDir = path.join(htmlDir, htmlReportConstants.directories.CHARTS);
-    await ensureDirectoryExists(pngDir);
-    await ensureDirectoryExists(chartsDir);
+    await this.ensureReportDirectories(htmlDir);
 
-    // Process file types data to show "unknown" for empty file types
-    const processedFileTypesData = reportData.fileTypesData.map((item) => ({
-      ...item,
-      fileType: item.fileType || "unknown",
-    }));
-
-    // Generate file types pie chart
-    const fileTypesPieChartFilename = await this.pieChartGenerator.generateFileTypesPieChart(
+    const processedFileTypesData = this.processFileTypesData(reportData.fileTypesData);
+    const fileTypesPieChartPath = await this.generateFileTypesChart(
       processedFileTypesData,
-      chartsDir,
+      htmlDir,
     );
-    const fileTypesPieChartPath = htmlReportConstants.paths.CHARTS_DIR + fileTypesPieChartFilename;
 
     // Create view models for file types summary
     const fileTypesDisplayData = processedFileTypesData.map((item) => ({
@@ -191,6 +180,7 @@ export default class AppReportGenerator {
     }));
 
     // Create view models for database interactions
+    // Database interactions need to be cast via unknown due to strict type checking
     const dbInteractionsTableViewModel = new TableViewModel(
       reportData.dbInteractions as unknown as DisplayableTableRow[],
     );
@@ -200,13 +190,82 @@ export default class AppReportGenerator {
       ...reportData.procsAndTriggers.procs.list,
       ...reportData.procsAndTriggers.trigs.list,
     ];
+    // Combined list needs to be cast via unknown due to strict type checking
     const procsAndTriggersTableViewModel = new TableViewModel(
       combinedProcsTrigsList as unknown as DisplayableTableRow[],
     );
 
     // Generate PNG files for each top-level Java class and create hyperlinks
-    const topLevelJavaClassesDisplayData = await Promise.all(
-      reportData.topLevelJavaClasses.map(async (classData) => {
+    const topLevelJavaClassesDisplayData = await this.generateDependencyTreeDisplayData(
+      reportData.topLevelJavaClasses,
+      htmlDir,
+    );
+    const topLevelJavaClassesTableViewModel = new TableViewModel(topLevelJavaClassesDisplayData);
+    return {
+      appStats: reportData.appStats,
+      fileTypesData: processedFileTypesData,
+      fileTypesPieChartPath: fileTypesPieChartPath,
+      categorizedData: categorizedDataWithViewModels,
+      dbInteractions: reportData.dbInteractions,
+      procsAndTriggers: reportData.procsAndTriggers,
+      topLevelJavaClasses: reportData.topLevelJavaClasses,
+      jsonFilesConfig: reportSectionsConfig,
+      convertToDisplayName,
+      fileTypesTableViewModel,
+      dbInteractionsTableViewModel,
+      procsAndTriggersTableViewModel,
+      topLevelJavaClassesTableViewModel,
+    };
+  }
+
+  /**
+   * Ensure required directories exist for report generation
+   */
+  private async ensureReportDirectories(htmlDir: string): Promise<void> {
+    const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
+    const chartsDir = path.join(htmlDir, htmlReportConstants.directories.CHARTS);
+    await ensureDirectoryExists(pngDir);
+    await ensureDirectoryExists(chartsDir);
+  }
+
+  /**
+   * Process file types data to show "unknown" for empty file types
+   */
+  private processFileTypesData(
+    fileTypesData: ReportData["fileTypesData"],
+  ): ReportData["fileTypesData"] {
+    return fileTypesData.map((item) => ({
+      ...item,
+      fileType: item.fileType || "unknown",
+    }));
+  }
+
+  /**
+   * Generate file types pie chart and return the path
+   */
+  private async generateFileTypesChart(
+    processedFileTypesData: ReportData["fileTypesData"],
+    htmlDir: string,
+  ): Promise<string> {
+    const chartsDir = path.join(htmlDir, htmlReportConstants.directories.CHARTS);
+    const fileTypesPieChartFilename = await this.pieChartGenerator.generateFileTypesPieChart(
+      processedFileTypesData,
+      chartsDir,
+    );
+    return htmlReportConstants.paths.CHARTS_DIR + fileTypesPieChartFilename;
+  }
+
+  /**
+   * Generate dependency tree PNG files and create display data with hyperlinks
+   */
+  private async generateDependencyTreeDisplayData(
+    topLevelJavaClasses: ReportData["topLevelJavaClasses"],
+    htmlDir: string,
+  ): Promise<DisplayableTableRow[]> {
+    const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
+
+    return await Promise.all(
+      topLevelJavaClasses.map(async (classData) => {
         // Generate PNG file for this class's dependency tree
         const pngFileName = await this.pngGenerator.generateHierarchicalDependencyTreePng(
           classData.namespace,
@@ -230,23 +289,6 @@ export default class AppReportGenerator {
         };
       }),
     );
-    const topLevelJavaClassesTableViewModel = new TableViewModel(topLevelJavaClassesDisplayData);
-
-    return {
-      appStats: reportData.appStats,
-      fileTypesData: processedFileTypesData,
-      fileTypesPieChartPath: fileTypesPieChartPath,
-      categorizedData: categorizedDataWithViewModels,
-      dbInteractions: reportData.dbInteractions,
-      procsAndTriggers: reportData.procsAndTriggers,
-      topLevelJavaClasses: reportData.topLevelJavaClasses,
-      jsonFilesConfig: reportSectionsConfig,
-      convertToDisplayName,
-      fileTypesTableViewModel,
-      dbInteractionsTableViewModel,
-      procsAndTriggersTableViewModel,
-      topLevelJavaClassesTableViewModel,
-    };
   }
 
   /**

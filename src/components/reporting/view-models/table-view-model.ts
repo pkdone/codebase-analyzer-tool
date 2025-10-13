@@ -6,6 +6,20 @@ import { convertToDisplayName } from "../../../common/utils/text-utils";
 export type DisplayableTableRow = Record<string, unknown>;
 
 /**
+ * Type guard to check if a value is a valid DisplayableTableRow
+ */
+export function isDisplayableTableRow(value: unknown): value is DisplayableTableRow {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Type guard to check if an array contains valid DisplayableTableRow items
+ */
+export function isDisplayableTableRowArray(value: unknown): value is DisplayableTableRow[] {
+  return Array.isArray(value) && value.every(isDisplayableTableRow);
+}
+
+/**
  * Interface for processed table cell data
  */
 export interface ProcessedTableCell {

@@ -642,7 +642,11 @@ export class DependencyTreePngGenerator {
     const textPadding = isCompactMode
       ? dependencyTreePngConfig.numeric.TEXT_PADDING_COMPACT
       : dependencyTreePngConfig.numeric.TEXT_PADDING_REGULAR;
-    const textY = node.y + node.height / 2 + layout.fontSize / 2 - 2;
+    const textY =
+      node.y +
+      node.height / 2 +
+      layout.fontSize / 2 -
+      dependencyTreePngConfig.numeric.TEXT_BASELINE_ADJUSTMENT;
     ctx.fillText(displayText, node.x + textPadding, textY);
 
     // Draw level indicator (smaller in compact mode)

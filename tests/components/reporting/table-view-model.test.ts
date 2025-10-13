@@ -1,6 +1,8 @@
 import {
   TableViewModel,
   ProcessedListItem,
+  isDisplayableTableRow,
+  isDisplayableTableRowArray,
 } from "../../../src/components/reporting/view-models/table-view-model";
 
 describe("TableViewModel", () => {
@@ -660,6 +662,82 @@ describe("TableViewModel", () => {
       const classes = vm.getColumnClasses();
 
       expect(classes[0]).toBe("col-medium"); // value - defaults to medium
+    });
+  });
+
+  describe("Type Guards", () => {
+    describe("isDisplayableTableRow", () => {
+      it("should return true for valid object records", () => {
+        expect(isDisplayableTableRow({ name: "John", age: 30 })).toBe(true);
+        expect(isDisplayableTableRow({ a: 1, b: "test", c: true })).toBe(true);
+        expect(isDisplayableTableRow({})).toBe(true); // Empty object is valid
+      });
+
+      it("should return false for null and undefined", () => {
+        expect(isDisplayableTableRow(null)).toBe(false);
+        expect(isDisplayableTableRow(undefined)).toBe(false);
+      });
+
+      it("should return false for arrays", () => {
+        expect(isDisplayableTableRow([])).toBe(false);
+        expect(isDisplayableTableRow([1, 2, 3])).toBe(false);
+        expect(isDisplayableTableRow([{ name: "John" }])).toBe(false);
+      });
+
+      it("should return false for primitive values", () => {
+        expect(isDisplayableTableRow("string")).toBe(false);
+        expect(isDisplayableTableRow(123)).toBe(false);
+        expect(isDisplayableTableRow(true)).toBe(false);
+      });
+
+      it("should return true for objects with nested structures", () => {
+        expect(isDisplayableTableRow({ nested: { value: "test" } })).toBe(true);
+        expect(isDisplayableTableRow({ array: [1, 2, 3], obj: { a: 1 } })).toBe(true);
+      });
+    });
+
+    describe("isDisplayableTableRowArray", () => {
+      it("should return true for arrays of valid objects", () => {
+        expect(isDisplayableTableRowArray([{ name: "John" }, { name: "Jane" }])).toBe(true);
+        expect(
+          isDisplayableTableRowArray([
+            { a: 1, b: 2 },
+            { c: 3, d: 4 },
+          ]),
+        ).toBe(true);
+        expect(isDisplayableTableRowArray([])).toBe(true); // Empty array is valid
+      });
+
+      it("should return false for arrays containing non-objects", () => {
+        expect(isDisplayableTableRowArray([{ name: "John" }, "string"])).toBe(false);
+        expect(isDisplayableTableRowArray([1, 2, 3])).toBe(false);
+        expect(isDisplayableTableRowArray(["a", "b", "c"])).toBe(false);
+      });
+
+      it("should return false for arrays containing null or undefined", () => {
+        expect(isDisplayableTableRowArray([{ name: "John" }, null])).toBe(false);
+        expect(isDisplayableTableRowArray([undefined, { name: "Jane" }])).toBe(false);
+      });
+
+      it("should return false for arrays containing arrays", () => {
+        expect(isDisplayableTableRowArray([[{ name: "John" }]])).toBe(false);
+        expect(isDisplayableTableRowArray([{ name: "John" }, [1, 2, 3]])).toBe(false);
+      });
+
+      it("should return false for non-array values", () => {
+        expect(isDisplayableTableRowArray({ name: "John" })).toBe(false);
+        expect(isDisplayableTableRowArray("string")).toBe(false);
+        expect(isDisplayableTableRowArray(null)).toBe(false);
+        expect(isDisplayableTableRowArray(undefined)).toBe(false);
+      });
+
+      it("should handle complex valid arrays", () => {
+        const validArray = [
+          { id: 1, name: "Item 1", data: [1, 2, 3] },
+          { id: 2, name: "Item 2", nested: { value: "test" } },
+        ];
+        expect(isDisplayableTableRowArray(validArray)).toBe(true);
+      });
     });
   });
 });

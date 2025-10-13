@@ -161,7 +161,7 @@ export class PieChartGenerator {
 
       // Draw slice border
       ctx.strokeStyle = pieChartConfig.colors.SLICE_BORDER;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = pieChartConfig.numeric.SLICE_BORDER_WIDTH;
       ctx.stroke();
 
       // Draw percentage label on slice (if slice is large enough)
@@ -180,11 +180,11 @@ export class PieChartGenerator {
       pieChartConfig.layout.PIE_RADIUS * pieChartConfig.numeric.LABEL_RADIUS_FACTOR;
     const labelX = pieChartConfig.layout.PIE_CENTER_X + Math.cos(midAngle) * labelRadius;
     const labelY = pieChartConfig.layout.PIE_CENTER_Y + Math.sin(midAngle) * labelRadius;
-    ctx.font = `${pieChartConfig.text.FONT_WEIGHT_BOLD}${pieChartConfig.layout.FONT_SIZE + 2}px ${pieChartConfig.text.FONT_FAMILY}`;
+    ctx.font = `${pieChartConfig.text.FONT_WEIGHT_BOLD}${pieChartConfig.layout.FONT_SIZE + pieChartConfig.numeric.SLICE_LABEL_FONT_OFFSET}px ${pieChartConfig.text.FONT_FAMILY}`;
     ctx.fillStyle = pieChartConfig.colors.SLICE_BORDER;
     ctx.textAlign = "center";
     ctx.strokeStyle = pieChartConfig.colors.TEXT_STROKE;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = pieChartConfig.numeric.TEXT_STROKE_WIDTH;
     ctx.strokeText(
       `${slice.percentage.toFixed(1)}${pieChartConfig.text.PERCENTAGE_SUFFIX}`,
       labelX,
@@ -218,7 +218,7 @@ export class PieChartGenerator {
 
       // Draw border around color box
       ctx.strokeStyle = pieChartConfig.colors.LEGEND_BORDER;
-      ctx.lineWidth = 1;
+      ctx.lineWidth = pieChartConfig.numeric.LEGEND_BORDER_WIDTH;
       ctx.strokeRect(
         pieChartConfig.layout.LEGEND_X,
         y - pieChartConfig.numeric.LEGEND_BOX_OFFSET,

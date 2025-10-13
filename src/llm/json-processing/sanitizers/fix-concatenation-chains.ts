@@ -2,6 +2,11 @@ import type { Sanitizer } from "./sanitizers-types";
 import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
 
 /**
+ * Constants for diagnostic message formatting
+ */
+const DIAGNOSTIC_TRUNCATION_LENGTH = 30;
+
+/**
  * Fixes concatenation chains in LLM-generated JSON.
  *
  * ## Problem Statement
@@ -97,7 +102,7 @@ export const concatenationChainSanitizer: Sanitizer = (input) => {
     IDENTIFIER_THEN_LITERAL,
     (_match: string, prefix: string, literal: string) => {
       diagnostics.push(
-        `Kept literal "${literal.substring(0, 30)}${literal.length > 30 ? "..." : ""}" from identifier chain`,
+        `Kept literal "${literal.substring(0, DIAGNOSTIC_TRUNCATION_LENGTH)}${literal.length > DIAGNOSTIC_TRUNCATION_LENGTH ? "..." : ""}" from identifier chain`,
       );
       totalChanges++;
       return `${prefix}"${literal}"`;
@@ -109,7 +114,7 @@ export const concatenationChainSanitizer: Sanitizer = (input) => {
     LITERAL_THEN_IDENTIFIER,
     (_match: string, prefix: string, literal: string) => {
       diagnostics.push(
-        `Removed trailing identifiers after literal "${literal.substring(0, 30)}${literal.length > 30 ? "..." : ""}"`,
+        `Removed trailing identifiers after literal "${literal.substring(0, DIAGNOSTIC_TRUNCATION_LENGTH)}${literal.length > DIAGNOSTIC_TRUNCATION_LENGTH ? "..." : ""}"`,
       );
       totalChanges++;
       return `${prefix}"${literal}"`;

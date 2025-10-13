@@ -84,5 +84,13 @@ export const pieChartConfig = {
     MIN_LEGEND_WIDTH: 200,
     TEXT_WIDTH_ESTIMATE: 8,
     LEGEND_WIDTH_PADDING: 50,
+    /** Line width for slice borders */
+    SLICE_BORDER_WIDTH: 2,
+    /** Line width for legend box borders */
+    LEGEND_BORDER_WIDTH: 1,
+    /** Line width for text stroke effect */
+    TEXT_STROKE_WIDTH: 1,
+    /** Font size offset for slice percentage labels */
+    SLICE_LABEL_FONT_OFFSET: 2,
   } as const,
 } as const;
