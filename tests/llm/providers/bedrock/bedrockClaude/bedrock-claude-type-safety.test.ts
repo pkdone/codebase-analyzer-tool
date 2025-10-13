@@ -8,7 +8,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
-import { createMockJsonProcessor } from "../../../../helpers/json-processor-mock";
+import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 
 /**
  * Unit tests for BedrockClaudeLLM - Type Safety Improvements

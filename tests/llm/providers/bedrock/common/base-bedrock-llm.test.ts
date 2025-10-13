@@ -6,7 +6,7 @@ import {
 } from "../../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
 import { z } from "zod";
-import { createMockJsonProcessor } from "../../../../helpers/json-processor-mock";
+import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 
 /**
  * Test implementation of BaseBedrockLLM to verify JSON stringification

@@ -2,9 +2,9 @@ import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
-} from "../../src/llm/types/llm.types";
-import { LLMProviderManifest } from "../../src/llm/providers/llm-provider.types";
-import { loadBaseEnvVarsOnly } from "../../src/env/env";
+} from "../../../src/llm/types/llm.types";
+import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
+import { loadBaseEnvVarsOnly } from "../../../src/env/env";
 
 /**
  * Configuration for additional test models that may be used in tests

@@ -7,7 +7,7 @@ import {
   AppSummaryRecord,
   PartialAppSummaryRecord,
 } from "../../src/repositories/app-summary/app-summaries.model";
-import { setupTestDatabase, teardownTestDatabase } from "../helpers/db-test-helper";
+import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
 
 describe("AppSummaryRepository Integration Tests", () => {
   let appSummariesRepository: AppSummaryRepository;

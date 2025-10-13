@@ -2,10 +2,10 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { MongoClient } from "mongodb";
 import { randomUUID } from "crypto";
-import { TOKENS } from "../../src/tokens";
-import { databaseConfig } from "../../src/config/database.config";
-import { registerAppDependencies } from "../../src/di/registration-modules";
-import { LLMProviderManager } from "../../src/llm/core/llm-provider-manager";
+import { TOKENS } from "../../../src/tokens";
+import { databaseConfig } from "../../../src/config/database.config";
+import { registerAppDependencies } from "../../../src/di/registration-modules";
+import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 
 // Store client and dbName to be accessible in teardown
 let testMongoClient: MongoClient | null = null;
@@ -84,7 +84,7 @@ export async function setupTestDatabase(): Promise<MongoClient> {
 
   // Initialize the schema in the new test database
   const databaseInitializer = container.resolve<
-    import("../../src/tasks/database-initializer").DatabaseInitializer
+    import("../../../src/tasks/database-initializer").DatabaseInitializer
   >(TOKENS.DatabaseInitializer);
   const vectorDimensions = await getVectorDimensions();
   await databaseInitializer.initializeDatabaseSchema(vectorDimensions);

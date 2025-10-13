@@ -4,7 +4,7 @@ import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.typ
 import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.types";
 import * as directoryOperations from "../../../src/common/fs/directory-operations";
-import { createMockJsonProcessor } from "../../helpers/json-processor-mock";
+import { createMockJsonProcessor } from "../../helpers/llm/json-processor-mock";
 
 // Mock dependencies
 jest.mock("../../../src/llm/llm.config", () => ({

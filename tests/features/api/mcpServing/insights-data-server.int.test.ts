@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { TOKENS } from "../../../../src/tokens";
 import InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-provider";
-import { setupTestDatabase, teardownTestDatabase } from "../../../helpers/db-test-helper";
+import { setupTestDatabase, teardownTestDatabase } from "../../../helpers/database/db-test-helper";
 
 describe("AnalysisDataServer", () => {
   beforeAll(async () => {

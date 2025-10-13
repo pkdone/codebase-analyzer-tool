@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../src/llm/json-processing/core/json-processor";
+import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 
 /**
  * Creates a mock JsonProcessor for use in tests

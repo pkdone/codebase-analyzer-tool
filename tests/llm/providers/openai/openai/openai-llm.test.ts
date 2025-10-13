@@ -9,7 +9,7 @@ import {
 } from "../../../../../src/llm/types/llm.types";
 import OpenAILLM from "../../../../../src/llm/providers/openai/openai/openai-llm";
 import { OPENAI } from "../../../../../src/llm/providers/openai/openai/openai.manifest";
-import { createMockJsonProcessor } from "../../../../helpers/json-processor-mock";
+import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 
 // Helper functions to create properly typed mock responses
 // These provide type safety during mock creation while avoiding OpenAI SDK type complexity

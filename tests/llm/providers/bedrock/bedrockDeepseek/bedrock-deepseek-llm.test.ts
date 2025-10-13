@@ -6,7 +6,7 @@ import {
   LLMPurpose,
 } from "../../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
-import { createMockJsonProcessor } from "../../../../helpers/json-processor-mock";
+import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 import { llmConfig } from "../../../../../src/llm/llm.config";
 
 // Define model key used in tests (matching the manifest internal constant)

@@ -3,7 +3,7 @@ import { container } from "tsyringe";
 import { TOKENS } from "../../src/tokens";
 import { SourcesRepository } from "../../src/repositories/source/sources.repository.interface";
 import { SourceRecord } from "../../src/repositories/source/sources.model";
-import { setupTestDatabase, teardownTestDatabase } from "../helpers/db-test-helper";
+import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
 import { LLMProviderManager } from "../../src/llm/core/llm-provider-manager";
 
 // Helper function to get the vector dimensions from the configured LLM provider

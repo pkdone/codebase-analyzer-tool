@@ -5,7 +5,7 @@ import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
 import { MDBConnectionTestTask } from "../../src/tasks/mdb-connection-test.task";
 import { ReportGenerationTask } from "../../src/tasks/report-generation.task";
 import { MongoClient } from "mongodb";
-import { setupTestDatabase, teardownTestDatabase } from "../helpers/db-test-helper";
+import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
 
 // Mock only the LLM parts to avoid real API calls and costs
 jest.mock("../../src/llm/core/llm-provider-manager");
