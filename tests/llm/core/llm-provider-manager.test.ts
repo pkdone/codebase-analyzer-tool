@@ -317,7 +317,38 @@ describe("LLMProviderManager", () => {
       (testManager as any).isInitialized = true;
 
       const retrievedManifest = testManager.getLLMManifest();
-      expect(retrievedManifest).toBe(mockManifest);
+      expect(retrievedManifest).toBeDefined();
+      expect(retrievedManifest.modelFamily).toBe(mockManifest.modelFamily);
+      expect(retrievedManifest.providerName).toBe(mockManifest.providerName);
+    });
+
+    it("should return the cached manifest reference", () => {
+      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
+      (testManager as any).manifest = mockManifest;
+      (testManager as any).isInitialized = true;
+
+      const manifest1 = testManager.getLLMManifest();
+      const manifest2 = testManager.getLLMManifest();
+
+      // Should return the same reference (manifest contains functions which can't be cloned)
+      expect(manifest1).toBe(manifest2);
+      expect(manifest1.modelFamily).toBe(manifest2.modelFamily);
+      expect(manifest1.providerName).toBe(manifest2.providerName);
+    });
+
+    it("should contain all expected manifest properties", () => {
+      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
+      (testManager as any).manifest = mockManifest;
+      (testManager as any).isInitialized = true;
+
+      const manifest = testManager.getLLMManifest();
+
+      expect(manifest.models).toBeDefined();
+      expect(manifest.models.embeddings).toBeDefined();
+      expect(manifest.models.primaryCompletion).toBeDefined();
+      expect(manifest.providerSpecificConfig).toBeDefined();
+      expect(manifest.factory).toBeDefined();
+      expect(typeof manifest.factory).toBe("function");
     });
   });
 

@@ -35,6 +35,10 @@ export class PromptConfigFactory {
    * @returns The configuration object for the file type
    */
   private getConfigForFileType(fileType: string) {
-    return fileTypeMetadataConfig[fileType] ?? fileTypeMetadataConfig.default;
+    // Type assertion is safe here because we check if the key exists and fallback to default
+    return (
+      (fileTypeMetadataConfig as Record<string, DynamicPromptConfig>)[fileType] ??
+      fileTypeMetadataConfig.default
+    );
   }
 }

@@ -56,16 +56,18 @@ export default abstract class AbstractLLM implements LLMProvider {
 
   /**
    * Get the models metadata in a readonly format to prevent modifications by the caller.
+   * Uses structuredClone for deep immutability.
    */
   getModelsMetadata() {
-    return Object.freeze({ ...this.llmModelsMetadata });
+    return Object.freeze(structuredClone(this.llmModelsMetadata));
   }
 
   /**
    * Get the provider-specific configuration in a readonly format.
+   * Uses structuredClone for deep immutability.
    */
   getProviderSpecificConfig() {
-    return Object.freeze({ ...this.providerSpecificConfig });
+    return Object.freeze(structuredClone(this.providerSpecificConfig));
   }
 
   /**

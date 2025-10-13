@@ -377,3 +377,82 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
     });
   });
 });
+
+describe("Abstract LLM Deep Immutability", () => {
+  let testLLM: TestLLM;
+
+  beforeEach(() => {
+    testLLM = new TestLLM();
+  });
+
+  describe("getModelsMetadata", () => {
+    test("should return a frozen object", () => {
+      const metadata = testLLM.getModelsMetadata();
+      expect(Object.isFrozen(metadata)).toBe(true);
+    });
+
+    test("should return a deep clone that prevents mutation of nested objects", () => {
+      const metadata1 = testLLM.getModelsMetadata();
+      const metadata2 = testLLM.getModelsMetadata();
+
+      // Should be different object references (deep clone)
+      expect(metadata1).not.toBe(metadata2);
+      expect(metadata1[GPT_COMPLETIONS_GPT4_32k]).not.toBe(metadata2[GPT_COMPLETIONS_GPT4_32k]);
+
+      // But should have equal values
+      expect(metadata1).toEqual(metadata2);
+    });
+
+    test("should prevent modification of returned metadata", () => {
+      const metadata = testLLM.getModelsMetadata();
+
+      expect(() => {
+        (metadata as any).newKey = "newValue";
+      }).toThrow();
+    });
+
+    test("should contain expected model keys", () => {
+      const metadata = testLLM.getModelsMetadata();
+
+      expect(metadata[GPT_COMPLETIONS_GPT4_32k]).toBeDefined();
+      expect(metadata[GPT_EMBEDDINGS_GPT4]).toBeDefined();
+      expect(metadata[GPT_COMPLETIONS_GPT4_32k].urn).toBe("gpt-4-32k");
+      expect(metadata[GPT_EMBEDDINGS_GPT4].urn).toBe("text-embedding-ada-002");
+    });
+  });
+
+  describe("getProviderSpecificConfig", () => {
+    test("should return a frozen object", () => {
+      const config = testLLM.getProviderSpecificConfig();
+      expect(Object.isFrozen(config)).toBe(true);
+    });
+
+    test("should return a deep clone that prevents mutation", () => {
+      const config1 = testLLM.getProviderSpecificConfig();
+      const config2 = testLLM.getProviderSpecificConfig();
+
+      // Should be different object references (deep clone)
+      expect(config1).not.toBe(config2);
+
+      // But should have equal values
+      expect(config1).toEqual(config2);
+    });
+
+    test("should prevent modification of returned config", () => {
+      const config = testLLM.getProviderSpecificConfig();
+
+      expect(() => {
+        (config as any).requestTimeoutMillis = 99999;
+      }).toThrow();
+    });
+
+    test("should contain expected config properties", () => {
+      const config = testLLM.getProviderSpecificConfig();
+
+      expect(config.requestTimeoutMillis).toBe(60000);
+      expect(config.maxRetryAttempts).toBe(3);
+      expect(config.minRetryDelayMillis).toBe(1000);
+      expect(config.maxRetryDelayMillis).toBe(5000);
+    });
+  });
+});

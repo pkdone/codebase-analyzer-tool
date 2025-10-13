@@ -154,7 +154,8 @@ export class LLMProviderManager {
   }
 
   /**
-   * Get the loaded provider manifest
+   * Get the loaded provider manifest.
+   * Note: The manifest contains functions and cannot be deep cloned with structuredClone.
    */
   getLLMManifest(): LLMProviderManifest {
     const manifest = this.getInitializedManifest();

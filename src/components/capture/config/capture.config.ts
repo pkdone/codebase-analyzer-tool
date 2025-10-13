@@ -21,9 +21,26 @@ const COMMON_INSTRUCTIONS = {
 } as const;
 
 /**
+ * Supported file types for metadata configuration.
+ * Ensures type safety and prevents typos when accessing file type configs.
+ */
+type SupportedFileType =
+  | "java"
+  | "javascript"
+  | "default"
+  | "sql"
+  | "xml"
+  | "jsp"
+  | "markdown"
+  | "csharp"
+  | "ruby";
+
+/**
  * Data-driven mapping of prompt types to their templates and schemas
  */
-export const fileTypeMetadataConfig: Record<string, DynamicPromptConfig> = {
+export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConfig> & {
+  default: DynamicPromptConfig;
+} = {
   java: {
     contentDesc: "code",
     instructions: `* The name of the main public class/interface of the file
