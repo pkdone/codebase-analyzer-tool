@@ -1,13 +1,14 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
 import { APIError } from "openai/error";
-import { LLMPurpose, LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm.types";
+import {
+  LLMPurpose,
+  LLMCompletionOptions,
+  LLMOutputFormat,
+  LLMModelFeature,
+} from "../../../types/llm.types";
 import AbstractLLM from "../../abstract-llm";
 import { llmConfig } from "../../../llm.config";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
-
-// Constants for GPT-5 model detection
-const GPT5_MODEL_KEY = "GPT_COMPLETIONS_GPT5";
-const GPT5_MODEL_IDENTIFIER_SUBSTRING = "gpt-5";
 
 /**
  * Abstract base class for all OpenAI-based LLM providers.
@@ -77,27 +78,31 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
       };
       return params;
     } else {
-      const isGPT5Model =
-        modelKey === GPT5_MODEL_KEY ||
-        modelIdentifier.toLowerCase().includes(GPT5_MODEL_IDENTIFIER_SUBSTRING);
+      const modelMetadata = this.llmModelsMetadata[modelKey];
+      const hasFixedTemperature =
+        modelMetadata.features?.includes("fixed_temperature" satisfies LLMModelFeature) ?? false;
+      const usesMaxCompletionTokens =
+        modelMetadata.features?.includes("max_completion_tokens" satisfies LLMModelFeature) ??
+        false;
 
-      // GPT-5 models only support default temperature (1), while other models support custom temperature
+      // Some models (like GPT-5) only support default temperature, while others support custom temperature
       const baseParams: OpenAI.Chat.ChatCompletionCreateParams = {
         model: modelIdentifier,
         messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
-        ...(isGPT5Model
+        ...(hasFixedTemperature
           ? {}
           : {
               temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
             }),
       };
 
-      const params = isGPT5Model
+      // Some models use max_completion_tokens instead of max_tokens
+      const params = usesMaxCompletionTokens
         ? {
             ...baseParams,
-            max_completion_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
+            max_completion_tokens: modelMetadata.maxCompletionTokens,
           }
-        : { ...baseParams, max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens };
+        : { ...baseParams, max_tokens: modelMetadata.maxCompletionTokens };
 
       if (options?.outputFormat === LLMOutputFormat.JSON) {
         params.response_format = { type: llmConfig.JSON_OUTPUT_TYPE };

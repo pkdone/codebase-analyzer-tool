@@ -8,6 +8,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
+import { createMockJsonProcessor } from "../../../../helpers/json-processor-mock";
 
 /**
  * Unit tests for BedrockClaudeLLM - Type Safety Improvements
@@ -47,19 +48,25 @@ describe("BedrockClaudeLLM - Type Safety", () => {
   };
 
   it("should safely access anthropicBetaFlags from provider config for Claude V40", () => {
-    const llm = new BedrockClaudeLLM(mockModelKeysSet, mockModelsMetadata, [], {
-      providerSpecificConfig: {
-        apiVersion: "bedrock-2023-05-31",
-        temperature: 0,
-        topP: 0.1,
-        topK: 1,
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 6,
-        minRetryDelayMillis: 40000,
-        maxRetryDelayMillis: 360000,
-        anthropicBetaFlags: ["context-1m-2025-08-07"],
+    const llm = new BedrockClaudeLLM(
+      mockModelKeysSet,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: {
+          apiVersion: "bedrock-2023-05-31",
+          temperature: 0,
+          topP: 0.1,
+          topK: 1,
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 6,
+          minRetryDelayMillis: 40000,
+          maxRetryDelayMillis: 360000,
+          anthropicBetaFlags: ["context-1m-2025-08-07"],
+        },
       },
-    });
+      createMockJsonProcessor(),
+    );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       AWS_COMPLETIONS_CLAUDE_V40,
@@ -74,15 +81,21 @@ describe("BedrockClaudeLLM - Type Safety", () => {
   });
 
   it("should work without anthropicBetaFlags for Claude V40", () => {
-    const llm = new BedrockClaudeLLM(mockModelKeysSet, mockModelsMetadata, [], {
-      providerSpecificConfig: {
-        apiVersion: "bedrock-2023-05-31",
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 6,
-        minRetryDelayMillis: 40000,
-        maxRetryDelayMillis: 360000,
+    const llm = new BedrockClaudeLLM(
+      mockModelKeysSet,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: {
+          apiVersion: "bedrock-2023-05-31",
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 6,
+          minRetryDelayMillis: 40000,
+          maxRetryDelayMillis: 360000,
+        },
       },
-    });
+      createMockJsonProcessor(),
+    );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       AWS_COMPLETIONS_CLAUDE_V40,
@@ -100,16 +113,22 @@ describe("BedrockClaudeLLM - Type Safety", () => {
       primaryCompletionModelKey: "AWS_COMPLETIONS_CLAUDE_V37",
     };
 
-    const llm = new BedrockClaudeLLM(v37KeysSet, mockModelsMetadata, [], {
-      providerSpecificConfig: {
-        apiVersion: "bedrock-2023-05-31",
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 6,
-        minRetryDelayMillis: 40000,
-        maxRetryDelayMillis: 360000,
-        anthropicBetaFlags: ["context-1m-2025-08-07"],
+    const llm = new BedrockClaudeLLM(
+      v37KeysSet,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: {
+          apiVersion: "bedrock-2023-05-31",
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 6,
+          minRetryDelayMillis: 40000,
+          maxRetryDelayMillis: 360000,
+          anthropicBetaFlags: ["context-1m-2025-08-07"],
+        },
       },
-    });
+      createMockJsonProcessor(),
+    );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       "AWS_COMPLETIONS_CLAUDE_V37",
@@ -135,18 +154,24 @@ describe("BedrockClaudeLLM - Type Safety", () => {
   });
 
   it("should properly use temperature, topP, and topK from config", () => {
-    const llm = new BedrockClaudeLLM(mockModelKeysSet, mockModelsMetadata, [], {
-      providerSpecificConfig: {
-        apiVersion: "bedrock-2023-05-31",
-        temperature: 0.5,
-        topP: 0.9,
-        topK: 50,
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 6,
-        minRetryDelayMillis: 40000,
-        maxRetryDelayMillis: 360000,
+    const llm = new BedrockClaudeLLM(
+      mockModelKeysSet,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: {
+          apiVersion: "bedrock-2023-05-31",
+          temperature: 0.5,
+          topP: 0.9,
+          topK: 50,
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 6,
+          minRetryDelayMillis: 40000,
+          maxRetryDelayMillis: 360000,
+        },
       },
-    });
+      createMockJsonProcessor(),
+    );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       AWS_COMPLETIONS_CLAUDE_V40,

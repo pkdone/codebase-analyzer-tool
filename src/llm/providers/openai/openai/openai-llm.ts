@@ -7,6 +7,7 @@ import {
 import BaseOpenAILLM from "../common/base-openai-llm";
 import { OPENAI } from "./openai.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
+import { JsonProcessor } from "../../../json-processing/core/json-processor";
 
 /**
  * Configuration object for OpenAI LLM provider.
@@ -32,11 +33,12 @@ export default class OpenAILLM extends BaseOpenAILLM {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: OpenAIConfig,
+    jsonProcessor: JsonProcessor,
   ) {
     if (!config.providerSpecificConfig) {
       throw new Error("providerSpecificConfig is required but was not provided");
     }
-    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
+    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig, jsonProcessor);
     this.client = new OpenAI({ apiKey: config.apiKey });
   }
 

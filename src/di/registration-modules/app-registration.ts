@@ -44,8 +44,6 @@ import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
 
 // Lifecycle imports
 import { ShutdownService } from "../../lifecycle/shutdown-service";
-import LLMRouter from "../../llm/core/llm-router";
-import { MongoDBClientFactory } from "../../common/mdb/mdb-client-factory";
 
 // Database component imports
 import { DatabaseInitializer } from "../../tasks/database-initializer";
@@ -88,26 +86,9 @@ function registerComponents(config: TaskRunnerConfig): void {
   container.registerSingleton(TOKENS.FallbackStrategy, FallbackStrategy);
   container.registerSingleton(TOKENS.LLMExecutionPipeline, LLMExecutionPipeline);
 
-  // Register lifecycle services using factory to register shutdownable components
-  container.register(TOKENS.ShutdownService, {
-    useFactory: (c) => {
-      const shutdownService = new ShutdownService();
-
-      // Register LLMRouter if available
-      if (c.isRegistered(TOKENS.LLMRouter)) {
-        const llmRouter = c.resolve<LLMRouter>(TOKENS.LLMRouter);
-        shutdownService.register(llmRouter);
-      }
-
-      // Register MongoDBClientFactory if available
-      if (c.isRegistered(TOKENS.MongoDBClientFactory)) {
-        const mongoFactory = c.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
-        shutdownService.register(mongoFactory);
-      }
-
-      return shutdownService;
-    },
-  });
+  // Register lifecycle services
+  // ShutdownService uses multi-injection to automatically collect all Shutdownable components
+  container.registerSingleton(TOKENS.ShutdownService, ShutdownService);
 
   // Register database components
   container.registerSingleton(TOKENS.DatabaseInitializer, DatabaseInitializer);

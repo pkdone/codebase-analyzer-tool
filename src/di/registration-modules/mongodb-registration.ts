@@ -17,6 +17,12 @@ export function registerMongoDBDependencies(): void {
   // Register the factory as singleton
   container.registerSingleton(TOKENS.MongoDBClientFactory, MongoDBClientFactory);
   console.log("MongoDB Client Factory initialized and registered as singleton");
+
+  // Register MongoDBClientFactory as a shutdownable component for automatic cleanup
+  container.register(TOKENS.Shutdownable, {
+    useFactory: (c) => c.resolve(TOKENS.MongoDBClientFactory),
+  });
+  console.log("MongoDBClientFactory registered as shutdownable component");
 }
 
 /**

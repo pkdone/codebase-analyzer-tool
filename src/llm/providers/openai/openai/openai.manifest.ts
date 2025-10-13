@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
 import OpenAILLM, { OpenAIConfig } from "./openai-llm";
-import { LLMPurpose } from "../../../types/llm.types";
+import { LLMPurpose, LLMModelFeature } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { getRequiredEnvVar } from "../../../../common/utils/env-utils";
 
@@ -40,6 +40,10 @@ export const openAIProviderManifest: LLMProviderManifest = {
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 128_000,
       maxTotalTokens: 400_000,
+      features: [
+        "fixed_temperature" satisfies LLMModelFeature,
+        "max_completion_tokens" satisfies LLMModelFeature,
+      ],
     },
     secondaryCompletion: {
       modelKey: GPT_COMPLETIONS_GPT4_O,
@@ -56,11 +60,18 @@ export const openAIProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 10 * 1000,
     maxRetryDelayMillis: 90 * 1000,
   },
-  factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+  factory: (
+    envConfig,
+    modelsKeysSet,
+    modelsMetadata,
+    errorPatterns,
+    providerSpecificConfig,
+    jsonProcessor,
+  ) => {
     const config: OpenAIConfig = {
       apiKey: getRequiredEnvVar(envConfig, OPENAI_LLM_API_KEY_KEY),
       providerSpecificConfig,
     };
-    return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
+    return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config, jsonProcessor);
   },
 };

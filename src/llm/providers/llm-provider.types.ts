@@ -9,6 +9,7 @@ import {
   LLMResponseTokensUsage,
 } from "../types/llm.types";
 import { EnvVars } from "../../env/env.types";
+import { JsonProcessor } from "../json-processing/core/json-processor";
 
 /**
  * Interface for retry and timeout configuration used by LLMRouter
@@ -70,6 +71,7 @@ export interface LLMProviderManifest {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     providerSpecificConfig: LLMProviderSpecificConfig,
+    jsonProcessor: JsonProcessor,
   ) => LLMProvider;
 }
 

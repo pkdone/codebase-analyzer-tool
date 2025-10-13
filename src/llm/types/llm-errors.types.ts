@@ -94,11 +94,15 @@ export class RejectionResponseLLMError extends LLMError {
 }
 
 /**
- * Type of JSON processing error that occurred.
- * - 'parse': JSON syntax error, cannot be parsed
- * - 'validation': Valid JSON but doesn't match the expected schema
+ * Enum defining the types of errors that can occur during JSON processing.
+ * Used to distinguish between syntax errors (parse) and schema validation errors.
  */
-export type JsonProcessingErrorType = "parse" | "validation";
+export enum JsonProcessingErrorType {
+  /** JSON syntax error - malformed JSON string */
+  PARSE = "parse",
+  /** Schema validation error - valid JSON but doesn't match expected schema */
+  VALIDATION = "validation",
+}
 
 /**
  * Error class to represent a problem during JSON processing and sanitization.

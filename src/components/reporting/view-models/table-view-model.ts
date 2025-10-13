@@ -23,9 +23,78 @@ export interface ProcessedListItem {
 }
 
 /**
+ * Rule for classifying columns based on header patterns
+ */
+interface ColumnClassificationRule {
+  /** Test function to check if the rule applies to a header */
+  test: (headerLower: string) => boolean;
+  /** CSS class to apply if the test passes */
+  class: string;
+  /** Optional description of the rule for documentation */
+  description?: string;
+}
+
+/**
  * View model for table data that pre-processes data for display
  */
 export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow> {
+  /**
+   * Declarative rules for column classification based on header names.
+   * Rules are evaluated in order, and the first matching rule determines the column class.
+   */
+  private static readonly COLUMN_CLASSIFICATION_RULES: readonly ColumnClassificationRule[] = [
+    // Numeric columns (highest priority)
+    {
+      test: (h) =>
+        h.includes("count") ||
+        h.includes("total") ||
+        h.includes("number") ||
+        h.includes("#") ||
+        h === "complexity",
+      class: "col-narrow numeric",
+      description: "Numeric data columns",
+    },
+    // Description-like columns
+    {
+      test: (h) =>
+        h.includes("description") ||
+        h.includes("details") ||
+        h === "content" ||
+        h.endsWith("content") ||
+        h.includes("summary") ||
+        h.includes("comment") ||
+        h.includes("note"),
+      class: "col-description",
+      description: "Long text or description fields",
+    },
+    // Data-rich columns that need more space
+    {
+      test: (h) =>
+        h.includes("entities") ||
+        h.includes("endpoints") ||
+        h.includes("operations") ||
+        h.includes("methods") ||
+        h.includes("attributes") ||
+        h.includes("properties") ||
+        h.includes("fields"),
+      class: "col-wide",
+      description: "Columns with complex or structured data",
+    },
+    // Small identifier columns
+    {
+      test: (h) =>
+        h.includes("type") || h.includes("category") || h.includes("status") || h.includes("level"),
+      class: "col-small",
+      description: "Short identifier or category columns",
+    },
+    // Very short column names
+    {
+      test: (h) => h.length <= 4 && !h.includes("name") && !h.includes("text"),
+      class: "col-small",
+      description: "Short column names",
+    },
+  ] as const;
+
   private readonly data: T[];
   private readonly headers: string[];
   private readonly columnClasses: string[];
@@ -157,62 +226,16 @@ export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow>
 
   /**
    * Determine the CSS class for a column based on its header name and content.
-   * This logic was previously embedded in the EJS template.
+   * Uses declarative rules for a cleaner, more maintainable approach.
    */
   private determineColumnClass(headerName: string, columnIndex: number): string {
     const headerLower = headerName.toLowerCase();
 
-    // Check for numeric columns (highest priority after specific keywords)
-    if (
-      headerLower.includes("count") ||
-      headerLower.includes("total") ||
-      headerLower.includes("number") ||
-      headerLower.includes("#") ||
-      headerLower === "complexity"
-    ) {
-      return "col-narrow numeric";
-    }
-
-    // Check for description-like columns (before short column check)
-    // Use word boundaries or endings to avoid false matches
-    if (
-      headerLower.includes("description") ||
-      headerLower.includes("details") ||
-      headerLower === "content" ||
-      headerLower.endsWith("content") ||
-      headerLower.includes("summary") ||
-      headerLower.includes("comment") ||
-      headerLower.includes("note")
-    ) {
-      return "col-description";
-    }
-
-    // Check for data-rich columns that need more space (before short column check)
-    if (
-      headerLower.includes("entities") ||
-      headerLower.includes("endpoints") ||
-      headerLower.includes("operations") ||
-      headerLower.includes("methods") ||
-      headerLower.includes("attributes") ||
-      headerLower.includes("properties") ||
-      headerLower.includes("fields")
-    ) {
-      return "col-wide";
-    }
-
-    // Check for small identifier columns
-    if (
-      headerLower.includes("type") ||
-      headerLower.includes("category") ||
-      headerLower.includes("status") ||
-      headerLower.includes("level")
-    ) {
-      return "col-small";
-    }
-
-    // Check for very short column names (but not if they might be wide or already handled)
-    if (headerLower.length <= 4 && !headerLower.includes("name") && !headerLower.includes("text")) {
-      return "col-small";
+    // Apply declarative rules in order
+    for (const rule of TableViewModel.COLUMN_CLASSIFICATION_RULES) {
+      if (rule.test(headerLower)) {
+        return rule.class;
+      }
     }
 
     // Check content length and complexity to determine if it's a wide column

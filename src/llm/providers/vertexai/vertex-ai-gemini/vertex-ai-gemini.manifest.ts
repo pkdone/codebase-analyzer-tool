@@ -63,12 +63,25 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 30 * 1000,
     maxRetryDelayMillis: 200 * 1000,
   },
-  factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+  factory: (
+    envConfig,
+    modelsKeysSet,
+    modelsMetadata,
+    errorPatterns,
+    providerSpecificConfig,
+    jsonProcessor,
+  ) => {
     const config: VertexAIConfig = {
       project: getRequiredEnvVar(envConfig, VERTEXAI_PROJECTID_KEY),
       location: getRequiredEnvVar(envConfig, VERTEXAI_LOCATION_KEY),
       providerSpecificConfig,
     };
-    return new VertexAIGeminiLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
+    return new VertexAIGeminiLLM(
+      modelsKeysSet,
+      modelsMetadata,
+      errorPatterns,
+      config,
+      jsonProcessor,
+    );
   },
 };

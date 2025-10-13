@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import path from "path";
 import { llmProviderConfig } from "../llm.config";
 import {
@@ -13,6 +13,8 @@ import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { listDirectoryEntries } from "../../common/fs/directory-operations";
+import { JsonProcessor } from "../json-processing/core/json-processor";
+import { TOKENS } from "../../tokens";
 
 /**
  * Manager for discovering, loading, and instantiating LLM providers based on their manifests
@@ -24,9 +26,14 @@ export class LLMProviderManager {
   private isInitialized = false;
 
   /**
-   * Constructor takes modelFamily directly since we instantiate this manually
+   * Constructor takes modelFamily and JsonProcessor.
+   * modelFamily is passed directly since we instantiate this manually,
+   * jsonProcessor is injected for use in provider factory calls.
    */
-  constructor(modelFamily: string) {
+  constructor(
+    modelFamily: string,
+    @inject(TOKENS.JsonProcessor) private readonly jsonProcessor: JsonProcessor,
+  ) {
     this.modelFamily = modelFamily;
   }
 
@@ -167,6 +174,7 @@ export class LLMProviderManager {
       modelsMetadata,
       manifest.errorPatterns,
       manifest.providerSpecificConfig,
+      this.jsonProcessor,
     );
   }
 

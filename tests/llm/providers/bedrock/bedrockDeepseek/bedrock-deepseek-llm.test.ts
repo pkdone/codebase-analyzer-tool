@@ -6,6 +6,7 @@ import {
   LLMPurpose,
 } from "../../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
+import { createMockJsonProcessor } from "../../../../helpers/json-processor-mock";
 import { llmConfig } from "../../../../../src/llm/llm.config";
 
 // Define model key used in tests (matching the manifest internal constant)
@@ -45,9 +46,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
 
   describe("buildCompletionRequestBody", () => {
     it("should build correct request body for Deepseek R1", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: mockConfig,
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: mockConfig },
+        createMockJsonProcessor(),
+      );
 
       const testPrompt = "Analyze this code with reasoning";
       // Access private method for testing
@@ -73,9 +78,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should use correct maxCompletionTokens from model metadata", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: mockConfig,
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: mockConfig },
+        createMockJsonProcessor(),
+      );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
@@ -83,9 +92,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should not include apiVersion like Claude does", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: { ...mockConfig, apiVersion: "bedrock-2023-05-31" },
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: { ...mockConfig, apiVersion: "bedrock-2023-05-31" } },
+        createMockJsonProcessor(),
+      );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
@@ -96,9 +109,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should not wrap content in array like Claude does", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: mockConfig,
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: mockConfig },
+        createMockJsonProcessor(),
+      );
 
       const testPrompt = "Direct content test";
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -114,9 +131,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should handle prompts with special characters", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: mockConfig,
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: mockConfig },
+        createMockJsonProcessor(),
+      );
 
       const complexPrompt = "Special chars: <>&\"'\nNewlines\tTabs";
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -130,13 +151,19 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should use hardcoded default temperature and top_p", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: {
-          ...mockConfig,
-          temperature: 0.7, // This should be ignored
-          topP: 0.5, // This should be ignored
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        {
+          providerSpecificConfig: {
+            ...mockConfig,
+            temperature: 0.7, // This should be ignored
+            topP: 0.5, // This should be ignored
+          },
         },
-      });
+        createMockJsonProcessor(),
+      );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
@@ -148,9 +175,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should return an object, not a string", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: mockConfig,
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: mockConfig },
+        createMockJsonProcessor(),
+      );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
@@ -163,9 +194,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
 
   describe("getResponseExtractionConfig", () => {
     it("should return correct extraction configuration with alternative paths", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: mockConfig,
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: mockConfig },
+        createMockJsonProcessor(),
+      );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const config = llm["getResponseExtractionConfig"]();
@@ -186,9 +221,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should have alternative content path for reasoning content", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: mockConfig,
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: mockConfig },
+        createMockJsonProcessor(),
+      );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const config = llm["getResponseExtractionConfig"]();
@@ -200,9 +239,13 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
 
   describe("getModelFamily", () => {
     it("should return correct model family", () => {
-      const llm = new BedrockDeepseekLLM(mockModelsKeys, mockModelsMetadata, [], {
-        providerSpecificConfig: mockConfig,
-      });
+      const llm = new BedrockDeepseekLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        { providerSpecificConfig: mockConfig },
+        createMockJsonProcessor(),
+      );
 
       expect(llm.getModelFamily()).toBe("BedrockDeepseek");
     });

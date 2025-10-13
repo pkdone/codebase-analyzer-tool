@@ -6,6 +6,7 @@ import {
 } from "../../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
 import { z } from "zod";
+import { createMockJsonProcessor } from "../../../../helpers/json-processor-mock";
 
 /**
  * Test implementation of BaseBedrockLLM to verify JSON stringification
@@ -83,9 +84,15 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   };
 
   it("should return an object from buildCompletionRequestBody, not a string", () => {
-    const llm = new TestBedrockLLM(mockModelsKeys, mockModelsMetadata, [], {
-      providerSpecificConfig: mockConfig,
-    });
+    const llm = new TestBedrockLLM(
+      mockModelsKeys,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: mockConfig,
+      },
+      createMockJsonProcessor(),
+    );
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const result = llm["buildCompletionRequestBody"]("COMPLETION", "test prompt");
@@ -97,9 +104,15 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should build request body with correct structure", () => {
-    const llm = new TestBedrockLLM(mockModelsKeys, mockModelsMetadata, [], {
-      providerSpecificConfig: mockConfig,
-    });
+    const llm = new TestBedrockLLM(
+      mockModelsKeys,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: mockConfig,
+      },
+      createMockJsonProcessor(),
+    );
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const result = llm["buildCompletionRequestBody"]("COMPLETION", "hello world");
@@ -117,9 +130,15 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should verify base class handles JSON stringification internally", () => {
-    const llm = new TestBedrockLLM(mockModelsKeys, mockModelsMetadata, [], {
-      providerSpecificConfig: mockConfig,
-    });
+    const llm = new TestBedrockLLM(
+      mockModelsKeys,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: mockConfig,
+      },
+      createMockJsonProcessor(),
+    );
 
     // Access the private method through bracket notation for testing
     // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -143,9 +162,15 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should handle embeddings body as object and stringify it", () => {
-    const llm = new TestBedrockLLM(mockModelsKeys, mockModelsMetadata, [], {
-      providerSpecificConfig: mockConfig,
-    });
+    const llm = new TestBedrockLLM(
+      mockModelsKeys,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: mockConfig,
+      },
+      createMockJsonProcessor(),
+    );
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const fullParams = llm["buildFullLLMParameters"](

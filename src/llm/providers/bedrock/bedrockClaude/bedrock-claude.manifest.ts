@@ -73,10 +73,23 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     // Anthropic beta flags for specific features (e.g., extended context window)
     anthropicBetaFlags: ["context-1m-2025-08-07"],
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+  factory: (
+    _envConfig,
+    modelsKeysSet,
+    modelsMetadata,
+    errorPatterns,
+    providerSpecificConfig,
+    jsonProcessor,
+  ) => {
     const config: BedrockConfig = {
       providerSpecificConfig,
     };
-    return new BedrockClaudeLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
+    return new BedrockClaudeLLM(
+      modelsKeysSet,
+      modelsMetadata,
+      errorPatterns,
+      config,
+      jsonProcessor,
+    );
   },
 };

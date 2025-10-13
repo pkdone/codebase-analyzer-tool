@@ -35,7 +35,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private hasLoggedJsonError = false;
-  private readonly jsonProcessor = new JsonProcessor();
+  private readonly jsonProcessor: JsonProcessor;
 
   /**
    * Constructor.
@@ -45,11 +45,13 @@ export default abstract class AbstractLLM implements LLMProvider {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     providerSpecificConfig: LLMProviderSpecificConfig,
+    jsonProcessor: JsonProcessor,
   ) {
     this.modelsKeys = modelsKeys;
     this.llmModelsMetadata = modelsMetadata;
     this.errorPatterns = errorPatterns;
     this.providerSpecificConfig = providerSpecificConfig;
+    this.jsonProcessor = jsonProcessor;
   }
 
   /**

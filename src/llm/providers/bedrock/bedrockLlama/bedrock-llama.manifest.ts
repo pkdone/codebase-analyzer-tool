@@ -70,10 +70,17 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     maxRetryDelayMillis: DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
     maxGenLenCap: 2048,
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+  factory: (
+    _envConfig,
+    modelsKeysSet,
+    modelsMetadata,
+    errorPatterns,
+    providerSpecificConfig,
+    jsonProcessor,
+  ) => {
     const config: BedrockConfig = {
       providerSpecificConfig,
     };
-    return new BedrockLlamaLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
+    return new BedrockLlamaLLM(modelsKeysSet, modelsMetadata, errorPatterns, config, jsonProcessor);
   },
 };

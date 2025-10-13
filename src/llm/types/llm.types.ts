@@ -69,6 +69,16 @@ export interface LLMCompletionOptions {
 }
 
 /**
+ * Strongly-typed feature flags for LLM model capabilities and constraints.
+ * These flags control provider-specific behavior and parameter handling.
+ */
+export type LLMModelFeature =
+  /** Model requires fixed temperature (cannot be customized) */
+  | "fixed_temperature"
+  /** Model uses max_completion_tokens parameter instead of max_tokens */
+  | "max_completion_tokens";
+
+/**
  * Base interface for LLM model metadata containing all common fields.
  *
  * Notes:
@@ -89,6 +99,8 @@ interface BaseLLMModelMetadata {
   /** Normalized model name for use with llm-cost token calculation library */
   /** Maximum total tokens (prompt + completion) */
   readonly maxTotalTokens: number;
+  /** Optional array of feature flags indicating model-specific capabilities or constraints */
+  readonly features?: readonly LLMModelFeature[];
 }
 
 /**

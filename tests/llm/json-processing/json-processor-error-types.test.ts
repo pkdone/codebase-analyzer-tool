@@ -1,6 +1,9 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { JsonProcessingError } from "../../../src/llm/types/llm-errors.types";
+import {
+  JsonProcessingError,
+  JsonProcessingErrorType,
+} from "../../../src/llm/types/llm-errors.types";
 import { z } from "zod";
 
 /**
@@ -141,11 +144,11 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
 
           // Demonstrate type-based handling
           switch (result.error.type) {
-            case "parse":
+            case JsonProcessingErrorType.PARSE:
               // Parse errors might be retried with more aggressive sanitization
               expect(result.error.message).toMatch(/parse|string/i);
               break;
-            case "validation":
+            case JsonProcessingErrorType.VALIDATION:
               // Validation errors might need prompt adjustment
               expect(result.error.message).toContain("schema validation");
               break;

@@ -53,10 +53,23 @@ export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS,
     maxRetryDelayMillis: DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
   },
-  factory: (_envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+  factory: (
+    _envConfig,
+    modelsKeysSet,
+    modelsMetadata,
+    errorPatterns,
+    providerSpecificConfig,
+    jsonProcessor,
+  ) => {
     const config: BedrockConfig = {
       providerSpecificConfig,
     };
-    return new BedrockDeepseekLLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
+    return new BedrockDeepseekLLM(
+      modelsKeysSet,
+      modelsMetadata,
+      errorPatterns,
+      config,
+      jsonProcessor,
+    );
   },
 };

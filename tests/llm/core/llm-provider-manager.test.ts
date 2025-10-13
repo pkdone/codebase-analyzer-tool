@@ -4,6 +4,7 @@ import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.typ
 import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.types";
 import * as directoryOperations from "../../../src/common/fs/directory-operations";
+import { createMockJsonProcessor } from "../../helpers/json-processor-mock";
 
 // Mock dependencies
 jest.mock("../../../src/llm/llm.config", () => ({
@@ -65,7 +66,7 @@ describe("LLMProviderManager", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
-    manager = new LLMProviderManager("testFamily");
+    manager = new LLMProviderManager("testFamily", createMockJsonProcessor());
   });
 
   afterEach(() => {
@@ -187,7 +188,7 @@ describe("LLMProviderManager", () => {
     // Since we can't easily mock the initialization, let's test the private methods indirectly
     // by creating a manager with a pre-loaded manifest
     it("should handle models without secondary completion", () => {
-      const testManager = new LLMProviderManager("testFamily");
+      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
 
       // Simulate initialization by setting the private properties
       (testManager as any).manifest = mockManifest;
@@ -217,6 +218,7 @@ describe("LLMProviderManager", () => {
         }),
         mockManifest.errorPatterns,
         mockManifest.providerSpecificConfig,
+        expect.any(Object), // JsonProcessor
       );
     });
 
@@ -235,7 +237,7 @@ describe("LLMProviderManager", () => {
         },
       };
 
-      const testManager = new LLMProviderManager("testFamily");
+      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
       (testManager as any).manifest = manifestWithSecondary;
       (testManager as any).isInitialized = true;
 
@@ -261,11 +263,12 @@ describe("LLMProviderManager", () => {
         }),
         manifestWithSecondary.errorPatterns,
         manifestWithSecondary.providerSpecificConfig,
+        expect.any(Object), // JsonProcessor
       );
     });
 
     it("should throw error for missing environment variables", () => {
-      const testManager = new LLMProviderManager("testFamily");
+      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
       (testManager as any).manifest = mockManifest;
       (testManager as any).isInitialized = true;
 
@@ -279,7 +282,7 @@ describe("LLMProviderManager", () => {
     });
 
     it("should throw error for empty environment variables", () => {
-      const testManager = new LLMProviderManager("testFamily");
+      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
       (testManager as any).manifest = mockManifest;
       (testManager as any).isInitialized = true;
 
@@ -293,7 +296,7 @@ describe("LLMProviderManager", () => {
     });
 
     it("should throw error for non-string environment variables", () => {
-      const testManager = new LLMProviderManager("testFamily");
+      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
       (testManager as any).manifest = mockManifest;
       (testManager as any).isInitialized = true;
 
@@ -309,7 +312,7 @@ describe("LLMProviderManager", () => {
 
   describe("manifest retrieval", () => {
     it("should return manifest after initialization", () => {
-      const testManager = new LLMProviderManager("testFamily");
+      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
       (testManager as any).manifest = mockManifest;
       (testManager as any).isInitialized = true;
 

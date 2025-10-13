@@ -13,6 +13,7 @@ export const TOKENS = {
   EnvVars: Symbol("EnvVars"),
   ProjectName: Symbol("ProjectName"),
   ShutdownService: Symbol("ShutdownService"),
+  Shutdownable: Symbol("IShutdownable"),
   FileTypeMappingsConfig: Symbol("FileTypeMappingsConfig"),
 
   // Repositories (interface tokens)
@@ -33,6 +34,7 @@ export const TOKENS = {
   DatabaseInitializer: Symbol("DatabaseInitializer"),
   FileSummarizer: Symbol("FileSummarizer"),
   PromptConfigFactory: Symbol("PromptConfigFactory"),
+  JsonProcessor: Symbol("JsonProcessor"),
   LLMStats: Symbol("LLMStats"),
   LLMStatsReporter: Symbol("LLMStatsReporter"),
   LLMInfoProvider: Symbol("LLMInfoProvider"),

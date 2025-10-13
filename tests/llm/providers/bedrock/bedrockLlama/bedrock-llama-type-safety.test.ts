@@ -5,6 +5,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
+import { createMockJsonProcessor } from "../../../../helpers/json-processor-mock";
 
 /**
  * Unit tests for BedrockLlamaLLM - Type Safety Improvements
@@ -36,15 +37,21 @@ describe("BedrockLlamaLLM - Type Safety", () => {
   };
 
   it("should safely access maxGenLenCap from provider config", () => {
-    const llm = new BedrockLlamaLLM(mockModelKeysSet, mockModelsMetadata, [], {
-      providerSpecificConfig: {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 10000,
-        maxGenLenCap: 2048,
+    const llm = new BedrockLlamaLLM(
+      mockModelKeysSet,
+      mockModelsMetadata,
+      [],
+      {
+        providerSpecificConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 10000,
+          maxGenLenCap: 2048,
+        },
       },
-    });
+      createMockJsonProcessor(),
+    );
 
     // Access the protected method via type assertion to test it
     const requestBody = (llm as any).buildCompletionRequestBody(
@@ -77,15 +84,21 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       },
     };
 
-    const llm = new BedrockLlamaLLM(mockModelKeysSet, modelsMetadataWithLowMax, [], {
-      providerSpecificConfig: {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 10000,
-        maxGenLenCap: 2048,
+    const llm = new BedrockLlamaLLM(
+      mockModelKeysSet,
+      modelsMetadataWithLowMax,
+      [],
+      {
+        providerSpecificConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 10000,
+          maxGenLenCap: 2048,
+        },
       },
-    });
+      createMockJsonProcessor(),
+    );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
@@ -127,15 +140,21 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       primaryCompletionModelKey: "SOME_OTHER_MODEL",
     };
 
-    const llm = new BedrockLlamaLLM(nonLlamaKeysSet, nonLlamaMetadata, [], {
-      providerSpecificConfig: {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 10000,
-        maxGenLenCap: 2048,
+    const llm = new BedrockLlamaLLM(
+      nonLlamaKeysSet,
+      nonLlamaMetadata,
+      [],
+      {
+        providerSpecificConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 10000,
+          maxGenLenCap: 2048,
+        },
       },
-    });
+      createMockJsonProcessor(),
+    );
 
     const requestBody = (llm as any).buildCompletionRequestBody("SOME_OTHER_MODEL", "test prompt");
 

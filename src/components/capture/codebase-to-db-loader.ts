@@ -108,21 +108,54 @@ export default class CodebaseToDBLoader {
     existingFiles: Set<string>,
   ) {
     const type = getFileExtension(fullFilepath).toLowerCase();
-    const filepath = path.relative(srcDirPath, fullFilepath);
+
     if (
       (fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)
-    )
+    ) {
       return; // Skip file if it has binary content
-
-    if (skipIfAlreadyCaptured && existingFiles.has(filepath)) {
-      return;
     }
 
+    const filepath = path.relative(srcDirPath, fullFilepath);
+    if (skipIfAlreadyCaptured && existingFiles.has(filepath)) return;
     const rawContent = await readFile(fullFilepath);
     const content = rawContent.trim();
     if (!content) return; // Skip empty files
     const filename = path.basename(filepath);
     const linesCount = countLines(content);
+    const { summary, summaryError, summaryVector } = await this.generateSummaryAndEmbeddings(
+      filepath,
+      type,
+      content,
+    );
+    const contentVector = await this.getContentEmbeddings(filepath, content);
+    const sourceFileRecord = this.buildSourceRecord({
+      projectName,
+      filename,
+      filepath,
+      type,
+      linesCount,
+      content,
+      summary,
+      summaryError,
+      summaryVector,
+      contentVector: contentVector ?? undefined,
+    });
+    await this.sourcesRepository.insertSource(sourceFileRecord);
+  }
+
+  /**
+   * Generates summary and embeddings for a file, handling errors gracefully.
+   * Returns the summary, any error that occurred, and the summary vector.
+   */
+  private async generateSummaryAndEmbeddings(
+    filepath: string,
+    type: string,
+    content: string,
+  ): Promise<{
+    summary: SourceSummaryType | undefined;
+    summaryError: string | undefined;
+    summaryVector: number[] | undefined;
+  }> {
     let summary: SourceSummaryType | undefined;
     let summaryError: string | undefined;
     let summaryVector: number[] | undefined;
@@ -138,9 +171,38 @@ export default class CodebaseToDBLoader {
       summaryError = `Failed to generate summary: ${error instanceof Error ? error.message : String(error)}`;
     }
 
-    const contentVectorResult = await this.getContentEmbeddings(filepath, content);
-    const contentVector = contentVectorResult ?? undefined;
-    const sourceFileRecord: SourceRecord = {
+    return { summary, summaryError, summaryVector };
+  }
+
+  /**
+   * Builds a SourceRecord from the provided parameters.
+   * Only includes optional fields (summary, vectors, errors) if they have values.
+   */
+  private buildSourceRecord(params: {
+    projectName: string;
+    filename: string;
+    filepath: string;
+    type: string;
+    linesCount: number;
+    content: string;
+    summary: SourceSummaryType | undefined;
+    summaryError: string | undefined;
+    summaryVector: number[] | undefined;
+    contentVector: number[] | undefined;
+  }): SourceRecord {
+    const {
+      projectName,
+      filename,
+      filepath,
+      type,
+      linesCount,
+      content,
+      summary,
+      summaryError,
+      summaryVector,
+      contentVector,
+    } = params;
+    return {
       projectName,
       filename,
       filepath,
@@ -152,7 +214,6 @@ export default class CodebaseToDBLoader {
       ...(summaryVector && { summaryVector }),
       ...(contentVector && { contentVector }),
     };
-    await this.sourcesRepository.insertSource(sourceFileRecord);
   }
 
   /**

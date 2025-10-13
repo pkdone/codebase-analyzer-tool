@@ -5,29 +5,22 @@ import { IShutdownable } from "../../src/common/interfaces/shutdownable.interfac
 // Mock tsyringe decorators
 jest.mock("tsyringe", () => ({
   injectable: () => (target: any) => target,
-  inject: () => () => {},
+  injectAll: () => () => {},
 }));
 
 describe("ShutdownService", () => {
-  let shutdownService: ShutdownService;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    shutdownService = new ShutdownService();
-  });
-
-  describe("register", () => {
-    it("should register a shutdownable component", () => {
+  describe("with injected shutdownable components", () => {
+    it("should accept shutdownable components via constructor", () => {
       const mockShutdownable: IShutdownable = {
         shutdown: jest.fn().mockResolvedValue(undefined),
       };
 
       expect(() => {
-        shutdownService.register(mockShutdownable);
+        new ShutdownService([mockShutdownable]);
       }).not.toThrow();
     });
 
-    it("should allow multiple components to be registered", () => {
+    it("should accept multiple components via constructor", () => {
       const mockShutdownable1: IShutdownable = {
         shutdown: jest.fn().mockResolvedValue(undefined),
       };
@@ -35,10 +28,9 @@ describe("ShutdownService", () => {
         shutdown: jest.fn().mockResolvedValue(undefined),
       };
 
-      shutdownService.register(mockShutdownable1);
-      shutdownService.register(mockShutdownable2);
+      new ShutdownService([mockShutdownable1, mockShutdownable2]);
 
-      // No exceptions should be thrown
+      // No exceptions should be thrown - service constructed successfully
       expect(true).toBe(true);
     });
   });
@@ -52,8 +44,7 @@ describe("ShutdownService", () => {
         shutdown: jest.fn().mockResolvedValue(undefined),
       };
 
-      shutdownService.register(mockShutdownable1);
-      shutdownService.register(mockShutdownable2);
+      const shutdownService = new ShutdownService([mockShutdownable1, mockShutdownable2]);
 
       await shutdownService.gracefulShutdown();
 
@@ -62,6 +53,7 @@ describe("ShutdownService", () => {
     });
 
     it("should handle shutdown when no components are registered", async () => {
+      const shutdownService = new ShutdownService([]);
       await shutdownService.gracefulShutdown();
       // Should complete without error
       expect(true).toBe(true);
@@ -79,8 +71,7 @@ describe("ShutdownService", () => {
       // Spy on console.error to verify error is logged
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
-      shutdownService.register(mockShutdownable1);
-      shutdownService.register(mockShutdownable2);
+      const shutdownService = new ShutdownService([mockShutdownable1, mockShutdownable2]);
 
       // Should not throw - errors are logged instead
       await expect(shutdownService.gracefulShutdown()).resolves.not.toThrow();
@@ -111,9 +102,11 @@ describe("ShutdownService", () => {
       // Spy on console.error to verify all errors are logged
       const consoleSpy = jest.spyOn(console, "error").mockImplementation();
 
-      shutdownService.register(mockShutdownable1);
-      shutdownService.register(mockShutdownable2);
-      shutdownService.register(mockShutdownable3);
+      const shutdownService = new ShutdownService([
+        mockShutdownable1,
+        mockShutdownable2,
+        mockShutdownable3,
+      ]);
 
       await expect(shutdownService.gracefulShutdown()).resolves.not.toThrow();
 

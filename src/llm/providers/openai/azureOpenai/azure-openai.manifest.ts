@@ -70,7 +70,14 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 15 * 1000,
     maxRetryDelayMillis: 120 * 1000,
   },
-  factory: (envConfig, modelsKeysSet, modelsMetadata, errorPatterns, providerSpecificConfig) => {
+  factory: (
+    envConfig,
+    modelsKeysSet,
+    modelsMetadata,
+    errorPatterns,
+    providerSpecificConfig,
+    jsonProcessor,
+  ) => {
     const config: AzureOpenAIConfig = {
       apiKey: getRequiredEnvVar(envConfig, AZURE_OPENAI_LLM_API_KEY),
       endpoint: getRequiredEnvVar(envConfig, AZURE_OPENAI_ENDPOINT_KEY),
@@ -88,6 +95,6 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
       ),
       providerSpecificConfig,
     };
-    return new AzureOpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config);
+    return new AzureOpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config, jsonProcessor);
   },
 };

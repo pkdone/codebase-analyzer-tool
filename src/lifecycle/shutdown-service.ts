@@ -1,26 +1,16 @@
 import "reflect-metadata";
-import { injectable } from "tsyringe";
+import { injectable, injectAll } from "tsyringe";
 import { IShutdownable } from "../common/interfaces/shutdownable.interface";
+import { TOKENS } from "../tokens";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.
  * Uses the IShutdownable interface to handle cleanup in a generic, extensible way.
- * Components can register themselves for cleanup by implementing IShutdownable.
+ * Components are automatically injected via the DI container using multi-injection.
  */
 @injectable()
 export class ShutdownService {
-  private readonly shutdownables: IShutdownable[] = [];
-
-  /**
-   * Register a component for graceful shutdown.
-   * Components implementing IShutdownable can register themselves to be cleaned up
-   * during application shutdown.
-   *
-   * @param shutdownable - Component implementing IShutdownable interface
-   */
-  register(shutdownable: IShutdownable): void {
-    this.shutdownables.push(shutdownable);
-  }
+  constructor(@injectAll(TOKENS.Shutdownable) private readonly shutdownables: IShutdownable[]) {}
 
   /**
    * Perform graceful shutdown of all registered services.

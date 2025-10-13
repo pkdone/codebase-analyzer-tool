@@ -31,6 +31,7 @@ import {
 import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { toMongoJsonSchema } from "../../../../common/mdb/utils/json-schema-utils";
+import { JsonProcessor } from "../../../json-processing/core/json-processor";
 
 /**
  * Configuration object for VertexAI Gemini LLM provider.
@@ -72,11 +73,12 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: VertexAIConfig,
+    jsonProcessor: JsonProcessor,
   ) {
     if (!config.providerSpecificConfig) {
       throw new Error("providerSpecificConfig is required but was not provided");
     }
-    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
+    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig, jsonProcessor);
     this.vertexAiApiClient = new VertexAI({ project: config.project, location: config.location });
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
       apiEndpoint: `${config.location}-aiplatform.googleapis.com`,

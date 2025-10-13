@@ -23,6 +23,7 @@ import {
   extractGenericCompletionResponse,
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
+import { JsonProcessor } from "../../../json-processing/core/json-processor";
 
 /**
  * Configuration object for Bedrock LLM providers.
@@ -81,11 +82,12 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: BedrockConfig,
+    jsonProcessor: JsonProcessor,
   ) {
     if (!config.providerSpecificConfig) {
       throw new Error("providerSpecificConfig is required but was not provided");
     }
-    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
+    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig, jsonProcessor);
     const requestTimeoutMillis = config.providerSpecificConfig.requestTimeoutMillis;
     this.client = new BedrockRuntimeClient({
       requestHandler: { requestTimeout: requestTimeoutMillis },

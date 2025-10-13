@@ -8,6 +8,7 @@ import BaseOpenAILLM from "../common/base-openai-llm";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 import { AZURE_OPENAI } from "./azure-openai.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
+import { JsonProcessor } from "../../../json-processing/core/json-processor";
 
 /**
  * Configuration object for Azure OpenAI LLM provider.
@@ -38,11 +39,12 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: AzureOpenAIConfig,
+    jsonProcessor: JsonProcessor,
   ) {
     if (!config.providerSpecificConfig) {
       throw new Error("providerSpecificConfig is required but was not provided");
     }
-    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig);
+    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig, jsonProcessor);
     this.modelToDeploymentMappings = new Map();
     this.modelToDeploymentMappings.set(modelsKeys.embeddingsModelKey, config.embeddingsDeployment);
     this.modelToDeploymentMappings.set(

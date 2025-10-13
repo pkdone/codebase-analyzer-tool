@@ -5,6 +5,7 @@ import {
   BadConfigurationLLMError,
   RejectionResponseLLMError,
   JsonProcessingError,
+  JsonProcessingErrorType,
 } from "../../../src/llm/types/llm-errors.types";
 
 /**
@@ -157,7 +158,7 @@ describe("LLM Error Classes - ES2022 Error Cause Support", () => {
     it("should automatically chain underlying error as cause", () => {
       const parseError = new SyntaxError("Unexpected token } in JSON at position 42");
       const error = new JsonProcessingError(
-        "parse",
+        JsonProcessingErrorType.PARSE,
         "Failed to parse JSON",
         '{"invalid": }',
         '{"invalid": null}',
@@ -172,7 +173,7 @@ describe("LLM Error Classes - ES2022 Error Cause Support", () => {
 
     it("should handle undefined underlying error gracefully", () => {
       const error = new JsonProcessingError(
-        "validation",
+        JsonProcessingErrorType.VALIDATION,
         "Schema validation failed",
         '{"valid": "json"}',
         '{"valid": "json"}',
@@ -186,7 +187,7 @@ describe("LLM Error Classes - ES2022 Error Cause Support", () => {
     it("should preserve full error chain for debugging", () => {
       const rootCause = new Error("Invalid JSON structure");
       const error = new JsonProcessingError(
-        "parse",
+        JsonProcessingErrorType.PARSE,
         "JSON sanitization failed",
         '{"broken": json}',
         '{"broken": "json"}',

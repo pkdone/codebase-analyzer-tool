@@ -5,10 +5,7 @@ import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import type { AppSummaryRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import { TOKENS } from "../../tokens";
-import {
-  summaryCategoriesConfig,
-  insightsTuningConfig,
-} from "./insights-generation.config";
+import { summaryCategoriesConfig, insightsTuningConfig } from "./insights-generation.config";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { AppSummaryCategoryEnum } from "./insights.types";
