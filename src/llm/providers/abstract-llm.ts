@@ -15,7 +15,7 @@ import {
 } from "../types/llm.types";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
 import { formatError, formatErrorMessageAndDetail } from "../../common/utils/error-formatters";
-import { logErrorMsg, logWarningMsg, logErrorMsgAndDetail } from "../../common/utils/logging";
+import { logWarningMsg, logErrorMsgAndDetail } from "../../common/utils/logging";
 import { JsonProcessor } from "../json-processing/core/json-processor";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
@@ -284,7 +284,6 @@ export default abstract class AbstractLLM implements LLMProvider {
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions,
     context: LLMContext,
-    doWarnOnError = false,
   ): Promise<LLMFunctionResponse> {
     if (taskType === LLMPurpose.COMPLETIONS) {
       if (completionOptions.outputFormat === LLMOutputFormat.JSON) {
@@ -303,7 +302,6 @@ export default abstract class AbstractLLM implements LLMProvider {
           };
         } else {
           context.responseContentParseError = formatError(parseResult.error);
-          if (doWarnOnError) logErrorMsg(formatError(parseResult.error));
           await this.recordTestResponseToJSONErrorToFile(
             parseResult.error,
             responseContent,
