@@ -94,8 +94,8 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      // Should log sanitization steps since progressive strategies were used
-      expect(logWarningMsg).toHaveBeenCalled();
+      // Should not log since only insignificant steps (code fences) were applied
+      expect(logWarningMsg).not.toHaveBeenCalled();
     });
 
     it("falls back to progressive strategies for JSON with surrounding text", () => {
@@ -140,9 +140,9 @@ describe("json-tools enhanced fast path", () => {
 
     it("logs sanitization steps when logging is enabled", () => {
       const processorWithLogging = new JsonProcessor(true);
-      const jsonWithFence = '```json\n{"value": 42}\n```';
+      const jsonWithText = 'Here is the data: {"value": 42} end';
       const result = processorWithLogging.parseAndValidate(
-        jsonWithFence,
+        jsonWithText,
         "test-resource",
         baseOptions,
       );
@@ -158,9 +158,9 @@ describe("json-tools enhanced fast path", () => {
 
     it("defaults to logging enabled when constructor parameter is omitted", () => {
       const processorDefaultLogging = new JsonProcessor();
-      const jsonWithFence = '```json\n{"value": 42}\n```';
+      const jsonWithText = 'Here is the data: {"value": 42} end';
       const result = processorDefaultLogging.parseAndValidate(
-        jsonWithFence,
+        jsonWithText,
         "test-resource",
         baseOptions,
       );

@@ -56,7 +56,6 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         providerSpecificConfig: {
           apiVersion: "bedrock-2023-05-31",
           temperature: 0,
-          topP: 0.1,
           topK: 1,
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 6,
@@ -153,7 +152,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     );
   });
 
-  it("should properly use temperature, topP, and topK from config", () => {
+  it("should properly use temperature and topK from config", () => {
     const llm = new BedrockClaudeLLM(
       mockModelKeysSet,
       mockModelsMetadata,
@@ -162,7 +161,6 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         providerSpecificConfig: {
           apiVersion: "bedrock-2023-05-31",
           temperature: 0.5,
-          topP: 0.9,
           topK: 50,
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 6,
@@ -179,7 +177,6 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     );
 
     expect(requestBody.temperature).toBe(0.5);
-    expect(requestBody.top_p).toBe(0.9);
     expect(requestBody.top_k).toBe(50);
     expect(requestBody.max_tokens).toBe(64000);
   });

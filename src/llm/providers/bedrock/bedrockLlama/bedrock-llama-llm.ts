@@ -1,6 +1,6 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_LLAMA } from "./bedrock-llama.manifest";
+import { BEDROCK_LLAMA_FAMILY } from "../common/bedrock-models.constants";
 import { bedrockLlamaConfig } from "./bedrock-llama.config";
 import { z } from "zod";
 import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
@@ -31,7 +31,7 @@ export default class BedrockLlamaLLM extends BaseBedrockLLM {
    * Get the model family this LLM implementation belongs to.
    */
   getModelFamily(): string {
-    return BEDROCK_LLAMA;
+    return BEDROCK_LLAMA_FAMILY;
   }
 
   /**

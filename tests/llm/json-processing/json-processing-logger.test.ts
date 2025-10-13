@@ -61,7 +61,7 @@ describe("JsonProcessingLogger", () => {
 
       expect(logWarningMsg).toHaveBeenCalledTimes(1);
       expect(logWarningMsg).toHaveBeenCalledWith(
-        `[${resourceName}] Applied 3 sanitization steps: ${steps.join(" -> ")}`,
+        `[${resourceName}] Applied 3 sanitization step(s): ${steps.join(" -> ")}`,
       );
     });
 
@@ -70,7 +70,7 @@ describe("JsonProcessingLogger", () => {
       logger.logSanitizationSummary(steps);
 
       expect(logWarningMsg).toHaveBeenCalledWith(
-        `[${resourceName}] Applied 1 sanitization steps: Removed code fences`,
+        `[${resourceName}] Applied 1 sanitization step(s): Removed code fences`,
       );
     });
 
@@ -85,7 +85,7 @@ describe("JsonProcessingLogger", () => {
       logger.logSanitizationSummary(steps);
 
       expect(logWarningMsg).toHaveBeenCalledWith(
-        `[${resourceName}] Applied 2 sanitization steps: Step 1 -> Step 2`,
+        `[${resourceName}] Applied 2 sanitization step(s): Step 1 -> Step 2`,
       );
     });
 
@@ -94,7 +94,7 @@ describe("JsonProcessingLogger", () => {
       logger.logSanitizationSummary(steps);
 
       expect(logWarningMsg).toHaveBeenCalledWith(
-        `[${resourceName}] Applied 4 sanitization steps: A -> B -> C -> D`,
+        `[${resourceName}] Applied 4 sanitization step(s): A -> B -> C -> D`,
       );
     });
   });
@@ -187,7 +187,7 @@ describe("JsonProcessingLogger", () => {
       specialLogger.logSanitizationSummary(["test"]);
 
       expect(logWarningMsg).toHaveBeenCalledWith(
-        "[User:Profile@123] Applied 1 sanitization steps: test",
+        "[User:Profile@123] Applied 1 sanitization step(s): test",
       );
     });
   });

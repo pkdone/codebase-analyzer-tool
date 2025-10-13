@@ -1,6 +1,6 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_NOVA } from "./bedrock-nova.manifest";
+import { BEDROCK_NOVA_FAMILY } from "../common/bedrock-models.constants";
 import { z } from "zod";
 
 /**
@@ -35,7 +35,7 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
    * Get the model family this LLM implementation belongs to.
    */
   getModelFamily(): string {
-    return BEDROCK_NOVA;
+    return BEDROCK_NOVA_FAMILY;
   }
 
   /**

@@ -27,8 +27,8 @@ describe("BedrockClaudeLLM", () => {
 
     // Verify the implementation uses config.anthropicBetaFlags
     expect(llmContent).toContain("config.anthropicBetaFlags");
-    expect(llmContent).toContain(
-      "if (modelKey === AWS_COMPLETIONS_CLAUDE_V40 && config.anthropicBetaFlags)",
-    );
+    expect(llmContent).toContain("AWS_COMPLETIONS_CLAUDE_V40");
+    expect(llmContent).toContain("AWS_COMPLETIONS_CLAUDE_V45");
+    expect(llmContent).toContain(".includes(modelKey)");
   });
 });

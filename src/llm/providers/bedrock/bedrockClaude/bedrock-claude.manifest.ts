@@ -16,10 +16,9 @@ import { DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS } from "../common/bedrock-defaul
 const BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY";
 const BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY";
 
-// Re-export for backward compatibility
-export const BEDROCK_CLAUDE = BEDROCK_CLAUDE_FAMILY;
-const AWS_COMPLETIONS_CLAUDE_V37 = "AWS_COMPLETIONS_CLAUDE_V37";
+// Model constants
 export const AWS_COMPLETIONS_CLAUDE_V40 = "AWS_COMPLETIONS_CLAUDE_V40";
+export const AWS_COMPLETIONS_CLAUDE_V45 = "AWS_COMPLETIONS_CLAUDE_V45";
 
 /**
  * AWS_COMPLETIONS_CLAUDE_V40: Bedrock seems to be limiting the max model response tokens to around
@@ -43,21 +42,18 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 8192,
     },
     primaryCompletion: {
-      modelKey: AWS_COMPLETIONS_CLAUDE_V40,
+      modelKey: AWS_COMPLETIONS_CLAUDE_V45,
       urnEnvKey: BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,
       maxTotalTokens: 1_000_000,
-      // OLD values for pre-1M-token context beta
-      //maxCompletionTokens: 32768, // Should be 64k but errors if larger than around 39200 - varies, so me be more of a timeout issue or Bedrock's 20 MB payload limit
-      //maxTotalTokens: 200000,
     },
     secondaryCompletion: {
-      modelKey: AWS_COMPLETIONS_CLAUDE_V37,
+      modelKey: AWS_COMPLETIONS_CLAUDE_V40,
       urnEnvKey: BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 65536,
-      maxTotalTokens: 200000,
+      maxCompletionTokens: 64000,
+      maxTotalTokens: 1_000_000,
     },
   },
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,

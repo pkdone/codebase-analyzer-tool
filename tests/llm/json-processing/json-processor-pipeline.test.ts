@@ -257,7 +257,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
   describe("Logging behavior", () => {
     it("should log sanitization steps when enabled", () => {
-      const malformed = '```json\n{"test": true}\n```';
+      const malformed = 'Some text before {"test": true} some text after';
       jsonProcessor.parseAndValidate(malformed, "logged-resource", completionOptions);
 
       expect(logWarningMsg).toHaveBeenCalled();

@@ -19,6 +19,7 @@ import {
   type Sanitizer,
   type PostParseTransform,
 } from "../sanitizers";
+import { INSIGNIFICANT_SANITIZATION_STEPS } from "../sanitizers/sanitization-steps.constants";
 
 /**
  * Result type for parsing and validation attempts.
@@ -248,14 +249,18 @@ export class JsonProcessor {
   }
 
   /**
-   * Logs sanitization summary if logging is enabled and steps were applied.
+   * Logs sanitization summary if logging is enabled, steps were applied,
+   * and at least one step is significant (not in INSIGNIFICANT_SANITIZATION_STEPS).
    */
   private logSanitizationIfEnabled(
     logger: JsonProcessingLogger,
     appliedSteps: string[],
     allDiagnostics: string[],
   ): void {
-    if (this.loggingEnabled && appliedSteps.length > 0) {
+    const hasSignificantSteps = appliedSteps.some(
+      (step) => !INSIGNIFICANT_SANITIZATION_STEPS.has(step),
+    );
+    if (this.loggingEnabled && appliedSteps.length > 0 && hasSignificantSteps) {
       logger.logSanitizationSummary(appliedSteps, allDiagnostics);
     }
   }

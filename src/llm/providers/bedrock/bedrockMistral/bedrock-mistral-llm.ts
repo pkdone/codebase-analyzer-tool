@@ -1,6 +1,6 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_MISTRAL } from "./bedrock-mistral.manifest";
+import { BEDROCK_MISTRAL_FAMILY } from "../common/bedrock-models.constants";
 import { z } from "zod";
 
 /**
@@ -35,7 +35,7 @@ export default class BedrockMistralLLM extends BaseBedrockLLM {
    * Get the model family this LLM implementation belongs to.
    */
   getModelFamily(): string {
-    return BEDROCK_MISTRAL;
+    return BEDROCK_MISTRAL_FAMILY;
   }
 
   /**

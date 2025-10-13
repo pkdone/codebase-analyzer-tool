@@ -49,7 +49,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     minRetryDelayMillis: 1000,
     maxRetryDelayMillis: 10000,
     temperature: 0.0,
-    topP: 0.95,
     topK: 40,
     apiVersion: "bedrock-2023-05-31",
     anthropicBetaFlags: ["context-1m-2025-08-07"],
@@ -74,7 +73,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       expect(requestBody).toHaveProperty("anthropic_version", "bedrock-2023-05-31");
       expect(requestBody).toHaveProperty("messages");
       expect(requestBody).toHaveProperty("temperature", 0.0);
-      expect(requestBody).toHaveProperty("top_p", 0.95);
       expect(requestBody).toHaveProperty("top_k", 40);
       expect(requestBody).toHaveProperty("max_tokens", 8192);
 
@@ -126,7 +124,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         minRetryDelayMillis: 1000,
         maxRetryDelayMillis: 10000,
         apiVersion: "bedrock-2023-05-31",
-        // temperature, topP, topK intentionally omitted
+        // temperature, topK intentionally omitted
       };
 
       const llm = new BedrockClaudeLLM(
@@ -142,7 +140,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
       const body = requestBody as any;
       expect(body.temperature).toBe(llmConfig.DEFAULT_ZERO_TEMP);
-      expect(body.top_p).toBe(llmConfig.DEFAULT_TOP_P_LOWEST);
       expect(body.top_k).toBe(llmConfig.DEFAULT_TOP_K_LOWEST);
     });
 

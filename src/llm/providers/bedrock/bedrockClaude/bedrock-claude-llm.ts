@@ -1,6 +1,7 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_CLAUDE, AWS_COMPLETIONS_CLAUDE_V40 } from "./bedrock-claude.manifest";
+import { BEDROCK_CLAUDE_FAMILY } from "../common/bedrock-models.constants";
+import { AWS_COMPLETIONS_CLAUDE_V40, AWS_COMPLETIONS_CLAUDE_V45 } from "./bedrock-claude.manifest";
 import { z } from "zod";
 import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
 
@@ -10,7 +11,6 @@ import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
 interface ClaudeProviderConfig extends LLMProviderSpecificConfig {
   apiVersion: string;
   temperature?: number;
-  topP?: number;
   topK?: number;
   anthropicBetaFlags?: string[];
 }
@@ -37,7 +37,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
    * Get the model family this LLM implementation belongs to.
    */
   getModelFamily(): string {
-    return BEDROCK_CLAUDE;
+    return BEDROCK_CLAUDE_FAMILY;
   }
 
   /**
@@ -61,13 +61,15 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
         },
       ],
       temperature: config.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
-      top_p: config.topP ?? llmConfig.DEFAULT_TOP_P_LOWEST,
       top_k: config.topK ?? llmConfig.DEFAULT_TOP_K_LOWEST,
       max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
     };
 
     // Add anthropic_beta flags for Claude V40 model (1M-token context beta) if configured
-    if (modelKey === AWS_COMPLETIONS_CLAUDE_V40 && config.anthropicBetaFlags) {
+    if (
+      [AWS_COMPLETIONS_CLAUDE_V40, AWS_COMPLETIONS_CLAUDE_V45].includes(modelKey) &&
+      config.anthropicBetaFlags
+    ) {
       return {
         ...baseParams,
         anthropic_beta: config.anthropicBetaFlags,

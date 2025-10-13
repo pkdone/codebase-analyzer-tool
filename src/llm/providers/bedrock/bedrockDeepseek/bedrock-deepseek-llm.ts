@@ -1,6 +1,6 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_DEEPSEEK } from "./bedrock-deepseek.manifest";
+import { BEDROCK_DEEPSEEK_FAMILY } from "../common/bedrock-models.constants";
 import { z } from "zod";
 
 /**
@@ -36,7 +36,7 @@ export default class BedrockDeepseekLLM extends BaseBedrockLLM {
    * Get the model family this LLM implementation belongs to.
    */
   getModelFamily(): string {
-    return BEDROCK_DEEPSEEK;
+    return BEDROCK_DEEPSEEK_FAMILY;
   }
 
   /**

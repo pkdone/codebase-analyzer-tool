@@ -19,8 +19,7 @@ import {
 // Environment variable name constants
 const BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY";
 
-// Re-export for backward compatibility
-export const BEDROCK_DEEPSEEK = BEDROCK_DEEPSEEK_FAMILY;
+// Model constants
 const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";
 
 export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
