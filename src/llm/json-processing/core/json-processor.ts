@@ -16,10 +16,10 @@ import {
   concatenationChainSanitizer,
   overEscapedSequencesSanitizer,
   completeTruncatedStructures,
+  hasSignificantSanitizationSteps,
   type Sanitizer,
   type PostParseTransform,
 } from "../sanitizers";
-import { INSIGNIFICANT_SANITIZATION_STEPS } from "../sanitizers/sanitization-steps.constants";
 
 /**
  * Result type for parsing and validation attempts.
@@ -145,7 +145,9 @@ export class JsonProcessor {
     );
 
     if (result.success) {
-      this.logSanitizationIfEnabled(logger, appliedSteps, allDiagnostics);
+      if (this.loggingEnabled && hasSignificantSanitizationSteps(appliedSteps)) {
+        logger.logSanitizationSummary(appliedSteps, allDiagnostics);
+      }
       return {
         success: true,
         data: result.data,
@@ -246,23 +248,6 @@ export class JsonProcessor {
     }
 
     return { success: false, workingContent, lastParseError };
-  }
-
-  /**
-   * Logs sanitization summary if logging is enabled, steps were applied,
-   * and at least one step is significant (not in INSIGNIFICANT_SANITIZATION_STEPS).
-   */
-  private logSanitizationIfEnabled(
-    logger: JsonProcessingLogger,
-    appliedSteps: string[],
-    allDiagnostics: string[],
-  ): void {
-    const hasSignificantSteps = appliedSteps.some(
-      (step) => !INSIGNIFICANT_SANITIZATION_STEPS.has(step),
-    );
-    if (this.loggingEnabled && appliedSteps.length > 0 && hasSignificantSteps) {
-      logger.logSanitizationSummary(appliedSteps, allDiagnostics);
-    }
   }
 
   /**

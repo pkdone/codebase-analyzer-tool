@@ -18,7 +18,7 @@ import { JsonValidator } from "../json-processing/core/json-validator";
 import { log, logErrorWithContext, logWithContext } from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
 import { TOKENS } from "../../tokens";
-import { INSIGNIFICANT_SANITIZATION_STEPS } from "../json-processing/sanitizers/sanitization-steps.constants";
+import { hasSignificantSanitizationSteps } from "../json-processing/sanitizers";
 
 /**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
@@ -66,7 +66,9 @@ export class LLMExecutionPipeline {
       );
 
       if (result) {
-        this.checkAndRecordIfJsonMutated(result);
+        if (hasSignificantSanitizationSteps(result.sanitizationSteps)) {
+          this.llmStats.recordJsonMutated();
+        }
         const defaultOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.TEXT };
         const validationResult = this.jsonValidator.validate(
           result.generated,
@@ -172,23 +174,5 @@ export class LLMExecutionPipeline {
     }
 
     return null;
-  }
-
-  /**
-   * Checks if the LLM response required significant sanitization and records a stat if so.
-   * Insignificant sanitization steps (whitespace trimming, code fence removal) are excluded.
-   *
-   * @param result - The LLM function response containing optional sanitization steps
-   */
-  private checkAndRecordIfJsonMutated(result: LLMFunctionResponse): void {
-    if (result.sanitizationSteps && result.sanitizationSteps.length > 0) {
-      const hasSignificantMutation = result.sanitizationSteps.some(
-        (step) => !INSIGNIFICANT_SANITIZATION_STEPS.has(step),
-      );
-
-      if (hasSignificantMutation) {
-        this.llmStats.recordJsonMutated();
-      }
-    }
   }
 }
