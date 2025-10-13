@@ -47,7 +47,7 @@ export class JsonProcessingLogger {
   logSanitizationSummary(steps: readonly string[], diagnostics?: readonly string[]): void {
     if (steps.length > 0) {
       logWarningMsg(
-        `[${this.resourceName}] Applied ${steps.length} sanitization steps: ${steps.join(" -> ")}`,
+        `[${this.resourceName}] Applied ${steps.length} sanitization step(s): ${steps.join(" -> ")}`,
       );
 
       // Log detailed diagnostics if available (helpful for debugging)
