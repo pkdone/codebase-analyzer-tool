@@ -8,6 +8,7 @@ import {
   trimWhitespace,
   removeCodeFences,
   removeControlChars,
+  removeStrayLinePrefixChars,
   extractLargestJsonSpan,
   collapseDuplicateJsonObject,
   fixMismatchedDelimiters,
@@ -47,14 +48,15 @@ export class JsonProcessor {
    * 1. trimWhitespace - Remove leading/trailing whitespace to simplify subsequent regex matching
    * 2. removeCodeFences - Strip markdown code fences (```json) before attempting to find JSON span
    * 3. removeControlChars - Remove control characters that would break JSON parsing
-   * 4. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
-   * 5. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
-   * 6. fixMismatchedDelimiters - Correct bracket/brace mismatches
-   * 7. addMissingPropertyCommas - Insert missing commas between object properties
-   * 8. removeTrailingCommas - Remove invalid trailing commas
-   * 9. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
-   * 10. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
-   * 11. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
+   * 4. removeStrayLinePrefixChars - Remove stray characters at the start of lines within JSON
+   * 5. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
+   * 6. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
+   * 7. fixMismatchedDelimiters - Correct bracket/brace mismatches
+   * 8. addMissingPropertyCommas - Insert missing commas between object properties
+   * 9. removeTrailingCommas - Remove invalid trailing commas
+   * 10. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
+   * 11. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
+   * 12. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -66,6 +68,7 @@ export class JsonProcessor {
     trimWhitespace,
     removeCodeFences,
     removeControlChars,
+    removeStrayLinePrefixChars,
     extractLargestJsonSpan,
     collapseDuplicateJsonObject,
     fixMismatchedDelimiters,
