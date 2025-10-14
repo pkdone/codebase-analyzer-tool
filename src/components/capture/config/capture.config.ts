@@ -33,7 +33,17 @@ type SupportedFileType =
   | "jsp"
   | "markdown"
   | "csharp"
-  | "ruby";
+  | "ruby"
+  | "maven"
+  | "gradle"
+  | "ant"
+  | "npm"
+  | "dotnet-proj"
+  | "nuget"
+  | "ruby-bundler"
+  | "python-pip"
+  | "python-setup"
+  | "python-poetry";
 
 /**
  * Data-driven mapping of prompt types to their templates and schemas
@@ -455,6 +465,172 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
       publicMethods: true,
       databaseIntegration: true,
       integrationPoints: true,
+    }),
+    hasComplexSchema: false,
+  },
+  maven: {
+    contentDesc: "Maven POM (Project Object Model) build file",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of dependencies declared in this POM file - for each dependency extract:
+  - name (artifactId)
+  - groupId
+  - version (resolve properties if possible, e.g., \${spring.version})
+  - scope (compile, test, runtime, provided, import, system)
+  - type (jar, war, pom, etc.)
+* Note: Extract dependencies from both <dependencies> and <dependencyManagement> sections`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  gradle: {
+    contentDesc: "Gradle build configuration file",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of dependencies declared - for each dependency extract:
+  - name (artifact name after the colon, e.g., for 'org.springframework:spring-core:5.3.9' the name is 'spring-core')
+  - groupId (group before the colon, e.g., 'org.springframework')
+  - version (version number, or 'latest' if using dynamic versions)
+  - scope (implementation, api, testImplementation, runtimeOnly, etc. - map these to standard Maven scopes)
+* Handle both Groovy DSL and Kotlin DSL syntax`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  ant: {
+    contentDesc: "Apache Ant build.xml file",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of dependencies declared - for each dependency extract:
+  - name (jar file name or artifact name)
+  - groupId (organization or project name if specified)
+  - version (extract from jar filename if versioned, e.g., 'commons-lang3-3.12.0.jar' -> version: '3.12.0')
+  - scope (compile, test, runtime based on classpath definitions)
+* Look for dependencies in <classpath>, <path>, <pathelement>, and <ivy:dependency> elements`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  npm: {
+    contentDesc: "npm package.json or lock file",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of dependencies - for each dependency extract:
+  - name (package name)
+  - version (semver version, remove ^ and ~ prefixes)
+  - scope (dependencies = 'compile', devDependencies = 'test', peerDependencies = 'provided')
+* Extract from both dependencies and devDependencies sections`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  "dotnet-proj": {
+    contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of PackageReference dependencies - for each dependency extract:
+  - name (package name from Include attribute)
+  - version (Version attribute value)
+  - scope (compile for regular, test if in test project based on SDK type)
+* Look for <PackageReference> elements in modern SDK-style projects`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  nuget: {
+    contentDesc: "NuGet packages.config file (legacy .NET)",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of package dependencies - for each package extract:
+  - name (id attribute)
+  - version (version attribute)
+  - scope (compile, or test if targetFramework suggests test package)
+* Parse all <package> elements in the configuration`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  "ruby-bundler": {
+    contentDesc: "Ruby Gemfile or Gemfile.lock",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of gem dependencies - for each gem extract:
+  - name (gem name)
+  - version (specified version or version from Gemfile.lock, remove ~> and >= prefixes)
+  - scope (default is 'compile', :development = 'test', :test = 'test')
+  - groupId (use 'rubygems' as a standard groupId)
+* Parse gem declarations including version constraints`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  "python-pip": {
+    contentDesc: "Python requirements.txt or Pipfile",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of package dependencies - for each package extract:
+  - name (package name before == or >= or ~=)
+  - version (version specifier, remove operators like ==, >=, ~=)
+  - scope (default is 'compile', dev dependencies in Pipfile have scope 'test')
+  - groupId (use 'pypi' as standard groupId)
+* Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  "python-setup": {
+    contentDesc: "Python setup.py file",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of dependencies from install_requires - for each package extract:
+  - name (package name)
+  - version (version from string, remove operators)
+  - scope ('compile' for install_requires, 'test' for tests_require or extras_require['test'])
+  - groupId (use 'pypi' as standard groupId)`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  "python-poetry": {
+    contentDesc: "Python pyproject.toml (Poetry)",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A comprehensive list of dependencies from [tool.poetry.dependencies] - for each dependency extract:
+  - name (dependency key name)
+  - version (version constraint, remove ^ and ~ prefixes)
+  - scope ('compile' for dependencies, 'test' for dev-dependencies)
+  - groupId (use 'pypi' as standard groupId)`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
     }),
     hasComplexSchema: false,
   },

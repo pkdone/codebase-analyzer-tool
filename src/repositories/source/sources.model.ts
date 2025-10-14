@@ -52,7 +52,10 @@ export type ProjectedSourceMetataContentAndSummary = z.infer<
  */
 export interface ProjectedSourceSummaryFields {
   filepath: SourceRecord["filepath"];
-  summary?: Pick<z.infer<typeof sourceSummarySchema>, "namespace" | "purpose" | "implementation">;
+  summary?: Pick<
+    z.infer<typeof sourceSummarySchema>,
+    "namespace" | "purpose" | "implementation" | "dependencies"
+  >;
 }
 
 /**

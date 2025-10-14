@@ -197,6 +197,8 @@
     <% categorizedData.forEach(category => { %>
       <%- include('partials/category-table', { category: category.category, label: category.label, data: category.data, tableViewModel: category.tableViewModel, convertToDisplayName: convertToDisplayName, jsonFilesConfig: jsonFilesConfig }) %>
     <% }); %>
+    <h2>Bill of Materials (Dependencies)</h2>
+    <%- include('partials/bom', { bomData: billOfMaterials, bomStats: bomStatistics }) %>
     <%- include('partials/top-level-java-classes', { topLevelJavaClasses: topLevelJavaClasses, topLevelJavaClassesTableViewModel: topLevelJavaClassesTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
     <%- include('partials/integration-points', { integrationPoints: integrationPoints, integrationPointsTableViewModel: integrationPointsTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
     <%- include('partials/db-integrations', { dbInteractions: dbInteractions, procsAndTriggers: procsAndTriggers, dbInteractionsTableViewModel: dbInteractionsTableViewModel, procsAndTriggersTableViewModel: procsAndTriggersTableViewModel, convertToDisplayName: convertToDisplayName, jsonFilesConfig: jsonFilesConfig }) %>

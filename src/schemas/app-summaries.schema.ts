@@ -13,6 +13,7 @@ export const AppSummaryCategories = z.enum([
   "entities",
   "repositories",
   "potentialMicroservices",
+  "billOfMaterials",
 ]);
 
 // Base schema for common name-description pattern
@@ -303,6 +304,36 @@ export const potentialMicroservicesSchema = z
   .passthrough();
 
 /**
+ * Schema for a dependency with conflict tracking
+ */
+export const bomDependencySchema = z
+  .object({
+    name: z.string().describe("The dependency name"),
+    groupId: z.string().optional().describe("Group/organization ID (for Maven/Gradle)"),
+    versions: z.array(z.string()).describe("All versions found across the codebase"),
+    hasConflict: z.boolean().describe("True if multiple versions are present"),
+    scopes: z.array(z.string()).optional().describe("All scopes where this dependency appears"),
+    locations: z
+      .array(z.string())
+      .describe("List of build files where this dependency is declared"),
+  })
+  .passthrough();
+
+/**
+ * Schema for the Bill of Materials
+ */
+export const billOfMaterialsSchema = z
+  .object({
+    dependencies: z
+      .array(bomDependencySchema)
+      .describe("Comprehensive list of all dependencies with version conflict detection"),
+    totalDependencies: z.number().describe("Total unique dependencies across all build files"),
+    conflictCount: z.number().describe("Number of dependencies with version conflicts"),
+    buildFiles: z.array(z.string()).describe("List of build files analyzed"),
+  })
+  .passthrough();
+
+/**
  * Schema for full application summary of categories
  */
 export const appSummarySchema = z
@@ -317,5 +348,6 @@ export const appSummarySchema = z
     entities: entitiesSchema.shape.entities.optional(),
     repositories: repositoriesSchema.shape.repositories.optional(),
     potentialMicroservices: potentialMicroservicesSchema.shape.potentialMicroservices.optional(),
+    billOfMaterials: billOfMaterialsSchema.shape.dependencies.optional(),
   })
   .passthrough();

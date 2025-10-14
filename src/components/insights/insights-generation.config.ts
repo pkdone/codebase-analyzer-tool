@@ -8,6 +8,7 @@ import {
   aggregatesSchema,
   repositoriesSchema,
   potentialMicroservicesSchema,
+  billOfMaterialsSchema,
 } from "../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "./insights.types";
 
@@ -68,6 +69,12 @@ export const summaryCategoriesConfig = {
     description:
       "a concise list of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints.",
     schema: potentialMicroservicesSchema,
+  },
+  billOfMaterials: {
+    label: "Bill of Materials",
+    description:
+      "a comprehensive inventory of all third-party dependencies with version conflict detection to identify technical debt and security risks.",
+    schema: billOfMaterialsSchema,
   },
 } satisfies Record<
   AppSummaryCategoryEnum,

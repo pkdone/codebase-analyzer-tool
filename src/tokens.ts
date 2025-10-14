@@ -57,6 +57,7 @@ export const TOKENS = {
   InsightsFromRawCodeGenerator: Symbol("InsightsFromRawCodeGenerator"),
   InsightsProcessorSelector: Symbol("InsightsProcessorSelector"),
   RawCodeToInsightsFileGenerator: Symbol("RawCodeToInsightsFileGenerator"),
+  BomAggregator: Symbol.for("BomAggregator"),
 
   // MCP Server Components
   InsightsDataProvider: Symbol("InsightsDataProvider"),

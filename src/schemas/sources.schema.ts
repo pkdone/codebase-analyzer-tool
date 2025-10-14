@@ -137,6 +137,24 @@ export const tablesSchema = z
   .passthrough();
 
 /**
+ * Schema for dependency information from build files
+ */
+export const dependencySchema = z
+  .object({
+    name: z
+      .string()
+      .describe("The name of the dependency (artifact ID for Maven, package name for npm/gradle)"),
+    groupId: z.string().optional().describe("Group ID for Maven/Gradle dependencies"),
+    version: z.string().describe("The version of the dependency"),
+    scope: z
+      .string()
+      .optional()
+      .describe("Dependency scope (compile, test, runtime, provided, etc.)"),
+    type: z.string().optional().describe("Type of dependency (jar, war, aar, etc.)"),
+  })
+  .passthrough();
+
+/**
  * Schema for stored procedures and triggers
  */
 export const procedureTriggerSchema = z
@@ -346,6 +364,10 @@ export const sourceSummarySchema = z
       .describe("A list of stored procedures defined."),
     triggers: z.array(procedureTriggerSchema).optional().describe("A list of triggers defined."),
     tables: z.array(tablesSchema).optional().describe("A list of tables defined."),
+    dependencies: z
+      .array(dependencySchema)
+      .optional()
+      .describe("A list of dependencies declared in this build file."),
     publicConstants: z
       .array(publicConstantSchema)
       .optional()

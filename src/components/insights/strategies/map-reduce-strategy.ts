@@ -49,6 +49,11 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
   ): Promise<PartialAppSummaryRecord | null> {
+    // billOfMaterials should never be processed by this strategy
+    if (category === "billOfMaterials") {
+      throw new Error("billOfMaterials should not be processed by map-reduce strategy");
+    }
+
     const categoryLabel = summaryCategoriesConfig[category].label;
 
     try {
@@ -201,7 +206,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
 
     // Flatten the arrays from all partial results into a single combined list
     const combinedData = partialResults.flatMap((result) => {
-      const categoryData = result[category];
+      const categoryData = result[category as Exclude<AppSummaryCategoryEnum, "billOfMaterials">];
       // Type guard to ensure we're working with arrays
       if (Array.isArray(categoryData)) {
         return categoryData;

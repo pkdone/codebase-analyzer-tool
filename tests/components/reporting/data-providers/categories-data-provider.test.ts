@@ -60,7 +60,7 @@ describe("AppSummaryCategoriesProvider", () => {
       );
 
       // Assert
-      expect(result).toHaveLength(7); // All categories except appDescription
+      expect(result).toHaveLength(8); // All categories except appDescription (includes billOfMaterials)
 
       // Verify that appDescription is not included
       const categoryNames = result.map((r) => r.category);

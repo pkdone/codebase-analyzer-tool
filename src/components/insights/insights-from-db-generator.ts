@@ -14,6 +14,7 @@ import { IInsightGenerationStrategy } from "./strategies/insight-generation-stra
 import { SinglePassInsightStrategy } from "./strategies/single-pass-strategy";
 import { MapReduceInsightStrategy } from "./strategies/map-reduce-strategy";
 import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
+import { BomAggregator } from "./bom-aggregator";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -37,6 +38,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
     @inject(TOKENS.ProjectName) private readonly projectName: string,
     @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
+    @inject(TOKENS.BomAggregator) private readonly bomAggregator: BomAggregator,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
@@ -68,15 +70,23 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       llmProvider: this.llmProviderDescription,
     });
     const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
+
+    // Special handling for billOfMaterials - uses aggregator instead of LLM
+    if (categories.includes("billOfMaterials")) {
+      await this.generateBillOfMaterials();
+    }
+
+    // Process remaining categories with LLM
+    const llmCategories = categories.filter((c) => c !== "billOfMaterials");
     const results = await Promise.allSettled(
-      categories.map(async (category) =>
+      llmCategories.map(async (category) =>
         this.generateAndRecordDataForCategory(category, sourceFileSummaries),
       ),
     );
     results.forEach((result, index) => {
       if (result.status === "rejected") {
         logErrorMsgAndDetail(
-          `Failed to generate data for category: ${categories[index]}`,
+          `Failed to generate data for category: ${llmCategories[index]}`,
           result.reason,
         );
       }
@@ -145,6 +155,26 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
       logErrorMsgAndDetail(`Unable to generate ${categoryLabel} details into database`, error);
+    }
+  }
+
+  /**
+   * Generates Bill of Materials by aggregating dependencies from build files
+   */
+  private async generateBillOfMaterials(): Promise<void> {
+    try {
+      console.log("Processing Bill of Materials");
+      const bomData = await this.bomAggregator.aggregateBillOfMaterials(this.projectName);
+
+      await this.appSummariesRepository.updateAppSummary(this.projectName, {
+        billOfMaterials: bomData.dependencies,
+      });
+
+      console.log(
+        `Captured Bill of Materials: ${bomData.totalDependencies} dependencies, ${bomData.conflictCount} conflicts`,
+      );
+    } catch (error: unknown) {
+      logErrorMsgAndDetail("Unable to generate Bill of Materials", error);
     }
   }
 }

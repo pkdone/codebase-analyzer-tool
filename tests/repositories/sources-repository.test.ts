@@ -315,6 +315,7 @@ describe("SourcesRepositoryImpl", () => {
               "summary.namespace": 1,
               "summary.purpose": 1,
               "summary.implementation": 1,
+              "summary.dependencies": 1,
               filepath: 1,
             },
             sort: { "summary.namespace": 1 },
@@ -354,9 +355,7 @@ describe("SourcesRepositoryImpl", () => {
             projection: {
               _id: 0,
               "summary.namespace": 1,
-              "summary.databaseIntegration.mechanism": 1,
-              "summary.databaseIntegration.description": 1,
-              "summary.databaseIntegration.codeExample": 1,
+              "summary.databaseIntegration": 1,
               filepath: 1,
             },
             sort: {

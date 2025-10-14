@@ -64,6 +64,7 @@ export default class AppReportGenerator {
       dbInteractions,
       procsAndTriggers,
       topLevelJavaClasses,
+      billOfMaterials,
     ] = await Promise.all([
       this.appSummariesRepository.getProjectAppSummaryFields(
         projectName,
@@ -74,6 +75,7 @@ export default class AppReportGenerator {
       this.databaseDataProvider.getDatabaseInteractions(projectName),
       this.databaseDataProvider.getSummarizedProceduresAndTriggers(projectName),
       this.codeStructureDataProvider.getTopLevelJavaClasses(projectName),
+      this.appSummariesRepository.getProjectAppSummaryField(projectName, "billOfMaterials"),
     ]);
 
     if (!appSummaryData) {
@@ -93,6 +95,7 @@ export default class AppReportGenerator {
       procsAndTriggers,
       topLevelJavaClasses,
       integrationPoints,
+      billOfMaterials: (billOfMaterials ?? []) as unknown as ReportData["billOfMaterials"],
     };
 
     // Prepare data for both writers
@@ -120,6 +123,7 @@ export default class AppReportGenerator {
       procsAndTriggers: reportData.procsAndTriggers,
       topLevelJavaClasses: reportData.topLevelJavaClasses,
       integrationPoints: reportData.integrationPoints,
+      billOfMaterials: reportData.billOfMaterials,
     };
     const preparedData: PreparedJsonData[] = [
       {
@@ -147,6 +151,10 @@ export default class AppReportGenerator {
       {
         filename: reportSectionsConfig.jsonDataFiles.integrationPoints,
         data: reportData.integrationPoints,
+      },
+      {
+        filename: "bill-of-materials.json",
+        data: reportData.billOfMaterials,
       },
     ];
 
@@ -220,6 +228,13 @@ export default class AppReportGenerator {
       reportData.integrationPoints as unknown as DisplayableTableRow[],
     );
 
+    // Calculate BOM statistics
+    const bomStatistics = {
+      total: reportData.billOfMaterials.length,
+      conflicts: reportData.billOfMaterials.filter((d) => d.hasConflict).length,
+      buildFiles: new Set(reportData.billOfMaterials.flatMap((d) => d.locations)).size,
+    };
+
     return {
       appStats: reportData.appStats,
       fileTypesData: processedFileTypesData,
@@ -229,6 +244,8 @@ export default class AppReportGenerator {
       procsAndTriggers: reportData.procsAndTriggers,
       topLevelJavaClasses: reportData.topLevelJavaClasses,
       integrationPoints: reportData.integrationPoints,
+      billOfMaterials: reportData.billOfMaterials,
+      bomStatistics,
       jsonFilesConfig: reportSectionsConfig,
       convertToDisplayName,
       fileTypesTableViewModel,

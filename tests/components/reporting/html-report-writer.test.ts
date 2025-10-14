@@ -101,6 +101,12 @@ describe("HtmlReportWriter", () => {
     integrationPointsTableViewModel: new (jest.requireActual(
       "../../../src/components/reporting/view-models/table-view-model",
     ).TableViewModel)([]),
+    billOfMaterials: [],
+    bomStatistics: {
+      total: 0,
+      conflicts: 0,
+      buildFiles: 0,
+    },
   };
 
   beforeEach(() => {

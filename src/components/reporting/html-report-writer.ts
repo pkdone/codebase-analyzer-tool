@@ -30,6 +30,19 @@ export interface PreparedHtmlReportData {
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
   topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
+  billOfMaterials: {
+    readonly name: string;
+    readonly groupId?: string;
+    readonly versions: string[];
+    readonly hasConflict: boolean;
+    readonly scopes?: string[];
+    readonly locations: string[];
+  }[];
+  bomStatistics: {
+    total: number;
+    conflicts: number;
+    buildFiles: number;
+  };
   jsonFilesConfig: {
     readonly allRequiredAppSummaryFields: readonly string[];
     readonly jsonDataFiles: Record<string, string>;

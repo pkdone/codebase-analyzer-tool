@@ -90,6 +90,7 @@ export default class SourcesRepositoryImpl
         "summary.namespace": 1,
         "summary.purpose": 1,
         "summary.implementation": 1,
+        "summary.dependencies": 1,
         filepath: 1,
       },
       sort: { "summary.namespace": 1 },

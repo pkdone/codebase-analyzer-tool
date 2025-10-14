@@ -58,12 +58,22 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       getLLMManifest: jest.fn().mockReturnValue(mockManifest),
     } as unknown as jest.Mocked<LLMProviderManager>;
 
+    const mockBomAggregator = {
+      aggregateBillOfMaterials: jest.fn().mockResolvedValue({
+        dependencies: [],
+        totalDependencies: 0,
+        conflictCount: 0,
+        buildFiles: [],
+      }),
+    } as any;
+
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
       mockSourcesRepository,
       "test-project",
       mockLLMProviderManager,
+      mockBomAggregator,
     );
   });
 

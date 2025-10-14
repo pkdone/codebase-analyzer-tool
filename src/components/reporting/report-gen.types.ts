@@ -83,6 +83,16 @@ export interface IntegrationPointInfo {
   readonly connectionInfo?: string;
 }
 
+// Interface for BOM dependency information
+export interface BomDependency {
+  readonly name: string;
+  readonly groupId?: string;
+  readonly versions: string[];
+  readonly hasConflict: boolean;
+  readonly scopes?: string[];
+  readonly locations: string[];
+}
+
 /**
  * Unified data model for report generation.
  * Contains all the data needed to generate both HTML and JSON reports.
@@ -95,4 +105,5 @@ export interface ReportData {
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
   topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
+  billOfMaterials: BomDependency[];
 }
