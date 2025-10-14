@@ -73,13 +73,13 @@ describe("db-test-helper", () => {
       if (originalMongoUrl) {
         process.env.MONGODB_URL = originalMongoUrl;
       }
-    });
+    }, 15000); // Increased timeout for MongoDB connection tests
 
     it("populateTestData should reject when called before setup", async () => {
       // This tests the guard clause in populateTestData
       // Note: We can't easily test this without actually setting up the database,
       // but we verify the function exists and has the right shape
       await expect(dbTestHelper.populateTestData()).rejects.toThrow(/Test database not set up/);
-    });
+    }, 10000); // Increased timeout for async operations
   });
 });

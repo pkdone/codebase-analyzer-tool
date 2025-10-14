@@ -91,21 +91,39 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    
    gRPC (mechanism: 'GRPC'):
    - @GrpcService annotations or gRPC stub usage - include service name, methods
- * The type of database integration it employs (if any), stating the mechanism used, a description of the integration and an example code snippet that performs the database integration - if any of the following elements are true in the code, you MUST assume that there is database interaction (if you know the table names the code interacts with, include these table names in the description):
+ * The type of database integration it employs (if any), stating the mechanism used, a description of the integration and an example code snippet. For each database integration, include:
+   - mechanism: The integration type (see list below)
+   - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO")
+   - description: How the integration is achieved
+   - databaseName: Name of database/schema being accessed (if identifiable from code or config)
+   - tablesAccessed: Array of table/collection names accessed by this code (from SQL queries, entity mappings, or annotations)
+   - operationType: 'READ' (only SELECT/find), 'WRITE' (only INSERT/UPDATE/DELETE), 'READ_WRITE' (both), 'DDL' (schema changes), 'ADMIN' (administrative operations)
+   - queryPatterns: Types of queries (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls')
+   - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none')
+   - protocol: Database type and version if identifiable (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c')
+   - connectionInfo: JDBC URL or connection string (REDACT passwords/secrets, e.g., 'jdbc:postgresql://localhost:5432/mydb')
+   - codeExample: Small redacted code snippet
+   
+   Mechanism mapping - if any of the following are true, you MUST assume database interaction:
    - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
-   - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) => mechanism: 'SQL'
+   - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'
+   - Uses Hibernate API directly (SessionFactory, Session, Criteria API) => mechanism: 'HIBERNATE'
+   - Uses standard JPA annotations and EntityManager (without Spring Data) => mechanism: 'JPA'
+   - Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => mechanism: 'EJB'
+   - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => mechanism: 'SQL'
    - Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'
-   - Uses JPA, Hibernate, TopLink, EclipseLink, or other JPA-based ORMs => mechanism: 'ORM' (or 'HIBERNATE' / 'JPA' if explicitly distinguishable)
-   - Uses Spring Data repositories / CrudRepository / JpaRepository => mechanism: 'SPRING-DATA'
-   - Uses Enterprise Java Beans for persistence (CMP/BMP) => mechanism: 'EJB'
+   - Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => mechanism: 'ORM'
    - Defines DDL / migration style schema changes inline => mechanism: 'DDL'
    - Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'
-   - Uses stored procedure invocation (CallableStatement etc.) => mechanism: 'STORED-PROCEDURE'
-   - Uses trigger management code => mechanism: 'TRIGGER'
-   - References a function creation / invocation construct => mechanism: 'FUNCTION'
+   - Invokes stored procedures (CallableStatement, @Procedure, etc.) => mechanism: 'STORED-PROCEDURE'
+   - Creates or manages database triggers => mechanism: 'TRIGGER'
+   - Creates or invokes database functions => mechanism: 'FUNCTION'
+   - Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'
+   - Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'
+   - Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'
    - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
    - Otherwise, if the code does not use a database => mechanism: 'NONE'
-    (note, JMS and JNDI are not related to interacting with a dataase)`,
+    (note, JMS and JNDI are not related to interacting with a database)`,
     schema: sourceSummarySchema
       .pick({
         name: true,
@@ -171,7 +189,22 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    
    Server-Sent Events (mechanism: 'SSE'):
    - res.writeHead with text/event-stream
- * ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
+ * Database integration details (if any) - state mechanism, name (e.g., "UserModel", "database.js"), description, databaseName, tablesAccessed (array), operationType (READ/WRITE/READ_WRITE/DDL/ADMIN), queryPatterns (e.g., 'Mongoose schemas', 'Prisma ORM queries', 'TypeORM repositories'), transactionHandling (e.g., 'Mongoose transactions', 'Prisma transactions', 'manual begin/commit', 'none'), protocol (e.g., 'MongoDB 6.0', 'PostgreSQL 14'), connectionInfo (connection string with redacted credentials), and codeExample. Mechanism mapping:
+   - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'
+   - Uses Prisma Client (PrismaClient, prisma.user.findMany) => mechanism: 'PRISMA'
+   - Uses TypeORM (Repository, EntityManager, @Entity decorators) => mechanism: 'TYPEORM'
+   - Uses Sequelize models (sequelize.define, Model.findAll) => mechanism: 'SEQUELIZE'
+   - Uses Knex query builder (knex.select, knex('table')) => mechanism: 'KNEX'
+   - Uses Drizzle ORM (drizzle, select, insert) => mechanism: 'DRIZZLE'
+   - Uses Redis client (redis.set, redis.get, ioredis) => mechanism: 'REDIS'
+   - Uses Elasticsearch client (@elastic/elasticsearch, client.search) => mechanism: 'ELASTICSEARCH'
+   - Uses Cassandra driver (cassandra-driver, client.execute with CQL) => mechanism: 'CASSANDRA-CQL'
+   - Uses MongoDB driver directly (MongoClient, db.collection) without Mongoose => mechanism: 'MQL'
+   - Contains raw SQL strings without ORM => mechanism: 'SQL'
+   - Uses generic database driver (pg, mysql2, tedious) without ORM => mechanism: 'DRIVER'
+   - Defines DDL / migration scripts => mechanism: 'DDL'
+   - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
+   - Otherwise, if no database interaction => mechanism: 'NONE'`,
     schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -295,16 +328,19 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    gRPC (mechanism: 'GRPC'):
    - Grpc.Net.Client, Grpc.Core service definitions
    - gRPC client stubs and service implementations
- * The type of database integration it employs (if any), stating a mechanism (choose ONE of: 'ORM', 'SQL', 'DRIVER', 'DDL', or 'NONE'), a description of the integration, and a concise example snippet (max 8 lines) that performs the database integration. Apply these mapping rules:
-   - Uses Entity Framework / EF Core DbContext / LINQ-to-Entities => mechanism: 'EF-CORE'
-   - Uses Dapper extension methods / micro ORM => mechanism: 'DAPPER' (or 'MICRO-ORM' if pattern is generic and not clearly Dapper)
-   - Uses another identifiable micro ORM (e.g., NPoco, ServiceStack.OrmLite) => mechanism: 'MICRO-ORM'
-   - Executes raw SQL strings or stored procedure calls via ADO.NET (SqlCommand, DbCommand, etc.) => mechanism: 'SQL'
+ * Database integration details (if any) - for each integration include: mechanism, name (e.g., "ApplicationDbContext", "UserRepository"), description, databaseName, tablesAccessed (array of table/entity names), operationType (READ/WRITE/READ_WRITE/DDL/ADMIN), queryPatterns (e.g., 'EF Core LINQ queries', 'Dapper parameterized SQL', 'stored procedure calls'), transactionHandling (e.g., 'DbContext.SaveChanges with transactions', 'TransactionScope', 'manual SqlTransaction', 'none'), protocol (e.g., 'SQL Server 2019', 'PostgreSQL 14'), connectionInfo (connection string with redacted passwords), and codeExample (max 8 lines). Mechanism mapping:
+   - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'
+   - Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => mechanism: 'DAPPER'
+   - Uses other micro ORMs (NPoco, ServiceStack.OrmLite, PetaPoco) => mechanism: 'MICRO-ORM'
+   - Uses ADO.NET primitives (SqlConnection, SqlCommand, DataReader) without ORM => mechanism: 'ADO-NET'
+   - Executes raw SQL strings or stored procedures via SqlCommand => mechanism: 'SQL'
    - Invokes stored procedures explicitly (CommandType.StoredProcedure) => mechanism: 'STORED-PROCEDURE'
-   - Uses lower-level provider / driver-specific APIs directly (e.g., NpgsqlConnection, SqlConnection without ORM abstractions) => mechanism: 'ADO-NET' (if clearly ADO.NET primitives) else 'DRIVER'
-   - Contains explicit migration / schema DDL (CREATE/ALTER/DROP TABLE) => mechanism: 'DDL'
-   - Performs primarily data manipulation statements distinct from schema (bulk INSERT batches, multi-row UPDATE sequences) => mechanism: 'DML'
-   - Creates database functions or executes function creation scripts => mechanism: 'FUNCTION'
+   - Uses database provider drivers directly (NpgsqlConnection, MySqlConnection) without abstraction => mechanism: 'DRIVER'
+   - Contains EF Core migrations or explicit DDL (CREATE/ALTER/DROP TABLE) => mechanism: 'DDL'
+   - Performs data manipulation operations (bulk INSERT, SqlBulkCopy) => mechanism: 'DML'
+   - Creates or invokes database functions => mechanism: 'FUNCTION'
+   - Uses Redis client (StackExchange.Redis) => mechanism: 'REDIS'
+   - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'
    - Otherwise when no DB interaction present => mechanism: 'NONE'`,
     schema: sourceSummarySchema.pick({
       name: true,
@@ -356,17 +392,18 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    WebSockets (mechanism: 'WEBSOCKET'):
    - Action Cable channels
    - WebSocket-Rails usage
- * The type of database integration it employs (if any), stating the mechanism used, a description of the integration and an example code snippet (max 8 lines) that performs the database integration. If any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
-   - Uses ActiveRecord models, migrations, or associations => mechanism: 'ACTIVE-RECORD'
-   - Uses Sequel ORM DSL => mechanism: 'SEQUEL'
-   - Uses other Ruby ORM / micro ORM (ROM.rb etc.) => mechanism: 'ORM' (or 'MICRO-ORM' if clearly a lightweight micro ORM abstraction)
+ * Database integration details (if any) - for each integration include: mechanism, name (e.g., "User model", "DatabaseConnection"), description, databaseName, tablesAccessed (array of table names), operationType (READ/WRITE/READ_WRITE/DDL/ADMIN), queryPatterns (e.g., 'ActiveRecord queries', 'raw SQL with params', 'Sequel dataset operations'), transactionHandling (e.g., 'ActiveRecord transactions', 'Sequel database.transaction', 'manual BEGIN/COMMIT', 'none'), protocol (e.g., 'PostgreSQL 14', 'MySQL 8.0'), connectionInfo (database.yml config or connection string with redacted credentials), and codeExample (max 8 lines). Mechanism mapping - if any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
+   - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'
+   - Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'
+   - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or 'MICRO-ORM' if lightweight)
+   - Uses Redis client (redis-rb, redis.set/get) => mechanism: 'REDIS'
    - Executes raw SQL strings (SELECT / INSERT / etc.) => mechanism: 'SQL'
-   - Invokes stored procedures (via connection.exec with call syntax) => mechanism: 'STORED-PROCEDURE'
-   - Uses database driver / adapter directly (e.g., PG, mysql2) without ORM abstractions => mechanism: 'DRIVER'
-   - Defines migration DSL altering/creating tables (create_table / add_column ...) => mechanism: 'DDL'
-   - Performs data manipulation DML-only scripts distinct from schema (bulk insert helpers, data seeding logic) => mechanism: 'DML'
-   - Creates triggers (via execute or DSL) => mechanism: 'TRIGGER'
-   - Creates functions / stored routines => mechanism: 'FUNCTION'
+   - Invokes stored procedures (via connection.exec with CALL) => mechanism: 'STORED-PROCEDURE'
+   - Uses database driver / adapter directly (PG gem, mysql2 gem) without ORM => mechanism: 'DRIVER'
+   - Defines migration DSL (create_table, add_column, change_table) => mechanism: 'DDL'
+   - Performs data manipulation (bulk insert helpers, seeding, data-only scripts) => mechanism: 'DML'
+   - Creates or manages triggers (via execute or DSL) => mechanism: 'TRIGGER'
+   - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'
    - Otherwise, if no database interaction is evident => mechanism: 'NONE'`,
     schema: sourceSummarySchema.pick({
       name: true,

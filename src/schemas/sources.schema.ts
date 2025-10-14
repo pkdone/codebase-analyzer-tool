@@ -3,28 +3,52 @@ import { z } from "zod";
 // Central list of valid database integration mechanism values (kept uppercase for normalization logic)
 const DATABASE_MECHANISM_VALUES = [
   "NONE",
+  // Java/JVM
   "JDBC",
   "SPRING-DATA",
-  "SQL",
   "HIBERNATE",
   "JPA",
-  "MQL",
-  "ORM",
-  "DRIVER",
   "EJB",
+  // .NET
+  "EF-CORE",
+  "ADO-NET",
+  "DAPPER",
+  // Ruby
+  "ACTIVE-RECORD",
+  "SEQUEL",
+  // Node.js/JavaScript/TypeScript
+  "MONGOOSE",
+  "PRISMA",
+  "TYPEORM",
+  "SEQUELIZE",
+  "KNEX",
+  "DRIZZLE",
+  // Python
+  "SQLALCHEMY",
+  "DJANGO-ORM",
+  // Go
+  "GORM",
+  "SQLX",
+  // Mobile
+  "ROOM",
+  "CORE-DATA",
+  // NoSQL Specific
+  "MQL",
+  "REDIS",
+  "ELASTICSEARCH",
+  "CASSANDRA-CQL",
+  // Generic Categories
+  "SQL",
+  "ORM",
+  "MICRO-ORM",
+  "DRIVER",
+  // Database Operations (consider if these should remain - could use operationType instead)
   "DDL",
   "DML",
   "STORED-PROCEDURE",
   "TRIGGER",
   "FUNCTION",
-  "EF-CORE",
-  "ADO-NET",
-  "DAPPER",
-  "ACTIVE-RECORD",
-  "SEQUEL",
-  "MONGOOSE",
-  "PRISMA",
-  "MICRO-ORM",
+  // Fallback
   "OTHER",
 ] as const;
 const DATABASE_MECHANISM_SET = new Set<string>(DATABASE_MECHANISM_VALUES);
@@ -50,10 +74,47 @@ export const databaseIntegrationSchema = z
       .describe(
         "The database integration mechanism used - only the listed values are valid; any unrecognized value will be coerced to 'OTHER'.",
       ),
+    name: z.string().optional().describe("Name of the database, service, or data access component"),
     description: z
       .string()
       .describe(
         "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists).",
+      ),
+    databaseName: z
+      .string()
+      .optional()
+      .describe("Name of the database, schema, or collection being accessed"),
+    tablesAccessed: z
+      .array(z.string())
+      .optional()
+      .describe("List of tables, collections, or entities being accessed by this code"),
+    operationType: z
+      .enum(["READ", "WRITE", "READ_WRITE", "DDL", "ADMIN"])
+      .optional()
+      .describe("Type of database operations performed (READ, WRITE, READ_WRITE, DDL, ADMIN)"),
+    queryPatterns: z
+      .string()
+      .optional()
+      .describe(
+        "Types of queries used (e.g., 'simple CRUD', 'complex joins', 'aggregations', 'stored procedures')",
+      ),
+    transactionHandling: z
+      .string()
+      .optional()
+      .describe(
+        "How transactions are managed (e.g., 'manual commits', 'Spring @Transactional', 'auto-commit', 'none')",
+      ),
+    protocol: z
+      .string()
+      .optional()
+      .describe(
+        "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')",
+      ),
+    connectionInfo: z
+      .string()
+      .optional()
+      .describe(
+        "Connection string, JDBC URL, or database connection details (redacted if sensitive)",
       ),
     codeExample: z
       .string()
