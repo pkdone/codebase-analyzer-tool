@@ -91,18 +91,30 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    
    gRPC (mechanism: 'GRPC'):
    - @GrpcService annotations or gRPC stub usage - include service name, methods
- * The type of database integration it employs (if any), stating the mechanism used, a description of the integration and an example code snippet. For each database integration, include:
-   - mechanism: The integration type (see list below)
-   - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO")
-   - description: How the integration is achieved
-   - databaseName: Name of database/schema being accessed (if identifiable from code or config)
-   - tablesAccessed: Array of table/collection names accessed by this code (from SQL queries, entity mappings, or annotations)
-   - operationType: 'READ' (only SELECT/find), 'WRITE' (only INSERT/UPDATE/DELETE), 'READ_WRITE' (both), 'DDL' (schema changes), 'ADMIN' (administrative operations)
-   - queryPatterns: Types of queries (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls')
-   - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none')
-   - protocol: Database type and version if identifiable (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c')
-   - connectionInfo: JDBC URL or connection string (REDACT passwords/secrets, e.g., 'jdbc:postgresql://localhost:5432/mydb')
-   - codeExample: Small redacted code snippet
+
+ * CRITICAL: Database Integration Analysis (REQUIRED for files that interact with databases)
+   
+   For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
+   
+   REQUIRED FIELDS:
+   - mechanism (REQUIRED): The integration type - see mechanism mapping below
+   - description (REQUIRED): Detailed explanation of how database integration is achieved
+   - codeExample (REQUIRED): A small redacted code snippet showing the database interaction
+   
+   STRONGLY RECOMMENDED FIELDS (provide whenever possible):
+   - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+   - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+   - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+   - operationType: Array of operation types - ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], or ['ADMIN']
+     * READ: only SELECT/find queries
+     * WRITE: only INSERT/UPDATE/DELETE operations
+     * READ_WRITE: both read and write operations
+     * DDL: schema changes (CREATE TABLE, ALTER TABLE, migrations)
+     * ADMIN: database administration operations
+   - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+   - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+   - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+   - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
    
    Mechanism mapping - if any of the following are true, you MUST assume database interaction:
    - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
@@ -189,7 +201,15 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    
    Server-Sent Events (mechanism: 'SSE'):
    - res.writeHead with text/event-stream
- * Database integration details (if any) - state mechanism, name (e.g., "UserModel", "database.js"), description, databaseName, tablesAccessed (array), operationType (READ/WRITE/READ_WRITE/DDL/ADMIN), queryPatterns (e.g., 'Mongoose schemas', 'Prisma ORM queries', 'TypeORM repositories'), transactionHandling (e.g., 'Mongoose transactions', 'Prisma transactions', 'manual begin/commit', 'none'), protocol (e.g., 'MongoDB 6.0', 'PostgreSQL 14'), connectionInfo (connection string with redacted credentials), and codeExample. Mechanism mapping:
+
+ * CRITICAL: Database Integration Analysis (REQUIRED for files that interact with databases)
+   
+   For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much information as possible - if a field cannot be determined, use "unknown" or "not identifiable":
+   
+   REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (small redacted snippet)
+   STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "UserModel", "database.js"), databaseName (specific DB/schema name), tablesAccessed (array of table/collection/model names from code), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'Mongoose schemas', 'Prisma ORM queries', 'TypeORM repositories', 'complex aggregations'), transactionHandling (e.g., 'Mongoose transactions', 'Prisma $transaction', 'manual begin/commit', 'none'), protocol (e.g., 'MongoDB 6.0', 'PostgreSQL 14'), connectionInfo (connection string with REDACTED credentials)
+   
+   Mechanism mapping:
    - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'
    - Uses Prisma Client (PrismaClient, prisma.user.findMany) => mechanism: 'PRISMA'
    - Uses TypeORM (Repository, EntityManager, @Entity decorators) => mechanism: 'TYPEORM'
@@ -234,7 +254,9 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
  * A list of the tables (if any) it defines - for each table, include the names of the table's fields, if known.
  * A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
  * A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
- * The most prominent type of database integration it employs (if any), stating the mechanism used ('NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), a description of the integration and an example code snippet (maximum 6 lines of code) that performs the database integration`,
+ * CRITICAL: Database Integration Analysis (REQUIRED) - Extract ALL possible database details:
+   REQUIRED: mechanism (must be 'NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), description (detailed explanation), codeExample (max 6 lines)
+   STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present)`,
     schema: sourceSummarySchema
       .pick({
         purpose: true,
@@ -328,7 +350,15 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    gRPC (mechanism: 'GRPC'):
    - Grpc.Net.Client, Grpc.Core service definitions
    - gRPC client stubs and service implementations
- * Database integration details (if any) - for each integration include: mechanism, name (e.g., "ApplicationDbContext", "UserRepository"), description, databaseName, tablesAccessed (array of table/entity names), operationType (READ/WRITE/READ_WRITE/DDL/ADMIN), queryPatterns (e.g., 'EF Core LINQ queries', 'Dapper parameterized SQL', 'stored procedure calls'), transactionHandling (e.g., 'DbContext.SaveChanges with transactions', 'TransactionScope', 'manual SqlTransaction', 'none'), protocol (e.g., 'SQL Server 2019', 'PostgreSQL 14'), connectionInfo (connection string with redacted passwords), and codeExample (max 8 lines). Mechanism mapping:
+
+ * CRITICAL: Database Integration Analysis (REQUIRED for files that interact with databases)
+   
+   For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
+   
+   REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (max 8 lines, redacted)
+   STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "ApplicationDbContext", "UserRepository"), databaseName (specific database/schema name), tablesAccessed (array of table/entity names from DbSet properties, queries, or attributes), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'EF Core LINQ queries', 'Dapper parameterized SQL', 'stored procedure calls', 'raw SQL'), transactionHandling (e.g., 'DbContext.SaveChanges with transactions', 'TransactionScope', 'manual SqlTransaction', 'none'), protocol (e.g., 'SQL Server 2019', 'PostgreSQL 14', 'MySQL 8.0'), connectionInfo (connection string with REDACTED passwords)
+   
+   Mechanism mapping:
    - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'
    - Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => mechanism: 'DAPPER'
    - Uses other micro ORMs (NPoco, ServiceStack.OrmLite, PetaPoco) => mechanism: 'MICRO-ORM'
@@ -392,7 +422,15 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    WebSockets (mechanism: 'WEBSOCKET'):
    - Action Cable channels
    - WebSocket-Rails usage
- * Database integration details (if any) - for each integration include: mechanism, name (e.g., "User model", "DatabaseConnection"), description, databaseName, tablesAccessed (array of table names), operationType (READ/WRITE/READ_WRITE/DDL/ADMIN), queryPatterns (e.g., 'ActiveRecord queries', 'raw SQL with params', 'Sequel dataset operations'), transactionHandling (e.g., 'ActiveRecord transactions', 'Sequel database.transaction', 'manual BEGIN/COMMIT', 'none'), protocol (e.g., 'PostgreSQL 14', 'MySQL 8.0'), connectionInfo (database.yml config or connection string with redacted credentials), and codeExample (max 8 lines). Mechanism mapping - if any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
+
+ * CRITICAL: Database Integration Analysis (REQUIRED for files that interact with databases)
+   
+   For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
+   
+   REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (max 8 lines, redacted)
+   STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "User model", "DatabaseConnection"), databaseName (specific database/schema name), tablesAccessed (array of table/model names from ActiveRecord models, queries, or table references), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'ActiveRecord queries', 'raw SQL with params', 'Sequel dataset operations', 'complex joins'), transactionHandling (e.g., 'ActiveRecord transactions', 'Sequel database.transaction', 'manual BEGIN/COMMIT', 'none'), protocol (e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQLite'), connectionInfo (database.yml config or connection string with REDACTED credentials)
+   
+   Mechanism mapping - if any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
    - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'
    - Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'
    - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or 'MICRO-ORM' if lightweight)

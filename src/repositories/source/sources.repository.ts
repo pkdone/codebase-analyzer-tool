@@ -112,9 +112,7 @@ export default class SourcesRepositoryImpl
       projection: {
         _id: 0,
         "summary.namespace": 1,
-        "summary.databaseIntegration.mechanism": 1,
-        "summary.databaseIntegration.description": 1,
-        "summary.databaseIntegration.codeExample": 1,
+        "summary.databaseIntegration": 1,
         filepath: 1,
       },
       sort: {
