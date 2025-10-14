@@ -3,7 +3,12 @@ import path from "path";
 import ejs from "ejs";
 import { outputConfig } from "../../config/output.config";
 import { writeFile } from "../../common/fs/file-operations";
-import type { AppStatistics, ProcsAndTriggers, DatabaseIntegrationInfo } from "./report-gen.types";
+import type {
+  AppStatistics,
+  ProcsAndTriggers,
+  DatabaseIntegrationInfo,
+  IntegrationPointInfo,
+} from "./report-gen.types";
 import type {
   ProjectedFileTypesCountAndLines,
   HierarchicalTopLevelJavaClassDependencies,
@@ -21,6 +26,7 @@ export interface PreparedHtmlReportData {
     data: AppSummaryNameDescArray;
     tableViewModel: TableViewModel;
   }[];
+  integrationPoints: IntegrationPointInfo[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
   topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
@@ -34,6 +40,7 @@ export interface PreparedHtmlReportData {
   dbInteractionsTableViewModel: TableViewModel;
   procsAndTriggersTableViewModel: TableViewModel;
   topLevelJavaClassesTableViewModel: TableViewModel;
+  integrationPointsTableViewModel: TableViewModel;
 }
 
 /**

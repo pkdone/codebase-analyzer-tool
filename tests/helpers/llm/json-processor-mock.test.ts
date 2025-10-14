@@ -67,4 +67,3 @@ describe("json-processor-mock", () => {
     });
   });
 });
-

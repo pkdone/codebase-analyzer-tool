@@ -143,6 +143,97 @@ export const publicMethodSchema = z
   })
   .passthrough();
 
+// Central list of valid integration mechanism values
+const INTEGRATION_MECHANISM_VALUES = [
+  "REST",
+  "GRAPHQL",
+  "GRPC",
+  "SOAP",
+  "WEBSOCKET",
+  "TRPC",
+  "JMS-QUEUE",
+  "JMS-TOPIC",
+  "KAFKA-TOPIC",
+  "RABBITMQ-QUEUE",
+  "RABBITMQ-EXCHANGE",
+  "ACTIVEMQ-QUEUE",
+  "ACTIVEMQ-TOPIC",
+  "AWS-SQS",
+  "AWS-SNS",
+  "AZURE-SERVICE-BUS-QUEUE",
+  "AZURE-SERVICE-BUS-TOPIC",
+  "REDIS-PUBSUB",
+  "WEBHOOK",
+  "SSE",
+  "OTHER",
+] as const;
+const INTEGRATION_MECHANISM_SET = new Set<string>(INTEGRATION_MECHANISM_VALUES);
+
+/**
+ * Schema for integration endpoints (APIs, queues, topics, SOAP services, etc.)
+ * Covers REST, SOAP, messaging systems (queues/topics), WebSockets, gRPC, and more.
+ */
+export const integrationEndpointSchema = z
+  .object({
+    mechanism: z
+      .preprocess(
+        (val) => {
+          if (typeof val === "string") {
+            const upper = val.toUpperCase();
+            return INTEGRATION_MECHANISM_SET.has(upper) ? upper : "OTHER";
+          }
+          return val;
+        },
+        z.enum(INTEGRATION_MECHANISM_VALUES as unknown as [string, ...string[]]),
+      )
+      .describe(
+        "The integration mechanism type - only the listed values are valid; any unrecognized value will be coerced to 'OTHER'.",
+      ),
+    name: z.string().describe("Name of the endpoint, queue, topic, or service operation"),
+    description: z.string().describe("What this integration point does"),
+    path: z
+      .string()
+      .optional()
+      .describe("The endpoint path (e.g., '/api/users/{id}' for REST or operation name for SOAP)"),
+    method: z
+      .string()
+      .optional()
+      .describe("HTTP method (GET, POST, PUT, DELETE, PATCH) or SOAP operation"),
+    queueOrTopicName: z
+      .string()
+      .optional()
+      .describe("Name of the queue or topic (for JMS, Kafka, RabbitMQ, etc.)"),
+    messageType: z
+      .string()
+      .optional()
+      .describe("Type of message being sent/received (for messaging systems)"),
+    direction: z
+      .enum(["PRODUCER", "CONSUMER", "BOTH", "BIDIRECTIONAL"])
+      .optional()
+      .describe("Whether this code produces, consumes, or both for messaging systems"),
+    requestBody: z
+      .string()
+      .optional()
+      .describe("Expected request body structure or message payload structure"),
+    responseBody: z
+      .string()
+      .optional()
+      .describe("Expected response structure or acknowledgment structure"),
+    authentication: z
+      .string()
+      .optional()
+      .describe("Authentication mechanism required (JWT, OAuth, SAML, etc.)"),
+    protocol: z
+      .string()
+      .optional()
+      .describe("Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"),
+    connectionInfo: z
+      .string()
+      .optional()
+      .describe("Connection string, broker info, or WSDL location (redacted if sensitive)"),
+  })
+  .passthrough();
+
 /**
  * Schema for source file summaries
  */
@@ -207,6 +298,12 @@ export const sourceSummarySchema = z
       .array(dataInputFieldSchema)
       .optional()
       .describe("A list of data input fields."),
+    integrationPoints: z
+      .array(integrationEndpointSchema)
+      .optional()
+      .describe(
+        "List of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, etc.) defined or consumed by this file",
+      ),
   })
   .passthrough();
 

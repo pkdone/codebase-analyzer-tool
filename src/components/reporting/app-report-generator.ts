@@ -57,17 +57,24 @@ export default class AppReportGenerator {
     outputDir: string,
     outputFilename: string,
   ): Promise<void> {
-    const [appSummaryData, fileTypesData, dbInteractions, procsAndTriggers, topLevelJavaClasses] =
-      await Promise.all([
-        this.appSummariesRepository.getProjectAppSummaryFields(
-          projectName,
-          reportSectionsConfig.allRequiredAppSummaryFields,
-        ),
-        this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
-        this.databaseDataProvider.getDatabaseInteractions(projectName),
-        this.databaseDataProvider.getSummarizedProceduresAndTriggers(projectName),
-        this.codeStructureDataProvider.getTopLevelJavaClasses(projectName),
-      ]);
+    const [
+      appSummaryData,
+      fileTypesData,
+      integrationPoints,
+      dbInteractions,
+      procsAndTriggers,
+      topLevelJavaClasses,
+    ] = await Promise.all([
+      this.appSummariesRepository.getProjectAppSummaryFields(
+        projectName,
+        reportSectionsConfig.allRequiredAppSummaryFields,
+      ),
+      this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
+      this.databaseDataProvider.getIntegrationPoints(projectName),
+      this.databaseDataProvider.getDatabaseInteractions(projectName),
+      this.databaseDataProvider.getSummarizedProceduresAndTriggers(projectName),
+      this.codeStructureDataProvider.getTopLevelJavaClasses(projectName),
+    ]);
 
     if (!appSummaryData) {
       throw new Error(
@@ -85,6 +92,7 @@ export default class AppReportGenerator {
       dbInteractions,
       procsAndTriggers,
       topLevelJavaClasses,
+      integrationPoints,
     };
 
     // Prepare data for both writers
@@ -111,6 +119,7 @@ export default class AppReportGenerator {
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
       topLevelJavaClasses: reportData.topLevelJavaClasses,
+      integrationPoints: reportData.integrationPoints,
     };
     const preparedData: PreparedJsonData[] = [
       {
@@ -134,6 +143,10 @@ export default class AppReportGenerator {
       {
         filename: reportSectionsConfig.jsonDataFiles.topLevelJavaClasses,
         data: reportData.topLevelJavaClasses,
+      },
+      {
+        filename: reportSectionsConfig.jsonDataFiles.integrationPoints,
+        data: reportData.integrationPoints,
       },
     ];
 
@@ -201,6 +214,12 @@ export default class AppReportGenerator {
       htmlDir,
     );
     const topLevelJavaClassesTableViewModel = new TableViewModel(topLevelJavaClassesDisplayData);
+
+    // Create view model for integration points
+    const integrationPointsTableViewModel = new TableViewModel(
+      reportData.integrationPoints as unknown as DisplayableTableRow[],
+    );
+
     return {
       appStats: reportData.appStats,
       fileTypesData: processedFileTypesData,
@@ -209,12 +228,14 @@ export default class AppReportGenerator {
       dbInteractions: reportData.dbInteractions,
       procsAndTriggers: reportData.procsAndTriggers,
       topLevelJavaClasses: reportData.topLevelJavaClasses,
+      integrationPoints: reportData.integrationPoints,
       jsonFilesConfig: reportSectionsConfig,
       convertToDisplayName,
       fileTypesTableViewModel,
       dbInteractionsTableViewModel,
       procsAndTriggersTableViewModel,
       topLevelJavaClassesTableViewModel,
+      integrationPointsTableViewModel,
     };
   }
 

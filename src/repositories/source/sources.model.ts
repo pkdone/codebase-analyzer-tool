@@ -65,6 +65,15 @@ export interface ProjectedDatabaseIntegrationFields {
 }
 
 /**
+ * Type for MongoDB projected document with integration point fields
+ * Derived from source schemas to maintain consistency
+ */
+export interface ProjectedIntegrationPointFields {
+  filepath: SourceRecord["filepath"];
+  summary?: Pick<z.infer<typeof sourceSummarySchema>, "namespace" | "integrationPoints">;
+}
+
+/**
  * Interface representing
  */
 export interface ProjectedFileTypesCountAndLines {

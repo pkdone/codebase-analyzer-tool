@@ -56,6 +56,25 @@ export interface DatabaseIntegrationInfo {
   readonly codeExample: string;
 }
 
+// Interface representing integration point information (APIs, queues, topics, SOAP, etc.)
+export interface IntegrationPointInfo {
+  readonly namespace: string;
+  readonly filepath: string;
+  readonly mechanism: string;
+  readonly name: string;
+  readonly description: string;
+  readonly path?: string;
+  readonly method?: string;
+  readonly queueOrTopicName?: string;
+  readonly messageType?: string;
+  readonly direction?: string;
+  readonly requestBody?: string;
+  readonly responseBody?: string;
+  readonly authentication?: string;
+  readonly protocol?: string;
+  readonly connectionInfo?: string;
+}
+
 /**
  * Unified data model for report generation.
  * Contains all the data needed to generate both HTML and JSON reports.
@@ -64,6 +83,7 @@ export interface ReportData {
   appStats: AppStatistics;
   fileTypesData: ProjectedFileTypesCountAndLines[];
   categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[];
+  integrationPoints: IntegrationPointInfo[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;
   topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];

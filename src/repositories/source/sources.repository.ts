@@ -7,6 +7,7 @@ import {
   ProjectedSourceFilePathAndSummary,
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
+  ProjectedIntegrationPointFields,
   ProjectedFilePath,
   ProjectedFileTypesCountAndLines,
   ProjectedTopLevelJavaClassDependencies,
@@ -145,6 +146,28 @@ export default class SourcesRepositoryImpl
       projection: { _id: 0, summary: 1, filepath: 1 },
     };
     return this.collection.find<ProjectedSourceFilePathAndSummary>(query, options).toArray();
+  }
+
+  /**
+   * Get integration points (APIs, queues, topics, SOAP services) for a project
+   */
+  async getProjectIntegrationPoints(
+    projectName: string,
+  ): Promise<ProjectedIntegrationPointFields[]> {
+    const query = {
+      projectName,
+      "summary.integrationPoints": { $exists: true, $ne: [] },
+    };
+    const options: { projection: Document; sort: Sort } = {
+      projection: {
+        _id: 0,
+        "summary.namespace": 1,
+        "summary.integrationPoints": 1,
+        filepath: 1,
+      },
+      sort: { "summary.namespace": 1 },
+    };
+    return this.collection.find<ProjectedIntegrationPointFields>(query, options).toArray();
   }
 
   /**

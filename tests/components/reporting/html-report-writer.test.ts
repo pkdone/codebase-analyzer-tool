@@ -57,6 +57,20 @@ describe("HtmlReportWriter", () => {
       trigs: { total: 2, low: 1, medium: 1, high: 0, list: [] },
     },
     topLevelJavaClasses: [{ namespace: "com.example.MyClass", dependencies: [] }],
+    integrationPoints: [
+      {
+        namespace: "com.example.UserController",
+        filepath: "src/controllers/UserController.java",
+        mechanism: "REST",
+        name: "getUsers",
+        path: "/api/users",
+        method: "GET",
+        description: "Get all users",
+        requestBody: undefined,
+        responseBody: "List of users",
+        authentication: "JWT",
+      },
+    ],
     jsonFilesConfig: {
       allRequiredAppSummaryFields: ["appDescription", "llmProvider"],
       jsonDataFiles: {
@@ -67,6 +81,7 @@ describe("HtmlReportWriter", () => {
         dbInteractions: "db-interactions.json",
         procsAndTriggers: "procs-and-triggers.json",
         topLevelJavaClasses: "top-level-java-classes.json",
+        integrationPoints: "integration-points.json",
       },
       getCategoryJSONFilename: (category: string) => `${category}.json`,
     },
@@ -81,6 +96,9 @@ describe("HtmlReportWriter", () => {
       "../../../src/components/reporting/view-models/table-view-model",
     ).TableViewModel)([]),
     topLevelJavaClassesTableViewModel: new (jest.requireActual(
+      "../../../src/components/reporting/view-models/table-view-model",
+    ).TableViewModel)([]),
+    integrationPointsTableViewModel: new (jest.requireActual(
       "../../../src/components/reporting/view-models/table-view-model",
     ).TableViewModel)([]),
   };

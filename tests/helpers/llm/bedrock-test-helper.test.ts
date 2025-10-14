@@ -34,8 +34,7 @@ describe("bedrock-test-helper", () => {
         SKIP_ALREADY_PROCESSED_FILES: false,
         LLM: "BedrockClaude",
         BEDROCK_TITAN_EMBEDDINGS_MODEL: "amazon.titan-embed-text-v1",
-        BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY:
-          "anthropic.claude-3-5-sonnet-20240620-v1:0",
+        BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY: "anthropic.claude-3-5-sonnet-20240620-v1:0",
       });
     });
 
@@ -110,8 +109,7 @@ describe("bedrock-test-helper", () => {
 
     const mockEnv = {
       BEDROCK_TITAN_EMBEDDINGS_MODEL: "amazon.titan-embed-text-v1",
-      BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY:
-        "anthropic.claude-3-5-sonnet-20240620-v1:0",
+      BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY: "anthropic.claude-3-5-sonnet-20240620-v1:0",
       BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY: "anthropic.claude-3-opus-20240229-v1:0",
     };
 
@@ -229,4 +227,3 @@ describe("bedrock-test-helper", () => {
     });
   });
 });
-

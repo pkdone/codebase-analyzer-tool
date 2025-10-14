@@ -3,6 +3,7 @@ import {
   ProjectedSourceFilePathAndSummary,
   ProjectedSourceSummaryFields,
   ProjectedDatabaseIntegrationFields,
+  ProjectedIntegrationPointFields,
   ProjectedFileTypesCountAndLines,
   ProjectedTopLevelJavaClassDependencies,
   SourceRecord,
@@ -91,4 +92,9 @@ export interface SourcesRepository {
    * Get the JSON schema for collection validation
    */
   getCollectionValidationSchema(): object;
+
+  /**
+   * Get integration points (APIs, queues, topics, SOAP services) for a project
+   */
+  getProjectIntegrationPoints(projectName: string): Promise<ProjectedIntegrationPointFields[]>;
 }

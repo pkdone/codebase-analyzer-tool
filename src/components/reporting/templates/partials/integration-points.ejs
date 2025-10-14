@@ -1,0 +1,23 @@
+<%- include('section-header', { title: 'Integration Points (APIs, Queues/Topics, etc.)', jsonFile: jsonFilesConfig.jsonDataFiles.integrationPoints }) %>
+
+<% if (integrationPoints && integrationPoints.length > 0) { %>
+  <p>Total Integration Points: <b><%= integrationPoints.length %></b></p>
+  
+  <% 
+  const byMechanism = {};
+  integrationPoints.forEach(point => {
+    byMechanism[point.mechanism] = (byMechanism[point.mechanism] || 0) + 1;
+  });
+  %>
+  
+  <p>By Type: 
+    <% Object.entries(byMechanism).sort((a, b) => b[1] - a[1]).forEach(([mech, count]) => { %>
+      <b><%= mech %></b>: <%= count %>&nbsp;&nbsp;&nbsp;
+    <% }); %>
+  </p>
+  
+  <%- include('table', { viewModel: integrationPointsTableViewModel }) %>
+<% } else { %>
+  <p><i>No integration points (APIs, queues, topics, SOAP services) detected in this codebase.</i></p>
+<% } %>
+

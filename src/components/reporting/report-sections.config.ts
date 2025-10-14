@@ -29,6 +29,7 @@ export const reportSectionsConfig = {
     appStats: "app-stats.json",
     appDescription: "app-description.json",
     fileTypes: "file-types.json",
+    integrationPoints: "integration-points.json",
     dbInteractions: "db-interactions.json",
     procsAndTriggers: "procs-and-triggers.json",
     topLevelJavaClasses: "top-level-java-classes.json",

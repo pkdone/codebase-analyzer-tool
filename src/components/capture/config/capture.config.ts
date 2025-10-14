@@ -52,6 +52,45 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
  * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JAVA}
  * A list of public constants (name, value and type) it defines (if any)
  * A list of its public methods (if any) - for each public method, include the method's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation
+ * A list of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, gRPC) this file defines or consumes - for each integration include: mechanism type, name, description, and relevant details. Look for:
+   
+   REST APIs (mechanism: 'REST'):
+   - JAX-RS annotations (@Path, @GET, @POST, @PUT, @DELETE, @PATCH) - include path, method, request/response body
+   - Spring annotations (@RestController, @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping)
+   - Servlet mappings (web.xml or @WebServlet) - include URL patterns
+   - HTTP client calls (RestTemplate, WebClient, HttpClient, OkHttp, Feign @FeignClient)
+   
+   SOAP Services (mechanism: 'SOAP'):
+   - JAX-WS annotations (@WebService, @WebMethod, @SOAPBinding) - include service name, operation name, SOAP version
+   - WSDL references or Apache CXF service definitions
+   - SOAPConnectionFactory, SOAPMessage usage
+   - SOAP client proxy usage (Service.create, getPort)
+   
+   JMS Messaging (mechanism: 'JMS-QUEUE' or 'JMS-TOPIC'):
+   - Queue operations: MessageProducer sending to Queue, QueueSender, @JmsListener with destination type QUEUE
+   - Topic operations: TopicPublisher, @JmsListener with destination type TOPIC
+   - Include queue/topic name, message type, direction (PRODUCER/CONSUMER/BOTH)
+   - ConnectionFactory, Session, MessageProducer/MessageConsumer patterns
+   
+   Kafka (mechanism: 'KAFKA-TOPIC'):
+   - KafkaProducer, KafkaConsumer usage - include topic name, message type, direction
+   - @KafkaListener annotations - include topic names, consumer group
+   
+   RabbitMQ (mechanism: 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'):
+   - RabbitTemplate send/receive operations - include queue/exchange name
+   - @RabbitListener annotations - include queue names, direction
+   
+   Other Messaging:
+   - ActiveMQ: @JmsListener with ActiveMQ-specific config => 'ACTIVEMQ-QUEUE' or 'ACTIVEMQ-TOPIC'
+   - AWS SQS/SNS: AmazonSQS client, sendMessage, receiveMessage => 'AWS-SQS' or 'AWS-SNS'
+   - Azure Service Bus: ServiceBusClient, QueueClient, TopicClient => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
+   
+   WebSockets (mechanism: 'WEBSOCKET'):
+   - @ServerEndpoint annotations - include endpoint path
+   - WebSocketHandler implementations
+   
+   gRPC (mechanism: 'GRPC'):
+   - @GrpcService annotations or gRPC stub usage - include service name, methods
  * The type of database integration it employs (if any), stating the mechanism used, a description of the integration and an example code snippet that performs the database integration - if any of the following elements are true in the code, you MUST assume that there is database interaction (if you know the table names the code interacts with, include these table names in the description):
    - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
    - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) => mechanism: 'SQL'
@@ -79,6 +118,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
         publicConstants: true,
         publicMethods: true,
         databaseIntegration: true,
+        integrationPoints: true,
       })
       .extend({
         // Add descriptions for LLM prompts
@@ -97,6 +137,40 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
  * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JS}
  * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JS}
+ * A list of integration points (REST APIs, GraphQL, WebSockets, messaging systems, gRPC) this file defines or consumes - for each integration include: mechanism type, name, description, and relevant details. Look for:
+   
+   REST APIs (mechanism: 'REST'):
+   - Express route definitions (app.get, app.post, app.put, app.delete, router.use)
+   - Fastify route definitions (fastify.get, fastify.post, etc.)
+   - Koa route definitions (router.get, router.post, etc.)
+   - NestJS decorators (@Get, @Post, @Put, @Delete, @Patch, @Controller)
+   - HTTP client calls (fetch, axios, request, superagent, got)
+   
+   GraphQL (mechanism: 'GRAPHQL'):
+   - Schema definitions (type Query, type Mutation, resolvers)
+   - Apollo Server or GraphQL Yoga setup
+   - GraphQL client usage (Apollo Client, urql)
+   
+   tRPC (mechanism: 'TRPC'):
+   - Procedure definitions (publicProcedure, protectedProcedure)
+   - Router definitions
+   
+   WebSockets (mechanism: 'WEBSOCKET'):
+   - Socket.io usage (io.on, socket.emit)
+   - ws library (WebSocket server/client)
+   - WebSocket API usage
+   
+   Messaging Systems:
+   - RabbitMQ (amqplib): Channel.sendToQueue, consume => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
+   - Kafka (kafkajs): producer.send, consumer.subscribe => 'KAFKA-TOPIC'
+   - AWS SQS/SNS (aws-sdk): sendMessage, subscribe => 'AWS-SQS' or 'AWS-SNS'
+   - Redis Pub/Sub: publish, subscribe => 'REDIS-PUBSUB'
+   
+   gRPC (mechanism: 'GRPC'):
+   - @grpc/grpc-js usage, service definitions
+   
+   Server-Sent Events (mechanism: 'SSE'):
+   - res.writeHead with text/event-stream
  * ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
     schema: sourceSummarySchema.pick({
       purpose: true,
@@ -104,6 +178,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
       internalReferences: true,
       externalReferences: true,
       databaseIntegration: true,
+      integrationPoints: true,
     }),
     hasComplexSchema: false,
   },
@@ -199,6 +274,27 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
  * A list of the external references to 3rd party / NuGet package classes (Fully qualified type names) it depends on (exclude System.* where possible)
  * A list of public constants / readonly static fields (if any) – include name, value (redact secrets), and a short type/role description
  * A list of its public methods (if any) – for each method list: name, purpose (detailed), parameters (name and type), return type, async/sync indicator, and a very detailed implementation description highlighting notable control flow, LINQ queries, awaits, exception handling, and important business logic decisions
+ * A list of integration points (REST APIs, WCF/SOAP, messaging systems, gRPC) this file defines or consumes - for each integration include: mechanism type, name, description, and relevant details. Look for:
+   
+   REST APIs (mechanism: 'REST'):
+   - ASP.NET Core MVC/Web API controller actions with [HttpGet], [HttpPost], [HttpPut], [HttpDelete], [HttpPatch], [Route]
+   - ASP.NET Core Minimal API endpoints (MapGet, MapPost, MapPut, MapDelete)
+   - HTTP client calls (HttpClient, RestSharp, Refit interfaces)
+   
+   WCF/SOAP Services (mechanism: 'SOAP'):
+   - WCF service contracts ([ServiceContract], [OperationContract])
+   - SOAP service references, WCF client proxies
+   - BasicHttpBinding, WSHttpBinding configurations
+   
+   Messaging Systems:
+   - Azure Service Bus (ServiceBusClient, QueueClient for queues, TopicClient for topics) => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
+   - RabbitMQ.Client usage (IModel.BasicPublish, BasicConsume) => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
+   - MSMQ (MessageQueue class) => 'OTHER' (specify MSMQ in description and protocol)
+   - AWS SQS/SNS (AWSSDK) => 'AWS-SQS' or 'AWS-SNS'
+   
+   gRPC (mechanism: 'GRPC'):
+   - Grpc.Net.Client, Grpc.Core service definitions
+   - gRPC client stubs and service implementations
  * The type of database integration it employs (if any), stating a mechanism (choose ONE of: 'ORM', 'SQL', 'DRIVER', 'DDL', or 'NONE'), a description of the integration, and a concise example snippet (max 8 lines) that performs the database integration. Apply these mapping rules:
    - Uses Entity Framework / EF Core DbContext / LINQ-to-Entities => mechanism: 'EF-CORE'
    - Uses Dapper extension methods / micro ORM => mechanism: 'DAPPER' (or 'MICRO-ORM' if pattern is generic and not clearly Dapper)
@@ -221,6 +317,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
       publicConstants: true,
       publicMethods: true,
       databaseIntegration: true,
+      integrationPoints: true,
     }),
     hasComplexSchema: false,
   },
@@ -235,6 +332,30 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
  * A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)
  * A list of public (non-internal) constants it defines (if any) – for each constant include its name, value (redact secrets), and a short type/role description
  * A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals
+ * A list of integration points (REST APIs, GraphQL, SOAP, messaging systems) this file defines or consumes - for each integration include: mechanism type, name, description, and relevant details. Look for:
+   
+   REST APIs (mechanism: 'REST'):
+   - Rails controller actions (routes.rb get/post/put/delete/patch, controller action methods)
+   - Sinatra route definitions (get, post, put, delete, patch blocks)
+   - Grape API endpoints (get, post, put, delete, patch declarations)
+   - HTTP client calls (Net::HTTP, RestClient, HTTParty, Faraday)
+   
+   GraphQL (mechanism: 'GRAPHQL'):
+   - GraphQL type definitions (GraphQL::ObjectType, field definitions)
+   - GraphQL mutations and queries
+   
+   SOAP (mechanism: 'SOAP'):
+   - Savon SOAP client usage
+   - SOAP service definitions
+   
+   Messaging Systems:
+   - RabbitMQ (bunny gem): channel.queue, publish => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
+   - Redis Pub/Sub: redis.publish, subscribe => 'REDIS-PUBSUB'
+   - AWS SQS/SNS (aws-sdk) => 'AWS-SQS' or 'AWS-SNS'
+   
+   WebSockets (mechanism: 'WEBSOCKET'):
+   - Action Cable channels
+   - WebSocket-Rails usage
  * The type of database integration it employs (if any), stating the mechanism used, a description of the integration and an example code snippet (max 8 lines) that performs the database integration. If any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
    - Uses ActiveRecord models, migrations, or associations => mechanism: 'ACTIVE-RECORD'
    - Uses Sequel ORM DSL => mechanism: 'SEQUEL'
@@ -258,6 +379,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
       publicConstants: true,
       publicMethods: true,
       databaseIntegration: true,
+      integrationPoints: true,
     }),
     hasComplexSchema: false,
   },

@@ -530,6 +530,81 @@ describe("SourcesRepositoryImpl", () => {
     });
   });
 
+  describe("getProjectIntegrationPoints", () => {
+    it("should return integration points for a project", async () => {
+      const projectName = "test-project";
+      const mockIntegrationPoints = [
+        {
+          filepath: "src/controllers/UserController.java",
+          summary: {
+            namespace: "com.example.UserController",
+            integrationPoints: [
+              {
+                mechanism: "REST",
+                name: "getUsers",
+                path: "/api/users",
+                method: "GET",
+                description: "Get all users",
+                requestBody: undefined,
+                responseBody: "List of users",
+                authentication: "JWT",
+              },
+              {
+                mechanism: "JMS-QUEUE",
+                name: "userNotificationQueue",
+                queueOrTopicName: "user.notifications",
+                messageType: "UserNotification",
+                direction: "PRODUCER",
+                description: "Send user notifications to queue",
+              },
+            ],
+          },
+        },
+      ];
+      mockFindCursor.toArray.mockResolvedValue(mockIntegrationPoints);
+
+      const result = await repository.getProjectIntegrationPoints(projectName);
+
+      expect(result).toEqual(mockIntegrationPoints);
+      expect(mockCollection.find).toHaveBeenCalledWith(
+        {
+          projectName,
+          "summary.integrationPoints": { $exists: true, $ne: [] },
+        },
+        {
+          projection: {
+            _id: 0,
+            "summary.namespace": 1,
+            "summary.integrationPoints": 1,
+            filepath: 1,
+          },
+          sort: { "summary.namespace": 1 },
+        },
+      );
+    });
+
+    it("should return empty array when no integration points exist", async () => {
+      const projectName = "test-project";
+      mockFindCursor.toArray.mockResolvedValue([]);
+
+      const result = await repository.getProjectIntegrationPoints(projectName);
+
+      expect(result).toEqual([]);
+    });
+
+    it("should sort results by namespace", async () => {
+      const projectName = "test-project";
+      mockFindCursor.toArray.mockResolvedValue([]);
+
+      await repository.getProjectIntegrationPoints(projectName);
+
+      const findCalls = mockCollection.find.mock.calls;
+      expect(findCalls.length).toBeGreaterThan(0);
+      const options = findCalls[0][1]!;
+      expect(options.sort).toEqual({ "summary.namespace": 1 });
+    });
+  });
+
   describe("getCollectionValidationSchema", () => {
     it("should return the JSON schema", () => {
       const result = repository.getCollectionValidationSchema();

@@ -29,7 +29,7 @@ describe("db-test-helper", () => {
       // Async functions return promises
       const result = setupFunction();
       expect(result).toBeInstanceOf(Promise);
-      
+
       // Clean up the promise to avoid open handles
       result.catch(() => {
         // Expected to fail in unit test environment without MongoDB
@@ -40,7 +40,7 @@ describe("db-test-helper", () => {
       const teardownFunction = dbTestHelper.teardownTestDatabase;
       const result = teardownFunction();
       expect(result).toBeInstanceOf(Promise);
-      
+
       // Clean up the promise
       result.catch(() => {
         // Expected behavior in unit test context
@@ -51,7 +51,7 @@ describe("db-test-helper", () => {
       const populateFunction = dbTestHelper.populateTestData;
       const result = populateFunction();
       expect(result).toBeInstanceOf(Promise);
-      
+
       // Clean up the promise
       result.catch(() => {
         // Expected to fail without setup
@@ -79,10 +79,7 @@ describe("db-test-helper", () => {
       // This tests the guard clause in populateTestData
       // Note: We can't easily test this without actually setting up the database,
       // but we verify the function exists and has the right shape
-      await expect(dbTestHelper.populateTestData()).rejects.toThrow(
-        /Test database not set up/,
-      );
+      await expect(dbTestHelper.populateTestData()).rejects.toThrow(/Test database not set up/);
     });
   });
 });
-
