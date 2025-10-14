@@ -89,9 +89,11 @@ export const databaseIntegrationSchema = z
       .optional()
       .describe("List of tables, collections, or entities being accessed by this code"),
     operationType: z
-      .enum(["READ", "WRITE", "READ_WRITE", "DDL", "ADMIN"])
+      .array(z.enum(["READ", "WRITE", "READ_WRITE", "DDL", "ADMIN"]))
       .optional()
-      .describe("Type of database operations performed (READ, WRITE, READ_WRITE, DDL, ADMIN)"),
+      .describe(
+        "Array of database operation types performed (e.g., ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN'])",
+      ),
     queryPatterns: z
       .string()
       .optional()

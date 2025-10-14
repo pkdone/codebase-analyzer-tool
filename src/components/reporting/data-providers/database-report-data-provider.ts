@@ -32,12 +32,21 @@ export class DatabaseReportDataProvider {
     return records.flatMap((record) => {
       const { summary } = record;
       if (summary?.databaseIntegration) {
+        const db = summary.databaseIntegration;
         return [
           {
             path: summary.namespace ?? record.filepath,
-            mechanism: summary.databaseIntegration.mechanism,
-            description: summary.databaseIntegration.description,
-            codeExample: summary.databaseIntegration.codeExample,
+            mechanism: db.mechanism,
+            name: db.name,
+            description: db.description,
+            databaseName: db.databaseName,
+            tablesAccessed: db.tablesAccessed,
+            operationType: db.operationType,
+            queryPatterns: db.queryPatterns,
+            transactionHandling: db.transactionHandling,
+            protocol: db.protocol,
+            connectionInfo: db.connectionInfo,
+            codeExample: db.codeExample,
           },
         ];
       }

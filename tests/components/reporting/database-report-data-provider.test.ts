@@ -419,4 +419,145 @@ describe("DatabaseReportDataProvider", () => {
       expect(result.procs.low + result.procs.medium + result.procs.high).toBe(result.procs.total);
     });
   });
+
+  describe("getDatabaseInteractions", () => {
+    test("should extract all database integration fields including new ones", async () => {
+      mockSourcesRepository.getProjectDatabaseIntegrations.mockResolvedValue([
+        {
+          filepath: "/path/to/repository.java",
+          summary: {
+            namespace: "com.example.repository.UserRepository",
+            databaseIntegration: {
+              mechanism: "JPA",
+              name: "UserRepository",
+              description: "User data access using JPA Repository pattern",
+              databaseName: "users_db",
+              tablesAccessed: ["users", "user_profiles", "user_roles"],
+              operationType: ["READ", "WRITE"],
+              queryPatterns: "JPQL queries with dynamic criteria",
+              transactionHandling: "Spring @Transactional annotations",
+              protocol: "PostgreSQL 15",
+              connectionInfo: "jdbc:postgresql://localhost:5432/users_db",
+              codeExample:
+                "@Repository public class UserRepository extends JpaRepository<User, Long> {}",
+            },
+          },
+        },
+      ]);
+
+      const result = await provider.getDatabaseInteractions("test-project");
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: "com.example.repository.UserRepository",
+        mechanism: "JPA",
+        name: "UserRepository",
+        description: "User data access using JPA Repository pattern",
+        databaseName: "users_db",
+        tablesAccessed: ["users", "user_profiles", "user_roles"],
+        operationType: ["READ", "WRITE"],
+        queryPatterns: "JPQL queries with dynamic criteria",
+        transactionHandling: "Spring @Transactional annotations",
+        protocol: "PostgreSQL 15",
+        connectionInfo: "jdbc:postgresql://localhost:5432/users_db",
+        codeExample: "@Repository public class UserRepository extends JpaRepository<User, Long> {}",
+      });
+    });
+
+    test("should handle database integrations with only required fields", async () => {
+      mockSourcesRepository.getProjectDatabaseIntegrations.mockResolvedValue([
+        {
+          filepath: "/path/to/file.js",
+          summary: {
+            databaseIntegration: {
+              mechanism: "DRIVER",
+              description: "Direct database driver usage",
+              codeExample: "const client = new MongoClient(uri);",
+            },
+          },
+        },
+      ]);
+
+      const result = await provider.getDatabaseInteractions("test-project");
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: "/path/to/file.js",
+        mechanism: "DRIVER",
+        name: undefined,
+        description: "Direct database driver usage",
+        databaseName: undefined,
+        tablesAccessed: undefined,
+        operationType: undefined,
+        queryPatterns: undefined,
+        transactionHandling: undefined,
+        protocol: undefined,
+        connectionInfo: undefined,
+        codeExample: "const client = new MongoClient(uri);",
+      });
+    });
+
+    test("should filter out files without database integration", async () => {
+      mockSourcesRepository.getProjectDatabaseIntegrations.mockResolvedValue([
+        {
+          filepath: "/path/to/file1.java",
+          summary: {
+            databaseIntegration: {
+              mechanism: "HIBERNATE",
+              description: "Uses Hibernate ORM",
+              codeExample: "@Entity public class User {}",
+            },
+          },
+        },
+        {
+          filepath: "/path/to/file2.java",
+          summary: {},
+        },
+      ]);
+
+      const result = await provider.getDatabaseInteractions("test-project");
+
+      expect(result).toHaveLength(1);
+      expect(result[0].mechanism).toBe("HIBERNATE");
+    });
+
+    test("should handle multiple database integrations", async () => {
+      mockSourcesRepository.getProjectDatabaseIntegrations.mockResolvedValue([
+        {
+          filepath: "/path/to/repo1.java",
+          summary: {
+            databaseIntegration: {
+              mechanism: "JDBC",
+              description: "Direct JDBC access",
+              operationType: ["READ"],
+              codeExample: "Connection conn = DriverManager.getConnection(url);",
+            },
+          },
+        },
+        {
+          filepath: "/path/to/repo2.js",
+          summary: {
+            namespace: "models.User",
+            databaseIntegration: {
+              mechanism: "MONGOOSE",
+              description: "MongoDB with Mongoose ODM",
+              databaseName: "app_db",
+              tablesAccessed: ["users"],
+              operationType: ["WRITE"],
+              codeExample: "const User = mongoose.model('User', userSchema);",
+            },
+          },
+        },
+      ]);
+
+      const result = await provider.getDatabaseInteractions("test-project");
+
+      expect(result).toHaveLength(2);
+      expect(result[0].mechanism).toBe("JDBC");
+      expect(result[0].operationType).toEqual(["READ"]);
+      expect(result[1].mechanism).toBe("MONGOOSE");
+      expect(result[1].path).toBe("models.User");
+      expect(result[1].operationType).toEqual(["WRITE"]);
+    });
+  });
 });

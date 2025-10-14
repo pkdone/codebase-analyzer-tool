@@ -52,7 +52,15 @@ export interface AppStatistics {
 export interface DatabaseIntegrationInfo {
   readonly path: string;
   readonly mechanism: string;
+  readonly name?: string;
   readonly description: string;
+  readonly databaseName?: string;
+  readonly tablesAccessed?: string[];
+  readonly operationType?: string[];
+  readonly queryPatterns?: string;
+  readonly transactionHandling?: string;
+  readonly protocol?: string;
+  readonly connectionInfo?: string;
   readonly codeExample: string;
 }
 
