@@ -1,7 +1,7 @@
 import { LLMGeneratedContent, LLMCompletionOptions } from "../../types/llm.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../../types/llm-errors.types";
 import { JsonValidator } from "./json-validator";
-import { unwrapJsonSchemaStructure } from "../utils/post-parse-transforms";
+import { unwrapJsonSchemaStructure, convertNullToUndefined } from "../utils/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";
 import { JsonProcessorResult } from "../json-processing-result.types";
 import {
@@ -84,9 +84,11 @@ export class JsonProcessor {
    * These operate on the parsed object structure rather than raw strings.
    *
    * Currently contains:
+   * - convertNullToUndefined: Converts null to undefined for optional fields (applied first)
    * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data
    */
   private readonly POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
+    convertNullToUndefined,
     unwrapJsonSchemaStructure,
   ] as const;
 

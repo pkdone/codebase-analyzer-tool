@@ -3,6 +3,8 @@
  * to fix structural issues before validation.
  */
 
+import { convertNullToUndefined } from "./convert-null-to-undefined";
+
 /**
  * Unwraps JSON Schema structures where the LLM mistakenly returns a schema
  * definition instead of the actual data. Detects and transforms:
@@ -38,3 +40,6 @@ export function unwrapJsonSchemaStructure(parsed: unknown): unknown {
 
   return parsed;
 }
+
+// Re-export for use in json-processor
+export { convertNullToUndefined };

@@ -110,7 +110,8 @@ describe("JsonProcessor", () => {
           { input: '{"string": "value"}', expected: { string: "value" } },
           { input: '{"number": 123}', expected: { number: 123 } },
           { input: '{"boolean": true}', expected: { boolean: true } },
-          { input: '{"null": null}', expected: { null: null } },
+          // Note: null values are converted to undefined and omitted by the post-parse transform
+          { input: '{"null": null}', expected: {} },
           { input: '{"array": [1,2,3]}', expected: { array: [1, 2, 3] } },
         ];
 
