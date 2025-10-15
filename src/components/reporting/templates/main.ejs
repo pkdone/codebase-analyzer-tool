@@ -201,6 +201,10 @@
     <%- include('partials/bom', { bomData: billOfMaterials, bomStats: bomStatistics }) %>
     <%- include('partials/section-header', { title: 'Code Quality Summary', jsonFile: 'code-quality-summary.json' }) %>
     <%- include('partials/code-quality', { codeQualitySummary: codeQualitySummary }) %>
+    <% if (scheduledJobsSummary && scheduledJobsSummary.jobs.length > 0) { %>
+      <%- include('partials/section-header', { title: 'Scheduled Jobs and Batch Processes', jsonFile: 'scheduled-jobs-summary.json' }) %>
+      <%- include('partials/scheduled-jobs', { jobsData: scheduledJobsSummary, jobsStats: jobsStatistics }) %>
+    <% } %>
     <%- include('partials/top-level-java-classes', { topLevelJavaClasses: topLevelJavaClasses, topLevelJavaClassesTableViewModel: topLevelJavaClassesTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
     <%- include('partials/integration-points', { integrationPoints: integrationPoints, integrationPointsTableViewModel: integrationPointsTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
     <%- include('partials/db-integrations', { dbInteractions: dbInteractions, procsAndTriggers: procsAndTriggers, dbInteractionsTableViewModel: dbInteractionsTableViewModel, procsAndTriggersTableViewModel: procsAndTriggersTableViewModel, convertToDisplayName: convertToDisplayName, jsonFilesConfig: jsonFilesConfig }) %>

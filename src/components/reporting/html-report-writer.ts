@@ -9,6 +9,7 @@ import type {
   DatabaseIntegrationInfo,
   IntegrationPointInfo,
   CodeQualitySummary,
+  ScheduledJobsSummary,
 } from "./report-gen.types";
 import type {
   ProjectedFileTypesCountAndLines,
@@ -45,6 +46,12 @@ export interface PreparedHtmlReportData {
     buildFiles: number;
   };
   codeQualitySummary: CodeQualitySummary | null;
+  scheduledJobsSummary: ScheduledJobsSummary | null;
+  jobsStatistics: {
+    total: number;
+    triggerTypesCount: number;
+    jobFilesCount: number;
+  } | null;
   jsonFilesConfig: {
     readonly allRequiredAppSummaryFields: readonly string[];
     readonly jsonDataFiles: Record<string, string>;

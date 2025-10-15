@@ -204,7 +204,8 @@ describe("AppSummaryCategoriesProvider", () => {
       expect(categoryNames).not.toContain("appDescription");
       expect(categoryNames).not.toContain("billOfMaterials");
       expect(categoryNames).not.toContain("codeQualitySummary");
-      expect(result.length).toBe(allCategories.length - 3); // All categories minus appDescription, billOfMaterials, codeQualitySummary
+      expect(categoryNames).not.toContain("scheduledJobsSummary");
+      expect(result.length).toBe(allCategories.length - 4); // All categories minus appDescription, billOfMaterials, codeQualitySummary, scheduledJobsSummary
     });
   });
 });

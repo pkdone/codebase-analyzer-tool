@@ -16,6 +16,7 @@ import { MapReduceInsightStrategy } from "./strategies/map-reduce-strategy";
 import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
 import { BomAggregator } from "./bom-aggregator";
 import { CodeQualityAggregator } from "./code-quality-aggregator";
+import { JobAggregator } from "./job-aggregator";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -42,6 +43,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     @inject(TOKENS.BomAggregator) private readonly bomAggregator: BomAggregator,
     @inject(TOKENS.CodeQualityAggregator)
     private readonly codeQualityAggregator: CodeQualityAggregator,
+    @inject(TOKENS.JobAggregator) private readonly jobAggregator: JobAggregator,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
@@ -81,10 +83,13 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     if (categories.includes("codeQualitySummary")) {
       await this.generateCodeQualitySummary();
     }
+    if (categories.includes("scheduledJobsSummary")) {
+      await this.generateScheduledJobsSummary();
+    }
 
     // Process remaining categories with LLM
     const llmCategories = categories.filter(
-      (c) => c !== "billOfMaterials" && c !== "codeQualitySummary",
+      (c) => c !== "billOfMaterials" && c !== "codeQualitySummary" && c !== "scheduledJobsSummary",
     );
     const results = await Promise.allSettled(
       llmCategories.map(async (category) =>
@@ -206,6 +211,27 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       );
     } catch (error: unknown) {
       logErrorMsgAndDetail("Unable to generate Code Quality Summary", error);
+    }
+  }
+
+  /**
+   * Generates Scheduled Jobs Summary by aggregating jobs from script files
+   */
+  private async generateScheduledJobsSummary(): Promise<void> {
+    try {
+      console.log("Processing Scheduled Jobs Summary");
+      const jobsData = await this.jobAggregator.aggregateScheduledJobs(this.projectName);
+
+      await this.appSummariesRepository.updateAppSummary(this.projectName, {
+        scheduledJobsSummary: jobsData,
+      });
+
+      console.log(
+        `Captured Scheduled Jobs Summary: ${jobsData.totalJobs} jobs found, ` +
+          `${jobsData.triggerTypes.length} trigger types`,
+      );
+    } catch (error: unknown) {
+      logErrorMsgAndDetail("Unable to generate Scheduled Jobs Summary", error);
     }
   }
 }

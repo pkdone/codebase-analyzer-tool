@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { sourceSummarySchema } from "../../src/schemas/sources.schema";
+import { sourceSummarySchema, scheduledJobSchema } from "../../src/schemas/sources.schema";
 
 /**
  * Tests for source schema field names - NEW field names (after refactoring)
@@ -206,5 +206,182 @@ describe("Source Schema Fields - NEW Names", () => {
       expect(kind).toBe("struct");
       expect(namespace).toBe("com.test.InferredClass");
     });
+  });
+});
+
+/**
+ * Tests for scheduledJobSchema
+ */
+describe("Scheduled Job Schema", () => {
+  it("should validate a complete scheduled job", () => {
+    const testData = {
+      jobName: "DailyBackup",
+      trigger: "cron: 0 2 * * *",
+      purpose: "Performs daily backup of database",
+      inputResources: ["/data/database", "/config/backup.conf"],
+      outputResources: ["/backups/daily"],
+      dependencies: ["mount-backup-volume.sh"],
+      estimatedDuration: "30 minutes",
+    };
+
+    const result = scheduledJobSchema.safeParse(testData);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.jobName).toBe("DailyBackup");
+      expect(result.data.trigger).toBe("cron: 0 2 * * *");
+      expect(result.data.purpose).toBe("Performs daily backup of database");
+      expect(result.data.inputResources).toEqual(["/data/database", "/config/backup.conf"]);
+      expect(result.data.outputResources).toEqual(["/backups/daily"]);
+      expect(result.data.dependencies).toEqual(["mount-backup-volume.sh"]);
+      expect(result.data.estimatedDuration).toBe("30 minutes");
+    }
+  });
+
+  it("should validate a minimal scheduled job with only required fields", () => {
+    const testData = {
+      jobName: "MinimalJob",
+      trigger: "manual",
+      purpose: "A simple manual job",
+    };
+
+    const result = scheduledJobSchema.safeParse(testData);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.jobName).toBe("MinimalJob");
+      expect(result.data.trigger).toBe("manual");
+      expect(result.data.purpose).toBe("A simple manual job");
+      expect(result.data.inputResources).toBeUndefined();
+      expect(result.data.outputResources).toBeUndefined();
+      expect(result.data.dependencies).toBeUndefined();
+      expect(result.data.estimatedDuration).toBeUndefined();
+    }
+  });
+
+  it("should fail validation when required fields are missing", () => {
+    const testData = {
+      jobName: "InvalidJob",
+      // missing trigger and purpose
+    };
+
+    const result = scheduledJobSchema.safeParse(testData);
+    expect(result.success).toBe(false);
+  });
+
+  it("should validate various trigger types", () => {
+    const triggers = [
+      "cron: 0 2 * * *",
+      "manual",
+      "event-driven",
+      "scheduled",
+      "systemd-timer",
+      "task-scheduler",
+    ];
+
+    triggers.forEach((trigger) => {
+      const testData = {
+        jobName: "TestJob",
+        trigger,
+        purpose: "Test job with different triggers",
+      };
+
+      const result = scheduledJobSchema.safeParse(testData);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.trigger).toBe(trigger);
+      }
+    });
+  });
+
+  it("should allow empty arrays for optional resource fields", () => {
+    const testData = {
+      jobName: "NoResourcesJob",
+      trigger: "manual",
+      purpose: "Job with no resources",
+      inputResources: [],
+      outputResources: [],
+      dependencies: [],
+    };
+
+    const result = scheduledJobSchema.safeParse(testData);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.inputResources).toEqual([]);
+      expect(result.data.outputResources).toEqual([]);
+      expect(result.data.dependencies).toEqual([]);
+    }
+  });
+});
+
+/**
+ * Tests for scheduledJobs field in sourceSummarySchema
+ */
+describe("Source Summary Schema - scheduledJobs field", () => {
+  it("should accept scheduledJobs array in sourceSummarySchema", () => {
+    const testData = {
+      purpose: "Test script purpose",
+      implementation: "Test script implementation",
+      scheduledJobs: [
+        {
+          jobName: "Job1",
+          trigger: "cron: 0 1 * * *",
+          purpose: "First job",
+        },
+        {
+          jobName: "Job2",
+          trigger: "manual",
+          purpose: "Second job",
+          inputResources: ["/data/input"],
+        },
+      ],
+    };
+
+    const result = sourceSummarySchema.safeParse(testData);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.scheduledJobs).toBeDefined();
+      expect(result.data.scheduledJobs?.length).toBe(2);
+      expect(result.data.scheduledJobs?.[0].jobName).toBe("Job1");
+      expect(result.data.scheduledJobs?.[1].jobName).toBe("Job2");
+    }
+  });
+
+  it("should make scheduledJobs optional", () => {
+    const testData = {
+      purpose: "Test script purpose",
+      implementation: "Test script implementation",
+    };
+
+    const result = sourceSummarySchema.safeParse(testData);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.scheduledJobs).toBeUndefined();
+    }
+  });
+
+  it("should support picking scheduledJobs field", () => {
+    const pickedSchema = sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      scheduledJobs: true,
+    });
+
+    const testData = {
+      purpose: "Test script purpose",
+      implementation: "Test script implementation",
+      scheduledJobs: [
+        {
+          jobName: "PickedJob",
+          trigger: "event-driven",
+          purpose: "Test picked job",
+        },
+      ],
+    };
+
+    const result = pickedSchema.safeParse(testData);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.scheduledJobs).toBeDefined();
+      expect(result.data.scheduledJobs?.[0].jobName).toBe("PickedJob");
+    }
   });
 });

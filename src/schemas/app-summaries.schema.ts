@@ -15,6 +15,7 @@ export const AppSummaryCategories = z.enum([
   "potentialMicroservices",
   "billOfMaterials",
   "codeQualitySummary",
+  "scheduledJobsSummary",
 ]);
 
 // Base schema for common name-description pattern
@@ -381,6 +382,37 @@ export const codeQualitySummarySchema = z
   .passthrough();
 
 /**
+ * Schema for aggregated job information in the summary
+ */
+export const scheduledJobSummaryItemSchema = z
+  .object({
+    jobName: z.string().describe("Name of the job"),
+    sourceFile: z.string().describe("Source file containing the job definition"),
+    trigger: z.string().describe("Trigger mechanism (cron, manual, event-driven, etc.)"),
+    purpose: z.string().describe("Purpose of the job"),
+    inputResources: z.array(z.string()).optional().describe("Input resources"),
+    outputResources: z.array(z.string()).optional().describe("Output resources"),
+    dependencies: z.array(z.string()).optional().describe("Job dependencies"),
+  })
+  .passthrough();
+
+/**
+ * Schema for scheduled jobs summary
+ */
+export const scheduledJobsSummarySchema = z
+  .object({
+    jobs: z
+      .array(scheduledJobSummaryItemSchema)
+      .describe("List of all scheduled jobs and batch processes discovered"),
+    totalJobs: z.number().describe("Total number of jobs found"),
+    triggerTypes: z
+      .array(z.string())
+      .describe("Unique trigger types found (cron, manual, event-driven, etc.)"),
+    jobFiles: z.array(z.string()).describe("Source files containing job definitions"),
+  })
+  .passthrough();
+
+/**
  * Schema for full application summary of categories
  */
 export const appSummarySchema = z
@@ -397,5 +429,6 @@ export const appSummarySchema = z
     potentialMicroservices: potentialMicroservicesSchema.shape.potentialMicroservices.optional(),
     billOfMaterials: billOfMaterialsSchema.shape.dependencies.optional(),
     codeQualitySummary: codeQualitySummarySchema.optional(),
+    scheduledJobsSummary: scheduledJobsSummarySchema.optional(),
   })
   .passthrough();

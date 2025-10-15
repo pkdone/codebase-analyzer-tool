@@ -66,6 +66,7 @@ export default class AppReportGenerator {
       topLevelJavaClasses,
       billOfMaterials,
       codeQualitySummary,
+      scheduledJobsSummary,
     ] = await Promise.all([
       this.appSummariesRepository.getProjectAppSummaryFields(
         projectName,
@@ -78,6 +79,7 @@ export default class AppReportGenerator {
       this.codeStructureDataProvider.getTopLevelJavaClasses(projectName),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "billOfMaterials"),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "codeQualitySummary"),
+      this.appSummariesRepository.getProjectAppSummaryField(projectName, "scheduledJobsSummary"),
     ]);
 
     if (!appSummaryData) {
@@ -100,6 +102,8 @@ export default class AppReportGenerator {
       billOfMaterials: (billOfMaterials ?? []) as unknown as ReportData["billOfMaterials"],
       codeQualitySummary: (codeQualitySummary ??
         null) as unknown as ReportData["codeQualitySummary"],
+      scheduledJobsSummary: (scheduledJobsSummary ??
+        null) as unknown as ReportData["scheduledJobsSummary"],
     };
 
     // Prepare data for both writers
@@ -129,6 +133,7 @@ export default class AppReportGenerator {
       integrationPoints: reportData.integrationPoints,
       billOfMaterials: reportData.billOfMaterials,
       codeQualitySummary: reportData.codeQualitySummary,
+      scheduledJobsSummary: reportData.scheduledJobsSummary,
     };
     const preparedData: PreparedJsonData[] = [
       {
@@ -164,6 +169,10 @@ export default class AppReportGenerator {
       {
         filename: "code-quality-summary.json",
         data: reportData.codeQualitySummary,
+      },
+      {
+        filename: "scheduled-jobs-summary.json",
+        data: reportData.scheduledJobsSummary,
       },
     ];
 
@@ -244,6 +253,15 @@ export default class AppReportGenerator {
       buildFiles: new Set(reportData.billOfMaterials.flatMap((d) => d.locations)).size,
     };
 
+    // Calculate Scheduled Jobs statistics
+    const jobsStatistics = reportData.scheduledJobsSummary
+      ? {
+          total: reportData.scheduledJobsSummary.totalJobs,
+          triggerTypesCount: reportData.scheduledJobsSummary.triggerTypes.length,
+          jobFilesCount: reportData.scheduledJobsSummary.jobFiles.length,
+        }
+      : null;
+
     return {
       appStats: reportData.appStats,
       fileTypesData: processedFileTypesData,
@@ -256,6 +274,8 @@ export default class AppReportGenerator {
       billOfMaterials: reportData.billOfMaterials,
       bomStatistics,
       codeQualitySummary: reportData.codeQualitySummary,
+      scheduledJobsSummary: reportData.scheduledJobsSummary,
+      jobsStatistics,
       jsonFilesConfig: reportSectionsConfig,
       convertToDisplayName,
       fileTypesTableViewModel,

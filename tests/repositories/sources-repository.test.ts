@@ -316,6 +316,7 @@ describe("SourcesRepositoryImpl", () => {
               "summary.purpose": 1,
               "summary.implementation": 1,
               "summary.dependencies": 1,
+              "summary.scheduledJobs": 1,
               filepath: 1,
             },
             sort: { "summary.namespace": 1 },

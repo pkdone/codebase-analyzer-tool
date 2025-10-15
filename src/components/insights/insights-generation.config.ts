@@ -10,6 +10,7 @@ import {
   potentialMicroservicesSchema,
   billOfMaterialsSchema,
   codeQualitySummarySchema,
+  scheduledJobsSummarySchema,
 } from "../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "./insights.types";
 
@@ -82,6 +83,12 @@ export const summaryCategoriesConfig = {
     description:
       "aggregated code quality metrics including complexity analysis, code smell detection, and maintainability indicators to help prioritize refactoring efforts.",
     schema: codeQualitySummarySchema,
+  },
+  scheduledJobsSummary: {
+    label: "Scheduled Jobs",
+    description:
+      "a comprehensive list of batch processes, scheduled jobs, and automated scripts that perform critical business operations.",
+    schema: scheduledJobsSummarySchema,
   },
 } satisfies Record<
   AppSummaryCategoryEnum,

@@ -155,6 +155,37 @@ export const dependencySchema = z
   .passthrough();
 
 /**
+ * Schema for scheduled jobs and batch processes
+ */
+export const scheduledJobSchema = z
+  .object({
+    jobName: z.string().describe("The name of the batch job or script"),
+    trigger: z
+      .string()
+      .describe(
+        "How/when the job is triggered (e.g., 'cron: 0 2 * * *', 'manual', 'event-driven', 'scheduled')",
+      ),
+    purpose: z.string().describe("Description of what the job does in detail"),
+    inputResources: z
+      .array(z.string())
+      .optional()
+      .describe("Array of input files/databases/APIs used by this job"),
+    outputResources: z
+      .array(z.string())
+      .optional()
+      .describe("Array of output files/databases/APIs produced by this job"),
+    dependencies: z
+      .array(z.string())
+      .optional()
+      .describe("Array of other jobs/scripts this job depends on"),
+    estimatedDuration: z
+      .string()
+      .optional()
+      .describe("Expected runtime duration if determinable (e.g., '2 hours', '30 minutes')"),
+  })
+  .passthrough();
+
+/**
  * Schema for stored procedures and triggers
  */
 export const procedureTriggerSchema = z
@@ -400,6 +431,10 @@ export const sourceSummarySchema = z
       .array(dependencySchema)
       .optional()
       .describe("A list of dependencies declared in this build file."),
+    scheduledJobs: z
+      .array(scheduledJobSchema)
+      .optional()
+      .describe("A list of scheduled jobs or batch processes defined in this file."),
     publicConstants: z
       .array(publicConstantSchema)
       .optional()

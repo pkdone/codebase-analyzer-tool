@@ -43,7 +43,10 @@ type SupportedFileType =
   | "ruby-bundler"
   | "python-pip"
   | "python-setup"
-  | "python-poetry";
+  | "python-poetry"
+  | "shell-script"
+  | "batch-script"
+  | "jcl";
 
 /**
  * Data-driven mapping of prompt types to their templates and schemas
@@ -734,6 +737,74 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
       purpose: true,
       implementation: true,
       dependencies: true,
+    }),
+    hasComplexSchema: false,
+  },
+  "shell-script": {
+    contentDesc: "Shell script (bash/sh)",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A list of scheduled jobs or batch processes defined in this script - for each job extract:
+  - jobName: The name of the job or script (from filename or comments)
+  - trigger: How/when the job is triggered - look for cron syntax (e.g., '0 2 * * *'), systemd timer references, 'at' commands, or indicate 'manual' if run manually, or 'event-driven' if triggered by file system events (inotify, fswatch)
+  - purpose: Detailed description of what the job/script does
+  - inputResources: Array of input files, directories, databases, or APIs that this script reads from (look for file paths in cat, grep, awk, database connections, curl/wget calls)
+  - outputResources: Array of output files, directories, databases, or APIs that this script writes to (look for redirects >, >>, tee, database writes, POST requests)
+  - dependencies: Array of other scripts or jobs this depends on (look for source, ., or calls to other scripts)
+  - estimatedDuration: Expected runtime if mentioned in comments or obvious from operations
+* Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references
+* Identify database operations (mysql, psql, mongo commands)
+* Note any external API calls (curl, wget)`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      scheduledJobs: true,
+    }),
+    hasComplexSchema: false,
+  },
+  "batch-script": {
+    contentDesc: "Windows batch script (.bat/.cmd)",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A list of scheduled jobs or batch processes defined in this script - for each job extract:
+  - jobName: The name of the job or script (from filename or REM comments)
+  - trigger: How/when triggered - look for Task Scheduler references, indicate 'scheduled' if mentioned, otherwise 'manual'
+  - purpose: Detailed description of what the batch job does
+  - inputResources: Array of input files, directories, databases, or network resources (look for file paths, database connections, network paths \\\\server\\share)
+  - outputResources: Array of output files, directories, databases written to (look for redirects >, >>, file operations)
+  - dependencies: Array of other batch files or scripts this calls (look for CALL, START commands)
+  - estimatedDuration: Expected runtime if mentioned in comments
+* Look for Windows Task Scheduler references (schtasks, AT commands)
+* Identify database operations (sqlcmd, osql, BCP)
+* Note network operations (NET USE, COPY to UNC paths)
+* Identify service operations (NET START, SC commands)`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      scheduledJobs: true,
+    }),
+    hasComplexSchema: false,
+  },
+  jcl: {
+    contentDesc: "Mainframe JCL (Job Control Language)",
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* A list of scheduled jobs or batch processes defined in this JCL - for each job extract:
+  - jobName: The job name from the JOB card
+  - trigger: Indicate 'scheduled' for batch jobs, look for comments about scheduling (e.g., 'Daily at 02:00')
+  - purpose: Detailed description of what the job does based on job steps and programs called
+  - inputResources: Array of input datasets from DD statements (look for DD names with DSN=)
+  - outputResources: Array of output datasets from DD statements (look for DD names with DSN= and DISP=(NEW or MOD))
+  - dependencies: Array of other jobs or datasets this job depends on (look for comments or COND parameters)
+  - estimatedDuration: Expected runtime if mentioned in comments
+* Extract all EXEC statements to identify programs/procedures called
+* Identify DD statements for file I/O
+* Note COND parameters that indicate job dependencies
+* Look for SORT, IEBGENER, or custom program calls`,
+    schema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      scheduledJobs: true,
     }),
     hasComplexSchema: false,
   },

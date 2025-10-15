@@ -108,6 +108,8 @@ describe("HtmlReportWriter", () => {
       buildFiles: 0,
     },
     codeQualitySummary: null,
+    scheduledJobsSummary: null,
+    jobsStatistics: null,
   };
 
   beforeEach(() => {

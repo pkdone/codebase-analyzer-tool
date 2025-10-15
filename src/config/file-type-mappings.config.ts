@@ -21,6 +21,9 @@ type CanonicalFileType =
   | "python-pip"
   | "python-setup"
   | "python-poetry"
+  | "shell-script"
+  | "batch-script"
+  | "jcl"
   | "default";
 
 /**
@@ -50,6 +53,12 @@ export const fileTypeMappingsConfig = {
     ["csproj", "dotnet-proj"],
     ["vbproj", "dotnet-proj"],
     ["fsproj", "dotnet-proj"],
+    // Batch and shell scripts
+    ["sh", "shell-script"],
+    ["bash", "shell-script"],
+    ["bat", "batch-script"],
+    ["cmd", "batch-script"],
+    ["jcl", "jcl"],
   ]) as ReadonlyMap<string, CanonicalFileType>,
   FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, CanonicalFileType>([
     ["readme", "markdown"],
@@ -75,6 +84,8 @@ export const fileTypeMappingsConfig = {
     ["pyproject.toml", "python-poetry"],
     ["Pipfile", "python-pip"],
     ["Pipfile.lock", "python-pip"],
+    // Batch and shell scripts
+    ["crontab", "shell-script"],
   ]) as ReadonlyMap<string, CanonicalFileType>,
   DEFAULT_FILE_TYPE: "default" as CanonicalFileType,
   JAVA_FILE_TYPE: "java" as CanonicalFileType,

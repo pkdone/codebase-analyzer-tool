@@ -82,6 +82,15 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       }),
     } as any;
 
+    const mockJobAggregator = {
+      aggregateScheduledJobs: jest.fn().mockResolvedValue({
+        jobs: [],
+        totalJobs: 0,
+        triggerTypes: [],
+        jobFiles: [],
+      }),
+    } as any;
+
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
@@ -90,6 +99,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       mockLLMProviderManager,
       mockBomAggregator,
       mockCodeQualityAggregator,
+      mockJobAggregator,
     );
   });
 

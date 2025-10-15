@@ -117,6 +117,22 @@ export interface CodeQualitySummary {
   };
 }
 
+// Interface for scheduled jobs summary information
+export interface ScheduledJobsSummary {
+  jobs: {
+    jobName: string;
+    sourceFile: string;
+    trigger: string;
+    purpose: string;
+    inputResources?: string[];
+    outputResources?: string[];
+    dependencies?: string[];
+  }[];
+  totalJobs: number;
+  triggerTypes: string[];
+  jobFiles: string[];
+}
+
 /**
  * Unified data model for report generation.
  * Contains all the data needed to generate both HTML and JSON reports.
@@ -131,4 +147,5 @@ export interface ReportData {
   topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
   billOfMaterials: BomDependency[];
   codeQualitySummary: CodeQualitySummary | null;
+  scheduledJobsSummary: ScheduledJobsSummary | null;
 }
