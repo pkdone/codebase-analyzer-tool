@@ -60,13 +60,15 @@ describe("AppSummaryCategoriesProvider", () => {
       );
 
       // Assert
-      expect(result).toHaveLength(8); // All categories except appDescription (includes billOfMaterials)
+      expect(result).toHaveLength(7); // All categories except those with custom sections (appDescription, billOfMaterials, codeQualitySummary)
 
-      // Verify that appDescription is not included
+      // Verify that categories with custom sections are not included
       const categoryNames = result.map((r) => r.category);
       expect(categoryNames).not.toContain("appDescription");
+      expect(categoryNames).not.toContain("billOfMaterials");
+      expect(categoryNames).not.toContain("codeQualitySummary");
 
-      // Verify that all other categories are included
+      // Verify that all generic categories are included
       expect(categoryNames).toContain("technologies");
       expect(categoryNames).toContain("businessProcesses");
       expect(categoryNames).toContain("boundedContexts");
@@ -197,10 +199,12 @@ describe("AppSummaryCategoriesProvider", () => {
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
-      // Assert - appDescription should not be in results
+      // Assert - categories with custom sections should not be in results
       const categoryNames = result.map((r) => r.category);
       expect(categoryNames).not.toContain("appDescription");
-      expect(result.length).toBe(allCategories.length - 1); // All categories minus appDescription
+      expect(categoryNames).not.toContain("billOfMaterials");
+      expect(categoryNames).not.toContain("codeQualitySummary");
+      expect(result.length).toBe(allCategories.length - 3); // All categories minus appDescription, billOfMaterials, codeQualitySummary
     });
   });
 });

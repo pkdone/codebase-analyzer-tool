@@ -97,4 +97,43 @@ export interface SourcesRepository {
    * Get integration points (APIs, queues, topics, SOAP services) for a project
    */
   getProjectIntegrationPoints(projectName: string): Promise<ProjectedIntegrationPointFields[]>;
+
+  /**
+   * Get top N most complex methods across the project using aggregation pipeline
+   */
+  getTopComplexMethods(
+    projectName: string,
+    limit: number,
+  ): Promise<
+    {
+      methodName: string;
+      filePath: string;
+      complexity: number;
+      linesOfCode: number;
+      codeSmells: string[];
+    }[]
+  >;
+
+  /**
+   * Get code smell statistics using aggregation pipeline
+   */
+  getCodeSmellStatistics(projectName: string): Promise<
+    {
+      smellType: string;
+      occurrences: number;
+      affectedFiles: number;
+    }[]
+  >;
+
+  /**
+   * Get overall code quality statistics using aggregation pipeline
+   */
+  getCodeQualityStatistics(projectName: string): Promise<{
+    totalMethods: number;
+    averageComplexity: number;
+    highComplexityCount: number;
+    veryHighComplexityCount: number;
+    averageMethodLength: number;
+    longMethodCount: number;
+  }>;
 }

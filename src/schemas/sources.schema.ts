@@ -221,6 +221,22 @@ export const publicMethodSchema = z
     description: z
       .string()
       .describe("Detailed description of how the method/function is implementated."),
+    cyclomaticComplexity: z
+      .number()
+      .optional()
+      .describe(
+        "Estimated cyclomatic complexity score (number of independent paths through the code)",
+      ),
+    linesOfCode: z
+      .number()
+      .optional()
+      .describe("Number of lines of code in this method (excluding comments and blank lines)"),
+    codeSmells: z
+      .array(z.string())
+      .optional()
+      .describe(
+        "List of code smells detected (e.g., 'Long Method', 'God Class', 'Duplicate Code', 'Long Parameter List')",
+      ),
   })
   .passthrough();
 
@@ -316,6 +332,22 @@ export const integrationEndpointSchema = z
   .passthrough();
 
 /**
+ * Schema for file-level code quality metrics
+ */
+export const codeQualityMetricsSchema = z
+  .object({
+    totalMethods: z.number().describe("Total number of methods in the file"),
+    averageComplexity: z.number().optional().describe("Average cyclomatic complexity"),
+    maxComplexity: z.number().optional().describe("Maximum cyclomatic complexity found"),
+    averageMethodLength: z.number().optional().describe("Average lines of code per method"),
+    fileSmells: z
+      .array(z.string())
+      .optional()
+      .describe("File-level code smells (e.g., 'God Class', 'Too Many Methods', 'Feature Envy')"),
+  })
+  .passthrough();
+
+/**
  * Schema for source file summaries
  */
 export const sourceSummarySchema = z
@@ -389,6 +421,9 @@ export const sourceSummarySchema = z
       .describe(
         "List of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, etc.) defined or consumed by this file",
       ),
+    codeQualityMetrics: codeQualityMetricsSchema
+      .optional()
+      .describe("File-level code quality metrics and analysis"),
   })
   .passthrough();
 

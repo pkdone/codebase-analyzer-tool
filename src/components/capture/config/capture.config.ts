@@ -145,7 +145,33 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'
    - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
    - Otherwise, if the code does not use a database => mechanism: 'NONE'
-    (note, JMS and JNDI are not related to interacting with a database)`,
+    (note, JMS and JNDI are not related to interacting with a database)
+
+ * CRITICAL: Code Quality Analysis (REQUIRED for all code files with methods)
+   
+   For each public method you identify, you MUST estimate and provide:
+   - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+   - linesOfCode: Count actual lines of code (exclude blank lines and comments)
+   - codeSmells: Identify any of these common code smells present in the method:
+     * 'Long Method' - method has > 50 lines of code
+     * 'Long Parameter List' - method has > 5 parameters
+     * 'Complex Conditional' - deeply nested if/else or complex boolean expressions
+     * 'Duplicate Code' - similar logic repeated in multiple places
+     * 'Magic Numbers' - hardcoded numeric values without explanation
+     * 'Deep Nesting' - more than 3-4 levels of nesting
+     * 'Dead Code' - unreachable or commented-out code
+   
+   Additionally, provide file-level codeQualityMetrics:
+   - totalMethods: Count of all methods in the file
+   - averageComplexity: Average of all method complexities
+   - maxComplexity: Highest complexity score in the file
+   - averageMethodLength: Average lines of code per method
+   - fileSmells: File-level smells such as:
+     * 'God Class' - class has > 20 methods or > 500 lines of code
+     * 'Too Many Methods' - class has > 20 public methods
+     * 'Feature Envy' - methods heavily use data from other classes
+     * 'Data Class' - class only contains fields and getters/setters
+     * 'Refused Bequest' - subclass doesn't use inherited methods`,
     schema: sourceSummarySchema
       .pick({
         name: true,
@@ -159,6 +185,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
         publicMethods: true,
         databaseIntegration: true,
         integrationPoints: true,
+        codeQualityMetrics: true,
       })
       .extend({
         // Add descriptions for LLM prompts
@@ -234,7 +261,31 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - Uses generic database driver (pg, mysql2, tedious) without ORM => mechanism: 'DRIVER'
    - Defines DDL / migration scripts => mechanism: 'DDL'
    - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
-   - Otherwise, if no database interaction => mechanism: 'NONE'`,
+   - Otherwise, if no database interaction => mechanism: 'NONE'
+
+ * CRITICAL: Code Quality Analysis (REQUIRED for all code files with methods)
+   
+   For each public method/function you identify, you MUST estimate and provide:
+   - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, switch/case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
+   - linesOfCode: Count actual lines of code (exclude blank lines and comments)
+   - codeSmells: Identify any of these common code smells present:
+     * 'Long Method' - function has > 50 lines of code
+     * 'Long Parameter List' - function has > 5 parameters
+     * 'Complex Conditional' - deeply nested if/else or complex boolean expressions
+     * 'Duplicate Code' - similar logic repeated in multiple places
+     * 'Magic Numbers' - hardcoded numeric values without explanation
+     * 'Deep Nesting' - more than 3-4 levels of nesting
+     * 'Dead Code' - unreachable or commented-out code
+   
+   Additionally, provide file-level codeQualityMetrics:
+   - totalMethods: Count of all functions/methods in the file
+   - averageComplexity: Average of all function complexities
+   - maxComplexity: Highest complexity score in the file
+   - averageMethodLength: Average lines of code per function
+   - fileSmells: File-level smells such as:
+     * 'God Class' - file has > 20 functions or > 500 lines of code
+     * 'Too Many Methods' - file has > 20 exported functions
+     * 'Feature Envy' - functions heavily use data from other modules`,
     schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -242,6 +293,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
       externalReferences: true,
       databaseIntegration: true,
       integrationPoints: true,
+      codeQualityMetrics: true,
     }),
     hasComplexSchema: false,
   },
@@ -381,7 +433,32 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - Creates or invokes database functions => mechanism: 'FUNCTION'
    - Uses Redis client (StackExchange.Redis) => mechanism: 'REDIS'
    - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'
-   - Otherwise when no DB interaction present => mechanism: 'NONE'`,
+   - Otherwise when no DB interaction present => mechanism: 'NONE'
+
+ * CRITICAL: Code Quality Analysis (REQUIRED for all code files with methods)
+   
+   For each public method you identify, you MUST estimate and provide:
+   - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, foreach, switch/case, catch, &&, ||, ?:, ??). A simple method with no branches = 1. Add 1 for each decision point.
+   - linesOfCode: Count actual lines of code (exclude blank lines and comments)
+   - codeSmells: Identify any of these common code smells present in the method:
+     * 'Long Method' - method has > 50 lines of code
+     * 'Long Parameter List' - method has > 5 parameters
+     * 'Complex Conditional' - deeply nested if/else or complex boolean expressions
+     * 'Duplicate Code' - similar logic repeated in multiple places
+     * 'Magic Numbers' - hardcoded numeric values without explanation
+     * 'Deep Nesting' - more than 3-4 levels of nesting
+     * 'Dead Code' - unreachable or commented-out code
+   
+   Additionally, provide file-level codeQualityMetrics:
+   - totalMethods: Count of all methods in the file
+   - averageComplexity: Average of all method complexities
+   - maxComplexity: Highest complexity score in the file
+   - averageMethodLength: Average lines of code per method
+   - fileSmells: File-level smells such as:
+     * 'God Class' - class has > 20 methods or > 500 lines of code
+     * 'Too Many Methods' - class has > 20 public methods
+     * 'Feature Envy' - methods heavily use data from other classes
+     * 'Data Class' - class only contains properties and getters/setters`,
     schema: sourceSummarySchema.pick({
       name: true,
       kind: true,
@@ -394,6 +471,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
       publicMethods: true,
       databaseIntegration: true,
       integrationPoints: true,
+      codeQualityMetrics: true,
     }),
     hasComplexSchema: false,
   },
@@ -452,7 +530,31 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - Performs data manipulation (bulk insert helpers, seeding, data-only scripts) => mechanism: 'DML'
    - Creates or manages triggers (via execute or DSL) => mechanism: 'TRIGGER'
    - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'
-   - Otherwise, if no database interaction is evident => mechanism: 'NONE'`,
+   - Otherwise, if no database interaction is evident => mechanism: 'NONE'
+
+ * CRITICAL: Code Quality Analysis (REQUIRED for all code files with methods)
+   
+   For each public method you identify, you MUST estimate and provide:
+   - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, elsif, unless, for, while, until, case/when, rescue, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+   - linesOfCode: Count actual lines of code (exclude blank lines and comments)
+   - codeSmells: Identify any of these common code smells present in the method:
+     * 'Long Method' - method has > 50 lines of code
+     * 'Long Parameter List' - method has > 5 parameters
+     * 'Complex Conditional' - deeply nested if/else or complex boolean expressions
+     * 'Duplicate Code' - similar logic repeated in multiple places
+     * 'Magic Numbers' - hardcoded numeric values without explanation
+     * 'Deep Nesting' - more than 3-4 levels of nesting
+     * 'Dead Code' - unreachable or commented-out code
+   
+   Additionally, provide file-level codeQualityMetrics:
+   - totalMethods: Count of all methods in the file
+   - averageComplexity: Average of all method complexities
+   - maxComplexity: Highest complexity score in the file
+   - averageMethodLength: Average lines of code per method
+   - fileSmells: File-level smells such as:
+     * 'God Class' - class has > 20 methods or > 500 lines of code
+     * 'Too Many Methods' - class has > 20 public methods
+     * 'Feature Envy' - methods heavily use data from other classes`,
     schema: sourceSummarySchema.pick({
       name: true,
       kind: true,
@@ -465,6 +567,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
       publicMethods: true,
       databaseIntegration: true,
       integrationPoints: true,
+      codeQualityMetrics: true,
     }),
     hasComplexSchema: false,
   },

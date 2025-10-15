@@ -15,6 +15,7 @@ import {
   getJSONSchema,
 } from "./sources.model";
 import { databaseConfig } from "../../config/database.config";
+import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
 import { BaseRepository } from "../base-repository";
@@ -367,6 +368,286 @@ export default class SourcesRepositoryImpl
     ];
 
     return this.collection.aggregate<ProjectedTopLevelJavaClassDependencies>(pipeline).toArray();
+  }
+
+  /**
+   * Get top N most complex methods across the project using aggregation pipeline
+   */
+  async getTopComplexMethods(
+    projectName: string,
+    limit = 10,
+  ): Promise<
+    {
+      methodName: string;
+      filePath: string;
+      complexity: number;
+      linesOfCode: number;
+      codeSmells: string[];
+    }[]
+  > {
+    const pipeline: Document[] = [
+      // Match project and code files with methods
+      {
+        $match: {
+          projectName,
+          type: { $in: fileProcessingConfig.CODE_FILE_EXTENSIONS },
+          "summary.publicMethods": { $exists: true, $ne: [] },
+        },
+      },
+      // Unwind methods array to process each method individually
+      { $unwind: "$summary.publicMethods" },
+      // Filter out methods without complexity data
+      {
+        $match: {
+          "summary.publicMethods.cyclomaticComplexity": { $exists: true },
+        },
+      },
+      // Project the fields we need
+      {
+        $project: {
+          methodName: "$summary.publicMethods.name",
+          filePath: "$filepath",
+          namespace: { $ifNull: ["$summary.namespace", "$filepath"] },
+          complexity: "$summary.publicMethods.cyclomaticComplexity",
+          linesOfCode: { $ifNull: ["$summary.publicMethods.linesOfCode", 0] },
+          codeSmells: { $ifNull: ["$summary.publicMethods.codeSmells", []] },
+        },
+      },
+      // Sort by complexity descending
+      { $sort: { complexity: -1 } },
+      // Limit to top N
+      { $limit: limit },
+      // Create fully qualified method name
+      {
+        $project: {
+          _id: 0,
+          methodName: { $concat: ["$namespace", "::", "$methodName"] },
+          filePath: 1,
+          complexity: 1,
+          linesOfCode: 1,
+          codeSmells: 1,
+        },
+      },
+    ];
+
+    return await this.collection
+      .aggregate<{
+        methodName: string;
+        filePath: string;
+        complexity: number;
+        linesOfCode: number;
+        codeSmells: string[];
+      }>(pipeline)
+      .toArray();
+  }
+
+  /**
+   * Get code smell statistics using aggregation pipeline
+   */
+  async getCodeSmellStatistics(projectName: string): Promise<
+    {
+      smellType: string;
+      occurrences: number;
+      affectedFiles: number;
+    }[]
+  > {
+    const pipeline: Document[] = [
+      {
+        $match: {
+          projectName,
+          type: { $in: fileProcessingConfig.CODE_FILE_EXTENSIONS },
+        },
+      },
+      // Use $facet to process method-level and file-level smells separately
+      {
+        $facet: {
+          methodSmells: [
+            { $match: { "summary.publicMethods": { $exists: true, $ne: [] } } },
+            { $unwind: "$summary.publicMethods" },
+            {
+              $match: {
+                "summary.publicMethods.codeSmells": { $exists: true, $ne: [] },
+              },
+            },
+            { $unwind: "$summary.publicMethods.codeSmells" },
+            {
+              $group: {
+                _id: {
+                  smell: "$summary.publicMethods.codeSmells",
+                  file: "$filepath",
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$_id.smell",
+                occurrences: { $sum: 1 },
+                affectedFiles: { $addToSet: "$_id.file" },
+              },
+            },
+          ],
+          fileSmells: [
+            {
+              $match: {
+                "summary.codeQualityMetrics.fileSmells": { $exists: true, $ne: [] },
+              },
+            },
+            { $unwind: "$summary.codeQualityMetrics.fileSmells" },
+            {
+              $group: {
+                _id: {
+                  smell: "$summary.codeQualityMetrics.fileSmells",
+                  file: "$filepath",
+                },
+              },
+            },
+            {
+              $group: {
+                _id: "$_id.smell",
+                occurrences: { $sum: 1 },
+                affectedFiles: { $addToSet: "$_id.file" },
+              },
+            },
+          ],
+        },
+      },
+      // Combine method and file smells
+      {
+        $project: {
+          allSmells: { $concatArrays: ["$methodSmells", "$fileSmells"] },
+        },
+      },
+      { $unwind: "$allSmells" },
+      // Merge duplicates across method and file smells
+      {
+        $group: {
+          _id: "$allSmells._id",
+          occurrences: { $sum: "$allSmells.occurrences" },
+          affectedFilesArrays: { $push: "$allSmells.affectedFiles" },
+        },
+      },
+      // Flatten and deduplicate affected files
+      {
+        $project: {
+          _id: 0,
+          smellType: "$_id",
+          occurrences: 1,
+          affectedFiles: {
+            $size: {
+              $setUnion: {
+                $reduce: {
+                  input: "$affectedFilesArrays",
+                  initialValue: [],
+                  in: { $setUnion: ["$$value", "$$this"] },
+                },
+              },
+            },
+          },
+        },
+      },
+      // Sort by occurrences descending
+      { $sort: { occurrences: -1 } },
+    ];
+
+    return await this.collection
+      .aggregate<{
+        smellType: string;
+        occurrences: number;
+        affectedFiles: number;
+      }>(pipeline)
+      .toArray();
+  }
+
+  /**
+   * Get overall code quality statistics using aggregation pipeline
+   */
+  async getCodeQualityStatistics(projectName: string): Promise<{
+    totalMethods: number;
+    averageComplexity: number;
+    highComplexityCount: number;
+    veryHighComplexityCount: number;
+    averageMethodLength: number;
+    longMethodCount: number;
+  }> {
+    const pipeline: Document[] = [
+      {
+        $match: {
+          projectName,
+          type: { $in: fileProcessingConfig.CODE_FILE_EXTENSIONS },
+          "summary.publicMethods": { $exists: true, $ne: [] },
+        },
+      },
+      { $unwind: "$summary.publicMethods" },
+      {
+        $match: {
+          "summary.publicMethods.cyclomaticComplexity": { $exists: true },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalMethods: { $sum: 1 },
+          totalComplexity: { $sum: "$summary.publicMethods.cyclomaticComplexity" },
+          totalLinesOfCode: {
+            $sum: { $ifNull: ["$summary.publicMethods.linesOfCode", 0] },
+          },
+          highComplexityCount: {
+            $sum: {
+              $cond: [{ $gt: ["$summary.publicMethods.cyclomaticComplexity", 10] }, 1, 0],
+            },
+          },
+          veryHighComplexityCount: {
+            $sum: {
+              $cond: [{ $gt: ["$summary.publicMethods.cyclomaticComplexity", 20] }, 1, 0],
+            },
+          },
+          longMethodCount: {
+            $sum: {
+              $cond: [{ $gt: [{ $ifNull: ["$summary.publicMethods.linesOfCode", 0] }, 50] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalMethods: 1,
+          averageComplexity: {
+            $round: [{ $divide: ["$totalComplexity", "$totalMethods"] }, 2],
+          },
+          highComplexityCount: 1,
+          veryHighComplexityCount: 1,
+          averageMethodLength: {
+            $round: [{ $divide: ["$totalLinesOfCode", "$totalMethods"] }, 2],
+          },
+          longMethodCount: 1,
+        },
+      },
+    ];
+
+    const results = await this.collection
+      .aggregate<{
+        totalMethods: number;
+        averageComplexity: number;
+        highComplexityCount: number;
+        veryHighComplexityCount: number;
+        averageMethodLength: number;
+        longMethodCount: number;
+      }>(pipeline)
+      .toArray();
+
+    if (results.length === 0) {
+      return {
+        totalMethods: 0,
+        averageComplexity: 0,
+        highComplexityCount: 0,
+        veryHighComplexityCount: 0,
+        averageMethodLength: 0,
+        longMethodCount: 0,
+      };
+    }
+
+    return results[0];
   }
 
   /**

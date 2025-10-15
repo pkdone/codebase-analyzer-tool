@@ -107,6 +107,7 @@ describe("HtmlReportWriter", () => {
       conflicts: 0,
       buildFiles: 0,
     },
+    codeQualitySummary: null,
   };
 
   beforeEach(() => {

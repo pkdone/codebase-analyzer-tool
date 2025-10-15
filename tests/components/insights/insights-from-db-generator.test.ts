@@ -67,6 +67,21 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       }),
     } as any;
 
+    const mockCodeQualityAggregator = {
+      aggregateCodeQualityMetrics: jest.fn().mockResolvedValue({
+        topComplexMethods: [],
+        commonCodeSmells: [],
+        overallStatistics: {
+          totalMethods: 0,
+          averageComplexity: 0,
+          highComplexityCount: 0,
+          veryHighComplexityCount: 0,
+          averageMethodLength: 0,
+          longMethodCount: 0,
+        },
+      }),
+    } as any;
+
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
@@ -74,6 +89,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       "test-project",
       mockLLMProviderManager,
       mockBomAggregator,
+      mockCodeQualityAggregator,
     );
   });
 

@@ -14,6 +14,7 @@ export const AppSummaryCategories = z.enum([
   "repositories",
   "potentialMicroservices",
   "billOfMaterials",
+  "codeQualitySummary",
 ]);
 
 // Base schema for common name-description pattern
@@ -334,6 +335,52 @@ export const billOfMaterialsSchema = z
   .passthrough();
 
 /**
+ * Schema for a complex method with quality metrics
+ */
+export const complexMethodSchema = z
+  .object({
+    methodName: z.string().describe("Fully qualified method name"),
+    filePath: z.string().describe("File path where the method is located"),
+    complexity: z.number().describe("Cyclomatic complexity score"),
+    linesOfCode: z.number().describe("Number of lines of code"),
+    codeSmells: z.array(z.string()).optional().describe("Code smells in this method"),
+  })
+  .passthrough();
+
+/**
+ * Schema for code smell summary statistics
+ */
+export const codeSmellSummarySchema = z
+  .object({
+    smellType: z.string().describe("Type of code smell"),
+    occurrences: z.number().describe("Number of occurrences across the codebase"),
+    affectedFiles: z.number().describe("Number of files affected"),
+  })
+  .passthrough();
+
+/**
+ * Schema for code quality summary with complexity and smell analysis
+ */
+export const codeQualitySummarySchema = z
+  .object({
+    topComplexMethods: z
+      .array(complexMethodSchema)
+      .describe("Top 10 most complex methods across the codebase"),
+    commonCodeSmells: z
+      .array(codeSmellSummarySchema)
+      .describe("Most frequently occurring code smells with statistics"),
+    overallStatistics: z.object({
+      totalMethods: z.number().describe("Total methods analyzed"),
+      averageComplexity: z.number().describe("Average cyclomatic complexity"),
+      highComplexityCount: z.number().describe("Methods with complexity > 10"),
+      veryHighComplexityCount: z.number().describe("Methods with complexity > 20"),
+      averageMethodLength: z.number().describe("Average method length in LOC"),
+      longMethodCount: z.number().describe("Methods with > 50 lines of code"),
+    }),
+  })
+  .passthrough();
+
+/**
  * Schema for full application summary of categories
  */
 export const appSummarySchema = z
@@ -349,5 +396,6 @@ export const appSummarySchema = z
     repositories: repositoriesSchema.shape.repositories.optional(),
     potentialMicroservices: potentialMicroservicesSchema.shape.potentialMicroservices.optional(),
     billOfMaterials: billOfMaterialsSchema.shape.dependencies.optional(),
+    codeQualitySummary: codeQualitySummarySchema.optional(),
   })
   .passthrough();

@@ -9,6 +9,7 @@ import {
   repositoriesSchema,
   potentialMicroservicesSchema,
   billOfMaterialsSchema,
+  codeQualitySummarySchema,
 } from "../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "./insights.types";
 
@@ -75,6 +76,12 @@ export const summaryCategoriesConfig = {
     description:
       "a comprehensive inventory of all third-party dependencies with version conflict detection to identify technical debt and security risks.",
     schema: billOfMaterialsSchema,
+  },
+  codeQualitySummary: {
+    label: "Code Quality Summary",
+    description:
+      "aggregated code quality metrics including complexity analysis, code smell detection, and maintainability indicators to help prioritize refactoring efforts.",
+    schema: codeQualitySummarySchema,
   },
 } satisfies Record<
   AppSummaryCategoryEnum,

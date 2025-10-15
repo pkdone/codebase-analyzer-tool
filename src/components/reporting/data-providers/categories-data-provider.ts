@@ -8,9 +8,13 @@ import type {
 } from "../../../repositories/app-summary/app-summaries.model";
 
 /**
- * Key for the app description field
+ * Categories that have dedicated custom sections and should not be rendered in the generic category loop
  */
-const APP_DESCRIPTION_KEY = "appDescription";
+const CATEGORIES_WITH_CUSTOM_SECTIONS = [
+  "appDescription",
+  "billOfMaterials",
+  "codeQualitySummary",
+] as const;
 
 // Zod schema for validating AppSummaryNameDescArray
 const appSummaryNameDescArraySchema = z.array(nameDescSchema);
@@ -23,11 +27,14 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
   return appSummaryNameDescArraySchema.safeParse(data).success;
 }
 
-// Define valid category keys for generating structured table reports, excluding appDescription
+// Type representing categories that should be excluded from generic rendering
+type CategoryWithCustomSection = (typeof CATEGORIES_WITH_CUSTOM_SECTIONS)[number];
+
+// Define valid category keys for generating structured table reports, excluding categories with custom sections
 // This creates a type-safe readonly array of the valid keys
 const TABLE_CATEGORY_KEYS = AppSummaryCategories.options.filter(
-  (key): key is Exclude<typeof AppSummaryCategories._type, typeof APP_DESCRIPTION_KEY> =>
-    key !== APP_DESCRIPTION_KEY,
+  (key): key is Exclude<z.infer<typeof AppSummaryCategories>, CategoryWithCustomSection> =>
+    !(CATEGORIES_WITH_CUSTOM_SECTIONS as readonly string[]).includes(key),
 );
 
 // Type for the valid category keys
@@ -45,7 +52,7 @@ export class AppSummaryCategoriesProvider {
     appSummaryData: Pick<AppSummaryRecordWithId, ValidCategoryKey>,
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
     const results = TABLE_CATEGORY_KEYS.map((category: ValidCategoryKey) => {
-      const config = summaryCategoriesConfig[category as keyof typeof summaryCategoriesConfig];
+      const config = summaryCategoriesConfig[category];
       const label = config.label;
       const fieldData = appSummaryData[category];
       const data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];

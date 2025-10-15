@@ -8,6 +8,7 @@ import type {
   ProcsAndTriggers,
   DatabaseIntegrationInfo,
   IntegrationPointInfo,
+  CodeQualitySummary,
 } from "./report-gen.types";
 import type {
   ProjectedFileTypesCountAndLines,
@@ -43,6 +44,7 @@ export interface PreparedHtmlReportData {
     conflicts: number;
     buildFiles: number;
   };
+  codeQualitySummary: CodeQualitySummary | null;
   jsonFilesConfig: {
     readonly allRequiredAppSummaryFields: readonly string[];
     readonly jsonDataFiles: Record<string, string>;

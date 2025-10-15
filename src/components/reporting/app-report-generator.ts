@@ -65,6 +65,7 @@ export default class AppReportGenerator {
       procsAndTriggers,
       topLevelJavaClasses,
       billOfMaterials,
+      codeQualitySummary,
     ] = await Promise.all([
       this.appSummariesRepository.getProjectAppSummaryFields(
         projectName,
@@ -76,6 +77,7 @@ export default class AppReportGenerator {
       this.databaseDataProvider.getSummarizedProceduresAndTriggers(projectName),
       this.codeStructureDataProvider.getTopLevelJavaClasses(projectName),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "billOfMaterials"),
+      this.appSummariesRepository.getProjectAppSummaryField(projectName, "codeQualitySummary"),
     ]);
 
     if (!appSummaryData) {
@@ -96,6 +98,8 @@ export default class AppReportGenerator {
       topLevelJavaClasses,
       integrationPoints,
       billOfMaterials: (billOfMaterials ?? []) as unknown as ReportData["billOfMaterials"],
+      codeQualitySummary: (codeQualitySummary ??
+        null) as unknown as ReportData["codeQualitySummary"],
     };
 
     // Prepare data for both writers
@@ -124,6 +128,7 @@ export default class AppReportGenerator {
       topLevelJavaClasses: reportData.topLevelJavaClasses,
       integrationPoints: reportData.integrationPoints,
       billOfMaterials: reportData.billOfMaterials,
+      codeQualitySummary: reportData.codeQualitySummary,
     };
     const preparedData: PreparedJsonData[] = [
       {
@@ -155,6 +160,10 @@ export default class AppReportGenerator {
       {
         filename: "bill-of-materials.json",
         data: reportData.billOfMaterials,
+      },
+      {
+        filename: "code-quality-summary.json",
+        data: reportData.codeQualitySummary,
       },
     ];
 
@@ -246,6 +255,7 @@ export default class AppReportGenerator {
       integrationPoints: reportData.integrationPoints,
       billOfMaterials: reportData.billOfMaterials,
       bomStatistics,
+      codeQualitySummary: reportData.codeQualitySummary,
       jsonFilesConfig: reportSectionsConfig,
       convertToDisplayName,
       fileTypesTableViewModel,

@@ -7,6 +7,7 @@ import InsightsFromRawCodeGenerator from "../../components/insights/insights-fro
 import { RawCodeToInsightsFileGenerator } from "../../components/insights/insights-from-raw-code-to-local-files";
 import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 import { BomAggregator } from "../../components/insights/bom-aggregator";
+import { CodeQualityAggregator } from "../../components/insights/code-quality-aggregator";
 
 /**
  * Register insights-related components in the DI container.
@@ -22,6 +23,7 @@ export function registerInsightsComponents(): void {
     RawCodeToInsightsFileGenerator,
   );
   container.registerSingleton(TOKENS.BomAggregator, BomAggregator);
+  container.registerSingleton(TOKENS.CodeQualityAggregator, CodeQualityAggregator);
 
   console.log("Insights components registered");
 }

@@ -93,6 +93,30 @@ export interface BomDependency {
   readonly locations: string[];
 }
 
+// Interface for code quality summary information
+export interface CodeQualitySummary {
+  topComplexMethods: {
+    methodName: string;
+    filePath: string;
+    complexity: number;
+    linesOfCode: number;
+    codeSmells?: string[];
+  }[];
+  commonCodeSmells: {
+    smellType: string;
+    occurrences: number;
+    affectedFiles: number;
+  }[];
+  overallStatistics: {
+    totalMethods: number;
+    averageComplexity: number;
+    highComplexityCount: number;
+    veryHighComplexityCount: number;
+    averageMethodLength: number;
+    longMethodCount: number;
+  };
+}
+
 /**
  * Unified data model for report generation.
  * Contains all the data needed to generate both HTML and JSON reports.
@@ -106,4 +130,5 @@ export interface ReportData {
   procsAndTriggers: ProcsAndTriggers;
   topLevelJavaClasses: HierarchicalTopLevelJavaClassDependencies[];
   billOfMaterials: BomDependency[];
+  codeQualitySummary: CodeQualitySummary | null;
 }

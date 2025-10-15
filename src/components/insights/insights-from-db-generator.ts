@@ -15,6 +15,7 @@ import { SinglePassInsightStrategy } from "./strategies/single-pass-strategy";
 import { MapReduceInsightStrategy } from "./strategies/map-reduce-strategy";
 import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
 import { BomAggregator } from "./bom-aggregator";
+import { CodeQualityAggregator } from "./code-quality-aggregator";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -39,6 +40,8 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     @inject(TOKENS.ProjectName) private readonly projectName: string,
     @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
     @inject(TOKENS.BomAggregator) private readonly bomAggregator: BomAggregator,
+    @inject(TOKENS.CodeQualityAggregator)
+    private readonly codeQualityAggregator: CodeQualityAggregator,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
@@ -71,13 +74,18 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     });
     const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
 
-    // Special handling for billOfMaterials - uses aggregator instead of LLM
+    // Special handling for aggregator-based categories
     if (categories.includes("billOfMaterials")) {
       await this.generateBillOfMaterials();
     }
+    if (categories.includes("codeQualitySummary")) {
+      await this.generateCodeQualitySummary();
+    }
 
     // Process remaining categories with LLM
-    const llmCategories = categories.filter((c) => c !== "billOfMaterials");
+    const llmCategories = categories.filter(
+      (c) => c !== "billOfMaterials" && c !== "codeQualitySummary",
+    );
     const results = await Promise.allSettled(
       llmCategories.map(async (category) =>
         this.generateAndRecordDataForCategory(category, sourceFileSummaries),
@@ -175,6 +183,29 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       );
     } catch (error: unknown) {
       logErrorMsgAndDetail("Unable to generate Bill of Materials", error);
+    }
+  }
+
+  /**
+   * Generates Code Quality Summary by aggregating metrics from code files
+   */
+  private async generateCodeQualitySummary(): Promise<void> {
+    try {
+      console.log("Processing Code Quality Summary");
+      const qualityData = await this.codeQualityAggregator.aggregateCodeQualityMetrics(
+        this.projectName,
+      );
+
+      await this.appSummariesRepository.updateAppSummary(this.projectName, {
+        codeQualitySummary: qualityData,
+      });
+
+      console.log(
+        `Captured Code Quality Summary: ${qualityData.overallStatistics.totalMethods} methods analyzed, ` +
+          `${qualityData.commonCodeSmells.length} smell types detected`,
+      );
+    } catch (error: unknown) {
+      logErrorMsgAndDetail("Unable to generate Code Quality Summary", error);
     }
   }
 }
