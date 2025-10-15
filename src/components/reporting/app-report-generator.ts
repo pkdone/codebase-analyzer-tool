@@ -68,6 +68,7 @@ export default class AppReportGenerator {
       codeQualitySummary,
       scheduledJobsSummary,
       moduleCoupling,
+      uiTechnologyAnalysis,
     ] = await Promise.all([
       this.appSummariesRepository.getProjectAppSummaryFields(
         projectName,
@@ -82,6 +83,7 @@ export default class AppReportGenerator {
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "codeQualitySummary"),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "scheduledJobsSummary"),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "moduleCoupling"),
+      this.appSummariesRepository.getProjectAppSummaryField(projectName, "uiTechnologyAnalysis"),
     ]);
 
     if (!appSummaryData) {
@@ -107,6 +109,8 @@ export default class AppReportGenerator {
       scheduledJobsSummary: (scheduledJobsSummary ??
         null) as unknown as ReportData["scheduledJobsSummary"],
       moduleCoupling: (moduleCoupling ?? null) as unknown as ReportData["moduleCoupling"],
+      uiTechnologyAnalysis: (uiTechnologyAnalysis ??
+        null) as unknown as ReportData["uiTechnologyAnalysis"],
     };
 
     // Prepare data for both writers
@@ -296,6 +300,7 @@ export default class AppReportGenerator {
       jobsStatistics,
       moduleCoupling: reportData.moduleCoupling,
       couplingStatistics,
+      uiTechnologyAnalysis: reportData.uiTechnologyAnalysis,
       jsonFilesConfig: reportSectionsConfig,
       convertToDisplayName,
       fileTypesTableViewModel,

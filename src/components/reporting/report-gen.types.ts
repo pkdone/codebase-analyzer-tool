@@ -146,6 +146,33 @@ export interface ModuleCoupling {
   moduleDepth: number;
 }
 
+// Interface for UI technology analysis information
+export interface UiTechnologyAnalysis {
+  frameworks: {
+    name: string;
+    version?: string;
+    configFiles: string[];
+  }[];
+  totalJspFiles: number;
+  totalScriptlets: number;
+  totalExpressions: number;
+  totalDeclarations: number;
+  averageScriptletsPerFile: number;
+  filesWithHighScriptletCount: number;
+  customTagLibraries: {
+    prefix: string;
+    uri: string;
+    usageCount: number;
+  }[];
+  topScriptletFiles: {
+    filePath: string;
+    scriptletCount: number;
+    expressionCount: number;
+    declarationCount: number;
+    totalScriptletBlocks: number;
+  }[];
+}
+
 /**
  * Unified data model for report generation.
  * Contains all the data needed to generate both HTML and JSON reports.
@@ -162,4 +189,5 @@ export interface ReportData {
   codeQualitySummary: CodeQualitySummary | null;
   scheduledJobsSummary: ScheduledJobsSummary | null;
   moduleCoupling: ModuleCoupling | null;
+  uiTechnologyAnalysis: UiTechnologyAnalysis | null;
 }

@@ -11,6 +11,7 @@ import type {
   CodeQualitySummary,
   ScheduledJobsSummary,
   ModuleCoupling,
+  UiTechnologyAnalysis,
 } from "./report-gen.types";
 import type {
   ProjectedFileTypesCountAndLines,
@@ -60,6 +61,7 @@ export interface PreparedHtmlReportData {
     highestCouplingCount: number;
     moduleDepth: number;
   } | null;
+  uiTechnologyAnalysis: UiTechnologyAnalysis | null;
   jsonFilesConfig: {
     readonly allRequiredAppSummaryFields: readonly string[];
     readonly jsonDataFiles: Record<string, string>;

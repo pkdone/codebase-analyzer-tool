@@ -81,10 +81,14 @@ export default class SourcesRepositoryImpl
     projectName: string,
     fileTypes: string[],
   ): Promise<ProjectedSourceSummaryFields[]> {
-    const query = {
+    const query: { projectName: string; type?: { $in: string[] } } = {
       projectName,
-      type: { $in: fileTypes },
     };
+
+    // Only add type filter if fileTypes array is not empty
+    if (fileTypes.length > 0) {
+      query.type = { $in: fileTypes };
+    }
     const options: { projection: Document; sort: Sort } = {
       projection: {
         _id: 0,
@@ -94,6 +98,8 @@ export default class SourcesRepositoryImpl
         "summary.dependencies": 1,
         "summary.scheduledJobs": 1,
         "summary.internalReferences": 1,
+        "summary.jspMetrics": 1,
+        "summary.uiFramework": 1,
         filepath: 1,
       },
       sort: { "summary.namespace": 1 },

@@ -12,6 +12,7 @@ import {
   codeQualitySummarySchema,
   scheduledJobsSummarySchema,
   moduleCouplingSchema,
+  uiTechnologyAnalysisSchema,
 } from "../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "./insights.types";
 
@@ -96,6 +97,12 @@ export const summaryCategoriesConfig = {
     description:
       "a dependency matrix showing coupling relationships between modules to identify highly coupled components (candidates for single services) and loosely coupled components (candidates for easy separation).",
     schema: moduleCouplingSchema,
+  },
+  uiTechnologyAnalysis: {
+    label: "UI Technology Analysis",
+    description:
+      "a comprehensive analysis of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries to assess technical debt and plan modernization efforts.",
+    schema: uiTechnologyAnalysisSchema,
   },
 } satisfies Record<
   AppSummaryCategoryEnum,

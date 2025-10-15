@@ -60,13 +60,16 @@ describe("AppSummaryCategoriesProvider", () => {
       );
 
       // Assert
-      expect(result).toHaveLength(7); // All categories except those with custom sections (appDescription, billOfMaterials, codeQualitySummary)
+      expect(result).toHaveLength(7); // All categories except those with custom sections (appDescription, billOfMaterials, codeQualitySummary, scheduledJobsSummary, moduleCoupling, uiTechnologyAnalysis)
 
       // Verify that categories with custom sections are not included
       const categoryNames = result.map((r) => r.category);
       expect(categoryNames).not.toContain("appDescription");
       expect(categoryNames).not.toContain("billOfMaterials");
       expect(categoryNames).not.toContain("codeQualitySummary");
+      expect(categoryNames).not.toContain("scheduledJobsSummary");
+      expect(categoryNames).not.toContain("moduleCoupling");
+      expect(categoryNames).not.toContain("uiTechnologyAnalysis");
 
       // Verify that all generic categories are included
       expect(categoryNames).toContain("technologies");
@@ -206,7 +209,8 @@ describe("AppSummaryCategoriesProvider", () => {
       expect(categoryNames).not.toContain("codeQualitySummary");
       expect(categoryNames).not.toContain("scheduledJobsSummary");
       expect(categoryNames).not.toContain("moduleCoupling");
-      expect(result.length).toBe(allCategories.length - 5); // All categories minus appDescription, billOfMaterials, codeQualitySummary, scheduledJobsSummary, moduleCoupling
+      expect(categoryNames).not.toContain("uiTechnologyAnalysis");
+      expect(result.length).toBe(allCategories.length - 6); // All categories minus appDescription, billOfMaterials, codeQualitySummary, scheduledJobsSummary, moduleCoupling, uiTechnologyAnalysis
     });
   });
 });

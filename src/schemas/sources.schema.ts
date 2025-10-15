@@ -379,6 +379,42 @@ export const codeQualityMetricsSchema = z
   .passthrough();
 
 /**
+ * Schema for custom tag library usage
+ */
+export const customTagSchema = z
+  .object({
+    prefix: z.string().describe("Tag library prefix (e.g., 'c', 'fmt', 'custom')"),
+    uri: z.string().describe("Tag library URI from taglib directive"),
+  })
+  .passthrough();
+
+/**
+ * Schema for JSP metrics
+ */
+export const jspMetricsSchema = z
+  .object({
+    scriptletCount: z.number().describe("Number of Java scriptlets (<% ... %>)"),
+    expressionCount: z.number().describe("Number of expressions (<%= ... %>)"),
+    declarationCount: z.number().describe("Number of declarations (<%! ... %>)"),
+    customTags: z
+      .array(customTagSchema)
+      .optional()
+      .describe("List of custom tag libraries imported"),
+  })
+  .passthrough();
+
+/**
+ * Schema for UI framework identification
+ */
+export const uiFrameworkSchema = z
+  .object({
+    name: z.string().describe("Framework name (e.g., 'Struts', 'JSF', 'Spring MVC')"),
+    version: z.string().optional().describe("Framework version if identifiable"),
+    configFile: z.string().describe("Configuration file where framework was detected"),
+  })
+  .passthrough();
+
+/**
  * Schema for source file summaries
  */
 export const sourceSummarySchema = z
@@ -459,6 +495,12 @@ export const sourceSummarySchema = z
     codeQualityMetrics: codeQualityMetricsSchema
       .optional()
       .describe("File-level code quality metrics and analysis"),
+    jspMetrics: jspMetricsSchema
+      .optional()
+      .describe("JSP-specific metrics for scriptlets and tag libraries"),
+    uiFramework: uiFrameworkSchema
+      .optional()
+      .describe("UI framework identification from configuration files"),
   })
   .passthrough();
 

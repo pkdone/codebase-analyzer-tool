@@ -18,6 +18,7 @@ import { BomAggregator } from "./bom-aggregator";
 import { CodeQualityAggregator } from "./code-quality-aggregator";
 import { JobAggregator } from "./job-aggregator";
 import { ModuleCouplingAggregator } from "./module-coupling-aggregator";
+import { UiAggregator } from "./ui-aggregator";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -47,6 +48,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     @inject(TOKENS.JobAggregator) private readonly jobAggregator: JobAggregator,
     @inject(TOKENS.ModuleCouplingAggregator)
     private readonly moduleCouplingAggregator: ModuleCouplingAggregator,
+    @inject(TOKENS.UiAggregator) private readonly uiAggregator: UiAggregator,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
@@ -92,6 +94,9 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     if (categories.includes("moduleCoupling")) {
       await this.generateModuleCoupling();
     }
+    if (categories.includes("uiTechnologyAnalysis")) {
+      await this.generateUiAnalysis();
+    }
 
     // Process remaining categories with LLM
     const llmCategories = categories.filter(
@@ -99,7 +104,8 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
         c !== "billOfMaterials" &&
         c !== "codeQualitySummary" &&
         c !== "scheduledJobsSummary" &&
-        c !== "moduleCoupling",
+        c !== "moduleCoupling" &&
+        c !== "uiTechnologyAnalysis",
     );
     const results = await Promise.allSettled(
       llmCategories.map(async (category) =>
@@ -265,6 +271,27 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       );
     } catch (error: unknown) {
       logErrorMsgAndDetail("Unable to generate Module Coupling Analysis", error);
+    }
+  }
+
+  /**
+   * Generates UI Technology Analysis by aggregating JSP metrics and framework detection
+   */
+  private async generateUiAnalysis(): Promise<void> {
+    try {
+      console.log("Processing UI Technology Analysis");
+      const uiData = await this.uiAggregator.aggregateUiAnalysis(this.projectName);
+
+      await this.appSummariesRepository.updateAppSummary(this.projectName, {
+        uiTechnologyAnalysis: uiData,
+      });
+
+      console.log(
+        `Captured UI Technology Analysis: ${uiData.totalJspFiles} JSP files, ` +
+          `${uiData.totalScriptlets} scriptlets, ${uiData.frameworks.length} frameworks detected`,
+      );
+    } catch (error: unknown) {
+      logErrorMsgAndDetail("Unable to generate UI Technology Analysis", error);
     }
   }
 }

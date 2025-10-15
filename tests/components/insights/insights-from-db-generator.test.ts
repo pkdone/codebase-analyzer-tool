@@ -101,6 +101,20 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       }),
     } as any;
 
+    const mockUiAggregator = {
+      aggregateUiAnalysis: jest.fn().mockResolvedValue({
+        frameworks: [],
+        totalJspFiles: 0,
+        totalScriptlets: 0,
+        totalExpressions: 0,
+        totalDeclarations: 0,
+        averageScriptletsPerFile: 0,
+        filesWithHighScriptletCount: 0,
+        customTagLibraries: [],
+        topScriptletFiles: [],
+      }),
+    } as any;
+
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
@@ -111,6 +125,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       mockCodeQualityAggregator,
       mockJobAggregator,
       mockModuleCouplingAggregator,
+      mockUiAggregator,
     );
   });
 

@@ -350,10 +350,35 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
   xml: {
     contentDesc: "XML code",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+
+* CRITICAL: UI Framework Detection (REQUIRED for web application config files)
+  If this XML file is a web application configuration file, you MUST analyze and identify the UI framework:
+  
+  Struts Framework Detection:
+  - Look for <servlet-class> containing "org.apache.struts.action.ActionServlet" or "StrutsPrepareAndExecuteFilter"
+  - Check for <servlet-name> with "action" or "struts"
+  - Look for DOCTYPE or root element referencing struts-config
+  - Extract version from DTD/XSD if available (e.g., "struts-config_1_3.dtd" => version "1.3")
+  - If detected, provide: { name: "Struts", version: "X.X" (if found), configFile: <current file path> }
+  
+  JSF (JavaServer Faces) Framework Detection:
+  - Look for <servlet-class> containing "javax.faces.webapp.FacesServlet" or "jakarta.faces.webapp.FacesServlet"
+  - Check for root element <faces-config> in faces-config.xml
+  - Extract version from namespace (e.g., "http://xmlns.jcp.org/xml/ns/javaee" with version="2.2")
+  - If detected, provide: { name: "JSF", version: "X.X" (if found), configFile: <current file path> }
+  
+  Spring MVC Framework Detection:
+  - Look for <servlet-class> containing "org.springframework.web.servlet.DispatcherServlet"
+  - Check for root element containing "http://www.springframework.org/schema/mvc"
+  - Look for annotations like @Controller, @RequestMapping in servlet definitions
+  - If detected, provide: { name: "Spring MVC", version: <if identifiable>, configFile: <current file path> }
+  
+  If a UI framework is detected, populate the uiFramework field. Otherwise, leave it undefined.`,
     schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
+      uiFramework: true,
     }),
     hasComplexSchema: false,
   },
@@ -363,13 +388,30 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JAVA}
 * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JAVA}    
-* A list of data input fields it contains (if any). For each field, provide its name (or an approximate name), its type (e.g., 'text', 'hidden', 'password'), and a detailed description of its purpose.`,
+* A list of data input fields it contains (if any). For each field, provide its name (or an approximate name), its type (e.g., 'text', 'hidden', 'password'), and a detailed description of its purpose.
+
+* CRITICAL: JSP Metrics Analysis (REQUIRED for all JSP files)
+  You MUST analyze and provide the following JSP metrics in the jspMetrics object:
+  - scriptletCount (REQUIRED): Count the exact number of Java scriptlets (<% ... %>) in this file
+  - expressionCount (REQUIRED): Count the exact number of expressions (<%= ... %>) in this file
+  - declarationCount (REQUIRED): Count the exact number of declarations (<%! ... %>) in this file
+  - customTags (REQUIRED if any exist): For each <%@ taglib ... %> directive, extract:
+    * prefix: The tag library prefix from the taglib directive
+    * uri: The URI of the tag library from the taglib directive
+  
+  Examples:
+  - <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> => { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" }
+  - <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> => { prefix: "fmt", uri: "http://java.sun.com/jsp/jstl/fmt" }
+  - <%@ taglib prefix="custom" uri="/WEB-INF/custom.tld" %> => { prefix: "custom", uri: "/WEB-INF/custom.tld" }
+  
+  Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>.`,
     schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       internalReferences: true,
       externalReferences: true,
       dataInputFields: true,
+      jspMetrics: true,
     }),
     hasComplexSchema: false,
   },

@@ -318,6 +318,43 @@ describe("SourcesRepositoryImpl", () => {
               "summary.dependencies": 1,
               "summary.scheduledJobs": 1,
               "summary.internalReferences": 1,
+              "summary.jspMetrics": 1,
+              "summary.uiFramework": 1,
+              filepath: 1,
+            },
+            sort: { "summary.namespace": 1 },
+          },
+        );
+      });
+
+      it("should query all file types when empty array is provided", async () => {
+        const projectName = "test-project";
+        const fileTypes: string[] = [];
+        const mockResults = [
+          {
+            summary: { namespace: "Class1", purpose: "Purpose1", implementation: "Impl1" },
+            filepath: "src/test1.ts",
+          },
+        ];
+        mockFindCursor.toArray.mockResolvedValue(mockResults);
+
+        const result = await repository.getProjectSourcesSummaries(projectName, fileTypes);
+
+        expect(result).toEqual(mockResults);
+        // Should query without type filter when fileTypes is empty
+        expect(mockCollection.find).toHaveBeenCalledWith(
+          { projectName },
+          {
+            projection: {
+              _id: 0,
+              "summary.namespace": 1,
+              "summary.purpose": 1,
+              "summary.implementation": 1,
+              "summary.dependencies": 1,
+              "summary.scheduledJobs": 1,
+              "summary.internalReferences": 1,
+              "summary.jspMetrics": 1,
+              "summary.uiFramework": 1,
               filepath: 1,
             },
             sort: { "summary.namespace": 1 },

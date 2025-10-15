@@ -1,9 +1,9 @@
 import * as dbTestHelper from "./db-test-helper";
 
 /**
- * Unit tests for db-test-helper module exports and structure.
- * Note: Full integration tests are covered in the actual integration test suites
- * that use these helpers. These tests verify the module structure and exports.
+ * Integration tests for db-test-helper module.
+ * These tests verify actual database connection and setup functionality.
+ * Converted from unit test to integration test as they require real MongoDB connections.
  */
 describe("db-test-helper", () => {
   describe("module exports", () => {

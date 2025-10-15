@@ -112,6 +112,7 @@ describe("HtmlReportWriter", () => {
     jobsStatistics: null,
     moduleCoupling: null,
     couplingStatistics: null,
+    uiTechnologyAnalysis: null,
   };
 
   beforeEach(() => {

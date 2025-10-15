@@ -1,0 +1,221 @@
+<% if (uiData) { %>
+  <div class="ui-summary">
+    <p class="stats">
+      <strong>JSP Files:</strong> <%= uiData.totalJspFiles %> |
+      <strong>Total Scriptlets:</strong> 
+      <span class="<%= uiData.totalScriptlets > 100 ? 'high-scriptlet-warning' : '' %>">
+        <%= uiData.totalScriptlets %>
+      </span> |
+      <strong>Avg Scriptlets/File:</strong> <%= uiData.averageScriptletsPerFile.toFixed(1) %> |
+      <strong>High Debt Files:</strong> 
+      <span class="<%= uiData.filesWithHighScriptletCount > 0 ? 'warning-text' : '' %>">
+        <%= uiData.filesWithHighScriptletCount %>
+      </span>
+    </p>
+  </div>
+
+  <% if (uiData.filesWithHighScriptletCount > 0) { %>
+    <div class="alert alert-warning">
+      <strong>⚠️ High Technical Debt Detected!</strong> 
+      <%= uiData.filesWithHighScriptletCount %> <%= uiData.filesWithHighScriptletCount === 1 ? 'file has' : 'files have' %> 
+      more than 10 scriptlet blocks. Consider refactoring to modern UI patterns (JSP tags, JSF components, or React/Vue).
+    </div>
+  <% } %>
+
+  <!-- UI Frameworks Detected -->
+  <% if (uiData.frameworks && uiData.frameworks.length > 0) { %>
+    <h3>Detected UI Frameworks</h3>
+    <table class="data-table frameworks-table">
+      <thead>
+        <tr>
+          <th>Framework</th>
+          <th>Version</th>
+          <th>Configuration Files</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% uiData.frameworks.forEach(function(framework) { %>
+          <tr>
+            <td class="framework-name"><%= framework.name %></td>
+            <td class="framework-version"><%= framework.version || 'Unknown' %></td>
+            <td class="config-files">
+              <% if (framework.configFiles.length === 1) { %>
+                <%= framework.configFiles[0] %>
+              <% } else { %>
+                <details>
+                  <summary><%= framework.configFiles.length %> files</summary>
+                  <ul>
+                    <% framework.configFiles.forEach(function(file) { %>
+                      <li><%= file %></li>
+                    <% }); %>
+                  </ul>
+                </details>
+              <% } %>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } else { %>
+    <p class="no-data">No UI frameworks detected in configuration files.</p>
+  <% } %>
+
+  <!-- Top JSP Files with High Scriptlet Count -->
+  <% if (uiData.topScriptletFiles && uiData.topScriptletFiles.length > 0) { %>
+    <h3>Top JSP Files by Scriptlet Count (Technical Debt Hotspots)</h3>
+    <table class="data-table scriptlets-table">
+      <thead>
+        <tr>
+          <th>File Path</th>
+          <th>Scriptlets</th>
+          <th>Expressions</th>
+          <th>Declarations</th>
+          <th>Total Blocks</th>
+          <th>Debt Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% uiData.topScriptletFiles.forEach(function(file) { %>
+          <tr class="<%= file.totalScriptletBlocks > 20 ? 'very-high-debt' : (file.totalScriptletBlocks > 10 ? 'high-debt' : '') %>">
+            <td class="file-path" title="<%= file.filePath %>"><%= file.filePath %></td>
+            <td class="metric-count"><%= file.scriptletCount %></td>
+            <td class="metric-count"><%= file.expressionCount %></td>
+            <td class="metric-count"><%= file.declarationCount %></td>
+            <td class="total-count"><strong><%= file.totalScriptletBlocks %></strong></td>
+            <td class="debt-indicator">
+              <% if (file.totalScriptletBlocks > 20) { %>
+                <span class="badge badge-danger">Very High</span>
+              <% } else if (file.totalScriptletBlocks > 10) { %>
+                <span class="badge badge-warning">High</span>
+              <% } else if (file.totalScriptletBlocks > 5) { %>
+                <span class="badge badge-info">Moderate</span>
+              <% } else { %>
+                <span class="badge badge-success">Low</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <!-- Custom Tag Libraries -->
+  <% if (uiData.customTagLibraries && uiData.customTagLibraries.length > 0) { %>
+    <h3>Custom Tag Libraries Used</h3>
+    <table class="data-table taglibs-table">
+      <thead>
+        <tr>
+          <th>Prefix</th>
+          <th>URI</th>
+          <th>Usage Count</th>
+          <th>Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% uiData.customTagLibraries.forEach(function(taglib) { %>
+          <tr>
+            <td class="tag-prefix"><code><%= taglib.prefix %></code></td>
+            <td class="tag-uri"><%= taglib.uri %></td>
+            <td class="usage-count"><%= taglib.usageCount %> <%= taglib.usageCount === 1 ? 'file' : 'files' %></td>
+            <td class="tag-type">
+              <% if (taglib.uri.includes('java.sun.com/jsp/jstl')) { %>
+                <span class="badge badge-info">JSTL</span>
+              <% } else if (taglib.uri.includes('springframework.org')) { %>
+                <span class="badge badge-info">Spring</span>
+              <% } else if (taglib.uri.includes('/WEB-INF/') || taglib.uri.includes('custom')) { %>
+                <span class="badge badge-warning">Custom</span>
+              <% } else { %>
+                <span class="badge badge-secondary">Other</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <!-- Summary Statistics -->
+  <% if (uiData.totalJspFiles > 0) { %>
+    <div class="ui-insights">
+      <h3>UI Modernization Insights</h3>
+      <ul>
+        <li>
+          <strong>Scriptlet Usage:</strong> 
+          <% if (uiData.totalScriptlets === 0) { %>
+            No scriptlets detected - excellent! The codebase follows modern JSP best practices.
+          <% } else if (uiData.averageScriptletsPerFile < 5) { %>
+            Low scriptlet usage (<%= uiData.averageScriptletsPerFile.toFixed(1) %> per file). 
+            Consider further refactoring to eliminate remaining scriptlets.
+          <% } else if (uiData.averageScriptletsPerFile < 10) { %>
+            Moderate scriptlet usage (<%= uiData.averageScriptletsPerFile.toFixed(1) %> per file). 
+            Refactoring to tag libraries or modern UI framework recommended.
+          <% } else { %>
+            High scriptlet usage (<%= uiData.averageScriptletsPerFile.toFixed(1) %> per file). 
+            Significant refactoring needed for modernization.
+          <% } %>
+        </li>
+        <% if (uiData.totalExpressions > 0) { %>
+          <li>
+            <strong>Expressions:</strong> <%= uiData.totalExpressions %> JSP expressions found. 
+            These can often be replaced with EL (Expression Language) for cleaner code.
+          </li>
+        <% } %>
+        <% if (uiData.customTagLibraries.length > 0) { %>
+          <li>
+            <strong>Tag Libraries:</strong> <%= uiData.customTagLibraries.length %> different tag libraries in use. 
+            Review custom tag libraries for migration planning.
+          </li>
+        <% } %>
+        <% if (uiData.frameworks.length === 0 && uiData.totalJspFiles > 0) { %>
+          <li class="warning-item">
+            <strong>⚠️ No UI Framework Detected:</strong> 
+            The application appears to use raw JSP without a modern UI framework. 
+            Consider migrating to a framework like JSF, Spring MVC, or a modern JavaScript framework.
+          </li>
+        <% } %>
+      </ul>
+    </div>
+  <% } %>
+
+<% } else { %>
+  <p class="no-data">No UI technology data available. This might be a non-web application or JSP files were not analyzed.</p>
+<% } %>
+
+<style>
+  .ui-summary { margin: 0 0 0.5rem 0; padding: 0.75rem 1rem; background: #f5f5f5; border-radius: 4px; }
+  .high-scriptlet-warning { color: #d9534f; font-weight: bold; }
+  .warning-text { color: #ff6600; font-weight: bold; }
+  .alert { padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 4px; }
+  .alert-warning { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }
+  
+  .frameworks-table th, .scriptlets-table th, .taglibs-table th { background: #f0f0f0; }
+  .framework-name { font-weight: bold; color: #2c5aa0; }
+  .file-path { font-family: monospace; font-size: 0.9em; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .metric-count { text-align: center; }
+  .total-count { text-align: center; font-size: 1.1em; }
+  .tag-prefix code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
+  .tag-uri { font-size: 0.9em; color: #666; }
+  .usage-count { text-align: center; }
+  
+  .high-debt { background: #fff3cd; }
+  .very-high-debt { background: #f8d7da; }
+  
+  .badge { padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.85rem; font-weight: normal; }
+  .badge-danger { background: #dc3545; color: white; }
+  .badge-warning { background: #ffc107; color: #212529; }
+  .badge-info { background: #17a2b8; color: white; }
+  .badge-success { background: #28a745; color: white; }
+  .badge-secondary { background: #6c757d; color: white; }
+  
+  .ui-insights { background: #e7f3ff; padding: 1rem; border-radius: 4px; margin-top: 1rem; }
+  .ui-insights ul { margin: 0.5rem 0 0 1rem; }
+  .ui-insights li { margin-bottom: 0.5rem; }
+  .warning-item { color: #856404; }
+  
+  details { cursor: pointer; }
+  details summary { font-weight: bold; }
+  details ul { margin-top: 0.5rem; padding-left: 1.5rem; }
+  details li { font-size: 0.9em; }
+</style>
+
+

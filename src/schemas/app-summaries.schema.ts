@@ -17,6 +17,7 @@ export const AppSummaryCategories = z.enum([
   "codeQualitySummary",
   "scheduledJobsSummary",
   "moduleCoupling",
+  "uiTechnologyAnalysis",
 ]);
 
 // Base schema for common name-description pattern
@@ -440,6 +441,72 @@ export const moduleCouplingSchema = z
   .passthrough();
 
 /**
+ * Schema for identified UI framework
+ */
+export const uiFrameworkItemSchema = z
+  .object({
+    name: z.string().describe("Framework name (e.g., 'Struts', 'JSF', 'Spring MVC')"),
+    version: z.string().optional().describe("Framework version if identifiable"),
+    configFiles: z
+      .array(z.string())
+      .describe("Configuration files where this framework was detected"),
+  })
+  .passthrough();
+
+/**
+ * Schema for custom tag library usage statistics
+ */
+export const customTagLibrarySchema = z
+  .object({
+    prefix: z.string().describe("Tag library prefix"),
+    uri: z.string().describe("Tag library URI"),
+    usageCount: z.number().describe("Number of JSP files using this tag library"),
+  })
+  .passthrough();
+
+/**
+ * Schema for JSP file with scriptlet metrics
+ */
+export const jspFileMetricsSchema = z
+  .object({
+    filePath: z.string().describe("Path to the JSP file"),
+    scriptletCount: z.number().describe("Number of Java scriptlets"),
+    expressionCount: z.number().describe("Number of expressions"),
+    declarationCount: z.number().describe("Number of declarations"),
+    totalScriptletBlocks: z
+      .number()
+      .describe("Total scriptlet-related blocks (scriptlets + expressions + declarations)"),
+  })
+  .passthrough();
+
+/**
+ * Schema for UI technology analysis summary
+ */
+export const uiTechnologyAnalysisSchema = z
+  .object({
+    frameworks: z
+      .array(uiFrameworkItemSchema)
+      .describe("List of UI frameworks detected in the application"),
+    totalJspFiles: z.number().describe("Total number of JSP files analyzed"),
+    totalScriptlets: z.number().describe("Total scriptlets across all JSP files"),
+    totalExpressions: z.number().describe("Total expressions across all JSP files"),
+    totalDeclarations: z.number().describe("Total declarations across all JSP files"),
+    averageScriptletsPerFile: z
+      .number()
+      .describe("Average scriptlet blocks per JSP file (technical debt indicator)"),
+    filesWithHighScriptletCount: z
+      .number()
+      .describe("Number of JSP files with >10 scriptlet blocks"),
+    customTagLibraries: z
+      .array(customTagLibrarySchema)
+      .describe("De-duplicated list of custom tag libraries used"),
+    topScriptletFiles: z
+      .array(jspFileMetricsSchema)
+      .describe("Top 10 JSP files with highest scriptlet counts"),
+  })
+  .passthrough();
+
+/**
  * Schema for full application summary of categories
  */
 export const appSummarySchema = z
@@ -458,5 +525,6 @@ export const appSummarySchema = z
     codeQualitySummary: codeQualitySummarySchema.optional(),
     scheduledJobsSummary: scheduledJobsSummarySchema.optional(),
     moduleCoupling: moduleCouplingSchema.optional(),
+    uiTechnologyAnalysis: uiTechnologyAnalysisSchema.optional(),
   })
   .passthrough();

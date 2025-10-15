@@ -60,6 +60,8 @@ export interface ProjectedSourceSummaryFields {
     | "dependencies"
     | "scheduledJobs"
     | "internalReferences"
+    | "jspMetrics"
+    | "uiFramework"
   >;
 }
 
