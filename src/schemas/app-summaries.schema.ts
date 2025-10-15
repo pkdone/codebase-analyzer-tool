@@ -16,6 +16,7 @@ export const AppSummaryCategories = z.enum([
   "billOfMaterials",
   "codeQualitySummary",
   "scheduledJobsSummary",
+  "moduleCoupling",
 ]);
 
 // Base schema for common name-description pattern
@@ -413,6 +414,32 @@ export const scheduledJobsSummarySchema = z
   .passthrough();
 
 /**
+ * Schema for a single module coupling relationship
+ */
+export const moduleCouplingItemSchema = z
+  .object({
+    fromModule: z.string().describe("Source module name"),
+    toModule: z.string().describe("Target module name"),
+    referenceCount: z.number().describe("Number of references from source to target module"),
+  })
+  .passthrough();
+
+/**
+ * Schema for module coupling analysis
+ */
+export const moduleCouplingSchema = z
+  .object({
+    couplings: z
+      .array(moduleCouplingItemSchema)
+      .describe("List of all module-to-module coupling relationships"),
+    totalModules: z.number().describe("Total number of unique modules identified"),
+    totalCouplings: z.number().describe("Total number of coupling relationships"),
+    highestCouplingCount: z.number().describe("Highest reference count between any two modules"),
+    moduleDepth: z.number().describe("Directory depth used for module identification"),
+  })
+  .passthrough();
+
+/**
  * Schema for full application summary of categories
  */
 export const appSummarySchema = z
@@ -430,5 +457,6 @@ export const appSummarySchema = z
     billOfMaterials: billOfMaterialsSchema.shape.dependencies.optional(),
     codeQualitySummary: codeQualitySummarySchema.optional(),
     scheduledJobsSummary: scheduledJobsSummarySchema.optional(),
+    moduleCoupling: moduleCouplingSchema.optional(),
   })
   .passthrough();

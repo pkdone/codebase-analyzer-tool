@@ -110,6 +110,8 @@ describe("HtmlReportWriter", () => {
     codeQualitySummary: null,
     scheduledJobsSummary: null,
     jobsStatistics: null,
+    moduleCoupling: null,
+    couplingStatistics: null,
   };
 
   beforeEach(() => {

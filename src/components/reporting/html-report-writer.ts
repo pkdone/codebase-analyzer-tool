@@ -10,6 +10,7 @@ import type {
   IntegrationPointInfo,
   CodeQualitySummary,
   ScheduledJobsSummary,
+  ModuleCoupling,
 } from "./report-gen.types";
 import type {
   ProjectedFileTypesCountAndLines,
@@ -51,6 +52,13 @@ export interface PreparedHtmlReportData {
     total: number;
     triggerTypesCount: number;
     jobFilesCount: number;
+  } | null;
+  moduleCoupling: ModuleCoupling | null;
+  couplingStatistics: {
+    totalModules: number;
+    totalCouplings: number;
+    highestCouplingCount: number;
+    moduleDepth: number;
   } | null;
   jsonFilesConfig: {
     readonly allRequiredAppSummaryFields: readonly string[];

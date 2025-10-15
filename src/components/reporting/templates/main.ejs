@@ -205,6 +205,10 @@
       <%- include('partials/section-header', { title: 'Scheduled Jobs and Batch Processes', jsonFile: 'scheduled-jobs-summary.json' }) %>
       <%- include('partials/scheduled-jobs', { jobsData: scheduledJobsSummary, jobsStats: jobsStatistics }) %>
     <% } %>
+    <% if (moduleCoupling && moduleCoupling.couplings.length > 0) { %>
+      <%- include('partials/section-header', { title: 'Module Coupling Analysis', jsonFile: 'module-coupling.json' }) %>
+      <%- include('partials/module-coupling', { couplingData: moduleCoupling, couplingStats: couplingStatistics }) %>
+    <% } %>
     <%- include('partials/top-level-java-classes', { topLevelJavaClasses: topLevelJavaClasses, topLevelJavaClassesTableViewModel: topLevelJavaClassesTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
     <%- include('partials/integration-points', { integrationPoints: integrationPoints, integrationPointsTableViewModel: integrationPointsTableViewModel, jsonFilesConfig: jsonFilesConfig }) %>
     <%- include('partials/db-integrations', { dbInteractions: dbInteractions, procsAndTriggers: procsAndTriggers, dbInteractionsTableViewModel: dbInteractionsTableViewModel, procsAndTriggersTableViewModel: procsAndTriggersTableViewModel, convertToDisplayName: convertToDisplayName, jsonFilesConfig: jsonFilesConfig }) %>

@@ -54,7 +54,12 @@ export interface ProjectedSourceSummaryFields {
   filepath: SourceRecord["filepath"];
   summary?: Pick<
     z.infer<typeof sourceSummarySchema>,
-    "namespace" | "purpose" | "implementation" | "dependencies" | "scheduledJobs"
+    | "namespace"
+    | "purpose"
+    | "implementation"
+    | "dependencies"
+    | "scheduledJobs"
+    | "internalReferences"
   >;
 }
 

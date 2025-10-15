@@ -1,0 +1,177 @@
+<% if (couplingData && couplingData.couplings.length > 0) { %>
+  <div class="coupling-summary">
+    <p class="stats">
+      <strong>Total Modules:</strong> <%= couplingStats.totalModules %> |
+      <strong>Coupling Relationships:</strong> <%= couplingStats.totalCouplings %> |
+      <strong>Highest Coupling Count:</strong> <%= couplingStats.highestCouplingCount %> |
+      <strong>Module Depth:</strong> <%= couplingStats.moduleDepth %>
+    </p>
+    <p class="interpretation">
+      <strong>Interpretation:</strong> High reference counts indicate tightly coupled modules (candidates for single services). 
+      Low reference counts indicate loosely coupled modules (candidates for easy separation).
+    </p>
+  </div>
+
+  <table class="data-table coupling-table">
+    <thead>
+      <tr>
+        <th>From Module</th>
+        <th>To Module</th>
+        <th class="coupling-count">Reference Count</th>
+        <th class="coupling-level">Coupling Level</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% couplingData.couplings.forEach(function(coupling) { 
+        // Calculate coupling level based on reference count
+        let couplingLevel = '';
+        let couplingClass = '';
+        if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.7) {
+          couplingLevel = 'Very High';
+          couplingClass = 'coupling-very-high';
+        } else if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.4) {
+          couplingLevel = 'High';
+          couplingClass = 'coupling-high';
+        } else if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.2) {
+          couplingLevel = 'Medium';
+          couplingClass = 'coupling-medium';
+        } else {
+          couplingLevel = 'Low';
+          couplingClass = 'coupling-low';
+        }
+      %>
+        <tr>
+          <td class="module-name from-module">
+            <code><%= coupling.fromModule %></code>
+          </td>
+          <td class="module-name to-module">
+            <code><%= coupling.toModule %></code>
+          </td>
+          <td class="coupling-count">
+            <strong><%= coupling.referenceCount %></strong>
+          </td>
+          <td class="coupling-level">
+            <span class="badge <%= couplingClass %>"><%= couplingLevel %></span>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+
+  <div class="coupling-legend">
+    <h4>Coupling Level Guide:</h4>
+    <ul>
+      <li><span class="badge coupling-very-high">Very High</span> - Strong coupling, consider keeping in same service</li>
+      <li><span class="badge coupling-high">High</span> - Significant coupling, requires careful design if separated</li>
+      <li><span class="badge coupling-medium">Medium</span> - Moderate coupling, separation feasible with clear interfaces</li>
+      <li><span class="badge coupling-low">Low</span> - Weak coupling, good candidate for separation</li>
+    </ul>
+  </div>
+<% } else { %>
+  <p class="no-data">No module coupling analysis data available. This may indicate that no internal references were found in the codebase.</p>
+<% } %>
+
+<style>
+  .coupling-summary { 
+    margin: 0 0 1rem 0; 
+    padding: 0.75rem 1rem; 
+    background: #f5f5f5; 
+    border-radius: 4px; 
+  }
+  .coupling-summary .stats {
+    margin: 0 0 0.5rem 0;
+  }
+  .coupling-summary .interpretation {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+  }
+  .coupling-table {
+    width: 100%;
+  }
+  .coupling-table td { 
+    vertical-align: middle; 
+    padding: 0.75rem 0.5rem;
+  }
+  .module-name { 
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    max-width: 300px;
+    word-break: break-all;
+  }
+  .module-name code {
+    background: #f8f8f8;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    border: 1px solid #e0e0e0;
+    display: inline-block;
+  }
+  .from-module code {
+    color: #0066cc;
+  }
+  .to-module code {
+    color: #6c00cc;
+  }
+  .coupling-count {
+    text-align: center;
+    font-weight: bold;
+    min-width: 80px;
+  }
+  .coupling-level {
+    text-align: center;
+    min-width: 120px;
+  }
+  .badge { 
+    padding: 0.3rem 0.7rem; 
+    border-radius: 3px; 
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    display: inline-block;
+  }
+  .coupling-very-high { 
+    background: #dc3545; 
+    color: white;
+  }
+  .coupling-high { 
+    background: #fd7e14; 
+    color: white;
+  }
+  .coupling-medium { 
+    background: #ffc107; 
+    color: #333;
+  }
+  .coupling-low { 
+    background: #28a745; 
+    color: white;
+  }
+  .coupling-legend {
+    margin: 1.5rem 0 0 0;
+    padding: 1rem;
+    background: #f9f9f9;
+    border-left: 4px solid #4CAF50;
+    border-radius: 4px;
+  }
+  .coupling-legend h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.1rem;
+    color: #333;
+  }
+  .coupling-legend ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .coupling-legend li {
+    margin-bottom: 0.5rem;
+    padding: 0;
+    line-height: 1.8;
+  }
+  .coupling-legend .badge {
+    margin-right: 0.5rem;
+    min-width: 80px;
+    text-align: center;
+  }
+</style>
+

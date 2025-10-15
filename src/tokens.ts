@@ -60,6 +60,7 @@ export const TOKENS = {
   BomAggregator: Symbol.for("BomAggregator"),
   CodeQualityAggregator: Symbol.for("CodeQualityAggregator"),
   JobAggregator: Symbol.for("JobAggregator"),
+  ModuleCouplingAggregator: Symbol.for("ModuleCouplingAggregator"),
 
   // MCP Server Components
   InsightsDataProvider: Symbol("InsightsDataProvider"),

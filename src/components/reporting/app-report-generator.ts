@@ -67,6 +67,7 @@ export default class AppReportGenerator {
       billOfMaterials,
       codeQualitySummary,
       scheduledJobsSummary,
+      moduleCoupling,
     ] = await Promise.all([
       this.appSummariesRepository.getProjectAppSummaryFields(
         projectName,
@@ -80,6 +81,7 @@ export default class AppReportGenerator {
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "billOfMaterials"),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "codeQualitySummary"),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "scheduledJobsSummary"),
+      this.appSummariesRepository.getProjectAppSummaryField(projectName, "moduleCoupling"),
     ]);
 
     if (!appSummaryData) {
@@ -104,6 +106,7 @@ export default class AppReportGenerator {
         null) as unknown as ReportData["codeQualitySummary"],
       scheduledJobsSummary: (scheduledJobsSummary ??
         null) as unknown as ReportData["scheduledJobsSummary"],
+      moduleCoupling: (moduleCoupling ?? null) as unknown as ReportData["moduleCoupling"],
     };
 
     // Prepare data for both writers
@@ -134,6 +137,7 @@ export default class AppReportGenerator {
       billOfMaterials: reportData.billOfMaterials,
       codeQualitySummary: reportData.codeQualitySummary,
       scheduledJobsSummary: reportData.scheduledJobsSummary,
+      moduleCoupling: reportData.moduleCoupling,
     };
     const preparedData: PreparedJsonData[] = [
       {
@@ -173,6 +177,10 @@ export default class AppReportGenerator {
       {
         filename: "scheduled-jobs-summary.json",
         data: reportData.scheduledJobsSummary,
+      },
+      {
+        filename: "module-coupling.json",
+        data: reportData.moduleCoupling,
       },
     ];
 
@@ -262,6 +270,16 @@ export default class AppReportGenerator {
         }
       : null;
 
+    // Calculate Module Coupling statistics
+    const couplingStatistics = reportData.moduleCoupling
+      ? {
+          totalModules: reportData.moduleCoupling.totalModules,
+          totalCouplings: reportData.moduleCoupling.totalCouplings,
+          highestCouplingCount: reportData.moduleCoupling.highestCouplingCount,
+          moduleDepth: reportData.moduleCoupling.moduleDepth,
+        }
+      : null;
+
     return {
       appStats: reportData.appStats,
       fileTypesData: processedFileTypesData,
@@ -276,6 +294,8 @@ export default class AppReportGenerator {
       codeQualitySummary: reportData.codeQualitySummary,
       scheduledJobsSummary: reportData.scheduledJobsSummary,
       jobsStatistics,
+      moduleCoupling: reportData.moduleCoupling,
+      couplingStatistics,
       jsonFilesConfig: reportSectionsConfig,
       convertToDisplayName,
       fileTypesTableViewModel,

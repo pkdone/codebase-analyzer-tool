@@ -133,6 +133,19 @@ export interface ScheduledJobsSummary {
   jobFiles: string[];
 }
 
+// Interface for module coupling analysis information
+export interface ModuleCoupling {
+  couplings: {
+    fromModule: string;
+    toModule: string;
+    referenceCount: number;
+  }[];
+  totalModules: number;
+  totalCouplings: number;
+  highestCouplingCount: number;
+  moduleDepth: number;
+}
+
 /**
  * Unified data model for report generation.
  * Contains all the data needed to generate both HTML and JSON reports.
@@ -148,4 +161,5 @@ export interface ReportData {
   billOfMaterials: BomDependency[];
   codeQualitySummary: CodeQualitySummary | null;
   scheduledJobsSummary: ScheduledJobsSummary | null;
+  moduleCoupling: ModuleCoupling | null;
 }

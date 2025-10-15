@@ -15,6 +15,7 @@ const CATEGORIES_WITH_CUSTOM_SECTIONS = [
   "billOfMaterials",
   "codeQualitySummary",
   "scheduledJobsSummary",
+  "moduleCoupling",
 ] as const;
 
 // Zod schema for validating AppSummaryNameDescArray

@@ -11,6 +11,7 @@ import {
   billOfMaterialsSchema,
   codeQualitySummarySchema,
   scheduledJobsSummarySchema,
+  moduleCouplingSchema,
 } from "../../schemas/app-summaries.schema";
 import { AppSummaryCategoryEnum } from "./insights.types";
 
@@ -89,6 +90,12 @@ export const summaryCategoriesConfig = {
     description:
       "a comprehensive list of batch processes, scheduled jobs, and automated scripts that perform critical business operations.",
     schema: scheduledJobsSummarySchema,
+  },
+  moduleCoupling: {
+    label: "Module Coupling",
+    description:
+      "a dependency matrix showing coupling relationships between modules to identify highly coupled components (candidates for single services) and loosely coupled components (candidates for easy separation).",
+    schema: moduleCouplingSchema,
   },
 } satisfies Record<
   AppSummaryCategoryEnum,

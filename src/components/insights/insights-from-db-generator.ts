@@ -17,6 +17,7 @@ import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
 import { BomAggregator } from "./bom-aggregator";
 import { CodeQualityAggregator } from "./code-quality-aggregator";
 import { JobAggregator } from "./job-aggregator";
+import { ModuleCouplingAggregator } from "./module-coupling-aggregator";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -44,6 +45,8 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     @inject(TOKENS.CodeQualityAggregator)
     private readonly codeQualityAggregator: CodeQualityAggregator,
     @inject(TOKENS.JobAggregator) private readonly jobAggregator: JobAggregator,
+    @inject(TOKENS.ModuleCouplingAggregator)
+    private readonly moduleCouplingAggregator: ModuleCouplingAggregator,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
@@ -86,10 +89,17 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     if (categories.includes("scheduledJobsSummary")) {
       await this.generateScheduledJobsSummary();
     }
+    if (categories.includes("moduleCoupling")) {
+      await this.generateModuleCoupling();
+    }
 
     // Process remaining categories with LLM
     const llmCategories = categories.filter(
-      (c) => c !== "billOfMaterials" && c !== "codeQualitySummary" && c !== "scheduledJobsSummary",
+      (c) =>
+        c !== "billOfMaterials" &&
+        c !== "codeQualitySummary" &&
+        c !== "scheduledJobsSummary" &&
+        c !== "moduleCoupling",
     );
     const results = await Promise.allSettled(
       llmCategories.map(async (category) =>
@@ -232,6 +242,29 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       );
     } catch (error: unknown) {
       logErrorMsgAndDetail("Unable to generate Scheduled Jobs Summary", error);
+    }
+  }
+
+  /**
+   * Generates Module Coupling Analysis by analyzing internal references between modules
+   */
+  private async generateModuleCoupling(): Promise<void> {
+    try {
+      console.log("Processing Module Coupling Analysis");
+      const couplingData = await this.moduleCouplingAggregator.aggregateModuleCoupling(
+        this.projectName,
+      );
+
+      await this.appSummariesRepository.updateAppSummary(this.projectName, {
+        moduleCoupling: couplingData,
+      });
+
+      console.log(
+        `Captured Module Coupling: ${couplingData.totalModules} modules, ` +
+          `${couplingData.totalCouplings} coupling relationships`,
+      );
+    } catch (error: unknown) {
+      logErrorMsgAndDetail("Unable to generate Module Coupling Analysis", error);
     }
   }
 }

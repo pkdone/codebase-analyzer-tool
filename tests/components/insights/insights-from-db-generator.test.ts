@@ -91,6 +91,16 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       }),
     } as any;
 
+    const mockModuleCouplingAggregator = {
+      aggregateModuleCoupling: jest.fn().mockResolvedValue({
+        couplings: [],
+        totalModules: 0,
+        totalCouplings: 0,
+        highestCouplingCount: 0,
+        moduleDepth: 2,
+      }),
+    } as any;
+
     generator = new InsightsFromDBGenerator(
       mockAppSummaryRepository,
       mockLLMRouter,
@@ -100,6 +110,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       mockBomAggregator,
       mockCodeQualityAggregator,
       mockJobAggregator,
+      mockModuleCouplingAggregator,
     );
   });
 
