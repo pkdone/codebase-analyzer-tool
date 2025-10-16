@@ -137,6 +137,12 @@ export class JsonProcessingError extends LLMError {
   readonly underlyingError?: Error;
 
   /**
+   * Optional: the description of the last sanitizer that was applied before final failure.
+   * Helps debugging which transformation still produced invalid JSON.
+   */
+  readonly lastSanitizer?: string;
+
+  /**
    * Constructor.
    */
   constructor(
@@ -146,6 +152,7 @@ export class JsonProcessingError extends LLMError {
     sanitizedContent: string,
     appliedSanitizers: string[],
     underlyingError?: Error,
+    lastSanitizer?: string,
   ) {
     const context = {
       type,
@@ -153,6 +160,7 @@ export class JsonProcessingError extends LLMError {
       sanitizedLength: sanitizedContent.length,
       appliedSanitizers,
       underlyingError: underlyingError?.message,
+      lastSanitizer,
     };
     super(JsonProcessingError.name, LLMError.buildMessage(message, context), {
       cause: underlyingError,
@@ -162,5 +170,6 @@ export class JsonProcessingError extends LLMError {
     this.sanitizedContent = sanitizedContent;
     this.appliedSanitizers = appliedSanitizers;
     this.underlyingError = underlyingError;
+    this.lastSanitizer = lastSanitizer;
   }
 }

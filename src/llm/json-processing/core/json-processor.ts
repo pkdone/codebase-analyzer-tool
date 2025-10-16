@@ -140,6 +140,7 @@ export class JsonProcessor {
     const logger = new JsonProcessingLogger(resourceName);
     const appliedSteps: string[] = [];
     const allDiagnostics: string[] = [];
+    let lastSanitizer: string | undefined;
 
     const result = this.runPipelineLoop<T>(
       originalContent,
@@ -147,6 +148,9 @@ export class JsonProcessor {
       completionOptions,
       appliedSteps,
       allDiagnostics,
+      (desc) => {
+        lastSanitizer = desc;
+      },
     );
 
     if (result.success) {
@@ -177,6 +181,7 @@ export class JsonProcessor {
       result.workingContent,
       appliedSteps,
       result.lastParseError,
+      lastSanitizer,
     );
     return { success: false, error };
   }
@@ -193,6 +198,7 @@ export class JsonProcessor {
     completionOptions: LLMCompletionOptions,
     appliedSteps: string[],
     allDiagnostics: string[],
+    onSanitizerApplied: (description: string) => void,
   ):
     | { success: true; data: T }
     | { success: false; workingContent: string; lastParseError?: Error } {
@@ -227,7 +233,10 @@ export class JsonProcessor {
       const { content, changed, description, diagnostics } = sanitizer(workingContent);
       if (!changed) continue; // Skip if sanitizer didn't change anything
       workingContent = content;
-      if (description) appliedSteps.push(description);
+      if (description) {
+        appliedSteps.push(description);
+        onSanitizerApplied(description);
+      }
       if (diagnostics && diagnostics.length > 0) allDiagnostics.push(...diagnostics);
       const parseResult = this.tryParseAndValidate<T>(
         workingContent,
@@ -244,6 +253,7 @@ export class JsonProcessor {
           workingContent,
           appliedSteps,
           parseResult.error,
+          description,
         );
         return { success: false, workingContent, lastParseError: error };
       }

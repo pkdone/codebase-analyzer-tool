@@ -1,22 +1,6 @@
 import { Sanitizer } from "./sanitizers-types";
 import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
-
-/**
- * JSON delimiter constants to avoid magic strings and improve readability.
- */
-const DELIMITERS = {
-  OPEN_BRACE: "{",
-  CLOSE_BRACE: "}",
-  OPEN_BRACKET: "[",
-  CLOSE_BRACKET: "]",
-  QUOTE: '"',
-  BACKSLASH: "\\",
-  SPACE: " ",
-  NEWLINE: "\n",
-  CARRIAGE_RETURN: "\r",
-  TAB: "\t",
-  COMMA: ",",
-} as const;
+import { DELIMITERS } from "../config/delimiters.config";
 
 /**
  * Fixes mismatched closing delimiters in JSON where the wrong closing character is used.
@@ -68,7 +52,7 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
       continue;
     }
 
-    if (char === DELIMITERS.QUOTE) {
+    if (char === DELIMITERS.DOUBLE_QUOTE) {
       inString = !inString;
       continue;
     }
@@ -96,7 +80,7 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
               stack[stack.length - 1].opener === DELIMITERS.OPEN_BRACKET
             ) {
               const nextChar = peekNextNonWhitespace(i);
-              if (nextChar === DELIMITERS.QUOTE) {
+              if (nextChar === DELIMITERS.DOUBLE_QUOTE) {
                 // Pattern: [{...}] but LLM wrote [{...] followed by a property
                 // Fix: change ] to }, then insert ] after it
                 corrections.push({
