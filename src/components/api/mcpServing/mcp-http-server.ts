@@ -16,7 +16,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
  * Type guard to check if an unknown value is a JSON-RPC body with an id field.
  */
 function isJsonRpcBody(body: unknown): body is { id: string | number | null } {
-  return typeof body === "object" && body !== null && !Array.isArray(body) && "id" in body;
+  return (
+    typeof body === "object" && body !== null && !Array.isArray(body) && Object.hasOwn(body, "id")
+  );
 }
 
 /**
@@ -114,7 +116,7 @@ export default class McpHttpServer {
         });
       });
     }
-    return Promise.resolve();
+    // Finished: nothing to stop
   }
 
   /**

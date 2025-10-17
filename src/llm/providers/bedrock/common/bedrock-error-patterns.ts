@@ -3,7 +3,7 @@ import { LLMErrorMsgRegExPattern } from "../../../types/llm.types";
 /**
  * Common error patterns for Bedrock model providers
  */
-export const BEDROCK_COMMON_ERROR_PATTERNS: LLMErrorMsgRegExPattern[] = [
+export const BEDROCK_COMMON_ERROR_PATTERNS = [
   // 1. "ValidationException: 400 Bad Request: Too many input tokens. Max input tokens: 8192, request input token count: 9279 "
   {
     pattern: /ax input tokens.*?(\d+).*?request input token count.*?(\d+)/,
@@ -20,4 +20,4 @@ export const BEDROCK_COMMON_ERROR_PATTERNS: LLMErrorMsgRegExPattern[] = [
     units: "tokens",
     isMaxFirst: false,
   },
-] as const;
+] as const satisfies readonly LLMErrorMsgRegExPattern[];

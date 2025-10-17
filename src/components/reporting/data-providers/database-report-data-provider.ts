@@ -111,33 +111,32 @@ export class DatabaseReportDataProvider {
     items: ProcOrTrigItem[],
     type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
   ): ProcsAndTriggers["procs"] {
-    const acc = {
-      total: 0,
-      low: 0,
-      medium: 0,
-      high: 0,
-      list: [] as ReturnType<typeof this.mapItemToReportFormat>[],
-    };
-
-    for (const item of items) {
-      const complexity = this.normalizeComplexity(item.complexity, item.name);
-
-      acc.total++;
-      switch (complexity) {
-        case "LOW":
-          acc.low++;
-          break;
-        case "MEDIUM":
-          acc.medium++;
-          break;
-        case "HIGH":
-          acc.high++;
-          break;
-      }
-      acc.list.push(this.mapItemToReportFormat(item, type));
-    }
-
-    return acc;
+    return items.reduce(
+      (acc, item) => {
+        const complexity = this.normalizeComplexity(item.complexity, item.name);
+        acc.total++;
+        switch (complexity) {
+          case "LOW":
+            acc.low++;
+            break;
+          case "MEDIUM":
+            acc.medium++;
+            break;
+          case "HIGH":
+            acc.high++;
+            break;
+        }
+        acc.list.push(this.mapItemToReportFormat(item, type));
+        return acc;
+      },
+      {
+        total: 0,
+        low: 0,
+        medium: 0,
+        high: 0,
+        list: [] as ReturnType<typeof this.mapItemToReportFormat>[],
+      },
+    );
   }
 
   /**

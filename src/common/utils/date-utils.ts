@@ -30,5 +30,5 @@ export function formatDateForLogging(): string {
  * Replaces colons and dots with hyphens for filesystem compatibility.
  */
 export function formatDateForFilename(): string {
-  return new Date().toISOString().replace(/[:.]/g, "-");
+  return new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
 }

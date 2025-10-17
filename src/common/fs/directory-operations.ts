@@ -75,18 +75,18 @@ export async function findFilesRecursively(
  * This is useful for distributing work more evenly when processing files concurrently.
  */
 export async function sortFilesBySize(filepaths: string[]): Promise<string[]> {
-  const filesWithSizes = await Promise.all(
-    filepaths.map(async (filepath) => {
-      try {
-        const stats = await fs.stat(filepath);
-        return { filepath, size: stats.size };
-      } catch (statError: unknown) {
-        logErrorMsgAndDetail(`Unable to get file size for: ${filepath}`, statError);
-        return { filepath, size: 0 };
-      }
-    }),
-  );
+  // Use allSettled to ensure we always process all files even if some stats fail
+  const statResults = await Promise.allSettled(filepaths.map(async (fp) => fs.stat(fp)));
+  const filesWithSizes = statResults.map((result, idx) => {
+    const filepath = filepaths[idx];
+    if (result.status === "fulfilled") {
+      return { filepath, size: result.value.size };
+    }
+    logErrorMsgAndDetail(`Unable to get file size for: ${filepath}`, result.reason);
+    return { filepath, size: 0 };
+  });
 
+  // Use toSorted (ES2023) to avoid mutating the intermediate array
   return filesWithSizes.toSorted((a, b) => b.size - a.size).map((entry) => entry.filepath);
 }
 

@@ -144,7 +144,7 @@ export class UiAggregator {
 
     // Sort JSP files by total scriptlet blocks (descending) and take top N
     const topScriptletFiles = jspFileMetrics
-      .sort((a, b) => b.totalScriptletBlocks - a.totalScriptletBlocks)
+      .toSorted((a, b) => b.totalScriptletBlocks - a.totalScriptletBlocks)
       .slice(0, this.TOP_FILES_LIMIT);
 
     // Calculate average scriptlets per file
@@ -152,11 +152,11 @@ export class UiAggregator {
     const averageScriptletsPerFile = totalJspFiles > 0 ? totalScriptlets / totalJspFiles : 0;
 
     // Convert maps to arrays and sort
-    const frameworks = Array.from(frameworkMap.values()).sort((a, b) =>
+    const frameworks = Array.from(frameworkMap.values()).toSorted((a, b) =>
       a.name.localeCompare(b.name),
     );
 
-    const customTagLibraries = Array.from(tagLibraryMap.values()).sort((a, b) => {
+    const customTagLibraries = Array.from(tagLibraryMap.values()).toSorted((a, b) => {
       // Sort by usage count (descending), then by prefix
       if (a.usageCount !== b.usageCount) {
         return b.usageCount - a.usageCount;

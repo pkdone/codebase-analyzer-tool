@@ -83,8 +83,7 @@ export const removeStrayLinePrefixChars: Sanitizer = (input) => {
   // Include opening/closing braces/brackets, quote, digit, comma, primitives.
   // Added ']' which was previously missing causing missed fixes for lines like `s  ],`.
   const strayPrefixPattern = /^(\w+)([ \t]{2,})([[\]{}"0-9]|true|false|null|,)/;
-  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-    const line = lines[lineIndex];
+  for (const [lineIndex, line] of lines.entries()) {
     // Skip prefix removal if currently inside a string literal spanning lines
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!inString) {

@@ -64,10 +64,10 @@ export default class CodebaseToDBLoader {
     );
 
     // Batch load existing files once to avoid N+1 query problem
-    const existingFiles = new Set<string>();
+    let existingFiles = new Set<string>();
     if (skipIfAlreadyCaptured) {
       const existingFilePaths = await this.sourcesRepository.getProjectFilesPaths(projectName);
-      existingFilePaths.forEach((filepath) => existingFiles.add(filepath));
+      existingFiles = new Set(existingFilePaths);
 
       if (existingFiles.size > 0) {
         console.log(

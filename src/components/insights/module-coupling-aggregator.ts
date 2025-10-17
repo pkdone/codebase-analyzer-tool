@@ -121,7 +121,7 @@ export class ModuleCouplingAggregator {
    */
   private extractModuleName(filepath: string, depth: number): string | null {
     // Normalize path separators to forward slashes
-    const normalizedPath = filepath.replace(/\\/g, "/");
+    const normalizedPath = filepath.replaceAll("\\", "/");
 
     // Split by forward slash and filter out empty segments
     const segments = normalizedPath.split("/").filter((segment) => segment.length > 0);

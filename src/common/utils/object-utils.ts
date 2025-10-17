@@ -17,17 +17,12 @@ export function getNestedValue(obj: unknown, path: string): unknown {
 
   const normalizedPath = path.replace(/\[(\d+)\]/g, ".$1"); // Normalize path: 'choices[0].message' -> 'choices.0.message'
   const keys = normalizedPath.split(".").filter(Boolean); // filter(Boolean) removes empty strings
-  let current: unknown = obj;
-
-  for (const key of keys) {
+  return keys.reduce<unknown>((current, key) => {
     if (current === null || typeof current !== "object") {
       return undefined;
     }
-
-    current = (current as Record<string, unknown>)[key];
-  }
-
-  return current;
+    return (current as Record<string, unknown>)[key];
+  }, obj);
 }
 
 /**
@@ -39,11 +34,9 @@ export function getNestedValue(obj: unknown, path: string): unknown {
  * @returns The first value found at any of the specified paths as unknown, or undefined if none found
  */
 export function getNestedValueWithFallbacks(obj: unknown, paths: string[]): unknown {
-  for (const path of paths) {
-    const value = getNestedValue(obj, path);
-    if (value !== null && value !== undefined) {
-      return value;
-    }
+  for (const p of paths) {
+    const v = getNestedValue(obj, p);
+    if (v !== undefined && v !== null) return v;
   }
   return undefined;
 }

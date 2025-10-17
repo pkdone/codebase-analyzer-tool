@@ -139,14 +139,15 @@ export interface LLMContext {
 /**
  * Enum to define the LLM task type
  */
-export enum LLMResponseStatus {
-  UNKNOWN = "unknown",
-  COMPLETED = "completed",
-  EXCEEDED = "exceeded",
-  OVERLOADED = "overloaded",
-  INVALID = "invalid",
-  ERRORED = "error",
-}
+export const LLMResponseStatus = {
+  UNKNOWN: "unknown",
+  COMPLETED: "completed",
+  EXCEEDED: "exceeded",
+  OVERLOADED: "overloaded",
+  INVALID: "invalid",
+  ERRORED: "error",
+} as const;
+export type LLMResponseStatus = (typeof LLMResponseStatus)[keyof typeof LLMResponseStatus];
 
 /**
  * Type to define the token counts
