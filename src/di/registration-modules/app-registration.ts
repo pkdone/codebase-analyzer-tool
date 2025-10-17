@@ -3,9 +3,9 @@ import { TOKENS } from "../../tokens";
 
 // Repository imports
 import SourcesRepositoryImpl from "../../repositories/source/sources.repository";
-import AppSummaryRepositoryImpl from "../../repositories/app-summary/app-summaries.repository";
+import AppSummariesRepositoryImpl from "../../repositories/app-summary/app-summaries.repository";
 import { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import { AppSummaryRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 
 // Domain-specific registration functions
 import {
@@ -28,7 +28,7 @@ import { CodebaseCaptureTask } from "../../tasks/codebase-capture.task";
 import { CodebaseQueryTask } from "../../tasks/code-query.task";
 import { InsightsGenerationTask } from "../../tasks/insights-generation.task";
 import { OneShotGenerateInsightsTask } from "../../tasks/one-shot-generate-insights.task";
-import { MDBConnectionTestTask } from "../../tasks/mdb-connection-test.task";
+import { MongoConnectionTestTask } from "../../tasks/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/test-pluggable-llms.task";
 import { McpServerTask } from "../../tasks/mcp-server.task";
 import { ReportGenerationTask } from "../../tasks/report-generation.task";
@@ -68,9 +68,9 @@ function registerRepositories(): void {
   // Register repositories as singletons
   container.registerSingleton<SourcesRepository>(TOKENS.SourcesRepository, SourcesRepositoryImpl);
 
-  container.registerSingleton<AppSummaryRepository>(
-    TOKENS.AppSummaryRepository,
-    AppSummaryRepositoryImpl,
+  container.registerSingleton<AppSummariesRepository>(
+    TOKENS.AppSummariesRepository,
+    AppSummariesRepositoryImpl,
   );
 
   console.log("Repositories registered");
@@ -126,7 +126,7 @@ function registerLLMDependentComponents(): void {
 function registerTasks(): void {
   // Register tasks that don't depend on LLMRouter as regular singletons
   container.registerSingleton(TOKENS.ReportGenerationTask, ReportGenerationTask);
-  container.registerSingleton(TOKENS.MDBConnectionTestTask, MDBConnectionTestTask);
+  container.registerSingleton(TOKENS.MongoConnectionTestTask, MongoConnectionTestTask);
   container.registerSingleton(TOKENS.McpServerTask, McpServerTask);
   // Register tasks that depend on LLMRouter with simplified singleton registrations
   registerLLMDependentTasks();

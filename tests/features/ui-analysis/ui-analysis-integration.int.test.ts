@@ -2,14 +2,14 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { TOKENS } from "../../../src/tokens";
 import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
-import { AppSummaryRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
+import { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
 import { UiAggregator } from "../../../src/components/insights/ui-aggregator";
 import { SourceRecord } from "../../../src/repositories/source/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../../helpers/database/db-test-helper";
 
 describe("UI Technology Analysis Integration Test", () => {
   let sourcesRepository: SourcesRepository;
-  let appSummaryRepository: AppSummaryRepository;
+  let appSummaryRepository: AppSummariesRepository;
   let uiAggregator: UiAggregator;
   const projectName = `ui-test-project-${Date.now()}`;
 
@@ -18,7 +18,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await setupTestDatabase();
     // Resolve repositories and aggregator from DI container
     sourcesRepository = container.resolve<SourcesRepository>(TOKENS.SourcesRepository);
-    appSummaryRepository = container.resolve<AppSummaryRepository>(TOKENS.AppSummaryRepository);
+    appSummaryRepository = container.resolve<AppSummariesRepository>(TOKENS.AppSummariesRepository);
     uiAggregator = container.resolve<UiAggregator>(TOKENS.UiAggregator);
   }, 60000);
 

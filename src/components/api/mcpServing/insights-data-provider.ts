@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type { AppSummaryRepository } from "../../../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummariesRepository } from "../../../repositories/app-summary/app-summaries.repository.interface";
 import { TOKENS } from "../../../tokens";
 import { AppSummaryRecordWithId } from "../../../repositories/app-summary/app-summaries.model";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
@@ -13,8 +13,8 @@ export default class InsightsDataProvider {
    * Constructor.
    */
   constructor(
-    @inject(TOKENS.AppSummaryRepository)
-    private readonly appSummariesRepository: AppSummaryRepository,
+    @inject(TOKENS.AppSummariesRepository)
+    private readonly appSummariesRepository: AppSummariesRepository,
     @inject(TOKENS.ProjectName) private readonly projectName: string,
   ) {}
 

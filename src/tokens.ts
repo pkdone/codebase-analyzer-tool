@@ -18,7 +18,7 @@ export const TOKENS = {
 
   // Repositories (interface tokens)
   SourcesRepository: Symbol("ISourcesRepository"),
-  AppSummaryRepository: Symbol("IAppSummaryRepository"),
+  AppSummariesRepository: Symbol("IAppSummariesRepository"),
 
   // Tasks (formerly Services - these are top-level orchestrators for CLI commands)
   CodebaseCaptureTask: Symbol("CodebaseCaptureTask"),
@@ -26,7 +26,7 @@ export const TOKENS = {
   InsightsGenerationTask: Symbol("InsightsGenerationTask"),
   OneShotGenerateInsightsTask: Symbol("OneShotGenerateInsightsTask"),
   PluggableLLMsTestTask: Symbol("PluggableLLMsTestTask"),
-  MDBConnectionTestTask: Symbol("MDBConnectionTestTask"),
+  MongoConnectionTestTask: Symbol("MongoConnectionTestTask"),
   McpServerTask: Symbol("McpServerTask"),
   ReportGenerationTask: Symbol("ReportGenerationTask"),
 
@@ -56,7 +56,7 @@ export const TOKENS = {
   InsightsFromDBGenerator: Symbol("InsightsFromDBGenerator"),
   InsightsFromRawCodeGenerator: Symbol("InsightsFromRawCodeGenerator"),
   InsightsProcessorSelector: Symbol("InsightsProcessorSelector"),
-  RawCodeToInsightsFileGenerator: Symbol("RawCodeToInsightsFileGenerator"),
+  LocalInsightsGenerator: Symbol("LocalInsightsGenerator"),
   BomAggregator: Symbol.for("BomAggregator"),
   CodeQualityAggregator: Symbol.for("CodeQualityAggregator"),
   JobAggregator: Symbol.for("JobAggregator"),

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { TOKENS } from "../../src/tokens";
-import { AppSummaryRepository } from "../../src/repositories/app-summary/app-summaries.repository.interface";
+import { AppSummariesRepository } from "../../src/repositories/app-summary/app-summaries.repository.interface";
 import { MongoClient } from "mongodb";
 import {
   AppSummaryRecord,
@@ -10,7 +10,7 @@ import {
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
 
 describe("AppSummaryRepository Integration Tests", () => {
-  let appSummariesRepository: AppSummaryRepository;
+  let appSummariesRepository: AppSummariesRepository;
   let mongoClient: MongoClient;
   const testProjectName = `test-project-${Date.now()}`;
 
@@ -18,7 +18,9 @@ describe("AppSummaryRepository Integration Tests", () => {
     // Setup the temporary database and get the client
     mongoClient = await setupTestDatabase();
     // Resolve the repository, which is now configured to use the test DB
-    appSummariesRepository = container.resolve<AppSummaryRepository>(TOKENS.AppSummaryRepository);
+    appSummariesRepository = container.resolve<AppSummariesRepository>(
+      TOKENS.AppSummariesRepository,
+    );
   }, 60000);
 
   afterAll(async () => {

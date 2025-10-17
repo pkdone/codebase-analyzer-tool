@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { bootstrapContainer, container } from "../../src/di/container";
 import { TOKENS } from "../../src/tokens";
-import { MongoDBClientFactory } from "../../src/common/mdb/mdb-client-factory";
-import { MDBConnectionTestTask } from "../../src/tasks/mdb-connection-test.task";
+import { MongoDBClientFactory } from "../../src/common/mongodb/mdb-client-factory";
+import { MongoConnectionTestTask } from "../../src/tasks/mdb-connection-test.task";
 import { ReportGenerationTask } from "../../src/tasks/report-generation.task";
 import { MongoClient } from "mongodb";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
@@ -58,7 +58,7 @@ describe("DI Container Integration Tests", () => {
       return;
     }, 30000);
 
-    it("should successfully resolve MDBConnectionTestTask with real DB dependency", async () => {
+    it("should successfully resolve MongoConnectionTestTask with real DB dependency", async () => {
       // Skip if no MongoDB URL available
       if (!process.env.MONGODB_URL) {
         console.log("Skipping test - MONGODB_URL not set");
@@ -72,12 +72,12 @@ describe("DI Container Integration Tests", () => {
       await bootstrapContainer(config);
 
       // Assert: Should be able to resolve MongoDB-dependent task
-      let resolvedTask: MDBConnectionTestTask | undefined;
+      let resolvedTask: MongoConnectionTestTask | undefined;
       expect(() => {
-        resolvedTask = container.resolve<MDBConnectionTestTask>(TOKENS.MDBConnectionTestTask);
+        resolvedTask = container.resolve<MongoConnectionTestTask>(TOKENS.MongoConnectionTestTask);
       }).not.toThrow();
 
-      expect(resolvedTask).toBeInstanceOf(MDBConnectionTestTask);
+      expect(resolvedTask).toBeInstanceOf(MongoConnectionTestTask);
       expect(resolvedTask).toBeDefined();
     }, 30000);
 
@@ -139,7 +139,7 @@ describe("DI Container Integration Tests", () => {
       }).not.toThrow();
 
       expect(() => {
-        const appSummariesRepo = container.resolve<any>(TOKENS.AppSummaryRepository);
+        const appSummariesRepo = container.resolve<any>(TOKENS.AppSummariesRepository);
         expect(appSummariesRepo).toBeDefined();
       }).not.toThrow();
     }, 30000);
@@ -234,7 +234,7 @@ describe("DI Container Integration Tests", () => {
 
       // Assert: Should still work correctly
       expect(() => {
-        const task = container.resolve<MDBConnectionTestTask>(TOKENS.MDBConnectionTestTask);
+        const task = container.resolve<MongoConnectionTestTask>(TOKENS.MongoConnectionTestTask);
         expect(task).toBeDefined();
       }).not.toThrow();
     }, 30000);
@@ -316,7 +316,7 @@ describe("DI Container Integration Tests", () => {
 
       // Act: Resolve repositories and verify they have working methods
       const sourcesRepo = container.resolve<any>(TOKENS.SourcesRepository);
-      const appSummariesRepo = container.resolve<any>(TOKENS.AppSummaryRepository);
+      const appSummariesRepo = container.resolve<any>(TOKENS.AppSummariesRepository);
 
       // Assert: Repositories should have expected methods and schemas
       expect(sourcesRepo).toBeDefined();

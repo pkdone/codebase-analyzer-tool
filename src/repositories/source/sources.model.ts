@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { sourceSchema, sourceSummarySchema } from "../../schemas/sources.schema";
-import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mdb/zod-to-mdb-json-schema";
+import { zodToJsonSchemaForMDB, zBsonObjectId } from "../../common/mongodb/zod-to-mdb-json-schema";
 
 /**
  * Type for source record with optional _id

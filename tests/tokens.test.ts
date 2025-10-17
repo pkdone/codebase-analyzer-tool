@@ -17,7 +17,7 @@ describe("TOKENS module", () => {
 
   it("should contain all expected repository tokens", () => {
     expect(TOKENS.SourcesRepository).toEqual(expect.any(Symbol));
-    expect(TOKENS.AppSummaryRepository).toEqual(expect.any(Symbol));
+    expect(TOKENS.AppSummariesRepository).toEqual(expect.any(Symbol));
   });
 
   it("should contain all expected task tokens", () => {

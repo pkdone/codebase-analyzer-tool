@@ -30,7 +30,7 @@ import {
 } from "../../../types/llm-errors.types";
 import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { toMongoJsonSchema } from "../../../../common/mdb/utils/json-schema-utils";
+import { toMongoJsonSchema } from "../../../../common/mongodb/utils/json-schema-utils";
 import { JsonProcessor } from "../../../json-processing/core/json-processor";
 
 /**

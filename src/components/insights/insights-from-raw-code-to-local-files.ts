@@ -26,7 +26,7 @@ export interface FileRequirementPrompt {
  * Class responsible for processing codebase insights using LLM
  */
 @injectable()
-export class RawCodeToInsightsFileGenerator {
+export class LocalInsightsGenerator {
   /**
    * Load prompts from files in the input folder
    */

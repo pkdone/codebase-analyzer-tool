@@ -1,11 +1,11 @@
-import { AppSummaryRepository } from "./app-summaries.repository.interface";
+import { AppSummariesRepository } from "./app-summaries.repository.interface";
 import {
   AppSummaryRecordWithId,
   PartialAppSummaryRecord,
   AppSummaryRecord,
 } from "./app-summaries.model";
 import { databaseConfig } from "../../config/database.config";
-import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
+import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error-utils";
 import { getJSONSchema } from "./app-summaries.model";
 import { BaseRepository } from "../base-repository";
 import { MongoClient } from "mongodb";
@@ -16,9 +16,9 @@ import { inject, injectable } from "tsyringe";
  * MongoDB implementation of the App Summary repository
  */
 @injectable()
-export default class AppSummaryRepositoryImpl
+export default class AppSummariesRepositoryImpl
   extends BaseRepository<AppSummaryRecordWithId>
-  implements AppSummaryRepository
+  implements AppSummariesRepository
 {
   /**
    * Constructor.

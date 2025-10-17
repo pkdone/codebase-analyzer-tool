@@ -2,7 +2,7 @@ import "reflect-metadata";
 import AppReportGenerator from "../../../src/components/reporting/app-report-generator";
 import type { HierarchicalJavaClassDependency } from "../../../src/repositories/source/sources.model";
 import type { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
-import type { AppSummaryRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
 
 describe("AppReportGenerator - iterative tree traversal", () => {
   let generator: AppReportGenerator;
@@ -10,7 +10,7 @@ describe("AppReportGenerator - iterative tree traversal", () => {
   beforeEach(() => {
     // Create minimal mocks for dependencies
     const mockSourcesRepo = {} as SourcesRepository;
-    const mockAppSummariesRepo = {} as AppSummaryRepository;
+    const mockAppSummariesRepo = {} as AppSummariesRepository;
     const mockHtmlWriter = {} as any;
     const mockJsonWriter = {} as any;
     const mockDbDataProvider = {} as any;

@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import InsightsDataProvider from "../../../src/components/api/mcpServing/insights-data-provider";
-import type { AppSummaryRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
 import { AppSummaryCategories } from "../../../src/schemas/app-summaries.schema";
 
 describe("InsightsDataProvider", () => {
   let insightsDataProvider: InsightsDataProvider;
-  let mockAppSummaryRepository: jest.Mocked<AppSummaryRepository>;
+  let mockAppSummaryRepository: jest.Mocked<AppSummariesRepository>;
   const testProjectName = "test-project";
 
   beforeEach(() => {
@@ -14,7 +14,7 @@ describe("InsightsDataProvider", () => {
     // Create mock repository
     mockAppSummaryRepository = {
       getProjectAppSummaryField: jest.fn(),
-    } as unknown as jest.Mocked<AppSummaryRepository>;
+    } as unknown as jest.Mocked<AppSummariesRepository>;
 
     insightsDataProvider = new InsightsDataProvider(mockAppSummaryRepository, testProjectName);
   });

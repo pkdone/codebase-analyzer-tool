@@ -7,7 +7,7 @@ export const insightsTokens = {
   InsightsFromDBGenerator: TOKENS.InsightsFromDBGenerator,
   InsightsFromRawCodeGenerator: TOKENS.InsightsFromRawCodeGenerator,
   InsightsProcessorSelector: TOKENS.InsightsProcessorSelector,
-  RawCodeToInsightsFileGenerator: TOKENS.RawCodeToInsightsFileGenerator,
+  LocalInsightsGenerator: TOKENS.LocalInsightsGenerator,
   BomAggregator: TOKENS.BomAggregator,
   CodeQualityAggregator: TOKENS.CodeQualityAggregator,
   JobAggregator: TOKENS.JobAggregator,

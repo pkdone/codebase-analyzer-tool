@@ -5,7 +5,7 @@ import { TOKENS } from "../../src/tokens";
 // Mock the LLM-related modules to avoid environment dependencies in tests
 jest.mock("../../src/llm/core/llm-provider-manager");
 jest.mock("../../src/llm/core/llm-router");
-jest.mock("../../src/common/mdb/mdb-client-factory", () => {
+jest.mock("../../src/common/mongodb/mdb-client-factory", () => {
   return {
     MongoDBClientFactory: jest.fn().mockImplementation(() => {
       const mockClient = {
@@ -153,7 +153,7 @@ describe("Dependency Registration", () => {
       await bootstrapContainer(config);
 
       // Should be able to resolve MongoDB-dependent task
-      const mongoConnectionTestTask = container.resolve(TOKENS.MDBConnectionTestTask);
+      const mongoConnectionTestTask = container.resolve(TOKENS.MongoConnectionTestTask);
 
       expect(mongoConnectionTestTask).toBeDefined();
     });

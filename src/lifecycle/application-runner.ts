@@ -14,7 +14,7 @@ import { TOKENS } from "../tokens";
  * This function handles all error cases and process termination internally.
  */
 export function bootstrapAndRunTask(taskToken: symbol): void {
-  const eventLoopKeepAliveInterval = setInterval(() => {
+  const awsSdkTerminationWorkaroundInterval = setInterval(() => {
     // Prevent process from exiting prematurely by keeping the event loop active
     // See the comment in the finally block below
   }, 30000); // Empty timer every 30 seconds
@@ -40,7 +40,7 @@ export function bootstrapAndRunTask(taskToken: symbol): void {
 
       // Known Node.js + AWS SDK pattern - many AWS SDK applications need this keep-alive pattern to
       // prevent premature termination during long-running cloud operations
-      clearInterval(eventLoopKeepAliveInterval);
+      clearInterval(awsSdkTerminationWorkaroundInterval);
     }
   })();
 }

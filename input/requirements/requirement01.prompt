@@ -1,1 +1,11 @@
 Architecture Improvements: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. Identify up to 10 key sub-optimal aspects of the software's architecture that would benefit from structural change to improve the clarity of the project and ease of maintenance and subsequent change. Provide a brief description of the current state and a suggestion for improvement. Provide references to the specific part(s) of the code that needs improvement with suggestions on how to improve. Include the list or relative file paths of each source file affected.
+
+Do NOT inlude any of the following topics in your recommendations:
+
+ * Overly Broad and Confusing Environment Configuration
+ * Ambiguous "Task" Layer and Component Placement
+ * Monolithic Repository Implementation
+ * Redundant Documentation Files (`AGENTS.md` and `GEMINI.md`)
+ * Consolidate CLI Entry Points
+ * Unclear Separation in `llm/providers` Subdirectories
+ * Consolidation of responsity data model with schemas data model

@@ -17,7 +17,7 @@ import {
 import { databaseConfig } from "../../config/database.config";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
-import { logMongoValidationErrorIfPresent } from "../../common/mdb/mdb-error-utils";
+import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error-utils";
 import { BaseRepository } from "../base-repository";
 import { TOKENS } from "../../tokens";
 import { inject, injectable } from "tsyringe";

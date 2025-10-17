@@ -42,7 +42,7 @@ export default class CodebaseToDBLoader {
     );
     // Sort files by size (largest first) to distribute work more evenly during concurrent processing
     const sortedFilepaths = await sortFilesBySize(srcFilepaths);
-    await this.processAndStoreSourceFilesIntoDB(
+    await this.processAndStoreFiles(
       sortedFilepaths,
       projectName,
       srcDirPath,
@@ -53,7 +53,7 @@ export default class CodebaseToDBLoader {
   /**
    * Loops through a list of file paths, loads each file's content, and prints the content.
    */
-  private async processAndStoreSourceFilesIntoDB(
+  private async processAndStoreFiles(
     filepaths: string[],
     projectName: string,
     srcDirPath: string,

@@ -13,7 +13,7 @@ const TASK_CONFIGURATIONS = new Map<symbol, TaskRunnerConfig>([
 
   // Tasks with specific requirements
   [TOKENS.OneShotGenerateInsightsTask, { requiresMongoDB: false, requiresLLM: true }],
-  [TOKENS.MDBConnectionTestTask, { requiresMongoDB: true, requiresLLM: false }],
+  [TOKENS.MongoConnectionTestTask, { requiresMongoDB: true, requiresLLM: false }],
   [TOKENS.PluggableLLMsTestTask, { requiresMongoDB: false, requiresLLM: true }],
   [TOKENS.ReportGenerationTask, { requiresMongoDB: true, requiresLLM: false }],
 ]);

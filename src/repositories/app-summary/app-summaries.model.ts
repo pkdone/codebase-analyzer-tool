@@ -5,7 +5,7 @@
  */
 import { z } from "zod";
 import { nameDescSchema, appSummarySchema } from "../../schemas/app-summaries.schema";
-import { zBsonObjectId, zodToJsonSchemaForMDB } from "../../common/mdb/zod-to-mdb-json-schema";
+import { zBsonObjectId, zodToJsonSchemaForMDB } from "../../common/mongodb/zod-to-mdb-json-schema";
 
 /**
  * Type for app summary record without _id

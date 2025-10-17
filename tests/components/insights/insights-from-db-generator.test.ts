@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
-import { AppSummaryRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
+import { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
@@ -16,7 +16,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
 
 describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   let generator: InsightsFromDBGenerator;
-  let mockAppSummaryRepository: jest.Mocked<AppSummaryRepository>;
+  let mockAppSummaryRepository: jest.Mocked<AppSummariesRepository>;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockLLMProviderManager: jest.Mocked<LLMProviderManager>;
@@ -43,7 +43,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       updateAppSummary: jest.fn().mockResolvedValue(undefined),
       getAppSummary: jest.fn(),
       deleteAppSummary: jest.fn(),
-    } as unknown as jest.Mocked<AppSummaryRepository>;
+    } as unknown as jest.Mocked<AppSummariesRepository>;
 
     mockSourcesRepository = {
       getProjectSourcesSummaries: jest.fn().mockResolvedValue([]),

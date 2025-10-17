@@ -8,7 +8,7 @@ import { TOKENS } from "../tokens";
  * Task to test the MongoDB connection.
  */
 @injectable()
-export class MDBConnectionTestTask implements Task {
+export class MongoConnectionTestTask implements Task {
   /**
    * Constructor with dependency injection.
    */

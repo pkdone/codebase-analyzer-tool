@@ -4,7 +4,7 @@ import { TOKENS } from "../../tokens";
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
-import { RawCodeToInsightsFileGenerator } from "../../components/insights/insights-from-raw-code-to-local-files";
+import { LocalInsightsGenerator } from "../../components/insights/insights-from-raw-code-to-local-files";
 import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 import { BomAggregator } from "../../components/insights/bom-aggregator";
 import { CodeQualityAggregator } from "../../components/insights/code-quality-aggregator";
@@ -21,10 +21,7 @@ import { UiAggregator } from "../../components/insights/ui-aggregator";
  * - Managing insight generation strategies based on LLM capabilities
  */
 export function registerInsightsComponents(): void {
-  container.registerSingleton(
-    TOKENS.RawCodeToInsightsFileGenerator,
-    RawCodeToInsightsFileGenerator,
-  );
+  container.registerSingleton(TOKENS.LocalInsightsGenerator, LocalInsightsGenerator);
   container.registerSingleton(TOKENS.BomAggregator, BomAggregator);
   container.registerSingleton(TOKENS.CodeQualityAggregator, CodeQualityAggregator);
   container.registerSingleton(TOKENS.JobAggregator, JobAggregator);

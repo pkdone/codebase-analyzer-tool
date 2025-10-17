@@ -1,1 +1,11 @@
 Key Improvements: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. Identify the top 10 key areas to improve the code in terms of clarity, conciseness, following modern Javascript and TypeScript best practices, and ensuring the code is maintainable, scalable and not too complex. Provide references to the specific part(s) of the code that needs these improvements with suggestions on how to improve. Include the list or relative file paths of each source file affected.
+
+Do NOT inlude any of the following topics in your recommendations:
+
+ * Overly Broad and Confusing Environment Configuration
+ * Ambiguous "Task" Layer and Component Placement
+ * Monolithic Repository Implementation
+ * Redundant Documentation Files (`AGENTS.md` and `GEMINI.md`)
+ * Consolidate CLI Entry Points
+ * Unclear Separation in `llm/providers` Subdirectories
+ * Consolidation of responsity data model with schemas data model

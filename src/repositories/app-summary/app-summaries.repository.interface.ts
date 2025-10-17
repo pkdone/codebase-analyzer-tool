@@ -7,7 +7,7 @@ import {
 /**
  * Interface for the App Summary repository
  */
-export interface AppSummaryRepository {
+export interface AppSummariesRepository {
   /**
    * Create or replace an app summary record
    */

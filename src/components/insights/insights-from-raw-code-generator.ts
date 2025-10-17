@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../llm/core/llm-router";
-import type { AppSummaryRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import { TOKENS } from "../../tokens";
 import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
@@ -33,8 +33,8 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Creates a new InsightsFromRawCodeGenerator.
    */
   constructor(
-    @inject(TOKENS.AppSummaryRepository)
-    private readonly appSummariesRepository: AppSummaryRepository,
+    @inject(TOKENS.AppSummariesRepository)
+    private readonly appSummariesRepository: AppSummariesRepository,
     @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(TOKENS.ProjectName) private readonly projectName: string,
     @inject(TOKENS.EnvVars) private readonly env: EnvVars,

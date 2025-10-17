@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
-import { RawCodeToInsightsFileGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
+import { LocalInsightsGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
 import type LLMRouter from "../llm/core/llm-router";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
@@ -21,8 +21,8 @@ export class OneShotGenerateInsightsTask extends BaseLLMTask {
     @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(TOKENS.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
     @inject(TOKENS.EnvVars) private readonly env: EnvVars,
-    @inject(TOKENS.RawCodeToInsightsFileGenerator)
-    private readonly insightsFileGenerator: RawCodeToInsightsFileGenerator,
+    @inject(TOKENS.LocalInsightsGenerator)
+    private readonly insightsFileGenerator: LocalInsightsGenerator,
     @inject(TOKENS.ProjectName) projectName: string,
   ) {
     super(llmStatsReporter, projectName);

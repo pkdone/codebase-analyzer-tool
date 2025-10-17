@@ -5,11 +5,11 @@ import SourcesRepositoryImpl from "../../src/repositories/source/sources.reposit
 import { SourceRecord } from "../../src/repositories/source/sources.model";
 import { databaseConfig } from "../../src/config/database.config";
 import * as logging from "../../src/common/utils/logging";
-import * as mdbErrorUtils from "../../src/common/mdb/mdb-error-utils";
+import * as mdbErrorUtils from "../../src/common/mongodb/mdb-error-utils";
 
 // Mock dependencies
 jest.mock("../../src/common/utils/logging");
-jest.mock("../../src/common/mdb/mdb-error-utils");
+jest.mock("../../src/common/mongodb/mdb-error-utils");
 
 const mockLogging = logging as jest.Mocked<typeof logging>;
 const mockMdbErrorUtils = mdbErrorUtils as jest.Mocked<typeof mdbErrorUtils>;

@@ -9,7 +9,7 @@ import { AppSummaryCategoriesProvider } from "./data-providers/categories-data-p
 import { DependencyTreePngGenerator } from "./generators/dependency-tree-png-generator";
 import { PieChartGenerator } from "./generators/pie-chart-generator";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { AppSummaryRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import type { ReportData } from "./report-gen.types";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
@@ -31,8 +31,8 @@ export default class AppReportGenerator {
    */
   constructor(
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.AppSummaryRepository)
-    private readonly appSummariesRepository: AppSummaryRepository,
+    @inject(TOKENS.AppSummariesRepository)
+    private readonly appSummariesRepository: AppSummariesRepository,
     @inject(TOKENS.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
     @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
     @inject(TOKENS.DatabaseReportDataProvider)
@@ -77,7 +77,7 @@ export default class AppReportGenerator {
       this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
       this.databaseDataProvider.getIntegrationPoints(projectName),
       this.databaseDataProvider.getDatabaseInteractions(projectName),
-      this.databaseDataProvider.getSummarizedProceduresAndTriggers(projectName),
+      this.databaseDataProvider.buildProceduresAndTriggersSummary(projectName),
       this.codeStructureDataProvider.getTopLevelJavaClasses(projectName),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "billOfMaterials"),
       this.appSummariesRepository.getProjectAppSummaryField(projectName, "codeQualitySummary"),

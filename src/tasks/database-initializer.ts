@@ -5,15 +5,15 @@ import { TOKENS } from "../tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/logging";
 import type { SourcesRepository } from "../repositories/source/sources.repository.interface";
-import type { AppSummaryRepository } from "../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummariesRepository } from "../repositories/app-summary/app-summaries.repository.interface";
 import {
   VectorSearchFilter,
   createVectorSearchIndexDefinition,
-} from "../common/mdb/mdb-index-utils";
+} from "../common/mongodb/mdb-index-utils";
 import {
   MONGODB_DUPLICATE_OBJ_ERROR_CODES,
   MONGODB_NAMESPACE_EXISTS_ERROR_CODE,
-} from "../common/mdb/mdb.constants";
+} from "../common/mongodb/mdb.constants";
 
 /**
  * Component responsible for database schema initialization and management.
@@ -36,8 +36,8 @@ export class DatabaseInitializer {
     @inject(TOKENS.MongoClient) private readonly mongoClient: MongoClient,
     @inject(TOKENS.DatabaseName) dbName: string,
     @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.AppSummaryRepository)
-    private readonly appSummariesRepository: AppSummaryRepository,
+    @inject(TOKENS.AppSummariesRepository)
+    private readonly appSummariesRepository: AppSummariesRepository,
   ) {
     this.db = this.mongoClient.db(dbName);
     this.sourcesCollection = this.db.collection(databaseConfig.SOURCES_COLLECTION_NAME);

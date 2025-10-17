@@ -6,10 +6,10 @@ import {
   PartialAppSummaryRecord,
 } from "../../src/repositories/app-summary/app-summaries.model";
 import { databaseConfig } from "../../src/config/database.config";
-import * as mdbErrorUtils from "../../src/common/mdb/mdb-error-utils";
+import * as mdbErrorUtils from "../../src/common/mongodb/mdb-error-utils";
 
 // Mock dependencies
-jest.mock("../../src/common/mdb/mdb-error-utils");
+jest.mock("../../src/common/mongodb/mdb-error-utils");
 
 const mockMdbErrorUtils = mdbErrorUtils as jest.Mocked<typeof mdbErrorUtils>;
 

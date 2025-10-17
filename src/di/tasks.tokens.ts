@@ -9,7 +9,7 @@ export const taskTokens = {
   InsightsGenerationTask: TOKENS.InsightsGenerationTask,
   OneShotGenerateInsightsTask: TOKENS.OneShotGenerateInsightsTask,
   PluggableLLMsTestTask: TOKENS.PluggableLLMsTestTask,
-  MDBConnectionTestTask: TOKENS.MDBConnectionTestTask,
+  MongoConnectionTestTask: TOKENS.MongoConnectionTestTask,
   McpServerTask: TOKENS.McpServerTask,
   ReportGenerationTask: TOKENS.ReportGenerationTask,
   DatabaseInitializer: TOKENS.DatabaseInitializer,

@@ -5,7 +5,7 @@ import { TOKENS } from "../tokens";
 
 export const repositoryTokens = {
   SourcesRepository: TOKENS.SourcesRepository,
-  AppSummaryRepository: TOKENS.AppSummaryRepository,
+  AppSummariesRepository: TOKENS.AppSummariesRepository,
 } as const;
 
 export type RepositoryToken = keyof typeof repositoryTokens;
