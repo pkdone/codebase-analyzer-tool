@@ -68,3 +68,11 @@ export const TOKENS = {
   McpServerFactory: Symbol("McpServerFactory"),
   McpHttpServer: Symbol("McpHttpServer"),
 } as const;
+
+/**
+ * NOTE: Tokens have been modularized into grouped files under `src/di` and `src/components/*`.
+ * Existing imports of `TOKENS.X` continue to work; new code can import group-specific objects
+ * like `coreTokens`, `repositoryTokens`, etc. for improved cohesion.
+ */
+
+export type TokenKey = keyof typeof TOKENS;

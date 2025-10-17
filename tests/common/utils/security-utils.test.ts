@@ -1,8 +1,9 @@
-import { redactUrl } from "../../../src/common/mdb/utils/security-utils";
+import { redactUrl } from "../../../src/common/security/url-redactor";
 import { logErrorMsgAndDetail } from "../../../src/common/utils/logging";
 
 // Mock the logging module
 jest.mock("../../../src/common/utils/logging");
+// Removed mock of deprecated shim; using generic redactor implementation
 const mockLogErrorMsgAndDetail = logErrorMsgAndDetail as jest.MockedFunction<
   typeof logErrorMsgAndDetail
 >;
