@@ -9,3 +9,9 @@ Do NOT inlude any of the following topics in your recommendations:
  * Consolidate CLI Entry Points
  * Unclear Separation in `llm/providers` Subdirectories
  * Consolidation of responsity data model with schemas data model
+ * Monolithic Schema Definition File
+ * Overly Granular Utility Files in `common/utils`
+ * Simplify Entry Points with Top-Level `await`
+ * Misplaced `DatabaseInitializer` Component
+ 
+ 
