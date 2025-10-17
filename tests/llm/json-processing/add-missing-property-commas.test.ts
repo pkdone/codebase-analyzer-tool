@@ -116,7 +116,7 @@ describe("addMissingPropertyCommas sanitizer", () => {
   });
 
   it("does not add comma inside string values", () => {
-    const input = '{"a":"value with \\" quote marks"}';
+    const input = String.raw`{"a":"value with \" quote marks"}`;
     const result = addMissingPropertyCommas(input);
     expect(result.changed).toBe(false);
     expect(() => JSON.parse(result.content)).not.toThrow();
@@ -170,7 +170,9 @@ describe("addMissingPropertyCommas sanitizer", () => {
     expect(result.changed).toBe(true);
     expect(result.diagnostics).toBeDefined();
     expect(result.diagnostics).toEqual(
-      expect.arrayContaining([expect.stringContaining("Added comma")]),
+      expect.arrayContaining([
+        expect.stringContaining("Inserted missing comma between object properties"),
+      ]),
     );
   });
 

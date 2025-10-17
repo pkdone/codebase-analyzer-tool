@@ -143,6 +143,11 @@ export class JsonProcessingError extends LLMError {
   readonly lastSanitizer?: string;
 
   /**
+   * Optional diagnostics collected from sanitizers (fine-grained repair notes)
+   */
+  readonly diagnostics?: readonly string[];
+
+  /**
    * Constructor.
    */
   constructor(
@@ -153,6 +158,7 @@ export class JsonProcessingError extends LLMError {
     appliedSanitizers: string[],
     underlyingError?: Error,
     lastSanitizer?: string,
+    diagnostics?: readonly string[],
   ) {
     const context = {
       type,
@@ -161,6 +167,7 @@ export class JsonProcessingError extends LLMError {
       appliedSanitizers,
       underlyingError: underlyingError?.message,
       lastSanitizer,
+      diagnosticsCount: diagnostics?.length ?? 0,
     };
     super(JsonProcessingError.name, LLMError.buildMessage(message, context), {
       cause: underlyingError,
@@ -171,5 +178,6 @@ export class JsonProcessingError extends LLMError {
     this.appliedSanitizers = appliedSanitizers;
     this.underlyingError = underlyingError;
     this.lastSanitizer = lastSanitizer;
+    this.diagnostics = diagnostics;
   }
 }

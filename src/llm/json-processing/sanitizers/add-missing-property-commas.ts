@@ -1,54 +1,117 @@
 import { Sanitizer } from "./sanitizers-types";
 import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
+import { DELIMITERS } from "../config/delimiters.config";
 
 /**
- * Adds missing commas between object properties where the LLM forgot to include them.
+ * Stateful implementation to insert missing commas between object properties.
+ * Avoids regex false-positives inside string literals (e.g. embedded code or JSON snippets).
  *
- * Detects patterns like:
- *   "property1": "value"
- *   "property2": "value"
- *
- * And transforms to:
- *   "property1": "value",
- *   "property2": "value"
- *
- * This sanitizer uses a regex-based approach to match JSON value endings followed by
- * property names, ensuring we only match outside of string literals.
- *
- * Handles cases where:
- * - A string value, number, boolean, array, or object is followed by whitespace and then another property name
+ * Strategy:
+ * - Iterate over characters tracking whether we're inside a string and escape state.
+ * - Track last significant token that can terminate a value (closing brace/bracket, quote, digit, keyword).
+ * - When encountering a newline followed by indentation & opening quote for a property
+ *   and the previous line ended with a value token but not a comma, insert a comma.
  */
 export const addMissingPropertyCommas: Sanitizer = (input) => {
-  const trimmed = input.trim();
-  if (!trimmed) return { content: input, changed: false };
+  if (!input) return { content: input, changed: false };
 
+  // Safe iteration over string by index (avoids emoji segmentation issues flagged by lint rule)
+  const chars = Array.from(input); // deliberate: preserves code points
+  let inString = false;
+  let escape = false;
+  let i = 0;
+  let lastNonWhitespaceChar: string | undefined;
+  let pendingLineValueEnd = false; // whether previous line ended with a value (no trailing comma yet)
   const diagnostics: string[] = [];
+  const insertPositions: number[] = [];
 
-  // Pattern matches JSON value endings (}, ], ", digit, or keywords true/false/null)
-  // followed by whitespace/newline and then an opening quote (indicating a new property).
-  // We use a lookbehind to ensure we're after a valid value ending.
-  // Note: This is a stateless approach that's more maintainable than character-by-character parsing.
-  const missingCommaPattern = /(?<=[}\]"0-9]|true|false|null)\s*\n\s*(?=")/g;
+  // Helper to classify value-ending characters
+  const isValueTerminator = (ch: string | undefined): boolean => {
+    if (!ch) return false;
+    return (
+      ch === DELIMITERS.CLOSE_BRACE ||
+      ch === DELIMITERS.CLOSE_BRACKET ||
+      ch === DELIMITERS.DOUBLE_QUOTE ||
+      /\d/.test(ch)
+    );
+  };
 
-  const originalContent = trimmed;
-  const result = trimmed.replace(missingCommaPattern, (match) => {
-    diagnostics.push(`Added comma after value ending before newline`);
-    // Preserve the whitespace structure but add a comma
-    return match.replace(/\n/, ",\n");
-  });
+  // Walk through characters capturing candidate newline contexts
+  while (i < chars.length) {
+    const ch = chars[i];
 
-  if (result === originalContent) {
-    return { content: input, changed: false };
+    if (inString) {
+      if (escape) {
+        escape = false; // escaped char consumed
+      } else if (ch === DELIMITERS.BACKSLASH) {
+        escape = true;
+      } else if (ch === DELIMITERS.DOUBLE_QUOTE) {
+        inString = false;
+      }
+      i++;
+      continue;
+    }
+
+    if (ch === DELIMITERS.DOUBLE_QUOTE) {
+      inString = true;
+      lastNonWhitespaceChar = ch;
+      i++;
+      continue;
+    }
+
+    if (ch === DELIMITERS.NEWLINE) {
+      // Determine if the previous line ended with a value (and not comma)
+      if (lastNonWhitespaceChar && isValueTerminator(lastNonWhitespaceChar)) {
+        pendingLineValueEnd = true;
+      } else {
+        pendingLineValueEnd = false;
+      }
+      i++;
+
+      // Peek forward to see if next non-whitespace chars start a property name
+      let j = i;
+      while (j < chars.length && (chars[j] === DELIMITERS.SPACE || chars[j] === DELIMITERS.TAB)) {
+        j++;
+      }
+      if (
+        pendingLineValueEnd &&
+        j < chars.length &&
+        chars[j] === DELIMITERS.DOUBLE_QUOTE &&
+        lastNonWhitespaceChar !== DELIMITERS.COMMA
+      ) {
+        // Insert comma before newline (i-1 is newline position, we add just before newline effect -> actually we want after previous line value before current indentation)
+        // We insert at position i (start of indentation) effectively adding comma at end of previous line.
+        // Insert comma BEFORE the newline to end previous line correctly
+        if (i > 0) insertPositions.push(i - 1);
+        diagnostics.push("Inserted missing comma between object properties");
+        // reset handled implicitly by setting lastNonWhitespaceChar below
+      }
+      lastNonWhitespaceChar = undefined; // reset for new line scanning
+      continue;
+    }
+
+    if (ch.trim() !== "") {
+      lastNonWhitespaceChar = ch;
+    }
+
+    i++;
   }
 
-  // Count actual replacements by comparing strings
-  const commasAdded =
-    (result.match(/,\n/g) ?? []).length - (originalContent.match(/,\n/g) ?? []).length;
+  if (insertPositions.length === 0) return { content: input, changed: false };
+
+  // Build new content with inserted commas
+  let offset = 0;
+  let mutable = input;
+  for (const pos of insertPositions) {
+    const realPos = pos + offset;
+    mutable = mutable.slice(0, realPos) + "," + mutable.slice(realPos);
+    offset++;
+  }
 
   return {
-    content: result,
+    content: mutable,
     changed: true,
-    description: SANITIZATION_STEP_TEMPLATE.addedMissingCommas(commasAdded),
+    description: SANITIZATION_STEP_TEMPLATE.addedMissingCommas(insertPositions.length),
     diagnostics,
   };
 };

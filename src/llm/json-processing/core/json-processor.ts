@@ -182,6 +182,7 @@ export class JsonProcessor {
       appliedSteps,
       result.lastParseError,
       lastSanitizer,
+      allDiagnostics,
     );
     return { success: false, error };
   }
@@ -202,67 +203,104 @@ export class JsonProcessor {
   ):
     | { success: true; data: T }
     | { success: false; workingContent: string; lastParseError?: Error } {
-    // Fast path: try parsing raw content first without any sanitization
-    const rawParseResult = this.tryParseAndValidate<T>(
+    // Attempt raw parse first (fast path)
+    const fastPath = this.applySanitizerAndParse<T>(
       originalContent,
       resourceName,
       completionOptions,
+      undefined,
+      appliedSteps,
     );
-    if (rawParseResult.success) {
-      return { success: true, data: rawParseResult.data };
+    if (fastPath.kind === "success") {
+      return { success: true, data: fastPath.data };
+    }
+    if (fastPath.kind === "validation-error") {
+      return {
+        success: false,
+        workingContent: originalContent,
+        lastParseError: fastPath.error,
+      };
     }
 
-    // Check for validation error on raw content - stop immediately
-    if (rawParseResult.errorType === JsonProcessingErrorType.VALIDATION) {
-      const error = new JsonProcessingError(
-        JsonProcessingErrorType.VALIDATION,
-        `LLM response for resource '${resourceName}' parsed successfully but failed schema validation`,
-        originalContent,
-        originalContent,
-        appliedSteps,
-        rawParseResult.error,
-      );
-      return { success: false, workingContent: originalContent, lastParseError: error };
-    }
-
-    // Slow path: raw parse failed, so apply sanitizers one by one
+    // Progressive sanitization path
     let workingContent = originalContent;
-    let lastParseError: Error = rawParseResult.error;
+    let lastParseError: Error = fastPath.error; // initial parse error
 
     for (const sanitizer of this.SANITIZATION_ORDERED_PIPELINE) {
-      const { content, changed, description, diagnostics } = sanitizer(workingContent);
-      if (!changed) continue; // Skip if sanitizer didn't change anything
-      workingContent = content;
-      if (description) {
-        appliedSteps.push(description);
-        onSanitizerApplied(description);
+      const stepResult = sanitizer(workingContent);
+      if (!stepResult.changed) continue;
+      workingContent = stepResult.content;
+      if (stepResult.description) {
+        appliedSteps.push(stepResult.description);
+        onSanitizerApplied(stepResult.description);
       }
-      if (diagnostics && diagnostics.length > 0) allDiagnostics.push(...diagnostics);
-      const parseResult = this.tryParseAndValidate<T>(
+      if (stepResult.diagnostics && stepResult.diagnostics.length > 0) {
+        allDiagnostics.push(...stepResult.diagnostics);
+      }
+
+      const parseOutcome = this.applySanitizerAndParse<T>(
         workingContent,
         resourceName,
         completionOptions,
+        stepResult.description,
+        appliedSteps,
       );
-      if (parseResult.success) return { success: true, data: parseResult.data };
-      // Validation error - stop immediately (sanitizers can't fix schema issues)
-      if (parseResult.errorType === JsonProcessingErrorType.VALIDATION) {
-        const error = new JsonProcessingError(
-          JsonProcessingErrorType.VALIDATION,
-          `LLM response for resource '${resourceName}' parsed successfully but failed schema validation after sanitization`,
-          originalContent,
-          workingContent,
-          appliedSteps,
-          parseResult.error,
-          description,
-        );
-        return { success: false, workingContent, lastParseError: error };
-      }
 
-      // Parse error - continue to next sanitizer
-      lastParseError = parseResult.error;
+      switch (parseOutcome.kind) {
+        case "success":
+          return { success: true, data: parseOutcome.data };
+        case "validation-error": {
+          return {
+            success: false,
+            workingContent,
+            lastParseError: parseOutcome.error,
+          };
+        }
+        case "parse-error": {
+          lastParseError = parseOutcome.error;
+          continue; // try next sanitizer
+        }
+      }
     }
 
     return { success: false, workingContent, lastParseError };
+  }
+
+  /**
+   * Applies (optionally) a sanitizer context and then attempts parse + validate.
+   * Returns a discriminated result capturing success, parse failure, or validation failure.
+   */
+  private applySanitizerAndParse<T>(
+    content: string,
+    resourceName: string,
+    completionOptions: LLMCompletionOptions,
+    lastSanitizerDescription: string | undefined,
+    appliedSteps: readonly string[],
+  ):
+    | { kind: "success"; data: T }
+    | { kind: "parse-error"; error: Error }
+    | { kind: "validation-error"; error: JsonProcessingError } {
+    const parseAttempt = this.tryParseAndValidate<T>(content, resourceName, completionOptions);
+    if (parseAttempt.success) {
+      return { kind: "success", data: parseAttempt.data };
+    }
+
+    if (parseAttempt.errorType === JsonProcessingErrorType.VALIDATION) {
+      const validationErr = new JsonProcessingError(
+        JsonProcessingErrorType.VALIDATION,
+        `LLM response for resource '${resourceName}' parsed successfully but failed schema validation`,
+        content,
+        content,
+        [...appliedSteps],
+        parseAttempt.error,
+        lastSanitizerDescription,
+        undefined,
+      );
+      return { kind: "validation-error", error: validationErr };
+    }
+
+    // Parse error path
+    return { kind: "parse-error", error: parseAttempt.error };
   }
 
   /**

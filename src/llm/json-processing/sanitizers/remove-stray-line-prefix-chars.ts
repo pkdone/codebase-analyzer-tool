@@ -1,4 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
+import { DELIMITERS } from "../config/delimiters.config";
 
 /**
  * Removes stray characters at the beginning of lines within JSON structures.
@@ -70,62 +71,66 @@ import { Sanitizer } from "./sanitizers-types";
  * @returns Sanitizer result with stray line prefixes removed if found
  */
 export const removeStrayLinePrefixChars: Sanitizer = (input) => {
-  const cleaned = stripStrayLinePrefixes(input);
-  const changed = cleaned !== input;
+  if (!input) return { content: input, changed: false };
 
-  if (!changed) {
-    return { content: input, changed: false };
-  }
-
-  // Count how many lines were fixed for diagnostics
-  const originalLines = input.split("\n");
-  const cleanedLines = cleaned.split("\n");
-  let fixedCount = 0;
+  const lines = input.split(DELIMITERS.NEWLINE);
+  const outputLines: string[] = [];
+  let inString = false;
+  let escape = false;
   const diagnostics: string[] = [];
+  let fixedCount = 0;
 
-  for (let i = 0; i < originalLines.length && i < cleanedLines.length; i++) {
-    if (originalLines[i] !== cleanedLines[i]) {
-      fixedCount++;
-      // Capture first few examples for diagnostics (limit to 3)
-      if (diagnostics.length < 3) {
-        const original = originalLines[i].trim();
-        const cleaned = cleanedLines[i].trim();
-        if (original && cleaned) {
-          diagnostics.push(`Line ${i + 1}: removed prefix from "${original.substring(0, 40)}..."`);
+  // Include opening/closing braces/brackets, quote, digit, comma, primitives.
+  // Added ']' which was previously missing causing missed fixes for lines like `s  ],`.
+  const strayPrefixPattern = /^(\w+)([ \t]{2,})([[\]{}"0-9]|true|false|null|,)/;
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex];
+    // Skip prefix removal if currently inside a string literal spanning lines
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!inString) {
+      const match = strayPrefixPattern.exec(line);
+      if (match) {
+        const [, prefix, whitespace, token] = match;
+        const newLine = whitespace + token + line.slice(match[0].length);
+        outputLines.push(newLine);
+        fixedCount++;
+        if (diagnostics.length < 3) {
+          // Abbreviate very long lines to keep diagnostics compact (<100 chars)
+          const base = `Line ${lineIndex + 1}: removed prefix '${prefix}' before '${token}'`;
+          const abbreviated = line.length > 60 ? `${base} ...` : base;
+          diagnostics.push(abbreviated);
         }
+        scanStringState(newLine);
+        continue;
       }
     }
+    outputLines.push(line);
+    scanStringState(line);
   }
 
+  if (fixedCount === 0) return { content: input, changed: false };
+
   return {
-    content: cleaned,
+    content: outputLines.join(DELIMITERS.NEWLINE),
     changed: true,
-    description: `Removed stray prefix characters from ${fixedCount} line${fixedCount !== 1 ? "s" : ""}`,
+    description: `Removed stray prefix characters from ${fixedCount} line${fixedCount === 1 ? "" : "s"}`,
     diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
   };
+
+  function scanStringState(text: string): void {
+    for (const ch of text) {
+      if (inString) {
+        if (escape) {
+          escape = false;
+        } else if (ch === DELIMITERS.BACKSLASH) {
+          escape = true;
+        } else if (ch === DELIMITERS.DOUBLE_QUOTE) {
+          inString = false;
+        }
+      } else if (ch === DELIMITERS.DOUBLE_QUOTE) {
+        inString = true;
+      }
+    }
+    escape = false;
+  }
 };
-
-/**
- * Internal function to strip stray characters from line beginnings.
- *
- * The regex pattern matches:
- * - `\n` - newline character
- * - `([a-zA-Z0-9_]+)` - one or more word characters (the stray prefix)
- * - `( {2,}|\t+)` - multiple spaces or tabs (required separation)
- * - `(["[{\]}]|[0-9]|true|false|null|,)` - valid JSON token (opening/closing delimiters, values, or comma)
- *
- * The replacement keeps only the newline, whitespace, and valid JSON token.
- *
- * @param input - The string to process
- * @returns String with stray line prefixes removed
- */
-function stripStrayLinePrefixes(input: string): string {
-  if (!input) return input;
-
-  // Match: newline + stray chars + whitespace + valid JSON token
-  // Capture groups: $1=stray, $2=whitespace, $3=valid JSON token
-  const strayPrefixRegex = /\n([a-zA-Z0-9_]+)( {2,}|\t+)(["[{\]}]|[0-9]|true|false|null|,)/g;
-
-  // Replace with: newline + whitespace + valid JSON (removing the stray prefix)
-  return input.replaceAll(strayPrefixRegex, "\n$2$3");
-}

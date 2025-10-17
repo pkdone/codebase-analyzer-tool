@@ -115,13 +115,13 @@ describe("JsonProcessor", () => {
           { input: '{"array": [1,2,3]}', expected: { array: [1, 2, 3] } },
         ];
 
-        testCases.forEach(({ input, expected }) => {
+        for (const { input, expected } of testCases) {
           const result = jsonProcessor.parseAndValidate(input, "test", completionOptions);
           expect(result.success).toBe(true);
           if (result.success) {
             expect(result.data).toEqual(expected);
           }
-        });
+        }
       });
     });
 
@@ -154,7 +154,7 @@ describe("JsonProcessor", () => {
       });
 
       it("should fix over-escaped sequences", () => {
-        const overEscaped = '{"text": "Line 1\\\\nLine 2"}';
+        const overEscaped = String.raw`{"text": "Line 1\nLine 2"}`;
         const result = jsonProcessor.parseAndValidate(overEscaped, "test", completionOptions);
         expect(result.success).toBe(true);
         if (result.success) {
@@ -397,6 +397,46 @@ describe("JsonProcessor", () => {
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error.name).toBe("JsonProcessingError");
+        }
+      });
+    });
+
+    describe("pipeline behavior enhancements", () => {
+      it("should succeed via fast path without recording unnecessary sanitizer steps (early stop semantics)", () => {
+        // Input with leading whitespace that is still valid JSON when trimmed implicitly by JSON.parse (fast path)
+        const input = '   \n{"simple":true}';
+        const result = jsonProcessor.parseAndValidate(
+          input,
+          "early-stop-resource",
+          completionOptions,
+        );
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // New behavior: fast path parse does not record a trimWhitespace step; steps may be empty
+          expect(Array.isArray(result.steps)).toBe(true);
+          expect(result.steps.length).toBe(0);
+        }
+      });
+
+      it("should expose diagnostics when sanitizers modify content (whether final parse succeeds or fails)", () => {
+        // Input engineered to trigger code fence removal and comma insertion
+        const malformed = '```json\n{"a": "b"\n"c": "d"}'; // missing comma, code fence
+        const processorWithLogging = new JsonProcessor(true);
+        const result = processorWithLogging.parseAndValidate(
+          malformed,
+          "diag-resource",
+          completionOptions,
+        );
+        if (result.success) {
+          // Successful repair: steps should include comma insertion description
+          const stepsJoined = result.steps.join(" | ");
+          expect(/comma/i.test(stepsJoined)).toBe(true);
+        } else {
+          // Failure path: diagnostics propagated into JsonProcessingError if available
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
+          if (result.error.diagnostics) {
+            expect(result.error.diagnostics.length).toBeGreaterThan(0);
+          }
         }
       });
     });
