@@ -36,7 +36,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
     primaryCompletionModelKey: "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
   };
 
-  it("should safely access maxGenLenCap from provider config", () => {
+  it("should apply maxGenLenCap when CAP_MAX_GEN_LEN feature present", () => {
     const llm = new BedrockLlamaLLM(
       mockModelKeysSet,
       mockModelsMetadata,
@@ -53,6 +53,9 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       createMockJsonProcessor(),
     );
 
+    // Attach feature flags (normally done by provider manager)
+    (llm as any).llmFeatures = bedrockLlamaProviderManifest.features;
+
     // Access the protected method via type assertion to test it
     const requestBody = (llm as any).buildCompletionRequestBody(
       "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
@@ -66,7 +69,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
     expect(requestBody.top_p).toBeDefined();
   });
 
-  it("should use maxCompletionTokens when it is less than maxGenLenCap", () => {
+  it("should use maxCompletionTokens when it is less than maxGenLenCap (feature present)", () => {
     const modelsMetadataWithLowMax: Record<string, ResolvedLLMModelMetadata> = {
       AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT: {
         modelKey: "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
@@ -100,6 +103,9 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       createMockJsonProcessor(),
     );
 
+    // Attach feature flags so capping logic engages
+    (llm as any).llmFeatures = bedrockLlamaProviderManifest.features;
+
     const requestBody = (llm as any).buildCompletionRequestBody(
       "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
       "test prompt",
@@ -116,7 +122,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
     expect(bedrockLlamaProviderManifest.providerSpecificConfig.maxGenLenCap).toBe(2048);
   });
 
-  it("should only apply max_gen_len capping for LLAMA models", () => {
+  it("should not cap when feature flag absent (regardless of model key)", () => {
     // Create a non-LLAMA model key to verify the cap is not applied
     const nonLlamaMetadata: Record<string, ResolvedLLMModelMetadata> = {
       SOME_OTHER_MODEL: {
@@ -158,7 +164,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
 
     const requestBody = (llm as any).buildCompletionRequestBody("SOME_OTHER_MODEL", "test prompt");
 
-    // max_gen_len should not be set for non-LLAMA models
+    // max_gen_len should not be set because feature flag was not assigned
     expect(requestBody.max_gen_len).toBeUndefined();
   });
 });

@@ -61,6 +61,8 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 128000,
     },
   },
+  // Feature flags documenting special behaviors; CAP_MAX_GEN_LEN instructs implementation to cap max_gen_len
+  features: ["CAP_MAX_GEN_LEN"] as const,
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
     requestTimeoutMillis: DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS,
@@ -69,6 +71,7 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     maxRetryDelayMillis: DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
     maxGenLenCap: 2048,
   },
+  // Keep factory for backward compatibility; will prefer implementation if present.
   factory: (
     _envConfig,
     modelsKeysSet,
@@ -77,9 +80,8 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     providerSpecificConfig,
     jsonProcessor,
   ) => {
-    const config: BedrockConfig = {
-      providerSpecificConfig,
-    };
+    const config: BedrockConfig = { providerSpecificConfig };
     return new BedrockLlamaLLM(modelsKeysSet, modelsMetadata, errorPatterns, config, jsonProcessor);
   },
+  implementation: BedrockLlamaLLM,
 };

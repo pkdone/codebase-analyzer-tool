@@ -60,6 +60,8 @@ export interface LLMProviderManifest {
     primaryCompletion: LLMModelMetadata;
     secondaryCompletion?: LLMModelMetadata;
   };
+  /** Optional feature flags declaring special behaviors required for this provider (e.g., token caps) */
+  features?: readonly string[];
   /** Provider-specific error patterns for token limits/overload */
   errorPatterns: readonly LLMErrorMsgRegExPattern[];
   /** Provider-specific operational configuration */
@@ -71,6 +73,14 @@ export interface LLMProviderManifest {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     providerSpecificConfig: LLMProviderSpecificConfig,
+    jsonProcessor: JsonProcessor,
+  ) => LLMProvider;
+  /** Optional implementation constructor (alternative to factory) */
+  implementation?: new (
+    modelsKeysSet: LLMModelKeysSet,
+    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
+    errorPatterns: readonly LLMErrorMsgRegExPattern[],
+    config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
   ) => LLMProvider;
 }

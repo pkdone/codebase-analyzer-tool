@@ -169,7 +169,25 @@ export class LLMProviderManager {
     const manifest = this.getInitializedManifest();
     const modelsKeysSet = this.buildModelsKeysSet(manifest);
     const modelsMetadata = this.buildModelsMetadata(manifest, env);
-    return manifest.factory(
+    // Prefer implementation constructor if provided for more declarative manifests.
+    if (manifest.implementation) {
+      const config = { providerSpecificConfig: manifest.providerSpecificConfig };
+      const instance = new manifest.implementation(
+        modelsKeysSet,
+        modelsMetadata,
+        manifest.errorPatterns,
+        config,
+        this.jsonProcessor,
+      );
+      // Attach features if available (duck typing to avoid interface changes to all providers yet)
+      if (manifest.features && Array.isArray(manifest.features)) {
+        (instance as unknown as { llmFeatures?: readonly string[] }).llmFeatures =
+          manifest.features;
+      }
+      return instance;
+    }
+    // Fallback to legacy factory function
+    const provider = manifest.factory(
       env,
       modelsKeysSet,
       modelsMetadata,
@@ -177,6 +195,10 @@ export class LLMProviderManager {
       manifest.providerSpecificConfig,
       this.jsonProcessor,
     );
+    if (manifest.features && Array.isArray(manifest.features)) {
+      (provider as unknown as { llmFeatures?: readonly string[] }).llmFeatures = manifest.features;
+    }
+    return provider;
   }
 
   /**

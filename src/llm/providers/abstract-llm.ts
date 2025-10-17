@@ -32,6 +32,8 @@ export default abstract class AbstractLLM implements LLMProvider {
   // Fields
   protected readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;
+  /** Optional feature flags propagated from manifest (if any) */
+  protected llmFeatures?: readonly string[];
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private hasLoggedJsonError = false;
@@ -334,7 +336,8 @@ export default abstract class AbstractLLM implements LLMProvider {
     if (typeof responseContent !== "string") return;
 
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      // Use replaceAll for lint rule compliance (prefer replaceAll over replace with global regex)
+      const timestamp = new Date().toISOString().replaceAll(/[:.]/g, "-");
       const filename = ERROR_LOG_FILENAME_TEMPLATE.replace("{timestamp}", timestamp);
       const errorDir = ERROR_LOG_DIRECTORY;
       const filepath = `${errorDir}/${filename}`;
