@@ -127,6 +127,49 @@ export interface ProjectedTopLevelJavaClassDependencies {
 }
 
 /**
+ * Interface representing aggregated project file and line statistics
+ */
+export interface ProjectedFileAndLineStats {
+  readonly fileCount: number;
+  readonly linesOfCode: number;
+}
+
+/**
+ * Interface representing a top complex method projection
+ */
+export interface ProjectedTopComplexMethod {
+  readonly [key: string]: unknown; // Allow passthrough to satisfy zod 'passthrough' expectation
+  readonly methodName: string;
+  readonly filePath: string;
+  readonly complexity: number;
+  readonly linesOfCode: number;
+  readonly codeSmells?: string[];
+}
+
+/**
+ * Interface representing a code smell aggregate statistic
+ */
+export interface ProjectedCodeSmellStatistic {
+  readonly [key: string]: unknown; // Passthrough compatibility
+  readonly smellType: string;
+  readonly occurrences: number;
+  readonly affectedFiles: number;
+}
+
+/**
+ * Interface representing overall code quality statistics aggregation
+ */
+export interface ProjectedCodeQualityStatistics {
+  readonly [key: string]: unknown; // Passthrough compatibility
+  readonly totalMethods: number;
+  readonly averageComplexity: number;
+  readonly highComplexityCount: number;
+  readonly veryHighComplexityCount: number;
+  readonly averageMethodLength: number;
+  readonly longMethodCount: number;
+}
+
+/**
  * Generate JSON schema for source file records
  */
 export function getJSONSchema() {

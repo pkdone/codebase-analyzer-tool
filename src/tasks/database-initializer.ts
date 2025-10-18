@@ -60,6 +60,14 @@ export class DatabaseInitializer {
       projectName: 1,
       "summary.namespace": 1,
     });
+    await this.createStandardIndexIfNotExists(this.sourcesCollection, {
+      projectName: 1,
+      "summary.publicMethods": 1,
+    });
+    await this.createStandardIndexIfNotExists(this.sourcesCollection, {
+      projectName: 1,
+      "filepath": 1,
+    });    
     // Add index to optimize graphLookup performance (albeit doesn't query on projectid too)
     await this.createStandardIndexIfNotExists(this.sourcesCollection, {
       "summary.namespace": 1,

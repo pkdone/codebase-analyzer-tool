@@ -13,9 +13,12 @@ import {
   ProjectedTopLevelJavaClassDependencies,
   SourceRecord,
   getJSONSchema,
+  ProjectedFileAndLineStats,
+  ProjectedTopComplexMethod,
+  ProjectedCodeSmellStatistic,
+  ProjectedCodeQualityStatistics,
 } from "./sources.model";
 import { databaseConfig } from "../../config/database.config";
-import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error-utils";
 import { BaseRepository } from "../base-repository";
@@ -113,6 +116,7 @@ export default class SourcesRepositoryImpl
   async getProjectDatabaseIntegrations(
     projectName: string,
   ): Promise<ProjectedDatabaseIntegrationFields[]> {
+    // TODO: look at index
     const query = {
       projectName,
       "summary.databaseIntegration": { $exists: true, $ne: null },
@@ -139,6 +143,7 @@ export default class SourcesRepositoryImpl
   async getProjectStoredProceduresAndTriggers(
     projectName: string,
   ): Promise<ProjectedSourceFilePathAndSummary[]> {
+    // TODO: look at index
     const query = {
       $and: [
         { projectName },
@@ -162,6 +167,7 @@ export default class SourcesRepositoryImpl
   async getProjectIntegrationPoints(
     projectName: string,
   ): Promise<ProjectedIntegrationPointFields[]> {
+    // TODO: look at index
     const query = {
       projectName,
       "summary.integrationPoints": { $exists: true, $ne: [] },
@@ -191,7 +197,7 @@ export default class SourcesRepositoryImpl
     // See: https://jira.mongodb.org/browse/NODE-5714
     const queryVectorDoubles = this.numbersToBsonDoubles(queryVector);
 
-    const pipeline: Document[] = [
+    const pipeline = [
       {
         $vectorSearch: {
           index: databaseConfig.CONTENT_VECTOR_INDEX_NAME,
@@ -246,7 +252,7 @@ export default class SourcesRepositoryImpl
    */
   async getProjectFileAndLineStats(
     projectName: string,
-  ): Promise<{ fileCount: number; linesOfCode: number }> {
+  ): Promise<ProjectedFileAndLineStats> {
     const pipeline = [
       { $match: { projectName } },
       {
@@ -258,13 +264,9 @@ export default class SourcesRepositoryImpl
       },
     ];
     const results = await this.collection
-      .aggregate<{ _id: null; fileCount: number; linesOfCode: number }>(pipeline)
+      .aggregate<ProjectedFileAndLineStats>(pipeline)
       .toArray();
-
-    if (results.length === 0) {
-      return { fileCount: 0, linesOfCode: 0 };
-    }
-
+    if (results.length === 0)return { fileCount: 0, linesOfCode: 0 };
     const stats = results[0];
     return {
       fileCount: stats.fileCount,
@@ -278,7 +280,7 @@ export default class SourcesRepositoryImpl
   async getProjectFileTypesCountAndLines(
     projectName: string,
   ): Promise<ProjectedFileTypesCountAndLines[]> {
-    const pipeline: Document[] = [
+    const pipeline = [
       { $match: { projectName } },
       {
         $group: {
@@ -304,7 +306,7 @@ export default class SourcesRepositoryImpl
     fileType: string,
   ): Promise<ProjectedTopLevelJavaClassDependencies[]> {
     // TODO: This is inneficient and should be optimized.
-    const pipeline: Document[] = [
+    const pipeline = [
       {
         $match: {
           projectName,
@@ -384,89 +386,56 @@ export default class SourcesRepositoryImpl
   async getTopComplexMethods(
     projectName: string,
     limit = 10,
-  ): Promise<
-    {
-      methodName: string;
-      filePath: string;
-      complexity: number;
-      linesOfCode: number;
-      codeSmells: string[];
-    }[]
-  > {
-    const pipeline: Document[] = [
-      // Match project and code files with methods
+  ): Promise<ProjectedTopComplexMethod[]> {
+    const pipeline = [
       {
         $match: {
           projectName,
-          type: { $in: fileProcessingConfig.CODE_FILE_EXTENSIONS },
           "summary.publicMethods": { $exists: true, $ne: [] },
         },
       },
-      // Unwind methods array to process each method individually
       { $unwind: "$summary.publicMethods" },
-      // Filter out methods without complexity data
       {
         $match: {
           "summary.publicMethods.cyclomaticComplexity": { $exists: true },
         },
       },
-      // Project the fields we need
       {
-        $project: {
-          methodName: "$summary.publicMethods.name",
-          filePath: "$filepath",
+        $set: {
           namespace: { $ifNull: ["$summary.namespace", "$filepath"] },
           complexity: "$summary.publicMethods.cyclomaticComplexity",
-          linesOfCode: { $ifNull: ["$summary.publicMethods.linesOfCode", 0] },
-          codeSmells: { $ifNull: ["$summary.publicMethods.codeSmells", []] },
         },
       },
-      // Sort by complexity descending
       { $sort: { complexity: -1 } },
-      // Limit to top N
       { $limit: limit },
-      // Create fully qualified method name
       {
         $project: {
           _id: 0,
-          methodName: { $concat: ["$namespace", "::", "$methodName"] },
-          filePath: 1,
+          methodName: { $concat: ["$namespace", "::", "$summary.publicMethods.name"] },
+          filePath: "$filepath",
+          linesOfCode: { $ifNull: ["$summary.publicMethods.linesOfCode", 0] },
+          codeSmells: { $ifNull: ["$summary.publicMethods.codeSmells", []] },
           complexity: 1,
-          linesOfCode: 1,
-          codeSmells: 1,
         },
       },
     ];
-
-    return await this.collection
-      .aggregate<{
-        methodName: string;
-        filePath: string;
-        complexity: number;
-        linesOfCode: number;
-        codeSmells: string[];
-      }>(pipeline)
-      .toArray();
+    return await this.collection.aggregate<ProjectedTopComplexMethod>(pipeline).toArray();
   }
 
   /**
    * Get code smell statistics using aggregation pipeline
    */
   async getCodeSmellStatistics(projectName: string): Promise<
-    {
-      smellType: string;
-      occurrences: number;
-      affectedFiles: number;
-    }[]
+    ProjectedCodeSmellStatistic[]
   > {
-    const pipeline: Document[] = [
+    // TODO: look at index
+    // TODO: refactor aggg
+    const pipeline = [
       {
         $match: {
           projectName,
-          type: { $in: fileProcessingConfig.CODE_FILE_EXTENSIONS },
         },
       },
-      // Use $facet to process method-level and file-level smells separately
       {
         $facet: {
           methodSmells: [
@@ -519,14 +488,12 @@ export default class SourcesRepositoryImpl
           ],
         },
       },
-      // Combine method and file smells
       {
         $project: {
           allSmells: { $concatArrays: ["$methodSmells", "$fileSmells"] },
         },
       },
       { $unwind: "$allSmells" },
-      // Merge duplicates across method and file smells
       {
         $group: {
           _id: "$allSmells._id",
@@ -534,7 +501,6 @@ export default class SourcesRepositoryImpl
           affectedFilesArrays: { $push: "$allSmells.affectedFiles" },
         },
       },
-      // Flatten and deduplicate affected files
       {
         $project: {
           _id: 0,
@@ -557,31 +523,19 @@ export default class SourcesRepositoryImpl
       { $sort: { occurrences: -1 } },
     ];
 
-    return await this.collection
-      .aggregate<{
-        smellType: string;
-        occurrences: number;
-        affectedFiles: number;
-      }>(pipeline)
-      .toArray();
+    return await this.collection.aggregate<ProjectedCodeSmellStatistic>(pipeline).toArray();
   }
 
   /**
    * Get overall code quality statistics using aggregation pipeline
    */
-  async getCodeQualityStatistics(projectName: string): Promise<{
-    totalMethods: number;
-    averageComplexity: number;
-    highComplexityCount: number;
-    veryHighComplexityCount: number;
-    averageMethodLength: number;
-    longMethodCount: number;
-  }> {
-    const pipeline: Document[] = [
+  async getCodeQualityStatistics(projectName: string): Promise<ProjectedCodeQualityStatistics> {
+    // TODO: look at index
+    // TODO: refactor aggg
+    const pipeline = [
       {
         $match: {
           projectName,
-          type: { $in: fileProcessingConfig.CODE_FILE_EXTENSIONS },
           "summary.publicMethods": { $exists: true, $ne: [] },
         },
       },
@@ -634,28 +588,18 @@ export default class SourcesRepositoryImpl
     ];
 
     const results = await this.collection
-      .aggregate<{
-        totalMethods: number;
-        averageComplexity: number;
-        highComplexityCount: number;
-        veryHighComplexityCount: number;
-        averageMethodLength: number;
-        longMethodCount: number;
-      }>(pipeline)
+      .aggregate<ProjectedCodeQualityStatistics>(pipeline)
       .toArray();
-
-    if (results.length === 0) {
-      return {
+    return (
+      results[0] ?? {
         totalMethods: 0,
         averageComplexity: 0,
         highComplexityCount: 0,
         veryHighComplexityCount: 0,
         averageMethodLength: 0,
         longMethodCount: 0,
-      };
-    }
-
-    return results[0];
+      }
+    );
   }
 
   /**

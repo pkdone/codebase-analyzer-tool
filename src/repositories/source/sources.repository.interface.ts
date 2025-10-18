@@ -6,6 +6,10 @@ import {
   ProjectedIntegrationPointFields,
   ProjectedFileTypesCountAndLines,
   ProjectedTopLevelJavaClassDependencies,
+  ProjectedFileAndLineStats,
+  ProjectedTopComplexMethod,
+  ProjectedCodeSmellStatistic,
+  ProjectedCodeQualityStatistics,
   SourceRecord,
 } from "./sources.model";
 
@@ -70,7 +74,7 @@ export interface SourcesRepository {
    */
   getProjectFileAndLineStats(
     projectName: string,
-  ): Promise<{ fileCount: number; linesOfCode: number }>;
+  ): Promise<ProjectedFileAndLineStats>;
 
   /**
    * Get files count and lines of code count for each file type for a project
@@ -104,36 +108,17 @@ export interface SourcesRepository {
   getTopComplexMethods(
     projectName: string,
     limit: number,
-  ): Promise<
-    {
-      methodName: string;
-      filePath: string;
-      complexity: number;
-      linesOfCode: number;
-      codeSmells: string[];
-    }[]
-  >;
+  ): Promise<ProjectedTopComplexMethod[]>;
 
   /**
    * Get code smell statistics using aggregation pipeline
    */
   getCodeSmellStatistics(projectName: string): Promise<
-    {
-      smellType: string;
-      occurrences: number;
-      affectedFiles: number;
-    }[]
+    ProjectedCodeSmellStatistic[]
   >;
 
   /**
    * Get overall code quality statistics using aggregation pipeline
    */
-  getCodeQualityStatistics(projectName: string): Promise<{
-    totalMethods: number;
-    averageComplexity: number;
-    highComplexityCount: number;
-    veryHighComplexityCount: number;
-    averageMethodLength: number;
-    longMethodCount: number;
-  }>;
+  getCodeQualityStatistics(projectName: string): Promise<ProjectedCodeQualityStatistics>;
 }
