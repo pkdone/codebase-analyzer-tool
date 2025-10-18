@@ -53,6 +53,82 @@ const DATABASE_MECHANISM_VALUES = [
 ] as const;
 const DATABASE_MECHANISM_SET = new Set<string>(DATABASE_MECHANISM_VALUES);
 
+// Central list of valid database operation type values
+const OPERATION_TYPE_VALUES = [
+  "READ",
+  "WRITE",
+  "READ_WRITE",
+  "DDL",
+  "ADMIN",
+  "OTHER",
+] as const;
+const OPERATION_TYPE_SET = new Set<string>(OPERATION_TYPE_VALUES);
+
+// Central list of common query pattern descriptors (kept intentionally generic)
+const QUERY_PATTERN_VALUES = [
+  "SIMPLE CRUD",
+  "COMPLEX JOINS",
+  "AGGREGATIONS",
+  "STORED PROCEDURES",
+  "BATCH OPERATIONS",
+  "MIGRATIONS",
+  "INLINE SQL",
+  "ORM QUERIES",
+  "RAW DRIVER CALLS",
+  "CACHE LOOKUPS",
+  "OTHER",
+] as const;
+const QUERY_PATTERN_SET = new Set<string>(QUERY_PATTERN_VALUES);
+
+// Central list of common transaction handling approaches
+const TRANSACTION_HANDLING_VALUES = [
+  "SPRING @TRANSACTIONAL",
+  "MANUAL",
+  "AUTO-COMMIT",
+  "NONE",
+  "JPA ENTITYTRANSACTION",
+  "BATCH",
+  "DB CONTEXT",
+  "EXPLICIT BEGIN/COMMIT",
+  "ROLLBACK ON ERROR",
+  "UNKNOWN",
+  "OTHER",
+] as const;
+const TRANSACTION_HANDLING_SET = new Set<string>(TRANSACTION_HANDLING_VALUES);
+
+// Integration direction values (messaging)
+const DIRECTION_VALUES = ["PRODUCER", "CONSUMER", "BOTH", "BIDIRECTIONAL", "OTHER"] as const;
+const DIRECTION_SET = new Set<string>(DIRECTION_VALUES);
+
+// Recognized code smell labels for individual methods
+const CODE_SMELL_VALUES = [
+  "LONG METHOD",
+  "LONG PARAMETER LIST",
+  "COMPLEX CONDITIONAL",
+  "DUPLICATE CODE",
+  "MAGIC NUMBERS",
+  "DEEP NESTING",
+  "DEAD CODE",
+  "GOD CLASS",
+  "LARGE CLASS",
+  "DATA CLASS",
+  "FEATURE ENVY",
+  "SHOTGUN SURGERY",
+  "OTHER",
+] as const;
+const CODE_SMELL_SET = new Set<string>(CODE_SMELL_VALUES);
+
+// Recognized file-level smell labels
+const FILE_SMELL_VALUES = [
+  "GOD CLASS",
+  "TOO MANY METHODS",
+  "FEATURE ENVY",
+  "DATA CLASS",
+  "LARGE FILE",
+  "OTHER",
+] as const;
+const FILE_SMELL_SET = new Set<string>(FILE_SMELL_VALUES);
+
 /**
  * Schema for database integration information
  */
@@ -89,7 +165,22 @@ export const databaseIntegrationSchema = z
       .optional()
       .describe("List of tables, collections, or entities being accessed by this code"),
     operationType: z
-      .array(z.enum(["READ", "WRITE", "READ_WRITE", "DDL", "ADMIN"]))
+      .preprocess((val) => {
+        if (Array.isArray(val)) {
+          return val
+            .filter((v) => typeof v === "string")
+            .map((v) => {
+              const upper = v.toUpperCase();
+              return OPERATION_TYPE_SET.has(upper) ? upper : "OTHER";
+            });
+        }
+        if (typeof val === "string") {
+          const upper = val.toUpperCase();
+          return [OPERATION_TYPE_SET.has(upper) ? upper : "OTHER"]; // Coerce single value to array
+        }
+        return val;
+      }, z.any())
+      .pipe(z.array(z.enum(OPERATION_TYPE_VALUES)))
       .optional()
       .describe(
         "Array of database operation types performed (e.g., ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN'])",
@@ -98,13 +189,63 @@ export const databaseIntegrationSchema = z
       .string()
       .optional()
       .describe(
-        "Types of queries used (e.g., 'simple CRUD', 'complex joins', 'aggregations', 'stored procedures')",
+        "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics.",
+      ),
+    queryPatternsNormalized: z
+      .preprocess((val) => {
+        if (typeof val === "string") {
+          const upper = val.toUpperCase();
+          const normalized = QUERY_PATTERN_SET.has(upper)
+            ? upper
+            : (
+                {
+                  CRUD: "SIMPLE CRUD",
+                  JOINS: "COMPLEX JOINS",
+                  AGGREGATION: "AGGREGATIONS",
+                  PROCEDURES: "STORED PROCEDURES",
+                  "STORED PROCEDURE": "STORED PROCEDURES",
+                } as Record<string, string>
+              )[upper] || "OTHER";
+          return normalized;
+        }
+        return val;
+      }, z.any())
+      .pipe(z.enum(QUERY_PATTERN_VALUES))
+      .optional()
+      .describe(
+        "Normalized query pattern category derived from 'queryPatterns' (internal use).",
       ),
     transactionHandling: z
       .string()
       .optional()
       .describe(
-        "How transactions are managed (e.g., 'manual commits', 'Spring @Transactional', 'auto-commit', 'none')",
+        "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics.",
+      ),
+    transactionHandlingNormalized: z
+      .preprocess((val) => {
+        if (typeof val === "string") {
+          const upper = val.toUpperCase();
+          const normalized = TRANSACTION_HANDLING_SET.has(upper)
+            ? upper
+            : (
+                {
+                  TRANSACTIONAL: "SPRING @TRANSACTIONAL",
+                  MANUAL: "MANUAL",
+                  MANUALLY: "MANUAL",
+                  AUTOCOMMIT: "AUTO-COMMIT",
+                  "AUTO COMMIT": "AUTO-COMMIT",
+                  AUTOCOMMITTING: "AUTO-COMMIT",
+                  UNKNOWN: "UNKNOWN",
+                } as Record<string, string>
+              )[upper] || "OTHER";
+          return normalized;
+        }
+        return val;
+      }, z.any())
+      .pipe(z.enum(TRANSACTION_HANDLING_VALUES))
+      .optional()
+      .describe(
+        "Normalized transaction handling category derived from 'transactionHandling' (internal use).",
       ),
     protocol: z
       .string()
@@ -263,7 +404,22 @@ export const publicMethodSchema = z
       .optional()
       .describe("Number of lines of code in this method (excluding comments and blank lines)"),
     codeSmells: z
-      .array(z.string())
+      .preprocess((val) => {
+        if (Array.isArray(val)) {
+          return val
+            .filter((v) => typeof v === "string")
+            .map((v) => {
+              const upper = v.toUpperCase();
+              return CODE_SMELL_SET.has(upper) ? upper : "OTHER";
+            });
+        }
+        if (typeof val === "string") {
+          const upper = val.toUpperCase();
+          return [CODE_SMELL_SET.has(upper) ? upper : "OTHER"];
+        }
+        return val;
+      }, z.any())
+      .pipe(z.array(z.enum(CODE_SMELL_VALUES)))
       .optional()
       .describe(
         "List of code smells detected (e.g., 'Long Method', 'God Class', 'Duplicate Code', 'Long Parameter List')",
@@ -336,9 +492,16 @@ export const integrationEndpointSchema = z
       .optional()
       .describe("Type of message being sent/received (for messaging systems)"),
     direction: z
-      .enum(["PRODUCER", "CONSUMER", "BOTH", "BIDIRECTIONAL"])
+      .preprocess((val) => {
+        if (typeof val === "string") {
+          const upper = val.toUpperCase();
+          return DIRECTION_SET.has(upper) ? upper : "OTHER";
+        }
+        return val;
+      }, z.any())
+      .pipe(z.enum(DIRECTION_VALUES))
       .optional()
-      .describe("Whether this code produces, consumes, or both for messaging systems"),
+      .describe("Whether this code produces, consumes, both, or is bidirectional (normalized)"),
     requestBody: z
       .string()
       .optional()
@@ -372,7 +535,22 @@ export const codeQualityMetricsSchema = z
     maxComplexity: z.number().optional().describe("Maximum cyclomatic complexity found"),
     averageMethodLength: z.number().optional().describe("Average lines of code per method"),
     fileSmells: z
-      .array(z.string())
+      .preprocess((val) => {
+        if (Array.isArray(val)) {
+          return val
+            .filter((v) => typeof v === "string")
+            .map((v) => {
+              const upper = v.toUpperCase();
+              return FILE_SMELL_SET.has(upper) ? upper : "OTHER";
+            });
+        }
+        if (typeof val === "string") {
+          const upper = val.toUpperCase();
+          return [FILE_SMELL_SET.has(upper) ? upper : "OTHER"];
+        }
+        return val;
+      }, z.any())
+      .pipe(z.array(z.enum(FILE_SMELL_VALUES)))
       .optional()
       .describe("File-level code smells (e.g., 'God Class', 'Too Many Methods', 'Feature Envy')"),
   })

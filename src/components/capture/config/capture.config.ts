@@ -82,15 +82,15 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    JMS Messaging (mechanism: 'JMS-QUEUE' or 'JMS-TOPIC'):
    - Queue operations: MessageProducer sending to Queue, QueueSender, @JmsListener with destination type QUEUE
    - Topic operations: TopicPublisher, @JmsListener with destination type TOPIC
-   - Include queue/topic name, message type, direction (PRODUCER/CONSUMER/BOTH)
+  - Include queue/topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
    - ConnectionFactory, Session, MessageProducer/MessageConsumer patterns
    
    Kafka (mechanism: 'KAFKA-TOPIC'):
-   - KafkaProducer, KafkaConsumer usage - include topic name, message type, direction
+  - KafkaProducer, KafkaConsumer usage - include topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
    - @KafkaListener annotations - include topic names, consumer group
    
    RabbitMQ (mechanism: 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'):
-   - RabbitTemplate send/receive operations - include queue/exchange name
+  - RabbitTemplate send/receive operations - include queue/exchange name and direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL if inferable)
    - @RabbitListener annotations - include queue names, direction
    
    Other Messaging:
@@ -118,7 +118,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
-   - operationType: Array of operation types - ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], or ['ADMIN']
+  - operationType: Array of operation types - ['READ'], ['WRITE'], ['READ_WRITE'], ['DDL'], or ['ADMIN']
      * READ: only SELECT/find queries
      * WRITE: only INSERT/UPDATE/DELETE operations
      * READ_WRITE: both read and write operations
@@ -155,14 +155,15 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-   - codeSmells: Identify any of these common code smells present in the method:
-     * 'Long Method' - method has > 50 lines of code
-     * 'Long Parameter List' - method has > 5 parameters
-     * 'Complex Conditional' - deeply nested if/else or complex boolean expressions
-     * 'Duplicate Code' - similar logic repeated in multiple places
-     * 'Magic Numbers' - hardcoded numeric values without explanation
-     * 'Deep Nesting' - more than 3-4 levels of nesting
-     * 'Dead Code' - unreachable or commented-out code
+  - codeSmells: Identify any of these common code smells present in the method (USE EXACT UPPERCASE LABELS; if none of the labels apply but a smell is clearly present, use 'OTHER' with a short explanation):
+     * 'LONG METHOD' - method has > 50 lines of code
+     * 'LONG PARAMETER LIST' - method has > 5 parameters
+     * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+     * 'DUPLICATE CODE' - similar logic repeated in multiple places
+     * 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+     * 'DEEP NESTING' - more than 3-4 levels of nesting
+     * 'DEAD CODE' - unreachable or commented-out code
+     * Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA CLASS', 'FEATURE ENVY', 'SHOTGUN SURGERY'
    
    Additionally, provide file-level codeQualityMetrics:
    - totalMethods: Count of all methods in the file
@@ -170,11 +171,11 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - maxComplexity: Highest complexity score in the file
    - averageMethodLength: Average lines of code per method
    - fileSmells: File-level smells such as:
-     * 'God Class' - class has > 20 methods or > 500 lines of code
-     * 'Too Many Methods' - class has > 20 public methods
-     * 'Feature Envy' - methods heavily use data from other classes
-     * 'Data Class' - class only contains fields and getters/setters
-     * 'Refused Bequest' - subclass doesn't use inherited methods`,
+     * 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+     * 'TOO MANY METHODS' - class has > 20 public methods
+     * 'FEATURE ENVY' - methods heavily use data from other classes
+     * 'DATA CLASS' - class only contains fields and getters/setters
+     * 'LARGE FILE' - class file exceeds 500 lines of code`,
     schema: sourceSummarySchema
       .pick({
         name: true,
@@ -247,7 +248,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much information as possible - if a field cannot be determined, use "unknown" or "not identifiable":
    
    REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (small redacted snippet)
-   STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "UserModel", "database.js"), databaseName (specific DB/schema name), tablesAccessed (array of table/collection/model names from code), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'Mongoose schemas', 'Prisma ORM queries', 'TypeORM repositories', 'complex aggregations'), transactionHandling (e.g., 'Mongoose transactions', 'Prisma $transaction', 'manual begin/commit', 'none'), protocol (e.g., 'MongoDB 6.0', 'PostgreSQL 14'), connectionInfo (connection string with REDACTED credentials)
+  STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "UserModel", "database.js"), databaseName (specific DB/schema name), tablesAccessed (array of table/collection/model names from code), operationType (array: ['READ'], ['WRITE'], ['READ_WRITE'], ['DDL'], ['ADMIN']), queryPatterns (free-form description, e.g., 'Mongoose schemas', 'Prisma ORM queries', 'TypeORM repositories', 'complex aggregations'), transactionHandling (free-form description, e.g., 'Mongoose transactions', 'Prisma $transaction', 'manual begin/commit', 'none'), protocol (e.g., 'MongoDB 6.0', 'PostgreSQL 14'), connectionInfo (connection string with REDACTED credentials)
    
    Mechanism mapping:
    - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'
@@ -271,14 +272,15 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For each public method/function you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, switch/case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-   - codeSmells: Identify any of these common code smells present:
-     * 'Long Method' - function has > 50 lines of code
-     * 'Long Parameter List' - function has > 5 parameters
-     * 'Complex Conditional' - deeply nested if/else or complex boolean expressions
-     * 'Duplicate Code' - similar logic repeated in multiple places
-     * 'Magic Numbers' - hardcoded numeric values without explanation
-     * 'Deep Nesting' - more than 3-4 levels of nesting
-     * 'Dead Code' - unreachable or commented-out code
+  - codeSmells: Identify any of these common code smells present (USE EXACT UPPERCASE LABELS; if none match but a smell exists, use 'OTHER' with a short explanation):
+     * 'LONG METHOD' - function has > 50 lines of code
+     * 'LONG PARAMETER LIST' - function has > 5 parameters
+     * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+     * 'DUPLICATE CODE' - similar logic repeated in multiple places
+     * 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+     * 'DEEP NESTING' - more than 3-4 levels of nesting
+     * 'DEAD CODE' - unreachable or commented-out code
+     * Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA CLASS', 'FEATURE ENVY', 'SHOTGUN SURGERY'
    
    Additionally, provide file-level codeQualityMetrics:
    - totalMethods: Count of all functions/methods in the file
@@ -286,9 +288,10 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - maxComplexity: Highest complexity score in the file
    - averageMethodLength: Average lines of code per function
    - fileSmells: File-level smells such as:
-     * 'God Class' - file has > 20 functions or > 500 lines of code
-     * 'Too Many Methods' - file has > 20 exported functions
-     * 'Feature Envy' - functions heavily use data from other modules`,
+     * 'GOD CLASS' - file has > 20 functions or > 500 lines of code
+     * 'TOO MANY METHODS' - file has > 20 exported functions
+     * 'FEATURE ENVY' - functions heavily use data from other modules
+     * 'LARGE FILE' - file exceeds 500 lines of code`,
     schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -485,14 +488,15 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, foreach, switch/case, catch, &&, ||, ?:, ??). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-   - codeSmells: Identify any of these common code smells present in the method:
-     * 'Long Method' - method has > 50 lines of code
-     * 'Long Parameter List' - method has > 5 parameters
-     * 'Complex Conditional' - deeply nested if/else or complex boolean expressions
-     * 'Duplicate Code' - similar logic repeated in multiple places
-     * 'Magic Numbers' - hardcoded numeric values without explanation
-     * 'Deep Nesting' - more than 3-4 levels of nesting
-     * 'Dead Code' - unreachable or commented-out code
+  - codeSmells: Identify any of these common code smells present in the method (USE EXACT UPPERCASE LABELS; if none match but a smell exists, use 'OTHER' with a short explanation):
+     * 'LONG METHOD' - method has > 50 lines of code
+     * 'LONG PARAMETER LIST' - method has > 5 parameters
+     * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+     * 'DUPLICATE CODE' - similar logic repeated in multiple places
+     * 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+     * 'DEEP NESTING' - more than 3-4 levels of nesting
+     * 'DEAD CODE' - unreachable or commented-out code
+     * Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA CLASS', 'FEATURE ENVY', 'SHOTGUN SURGERY'
    
    Additionally, provide file-level codeQualityMetrics:
    - totalMethods: Count of all methods in the file
@@ -500,10 +504,11 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - maxComplexity: Highest complexity score in the file
    - averageMethodLength: Average lines of code per method
    - fileSmells: File-level smells such as:
-     * 'God Class' - class has > 20 methods or > 500 lines of code
-     * 'Too Many Methods' - class has > 20 public methods
-     * 'Feature Envy' - methods heavily use data from other classes
-     * 'Data Class' - class only contains properties and getters/setters`,
+     * 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+     * 'TOO MANY METHODS' - class has > 20 public methods
+     * 'FEATURE ENVY' - methods heavily use data from other classes
+     * 'DATA CLASS' - class only contains properties and getters/setters
+     * 'LARGE FILE' - file exceeds 500 lines of code`,
     schema: sourceSummarySchema.pick({
       name: true,
       kind: true,
@@ -582,14 +587,15 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, elsif, unless, for, while, until, case/when, rescue, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-   - codeSmells: Identify any of these common code smells present in the method:
-     * 'Long Method' - method has > 50 lines of code
-     * 'Long Parameter List' - method has > 5 parameters
-     * 'Complex Conditional' - deeply nested if/else or complex boolean expressions
-     * 'Duplicate Code' - similar logic repeated in multiple places
-     * 'Magic Numbers' - hardcoded numeric values without explanation
-     * 'Deep Nesting' - more than 3-4 levels of nesting
-     * 'Dead Code' - unreachable or commented-out code
+  - codeSmells: Identify any of these common code smells present in the method (USE EXACT UPPERCASE LABELS; if none match but a smell exists, use 'OTHER' with a short explanation):
+     * 'LONG METHOD' - method has > 50 lines of code
+     * 'LONG PARAMETER LIST' - method has > 5 parameters
+     * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+     * 'DUPLICATE CODE' - similar logic repeated in multiple places
+     * 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+     * 'DEEP NESTING' - more than 3-4 levels of nesting
+     * 'DEAD CODE' - unreachable or commented-out code
+     * Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA CLASS', 'FEATURE ENVY', 'SHOTGUN SURGERY'
    
    Additionally, provide file-level codeQualityMetrics:
    - totalMethods: Count of all methods in the file
@@ -597,9 +603,10 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - maxComplexity: Highest complexity score in the file
    - averageMethodLength: Average lines of code per method
    - fileSmells: File-level smells such as:
-     * 'God Class' - class has > 20 methods or > 500 lines of code
-     * 'Too Many Methods' - class has > 20 public methods
-     * 'Feature Envy' - methods heavily use data from other classes`,
+     * 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+     * 'TOO MANY METHODS' - class has > 20 public methods
+     * 'FEATURE ENVY' - methods heavily use data from other classes
+     * 'LARGE FILE' - file exceeds 500 lines of code`,
     schema: sourceSummarySchema.pick({
       name: true,
       kind: true,

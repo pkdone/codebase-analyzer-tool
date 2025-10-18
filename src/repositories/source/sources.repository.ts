@@ -429,7 +429,6 @@ export default class SourcesRepositoryImpl
     ProjectedCodeSmellStatistic[]
   > {
     // TODO: look at index
-    // TODO: refactor aggg
     const pipeline = [
       {
         $match: {
@@ -519,7 +518,6 @@ export default class SourcesRepositoryImpl
           },
         },
       },
-      // Sort by occurrences descending
       { $sort: { occurrences: -1 } },
     ];
 
@@ -531,12 +529,10 @@ export default class SourcesRepositoryImpl
    */
   async getCodeQualityStatistics(projectName: string): Promise<ProjectedCodeQualityStatistics> {
     // TODO: look at index
-    // TODO: refactor aggg
     const pipeline = [
       {
         $match: {
           projectName,
-          "summary.publicMethods": { $exists: true, $ne: [] },
         },
       },
       { $unwind: "$summary.publicMethods" },
@@ -586,7 +582,6 @@ export default class SourcesRepositoryImpl
         },
       },
     ];
-
     const results = await this.collection
       .aggregate<ProjectedCodeQualityStatistics>(pipeline)
       .toArray();
