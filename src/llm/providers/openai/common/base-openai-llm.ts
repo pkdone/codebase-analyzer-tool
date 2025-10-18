@@ -24,17 +24,12 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
     prompt: string,
     options?: LLMCompletionOptions,
   ) {
-    const params = this.buildFullLLMParameters(taskType, modelKey, prompt, options);
-
-    if (this.isEmbeddingParams(params)) {
+    if (taskType === LLMPurpose.EMBEDDINGS) {
+      const params = this.buildEmbeddingParams(modelKey, prompt);
       return this.invokeEmbeddingsLLM(params);
-    } else if (this.isCompletionParams(params)) {
-      return this.invokeCompletionLLM(params);
-    } else {
-      throw new Error(
-        "Generated LLM parameters did not match expected shape for embeddings or completions.",
-      );
     }
+    const params = this.buildCompletionParams(modelKey, prompt, options);
+    return this.invokeCompletionLLM(params);
   }
 
   /**
@@ -63,53 +58,42 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
    * Method to build the full LLM parameters for the given model and prompt.
    * This contains the common logic shared between OpenAI and Azure OpenAI providers.
    */
-  private buildFullLLMParameters(
-    taskType: LLMPurpose,
+  private buildEmbeddingParams(modelKey: string, prompt: string): OpenAI.EmbeddingCreateParams {
+    return {
+      model: this.getModelIdentifier(modelKey),
+      input: prompt,
+    };
+  }
+
+  private buildCompletionParams(
     modelKey: string,
     prompt: string,
     options?: LLMCompletionOptions,
-  ): OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams {
+  ): OpenAI.Chat.ChatCompletionCreateParams {
     const modelIdentifier = this.getModelIdentifier(modelKey);
+    const modelMetadata = this.llmModelsMetadata[modelKey];
+    const hasFixedTemperature =
+      modelMetadata.features?.includes("fixed_temperature" satisfies LLMModelFeature) ?? false;
+    const usesMaxCompletionTokens =
+      modelMetadata.features?.includes("max_completion_tokens" satisfies LLMModelFeature) ?? false;
 
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      const params: OpenAI.EmbeddingCreateParams = {
-        model: modelIdentifier,
-        input: prompt,
-      };
-      return params;
-    } else {
-      const modelMetadata = this.llmModelsMetadata[modelKey];
-      const hasFixedTemperature =
-        modelMetadata.features?.includes("fixed_temperature" satisfies LLMModelFeature) ?? false;
-      const usesMaxCompletionTokens =
-        modelMetadata.features?.includes("max_completion_tokens" satisfies LLMModelFeature) ??
-        false;
+    const baseParams: OpenAI.Chat.ChatCompletionCreateParams = {
+      model: modelIdentifier,
+      messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
+      ...(hasFixedTemperature
+        ? {}
+        : { temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP }),
+    };
 
-      // Some models (like GPT-5) only support default temperature, while others support custom temperature
-      const baseParams: OpenAI.Chat.ChatCompletionCreateParams = {
-        model: modelIdentifier,
-        messages: [{ role: llmConfig.LLM_ROLE_USER as "user", content: prompt }],
-        ...(hasFixedTemperature
-          ? {}
-          : {
-              temperature: this.providerSpecificConfig.temperature ?? llmConfig.DEFAULT_ZERO_TEMP,
-            }),
-      };
+    const params = usesMaxCompletionTokens
+      ? { ...baseParams, max_completion_tokens: modelMetadata.maxCompletionTokens }
+      : { ...baseParams, max_tokens: modelMetadata.maxCompletionTokens };
 
-      // Some models use max_completion_tokens instead of max_tokens
-      const params = usesMaxCompletionTokens
-        ? {
-            ...baseParams,
-            max_completion_tokens: modelMetadata.maxCompletionTokens,
-          }
-        : { ...baseParams, max_tokens: modelMetadata.maxCompletionTokens };
-
-      if (options?.outputFormat === LLMOutputFormat.JSON) {
-        params.response_format = { type: llmConfig.JSON_OUTPUT_TYPE };
-      }
-
-      return params;
+    if (options?.outputFormat === LLMOutputFormat.JSON) {
+      params.response_format = { type: llmConfig.JSON_OUTPUT_TYPE };
     }
+
+    return params;
   }
 
   /**
@@ -131,20 +115,7 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
   /**
    * Type guard to check if parameters are for embedding requests
    */
-  private isEmbeddingParams(
-    params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams,
-  ): params is OpenAI.EmbeddingCreateParams {
-    return "input" in params && !("messages" in params);
-  }
-
-  /**
-   * Type guard to check if parameters are for completion requests
-   */
-  private isCompletionParams(
-    params: OpenAI.EmbeddingCreateParams | OpenAI.Chat.ChatCompletionCreateParams,
-  ): params is OpenAI.Chat.ChatCompletionCreateParams {
-    return "messages" in params && !("input" in params);
-  }
+  // Removed parameter shape type guards; explicit build methods remove need for runtime discrimination.
 
   /**
    * Invoke the actuall LLM's embedding API directly.

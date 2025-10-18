@@ -110,23 +110,9 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * Execute the prompt against the LLM and return the relevant sumamry of the LLM's answer.
    */
   protected async invokeProvider(taskType: LLMPurpose, modelKey: string, prompt: string) {
-    const fullParameters = this.buildFullLLMParameters(taskType, modelKey, prompt);
-    const command = new InvokeModelCommand(fullParameters);
-    const rawResponse = await this.client.send(command);
-    const jsonString = new TextDecoder(appConfig.UTF8_ENCODING).decode(rawResponse.body);
-    const llmResponse: unknown = JSON.parse(jsonString);
-
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      return this.extractEmbeddingModelSpecificResponse(llmResponse);
-    } else {
-      const config = this.getResponseExtractionConfig();
-      return extractGenericCompletionResponse(
-        llmResponse,
-        config.schema,
-        config.pathConfig,
-        config.providerName,
-      );
-    }
+    return taskType === LLMPurpose.EMBEDDINGS
+      ? this.invokeEmbeddings(modelKey, prompt)
+      : this.invokeCompletion(modelKey, prompt);
   }
 
   /**
@@ -183,24 +169,48 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * Assemble the AWS Bedrock API parameters structure for embeddings and completions models with
    * the prompt.
    */
-  private buildFullLLMParameters(taskType: LLMPurpose, modelKey: string, prompt: string) {
-    let bodyObj;
-
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      bodyObj = {
-        inputText: prompt,
-        //dimensions: this.getEmbeddingModelDimensions(),  // Throws error even though Titan Text Embeddings V2 should be able to set dimensions to 56, 512, 1024 according to: https://docs.aws.amazon.com/code-library/latest/ug/bedrock-runtime_example_bedrock-runtime_InvokeModelWithResponseStream_TitanTextEmbeddings_section.html
-      };
-    } else {
-      bodyObj = this.buildCompletionRequestBody(modelKey, prompt);
-    }
-
+  private buildEmbeddingParameters(modelKey: string, prompt: string) {
+    const bodyObj = { inputText: prompt };
     return {
       modelId: this.llmModelsMetadata[modelKey].urn,
       contentType: appConfig.MIME_TYPE_JSON,
       accept: appConfig.MIME_TYPE_ANY,
       body: JSON.stringify(bodyObj),
     };
+  }
+
+  private buildCompletionParameters(modelKey: string, prompt: string) {
+    const bodyObj = this.buildCompletionRequestBody(modelKey, prompt);
+    return {
+      modelId: this.llmModelsMetadata[modelKey].urn,
+      contentType: appConfig.MIME_TYPE_JSON,
+      accept: appConfig.MIME_TYPE_ANY,
+      body: JSON.stringify(bodyObj),
+    };
+  }
+
+  private async invokeEmbeddings(modelKey: string, prompt: string) {
+    const parameters = this.buildEmbeddingParameters(modelKey, prompt);
+    const command = new InvokeModelCommand(parameters);
+    const rawResponse = await this.client.send(command);
+    const jsonString = new TextDecoder(appConfig.UTF8_ENCODING).decode(rawResponse.body);
+    const llmResponse: unknown = JSON.parse(jsonString);
+    return this.extractEmbeddingModelSpecificResponse(llmResponse);
+  }
+
+  private async invokeCompletion(modelKey: string, prompt: string) {
+    const parameters = this.buildCompletionParameters(modelKey, prompt);
+    const command = new InvokeModelCommand(parameters);
+    const rawResponse = await this.client.send(command);
+    const jsonString = new TextDecoder(appConfig.UTF8_ENCODING).decode(rawResponse.body);
+    const llmResponse: unknown = JSON.parse(jsonString);
+    const config = this.getResponseExtractionConfig();
+    return extractGenericCompletionResponse(
+      llmResponse,
+      config.schema,
+      config.pathConfig,
+      config.providerName,
+    );
   }
 
   /**

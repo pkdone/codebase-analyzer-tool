@@ -213,7 +213,7 @@ export default class McpHttpServer {
           this.sendJsonRpcError(
             res,
             httpConfig.HTTP_STATUS_BAD_REQUEST,
-            -32700, // JSON-RPC Parse Error
+            mcpConfig.JSONRPC_PARSE_ERROR,
             "Parse error",
           );
           return;

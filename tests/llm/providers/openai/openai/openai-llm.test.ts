@@ -152,8 +152,7 @@ describe("OpenAI LLM Provider", () => {
 
   describe("Parameter Building", () => {
     test("should build correct embedding parameters", () => {
-      const params = (openAILLM as any).buildFullLLMParameters(
-        LLMPurpose.EMBEDDINGS,
+      const params = (openAILLM as any).buildEmbeddingParams(
         "GPT_EMBEDDINGS_ADA002",
         "test prompt",
       );
@@ -165,8 +164,7 @@ describe("OpenAI LLM Provider", () => {
     });
 
     test("should build correct completion parameters without JSON format", () => {
-      const params = (openAILLM as any).buildFullLLMParameters(
-        LLMPurpose.COMPLETIONS,
+      const params = (openAILLM as any).buildCompletionParams(
         "GPT_COMPLETIONS_GPT4",
         "test prompt",
       );
@@ -180,8 +178,7 @@ describe("OpenAI LLM Provider", () => {
     });
 
     test("should build correct completion parameters with JSON format", () => {
-      const params = (openAILLM as any).buildFullLLMParameters(
-        LLMPurpose.COMPLETIONS,
+      const params = (openAILLM as any).buildCompletionParams(
         "GPT_COMPLETIONS_GPT4",
         "test prompt",
         { outputFormat: LLMOutputFormat.JSON },

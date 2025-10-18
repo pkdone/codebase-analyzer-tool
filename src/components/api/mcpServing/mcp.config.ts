@@ -21,6 +21,7 @@ export const mcpConfig = {
 
   // JSON-RPC constants
   JSONRPC_VERSION: "2.0",
+  JSONRPC_PARSE_ERROR: -32700,
   JSONRPC_INTERNAL_ERROR: -32603,
   JSONRPC_SERVER_ERROR: -32000,
 

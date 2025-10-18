@@ -38,6 +38,11 @@ describe("httpConfig", () => {
       expect(httpConfig.HTTP_STATUS_BAD_REQUEST).toBe(400);
     });
 
+    it("should have HTTP_STATUS_TOO_MANY_REQUESTS defined", () => {
+      expect(httpConfig.HTTP_STATUS_TOO_MANY_REQUESTS).toBeDefined();
+      expect(httpConfig.HTTP_STATUS_TOO_MANY_REQUESTS).toBe(429);
+    });
+
     it("should have HTTP_STATUS_NOT_FOUND defined", () => {
       expect(httpConfig.HTTP_STATUS_NOT_FOUND).toBeDefined();
       expect(httpConfig.HTTP_STATUS_NOT_FOUND).toBe(404);

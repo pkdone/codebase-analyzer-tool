@@ -28,7 +28,7 @@ class TestBedrockLLM extends BaseBedrockLLM {
         },
       ],
       modelKey,
-      temperature: 0.0,
+      temperature: 0,
     };
     this.lastBuiltBody = body;
     return body;
@@ -79,7 +79,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     maxRetryAttempts: 3,
     minRetryDelayMillis: 1000,
     maxRetryDelayMillis: 10000,
-    temperature: 0.0,
+    temperature: 0,
     topP: 0.95,
   };
 
@@ -125,11 +125,11 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
         },
       ],
       modelKey: "COMPLETION",
-      temperature: 0.0,
+      temperature: 0,
     });
   });
 
-  it("should verify base class handles JSON stringification internally", () => {
+  it("should verify base class handles JSON stringification internally for completions", () => {
     const llm = new TestBedrockLLM(
       mockModelsKeys,
       mockModelsMetadata,
@@ -142,11 +142,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
 
     // Access the private method through bracket notation for testing
     // eslint-disable-next-line @typescript-eslint/dot-notation
-    const fullParams = llm["buildFullLLMParameters"](
-      LLMPurpose.COMPLETIONS,
-      "COMPLETION",
-      "test prompt",
-    );
+    const fullParams = llm["buildCompletionParameters"]("COMPLETION", "test prompt");
 
     // Verify that the body is a string (stringified by base class)
     expect(typeof fullParams.body).toBe("string");
@@ -173,11 +169,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     );
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
-    const fullParams = llm["buildFullLLMParameters"](
-      LLMPurpose.EMBEDDINGS,
-      "EMBEDDINGS",
-      "embed this text",
-    );
+    const fullParams = llm["buildEmbeddingParameters"]("EMBEDDINGS", "embed this text");
 
     // Verify that the body is a string (stringified by base class)
     expect(typeof fullParams.body).toBe("string");
