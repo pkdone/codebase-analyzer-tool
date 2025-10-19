@@ -43,15 +43,8 @@ export const databaseIntegrationSchema = z
       .optional()
       .describe("List of tables, collections, or entities being accessed by this code"),
     operationType: z
-      .preprocess(
-        (val) => normalizeEnumArray(val, OPERATION_TYPE_VALUES),
-        z.any(),
-      )
-      .pipe(
-        z.array(
-          z.union([z.enum(OPERATION_TYPE_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-        ),
-      )
+      .preprocess((val) => normalizeEnumArray(val, OPERATION_TYPE_VALUES), z.any())
+      .pipe(z.array(z.union([z.enum(OPERATION_TYPE_VALUES), z.literal(DEFAULT_INVALID_VALUE)])))
       .optional()
       .describe("Array of database operation types performed - only the listed values are valid."),
     queryPatterns: z
@@ -62,13 +55,8 @@ export const databaseIntegrationSchema = z
           "A separate 'queryPatternsNormalized' field may be derived for internal analytics.",
       ),
     queryPatternsNormalized: z
-      .preprocess(
-        (val) => normalizeEnumValue(val, QUERY_PATTERN_VALUES),
-        z.any(),
-      )
-      .pipe(
-        z.union([z.enum(QUERY_PATTERN_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-      )
+      .preprocess((val) => normalizeEnumValue(val, QUERY_PATTERN_VALUES), z.any())
+      .pipe(z.union([z.enum(QUERY_PATTERN_VALUES), z.literal(DEFAULT_INVALID_VALUE)]))
       .optional()
       .describe("Normalized query pattern category derived from 'queryPatterns'."),
     transactionHandling: z
@@ -79,13 +67,8 @@ export const databaseIntegrationSchema = z
           "'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics.",
       ),
     transactionHandlingNormalized: z
-      .preprocess(
-        (val) => normalizeEnumValue(val, TRANSACTION_HANDLING_VALUES),
-        z.any(),
-      )
-      .pipe(
-        z.union([z.enum(TRANSACTION_HANDLING_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-      )
+      .preprocess((val) => normalizeEnumValue(val, TRANSACTION_HANDLING_VALUES), z.any())
+      .pipe(z.union([z.enum(TRANSACTION_HANDLING_VALUES), z.literal(DEFAULT_INVALID_VALUE)]))
       .optional()
       .describe("Normalized transaction handling category derived from 'transactionHandling')."),
     protocol: z
@@ -251,15 +234,8 @@ export const publicMethodSchema = z
       .optional()
       .describe("Number of lines of code in this method (excluding comments and blank lines)"),
     codeSmells: z
-      .preprocess(
-        (val) => normalizeEnumArray(val, CODE_SMELL_VALUES),
-        z.any(),
-      )
-      .pipe(
-        z.array(
-          z.union([z.enum(CODE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-        ),
-      )
+      .preprocess((val) => normalizeEnumArray(val, CODE_SMELL_VALUES), z.any())
+      .pipe(z.array(z.union([z.enum(CODE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)])))
       .optional()
       .describe("List of code smells detected - only the listed values are valid"),
   })
@@ -298,13 +274,8 @@ export const integrationEndpointSchema = z
       .optional()
       .describe("Type of message being sent/received (for messaging systems)"),
     direction: z
-      .preprocess(
-        (val) => normalizeEnumValue(val, DIRECTION_VALUES),
-        z.any(),
-      )
-      .pipe(
-        z.union([z.enum(DIRECTION_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-      )
+      .preprocess((val) => normalizeEnumValue(val, DIRECTION_VALUES), z.any())
+      .pipe(z.union([z.enum(DIRECTION_VALUES), z.literal(DEFAULT_INVALID_VALUE)]))
       .optional()
       .describe("Whether this code produces, consumes, both, or is bidirectional"),
     requestBody: z
@@ -340,15 +311,8 @@ export const codeQualityMetricsSchema = z
     maxComplexity: z.number().optional().describe("Maximum cyclomatic complexity found"),
     averageMethodLength: z.number().optional().describe("Average lines of code per method"),
     fileSmells: z
-      .preprocess(
-        (val) => normalizeEnumArray(val, FILE_SMELL_VALUES),
-        z.any(),
-      )
-      .pipe(
-        z.array(
-          z.union([z.enum(FILE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-        ),
-      )
+      .preprocess((val) => normalizeEnumArray(val, FILE_SMELL_VALUES), z.any())
+      .pipe(z.array(z.union([z.enum(FILE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)])))
       .optional()
       .describe("File-level code smells - only the listed values are valid"),
   })

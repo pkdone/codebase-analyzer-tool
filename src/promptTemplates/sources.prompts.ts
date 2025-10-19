@@ -1,6 +1,6 @@
-import { sourceSummarySchema, databaseIntegrationSchema } from "../../../schemas/sources.schema";
+import { sourceSummarySchema, databaseIntegrationSchema } from "../schemas/sources.schema";
 import { z } from "zod";
-import { DynamicPromptConfig } from "../../../llm/types/llm.types";
+import { SourcePromptTemplate } from "./prompt.types";
 
 /**
  * Common instruction phrases used across multiple file type templates
@@ -51,8 +51,8 @@ type SupportedFileType =
 /**
  * Data-driven mapping of prompt types to their templates and schemas
  */
-export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConfig> & {
-  default: DynamicPromptConfig;
+export const fileTypeMetadataConfig: Record<SupportedFileType, SourcePromptTemplate> & {
+  default: SourcePromptTemplate;
 } = {
   java: {
     contentDesc: "code",
@@ -516,7 +516,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
      * 'FEATURE ENVY' - methods heavily use data from other classes
      * 'DATA CLASS' - class only contains properties and getters/setters
      * 'LARGE FILE' - file exceeds 500 lines of code
-     * 'OTHER' - some other file-level smell `,
+     * 'OTHER' - some other file-level smell`,
     schema: sourceSummarySchema.pick({
       name: true,
       kind: true,
@@ -809,7 +809,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
   - inputResources: Array of input files, directories, databases, or APIs that this script reads from (look for file paths in cat, grep, awk, database connections, curl/wget calls)
   - outputResources: Array of output files, directories, databases, or APIs that this script writes to (look for redirects >, >>, tee, database writes, POST requests)
   - dependencies: Array of other scripts or jobs this depends on (look for source, ., or calls to other scripts)
-  - estimatedDuration: Expected runtime if mentioned in comments or obvious from operations
+  - estimatedDuration: Expected runtime if mentioned in comments
 * Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references
 * Identify database operations (mysql, psql, mongo commands)
 * Note any external API calls (curl, wget)`,

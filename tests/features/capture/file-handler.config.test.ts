@@ -1,9 +1,9 @@
 import "reflect-metadata";
-import { fileTypeMetadataConfig } from "../../../src/components/capture/config/capture.config";
+import { fileTypeMetadataConfig } from "../../../src/promptTemplates/sources.prompts";
 import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";
-import { DynamicPromptConfig } from "../../../src/llm/types/llm.types";
+import { SourcePromptTemplate } from "../../../src/promptTemplates/prompt.types";
 
 describe("File Handler Configuration", () => {
   beforeEach(() => {
@@ -61,7 +61,7 @@ describe("File Handler Configuration", () => {
 
   describe("DynamicPromptConfig structure", () => {
     test("should enforce correct structure", () => {
-      const testConfig: DynamicPromptConfig = {
+      const testConfig: SourcePromptTemplate = {
         contentDesc: "test content",
         instructions: "test instructions",
         schema: sourceSummarySchema,
@@ -78,7 +78,7 @@ describe("File Handler Configuration", () => {
 
     test("should work with type compatibility", () => {
       // Test that DynamicPromptConfig can work with inline schema types
-      const typedConfig: DynamicPromptConfig = {
+      const typedConfig: SourcePromptTemplate = {
         contentDesc: "test content",
         instructions: "test instructions",
         schema: sourceSummarySchema.pick({ purpose: true, implementation: true }),

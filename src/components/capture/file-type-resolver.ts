@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 
 /**
  * Configuration interface for file type mapping

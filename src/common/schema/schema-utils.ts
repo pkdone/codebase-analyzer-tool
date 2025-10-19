@@ -7,10 +7,7 @@ export const DEFAULT_INVALID_VALUE = "INVALID" as const;
  * - Returns the original value if not a string
  * - Returns 'INVALID' sentinel when not in allowed set.
  */
-export function normalizeEnumValue(
-  value: unknown,
-  allowed: readonly string[],
-): unknown {
+export function normalizeEnumValue(value: unknown, allowed: readonly string[]): unknown {
   if (typeof value === "string") {
     const upper = value.toUpperCase();
     return allowed.includes(upper) ? upper : DEFAULT_INVALID_VALUE;
@@ -22,10 +19,7 @@ export function normalizeEnumValue(
  * Normalizes input that may be a string or an array of strings into an array of enum values.
  * Each element is uppercased and validated; invalid entries become 'INVALID'.
  */
-export function normalizeEnumArray(
-  value: unknown,
-  allowed: readonly string[],
-): unknown {
+export function normalizeEnumArray(value: unknown, allowed: readonly string[]): unknown {
   if (Array.isArray(value)) {
     return value
       .filter((v) => typeof v === "string")
@@ -44,10 +38,7 @@ export function normalizeEnumArray(
 /**
  * Variant for optional single values: returns undefined if input is empty string after trim.
  */
-export function normalizeOptionalEnumValue(
-  value: unknown,
-  allowed: readonly string[],
-): unknown {
+export function normalizeOptionalEnumValue(value: unknown, allowed: readonly string[]): unknown {
   if (typeof value === "string") {
     const trimmed = value.trim();
     if (trimmed.length === 0) return undefined;

@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
-import { DynamicPromptConfig } from "../../llm/types/llm.types";
-import { fileTypeMetadataConfig } from "./config/capture.config";
-import { resolveFileType, type FileTypeMappingsConfig } from "./utils/file-type-resolver";
+import { SourcePromptTemplate } from "../../promptTemplates/prompt.types";
+import { fileTypeMetadataConfig } from "../../promptTemplates/sources.prompts";
+import { resolveFileType, type FileTypeMappingsConfig } from "./file-type-resolver";
 import { TOKENS } from "../../tokens";
 
 /**
@@ -22,7 +22,7 @@ export class PromptConfigFactory {
    * @param type - The detected file type
    * @returns A DynamicPromptConfig configured for the specific file type
    */
-  createConfig(filepath: string, type: string): DynamicPromptConfig {
+  createConfig(filepath: string, type: string): SourcePromptTemplate {
     const resolvedFileType = resolveFileType(filepath, type, this.fileTypeMappingsConfig);
     const config = this.getConfigForFileType(resolvedFileType);
     return config;
@@ -37,7 +37,7 @@ export class PromptConfigFactory {
   private getConfigForFileType(fileType: string) {
     // Type assertion is safe here because we check if the key exists and fallback to default
     return (
-      (fileTypeMetadataConfig as Record<string, DynamicPromptConfig>)[fileType] ??
+      (fileTypeMetadataConfig as Record<string, SourcePromptTemplate>)[fileType] ??
       fileTypeMetadataConfig.default
     );
   }

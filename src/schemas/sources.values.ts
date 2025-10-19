@@ -93,13 +93,7 @@ export const TRANSACTION_HANDLING_VALUES = [
 ] as const;
 
 // Integration direction values (messaging)
-export const DIRECTION_VALUES = [
-  "PRODUCER",
-  "CONSUMER",
-  "BOTH",
-  "BIDIRECTIONAL",
-  "OTHER",
-] as const;
+export const DIRECTION_VALUES = ["PRODUCER", "CONSUMER", "BOTH", "BIDIRECTIONAL", "OTHER"] as const;
 
 // Recognized code smell labels for individual methods
 export const CODE_SMELL_VALUES = [

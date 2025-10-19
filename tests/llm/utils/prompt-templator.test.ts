@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { createPromptFromConfig } from "../../../src/llm/utils/prompt-templator";
-import { DynamicPromptConfig } from "../../../src/llm/types/llm.types";
+import { SourcePromptTemplate } from "../../../src/promptTemplates/prompt.types";
 
 describe("prompt-utils", () => {
   describe("createPromptFromConfig", () => {
     it("should create a prompt with simple string schema", () => {
       const template =
         "Generate JSON following this schema: {{jsonSchema}}\n\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.string(),
         contentDesc: "text file",
         instructions: "process this text",
@@ -30,7 +30,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with object schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.object({
           name: z.string(),
           age: z.number(),
@@ -56,7 +56,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with array schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.array(z.string()),
         contentDesc: "list file",
         instructions: "create list",
@@ -79,7 +79,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with union schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.union([z.string(), z.number()]),
         contentDesc: "mixed file",
         instructions: "process mixed data",
@@ -103,7 +103,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with enum schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.enum(["option1", "option2", "option3"]),
         contentDesc: "choice file",
         instructions: "select option",
@@ -126,7 +126,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with literal schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.literal("exactValue"),
         contentDesc: "literal file",
         instructions: "match exact value",
@@ -148,7 +148,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with optional schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.object({
           required: z.string(),
           optional: z.string().optional(),
@@ -173,7 +173,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with nested schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.object({
           user: z.object({
             profile: z.object({
@@ -204,7 +204,7 @@ describe("prompt-utils", () => {
 
     it("should create a prompt with complex schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.object({
           data: z.array(
             z.object({
@@ -241,7 +241,7 @@ describe("prompt-utils", () => {
         Content: {{codeContent}}
         Force: {{forceJSON}}
       `;
-      const config: DynamicPromptConfig = {
+      const config: SourcePromptTemplate = {
         schema: z.string(),
         contentDesc: "test file",
         instructions: "test instructions",

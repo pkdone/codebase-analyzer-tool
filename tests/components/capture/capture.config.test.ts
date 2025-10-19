@@ -1,4 +1,4 @@
-import { fileTypeMetadataConfig } from "../../../src/components/capture/config/capture.config";
+import { fileTypeMetadataConfig } from "../../../src/promptTemplates/sources.prompts";
 
 describe("fileTypeMetadataConfig", () => {
   describe("supported file types", () => {

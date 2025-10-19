@@ -232,13 +232,3 @@ export interface LLMErrorMsgRegExPattern {
   readonly units: string;
   readonly isMaxFirst: boolean;
 }
-
-/**
- * Configuration for prompts that need file type and instructions
- */
-export interface DynamicPromptConfig<T extends z.ZodType = z.ZodType> {
-  schema: T;
-  contentDesc: string;
-  instructions: string;
-  hasComplexSchema: boolean;
-}
