@@ -48,8 +48,6 @@ export type CanonicalFileType = z.infer<typeof canonicalFileTypeSchema>;
 
 /**
  * File type mappings configuration with readonly maps for immutability.
- * Moved here from `src/config/file-type-mappings.config.ts` to colocate
- * canonical type definitions and related mapping utilities in a single module.
  */
 export const fileTypesToCanonicalMappings = {
   FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, CanonicalFileType>([
