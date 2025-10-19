@@ -19,7 +19,8 @@ describe("fileTypeMetadataConfig", () => {
         expect(fileTypePromptMetadata[type]).toBeDefined();
         expect(fileTypePromptMetadata[type]).toHaveProperty("contentDesc");
         expect(fileTypePromptMetadata[type]).toHaveProperty("instructions");
-        expect(fileTypePromptMetadata[type]).toHaveProperty("schema");
+        // Updated expectation: 'schema' property renamed to 'promptMetadata'
+        expect(fileTypePromptMetadata[type]).toHaveProperty("promptMetadata");
         expect(fileTypePromptMetadata[type]).toHaveProperty("hasComplexSchema");
       });
     });
@@ -28,7 +29,7 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.default).toBeDefined();
       expect(fileTypePromptMetadata.default.contentDesc).toBe("project file content");
       expect(typeof fileTypePromptMetadata.default.instructions).toBe("string");
-      expect(fileTypePromptMetadata.default.schema).toBeDefined();
+      expect(fileTypePromptMetadata.default.promptMetadata).toBeDefined();
       expect(typeof fileTypePromptMetadata.default.hasComplexSchema).toBe("boolean");
     });
   });
@@ -52,8 +53,8 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should have a valid schema", () => {
-      expect(fileTypePromptMetadata.java.schema).toBeDefined();
-      expect(typeof fileTypePromptMetadata.java.schema.parse).toBe("function");
+      expect(fileTypePromptMetadata.java.promptMetadata).toBeDefined();
+      expect(typeof fileTypePromptMetadata.java.promptMetadata.parse).toBe("function");
     });
   });
 
@@ -91,8 +92,8 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should have a valid schema", () => {
-      expect(fileTypePromptMetadata.sql.schema).toBeDefined();
-      expect(typeof fileTypePromptMetadata.sql.schema.parse).toBe("function");
+      expect(fileTypePromptMetadata.sql.promptMetadata).toBeDefined();
+      expect(typeof fileTypePromptMetadata.sql.promptMetadata.parse).toBe("function");
     });
   });
 
@@ -135,7 +136,7 @@ describe("fileTypeMetadataConfig", () => {
         expect(config).toBeDefined();
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("string");
-        expect(config.schema).toBeDefined();
+        expect(config.promptMetadata).toBeDefined();
         expect(typeof config.hasComplexSchema).toBe("boolean");
       });
     });

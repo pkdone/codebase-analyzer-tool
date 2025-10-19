@@ -8,7 +8,7 @@ describe("prompt-utils", () => {
       const template =
         "Generate JSON following this schema: {{jsonSchema}}\n\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.string(),
+        promptMetadata: z.string(),
         contentDesc: "text file",
         instructions: "process this text",
         hasComplexSchema: false,
@@ -19,7 +19,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -31,7 +31,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with object schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.object({
+        promptMetadata: z.object({
           name: z.string(),
           age: z.number(),
         }),
@@ -45,7 +45,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -57,7 +57,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with array schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.array(z.string()),
+        promptMetadata: z.array(z.string()),
         contentDesc: "list file",
         instructions: "create list",
         hasComplexSchema: false,
@@ -68,7 +68,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -80,7 +80,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with union schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.union([z.string(), z.number()]),
+        promptMetadata: z.union([z.string(), z.number()]),
         contentDesc: "mixed file",
         instructions: "process mixed data",
         hasComplexSchema: false,
@@ -91,7 +91,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -104,7 +104,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with enum schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.enum(["option1", "option2", "option3"]),
+        promptMetadata: z.enum(["option1", "option2", "option3"]),
         contentDesc: "choice file",
         instructions: "select option",
         hasComplexSchema: false,
@@ -115,7 +115,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -127,7 +127,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with literal schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.literal("exactValue"),
+        promptMetadata: z.literal("exactValue"),
         contentDesc: "literal file",
         instructions: "match exact value",
         hasComplexSchema: false,
@@ -138,7 +138,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -149,7 +149,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with optional schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.object({
+        promptMetadata: z.object({
           required: z.string(),
           optional: z.string().optional(),
         }),
@@ -163,7 +163,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -174,7 +174,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with nested schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.object({
+        promptMetadata: z.object({
           user: z.object({
             profile: z.object({
               name: z.string(),
@@ -194,7 +194,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -205,7 +205,7 @@ describe("prompt-utils", () => {
     it("should create a prompt with complex schema", () => {
       const template = "Schema: {{jsonSchema}}\nContent: {{codeContent}}";
       const config: SourcePromptTemplate = {
-        schema: z.object({
+        promptMetadata: z.object({
           data: z.array(
             z.object({
               id: z.string(),
@@ -224,7 +224,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 
@@ -242,7 +242,7 @@ describe("prompt-utils", () => {
         Force: {{forceJSON}}
       `;
       const config: SourcePromptTemplate = {
-        schema: z.string(),
+        promptMetadata: z.string(),
         contentDesc: "test file",
         instructions: "test instructions",
         hasComplexSchema: false,
@@ -253,7 +253,7 @@ describe("prompt-utils", () => {
         template,
         config.contentDesc,
         config.instructions,
-        config.schema,
+        config.promptMetadata,
         content,
       );
 

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { fileTypePromptMetadata } from "../../../src/promptTemplates/sources.prompts";
 import {
-  fileTypesToCanonicalMappings,
+  FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS,
   SourcePromptTemplate,
 } from "../../../src/promptTemplates/prompt.types";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
@@ -43,10 +43,10 @@ describe("File Handler Configuration", () => {
 
     test("should have valid Zod schemas for each file type", () => {
       for (const [, config] of Object.entries(fileTypePromptMetadata)) {
-        expect(config.schema).toBeDefined();
-        expect(config.schema._def).toBeDefined();
+        expect(config.promptMetadata).toBeDefined();
+        expect(config.promptMetadata._def).toBeDefined();
         // Schema should have a parse method indicating it's a Zod schema
-        expect(typeof config.schema.parse).toBe("function");
+        expect(typeof config.promptMetadata.parse).toBe("function");
       }
     });
 
@@ -54,7 +54,8 @@ describe("File Handler Configuration", () => {
       for (const [, config] of Object.entries(fileTypePromptMetadata)) {
         expect(config).toHaveProperty("contentDesc");
         expect(config).toHaveProperty("instructions");
-        expect(config).toHaveProperty("schema");
+        // Updated expectation: 'schema' property renamed to 'promptMetadata'
+        expect(config).toHaveProperty("promptMetadata");
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("string");
       }
@@ -66,13 +67,14 @@ describe("File Handler Configuration", () => {
       const testConfig: SourcePromptTemplate = {
         contentDesc: "test content",
         instructions: "test instructions",
-        schema: sourceSummarySchema,
+        promptMetadata: sourceSummarySchema,
         hasComplexSchema: false,
       };
 
       expect(testConfig).toHaveProperty("contentDesc");
       expect(testConfig).toHaveProperty("instructions");
-      expect(testConfig).toHaveProperty("schema");
+      // Updated expectation: 'schema' property renamed to 'promptMetadata'
+      expect(testConfig).toHaveProperty("promptMetadata");
       expect(testConfig).toHaveProperty("hasComplexSchema");
       expect(typeof testConfig.contentDesc).toBe("string");
       expect(typeof testConfig.instructions).toBe("string");
@@ -83,12 +85,12 @@ describe("File Handler Configuration", () => {
       const typedConfig: SourcePromptTemplate = {
         contentDesc: "test content",
         instructions: "test instructions",
-        schema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
+        promptMetadata: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
       };
 
-      expect(typedConfig.schema).toBeDefined();
-      expect(typeof typedConfig.schema.parse).toBe("function");
+      expect(typedConfig.promptMetadata).toBeDefined();
+      expect(typeof typedConfig.promptMetadata.parse).toBe("function");
     });
   });
 
@@ -135,7 +137,7 @@ describe("File Handler Configuration", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
       const canonicalTypes = new Set<
         import("../../../src/promptTemplates/prompt.types").CanonicalFileType
-      >(fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values());
+      >(FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values());
 
       for (const canonicalType of canonicalTypes) {
         expect(fileTypePromptMetadata).toHaveProperty(canonicalType);
@@ -146,8 +148,7 @@ describe("File Handler Configuration", () => {
       // Test that unknown suffix maps to default
       const unknownSuffix = "unknown";
       const canonicalType =
-        fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ??
-        "default";
+        FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ?? "default";
 
       expect(canonicalType).toBe("default");
       expect(fileTypePromptMetadata).toHaveProperty("default");

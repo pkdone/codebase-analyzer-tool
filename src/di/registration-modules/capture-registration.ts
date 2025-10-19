@@ -1,11 +1,9 @@
-import { container } from "tsyringe";
 import { TOKENS } from "../../tokens";
 import { registerComponents } from "../registration-utils";
 
 // Capture component imports
 import { FileSummarizer } from "../../components/capture/file-summarizer";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
-import { fileTypesToCanonicalMappings } from "../../promptTemplates/prompt.types";
 
 /**
  * Register capture-related components in the DI container.
@@ -16,9 +14,6 @@ import { fileTypesToCanonicalMappings } from "../../promptTemplates/prompt.types
  * - File handling configuration
  */
 export function registerCaptureComponents(): void {
-  // Register configuration
-  container.registerInstance(TOKENS.FileTypeMappingsConfig, fileTypesToCanonicalMappings);
-
   // PromptConfigFactory removed; FileSummarizer now resolves file type directly.
   registerComponents([], "Capture components registered (no prompt factory)");
 }

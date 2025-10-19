@@ -3,6 +3,24 @@ import { z } from "zod";
 import { SourcePromptTemplate, CanonicalFileType } from "./prompt.types";
 
 /**
+ * Base template for detailed file summary prompts shared by file summarization.
+ * Centralized here to keep prompt building logic in one place.
+ */
+export const SOURCES_SUMMARY_CAPTURE_TEMPLATE = `Act as a programmer. Take the {{contentDesc}} shown below in the section marked 'CODE' and based on its content, return a JSON response containing data that includes the following:
+
+{{specificInstructions}}
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{{jsonSchema}}
+\`\`\`
+
+{{forceJSON}}
+
+CODE:
+{{codeContent}}`;
+
+/**
  * Common instruction phrases used across multiple file type templates
  */
 const COMMON_INSTRUCTIONS = {
@@ -23,7 +41,7 @@ const COMMON_INSTRUCTIONS = {
 /**
  * Data-driven mapping of prompt types to their templates and schemas
  */
-export const fileTypePromptMetadata: Record<CanonicalFileType | "default", SourcePromptTemplate> = {
+export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTemplate> = {
   java: {
     contentDesc: "code",
     instructions: `* The name of the main public class/interface of the file
@@ -75,7 +93,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
    gRPC (mechanism: 'GRPC'):
    - @GrpcService annotations or gRPC stub usage - include service name, methods
 
- * CRITICAL: Database Integration Analysis (REQUIRED for files that interact with databases)
+ * Database Integration Analysis (REQUIRED for files that interact with databases)
    
    For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
    
@@ -124,7 +142,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
    - Otherwise, if the code does not use a database => mechanism: 'NONE'
     (note, JMS and JNDI are not related to interacting with a database)
 
- * CRITICAL: Code Quality Analysis (REQUIRED for all code files with methods)
+ * Code Quality Analysis (REQUIRED for all code files with methods)
    
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
@@ -152,7 +170,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
      * 'LARGE FILE' - class file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
 
-    schema: sourceSummarySchema
+    promptMetadata: sourceSummarySchema
       .pick({
         name: true,
         kind: true,
@@ -219,7 +237,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
    Server-Sent Events (mechanism: 'SSE'):
    - res.writeHead with text/event-stream
 
- * CRITICAL: Database Integration Analysis (REQUIRED for files that interact with databases)
+ * Database Integration Analysis (REQUIRED for files that interact with databases)
    
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much information as possible - if a field cannot be determined, use "unknown" or "not identifiable":
    
@@ -243,7 +261,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
    - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
    - Otherwise, if no database interaction => mechanism: 'NONE'
 
- * CRITICAL: Code Quality Analysis (REQUIRED for all code files with methods)
+ * Code Quality Analysis (REQUIRED for all code files with methods)
    
    For each public method/function you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, switch/case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
@@ -269,7 +287,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
      * 'FEATURE ENVY' - functions heavily use data from other modules
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       internalReferences: true,
@@ -285,7 +303,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       databaseIntegration: true,
@@ -299,10 +317,10 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
  * A list of the tables (if any) it defines - for each table, include the names of the table's fields, if known.
  * A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
  * A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
- * CRITICAL: Database Integration Analysis (REQUIRED) - Extract ALL possible database details:
+ * Database Integration Analysis (REQUIRED) - Extract ALL possible database details:
    REQUIRED: mechanism (must be 'NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), description (detailed explanation), codeExample (max 6 lines)
    STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present)`,
-    schema: sourceSummarySchema
+    promptMetadata: sourceSummarySchema
       .pick({
         purpose: true,
         implementation: true,
@@ -332,7 +350,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 
-* CRITICAL: UI Framework Detection (REQUIRED for web application config files)
+* UI Framework Detection (REQUIRED for web application config files)
   If this XML file is a web application configuration file, you MUST analyze and identify the UI framework:
   
   Struts Framework Detection:
@@ -355,7 +373,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - If detected, provide: { name: "Spring MVC", version: <if identifiable>, configFile: <current file path> }
   
   If a UI framework is detected, populate the uiFramework field. Otherwise, leave it undefined.`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       uiFramework: true,
@@ -370,7 +388,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
 * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JAVA}    
 * A list of data input fields it contains (if any). For each field, provide its name (or an approximate name), its type (e.g., 'text', 'hidden', 'password'), and a detailed description of its purpose.
 
-* CRITICAL: JSP Metrics Analysis (REQUIRED for all JSP files)
+* JSP Metrics Analysis (REQUIRED for all JSP files)
   You MUST analyze and provide the following JSP metrics in the jspMetrics object:
   - scriptletCount (REQUIRED): Count the exact number of Java scriptlets (<% ... %>) in this file
   - expressionCount (REQUIRED): Count the exact number of expressions (<%= ... %>) in this file
@@ -385,7 +403,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - <%@ taglib prefix="custom" uri="/WEB-INF/custom.tld" %> => { prefix: "custom", uri: "/WEB-INF/custom.tld" }
   
   Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>.`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       internalReferences: true,
@@ -399,7 +417,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
     contentDesc: "Markdown content",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
     }),
@@ -438,7 +456,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
    - Grpc.Net.Client, Grpc.Core service definitions
    - gRPC client stubs and service implementations
 
- * CRITICAL: Database Integration Analysis (REQUIRED for files that interact with databases)
+ * Database Integration Analysis (REQUIRED for files that interact with databases)
    
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
    
@@ -460,7 +478,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
    - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'
    - Otherwise when no DB interaction present => mechanism: 'NONE'
 
- * CRITICAL: Code Quality Analysis (REQUIRED for all code files with methods)
+ * Code Quality Analysis (REQUIRED for all code files with methods)
    
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, foreach, switch/case, catch, &&, ||, ?:, ??). A simple method with no branches = 1. Add 1 for each decision point.
@@ -487,7 +505,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
      * 'DATA CLASS' - class only contains properties and getters/setters
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       name: true,
       kind: true,
       namespace: true,
@@ -539,7 +557,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
    - Action Cable channels
    - WebSocket-Rails usage
 
- * CRITICAL: Database Integration Analysis (REQUIRED for files that interact with databases)
+ * Database Integration Analysis (REQUIRED for files that interact with databases)
    
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
    
@@ -560,7 +578,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
    - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'
    - Otherwise, if no database interaction is evident => mechanism: 'NONE'
 
- * CRITICAL: Code Quality Analysis (REQUIRED for all code files with methods)
+ * Code Quality Analysis (REQUIRED for all code files with methods)
    
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, elsif, unless, for, while, until, case/when, rescue, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
@@ -586,7 +604,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
      * 'FEATURE ENVY' - methods heavily use data from other classes
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       name: true,
       kind: true,
       namespace: true,
@@ -613,7 +631,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - scope (compile, test, runtime, provided, import, system)
   - type (jar, war, pom, etc.)
 * Note: Extract dependencies from both <dependencies> and <dependencyManagement> sections`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -630,7 +648,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - version (version number, or 'latest' if using dynamic versions)
   - scope (implementation, api, testImplementation, runtimeOnly, etc. - map these to standard Maven scopes)
 * Handle both Groovy DSL and Kotlin DSL syntax`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -647,7 +665,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - version (extract from jar filename if versioned, e.g., 'commons-lang3-3.12.0.jar' -> version: '3.12.0')
   - scope (compile, test, runtime based on classpath definitions)
 * Look for dependencies in <classpath>, <path>, <pathelement>, and <ivy:dependency> elements`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -663,7 +681,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - version (semver version, remove ^ and ~ prefixes)
   - scope (dependencies = 'compile', devDependencies = 'test', peerDependencies = 'provided')
 * Extract from both dependencies and devDependencies sections`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -679,7 +697,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - version (Version attribute value)
   - scope (compile for regular, test if in test project based on SDK type)
 * Look for <PackageReference> elements in modern SDK-style projects`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -695,7 +713,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - version (version attribute)
   - scope (compile, or test if targetFramework suggests test package)
 * Parse all <package> elements in the configuration`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -712,7 +730,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - scope (default is 'compile', :development = 'test', :test = 'test')
   - groupId (use 'rubygems' as a standard groupId)
 * Parse gem declarations including version constraints`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -729,7 +747,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - scope (default is 'compile', dev dependencies in Pipfile have scope 'test')
   - groupId (use 'pypi' as standard groupId)
 * Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -745,7 +763,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - version (version from string, remove operators)
   - scope ('compile' for install_requires, 'test' for tests_require or extras_require['test'])
   - groupId (use 'pypi' as standard groupId)`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -761,7 +779,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
   - version (version constraint, remove ^ and ~ prefixes)
   - scope ('compile' for dependencies, 'test' for dev-dependencies)
   - groupId (use 'pypi' as standard groupId)`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
@@ -783,7 +801,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
 * Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references
 * Identify database operations (mysql, psql, mongo commands)
 * Note any external API calls (curl, wget)`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       scheduledJobs: true,
@@ -806,7 +824,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
 * Identify database operations (sqlcmd, osql, BCP)
 * Note network operations (NET USE, COPY to UNC paths)
 * Identify service operations (NET START, SC commands)`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       scheduledJobs: true,
@@ -829,7 +847,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType | "default", Sourc
 * Identify DD statements for file I/O
 * Note COND parameters that indicate job dependencies
 * Look for SORT, IEBGENER, or custom program calls`,
-    schema: sourceSummarySchema.pick({
+    promptMetadata: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       scheduledJobs: true,

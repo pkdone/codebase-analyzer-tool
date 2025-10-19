@@ -13,28 +13,26 @@ jest.mock("../../../src/common/utils/logging", () => ({
 }));
 
 jest.mock("../../../src/promptTemplates/prompt.types", () => ({
-  fileTypesToCanonicalMappings: {
-    FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
-      ["java", "java"],
-      ["js", "javascript"],
-      ["ts", "javascript"],
-      ["javascript", "javascript"],
-      ["typescript", "javascript"],
-      ["ddl", "sql"],
-      ["sql", "sql"],
-      ["xml", "xml"],
-      ["jsp", "jsp"],
-      ["markdown", "markdown"],
-      ["md", "markdown"],
-    ]),
-    FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
-      ["readme", "markdown"],
-      ["license", "markdown"],
-      ["changelog", "markdown"],
-    ]),
-    DEFAULT_FILE_TYPE: "default",
-    JAVA_FILE_TYPE: "java",
-  },
+  FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+    ["java", "java"],
+    ["js", "javascript"],
+    ["ts", "javascript"],
+    ["javascript", "javascript"],
+    ["typescript", "javascript"],
+    ["ddl", "sql"],
+    ["sql", "sql"],
+    ["xml", "xml"],
+    ["jsp", "jsp"],
+    ["markdown", "markdown"],
+    ["md", "markdown"],
+  ]),
+  FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+    ["readme", "markdown"],
+    ["license", "markdown"],
+    ["changelog", "markdown"],
+  ]),
+  DEFAULT_FILE_TYPE: "default",
+  JAVA_FILE_TYPE: "java",
 }));
 
 // Fix the mock to use the correct export name
@@ -172,10 +170,15 @@ describe("FileSummarizer", () => {
       return {
         contentDesc,
         instructions: `Instructions for ${contentDesc}`,
-        schema: {
+        promptMetadata: {
           parse: jest.fn().mockReturnValue({}),
           safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
           // Mock other required ZodType properties to satisfy the interface
+          ...({} as any),
+        },
+        schema: {
+          parse: jest.fn().mockReturnValue({}),
+          safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
           ...({} as any),
         },
         hasComplexSchema: false,
