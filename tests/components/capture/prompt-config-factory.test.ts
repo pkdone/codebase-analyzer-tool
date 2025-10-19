@@ -1,18 +1,19 @@
 import "reflect-metadata";
 import { jest } from "@jest/globals";
 import { PromptConfigFactory } from "../../../src/components/capture/prompt-config-factory";
-import { fileTypeMetadataConfig } from "../../../src/promptTemplates/sources.prompts";
+import { fileTypePromptMetadata } from "../../../src/promptTemplates/sources.prompts";
+import type { CanonicalFileType } from "../../../src/promptTemplates/prompt.types";
 
 // Mock the file type mappings config module
-jest.mock("../../../src/config/file-type-mappings.config", () => ({
-  fileTypeMappingsConfig: {
-    FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+jest.mock("../../../src/promptTemplates/prompt.types", () => ({
+  fileTypesToCanonicalMappings: {
+    FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, CanonicalFileType>([
       ["readme", "markdown"],
       ["license", "markdown"],
       ["changelog", "markdown"],
       ["package.json", "javascript"],
     ]),
-    FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+    FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, CanonicalFileType>([
       ["java", "java"],
       ["js", "javascript"],
       ["ts", "javascript"],
@@ -26,7 +27,8 @@ jest.mock("../../../src/config/file-type-mappings.config", () => ({
       ["md", "markdown"],
       ["py", "default"], // Python files default to 'default' type
     ]),
-    DEFAULT_FILE_TYPE: "default",
+    DEFAULT_FILE_TYPE: "default" as CanonicalFileType,
+    JAVA_FILE_TYPE: "java" as CanonicalFileType,
   },
 }));
 
@@ -34,13 +36,13 @@ describe("PromptConfigFactory", () => {
   let factory: PromptConfigFactory;
 
   const mockFileTypeMappingsConfig = {
-    FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+    FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, CanonicalFileType>([
       ["readme", "markdown"],
       ["license", "markdown"],
       ["changelog", "markdown"],
       ["package.json", "javascript"],
     ]),
-    FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
+    FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, CanonicalFileType>([
       ["java", "java"],
       ["js", "javascript"],
       ["ts", "javascript"],
@@ -54,7 +56,7 @@ describe("PromptConfigFactory", () => {
       ["md", "markdown"],
       ["py", "default"],
     ]),
-    DEFAULT_FILE_TYPE: "default",
+    DEFAULT_FILE_TYPE: "default" as CanonicalFileType,
   };
 
   beforeEach(() => {
@@ -69,7 +71,7 @@ describe("PromptConfigFactory", () => {
 
       const config = factory.createConfig(filepath, type);
 
-      expect(config).toEqual(fileTypeMetadataConfig.java);
+      expect(config).toEqual(fileTypePromptMetadata.java);
     });
 
     it("should resolve file type correctly and return config", () => {
@@ -78,7 +80,7 @@ describe("PromptConfigFactory", () => {
 
       const config = factory.createConfig(filepath, type);
 
-      expect(config).toEqual(fileTypeMetadataConfig.java);
+      expect(config).toEqual(fileTypePromptMetadata.java);
     });
   });
 
@@ -90,7 +92,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.markdown);
+        expect(config).toEqual(fileTypePromptMetadata.markdown);
       });
 
       it("should resolve LICENSE file to markdown type", () => {
@@ -99,7 +101,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.markdown);
+        expect(config).toEqual(fileTypePromptMetadata.markdown);
       });
 
       it("should resolve CHANGELOG file to markdown type", () => {
@@ -108,7 +110,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.markdown);
+        expect(config).toEqual(fileTypePromptMetadata.markdown);
       });
 
       it("should be case insensitive for filename resolution", () => {
@@ -117,7 +119,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.markdown);
+        expect(config).toEqual(fileTypePromptMetadata.markdown);
       });
 
       it("should prioritize filename mapping over extension mapping", () => {
@@ -128,7 +130,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.javascript);
+        expect(config).toEqual(fileTypePromptMetadata.javascript);
       });
     });
 
@@ -139,7 +141,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.java);
+        expect(config).toEqual(fileTypePromptMetadata.java);
       });
 
       it("should resolve JavaScript files correctly", () => {
@@ -150,11 +152,11 @@ describe("PromptConfigFactory", () => {
           { filepath: "/src/types.typescript", type: "typescript" },
         ];
 
-        cases.forEach(({ filepath, type }) => {
+        for (const { filepath, type } of cases) {
           jest.clearAllMocks();
           const config = factory.createConfig(filepath, type);
-          expect(config).toEqual(fileTypeMetadataConfig.javascript);
-        });
+          expect(config).toEqual(fileTypePromptMetadata.javascript);
+        }
       });
 
       it("should resolve SQL files correctly", () => {
@@ -163,11 +165,11 @@ describe("PromptConfigFactory", () => {
           { filepath: "/database/tables.ddl", type: "ddl" },
         ];
 
-        cases.forEach(({ filepath, type }) => {
+        for (const { filepath, type } of cases) {
           jest.clearAllMocks();
           const config = factory.createConfig(filepath, type);
-          expect(config).toEqual(fileTypeMetadataConfig.sql);
-        });
+          expect(config).toEqual(fileTypePromptMetadata.sql);
+        }
       });
 
       it("should resolve XML files correctly", () => {
@@ -176,7 +178,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.xml);
+        expect(config).toEqual(fileTypePromptMetadata.xml);
       });
 
       it("should resolve JSP files correctly", () => {
@@ -185,7 +187,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.jsp);
+        expect(config).toEqual(fileTypePromptMetadata.jsp);
       });
 
       it("should resolve Markdown files correctly", () => {
@@ -194,11 +196,11 @@ describe("PromptConfigFactory", () => {
           { filepath: "/docs/guide.markdown", type: "markdown" },
         ];
 
-        cases.forEach(({ filepath, type }) => {
+        for (const { filepath, type } of cases) {
           jest.clearAllMocks();
           const config = factory.createConfig(filepath, type);
-          expect(config).toEqual(fileTypeMetadataConfig.markdown);
-        });
+          expect(config).toEqual(fileTypePromptMetadata.markdown);
+        }
       });
 
       it("should be case insensitive for extension resolution", () => {
@@ -207,7 +209,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.java);
+        expect(config).toEqual(fileTypePromptMetadata.java);
       });
     });
 
@@ -218,7 +220,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.default);
+        expect(config).toEqual(fileTypePromptMetadata.default);
       });
 
       it("should use default type for files with no extension", () => {
@@ -227,7 +229,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.default);
+        expect(config).toEqual(fileTypePromptMetadata.default);
       });
 
       it("should use default type for unknown file types", () => {
@@ -236,7 +238,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.default);
+        expect(config).toEqual(fileTypePromptMetadata.default);
       });
 
       it("should use mapped default type for known extensions", () => {
@@ -245,7 +247,7 @@ describe("PromptConfigFactory", () => {
 
         const config = factory.createConfig(filepath, type);
 
-        expect(config).toEqual(fileTypeMetadataConfig.default);
+        expect(config).toEqual(fileTypePromptMetadata.default);
       });
     });
   });
@@ -257,7 +259,7 @@ describe("PromptConfigFactory", () => {
 
       const config = factory.createConfig(filepath, type);
 
-      expect(config).toEqual(fileTypeMetadataConfig.javascript);
+      expect(config).toEqual(fileTypePromptMetadata.javascript);
     });
 
     it("should handle files in nested directories", () => {
@@ -266,7 +268,7 @@ describe("PromptConfigFactory", () => {
 
       const config = factory.createConfig(filepath, type);
 
-      expect(config).toEqual(fileTypeMetadataConfig.java);
+      expect(config).toEqual(fileTypePromptMetadata.java);
     });
 
     it("should handle absolute vs relative paths consistently", () => {
@@ -277,11 +279,11 @@ describe("PromptConfigFactory", () => {
         "../relative/path/file.java",
       ];
 
-      cases.forEach((filepath) => {
+      for (const filepath of cases) {
         jest.clearAllMocks();
         const config = factory.createConfig(filepath, "java");
-        expect(config).toEqual(fileTypeMetadataConfig.java);
-      });
+        expect(config).toEqual(fileTypePromptMetadata.java);
+      }
     });
 
     it("should handle empty strings gracefully", () => {
@@ -290,7 +292,7 @@ describe("PromptConfigFactory", () => {
 
       const config = factory.createConfig(filepath, type);
 
-      expect(config).toEqual(fileTypeMetadataConfig.default);
+      expect(config).toEqual(fileTypePromptMetadata.default);
     });
 
     it("should handle special characters in filenames", () => {
@@ -299,7 +301,7 @@ describe("PromptConfigFactory", () => {
 
       const config = factory.createConfig(filepath, type);
 
-      expect(config).toEqual(fileTypeMetadataConfig.javascript);
+      expect(config).toEqual(fileTypePromptMetadata.javascript);
     });
 
     it("should handle files with uppercase extensions", () => {
@@ -308,7 +310,7 @@ describe("PromptConfigFactory", () => {
 
       const config = factory.createConfig(filepath, type);
 
-      expect(config).toEqual(fileTypeMetadataConfig.javascript);
+      expect(config).toEqual(fileTypePromptMetadata.javascript);
     });
   });
 
@@ -319,25 +321,25 @@ describe("PromptConfigFactory", () => {
 
       const config = factory.createConfig(filepath, type);
 
-      expect(config).toEqual(fileTypeMetadataConfig.default);
+      expect(config).toEqual(fileTypePromptMetadata.default);
     });
 
     it("should return correct config for each file type", () => {
       const testCases = [
-        { path: "/test.java", type: "java", expectedConfig: fileTypeMetadataConfig.java },
-        { path: "/test.js", type: "js", expectedConfig: fileTypeMetadataConfig.javascript },
-        { path: "/test.sql", type: "sql", expectedConfig: fileTypeMetadataConfig.sql },
-        { path: "/test.xml", type: "xml", expectedConfig: fileTypeMetadataConfig.xml },
-        { path: "/test.jsp", type: "jsp", expectedConfig: fileTypeMetadataConfig.jsp },
-        { path: "/test.md", type: "md", expectedConfig: fileTypeMetadataConfig.markdown },
-        { path: "/test.txt", type: "txt", expectedConfig: fileTypeMetadataConfig.default },
+        { path: "/test.java", type: "java", expectedConfig: fileTypePromptMetadata.java },
+        { path: "/test.js", type: "js", expectedConfig: fileTypePromptMetadata.javascript },
+        { path: "/test.sql", type: "sql", expectedConfig: fileTypePromptMetadata.sql },
+        { path: "/test.xml", type: "xml", expectedConfig: fileTypePromptMetadata.xml },
+        { path: "/test.jsp", type: "jsp", expectedConfig: fileTypePromptMetadata.jsp },
+        { path: "/test.md", type: "md", expectedConfig: fileTypePromptMetadata.markdown },
+        { path: "/test.txt", type: "txt", expectedConfig: fileTypePromptMetadata.default },
       ];
 
-      testCases.forEach(({ path, type, expectedConfig }) => {
+      for (const { path, type, expectedConfig } of testCases) {
         jest.clearAllMocks();
         const config = factory.createConfig(path, type);
         expect(config).toEqual(expectedConfig);
-      });
+      }
     });
   });
 });

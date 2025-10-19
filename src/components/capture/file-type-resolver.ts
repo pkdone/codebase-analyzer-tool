@@ -1,12 +1,13 @@
 import path from "node:path";
+import type { CanonicalFileType } from "../../promptTemplates/prompt.types";
 
 /**
  * Configuration interface for file type mapping
  */
 export interface FileTypeMappingsConfig {
-  readonly FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: ReadonlyMap<string, string>;
-  readonly FILENAME_TO_CANONICAL_TYPE_MAPPINGS: ReadonlyMap<string, string>;
-  readonly DEFAULT_FILE_TYPE: string;
+  readonly FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: ReadonlyMap<string, CanonicalFileType>;
+  readonly FILENAME_TO_CANONICAL_TYPE_MAPPINGS: ReadonlyMap<string, CanonicalFileType>;
+  readonly DEFAULT_FILE_TYPE: CanonicalFileType;
 }
 
 /**
@@ -22,7 +23,7 @@ export function resolveFileType(
   filepath: string,
   detectedType: string,
   config: FileTypeMappingsConfig,
-): string {
+): CanonicalFileType {
   const filename = path.basename(filepath).toLowerCase();
 
   // Check if this specific filename has a canonical type mapping

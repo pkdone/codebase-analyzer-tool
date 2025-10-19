@@ -6,7 +6,7 @@ import { registerComponents } from "../registration-utils";
 import { FileSummarizer } from "../../components/capture/file-summarizer";
 import { PromptConfigFactory } from "../../components/capture/prompt-config-factory";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
-import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
+import { fileTypesToCanonicalMappings } from "../../promptTemplates/prompt.types";
 
 /**
  * Register capture-related components in the DI container.
@@ -18,7 +18,7 @@ import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
  */
 export function registerCaptureComponents(): void {
   // Register configuration
-  container.registerInstance(TOKENS.FileTypeMappingsConfig, fileTypeMappingsConfig);
+  container.registerInstance(TOKENS.FileTypeMappingsConfig, fileTypesToCanonicalMappings);
 
   registerComponents(
     [{ token: TOKENS.PromptConfigFactory, implementation: PromptConfigFactory }],

@@ -1,6 +1,6 @@
 import { fileTypesToCanonicalMappings } from "../../src/promptTemplates/prompt.types";
 
-describe("fileTypesToCanonicalMappings export", () => {
+describe("prompt.types fileTypesToCanonicalMappings", () => {
   describe("FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS", () => {
     it("should have readonly map of file extensions to canonical types", () => {
       expect(fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS).toBeDefined();
@@ -85,15 +85,11 @@ describe("fileTypesToCanonicalMappings export", () => {
   describe("type safety", () => {
     it("should have ReadonlyMap types that prevent modification at compile time", () => {
       const map = fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS;
-
-      // The TypeScript compiler enforces immutability at compile time
-      // At runtime, we can verify the maps are present and functioning
       expect(map.get("ts")).toBe("javascript");
       expect(map.get("java")).toBe("java");
     });
 
     it("should be defined as const object", () => {
-      // Verify the config object is properly defined
       expect(fileTypesToCanonicalMappings).toBeDefined();
       expect(fileTypesToCanonicalMappings.DEFAULT_FILE_TYPE).toBe("default");
       expect(fileTypesToCanonicalMappings.JAVA_FILE_TYPE).toBe("java");

@@ -2,7 +2,7 @@ import * as configExports from "../../src/config/index";
 import { appConfig } from "../../src/config/app.config";
 import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
-import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
+import { fileTypesToCanonicalMappings } from "../../src/promptTemplates/prompt.types";
 import { outputConfig } from "../../src/config/output.config";
 import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../src/config/logging.config";
 
@@ -23,9 +23,9 @@ describe("config/index", () => {
       expect(configExports.fileProcessingConfig).toBe(fileProcessingConfig);
     });
 
-    it("should export fileTypeMappingsConfig", () => {
-      expect(configExports.fileTypeMappingsConfig).toBeDefined();
-      expect(configExports.fileTypeMappingsConfig).toBe(fileTypeMappingsConfig);
+    it("should export fileTypesToCanonicalMappings", () => {
+      expect(configExports.fileTypesToCanonicalMappings).toBeDefined();
+      expect(configExports.fileTypesToCanonicalMappings).toBe(fileTypesToCanonicalMappings);
     });
 
     it("should export outputConfig", () => {
@@ -52,9 +52,9 @@ describe("config/index", () => {
 
     it("should not export any undefined values", () => {
       const exportedValues = Object.values(configExports);
-      exportedValues.forEach((value) => {
+      for (const value of exportedValues) {
         expect(value).toBeDefined();
-      });
+      }
     });
   });
 });

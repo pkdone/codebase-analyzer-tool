@@ -1,9 +1,11 @@
 import "reflect-metadata";
-import { fileTypeMetadataConfig } from "../../../src/promptTemplates/sources.prompts";
-import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
+import { fileTypePromptMetadata } from "../../../src/promptTemplates/sources.prompts";
+import {
+  fileTypesToCanonicalMappings,
+  SourcePromptTemplate,
+} from "../../../src/promptTemplates/prompt.types";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";
-import { SourcePromptTemplate } from "../../../src/promptTemplates/prompt.types";
 
 describe("File Handler Configuration", () => {
   beforeEach(() => {
@@ -12,8 +14,8 @@ describe("File Handler Configuration", () => {
 
   describe("fileTypeMetataDataAndPromptTemplate", () => {
     test("should be a Record with expected file types", () => {
-      expect(typeof fileTypeMetadataConfig).toBe("object");
-      expect(fileTypeMetadataConfig).not.toBeNull();
+      expect(typeof fileTypePromptMetadata).toBe("object");
+      expect(fileTypePromptMetadata).not.toBeNull();
     });
 
     test("should contain expected prompt template keys", () => {
@@ -29,18 +31,18 @@ describe("File Handler Configuration", () => {
       ];
 
       for (const type of expectedPromptTypes) {
-        expect(fileTypeMetadataConfig).toHaveProperty(type);
+        expect(fileTypePromptMetadata).toHaveProperty(type);
       }
     });
 
     test("should have correct number of mappings", () => {
       // Updated expected count from 8 to 19 after addition of build tool file type metadata mappings
       // Updated to 22 after addition of batch processing file types (shell-script, batch-script, jcl)
-      expect(Object.keys(fileTypeMetadataConfig).length).toBe(22);
+      expect(Object.keys(fileTypePromptMetadata).length).toBe(22);
     });
 
     test("should have valid Zod schemas for each file type", () => {
-      for (const [, config] of Object.entries(fileTypeMetadataConfig)) {
+      for (const [, config] of Object.entries(fileTypePromptMetadata)) {
         expect(config.schema).toBeDefined();
         expect(config.schema._def).toBeDefined();
         // Schema should have a parse method indicating it's a Zod schema
@@ -49,7 +51,7 @@ describe("File Handler Configuration", () => {
     });
 
     test("should have contentDesc and instructions for each type", () => {
-      for (const [, config] of Object.entries(fileTypeMetadataConfig)) {
+      for (const [, config] of Object.entries(fileTypePromptMetadata)) {
         expect(config).toHaveProperty("contentDesc");
         expect(config).toHaveProperty("instructions");
         expect(config).toHaveProperty("schema");
@@ -131,12 +133,12 @@ describe("File Handler Configuration", () => {
 
   describe("Integration between file suffix mappings and prompt templates", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
-      const canonicalTypes = new Set(
-        fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values(),
-      );
+      const canonicalTypes = new Set<
+        import("../../../src/promptTemplates/prompt.types").CanonicalFileType
+      >(fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values());
 
       for (const canonicalType of canonicalTypes) {
-        expect(fileTypeMetadataConfig).toHaveProperty(canonicalType);
+        expect(fileTypePromptMetadata).toHaveProperty(canonicalType);
       }
     });
 
@@ -144,11 +146,11 @@ describe("File Handler Configuration", () => {
       // Test that unknown suffix maps to default
       const unknownSuffix = "unknown";
       const canonicalType =
-        fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ??
+        fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ??
         "default";
 
       expect(canonicalType).toBe("default");
-      expect(fileTypeMetadataConfig).toHaveProperty("default");
+      expect(fileTypePromptMetadata).toHaveProperty("default");
     });
   });
 });

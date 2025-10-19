@@ -13,8 +13,8 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
 
-jest.mock("../../../src/config/file-type-mappings.config", () => ({
-  fileTypeMappingsConfig: {
+jest.mock("../../../src/promptTemplates/prompt.types", () => ({
+  fileTypesToCanonicalMappings: {
     FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
       ["java", "java"],
       ["js", "javascript"],
@@ -34,6 +34,7 @@ jest.mock("../../../src/config/file-type-mappings.config", () => ({
       ["changelog", "markdown"],
     ]),
     DEFAULT_FILE_TYPE: "default",
+    JAVA_FILE_TYPE: "java",
   },
 }));
 
@@ -164,9 +165,12 @@ describe("FileSummarizer", () => {
 
       // Handle filename-based mappings
       const filename = filepath.split("/").pop()?.toLowerCase();
-      if (filename === "readme.md" || filename === "readme.txt" || filename === "readme") {
-        contentDesc = "Markdown content";
-      } else if (filename === "license") {
+      if (
+        filename === "readme.md" ||
+        filename === "readme.txt" ||
+        filename === "readme" ||
+        filename === "license"
+      ) {
         contentDesc = "Markdown content";
       }
 
@@ -585,9 +589,9 @@ describe("FileSummarizer", () => {
         const results = await Promise.all(promises);
 
         expect(results).toHaveLength(3);
-        results.forEach((result) => {
+        for (const result of results) {
           expect(result).toEqual(mockSuccessResponse);
-        });
+        }
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledTimes(3);
       });
 

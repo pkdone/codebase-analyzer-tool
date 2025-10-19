@@ -1,6 +1,6 @@
 import { sourceSummarySchema, databaseIntegrationSchema } from "../schemas/sources.schema";
 import { z } from "zod";
-import { SourcePromptTemplate } from "./prompt.types";
+import { SourcePromptTemplate, CanonicalFileType } from "./prompt.types";
 
 /**
  * Common instruction phrases used across multiple file type templates
@@ -21,39 +21,9 @@ const COMMON_INSTRUCTIONS = {
 } as const;
 
 /**
- * Supported file types for metadata configuration.
- * Ensures type safety and prevents typos when accessing file type configs.
- */
-type SupportedFileType =
-  | "java"
-  | "javascript"
-  | "default"
-  | "sql"
-  | "xml"
-  | "jsp"
-  | "markdown"
-  | "csharp"
-  | "ruby"
-  | "maven"
-  | "gradle"
-  | "ant"
-  | "npm"
-  | "dotnet-proj"
-  | "nuget"
-  | "ruby-bundler"
-  | "python-pip"
-  | "python-setup"
-  | "python-poetry"
-  | "shell-script"
-  | "batch-script"
-  | "jcl";
-
-/**
  * Data-driven mapping of prompt types to their templates and schemas
  */
-export const fileTypeMetadataConfig: Record<SupportedFileType, SourcePromptTemplate> & {
-  default: SourcePromptTemplate;
-} = {
+export const fileTypePromptMetadata: Record<CanonicalFileType | "default", SourcePromptTemplate> = {
   java: {
     contentDesc: "code",
     instructions: `* The name of the main public class/interface of the file

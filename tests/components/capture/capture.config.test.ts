@@ -1,9 +1,9 @@
-import { fileTypeMetadataConfig } from "../../../src/promptTemplates/sources.prompts";
+import { fileTypePromptMetadata } from "../../../src/promptTemplates/sources.prompts";
 
 describe("fileTypeMetadataConfig", () => {
   describe("supported file types", () => {
     it("should have configurations for all expected file types", () => {
-      const expectedTypes: (keyof typeof fileTypeMetadataConfig)[] = [
+      const expectedTypes: (keyof typeof fileTypePromptMetadata)[] = [
         "java",
         "javascript",
         "default",
@@ -16,34 +16,34 @@ describe("fileTypeMetadataConfig", () => {
       ];
 
       expectedTypes.forEach((type) => {
-        expect(fileTypeMetadataConfig[type]).toBeDefined();
-        expect(fileTypeMetadataConfig[type]).toHaveProperty("contentDesc");
-        expect(fileTypeMetadataConfig[type]).toHaveProperty("instructions");
-        expect(fileTypeMetadataConfig[type]).toHaveProperty("schema");
-        expect(fileTypeMetadataConfig[type]).toHaveProperty("hasComplexSchema");
+        expect(fileTypePromptMetadata[type]).toBeDefined();
+        expect(fileTypePromptMetadata[type]).toHaveProperty("contentDesc");
+        expect(fileTypePromptMetadata[type]).toHaveProperty("instructions");
+        expect(fileTypePromptMetadata[type]).toHaveProperty("schema");
+        expect(fileTypePromptMetadata[type]).toHaveProperty("hasComplexSchema");
       });
     });
 
     it("should always have a default configuration", () => {
-      expect(fileTypeMetadataConfig.default).toBeDefined();
-      expect(fileTypeMetadataConfig.default.contentDesc).toBe("project file content");
-      expect(typeof fileTypeMetadataConfig.default.instructions).toBe("string");
-      expect(fileTypeMetadataConfig.default.schema).toBeDefined();
-      expect(typeof fileTypeMetadataConfig.default.hasComplexSchema).toBe("boolean");
+      expect(fileTypePromptMetadata.default).toBeDefined();
+      expect(fileTypePromptMetadata.default.contentDesc).toBe("project file content");
+      expect(typeof fileTypePromptMetadata.default.instructions).toBe("string");
+      expect(fileTypePromptMetadata.default.schema).toBeDefined();
+      expect(typeof fileTypePromptMetadata.default.hasComplexSchema).toBe("boolean");
     });
   });
 
   describe("java configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypeMetadataConfig.java.contentDesc).toBe("code");
+      expect(fileTypePromptMetadata.java.contentDesc).toBe("code");
     });
 
     it("should not be marked as complex schema", () => {
-      expect(fileTypeMetadataConfig.java.hasComplexSchema).toBe(false);
+      expect(fileTypePromptMetadata.java.hasComplexSchema).toBe(false);
     });
 
     it("should include expected instructions", () => {
-      const instructions = fileTypeMetadataConfig.java.instructions;
+      const instructions = fileTypePromptMetadata.java.instructions;
       expect(instructions).toContain("namespace");
       expect(instructions).toContain("public methods");
       expect(instructions).toContain("database integration");
@@ -52,22 +52,22 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should have a valid schema", () => {
-      expect(fileTypeMetadataConfig.java.schema).toBeDefined();
-      expect(typeof fileTypeMetadataConfig.java.schema.parse).toBe("function");
+      expect(fileTypePromptMetadata.java.schema).toBeDefined();
+      expect(typeof fileTypePromptMetadata.java.schema.parse).toBe("function");
     });
   });
 
   describe("javascript configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypeMetadataConfig.javascript.contentDesc).toBe("JavaScript/TypeScript code");
+      expect(fileTypePromptMetadata.javascript.contentDesc).toBe("JavaScript/TypeScript code");
     });
 
     it("should not be marked as complex schema", () => {
-      expect(fileTypeMetadataConfig.javascript.hasComplexSchema).toBe(false);
+      expect(fileTypePromptMetadata.javascript.hasComplexSchema).toBe(false);
     });
 
     it("should include expected instructions", () => {
-      const instructions = fileTypeMetadataConfig.javascript.instructions;
+      const instructions = fileTypePromptMetadata.javascript.instructions;
       expect(instructions).toContain("purpose");
       expect(instructions).toContain("implementation");
       expect(instructions).toContain("internal references");
@@ -76,37 +76,37 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("sql configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypeMetadataConfig.sql.contentDesc).toBe("database DDL/DML/SQL code");
+      expect(fileTypePromptMetadata.sql.contentDesc).toBe("database DDL/DML/SQL code");
     });
 
     it("should be marked as complex schema", () => {
-      expect(fileTypeMetadataConfig.sql.hasComplexSchema).toBe(true);
+      expect(fileTypePromptMetadata.sql.hasComplexSchema).toBe(true);
     });
 
     it("should include SQL-specific instructions", () => {
-      const instructions = fileTypeMetadataConfig.sql.instructions;
+      const instructions = fileTypePromptMetadata.sql.instructions;
       expect(instructions).toContain("stored procedure");
       expect(instructions).toContain("triggers");
       expect(instructions).toContain("tables");
     });
 
     it("should have a valid schema", () => {
-      expect(fileTypeMetadataConfig.sql.schema).toBeDefined();
-      expect(typeof fileTypeMetadataConfig.sql.schema.parse).toBe("function");
+      expect(fileTypePromptMetadata.sql.schema).toBeDefined();
+      expect(typeof fileTypePromptMetadata.sql.schema.parse).toBe("function");
     });
   });
 
   describe("csharp configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypeMetadataConfig.csharp.contentDesc).toBe("C# source code");
+      expect(fileTypePromptMetadata.csharp.contentDesc).toBe("C# source code");
     });
 
     it("should not be marked as complex schema", () => {
-      expect(fileTypeMetadataConfig.csharp.hasComplexSchema).toBe(false);
+      expect(fileTypePromptMetadata.csharp.hasComplexSchema).toBe(false);
     });
 
     it("should include C#-specific instructions", () => {
-      const instructions = fileTypeMetadataConfig.csharp.instructions;
+      const instructions = fileTypePromptMetadata.csharp.instructions;
       expect(instructions).toContain("Entity Framework");
       expect(instructions).toContain("Dapper");
       expect(instructions).toContain("async/sync");
@@ -115,15 +115,15 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("ruby configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypeMetadataConfig.ruby.contentDesc).toBe("Ruby code");
+      expect(fileTypePromptMetadata.ruby.contentDesc).toBe("Ruby code");
     });
 
     it("should not be marked as complex schema", () => {
-      expect(fileTypeMetadataConfig.ruby.hasComplexSchema).toBe(false);
+      expect(fileTypePromptMetadata.ruby.hasComplexSchema).toBe(false);
     });
 
     it("should include Ruby-specific instructions", () => {
-      const instructions = fileTypeMetadataConfig.ruby.instructions;
+      const instructions = fileTypePromptMetadata.ruby.instructions;
       expect(instructions).toContain("ActiveRecord");
       expect(instructions).toContain("module");
     });
@@ -131,7 +131,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("configuration structure", () => {
     it("should have all configurations with required properties", () => {
-      Object.values(fileTypeMetadataConfig).forEach((config) => {
+      Object.values(fileTypePromptMetadata).forEach((config) => {
         expect(config).toBeDefined();
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("string");
@@ -141,7 +141,7 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should have non-empty instructions for all types", () => {
-      Object.values(fileTypeMetadataConfig).forEach((config) => {
+      Object.values(fileTypePromptMetadata).forEach((config) => {
         expect(config.instructions.length).toBeGreaterThan(0);
       });
     });
@@ -150,16 +150,16 @@ describe("fileTypeMetadataConfig", () => {
   describe("type safety", () => {
     it("should be defined as const object with all required properties", () => {
       // Verify the config object structure is correct
-      expect(fileTypeMetadataConfig).toBeDefined();
-      expect(fileTypeMetadataConfig.java).toBeDefined();
-      expect(fileTypeMetadataConfig.default).toBeDefined();
+      expect(fileTypePromptMetadata).toBeDefined();
+      expect(fileTypePromptMetadata.java).toBeDefined();
+      expect(fileTypePromptMetadata.default).toBeDefined();
     });
 
     it("should maintain configuration integrity", () => {
       // Verify configurations maintain their expected values
-      expect(fileTypeMetadataConfig.java.contentDesc).toBe("code");
-      expect(fileTypeMetadataConfig.default.contentDesc).toBe("project file content");
-      expect(fileTypeMetadataConfig.sql.hasComplexSchema).toBe(true);
+      expect(fileTypePromptMetadata.java.contentDesc).toBe("code");
+      expect(fileTypePromptMetadata.default.contentDesc).toBe("project file content");
+      expect(fileTypePromptMetadata.sql.hasComplexSchema).toBe(true);
     });
   });
 });
