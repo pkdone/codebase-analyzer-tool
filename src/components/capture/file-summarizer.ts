@@ -51,9 +51,14 @@ export class FileSummarizer {
     try {
       if (content.trim().length === 0) throw new Error("File is empty");
       const filename = path.basename(filepath).toLowerCase();
-      const byFilename = fileTypesToCanonicalMappings.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
-      const byExtension = fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase());
-      const canonicalFileType: keyof typeof fileTypePromptMetadata = byFilename ?? byExtension ?? fileTypesToCanonicalMappings.DEFAULT_FILE_TYPE;
+      const byFilename =
+        fileTypesToCanonicalMappings.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
+      const byExtension =
+        fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(
+          type.toLowerCase(),
+        );
+      const canonicalFileType: keyof typeof fileTypePromptMetadata =
+        byFilename ?? byExtension ?? fileTypesToCanonicalMappings.DEFAULT_FILE_TYPE;
       const config = fileTypePromptMetadata[canonicalFileType];
       const prompt = createPromptFromConfig(
         SOURCES_SUMMARY_CAPTURE_TEMPLATE,
