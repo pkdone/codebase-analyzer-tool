@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { z } from "zod";
 import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
@@ -40,59 +41,45 @@ jest.mock("../../../src/promptTemplates/sources.prompts", () => ({
   fileTypePromptMetadata: {
     java: {
       contentDesc: "Java code",
+      hasComplexSchema: false,
+      responseSchema: z.object({}),
       instructions: "Java instructions",
-      schema: {
-        parse: jest.fn().mockReturnValue({}),
-        safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-      },
     },
     javascript: {
       contentDesc: "JavaScript/TypeScript code",
+      hasComplexSchema: false,
+      responseSchema: z.object({}),
       instructions: "JavaScript instructions",
-      schema: {
-        parse: jest.fn().mockReturnValue({}),
-        safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-      },
     },
     default: {
       contentDesc: "project file content",
+      hasComplexSchema: false,
+      responseSchema: z.object({}),
       instructions: "Default instructions",
-      schema: {
-        parse: jest.fn().mockReturnValue({}),
-        safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-      },
     },
     sql: {
       contentDesc: "database DDL/DML/SQL code",
+      hasComplexSchema: false,
+      responseSchema: z.object({}),
       instructions: "SQL instructions",
-      schema: {
-        parse: jest.fn().mockReturnValue({}),
-        safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-      },
     },
     xml: {
       contentDesc: "XML code",
+      hasComplexSchema: false,
+      responseSchema: z.object({}),
       instructions: "XML instructions",
-      schema: {
-        parse: jest.fn().mockReturnValue({}),
-        safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-      },
     },
     jsp: {
       contentDesc: "JSP code",
+      hasComplexSchema: false,
+      responseSchema: z.object({}),
       instructions: "JSP instructions",
-      schema: {
-        parse: jest.fn().mockReturnValue({}),
-        safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-      },
     },
     markdown: {
       contentDesc: "Markdown content",
+      hasComplexSchema: false,
+      responseSchema: z.object({}),
       instructions: "Markdown instructions",
-      schema: {
-        parse: jest.fn().mockReturnValue({}),
-        safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-      },
     },
   },
 }));
@@ -169,20 +156,10 @@ describe("FileSummarizer", () => {
 
       return {
         contentDesc,
-        instructions: `Instructions for ${contentDesc}`,
-        promptMetadata: {
-          parse: jest.fn().mockReturnValue({}),
-          safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-          // Mock other required ZodType properties to satisfy the interface
-          ...({} as any),
-        },
-        schema: {
-          parse: jest.fn().mockReturnValue({}),
-          safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
-          ...({} as any),
-        },
         hasComplexSchema: false,
-      };
+        responseSchema: z.object({}),
+        instructions: `Instructions for ${contentDesc}`,
+      } as (typeof fileTypePromptMetadata)["default"]; // satisfy typing
     };
 
     // Since LLMRouter is a default export class, we don't use mockImplementation

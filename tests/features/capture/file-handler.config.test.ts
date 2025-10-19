@@ -50,14 +50,14 @@ describe("File Handler Configuration", () => {
       }
     });
 
-    test("should have contentDesc and instructions for each type", () => {
+    test("should have contentDesc, instructions and responseSchema for each type", () => {
       for (const [, config] of Object.entries(fileTypePromptMetadata)) {
         expect(config).toHaveProperty("contentDesc");
         expect(config).toHaveProperty("instructions");
-        // Updated expectation: 'schema' property renamed to 'promptMetadata'
-        expect(config).toHaveProperty("promptMetadata");
+        expect(config).toHaveProperty("responseSchema");
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("string");
+        expect(typeof config.hasComplexSchema).toBe("boolean");
       }
     });
   });
@@ -73,8 +73,7 @@ describe("File Handler Configuration", () => {
 
       expect(testConfig).toHaveProperty("contentDesc");
       expect(testConfig).toHaveProperty("instructions");
-      // Updated expectation: 'schema' property renamed to 'promptMetadata'
-      expect(testConfig).toHaveProperty("promptMetadata");
+      expect(testConfig).toHaveProperty("responseSchema");
       expect(testConfig).toHaveProperty("hasComplexSchema");
       expect(typeof testConfig.contentDesc).toBe("string");
       expect(typeof testConfig.instructions).toBe("string");

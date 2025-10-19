@@ -15,14 +15,13 @@ describe("fileTypeMetadataConfig", () => {
         "ruby",
       ];
 
-      expectedTypes.forEach((type) => {
+      for (const type of expectedTypes) {
         expect(fileTypePromptMetadata[type]).toBeDefined();
         expect(fileTypePromptMetadata[type]).toHaveProperty("contentDesc");
         expect(fileTypePromptMetadata[type]).toHaveProperty("instructions");
-        // Updated expectation: 'schema' property renamed to 'promptMetadata'
-        expect(fileTypePromptMetadata[type]).toHaveProperty("promptMetadata");
+        expect(fileTypePromptMetadata[type]).toHaveProperty("responseSchema");
         expect(fileTypePromptMetadata[type]).toHaveProperty("hasComplexSchema");
-      });
+      }
     });
 
     it("should always have a default configuration", () => {
@@ -36,7 +35,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("java configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.java.contentDesc).toBe("code");
+      expect(fileTypePromptMetadata.java.contentDesc).toBe("JVM code");
     });
 
     it("should not be marked as complex schema", () => {
@@ -132,19 +131,19 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("configuration structure", () => {
     it("should have all configurations with required properties", () => {
-      Object.values(fileTypePromptMetadata).forEach((config) => {
+      for (const config of Object.values(fileTypePromptMetadata)) {
         expect(config).toBeDefined();
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("string");
         expect(config.responseSchema).toBeDefined();
         expect(typeof config.hasComplexSchema).toBe("boolean");
-      });
+      }
     });
 
     it("should have non-empty instructions for all types", () => {
-      Object.values(fileTypePromptMetadata).forEach((config) => {
+      for (const config of Object.values(fileTypePromptMetadata)) {
         expect(config.instructions.length).toBeGreaterThan(0);
-      });
+      }
     });
   });
 
@@ -158,7 +157,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should maintain configuration integrity", () => {
       // Verify configurations maintain their expected values
-      expect(fileTypePromptMetadata.java.contentDesc).toBe("code");
+      expect(fileTypePromptMetadata.java.contentDesc).toBe("JVM code");
       expect(fileTypePromptMetadata.default.contentDesc).toBe("project file content");
       expect(fileTypePromptMetadata.sql.hasComplexSchema).toBe(true);
     });

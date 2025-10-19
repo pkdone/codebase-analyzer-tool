@@ -53,8 +53,23 @@ const COMMON_INSTRUCTIONS = {
  * Data-driven mapping of prompt types to their templates and schemas
  */
 export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTemplate> = {
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  default: {
+    contentDesc: "project file content",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      databaseIntegration: true,
+    }),
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
+  },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   java: {
-    contentDesc: "code",
+    contentDesc: "JVM code",
     hasComplexSchema: false,
     responseSchema: sourceSummarySchema
       .pick({
@@ -206,6 +221,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'LARGE FILE' - class file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
     hasComplexSchema: false,
@@ -308,18 +325,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
   },
-  default: {
-    contentDesc: "project file content",
-    hasComplexSchema: false,
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      databaseIntegration: true,
-    }),
-    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
-  },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   sql: {
     contentDesc: "database DDL/DML/SQL code",
     hasComplexSchema: true,
@@ -355,6 +362,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    REQUIRED: mechanism (must be 'NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), description (detailed explanation), codeExample (max 6 lines)
    STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present)`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   xml: {
     contentDesc: "XML code",
     hasComplexSchema: false,
@@ -390,6 +399,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   
   If a UI framework is detected, populate the uiFramework field. Otherwise, leave it undefined.`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   jsp: {
     contentDesc: "JSP code",
     hasComplexSchema: false,
@@ -423,6 +434,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   
   Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>.`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   markdown: {
     contentDesc: "Markdown content",
     hasComplexSchema: false,
@@ -433,6 +446,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   csharp: {
     contentDesc: "C# source code",
     hasComplexSchema: false,
@@ -531,6 +546,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   ruby: {
     contentDesc: "Ruby code",
     hasComplexSchema: false,
@@ -630,6 +647,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   maven: {
     contentDesc: "Maven POM (Project Object Model) build file",
     hasComplexSchema: false,
@@ -648,6 +667,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - type (jar, war, pom, etc.)
 * Note: Extract dependencies from both <dependencies> and <dependencyManagement> sections`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   gradle: {
     contentDesc: "Gradle build configuration file",
     hasComplexSchema: false,
@@ -665,6 +686,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope (implementation, api, testImplementation, runtimeOnly, etc. - map these to standard Maven scopes)
 * Handle both Groovy DSL and Kotlin DSL syntax`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   ant: {
     contentDesc: "Apache Ant build.xml file",
     hasComplexSchema: false,
@@ -682,6 +705,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope (compile, test, runtime based on classpath definitions)
 * Look for dependencies in <classpath>, <path>, <pathelement>, and <ivy:dependency> elements`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   npm: {
     contentDesc: "npm package.json or lock file",
     hasComplexSchema: false,
@@ -698,6 +723,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope (dependencies = 'compile', devDependencies = 'test', peerDependencies = 'provided')
 * Extract from both dependencies and devDependencies sections`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   "dotnet-proj": {
     contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
     hasComplexSchema: false,
@@ -714,6 +741,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope (compile for regular, test if in test project based on SDK type)
 * Look for <PackageReference> elements in modern SDK-style projects`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   nuget: {
     contentDesc: "NuGet packages.config file (legacy .NET)",
     hasComplexSchema: false,
@@ -730,6 +759,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope (compile, or test if targetFramework suggests test package)
 * Parse all <package> elements in the configuration`,
   },
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
   "ruby-bundler": {
     contentDesc: "Ruby Gemfile or Gemfile.lock",
     hasComplexSchema: false,
@@ -747,6 +778,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - groupId (use 'rubygems' as a standard groupId)
 * Parse gem declarations including version constraints`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   "python-pip": {
     contentDesc: "Python requirements.txt or Pipfile",
     hasComplexSchema: false,
@@ -764,6 +797,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - groupId (use 'pypi' as standard groupId)
 * Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   "python-setup": {
     contentDesc: "Python setup.py file",
     hasComplexSchema: false,
@@ -780,6 +815,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope ('compile' for install_requires, 'test' for tests_require or extras_require['test'])
   - groupId (use 'pypi' as standard groupId)`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   "python-poetry": {
     contentDesc: "Python pyproject.toml (Poetry)",
     hasComplexSchema: false,
@@ -796,6 +833,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope ('compile' for dependencies, 'test' for dev-dependencies)
   - groupId (use 'pypi' as standard groupId)`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   "shell-script": {
     contentDesc: "Shell script (bash/sh)",
     hasComplexSchema: false,
@@ -812,6 +851,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
 * Identify database operations (mysql, psql, mongo commands)
 * Note any external API calls (curl, wget)`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   "batch-script": {
     contentDesc: "Windows batch script (.bat/.cmd)",
     hasComplexSchema: false,
@@ -829,6 +870,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
 * Note network operations (NET USE, COPY to UNC paths)
 * Identify service operations (NET START, SC commands)`,
   },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
   jcl: {
     contentDesc: "Mainframe JCL (Job Control Language)",
     hasComplexSchema: false,
