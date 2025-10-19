@@ -2,31 +2,32 @@ import {
   normalizeEnumValue,
   normalizeEnumArray,
   normalizeOptionalEnumValue,
+  DEFAULT_INVALID_VALUE,
 } from "../../src/common/schema/schema-utils";
 
 const ALLOWED = ["ONE", "TWO", "THREE"] as const;
-const INVALID = "INVALID";
+const INVALID = DEFAULT_INVALID_VALUE;
 
 describe("schema-utils normalization", () => {
   test("normalizeEnumValue returns uppercased valid value", () => {
-    expect(normalizeEnumValue("one", ALLOWED, INVALID)).toBe("ONE");
+  expect(normalizeEnumValue("one", ALLOWED)).toBe("ONE");
   });
 
   test("normalizeEnumValue returns INVALID for unknown", () => {
-    expect(normalizeEnumValue("four", ALLOWED, INVALID)).toBe(INVALID);
+  expect(normalizeEnumValue("four", ALLOWED)).toBe(INVALID);
   });
 
   test("normalizeEnumArray handles string input", () => {
-    expect(normalizeEnumArray("two", ALLOWED, INVALID)).toEqual(["TWO"]);
+  expect(normalizeEnumArray("two", ALLOWED)).toEqual(["TWO"]);
   });
 
   test("normalizeEnumArray handles array with mix of valid/invalid", () => {
-    expect(normalizeEnumArray(["three", "bad"], ALLOWED, INVALID)).toEqual(["THREE", INVALID]);
+  expect(normalizeEnumArray(["three", "bad"], ALLOWED)).toEqual(["THREE", INVALID]);
   });
 
   test("normalizeOptionalEnumValue trims and invalidates", () => {
-    expect(normalizeOptionalEnumValue(" one ", ALLOWED, INVALID)).toBe("ONE");
-    expect(normalizeOptionalEnumValue("  ", ALLOWED, INVALID)).toBeUndefined();
-    expect(normalizeOptionalEnumValue("unknown", ALLOWED, INVALID)).toBe(INVALID);
+  expect(normalizeOptionalEnumValue(" one ", ALLOWED)).toBe("ONE");
+  expect(normalizeOptionalEnumValue("  ", ALLOWED)).toBeUndefined();
+  expect(normalizeOptionalEnumValue("unknown", ALLOWED)).toBe(INVALID);
   });
 });

@@ -1,3 +1,6 @@
+// Central sentinel used by normalization helpers when a value is not recognized.
+export const DEFAULT_INVALID_VALUE = "INVALID" as const;
+
 /**
  * Normalizes a single string value against a set of allowed uppercase enum values.
  * - Uppercases input
@@ -7,11 +10,10 @@
 export function normalizeEnumValue(
   value: unknown,
   allowed: readonly string[],
-  invalidValue: string,
 ): unknown {
   if (typeof value === "string") {
     const upper = value.toUpperCase();
-    return allowed.includes(upper) ? upper : invalidValue;
+    return allowed.includes(upper) ? upper : DEFAULT_INVALID_VALUE;
   }
   return value;
 }
@@ -23,19 +25,18 @@ export function normalizeEnumValue(
 export function normalizeEnumArray(
   value: unknown,
   allowed: readonly string[],
-  invalidValue: string,
 ): unknown {
   if (Array.isArray(value)) {
     return value
       .filter((v) => typeof v === "string")
       .map((v) => {
         const upper = v.toUpperCase();
-        return allowed.includes(upper) ? upper : invalidValue;
+        return allowed.includes(upper) ? upper : DEFAULT_INVALID_VALUE;
       });
   }
   if (typeof value === "string") {
     const upper = value.toUpperCase();
-    return [allowed.includes(upper) ? upper : invalidValue];
+    return [allowed.includes(upper) ? upper : DEFAULT_INVALID_VALUE];
   }
   return value;
 }
@@ -46,13 +47,12 @@ export function normalizeEnumArray(
 export function normalizeOptionalEnumValue(
   value: unknown,
   allowed: readonly string[],
-  invalidValue: string,
 ): unknown {
   if (typeof value === "string") {
     const trimmed = value.trim();
     if (trimmed.length === 0) return undefined;
     const upper = trimmed.toUpperCase();
-    return allowed.includes(upper) ? upper : invalidValue;
+    return allowed.includes(upper) ? upper : DEFAULT_INVALID_VALUE;
   }
   return value;
 }

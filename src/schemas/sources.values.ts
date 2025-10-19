@@ -1,8 +1,4 @@
 // Shared constant value enumerations for sources.schema.
-// "INVALID" included where fallback sentinel is needed; "OTHER" where an open category makes sense.
-
-// Central sentinel used by normalization helpers when a value is not recognized.
-export const DEFAULT_INVALID_VALUE = "INVALID" as const;
 
 // Central list of valid DB integration mechanism values (kept uppercase for normalization logic)
 export const DATABASE_MECHANISM_VALUES = [
@@ -54,7 +50,6 @@ export const DATABASE_MECHANISM_VALUES = [
   "FUNCTION",
   // Fallback
   "OTHER",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Central list of valid database operation type values
@@ -65,7 +60,6 @@ export const OPERATION_TYPE_VALUES = [
   "DDL",
   "ADMIN",
   "OTHER",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Central list of common query pattern descriptors (kept intentionally generic)
@@ -81,7 +75,6 @@ export const QUERY_PATTERN_VALUES = [
   "RAW DRIVER CALLS",
   "CACHE LOOKUPS",
   "OTHER",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Central list of common transaction handling approaches
@@ -97,7 +90,6 @@ export const TRANSACTION_HANDLING_VALUES = [
   "ROLLBACK ON ERROR",
   "UNKNOWN",
   "OTHER",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Integration direction values (messaging)
@@ -107,7 +99,6 @@ export const DIRECTION_VALUES = [
   "BOTH",
   "BIDIRECTIONAL",
   "OTHER",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Recognized code smell labels for individual methods
@@ -125,7 +116,6 @@ export const CODE_SMELL_VALUES = [
   "FEATURE ENVY",
   "SHOTGUN SURGERY",
   "OTHER",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Recognized file-level smell labels
@@ -136,7 +126,6 @@ export const FILE_SMELL_VALUES = [
   "DATA CLASS",
   "LARGE FILE",
   "OTHER",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Integration mechanism values (REST, messaging, RPC, etc.)
@@ -162,7 +151,6 @@ export const INTEGRATION_MECHANISM_VALUES = [
   "WEBHOOK",
   "SSE",
   "OTHER",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Recognized kinds for the main entity represented in a source file summary
@@ -175,8 +163,7 @@ export const SOURCE_ENTITY_KIND_VALUES = [
   "ANNOTATION-TYPE",
   "MODULE",
   "UNION",
-  DEFAULT_INVALID_VALUE,
 ] as const;
 
 // Complexity score values for procedures/triggers (and similar constructs)
-export const COMPLEXITY_VALUES = ["LOW", "MEDIUM", "HIGH", DEFAULT_INVALID_VALUE] as const;
+export const COMPLEXITY_VALUES = ["LOW", "MEDIUM", "HIGH"] as const;

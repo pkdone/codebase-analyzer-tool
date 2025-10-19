@@ -10,9 +10,12 @@ import {
   INTEGRATION_MECHANISM_VALUES,
   SOURCE_ENTITY_KIND_VALUES,
   COMPLEXITY_VALUES,
-  DEFAULT_INVALID_VALUE,
 } from "./sources.values";
-import { normalizeEnumValue, normalizeEnumArray } from "../common/schema/schema-utils";
+import {
+  normalizeEnumValue,
+  normalizeEnumArray,
+  DEFAULT_INVALID_VALUE,
+} from "../common/schema/schema-utils";
 
 /**
  * Schema for database integration information
@@ -21,8 +24,8 @@ export const databaseIntegrationSchema = z
   .object({
     mechanism: z
       .preprocess(
-        (val) => normalizeEnumValue(val, DATABASE_MECHANISM_VALUES, DEFAULT_INVALID_VALUE),
-        z.enum(DATABASE_MECHANISM_VALUES),
+        (val) => normalizeEnumValue(val, DATABASE_MECHANISM_VALUES),
+        z.union([z.enum(DATABASE_MECHANISM_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
       )
       .describe("The database integration mechanism used - only the listed values are valid."),
     name: z.string().optional().describe("Name of the database, service, or data access component"),
@@ -41,10 +44,14 @@ export const databaseIntegrationSchema = z
       .describe("List of tables, collections, or entities being accessed by this code"),
     operationType: z
       .preprocess(
-        (val) => normalizeEnumArray(val, OPERATION_TYPE_VALUES, DEFAULT_INVALID_VALUE),
+        (val) => normalizeEnumArray(val, OPERATION_TYPE_VALUES),
         z.any(),
       )
-      .pipe(z.array(z.enum(OPERATION_TYPE_VALUES)))
+      .pipe(
+        z.array(
+          z.union([z.enum(OPERATION_TYPE_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
+        ),
+      )
       .optional()
       .describe("Array of database operation types performed - only the listed values are valid."),
     queryPatterns: z
@@ -56,10 +63,12 @@ export const databaseIntegrationSchema = z
       ),
     queryPatternsNormalized: z
       .preprocess(
-        (val) => normalizeEnumValue(val, QUERY_PATTERN_VALUES, DEFAULT_INVALID_VALUE),
+        (val) => normalizeEnumValue(val, QUERY_PATTERN_VALUES),
         z.any(),
       )
-      .pipe(z.enum(QUERY_PATTERN_VALUES))
+      .pipe(
+        z.union([z.enum(QUERY_PATTERN_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
+      )
       .optional()
       .describe("Normalized query pattern category derived from 'queryPatterns'."),
     transactionHandling: z
@@ -71,10 +80,12 @@ export const databaseIntegrationSchema = z
       ),
     transactionHandlingNormalized: z
       .preprocess(
-        (val) => normalizeEnumValue(val, TRANSACTION_HANDLING_VALUES, DEFAULT_INVALID_VALUE),
+        (val) => normalizeEnumValue(val, TRANSACTION_HANDLING_VALUES),
         z.any(),
       )
-      .pipe(z.enum(TRANSACTION_HANDLING_VALUES))
+      .pipe(
+        z.union([z.enum(TRANSACTION_HANDLING_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
+      )
       .optional()
       .describe("Normalized transaction handling category derived from 'transactionHandling')."),
     protocol: z
@@ -166,8 +177,8 @@ export const procedureTriggerSchema = z
     purpose: z.string().describe("Detailed purpose in at least 3 sentences."),
     complexity: z
       .preprocess(
-        (val) => normalizeEnumValue(val, COMPLEXITY_VALUES, DEFAULT_INVALID_VALUE),
-        z.enum(COMPLEXITY_VALUES),
+        (val) => normalizeEnumValue(val, COMPLEXITY_VALUES),
+        z.union([z.enum(COMPLEXITY_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
       )
       .describe("Complexity score - only the listed values are valid; invalid becomes 'INVALID'."),
     complexityReason: z
@@ -241,10 +252,14 @@ export const publicMethodSchema = z
       .describe("Number of lines of code in this method (excluding comments and blank lines)"),
     codeSmells: z
       .preprocess(
-        (val) => normalizeEnumArray(val, CODE_SMELL_VALUES, DEFAULT_INVALID_VALUE),
+        (val) => normalizeEnumArray(val, CODE_SMELL_VALUES),
         z.any(),
       )
-      .pipe(z.array(z.enum(CODE_SMELL_VALUES)))
+      .pipe(
+        z.array(
+          z.union([z.enum(CODE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
+        ),
+      )
       .optional()
       .describe("List of code smells detected - only the listed values are valid"),
   })
@@ -258,8 +273,8 @@ export const integrationEndpointSchema = z
   .object({
     mechanism: z
       .preprocess(
-        (val) => normalizeEnumValue(val, INTEGRATION_MECHANISM_VALUES, DEFAULT_INVALID_VALUE),
-        z.enum(INTEGRATION_MECHANISM_VALUES),
+        (val) => normalizeEnumValue(val, INTEGRATION_MECHANISM_VALUES),
+        z.union([z.enum(INTEGRATION_MECHANISM_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
       )
       .describe(
         "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'.",
@@ -284,10 +299,12 @@ export const integrationEndpointSchema = z
       .describe("Type of message being sent/received (for messaging systems)"),
     direction: z
       .preprocess(
-        (val) => normalizeEnumValue(val, DIRECTION_VALUES, DEFAULT_INVALID_VALUE),
+        (val) => normalizeEnumValue(val, DIRECTION_VALUES),
         z.any(),
       )
-      .pipe(z.enum(DIRECTION_VALUES))
+      .pipe(
+        z.union([z.enum(DIRECTION_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
+      )
       .optional()
       .describe("Whether this code produces, consumes, both, or is bidirectional"),
     requestBody: z
@@ -324,10 +341,14 @@ export const codeQualityMetricsSchema = z
     averageMethodLength: z.number().optional().describe("Average lines of code per method"),
     fileSmells: z
       .preprocess(
-        (val) => normalizeEnumArray(val, FILE_SMELL_VALUES, DEFAULT_INVALID_VALUE),
+        (val) => normalizeEnumArray(val, FILE_SMELL_VALUES),
         z.any(),
       )
-      .pipe(z.array(z.enum(FILE_SMELL_VALUES)))
+      .pipe(
+        z.array(
+          z.union([z.enum(FILE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
+        ),
+      )
       .optional()
       .describe("File-level code smells - only the listed values are valid"),
   })
@@ -392,8 +413,8 @@ export const sourceSummarySchema = z
       ),
     kind: z
       .preprocess(
-        (val) => normalizeEnumValue(val, SOURCE_ENTITY_KIND_VALUES, DEFAULT_INVALID_VALUE),
-        z.enum(SOURCE_ENTITY_KIND_VALUES),
+        (val) => normalizeEnumValue(val, SOURCE_ENTITY_KIND_VALUES),
+        z.union([z.enum(SOURCE_ENTITY_KIND_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
       )
       .optional()
       .describe("The kind of the main entity - only the listed values are valid."),
