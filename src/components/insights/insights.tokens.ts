@@ -21,7 +21,6 @@ export const insightsTokens = {
   FallbackStrategy: TOKENS.FallbackStrategy,
   LLMExecutionPipeline: TOKENS.LLMExecutionPipeline,
   JsonProcessor: TOKENS.JsonProcessor,
-  PromptConfigFactory: TOKENS.PromptConfigFactory,
   FileSummarizer: TOKENS.FileSummarizer,
 } as const;
 

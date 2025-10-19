@@ -33,7 +33,6 @@ export const TOKENS = {
   // Internal Helper Components
   DatabaseInitializer: Symbol("DatabaseInitializer"),
   FileSummarizer: Symbol("FileSummarizer"),
-  PromptConfigFactory: Symbol("PromptConfigFactory"),
   JsonProcessor: Symbol("JsonProcessor"),
   LLMStats: Symbol("LLMStats"),
   LLMStatsReporter: Symbol("LLMStatsReporter"),

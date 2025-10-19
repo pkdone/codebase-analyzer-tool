@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
-import { PromptConfigFactory } from "../../../src/components/capture/prompt-config-factory";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../../src/llm/types/llm-errors.types";
@@ -40,7 +39,7 @@ jest.mock("../../../src/promptTemplates/prompt.types", () => ({
 
 // Fix the mock to use the correct export name
 jest.mock("../../../src/promptTemplates/sources.prompts", () => ({
-  fileTypeMetadataConfig: {
+  fileTypePromptMetadata: {
     java: {
       contentDesc: "Java code",
       instructions: "Java instructions",
@@ -122,10 +121,11 @@ const mockLogErrorMsgAndDetail = logging.logErrorMsgAndDetail as jest.MockedFunc
   typeof logging.logErrorMsgAndDetail
 >;
 
+import { fileTypePromptMetadata } from "../../../src/promptTemplates/sources.prompts";
+
 describe("FileSummarizer", () => {
   let fileSummarizer: FileSummarizer;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let mockPromptConfigFactory: jest.Mocked<PromptConfigFactory>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -135,13 +135,8 @@ describe("FileSummarizer", () => {
       executeCompletion: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<LLMRouter>;
 
-    // Create mock PromptConfigFactory
-    mockPromptConfigFactory = {
-      createConfig: jest.fn(),
-    } as unknown as jest.Mocked<PromptConfigFactory>;
-
-    // Set up the factory to return the mock config with proper type-based behavior
-    mockPromptConfigFactory.createConfig.mockImplementation((filepath: string, type: string) => {
+    // Helper mimicking previous factory behavior to produce config used by tests
+    const createConfig = (filepath: string, type: string) => {
       // Determine the expected prompt based on file type (similar to real PromptConfigFactory logic)
       let contentDesc = "project file content";
 
@@ -185,11 +180,22 @@ describe("FileSummarizer", () => {
         },
         hasComplexSchema: false,
       };
-    });
+    };
 
     // Since LLMRouter is a default export class, we don't use mockImplementation
     // Instead, we directly inject the mock instance
-    fileSummarizer = new FileSummarizer(mockLLMRouter, mockPromptConfigFactory);
+  // Monkey patch fileTypePromptMetadata to use our dynamic createConfig outputs for types encountered
+  const metadata = fileTypePromptMetadata;
+  // Override specific entries for deterministic behavior in tests
+  metadata.java = createConfig("TestClass.java", "java");
+  metadata.javascript = createConfig("index.ts", "typescript");
+  metadata.sql = createConfig("schema.sql", "sql");
+  metadata.xml = createConfig("config.xml", "xml");
+  metadata.jsp = createConfig("view.jsp", "jsp");
+  metadata.markdown = createConfig("README.md", "markdown");
+  metadata.default = createConfig("generic.txt", "txt");
+
+  fileSummarizer = new FileSummarizer(mockLLMRouter);
   });
 
   describe("summarizeFile", () => {

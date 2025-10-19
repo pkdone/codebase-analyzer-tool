@@ -4,7 +4,6 @@ import { registerComponents } from "../registration-utils";
 
 // Capture component imports
 import { FileSummarizer } from "../../components/capture/file-summarizer";
-import { PromptConfigFactory } from "../../components/capture/prompt-config-factory";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
 import { fileTypesToCanonicalMappings } from "../../promptTemplates/prompt.types";
 
@@ -20,10 +19,8 @@ export function registerCaptureComponents(): void {
   // Register configuration
   container.registerInstance(TOKENS.FileTypeMappingsConfig, fileTypesToCanonicalMappings);
 
-  registerComponents(
-    [{ token: TOKENS.PromptConfigFactory, implementation: PromptConfigFactory }],
-    "Capture components registered",
-  );
+  // PromptConfigFactory removed; FileSummarizer now resolves file type directly.
+  registerComponents([], "Capture components registered (no prompt factory)");
 }
 
 /**

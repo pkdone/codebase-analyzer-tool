@@ -5,9 +5,12 @@ import type LLMRouter from "../../llm/core/llm-router";
 import { TOKENS } from "../../tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
-import { PromptConfigFactory } from "./prompt-config-factory";
+// Inlined file type resolution (was resolveFileType in file-type-resolver.ts)
+import path from "node:path";
+import { fileTypePromptMetadata } from "../../promptTemplates/sources.prompts";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
+import { fileTypesToCanonicalMappings } from "../../promptTemplates/prompt.types";
 
 /**
  * Type for source summary
@@ -31,15 +34,13 @@ CODE:
 
 /**
  * Responsible for LLM-based file summarization with strong typing and robust error handling.
- * Uses PromptConfigFactory to separate concerns and follow the Single Responsibility Principle.
+ * File type resolution and prompt metadata lookup are performed inline (previously delegated to PromptConfigFactory).
  */
 @injectable()
 export class FileSummarizer {
   constructor(
     @inject(TOKENS.LLMRouter)
     private readonly llmRouter: LLMRouter,
-    @inject(TOKENS.PromptConfigFactory)
-    private readonly promptConfigFactory: PromptConfigFactory,
   ) {}
 
   /**
@@ -49,7 +50,11 @@ export class FileSummarizer {
   async summarizeFile(filepath: string, type: string, content: string): Promise<SourceSummaryType> {
     try {
       if (content.trim().length === 0) throw new Error("File is empty");
-      const config = this.promptConfigFactory.createConfig(filepath, type);
+      const filename = path.basename(filepath).toLowerCase();
+      const byFilename = fileTypesToCanonicalMappings.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
+      const byExtension = fileTypesToCanonicalMappings.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase());
+      const canonicalFileType: keyof typeof fileTypePromptMetadata = byFilename ?? byExtension ?? fileTypesToCanonicalMappings.DEFAULT_FILE_TYPE;
+      const config = fileTypePromptMetadata[canonicalFileType];
       const prompt = createPromptFromConfig(
         SOURCES_SUMMARY_CAPTURE_TEMPLATE,
         config.contentDesc,
