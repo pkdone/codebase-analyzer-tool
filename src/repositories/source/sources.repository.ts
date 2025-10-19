@@ -250,9 +250,7 @@ export default class SourcesRepositoryImpl
   /**
    * Get file count and total lines of code for a project in a single query
    */
-  async getProjectFileAndLineStats(
-    projectName: string,
-  ): Promise<ProjectedFileAndLineStats> {
+  async getProjectFileAndLineStats(projectName: string): Promise<ProjectedFileAndLineStats> {
     const pipeline = [
       { $match: { projectName } },
       {
@@ -263,10 +261,8 @@ export default class SourcesRepositoryImpl
         },
       },
     ];
-    const results = await this.collection
-      .aggregate<ProjectedFileAndLineStats>(pipeline)
-      .toArray();
-    if (results.length === 0)return { fileCount: 0, linesOfCode: 0 };
+    const results = await this.collection.aggregate<ProjectedFileAndLineStats>(pipeline).toArray();
+    if (results.length === 0) return { fileCount: 0, linesOfCode: 0 };
     const stats = results[0];
     return {
       fileCount: stats.fileCount,
@@ -425,9 +421,7 @@ export default class SourcesRepositoryImpl
   /**
    * Get code smell statistics using aggregation pipeline
    */
-  async getCodeSmellStatistics(projectName: string): Promise<
-    ProjectedCodeSmellStatistic[]
-  > {
+  async getCodeSmellStatistics(projectName: string): Promise<ProjectedCodeSmellStatistic[]> {
     // TODO: look at index
     const pipeline = [
       {

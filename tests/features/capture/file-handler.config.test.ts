@@ -28,9 +28,9 @@ describe("File Handler Configuration", () => {
         "csharp",
       ];
 
-      expectedPromptTypes.forEach((type) => {
+      for (const type of expectedPromptTypes) {
         expect(fileTypeMetadataConfig).toHaveProperty(type);
-      });
+      }
     });
 
     test("should have correct number of mappings", () => {
@@ -40,22 +40,22 @@ describe("File Handler Configuration", () => {
     });
 
     test("should have valid Zod schemas for each file type", () => {
-      Object.entries(fileTypeMetadataConfig).forEach(([, config]) => {
+      for (const [, config] of Object.entries(fileTypeMetadataConfig)) {
         expect(config.schema).toBeDefined();
         expect(config.schema._def).toBeDefined();
         // Schema should have a parse method indicating it's a Zod schema
         expect(typeof config.schema.parse).toBe("function");
-      });
+      }
     });
 
     test("should have contentDesc and instructions for each type", () => {
-      Object.entries(fileTypeMetadataConfig).forEach(([, config]) => {
+      for (const [, config] of Object.entries(fileTypeMetadataConfig)) {
         expect(config).toHaveProperty("contentDesc");
         expect(config).toHaveProperty("instructions");
         expect(config).toHaveProperty("schema");
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("string");
-      });
+      }
     });
   });
 
@@ -97,7 +97,7 @@ describe("File Handler Configuration", () => {
 
       const javaSummary: SourceSummaryType = {
         name: "TestClass",
-        kind: "class",
+        kind: "CLASS",
         namespace: "com.example.TestClass",
         purpose: "Test purpose",
         implementation: "Test implementation",

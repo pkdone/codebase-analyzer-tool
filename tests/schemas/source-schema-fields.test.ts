@@ -25,38 +25,38 @@ describe("Source Schema Fields - NEW Names", () => {
       const testData = {
         purpose: "Test purpose for testing schema validation.",
         implementation: "Test implementation details that include business logic and processing.",
-        kind: "class" as const,
+        kind: "CLASS" as const,
       };
 
       const result = sourceSummarySchema.safeParse(testData);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.kind).toBe("class");
+        expect(result.data.kind).toBe("CLASS");
       }
     });
 
     it("should accept all valid kind enum values", () => {
       const validTypes: (
-        | "class"
-        | "interface"
-        | "record"
-        | "struct"
-        | "enum"
-        | "annotation-type"
-        | "module"
-        | "union"
+        | "CLASS"
+        | "INTERFACE"
+        | "RECORD"
+        | "STRUCT"
+        | "ENUM"
+        | "ANNOTATION-TYPE"
+        | "MODULE"
+        | "UNION"
       )[] = [
-        "class",
-        "interface",
-        "record",
-        "struct",
-        "enum",
-        "annotation-type",
-        "module",
-        "union",
+        "CLASS",
+        "INTERFACE",
+        "RECORD",
+        "STRUCT",
+        "ENUM",
+        "ANNOTATION-TYPE",
+        "MODULE",
+        "UNION",
       ];
 
-      validTypes.forEach((type) => {
+      for (const type of validTypes) {
         const testData = {
           purpose: "Test purpose for testing schema validation.",
           implementation: "Test implementation details that include business logic and processing.",
@@ -68,7 +68,7 @@ describe("Source Schema Fields - NEW Names", () => {
         if (result.success) {
           expect(result.data.kind).toBe(type);
         }
-      });
+      }
     });
 
     it("should have field named 'namespace'", () => {
@@ -90,7 +90,7 @@ describe("Source Schema Fields - NEW Names", () => {
         purpose: "Test purpose for testing schema validation.",
         implementation: "Test implementation details that include business logic and processing.",
         name: "TestClass",
-        kind: "class" as const,
+        kind: "CLASS" as const,
         namespace: "com.example.TestClass",
       };
 
@@ -98,7 +98,7 @@ describe("Source Schema Fields - NEW Names", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.name).toBe("TestClass");
-        expect(result.data.kind).toBe("class");
+        expect(result.data.kind).toBe("CLASS");
         expect(result.data.namespace).toBe("com.example.TestClass");
       }
     });
@@ -133,12 +133,12 @@ describe("Source Schema Fields - NEW Names", () => {
 
     it("should support picking kind field", () => {
       const pickedSchema = sourceSummarySchema.pick({ kind: true });
-      const testData = { kind: "interface" as const };
+      const testData = { kind: "INTERFACE" as const };
 
       const result = pickedSchema.safeParse(testData);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.kind).toBe("interface");
+        expect(result.data.kind).toBe("INTERFACE");
       }
     });
 
@@ -161,7 +161,7 @@ describe("Source Schema Fields - NEW Names", () => {
       });
       const testData = {
         name: "MultiField",
-        kind: "record" as const,
+        kind: "RECORD" as const,
         namespace: "com.test.MultiField",
       };
 
@@ -169,7 +169,7 @@ describe("Source Schema Fields - NEW Names", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.name).toBe("MultiField");
-        expect(result.data.kind).toBe("record");
+        expect(result.data.kind).toBe("RECORD");
         expect(result.data.namespace).toBe("com.test.MultiField");
       }
     });
@@ -184,26 +184,27 @@ describe("Source Schema Fields - NEW Names", () => {
         purpose: "Test purpose for testing schema validation.",
         implementation: "Test implementation details that include business logic and processing.",
         name: "InferredClass",
-        kind: "struct",
+        kind: "STRUCT",
         namespace: "com.test.InferredClass",
       };
 
       // Type assertions to ensure the fields exist with correct types
       const name: string | undefined = summary.name;
       const kind:
-        | "class"
-        | "interface"
-        | "record"
-        | "struct"
-        | "enum"
-        | "annotation-type"
-        | "module"
-        | "union"
+        | "CLASS"
+        | "INTERFACE"
+        | "RECORD"
+        | "STRUCT"
+        | "ENUM"
+        | "ANNOTATION-TYPE"
+        | "MODULE"
+        | "UNION"
+        | "INVALID"
         | undefined = summary.kind;
       const namespace: string | undefined = summary.namespace;
 
       expect(name).toBe("InferredClass");
-      expect(kind).toBe("struct");
+      expect(kind).toBe("STRUCT");
       expect(namespace).toBe("com.test.InferredClass");
     });
   });
@@ -277,7 +278,7 @@ describe("Scheduled Job Schema", () => {
       "task-scheduler",
     ];
 
-    triggers.forEach((trigger) => {
+    for (const trigger of triggers) {
       const testData = {
         jobName: "TestJob",
         trigger,
@@ -289,7 +290,7 @@ describe("Scheduled Job Schema", () => {
       if (result.success) {
         expect(result.data.trigger).toBe(trigger);
       }
-    });
+    }
   });
 
   it("should allow empty arrays for optional resource fields", () => {

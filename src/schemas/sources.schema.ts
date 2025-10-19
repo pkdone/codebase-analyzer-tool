@@ -1,133 +1,18 @@
 import { z } from "zod";
-
-// Central list of valid database integration mechanism values (kept uppercase for normalization logic)
-const DATABASE_MECHANISM_VALUES = [
-  "NONE",
-  // Java/JVM
-  "JDBC",
-  "SPRING-DATA",
-  "HIBERNATE",
-  "JPA",
-  "EJB",
-  // .NET
-  "EF-CORE",
-  "ADO-NET",
-  "DAPPER",
-  // Ruby
-  "ACTIVE-RECORD",
-  "SEQUEL",
-  // Node.js/JavaScript/TypeScript
-  "MONGOOSE",
-  "PRISMA",
-  "TYPEORM",
-  "SEQUELIZE",
-  "KNEX",
-  "DRIZZLE",
-  // Python
-  "SQLALCHEMY",
-  "DJANGO-ORM",
-  // Go
-  "GORM",
-  "SQLX",
-  // Mobile
-  "ROOM",
-  "CORE-DATA",
-  // NoSQL Specific
-  "MQL",
-  "REDIS",
-  "ELASTICSEARCH",
-  "CASSANDRA-CQL",
-  // Generic Categories
-  "SQL",
-  "ORM",
-  "MICRO-ORM",
-  "DRIVER",
-  // Database Operations (consider if these should remain - could use operationType instead)
-  "DDL",
-  "DML",
-  "STORED-PROCEDURE",
-  "TRIGGER",
-  "FUNCTION",
-  // Fallback
-  "OTHER",
-] as const;
-const DATABASE_MECHANISM_SET = new Set<string>(DATABASE_MECHANISM_VALUES);
-
-// Central list of valid database operation type values
-const OPERATION_TYPE_VALUES = [
-  "READ",
-  "WRITE",
-  "READ_WRITE",
-  "DDL",
-  "ADMIN",
-  "OTHER",
-] as const;
-const OPERATION_TYPE_SET = new Set<string>(OPERATION_TYPE_VALUES);
-
-// Central list of common query pattern descriptors (kept intentionally generic)
-const QUERY_PATTERN_VALUES = [
-  "SIMPLE CRUD",
-  "COMPLEX JOINS",
-  "AGGREGATIONS",
-  "STORED PROCEDURES",
-  "BATCH OPERATIONS",
-  "MIGRATIONS",
-  "INLINE SQL",
-  "ORM QUERIES",
-  "RAW DRIVER CALLS",
-  "CACHE LOOKUPS",
-  "OTHER",
-] as const;
-const QUERY_PATTERN_SET = new Set<string>(QUERY_PATTERN_VALUES);
-
-// Central list of common transaction handling approaches
-const TRANSACTION_HANDLING_VALUES = [
-  "SPRING @TRANSACTIONAL",
-  "MANUAL",
-  "AUTO-COMMIT",
-  "NONE",
-  "JPA ENTITYTRANSACTION",
-  "BATCH",
-  "DB CONTEXT",
-  "EXPLICIT BEGIN/COMMIT",
-  "ROLLBACK ON ERROR",
-  "UNKNOWN",
-  "OTHER",
-] as const;
-const TRANSACTION_HANDLING_SET = new Set<string>(TRANSACTION_HANDLING_VALUES);
-
-// Integration direction values (messaging)
-const DIRECTION_VALUES = ["PRODUCER", "CONSUMER", "BOTH", "BIDIRECTIONAL", "OTHER"] as const;
-const DIRECTION_SET = new Set<string>(DIRECTION_VALUES);
-
-// Recognized code smell labels for individual methods
-const CODE_SMELL_VALUES = [
-  "LONG METHOD",
-  "LONG PARAMETER LIST",
-  "COMPLEX CONDITIONAL",
-  "DUPLICATE CODE",
-  "MAGIC NUMBERS",
-  "DEEP NESTING",
-  "DEAD CODE",
-  "GOD CLASS",
-  "LARGE CLASS",
-  "DATA CLASS",
-  "FEATURE ENVY",
-  "SHOTGUN SURGERY",
-  "OTHER",
-] as const;
-const CODE_SMELL_SET = new Set<string>(CODE_SMELL_VALUES);
-
-// Recognized file-level smell labels
-const FILE_SMELL_VALUES = [
-  "GOD CLASS",
-  "TOO MANY METHODS",
-  "FEATURE ENVY",
-  "DATA CLASS",
-  "LARGE FILE",
-  "OTHER",
-] as const;
-const FILE_SMELL_SET = new Set<string>(FILE_SMELL_VALUES);
+import {
+  DATABASE_MECHANISM_VALUES,
+  OPERATION_TYPE_VALUES,
+  QUERY_PATTERN_VALUES,
+  TRANSACTION_HANDLING_VALUES,
+  DIRECTION_VALUES,
+  CODE_SMELL_VALUES,
+  FILE_SMELL_VALUES,
+  INTEGRATION_MECHANISM_VALUES,
+  SOURCE_ENTITY_KIND_VALUES,
+  COMPLEXITY_VALUES,
+  DEFAULT_INVALID_VALUE,
+} from "./sources.values";
+import { normalizeEnumValue, normalizeEnumArray } from "../common/schema/schema-utils";
 
 /**
  * Schema for database integration information
@@ -136,20 +21,10 @@ export const databaseIntegrationSchema = z
   .object({
     mechanism: z
       .preprocess(
-        (val) => {
-          if (typeof val === "string") {
-            const upper = val.toUpperCase();
-            // If the supplied value isn't one of the valid enumerated values, coerce to OTHER per requirement
-            return DATABASE_MECHANISM_SET.has(upper) ? upper : "OTHER";
-          }
-          return val;
-        },
-        // Cast through unknown to satisfy z.enum variadic tuple requirement without mutating readonly array
-        z.enum(DATABASE_MECHANISM_VALUES as unknown as [string, ...string[]]),
+        (val) => normalizeEnumValue(val, DATABASE_MECHANISM_VALUES, DEFAULT_INVALID_VALUE),
+        z.enum(DATABASE_MECHANISM_VALUES),
       )
-      .describe(
-        "The database integration mechanism used - only the listed values are valid; any unrecognized value will be coerced to 'OTHER'.",
-      ),
+      .describe("The database integration mechanism used - only the listed values are valid."),
     name: z.string().optional().describe("Name of the database, service, or data access component"),
     description: z
       .string()
@@ -165,88 +40,43 @@ export const databaseIntegrationSchema = z
       .optional()
       .describe("List of tables, collections, or entities being accessed by this code"),
     operationType: z
-      .preprocess((val) => {
-        if (Array.isArray(val)) {
-          return val
-            .filter((v) => typeof v === "string")
-            .map((v) => {
-              const upper = v.toUpperCase();
-              return OPERATION_TYPE_SET.has(upper) ? upper : "OTHER";
-            });
-        }
-        if (typeof val === "string") {
-          const upper = val.toUpperCase();
-          return [OPERATION_TYPE_SET.has(upper) ? upper : "OTHER"]; // Coerce single value to array
-        }
-        return val;
-      }, z.any())
+      .preprocess(
+        (val) => normalizeEnumArray(val, OPERATION_TYPE_VALUES, DEFAULT_INVALID_VALUE),
+        z.any(),
+      )
       .pipe(z.array(z.enum(OPERATION_TYPE_VALUES)))
       .optional()
-      .describe(
-        "Array of database operation types performed (e.g., ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN'])",
-      ),
+      .describe("Array of database operation types performed - only the listed values are valid."),
     queryPatterns: z
       .string()
       .optional()
       .describe(
-        "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics.",
+        "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). " +
+          "A separate 'queryPatternsNormalized' field may be derived for internal analytics.",
       ),
     queryPatternsNormalized: z
-      .preprocess((val) => {
-        if (typeof val === "string") {
-          const upper = val.toUpperCase();
-          const normalized = QUERY_PATTERN_SET.has(upper)
-            ? upper
-            : (
-                {
-                  CRUD: "SIMPLE CRUD",
-                  JOINS: "COMPLEX JOINS",
-                  AGGREGATION: "AGGREGATIONS",
-                  PROCEDURES: "STORED PROCEDURES",
-                  "STORED PROCEDURE": "STORED PROCEDURES",
-                } as Record<string, string>
-              )[upper] || "OTHER";
-          return normalized;
-        }
-        return val;
-      }, z.any())
+      .preprocess(
+        (val) => normalizeEnumValue(val, QUERY_PATTERN_VALUES, DEFAULT_INVALID_VALUE),
+        z.any(),
+      )
       .pipe(z.enum(QUERY_PATTERN_VALUES))
       .optional()
-      .describe(
-        "Normalized query pattern category derived from 'queryPatterns' (internal use).",
-      ),
+      .describe("Normalized query pattern category derived from 'queryPatterns'."),
     transactionHandling: z
       .string()
       .optional()
       .describe(
-        "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics.",
+        "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations" +
+          "'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics.",
       ),
     transactionHandlingNormalized: z
-      .preprocess((val) => {
-        if (typeof val === "string") {
-          const upper = val.toUpperCase();
-          const normalized = TRANSACTION_HANDLING_SET.has(upper)
-            ? upper
-            : (
-                {
-                  TRANSACTIONAL: "SPRING @TRANSACTIONAL",
-                  MANUAL: "MANUAL",
-                  MANUALLY: "MANUAL",
-                  AUTOCOMMIT: "AUTO-COMMIT",
-                  "AUTO COMMIT": "AUTO-COMMIT",
-                  AUTOCOMMITTING: "AUTO-COMMIT",
-                  UNKNOWN: "UNKNOWN",
-                } as Record<string, string>
-              )[upper] || "OTHER";
-          return normalized;
-        }
-        return val;
-      }, z.any())
+      .preprocess(
+        (val) => normalizeEnumValue(val, TRANSACTION_HANDLING_VALUES, DEFAULT_INVALID_VALUE),
+        z.any(),
+      )
       .pipe(z.enum(TRANSACTION_HANDLING_VALUES))
       .optional()
-      .describe(
-        "Normalized transaction handling category derived from 'transactionHandling' (internal use).",
-      ),
+      .describe("Normalized transaction handling category derived from 'transactionHandling')."),
     protocol: z
       .string()
       .optional()
@@ -262,7 +92,8 @@ export const databaseIntegrationSchema = z
     codeExample: z
       .string()
       .describe(
-        "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')",
+        "A single very small redacted example of some code that performs the database integration" +
+          " (if no database integration, just state 'n/a')",
       ),
   })
   .passthrough();
@@ -333,7 +164,12 @@ export const procedureTriggerSchema = z
   .object({
     name: z.string().describe("The name of the procedure or trigger."),
     purpose: z.string().describe("Detailed purpose in at least 3 sentences."),
-    complexity: z.enum(["LOW", "MEDIUM", "HIGH"]).describe("Complexity score."),
+    complexity: z
+      .preprocess(
+        (val) => normalizeEnumValue(val, COMPLEXITY_VALUES, DEFAULT_INVALID_VALUE),
+        z.enum(COMPLEXITY_VALUES),
+      )
+      .describe("Complexity score - only the listed values are valid; invalid becomes 'INVALID'."),
     complexityReason: z
       .string()
       .describe("A brief, one-sentence reason for the chosen complexity score."),
@@ -404,54 +240,15 @@ export const publicMethodSchema = z
       .optional()
       .describe("Number of lines of code in this method (excluding comments and blank lines)"),
     codeSmells: z
-      .preprocess((val) => {
-        if (Array.isArray(val)) {
-          return val
-            .filter((v) => typeof v === "string")
-            .map((v) => {
-              const upper = v.toUpperCase();
-              return CODE_SMELL_SET.has(upper) ? upper : "OTHER";
-            });
-        }
-        if (typeof val === "string") {
-          const upper = val.toUpperCase();
-          return [CODE_SMELL_SET.has(upper) ? upper : "OTHER"];
-        }
-        return val;
-      }, z.any())
+      .preprocess(
+        (val) => normalizeEnumArray(val, CODE_SMELL_VALUES, DEFAULT_INVALID_VALUE),
+        z.any(),
+      )
       .pipe(z.array(z.enum(CODE_SMELL_VALUES)))
       .optional()
-      .describe(
-        "List of code smells detected (e.g., 'Long Method', 'God Class', 'Duplicate Code', 'Long Parameter List')",
-      ),
+      .describe("List of code smells detected - only the listed values are valid"),
   })
   .passthrough();
-
-// Central list of valid integration mechanism values
-const INTEGRATION_MECHANISM_VALUES = [
-  "REST",
-  "GRAPHQL",
-  "GRPC",
-  "SOAP",
-  "WEBSOCKET",
-  "TRPC",
-  "JMS-QUEUE",
-  "JMS-TOPIC",
-  "KAFKA-TOPIC",
-  "RABBITMQ-QUEUE",
-  "RABBITMQ-EXCHANGE",
-  "ACTIVEMQ-QUEUE",
-  "ACTIVEMQ-TOPIC",
-  "AWS-SQS",
-  "AWS-SNS",
-  "AZURE-SERVICE-BUS-QUEUE",
-  "AZURE-SERVICE-BUS-TOPIC",
-  "REDIS-PUBSUB",
-  "WEBHOOK",
-  "SSE",
-  "OTHER",
-] as const;
-const INTEGRATION_MECHANISM_SET = new Set<string>(INTEGRATION_MECHANISM_VALUES);
 
 /**
  * Schema for integration endpoints (APIs, queues, topics, SOAP services, etc.)
@@ -461,17 +258,11 @@ export const integrationEndpointSchema = z
   .object({
     mechanism: z
       .preprocess(
-        (val) => {
-          if (typeof val === "string") {
-            const upper = val.toUpperCase();
-            return INTEGRATION_MECHANISM_SET.has(upper) ? upper : "OTHER";
-          }
-          return val;
-        },
-        z.enum(INTEGRATION_MECHANISM_VALUES as unknown as [string, ...string[]]),
+        (val) => normalizeEnumValue(val, INTEGRATION_MECHANISM_VALUES, DEFAULT_INVALID_VALUE),
+        z.enum(INTEGRATION_MECHANISM_VALUES),
       )
       .describe(
-        "The integration mechanism type - only the listed values are valid; any unrecognized value will be coerced to 'OTHER'.",
+        "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'.",
       ),
     name: z.string().describe("Name of the endpoint, queue, topic, or service operation"),
     description: z.string().describe("What this integration point does"),
@@ -492,16 +283,13 @@ export const integrationEndpointSchema = z
       .optional()
       .describe("Type of message being sent/received (for messaging systems)"),
     direction: z
-      .preprocess((val) => {
-        if (typeof val === "string") {
-          const upper = val.toUpperCase();
-          return DIRECTION_SET.has(upper) ? upper : "OTHER";
-        }
-        return val;
-      }, z.any())
+      .preprocess(
+        (val) => normalizeEnumValue(val, DIRECTION_VALUES, DEFAULT_INVALID_VALUE),
+        z.any(),
+      )
       .pipe(z.enum(DIRECTION_VALUES))
       .optional()
-      .describe("Whether this code produces, consumes, both, or is bidirectional (normalized)"),
+      .describe("Whether this code produces, consumes, both, or is bidirectional"),
     requestBody: z
       .string()
       .optional()
@@ -535,24 +323,13 @@ export const codeQualityMetricsSchema = z
     maxComplexity: z.number().optional().describe("Maximum cyclomatic complexity found"),
     averageMethodLength: z.number().optional().describe("Average lines of code per method"),
     fileSmells: z
-      .preprocess((val) => {
-        if (Array.isArray(val)) {
-          return val
-            .filter((v) => typeof v === "string")
-            .map((v) => {
-              const upper = v.toUpperCase();
-              return FILE_SMELL_SET.has(upper) ? upper : "OTHER";
-            });
-        }
-        if (typeof val === "string") {
-          const upper = val.toUpperCase();
-          return [FILE_SMELL_SET.has(upper) ? upper : "OTHER"];
-        }
-        return val;
-      }, z.any())
+      .preprocess(
+        (val) => normalizeEnumArray(val, FILE_SMELL_VALUES, DEFAULT_INVALID_VALUE),
+        z.any(),
+      )
       .pipe(z.array(z.enum(FILE_SMELL_VALUES)))
       .optional()
-      .describe("File-level code smells (e.g., 'God Class', 'Too Many Methods', 'Feature Envy')"),
+      .describe("File-level code smells - only the listed values are valid"),
   })
   .passthrough();
 
@@ -603,7 +380,8 @@ export const sourceSummarySchema = z
     implementation: z
       .string()
       .describe(
-        "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences.",
+        "A detailed definition of the file's implementation, and what business logic decisions it" +
+          " makes (where relevant), in at least 5 sentences.",
       ),
     name: z.string().optional().describe("The name of the main public class or interface."),
     namespace: z
@@ -613,20 +391,12 @@ export const sourceSummarySchema = z
         "The fully qualified namespace including class/object name (e.g. classpath in Java).",
       ),
     kind: z
-      .enum([
-        "class",
-        "interface",
-        "record",
-        "struct",
-        "enum",
-        "annotation-type",
-        "module",
-        "union",
-      ])
+      .preprocess(
+        (val) => normalizeEnumValue(val, SOURCE_ENTITY_KIND_VALUES, DEFAULT_INVALID_VALUE),
+        z.enum(SOURCE_ENTITY_KIND_VALUES),
+      )
       .optional()
-      .describe(
-        "The kind of the main entity, e.g., 'class', 'interface', `record`, 'struct`, 'enum', 'annotation-type', 'module', 'union'.",
-      ),
+      .describe("The kind of the main entity - only the listed values are valid."),
     internalReferences: z
       .array(z.string())
       .optional()

@@ -9,7 +9,7 @@ const COMMON_INSTRUCTIONS = {
   PURPOSE: "A detailed definition of its purpose",
   IMPLEMENTATION: "A detailed definition of its implementation",
   DB_INTEGRATION:
-    "The type of direct database integration via a driver / library / ORM / API it employs, if any (stating ONE recognized mechanism value in capitals, or NONE if the code does not interact with a database directly), plus: (a) a description of the integration mentioning technologies, tables / collections / models if inferable, and (b) an example code snippet that performs the database integration (keep snippet concise). Mechanism must be one of the enumerated values; unrecognized values will be coerced to OTHER.",
+    "The type of direct database integration via a driver / library / ORM / API it employs, if any (stating ONE recognized mechanism value in capitals, or NONE if the code does not interact with a database directly), plus: (a) a description of the integration mentioning technologies, tables / collections / models if inferable, and (b) an example code snippet that performs the database integration (keep snippet concise). Mechanism MUST be one of: NONE, JDBC, SPRING-DATA, HIBERNATE, JPA, EJB, EF-CORE, ADO-NET, DAPPER, ACTIVE-RECORD, SEQUEL, MONGOOSE, PRISMA, TYPEORM, SEQUELIZE, KNEX, DRIZZLE, SQLALCHEMY, DJANGO-ORM, GORM, SQLX, ROOM, CORE-DATA, MQL, REDIS, ELASTICSEARCH, CASSANDRA-CQL, SQL, ORM, MICRO-ORM, DRIVER, DDL, DML, STORED-PROCEDURE, TRIGGER, FUNCTION, OTHER.",
   INTERNAL_REFS_JAVA:
     "A list of the internal references to the classpaths of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)",
   INTERNAL_REFS_JS:
@@ -118,7 +118,11 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
-  - operationType: Array of operation types - ['READ'], ['WRITE'], ['READ_WRITE'], ['DDL'], or ['ADMIN']
+  - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries..
+  - operationType: Array of operation types (choose EXACT values): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Do not represent combined read/write as separate values; use READ_WRITE.
+  - Include queue/topic name, message type, direction (PRODUCER | CONSUMER | BOTH | BIDIRECTIONAL | OTHER).
+  - KafkaProducer, KafkaConsumer usage - include topic name, message type, direction (PRODUCER | CONSUMER | BOTH | BIDIRECTIONAL | OTHER).
+  - RabbitTemplate send/receive operations - include queue/exchange name and direction (PRODUCER | CONSUMER | BOTH | BIDIRECTIONAL | OTHER if inferable).
      * READ: only SELECT/find queries
      * WRITE: only INSERT/UPDATE/DELETE operations
      * READ_WRITE: both read and write operations
@@ -155,7 +159,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-  - codeSmells: Identify any of these common code smells present in the method (USE EXACT UPPERCASE LABELS; if none of the labels apply but a smell is clearly present, use 'OTHER' with a short explanation):
+  - codeSmells: Identify any of these common code smells present in the method (USE EXACT UPPERCASE ENUMERATION LABELS; if none apply but a smell is clearly present, use OTHER with a short explanation). Allowed labels: LONG METHOD, LONG PARAMETER LIST, COMPLEX CONDITIONAL, DUPLICATE CODE, MAGIC NUMBERS, DEEP NESTING, DEAD CODE, GOD CLASS, LARGE CLASS, DATA CLASS, FEATURE ENVY, SHOTGUN SURGERY, OTHER:
      * 'LONG METHOD' - method has > 50 lines of code
      * 'LONG PARAMETER LIST' - method has > 5 parameters
      * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
@@ -175,7 +179,9 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
      * 'TOO MANY METHODS' - class has > 20 public methods
      * 'FEATURE ENVY' - methods heavily use data from other classes
      * 'DATA CLASS' - class only contains fields and getters/setters
-     * 'LARGE FILE' - class file exceeds 500 lines of code`,
+     * 'LARGE FILE' - class file exceeds 500 lines of code
+     * 'OTHER' - some other file-level smell`,
+
     schema: sourceSummarySchema
       .pick({
         name: true,
@@ -248,7 +254,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much information as possible - if a field cannot be determined, use "unknown" or "not identifiable":
    
    REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (small redacted snippet)
-  STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "UserModel", "database.js"), databaseName (specific DB/schema name), tablesAccessed (array of table/collection/model names from code), operationType (array: ['READ'], ['WRITE'], ['READ_WRITE'], ['DDL'], ['ADMIN']), queryPatterns (free-form description, e.g., 'Mongoose schemas', 'Prisma ORM queries', 'TypeORM repositories', 'complex aggregations'), transactionHandling (free-form description, e.g., 'Mongoose transactions', 'Prisma $transaction', 'manual begin/commit', 'none'), protocol (e.g., 'MongoDB 6.0', 'PostgreSQL 14'), connectionInfo (connection string with REDACTED credentials)
+  STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "UserModel", "database.js"), databaseName (specific DB/schema name), tablesAccessed (array of table/collection/model names from code), operationType (EXACT enumeration values only: READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER), queryPatterns (free-form description, e.g., 'Mongoose schemas', 'Prisma ORM queries', 'TypeORM repositories', 'complex aggregations'), transactionHandling (free-form description, e.g., 'Mongoose transactions', 'Prisma $transaction', 'manual begin/commit', 'none'), protocol (e.g., 'MongoDB 6.0', 'PostgreSQL 14'), connectionInfo (connection string with REDACTED credentials)
    
    Mechanism mapping:
    - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'
@@ -291,7 +297,8 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
      * 'GOD CLASS' - file has > 20 functions or > 500 lines of code
      * 'TOO MANY METHODS' - file has > 20 exported functions
      * 'FEATURE ENVY' - functions heavily use data from other modules
-     * 'LARGE FILE' - file exceeds 500 lines of code`,
+     * 'LARGE FILE' - file exceeds 500 lines of code
+     * 'OTHER' - some other file-level smell`,
     schema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -466,7 +473,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
    
    REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (max 8 lines, redacted)
-   STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "ApplicationDbContext", "UserRepository"), databaseName (specific database/schema name), tablesAccessed (array of table/entity names from DbSet properties, queries, or attributes), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'EF Core LINQ queries', 'Dapper parameterized SQL', 'stored procedure calls', 'raw SQL'), transactionHandling (e.g., 'DbContext.SaveChanges with transactions', 'TransactionScope', 'manual SqlTransaction', 'none'), protocol (e.g., 'SQL Server 2019', 'PostgreSQL 14', 'MySQL 8.0'), connectionInfo (connection string with REDACTED passwords)
+  STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "ApplicationDbContext", "UserRepository"), databaseName (specific database/schema name), tablesAccessed (array of table/entity names from DbSet properties, queries, or attributes), operationType (EXACT enumeration values only: READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER), queryPatterns (e.g., 'EF Core LINQ queries', 'Dapper parameterized SQL', 'stored procedure calls', 'raw SQL'), transactionHandling (e.g., 'DbContext.SaveChanges with transactions', 'TransactionScope', 'manual SqlTransaction', 'none'), protocol (e.g., 'SQL Server 2019', 'PostgreSQL 14', 'MySQL 8.0'), connectionInfo (connection string with REDACTED passwords)
    
    Mechanism mapping:
    - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'
@@ -508,7 +515,8 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
      * 'TOO MANY METHODS' - class has > 20 public methods
      * 'FEATURE ENVY' - methods heavily use data from other classes
      * 'DATA CLASS' - class only contains properties and getters/setters
-     * 'LARGE FILE' - file exceeds 500 lines of code`,
+     * 'LARGE FILE' - file exceeds 500 lines of code
+     * 'OTHER' - some other file-level smell `,
     schema: sourceSummarySchema.pick({
       name: true,
       kind: true,
@@ -566,7 +574,7 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
    
    REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (max 8 lines, redacted)
-   STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "User model", "DatabaseConnection"), databaseName (specific database/schema name), tablesAccessed (array of table/model names from ActiveRecord models, queries, or table references), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'ActiveRecord queries', 'raw SQL with params', 'Sequel dataset operations', 'complex joins'), transactionHandling (e.g., 'ActiveRecord transactions', 'Sequel database.transaction', 'manual BEGIN/COMMIT', 'none'), protocol (e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQLite'), connectionInfo (database.yml config or connection string with REDACTED credentials)
+  STRONGLY RECOMMENDED (extract whenever possible): name (e.g., "User model", "DatabaseConnection"), databaseName (specific database/schema name), tablesAccessed (array of table/model names from ActiveRecord models, queries, or table references), operationType (EXACT enumeration values only: READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER), queryPatterns (e.g., 'ActiveRecord queries', 'raw SQL with params', 'Sequel dataset operations', 'complex joins'), transactionHandling (e.g., 'ActiveRecord transactions', 'Sequel database.transaction', 'manual BEGIN/COMMIT', 'none'), protocol (e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQLite'), connectionInfo (database.yml config or connection string with REDACTED credentials)
    
    Mechanism mapping - if any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
    - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'
@@ -606,7 +614,8 @@ export const fileTypeMetadataConfig: Record<SupportedFileType, DynamicPromptConf
      * 'GOD CLASS' - class has > 20 methods or > 500 lines of code
      * 'TOO MANY METHODS' - class has > 20 public methods
      * 'FEATURE ENVY' - methods heavily use data from other classes
-     * 'LARGE FILE' - file exceeds 500 lines of code`,
+     * 'LARGE FILE' - file exceeds 500 lines of code
+     * 'OTHER' - some other file-level smell`,
     schema: sourceSummarySchema.pick({
       name: true,
       kind: true,

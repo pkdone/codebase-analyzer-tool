@@ -72,9 +72,7 @@ export interface SourcesRepository {
   /**
    * Get file count and total lines of code for a project in a single query
    */
-  getProjectFileAndLineStats(
-    projectName: string,
-  ): Promise<ProjectedFileAndLineStats>;
+  getProjectFileAndLineStats(projectName: string): Promise<ProjectedFileAndLineStats>;
 
   /**
    * Get files count and lines of code count for each file type for a project
@@ -105,17 +103,12 @@ export interface SourcesRepository {
   /**
    * Get top N most complex methods across the project using aggregation pipeline
    */
-  getTopComplexMethods(
-    projectName: string,
-    limit: number,
-  ): Promise<ProjectedTopComplexMethod[]>;
+  getTopComplexMethods(projectName: string, limit: number): Promise<ProjectedTopComplexMethod[]>;
 
   /**
    * Get code smell statistics using aggregation pipeline
    */
-  getCodeSmellStatistics(projectName: string): Promise<
-    ProjectedCodeSmellStatistic[]
-  >;
+  getCodeSmellStatistics(projectName: string): Promise<ProjectedCodeSmellStatistic[]>;
 
   /**
    * Get overall code quality statistics using aggregation pipeline

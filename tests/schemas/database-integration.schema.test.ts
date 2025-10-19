@@ -27,13 +27,13 @@ describe("databaseIntegrationSchema mechanism coercion", () => {
     expect(parsedLower.mechanism).toBe("DRIVER");
   });
 
-  it("coerces completely invalid random string to OTHER", () => {
+  it("coerces completely invalid random string to INVALID", () => {
     const parsed = databaseIntegrationSchema.parse({
       mechanism: "totally-random-value",
       description: "desc",
       codeExample: "code",
     });
-    expect(parsed.mechanism).toBe("OTHER");
+    expect(parsed.mechanism).toBe("INVALID");
   });
 
   it("accepts new ecosystem specific mechanisms", () => {
