@@ -46,7 +46,7 @@ export class FileSummarizer {
         SOURCES_SUMMARY_CAPTURE_TEMPLATE,
         config.contentDesc,
         config.instructions,
-        config.promptMetadata,
+        config.responseSchema,
         content,
       );
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
@@ -54,7 +54,7 @@ export class FileSummarizer {
         prompt,
         {
           outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.promptMetadata,
+          jsonSchema: config.responseSchema,
           hasComplexSchema: config.hasComplexSchema,
         },
       );

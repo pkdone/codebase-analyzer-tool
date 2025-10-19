@@ -43,10 +43,10 @@ describe("File Handler Configuration", () => {
 
     test("should have valid Zod schemas for each file type", () => {
       for (const [, config] of Object.entries(fileTypePromptMetadata)) {
-        expect(config.promptMetadata).toBeDefined();
-        expect(config.promptMetadata._def).toBeDefined();
+        expect(config.responseSchema).toBeDefined();
+        expect(config.responseSchema._def).toBeDefined();
         // Schema should have a parse method indicating it's a Zod schema
-        expect(typeof config.promptMetadata.parse).toBe("function");
+        expect(typeof config.responseSchema.parse).toBe("function");
       }
     });
 
@@ -67,7 +67,7 @@ describe("File Handler Configuration", () => {
       const testConfig: SourcePromptTemplate = {
         contentDesc: "test content",
         instructions: "test instructions",
-        promptMetadata: sourceSummarySchema,
+        responseSchema: sourceSummarySchema,
         hasComplexSchema: false,
       };
 
@@ -85,12 +85,12 @@ describe("File Handler Configuration", () => {
       const typedConfig: SourcePromptTemplate = {
         contentDesc: "test content",
         instructions: "test instructions",
-        promptMetadata: sourceSummarySchema.pick({ purpose: true, implementation: true }),
+        responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
       };
 
-      expect(typedConfig.promptMetadata).toBeDefined();
-      expect(typeof typedConfig.promptMetadata.parse).toBe("function");
+      expect(typedConfig.responseSchema).toBeDefined();
+      expect(typeof typedConfig.responseSchema.parse).toBe("function");
     });
   });
 

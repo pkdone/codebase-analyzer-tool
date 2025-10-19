@@ -29,7 +29,7 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.default).toBeDefined();
       expect(fileTypePromptMetadata.default.contentDesc).toBe("project file content");
       expect(typeof fileTypePromptMetadata.default.instructions).toBe("string");
-      expect(fileTypePromptMetadata.default.promptMetadata).toBeDefined();
+      expect(fileTypePromptMetadata.default.responseSchema).toBeDefined();
       expect(typeof fileTypePromptMetadata.default.hasComplexSchema).toBe("boolean");
     });
   });
@@ -53,8 +53,8 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should have a valid schema", () => {
-      expect(fileTypePromptMetadata.java.promptMetadata).toBeDefined();
-      expect(typeof fileTypePromptMetadata.java.promptMetadata.parse).toBe("function");
+      expect(fileTypePromptMetadata.java.responseSchema).toBeDefined();
+      expect(typeof fileTypePromptMetadata.java.responseSchema.parse).toBe("function");
     });
   });
 
@@ -92,8 +92,8 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should have a valid schema", () => {
-      expect(fileTypePromptMetadata.sql.promptMetadata).toBeDefined();
-      expect(typeof fileTypePromptMetadata.sql.promptMetadata.parse).toBe("function");
+      expect(fileTypePromptMetadata.sql.responseSchema).toBeDefined();
+      expect(typeof fileTypePromptMetadata.sql.responseSchema.parse).toBe("function");
     });
   });
 
@@ -136,7 +136,7 @@ describe("fileTypeMetadataConfig", () => {
         expect(config).toBeDefined();
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("string");
-        expect(config.promptMetadata).toBeDefined();
+        expect(config.responseSchema).toBeDefined();
         expect(typeof config.hasComplexSchema).toBe("boolean");
       });
     });

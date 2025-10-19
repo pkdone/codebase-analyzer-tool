@@ -36,6 +36,17 @@ const COMMON_INSTRUCTIONS = {
     "A list of the external references to third-party classpath used by this source file, which do not belong to this same application that this class/interface file is part of",
   EXTERNAL_REFS_JS:
     "A list of the external references to other external modules/libraries used by this source file (by using `require` or `import` keywords), which do not belong to this same application that this source file is part of",
+  INTEGRATION_POINTS_INTRO:
+    "A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:",
+  DB_INTEGRATION_ANALYSIS_INTRO:
+    "Database Integration Analysis (REQUIRED for files that interact with databases)",
+  CODE_QUALITY_ANALYSIS_INTRO: "Code Quality Analysis (REQUIRED for all code files with methods)",
+  CODE_SMELLS_ENUM:
+    "codeSmells: Identify any of these common code smells present (USE EXACT UPPERCASE ENUMERATION LABELS; if none apply but a smell is clearly present, use OTHER with a short explanation). Allowed labels: LONG METHOD, LONG PARAMETER LIST, COMPLEX CONDITIONAL, DUPLICATE CODE, MAGIC NUMBERS, DEEP NESTING, DEAD CODE, GOD CLASS, LARGE CLASS, DATA CLASS, FEATURE ENVY, SHOTGUN SURGERY, OTHER:",
+  SCHEDULED_JOB_LIST_INTRO:
+    "A list of scheduled jobs or batch processes defined in this file – for each job extract:",
+  SCHEDULED_JOB_FIELDS:
+    "  - jobName: The name of the job (from filename or job card/comments)\n  - trigger: How/when the job is triggered (cron, scheduled, manual, event-driven)\n  - purpose: Detailed description of what it does\n  - inputResources: Array of inputs (files, datasets, DBs, APIs)\n  - outputResources: Array of outputs (files, datasets, DBs, APIs)\n  - dependencies: Array of other jobs/scripts/resources it depends on\n  - estimatedDuration: Expected runtime if mentioned",
 } as const;
 
 /**
@@ -44,6 +55,31 @@ const COMMON_INSTRUCTIONS = {
 export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTemplate> = {
   java: {
     contentDesc: "code",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema
+      .pick({
+        name: true,
+        kind: true,
+        namespace: true,
+        purpose: true,
+        implementation: true,
+        internalReferences: true,
+        externalReferences: true,
+        publicConstants: true,
+        publicMethods: true,
+        databaseIntegration: true,
+        integrationPoints: true,
+        codeQualityMetrics: true,
+      })
+      .extend({
+        // Add descriptions for LLM prompts
+        internalReferences: z
+          .array(z.string())
+          .describe("A list of internal classpaths referenced."),
+        externalReferences: z
+          .array(z.string())
+          .describe("A list of third-party classpaths referenced."),
+      }),
     instructions: `* The name of the main public class/interface of the file
  * Its kind ('class' or 'interface')
  * Its namespace (classpath)
@@ -53,7 +89,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
  * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JAVA}
  * A list of public constants (name, value and type) it defines (if any)
  * A list of its public methods (if any) - for each public method, include the method's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation
- * A list of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, gRPC) this file defines or consumes - for each integration include: mechanism type, name, description, and relevant details. Look for:
+   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
    
    REST APIs (mechanism: 'REST'):
    - JAX-RS annotations (@Path, @GET, @POST, @PUT, @DELETE, @PATCH) - include path, method, request/response body
@@ -93,7 +129,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    gRPC (mechanism: 'GRPC'):
    - @GrpcService annotations or gRPC stub usage - include service name, methods
 
- * Database Integration Analysis (REQUIRED for files that interact with databases)
+ * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
    
    For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
    
@@ -142,12 +178,12 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Otherwise, if the code does not use a database => mechanism: 'NONE'
     (note, JMS and JNDI are not related to interacting with a database)
 
- * Code Quality Analysis (REQUIRED for all code files with methods)
+ * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}
    
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-  - codeSmells: Identify any of these common code smells present in the method (USE EXACT UPPERCASE ENUMERATION LABELS; if none apply but a smell is clearly present, use OTHER with a short explanation). Allowed labels: LONG METHOD, LONG PARAMETER LIST, COMPLEX CONDITIONAL, DUPLICATE CODE, MAGIC NUMBERS, DEEP NESTING, DEAD CODE, GOD CLASS, LARGE CLASS, DATA CLASS, FEATURE ENVY, SHOTGUN SURGERY, OTHER:
+  - ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
      * 'LONG METHOD' - method has > 50 lines of code
      * 'LONG PARAMETER LIST' - method has > 5 parameters
      * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
@@ -169,40 +205,24 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'DATA CLASS' - class only contains fields and getters/setters
      * 'LARGE FILE' - class file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
-
-    promptMetadata: sourceSummarySchema
-      .pick({
-        name: true,
-        kind: true,
-        namespace: true,
-        purpose: true,
-        implementation: true,
-        internalReferences: true,
-        externalReferences: true,
-        publicConstants: true,
-        publicMethods: true,
-        databaseIntegration: true,
-        integrationPoints: true,
-        codeQualityMetrics: true,
-      })
-      .extend({
-        // Add descriptions for LLM prompts
-        internalReferences: z
-          .array(z.string())
-          .describe("A list of internal classpaths referenced."),
-        externalReferences: z
-          .array(z.string())
-          .describe("A list of third-party classpaths referenced."),
-      }),
-    hasComplexSchema: false,
   },
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
  * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JS}
  * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JS}
- * A list of integration points (REST APIs, GraphQL, WebSockets, messaging systems, gRPC) this file defines or consumes - for each integration include: mechanism type, name, description, and relevant details. Look for:
+   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
    
    REST APIs (mechanism: 'REST'):
    - Express route definitions (app.get, app.post, app.put, app.delete, router.use)
@@ -237,7 +257,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    Server-Sent Events (mechanism: 'SSE'):
    - res.writeHead with text/event-stream
 
- * Database Integration Analysis (REQUIRED for files that interact with databases)
+ * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
    
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much information as possible - if a field cannot be determined, use "unknown" or "not identifiable":
    
@@ -261,12 +281,12 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
    - Otherwise, if no database interaction => mechanism: 'NONE'
 
- * Code Quality Analysis (REQUIRED for all code files with methods)
+ * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}
    
    For each public method/function you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, switch/case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-  - codeSmells: Identify any of these common code smells present (USE EXACT UPPERCASE LABELS; if none match but a smell exists, use 'OTHER' with a short explanation):
+  - ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
      * 'LONG METHOD' - function has > 50 lines of code
      * 'LONG PARAMETER LIST' - function has > 5 parameters
      * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
@@ -287,40 +307,23 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'FEATURE ENVY' - functions heavily use data from other modules
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
-    promptMetadata: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
-    hasComplexSchema: false,
   },
   default: {
     contentDesc: "project file content",
-    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
-    promptMetadata: sourceSummarySchema.pick({
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       databaseIntegration: true,
     }),
-    hasComplexSchema: false,
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+* ${COMMON_INSTRUCTIONS.DB_INTEGRATION}.`,
   },
   sql: {
     contentDesc: "database DDL/DML/SQL code",
-    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
- * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
- * A list of the tables (if any) it defines - for each table, include the names of the table's fields, if known.
- * A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
- * A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
- * Database Integration Analysis (REQUIRED) - Extract ALL possible database details:
-   REQUIRED: mechanism (must be 'NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), description (detailed explanation), codeExample (max 6 lines)
-   STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present)`,
-    promptMetadata: sourceSummarySchema
+    hasComplexSchema: true,
+    responseSchema: sourceSummarySchema
       .pick({
         purpose: true,
         implementation: true,
@@ -343,10 +346,23 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
           ]),
         }),
       }),
-    hasComplexSchema: true,
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A list of the tables (if any) it defines - for each table, include the names of the table's fields, if known.
+ * A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
+ * A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score.
+ * Database Integration Analysis (REQUIRED) - Extract ALL possible database details:
+   REQUIRED: mechanism (must be 'NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), description (detailed explanation), codeExample (max 6 lines)
+   STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present)`,
   },
   xml: {
     contentDesc: "XML code",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      uiFramework: true,
+    }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 
@@ -373,15 +389,18 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - If detected, provide: { name: "Spring MVC", version: <if identifiable>, configFile: <current file path> }
   
   If a UI framework is detected, populate the uiFramework field. Otherwise, leave it undefined.`,
-    promptMetadata: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      uiFramework: true,
-    }),
-    hasComplexSchema: false,
   },
   jsp: {
     contentDesc: "JSP code",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      dataInputFields: true,
+      jspMetrics: true,
+    }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JAVA}
@@ -403,28 +422,34 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - <%@ taglib prefix="custom" uri="/WEB-INF/custom.tld" %> => { prefix: "custom", uri: "/WEB-INF/custom.tld" }
   
   Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>.`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  markdown: {
+    contentDesc: "Markdown content",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+    }),
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
+  },
+  csharp: {
+    contentDesc: "C# source code",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
       purpose: true,
       implementation: true,
       internalReferences: true,
       externalReferences: true,
-      dataInputFields: true,
-      jspMetrics: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
     }),
-    hasComplexSchema: false,
-  },
-  markdown: {
-    contentDesc: "Markdown content",
-    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
-    promptMetadata: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-    }),
-    hasComplexSchema: false,
-  },
-  csharp: {
-    contentDesc: "C# source code",
     instructions: `* The name of the main public class/interface/record/struct of the file
  * Its kind ('class', 'interface', 'record', or 'struct')
  * Its Fully qualified type name (namespace)
@@ -434,7 +459,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
  * A list of the external references to 3rd party / NuGet package classes (Fully qualified type names) it depends on (exclude System.* where possible)
  * A list of public constants / readonly static fields (if any) – include name, value (redact secrets), and a short type/role description
  * A list of its public methods (if any) – for each method list: name, purpose (detailed), parameters (name and type), return type, async/sync indicator, and a very detailed implementation description highlighting notable control flow, LINQ queries, awaits, exception handling, and important business logic decisions
- * A list of integration points (REST APIs, WCF/SOAP, messaging systems, gRPC) this file defines or consumes - for each integration include: mechanism type, name, description, and relevant details. Look for:
+   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
    
    REST APIs (mechanism: 'REST'):
    - ASP.NET Core MVC/Web API controller actions with [HttpGet], [HttpPost], [HttpPut], [HttpDelete], [HttpPatch], [Route]
@@ -456,7 +481,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Grpc.Net.Client, Grpc.Core service definitions
    - gRPC client stubs and service implementations
 
- * Database Integration Analysis (REQUIRED for files that interact with databases)
+ * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
    
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
    
@@ -478,12 +503,12 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'
    - Otherwise when no DB interaction present => mechanism: 'NONE'
 
- * Code Quality Analysis (REQUIRED for all code files with methods)
+ * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}
    
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, foreach, switch/case, catch, &&, ||, ?:, ??). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-  - codeSmells: Identify any of these common code smells present in the method (USE EXACT UPPERCASE LABELS; if none match but a smell exists, use 'OTHER' with a short explanation):
+  - ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
      * 'LONG METHOD' - method has > 50 lines of code
      * 'LONG PARAMETER LIST' - method has > 5 parameters
      * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
@@ -505,7 +530,11 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'DATA CLASS' - class only contains properties and getters/setters
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  ruby: {
+    contentDesc: "Ruby code",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       name: true,
       kind: true,
       namespace: true,
@@ -519,10 +548,6 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       integrationPoints: true,
       codeQualityMetrics: true,
     }),
-    hasComplexSchema: false,
-  },
-  ruby: {
-    contentDesc: "Ruby code",
     instructions: `* The name of the main public class/module of the file
  * Its kind ('class', 'module', or 'enum')
  * Its namespace (fully qualified module path)
@@ -532,7 +557,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
  * A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)
  * A list of public (non-internal) constants it defines (if any) – for each constant include its name, value (redact secrets), and a short type/role description
  * A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals
- * A list of integration points (REST APIs, GraphQL, SOAP, messaging systems) this file defines or consumes - for each integration include: mechanism type, name, description, and relevant details. Look for:
+   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
    
    REST APIs (mechanism: 'REST'):
    - Rails controller actions (routes.rb get/post/put/delete/patch, controller action methods)
@@ -557,7 +582,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Action Cable channels
    - WebSocket-Rails usage
 
- * Database Integration Analysis (REQUIRED for files that interact with databases)
+ * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
    
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
    
@@ -578,12 +603,12 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'
    - Otherwise, if no database interaction is evident => mechanism: 'NONE'
 
- * Code Quality Analysis (REQUIRED for all code files with methods)
+ * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}
    
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, elsif, unless, for, while, until, case/when, rescue, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-  - codeSmells: Identify any of these common code smells present in the method (USE EXACT UPPERCASE LABELS; if none match but a smell exists, use 'OTHER' with a short explanation):
+  - ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
      * 'LONG METHOD' - method has > 50 lines of code
      * 'LONG PARAMETER LIST' - method has > 5 parameters
      * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
@@ -604,24 +629,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'FEATURE ENVY' - methods heavily use data from other classes
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
-    promptMetadata: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicMethods: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
-    hasComplexSchema: false,
   },
   maven: {
     contentDesc: "Maven POM (Project Object Model) build file",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of dependencies declared in this POM file - for each dependency extract:
@@ -631,15 +647,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope (compile, test, runtime, provided, import, system)
   - type (jar, war, pom, etc.)
 * Note: Extract dependencies from both <dependencies> and <dependencyManagement> sections`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  gradle: {
+    contentDesc: "Gradle build configuration file",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  gradle: {
-    contentDesc: "Gradle build configuration file",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of dependencies declared - for each dependency extract:
@@ -648,15 +664,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - version (version number, or 'latest' if using dynamic versions)
   - scope (implementation, api, testImplementation, runtimeOnly, etc. - map these to standard Maven scopes)
 * Handle both Groovy DSL and Kotlin DSL syntax`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  ant: {
+    contentDesc: "Apache Ant build.xml file",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  ant: {
-    contentDesc: "Apache Ant build.xml file",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of dependencies declared - for each dependency extract:
@@ -665,15 +681,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - version (extract from jar filename if versioned, e.g., 'commons-lang3-3.12.0.jar' -> version: '3.12.0')
   - scope (compile, test, runtime based on classpath definitions)
 * Look for dependencies in <classpath>, <path>, <pathelement>, and <ivy:dependency> elements`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  npm: {
+    contentDesc: "npm package.json or lock file",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  npm: {
-    contentDesc: "npm package.json or lock file",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of dependencies - for each dependency extract:
@@ -681,15 +697,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - version (semver version, remove ^ and ~ prefixes)
   - scope (dependencies = 'compile', devDependencies = 'test', peerDependencies = 'provided')
 * Extract from both dependencies and devDependencies sections`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  "dotnet-proj": {
+    contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  "dotnet-proj": {
-    contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of PackageReference dependencies - for each dependency extract:
@@ -697,15 +713,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - version (Version attribute value)
   - scope (compile for regular, test if in test project based on SDK type)
 * Look for <PackageReference> elements in modern SDK-style projects`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  nuget: {
+    contentDesc: "NuGet packages.config file (legacy .NET)",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  nuget: {
-    contentDesc: "NuGet packages.config file (legacy .NET)",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of package dependencies - for each package extract:
@@ -713,15 +729,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - version (version attribute)
   - scope (compile, or test if targetFramework suggests test package)
 * Parse all <package> elements in the configuration`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  "ruby-bundler": {
+    contentDesc: "Ruby Gemfile or Gemfile.lock",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  "ruby-bundler": {
-    contentDesc: "Ruby Gemfile or Gemfile.lock",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of gem dependencies - for each gem extract:
@@ -730,15 +746,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope (default is 'compile', :development = 'test', :test = 'test')
   - groupId (use 'rubygems' as a standard groupId)
 * Parse gem declarations including version constraints`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  "python-pip": {
+    contentDesc: "Python requirements.txt or Pipfile",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  "python-pip": {
-    contentDesc: "Python requirements.txt or Pipfile",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of package dependencies - for each package extract:
@@ -747,15 +763,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - scope (default is 'compile', dev dependencies in Pipfile have scope 'test')
   - groupId (use 'pypi' as standard groupId)
 * Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  "python-setup": {
+    contentDesc: "Python setup.py file",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  "python-setup": {
-    contentDesc: "Python setup.py file",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of dependencies from install_requires - for each package extract:
@@ -763,15 +779,15 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - version (version from string, remove operators)
   - scope ('compile' for install_requires, 'test' for tests_require or extras_require['test'])
   - groupId (use 'pypi' as standard groupId)`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  "python-poetry": {
+    contentDesc: "Python pyproject.toml (Poetry)",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       dependencies: true,
     }),
-    hasComplexSchema: false,
-  },
-  "python-poetry": {
-    contentDesc: "Python pyproject.toml (Poetry)",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
 * A comprehensive list of dependencies from [tool.poetry.dependencies] - for each dependency extract:
@@ -779,79 +795,55 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - version (version constraint, remove ^ and ~ prefixes)
   - scope ('compile' for dependencies, 'test' for dev-dependencies)
   - groupId (use 'pypi' as standard groupId)`,
-    promptMetadata: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      dependencies: true,
-    }),
-    hasComplexSchema: false,
   },
   "shell-script": {
     contentDesc: "Shell script (bash/sh)",
-    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A list of scheduled jobs or batch processes defined in this script - for each job extract:
-  - jobName: The name of the job or script (from filename or comments)
-  - trigger: How/when the job is triggered - look for cron syntax (e.g., '0 2 * * *'), systemd timer references, 'at' commands, or indicate 'manual' if run manually, or 'event-driven' if triggered by file system events (inotify, fswatch)
-  - purpose: Detailed description of what the job/script does
-  - inputResources: Array of input files, directories, databases, or APIs that this script reads from (look for file paths in cat, grep, awk, database connections, curl/wget calls)
-  - outputResources: Array of output files, directories, databases, or APIs that this script writes to (look for redirects >, >>, tee, database writes, POST requests)
-  - dependencies: Array of other scripts or jobs this depends on (look for source, ., or calls to other scripts)
-  - estimatedDuration: Expected runtime if mentioned in comments
-* Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references
-* Identify database operations (mysql, psql, mongo commands)
-* Note any external API calls (curl, wget)`,
-    promptMetadata: sourceSummarySchema.pick({
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       scheduledJobs: true,
     }),
-    hasComplexSchema: false,
+    instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
+* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+  * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
+  ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_FIELDS}
+* Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references
+* Identify database operations (mysql, psql, mongo commands)
+* Note any external API calls (curl, wget)`,
   },
   "batch-script": {
     contentDesc: "Windows batch script (.bat/.cmd)",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      scheduledJobs: true,
+    }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A list of scheduled jobs or batch processes defined in this script - for each job extract:
-  - jobName: The name of the job or script (from filename or REM comments)
-  - trigger: How/when triggered - look for Task Scheduler references, indicate 'scheduled' if mentioned, otherwise 'manual'
-  - purpose: Detailed description of what the batch job does
-  - inputResources: Array of input files, directories, databases, or network resources (look for file paths, database connections, network paths \\\\server\\share)
-  - outputResources: Array of output files, directories, databases written to (look for redirects >, >>, file operations)
-  - dependencies: Array of other batch files or scripts this calls (look for CALL, START commands)
-  - estimatedDuration: Expected runtime if mentioned in comments
+  * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
+  ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_FIELDS}
 * Look for Windows Task Scheduler references (schtasks, AT commands)
 * Identify database operations (sqlcmd, osql, BCP)
 * Note network operations (NET USE, COPY to UNC paths)
 * Identify service operations (NET START, SC commands)`,
-    promptMetadata: sourceSummarySchema.pick({
+  },
+  jcl: {
+    contentDesc: "Mainframe JCL (Job Control Language)",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
       scheduledJobs: true,
     }),
-    hasComplexSchema: false,
-  },
-  jcl: {
-    contentDesc: "Mainframe JCL (Job Control Language)",
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
 * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A list of scheduled jobs or batch processes defined in this JCL - for each job extract:
-  - jobName: The job name from the JOB card
-  - trigger: Indicate 'scheduled' for batch jobs, look for comments about scheduling (e.g., 'Daily at 02:00')
-  - purpose: Detailed description of what the job does based on job steps and programs called
-  - inputResources: Array of input datasets from DD statements (look for DD names with DSN=)
-  - outputResources: Array of output datasets from DD statements (look for DD names with DSN= and DISP=(NEW or MOD))
-  - dependencies: Array of other jobs or datasets this job depends on (look for comments or COND parameters)
-  - estimatedDuration: Expected runtime if mentioned in comments
+  * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
+  ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_FIELDS}
 * Extract all EXEC statements to identify programs/procedures called
 * Identify DD statements for file I/O
 * Note COND parameters that indicate job dependencies
 * Look for SORT, IEBGENER, or custom program calls`,
-    promptMetadata: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      scheduledJobs: true,
-    }),
-    hasComplexSchema: false,
   },
 } as const;
