@@ -56,7 +56,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   default: {
     contentDesc: "project file content",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -70,7 +70,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   java: {
     contentDesc: "JVM code",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema
       .pick({
         name: true,
@@ -267,7 +267,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema
       .pick({
         purpose: true,
@@ -458,7 +458,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   xml: {
     contentDesc: "XML code",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -494,7 +494,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   jsp: {
     contentDesc: "JSP code",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -540,7 +540,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   csharp: {
     contentDesc: "C# source code",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema
       .pick({
         name: true,
@@ -679,7 +679,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   python: {
     contentDesc: "Python source code",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema
       .pick({
         name: true,
@@ -793,7 +793,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   ruby: {
     contentDesc: "Ruby code",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema
       .pick({
         name: true,
@@ -933,7 +933,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   maven: {
     contentDesc: "Maven POM (Project Object Model) build file",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -953,7 +953,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   gradle: {
     contentDesc: "Gradle build configuration file",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -972,7 +972,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   ant: {
     contentDesc: "Apache Ant build.xml file",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -991,7 +991,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   npm: {
     contentDesc: "npm package.json or lock file",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1009,7 +1009,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   "dotnet-proj": {
     contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1027,7 +1027,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   nuget: {
     contentDesc: "NuGet packages.config file (legacy .NET)",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1045,7 +1045,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   "ruby-bundler": {
     contentDesc: "Ruby Gemfile or Gemfile.lock",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1064,7 +1064,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   "python-pip": {
     contentDesc: "Python requirements.txt or Pipfile",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1083,7 +1083,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   "python-setup": {
     contentDesc: "Python setup.py file",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1101,7 +1101,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   "python-poetry": {
     contentDesc: "Python pyproject.toml (Poetry)",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1119,7 +1119,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   "shell-script": {
     contentDesc: "Shell script (bash/sh)",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1137,7 +1137,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   "batch-script": {
     contentDesc: "Windows batch script (.bat/.cmd)",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,
@@ -1156,7 +1156,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   //////////////////////////////////////////////////////////////////////////////////////////////////
   jcl: {
     contentDesc: "Mainframe JCL (Job Control Language)",
-    hasComplexSchema: false,
+    hasComplexSchema: true,
     responseSchema: sourceSummarySchema.pick({
       purpose: true,
       implementation: true,

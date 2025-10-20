@@ -5,7 +5,7 @@ import { z } from "zod";
  */
 export interface SourcePromptTemplate<T extends z.ZodType = z.ZodType> {
   contentDesc: string;
-  hasComplexSchema: boolean;
+  hasComplexSchema: boolean; // Set to true if any LLM provider that supports providing JSON schema with the LLM call will choke on the schema we generate for this file type (e.g. VertexAI's JSON Schema support is very crude)
   responseSchema: T;
   instructions: string;
 }
