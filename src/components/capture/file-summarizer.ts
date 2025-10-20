@@ -41,12 +41,12 @@ export class FileSummarizer {
     try {
       if (content.trim().length === 0) throw new Error("File is empty");
       const canonicalFileType = this.getCanonicalFileType(filepath, type);
-      const config = fileTypePromptMetadata[canonicalFileType];
+      const promptMetadata = fileTypePromptMetadata[canonicalFileType];
       const prompt = createPromptFromConfig(
         SOURCES_SUMMARY_CAPTURE_TEMPLATE,
-        config.contentDesc,
-        config.instructions,
-        config.responseSchema,
+        promptMetadata.contentDesc,
+        promptMetadata.instructions,
+        promptMetadata.responseSchema,
         content,
       );
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
@@ -54,8 +54,8 @@ export class FileSummarizer {
         prompt,
         {
           outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.responseSchema,
-          hasComplexSchema: config.hasComplexSchema,
+          jsonSchema: promptMetadata.responseSchema,
+          hasComplexSchema: promptMetadata.hasComplexSchema,
         },
       );
       if (llmResponse === null) throw new BadResponseContentLLMError("LLM returned null response");

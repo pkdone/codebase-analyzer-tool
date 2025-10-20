@@ -37,8 +37,8 @@ describe("File Handler Configuration", () => {
 
     test("should have correct number of mappings", () => {
       // Updated expected count from 8 to 19 after addition of build tool file type metadata mappings
-      // Updated to 22 after addition of batch processing file types (shell-script, batch-script, jcl)
-      expect(Object.keys(fileTypePromptMetadata).length).toBe(22);
+      // Updated to 23 after addition of Python source code prompt metadata
+      expect(Object.keys(fileTypePromptMetadata).length).toBe(23);
     });
 
     test("should have valid Zod schemas for each file type", () => {

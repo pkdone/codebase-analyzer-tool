@@ -1,6 +1,6 @@
 // Shared constant value enumerations for sources.schema.
 
-// Central list of valid DB integration mechanism values (kept uppercase for normalization logic)
+/** Central list of valid DB integration mechanism values (kept uppercase for normalization logic) */
 export const DATABASE_MECHANISM_VALUES = [
   "NONE",
   // Java/JVM
@@ -52,7 +52,7 @@ export const DATABASE_MECHANISM_VALUES = [
   "OTHER",
 ] as const;
 
-// Central list of valid database operation type values
+/** Central list of valid database operation type values */
 export const OPERATION_TYPE_VALUES = [
   "READ",
   "WRITE",
@@ -62,7 +62,7 @@ export const OPERATION_TYPE_VALUES = [
   "OTHER",
 ] as const;
 
-// Central list of common query pattern descriptors (kept intentionally generic)
+/** Central list of common query pattern descriptors (kept intentionally generic) */
 export const QUERY_PATTERN_VALUES = [
   "SIMPLE CRUD",
   "COMPLEX JOINS",
@@ -77,7 +77,7 @@ export const QUERY_PATTERN_VALUES = [
   "OTHER",
 ] as const;
 
-// Central list of common transaction handling approaches
+/** Central list of common transaction handling approaches */
 export const TRANSACTION_HANDLING_VALUES = [
   "SPRING @TRANSACTIONAL",
   "MANUAL",
@@ -92,10 +92,10 @@ export const TRANSACTION_HANDLING_VALUES = [
   "OTHER",
 ] as const;
 
-// Integration direction values (messaging)
+/** Integration direction values (messaging) */
 export const DIRECTION_VALUES = ["PRODUCER", "CONSUMER", "BOTH", "BIDIRECTIONAL", "OTHER"] as const;
 
-// Recognized code smell labels for individual methods
+/** Recognized code smell labels for individual methods */
 export const CODE_SMELL_VALUES = [
   "LONG METHOD",
   "LONG PARAMETER LIST",
@@ -112,7 +112,7 @@ export const CODE_SMELL_VALUES = [
   "OTHER",
 ] as const;
 
-// Recognized file-level smell labels
+/** Recognized file-level smell labels */
 export const FILE_SMELL_VALUES = [
   "GOD CLASS",
   "TOO MANY METHODS",
@@ -122,7 +122,7 @@ export const FILE_SMELL_VALUES = [
   "OTHER",
 ] as const;
 
-// Integration mechanism values (REST, messaging, RPC, etc.)
+/** Integration mechanism values (REST, messaging, RPC, etc.) */
 export const INTEGRATION_MECHANISM_VALUES = [
   "REST",
   "GRAPHQL",
@@ -147,7 +147,7 @@ export const INTEGRATION_MECHANISM_VALUES = [
   "OTHER",
 ] as const;
 
-// Recognized kinds for the main entity represented in a source file summary
+/** Recognized kinds for the main entity represented in a source file summary */
 export const SOURCE_ENTITY_KIND_VALUES = [
   "CLASS",
   "INTERFACE",
@@ -157,7 +157,8 @@ export const SOURCE_ENTITY_KIND_VALUES = [
   "ANNOTATION-TYPE",
   "MODULE",
   "UNION",
+  "FUNCTION",
 ] as const;
 
-// Complexity score values for procedures/triggers (and similar constructs)
+/** Complexity score values for procedures/triggers (and similar constructs) */
 export const COMPLEXITY_VALUES = ["LOW", "MEDIUM", "HIGH"] as const;

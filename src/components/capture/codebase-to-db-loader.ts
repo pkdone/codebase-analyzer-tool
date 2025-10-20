@@ -62,9 +62,8 @@ export default class CodebaseToDBLoader {
     console.log(
       `Creating metadata for ${filepaths.length} files to go into the MongoDB database sources collection`,
     );
-
-    // Batch load existing files once to avoid N+1 query problem
     let existingFiles = new Set<string>();
+
     if (skipIfAlreadyCaptured) {
       const existingFilePaths = await this.sourcesRepository.getProjectFilesPaths(projectName);
       existingFiles = new Set(existingFilePaths);

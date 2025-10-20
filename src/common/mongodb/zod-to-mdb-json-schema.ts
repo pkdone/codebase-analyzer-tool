@@ -4,6 +4,35 @@ import type { JsonSchema7Type } from "zod-to-json-schema";
 import { ObjectId, Decimal128 } from "bson";
 import { toMongoJsonSchema } from "./utils/json-schema-utils";
 
+/**
+ * Recursively traverse a JSON Schema object and replace unsupported keywords for MongoDB.
+ * Currently handles conversion of `const: <value>` to `enum: [<value>]` since MongoDB
+ * does not support the JSON Schema `const` keyword (error: Unknown $jsonSchema keyword: const).
+ */
+function sanitizeMongoUnsupportedKeywords(schema: unknown): unknown {
+  if (Array.isArray(schema)) {
+    return schema.map((item) => sanitizeMongoUnsupportedKeywords(item));
+  }
+  if (schema && typeof schema === "object") {
+    const obj = schema as Record<string, unknown>;
+    // If const present, replace with enum single value array
+    if (Object.hasOwn(obj, "const")) {
+      const constVal = obj.const;
+      // Only add enum if enum not already defined to avoid overwriting
+      if (!Object.hasOwn(obj, "enum")) {
+        obj.enum = [constVal];
+      }
+      delete obj.const; // Remove unsupported keyword
+    }
+    // Recurse into known container properties
+    for (const key of Object.keys(obj)) {
+      obj[key] = sanitizeMongoUnsupportedKeywords(obj[key]);
+    }
+    return obj;
+  }
+  return schema;
+}
+
 export const zBsonObjectId = z.instanceof(ObjectId).describe("bson:objectId");
 export const zBsonDecimal128 = z.instanceof(Decimal128).describe("bson:decimal128");
 export const zBsonDate = z.coerce.date();
@@ -32,5 +61,7 @@ const mongoSchemaOptions = {
 };
 
 export function zodToJsonSchemaForMDB(schema: z.ZodObject<z.ZodRawShape>) {
-  return toMongoJsonSchema(schema, mongoSchemaOptions);
+  const raw = toMongoJsonSchema(schema, mongoSchemaOptions);
+  // Sanitize unsupported keywords before returning
+  return sanitizeMongoUnsupportedKeywords(raw) as typeof raw;
 }

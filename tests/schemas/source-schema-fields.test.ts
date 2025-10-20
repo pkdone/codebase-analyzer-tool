@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { sourceSummarySchema, scheduledJobSchema } from "../../src/schemas/sources.schema";
+import { SOURCE_ENTITY_KIND_VALUES } from "../../src/schemas/sources.values";
 
 /**
  * Tests for source schema field names - NEW field names (after refactoring)
@@ -35,28 +36,8 @@ describe("Source Schema Fields - NEW Names", () => {
       }
     });
 
-    it("should accept all valid kind enum values", () => {
-      const validTypes: (
-        | "CLASS"
-        | "INTERFACE"
-        | "RECORD"
-        | "STRUCT"
-        | "ENUM"
-        | "ANNOTATION-TYPE"
-        | "MODULE"
-        | "UNION"
-      )[] = [
-        "CLASS",
-        "INTERFACE",
-        "RECORD",
-        "STRUCT",
-        "ENUM",
-        "ANNOTATION-TYPE",
-        "MODULE",
-        "UNION",
-      ];
-
-      for (const type of validTypes) {
+    it("should accept all valid kind enum values (centralized)", () => {
+      for (const type of SOURCE_ENTITY_KIND_VALUES) {
         const testData = {
           purpose: "Test purpose for testing schema validation.",
           implementation: "Test implementation details that include business logic and processing.",
@@ -190,17 +171,7 @@ describe("Source Schema Fields - NEW Names", () => {
 
       // Type assertions to ensure the fields exist with correct types
       const name: string | undefined = summary.name;
-      const kind:
-        | "CLASS"
-        | "INTERFACE"
-        | "RECORD"
-        | "STRUCT"
-        | "ENUM"
-        | "ANNOTATION-TYPE"
-        | "MODULE"
-        | "UNION"
-        | "INVALID"
-        | undefined = summary.kind;
+      const kind: (typeof SOURCE_ENTITY_KIND_VALUES)[number] | "INVALID" | undefined = summary.kind;
       const namespace: string | undefined = summary.namespace;
 
       expect(name).toBe("InferredClass");

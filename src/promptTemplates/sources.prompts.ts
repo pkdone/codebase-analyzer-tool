@@ -104,8 +104,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
  * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JAVA}
  * A list of public constants (name, value and type) it defines (if any)
  * A list of its public methods (if any) - for each public method, include the method's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation
-   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
    REST APIs (mechanism: 'REST'):
    - JAX-RS annotations (@Path, @GET, @POST, @PUT, @DELETE, @PATCH) - include path, method, request/response body
    - Spring annotations (@RestController, @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping)
@@ -144,8 +143,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    gRPC (mechanism: 'GRPC'):
    - @GrpcService annotations or gRPC stub usage - include service name, methods
 
- * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}  
    For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
    
    REQUIRED FIELDS:
@@ -193,12 +191,11 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Otherwise, if the code does not use a database => mechanism: 'NONE'
     (note, JMS and JNDI are not related to interacting with a database)
 
- * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}   
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-  - ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
+   - ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
      * 'LONG METHOD' - method has > 50 lines of code
      * 'LONG PARAMETER LIST' - method has > 5 parameters
      * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
@@ -239,8 +236,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
  * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JS}
  * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JS}
-   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}   
    REST APIs (mechanism: 'REST'):
    - Express route definitions (app.get, app.post, app.put, app.delete, router.use)
    - Fastify route definitions (fastify.get, fastify.post, etc.)
@@ -274,8 +270,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    Server-Sent Events (mechanism: 'SSE'):
    - res.writeHead with text/event-stream
 
- * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}   
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much information as possible - if a field cannot be determined, use "unknown" or "not identifiable":
    
    REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (small redacted snippet)
@@ -298,12 +293,11 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
    - Otherwise, if no database interaction => mechanism: 'NONE'
 
- * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}   
    For each public method/function you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, switch/case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
-  - ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
+   - ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
      * 'LONG METHOD' - function has > 50 lines of code
      * 'LONG PARAMETER LIST' - function has > 5 parameters
      * 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
@@ -373,9 +367,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       uiFramework: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-
-* UI Framework Detection (REQUIRED for web application config files)
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * UI Framework Detection (REQUIRED for web application config files)
   If this XML file is a web application configuration file, you MUST analyze and identify the UI framework:
   
   Struts Framework Detection:
@@ -413,12 +406,11 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       jspMetrics: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JAVA}
-* ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JAVA}    
-* A list of data input fields it contains (if any). For each field, provide its name (or an approximate name), its type (e.g., 'text', 'hidden', 'password'), and a detailed description of its purpose.
-
-* JSP Metrics Analysis (REQUIRED for all JSP files)
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JAVA}
+ * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JAVA}    
+ * A list of data input fields it contains (if any). For each field, provide its name (or an approximate name), its type (e.g., 'text', 'hidden', 'password'), and a detailed description of its purpose.
+ * JSP Metrics Analysis (REQUIRED for all JSP files)
   You MUST analyze and provide the following JSP metrics in the jspMetrics object:
   - scriptletCount (REQUIRED): Count the exact number of Java scriptlets (<% ... %>) in this file
   - expressionCount (REQUIRED): Count the exact number of expressions (<%= ... %>) in this file
@@ -444,7 +436,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       implementation: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -474,8 +466,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
  * A list of the external references to 3rd party / NuGet package classes (Fully qualified type names) it depends on (exclude System.* where possible)
  * A list of public constants / readonly static fields (if any) – include name, value (redact secrets), and a short type/role description
  * A list of its public methods (if any) – for each method list: name, purpose (detailed), parameters (name and type), return type, async/sync indicator, and a very detailed implementation description highlighting notable control flow, LINQ queries, awaits, exception handling, and important business logic decisions
-   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
    REST APIs (mechanism: 'REST'):
    - ASP.NET Core MVC/Web API controller actions with [HttpGet], [HttpPost], [HttpPut], [HttpDelete], [HttpPatch], [Route]
    - ASP.NET Core Minimal API endpoints (MapGet, MapPost, MapPut, MapDelete)
@@ -496,8 +487,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Grpc.Net.Client, Grpc.Core service definitions
    - gRPC client stubs and service implementations
 
- * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}  
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
    
    REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (max 8 lines, redacted)
@@ -519,7 +509,6 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - Otherwise when no DB interaction present => mechanism: 'NONE'
 
  * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}
-   
    For each public method you identify, you MUST estimate and provide:
    - cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, foreach, switch/case, catch, &&, ||, ?:, ??). A simple method with no branches = 1. Add 1 for each decision point.
    - linesOfCode: Count actual lines of code (exclude blank lines and comments)
@@ -545,6 +534,77 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
      * 'DATA CLASS' - class only contains properties and getters/setters
      * 'LARGE FILE' - file exceeds 500 lines of code
      * 'OTHER' - some other file-level smell`,
+  },
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  python: {
+    contentDesc: "Python source code",
+    hasComplexSchema: false,
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
+    instructions: `* The name of the primary public entity of the file (class, module, or main function)
+ * Its kind ('class', 'module', 'function', or 'package'; choose the dominant one)
+ * Its namespace (dotted module path if inferable, else filename without extension)
+ * ${COMMON_INSTRUCTIONS.PURPOSE}
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A list of internal references (imports that belong to this same project; exclude Python stdlib & third‑party packages)
+ * A list of external references (third‑party libraries imported; exclude stdlib modules like sys, os, json, typing, pathlib, re, math, datetime, logging, asyncio, dataclasses, functools, itertools)
+ * A list of public constants (UPPERCASE module-level assignments; include name, redacted value, brief type/role)
+ * A list of its public functions/methods – for each include:
+   - name
+   - purpose (detailed)
+   - parameters (name + type hint or inferred type; if no hint, describe expected type)
+   - returnType (type hint or inferred description of returned value shape)
+   - implementation (very detailed explanation of logic, branches, important data transformations, exception handling)
+   - cyclomaticComplexity (see rules)
+   - linesOfCode (exclude blank lines & comments)
+   - codeSmells (if any; use EXACT enum labels)
+   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
+   
+   REST APIs (mechanism: 'REST'):
+   - Flask @app.route decorators (path, methods)
+   - FastAPI endpoint decorators (@app.get/post/put/delete/patch)
+   - Django REST Framework views / viewsets (method names, URL pattern if inferable)
+   - aiohttp route registrations
+   - HTTP client calls (requests/httpx/aiohttp ClientSession)
+   
+   GraphQL (mechanism: 'GRAPHQL'): Graphene / Strawberry schema & resolver definitions
+   gRPC (mechanism: 'GRPC'): grpc.* Servicer classes, stub usage
+   Messaging: Celery tasks (@app.task) => mechanism 'OTHER' (specify Celery); RabbitMQ (pika), Kafka (producer/consumer), Redis Pub/Sub (redis.publish/subscribe), AWS SQS/SNS (boto3)
+   WebSockets (mechanism: 'WEBSOCKET'): FastAPI WebSocket endpoints, Django Channels consumers
+   Server-Sent Events (mechanism: 'SSE'): streaming responses with 'text/event-stream'
+ 
+ * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
+   REQUIRED: mechanism, description, codeExample
+   STRONGLY RECOMMENDED: name, databaseName, tablesAccessed (model/table names), operationType (READ | WRITE | READ_WRITE | DDL | ADMIN | OTHER), queryPatterns, transactionHandling, protocol, connectionInfo (REDACT credentials)
+   Mechanism mapping:
+   - SQLAlchemy ORM (Session, declarative Base) => 'SQLALCHEMY'
+   - Django ORM (models.Model, QuerySet) => 'DJANGO-ORM'
+   - Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => 'DRIVER' or 'SQL' (if many inline SQL strings)
+   - Async drivers (asyncpg, aiomysql) => 'DRIVER'
+   - Inline CREATE/ALTER => also 'DDL'
+   - Bulk data scripts => also 'DML'
+   - Stored procedure/function invocation (CALL/EXEC) => 'STORED-PROCEDURE' or 'FUNCTION'
+   - No database access => 'NONE'
+ 
+ * ${COMMON_INSTRUCTIONS.CODE_QUALITY_ANALYSIS_INTRO}
+   Cyclomatic complexity (Python):
+   - Start at 1; +1 for each if / elif / for / while / except / finally / with (when it controls resource flow) / comprehension 'for' / ternary / logical operator (and/or) in a condition / match case arm
+   - +1 for each additional 'if' inside a comprehension
+   For each public function/method capture: cyclomaticComplexity, linesOfCode, and ${COMMON_INSTRUCTIONS.CODE_SMELLS_ENUM}
+   File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMethodLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY')`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -574,8 +634,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
  * A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)
  * A list of public (non-internal) constants it defines (if any) – for each constant include its name, value (redact secrets), and a short type/role description
  * A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals
-   * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}
-   
+ * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}   
    REST APIs (mechanism: 'REST'):
    - Rails controller actions (routes.rb get/post/put/delete/patch, controller action methods)
    - Sinatra route definitions (get, post, put, delete, patch blocks)
@@ -600,7 +659,6 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
    - WebSocket-Rails usage
 
  * ${COMMON_INSTRUCTIONS.DB_INTEGRATION_ANALYSIS_INTRO}
-   
    For files that interact with a database, you MUST provide ALL of the following fields in the databaseIntegration object. Extract as much detail as possible - if a field cannot be determined, indicate "unknown" or "not identifiable":
    
    REQUIRED: mechanism (see mapping below), description (detailed explanation), codeExample (max 8 lines, redacted)
@@ -658,8 +716,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of dependencies declared in this POM file - for each dependency extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of dependencies declared in this POM file - for each dependency extract:
   - name (artifactId)
   - groupId
   - version (resolve properties if possible, e.g., \${spring.version})
@@ -678,8 +736,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of dependencies declared - for each dependency extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of dependencies declared - for each dependency extract:
   - name (artifact name after the colon, e.g., for 'org.springframework:spring-core:5.3.9' the name is 'spring-core')
   - groupId (group before the colon, e.g., 'org.springframework')
   - version (version number, or 'latest' if using dynamic versions)
@@ -697,8 +755,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of dependencies declared - for each dependency extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of dependencies declared - for each dependency extract:
   - name (jar file name or artifact name)
   - groupId (organization or project name if specified)
   - version (extract from jar filename if versioned, e.g., 'commons-lang3-3.12.0.jar' -> version: '3.12.0')
@@ -716,12 +774,12 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of dependencies - for each dependency extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of dependencies - for each dependency extract:
   - name (package name)
   - version (semver version, remove ^ and ~ prefixes)
   - scope (dependencies = 'compile', devDependencies = 'test', peerDependencies = 'provided')
-* Extract from both dependencies and devDependencies sections`,
+ * Extract from both dependencies and devDependencies sections`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -734,12 +792,12 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of PackageReference dependencies - for each dependency extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of PackageReference dependencies - for each dependency extract:
   - name (package name from Include attribute)
   - version (Version attribute value)
   - scope (compile for regular, test if in test project based on SDK type)
-* Look for <PackageReference> elements in modern SDK-style projects`,
+ * Look for <PackageReference> elements in modern SDK-style projects`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -770,13 +828,13 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of gem dependencies - for each gem extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of gem dependencies - for each gem extract:
   - name (gem name)
   - version (specified version or version from Gemfile.lock, remove ~> and >= prefixes)
   - scope (default is 'compile', :development = 'test', :test = 'test')
   - groupId (use 'rubygems' as a standard groupId)
-* Parse gem declarations including version constraints`,
+ * Parse gem declarations including version constraints`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -789,13 +847,13 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of package dependencies - for each package extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of package dependencies - for each package extract:
   - name (package name before == or >= or ~=)
   - version (version specifier, remove operators like ==, >=, ~=)
   - scope (default is 'compile', dev dependencies in Pipfile have scope 'test')
   - groupId (use 'pypi' as standard groupId)
-* Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
+ * Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -808,8 +866,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of dependencies from install_requires - for each package extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of dependencies from install_requires - for each package extract:
   - name (package name)
   - version (version from string, remove operators)
   - scope ('compile' for install_requires, 'test' for tests_require or extras_require['test'])
@@ -826,8 +884,8 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       dependencies: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-* A comprehensive list of dependencies from [tool.poetry.dependencies] - for each dependency extract:
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * A comprehensive list of dependencies from [tool.poetry.dependencies] - for each dependency extract:
   - name (dependency key name)
   - version (version constraint, remove ^ and ~ prefixes)
   - scope ('compile' for dependencies, 'test' for dev-dependencies)
@@ -844,12 +902,12 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       scheduledJobs: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-  * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
   ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_FIELDS}
-* Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references
-* Identify database operations (mysql, psql, mongo commands)
-* Note any external API calls (curl, wget)`,
+ * Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references
+ * Identify database operations (mysql, psql, mongo commands)
+ * Note any external API calls (curl, wget)`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -862,13 +920,13 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       scheduledJobs: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-  * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
   ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_FIELDS}
-* Look for Windows Task Scheduler references (schtasks, AT commands)
-* Identify database operations (sqlcmd, osql, BCP)
-* Note network operations (NET USE, COPY to UNC paths)
-* Identify service operations (NET START, SC commands)`,
+ * Look for Windows Task Scheduler references (schtasks, AT commands)
+ * Identify database operations (sqlcmd, osql, BCP)
+ * Note network operations (NET USE, COPY to UNC paths)
+ * Identify service operations (NET START, SC commands)`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -881,12 +939,12 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       scheduledJobs: true,
     }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
-* ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
-  * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
+ * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
+ * ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_LIST_INTRO}
   ${COMMON_INSTRUCTIONS.SCHEDULED_JOB_FIELDS}
-* Extract all EXEC statements to identify programs/procedures called
-* Identify DD statements for file I/O
-* Note COND parameters that indicate job dependencies
-* Look for SORT, IEBGENER, or custom program calls`,
+ * Extract all EXEC statements to identify programs/procedures called
+ * Identify DD statements for file I/O
+ * Note COND parameters that indicate job dependencies
+ * Look for SORT, IEBGENER, or custom program calls`,
   },
 } as const;
