@@ -1,4 +1,8 @@
-import { sourceSummarySchema, databaseIntegrationSchema } from "../schemas/sources.schema";
+import {
+  sourceSummarySchema,
+  databaseIntegrationSchema,
+  integrationEndpointSchema,
+} from "../schemas/sources.schema";
 import { z } from "zod";
 import { SourcePromptTemplate, CanonicalFileType } from "./prompt.types";
 
@@ -30,12 +34,8 @@ const COMMON_INSTRUCTIONS = {
     "The type of direct database integration via a driver / library / ORM / API it employs, if any (stating ONE recognized mechanism value in capitals, or NONE if the code does not interact with a database directly), plus: (a) a description of the integration mentioning technologies, tables / collections / models if inferable, and (b) an example code snippet that performs the database integration (keep snippet concise). Mechanism MUST be one of: NONE, JDBC, SPRING-DATA, HIBERNATE, JPA, EJB, EF-CORE, ADO-NET, DAPPER, ACTIVE-RECORD, SEQUEL, MONGOOSE, PRISMA, TYPEORM, SEQUELIZE, KNEX, DRIZZLE, SQLALCHEMY, DJANGO-ORM, GORM, SQLX, ROOM, CORE-DATA, MQL, REDIS, ELASTICSEARCH, CASSANDRA-CQL, SQL, ORM, MICRO-ORM, DRIVER, DDL, DML, STORED-PROCEDURE, TRIGGER, FUNCTION, OTHER.",
   INTERNAL_REFS_JAVA:
     "A list of the internal references to the classpaths of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)",
-  INTERNAL_REFS_JS:
-    "A list of the internal references to other modules used by this source file (by using `require` or `import` keywords) belonging to the same application referenced by the code in this source file (do not include external or 3rd party modules/libraries in the list of internal references)",
   EXTERNAL_REFS_JAVA:
     "A list of the external references to third-party classpath used by this source file, which do not belong to this same application that this class/interface file is part of",
-  EXTERNAL_REFS_JS:
-    "A list of the external references to other external modules/libraries used by this source file (by using `require` or `import` keywords), which do not belong to this same application that this source file is part of",
   INTEGRATION_POINTS_INTRO:
     "A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:",
   DB_INTEGRATION_ANALYSIS_INTRO:
@@ -94,6 +94,51 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
         externalReferences: z
           .array(z.string())
           .describe("A list of third-party classpaths referenced."),
+        databaseIntegration: databaseIntegrationSchema.extend({
+          // Java-specific mechanisms only
+          mechanism: z.enum([
+            "NONE",
+            "JDBC",
+            "SPRING-DATA",
+            "HIBERNATE",
+            "JPA",
+            "EJB",
+            "REDIS",
+            "ELASTICSEARCH",
+            "CASSANDRA-CQL",
+            "SQL",
+            "ORM",
+            "DRIVER",
+            "DDL",
+            "DML",
+            "STORED-PROCEDURE",
+            "TRIGGER",
+            "FUNCTION",
+            "OTHER",
+          ]),
+        }),
+        integrationPoints: z
+          .array(
+            // Restrict integration mechanisms to those typical in JVM ecosystems
+            integrationEndpointSchema.extend({
+              mechanism: z.enum([
+                "REST",
+                "SOAP",
+                "JMS-QUEUE",
+                "JMS-TOPIC",
+                "KAFKA-TOPIC",
+                "RABBITMQ-QUEUE",
+                "RABBITMQ-EXCHANGE",
+                "ACTIVEMQ-QUEUE",
+                "ACTIVEMQ-TOPIC",
+                "WEBSOCKET",
+                "GRPC",
+                "SSE",
+                "OTHER",
+              ]),
+            }),
+          )
+          .optional(),
       }),
     instructions: `* The name of the main public class/interface of the file
  * Its kind ('class' or 'interface')
@@ -223,19 +268,72 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
     hasComplexSchema: false,
-    responseSchema: sourceSummarySchema.pick({
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: sourceSummarySchema
+      .pick({
+        purpose: true,
+        implementation: true,
+        internalReferences: true,
+        externalReferences: true,
+        databaseIntegration: true,
+        integrationPoints: true,
+        codeQualityMetrics: true,
+      })
+      .extend({
+        databaseIntegration: databaseIntegrationSchema.extend({
+          // JavaScript / TypeScript ecosystem mechanisms
+          mechanism: z.enum([
+            "NONE",
+            "MONGOOSE",
+            "PRISMA",
+            "TYPEORM",
+            "SEQUELIZE",
+            "KNEX",
+            "DRIZZLE",
+            "MQL",
+            "REDIS",
+            "ELASTICSEARCH",
+            "CASSANDRA-CQL",
+            "SQL",
+            "ORM",
+            "MICRO-ORM",
+            "DRIVER",
+            "DDL",
+            "DML",
+            "STORED-PROCEDURE",
+            "TRIGGER",
+            "FUNCTION",
+            "OTHER",
+          ]),
+        }),
+        integrationPoints: z
+          .array(
+            integrationEndpointSchema.extend({
+              mechanism: z.enum([
+                "REST",
+                "GRAPHQL",
+                "TRPC",
+                "GRPC",
+                "WEBSOCKET",
+                "RABBITMQ-QUEUE",
+                "RABBITMQ-EXCHANGE",
+                "KAFKA-TOPIC",
+                "AWS-SQS",
+                "AWS-SNS",
+                "AZURE-SERVICE-BUS-QUEUE",
+                "AZURE-SERVICE-BUS-TOPIC",
+                "REDIS-PUBSUB",
+                "SSE",
+                "WEBHOOK",
+                "OTHER",
+              ]),
+            }),
+          )
+          .optional(),
+      }),
     instructions: `* ${COMMON_INSTRUCTIONS.PURPOSE}
  * ${COMMON_INSTRUCTIONS.IMPLEMENTATION}
- * ${COMMON_INSTRUCTIONS.INTERNAL_REFS_JS}
- * ${COMMON_INSTRUCTIONS.EXTERNAL_REFS_JS}
+   * A list of the internal references to other modules used by this source file (by using \`require\` or \`import\` keywords) belonging to the same application referenced by the code in this source file (do not include external or 3rd party modules/libraries in the list of internal references)
+   * A list of the external references to other external modules/libraries used by this source file (by using \`require\` or \`import\` keywords), which do not belong to this same application that this source file is part of
  * ${COMMON_INSTRUCTIONS.INTEGRATION_POINTS_INTRO}   
    REST APIs (mechanism: 'REST'):
    - Express route definitions (app.get, app.post, app.put, app.delete, router.use)
@@ -443,20 +541,62 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   csharp: {
     contentDesc: "C# source code",
     hasComplexSchema: false,
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicMethods: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: sourceSummarySchema
+      .pick({
+        name: true,
+        kind: true,
+        namespace: true,
+        purpose: true,
+        implementation: true,
+        internalReferences: true,
+        externalReferences: true,
+        publicConstants: true,
+        publicMethods: true,
+        databaseIntegration: true,
+        integrationPoints: true,
+        codeQualityMetrics: true,
+      })
+      .extend({
+        databaseIntegration: databaseIntegrationSchema.extend({
+          // C# / .NET mechanisms
+          mechanism: z.enum([
+            "NONE",
+            "EF-CORE",
+            "DAPPER",
+            "MICRO-ORM",
+            "ADO-NET",
+            "DRIVER",
+            "SQL",
+            "DDL",
+            "DML",
+            "STORED-PROCEDURE",
+            "FUNCTION",
+            "REDIS",
+            "ELASTICSEARCH",
+            "OTHER",
+          ]),
+        }),
+        integrationPoints: z
+          .array(
+            integrationEndpointSchema.extend({
+              mechanism: z.enum([
+                "REST",
+                "SOAP",
+                "GRPC",
+                "RABBITMQ-QUEUE",
+                "RABBITMQ-EXCHANGE",
+                "AWS-SQS",
+                "AWS-SNS",
+                "AZURE-SERVICE-BUS-QUEUE",
+                "AZURE-SERVICE-BUS-TOPIC",
+                "WEBSOCKET",
+                "SSE",
+                "OTHER",
+              ]),
+            }),
+          )
+          .optional(),
+      }),
     instructions: `* The name of the main public class/interface/record/struct of the file
  * Its kind ('class', 'interface', 'record', or 'struct')
  * Its Fully qualified type name (namespace)
@@ -540,20 +680,63 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   python: {
     contentDesc: "Python source code",
     hasComplexSchema: false,
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicMethods: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: sourceSummarySchema
+      .pick({
+        name: true,
+        kind: true,
+        namespace: true,
+        purpose: true,
+        implementation: true,
+        internalReferences: true,
+        externalReferences: true,
+        publicConstants: true,
+        publicMethods: true,
+        databaseIntegration: true,
+        integrationPoints: true,
+        codeQualityMetrics: true,
+      })
+      .extend({
+        databaseIntegration: databaseIntegrationSchema.extend({
+          // Python mechanisms
+          mechanism: z.enum([
+            "NONE",
+            "SQLALCHEMY",
+            "DJANGO-ORM",
+            "ORM",
+            "MICRO-ORM",
+            "DRIVER",
+            "SQL",
+            "DDL",
+            "DML",
+            "STORED-PROCEDURE",
+            "FUNCTION",
+            "REDIS",
+            "ELASTICSEARCH",
+            "OTHER",
+          ]),
+        }),
+        integrationPoints: z
+          .array(
+            integrationEndpointSchema.extend({
+              mechanism: z.enum([
+                "REST",
+                "GRAPHQL",
+                "GRPC",
+                "WEBSOCKET",
+                "RABBITMQ-QUEUE",
+                "RABBITMQ-EXCHANGE",
+                "KAFKA-TOPIC",
+                "AWS-SQS",
+                "AWS-SNS",
+                "REDIS-PUBSUB",
+                "SSE",
+                "WEBHOOK",
+                "OTHER",
+              ]),
+            }),
+          )
+          .optional(),
+      }),
     instructions: `* The name of the primary public entity of the file (class, module, or main function)
  * Its kind ('class', 'module', 'function', or 'package'; choose the dominant one)
  * Its namespace (dotted module path if inferable, else filename without extension)
@@ -611,20 +794,61 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   ruby: {
     contentDesc: "Ruby code",
     hasComplexSchema: false,
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicMethods: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: sourceSummarySchema
+      .pick({
+        name: true,
+        kind: true,
+        namespace: true,
+        purpose: true,
+        implementation: true,
+        internalReferences: true,
+        externalReferences: true,
+        publicConstants: true,
+        publicMethods: true,
+        databaseIntegration: true,
+        integrationPoints: true,
+        codeQualityMetrics: true,
+      })
+      .extend({
+        databaseIntegration: databaseIntegrationSchema.extend({
+          // Ruby mechanisms
+          mechanism: z.enum([
+            "NONE",
+            "ACTIVE-RECORD",
+            "SEQUEL",
+            "ORM",
+            "MICRO-ORM",
+            "REDIS",
+            "SQL",
+            "DRIVER",
+            "DDL",
+            "DML",
+            "STORED-PROCEDURE",
+            "TRIGGER",
+            "FUNCTION",
+            "OTHER",
+          ]),
+        }),
+        integrationPoints: z
+          .array(
+            integrationEndpointSchema.extend({
+              mechanism: z.enum([
+                "REST",
+                "GRAPHQL",
+                "SOAP",
+                "WEBSOCKET",
+                "RABBITMQ-QUEUE",
+                "RABBITMQ-EXCHANGE",
+                "AWS-SQS",
+                "AWS-SNS",
+                "REDIS-PUBSUB",
+                "SSE",
+                "OTHER",
+              ]),
+            }),
+          )
+          .optional(),
+      }),
     instructions: `* The name of the main public class/module of the file
  * Its kind ('class', 'module', or 'enum')
  * Its namespace (fully qualified module path)
