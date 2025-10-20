@@ -77,7 +77,9 @@ export class BomAggregator {
           dependencyMap.set(key, aggregated);
         }
 
-        aggregated.versions.add(dep.version);
+        if (dep.version) {
+          aggregated.versions.add(dep.version);
+        }
         if (dep.scope) {
           aggregated.scopes.add(dep.scope);
         }

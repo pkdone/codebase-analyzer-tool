@@ -111,7 +111,11 @@ export const dependencySchema = z
       .string()
       .describe("The name of the dependency (artifact ID for Maven, package name for npm/gradle)"),
     groupId: z.string().optional().describe("Group ID for Maven/Gradle dependencies"),
-    version: z.string().describe("The version of the dependency"),
+    version: z
+      .string()
+      .nullable()
+      .optional()
+      .describe("The version of the dependency (if available)"),
     scope: z
       .string()
       .optional()

@@ -38,8 +38,8 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.java.contentDesc).toBe("JVM code");
     });
 
-    it("should not be marked as complex schema", () => {
-      expect(fileTypePromptMetadata.java.hasComplexSchema).toBe(false);
+    it("should be marked as complex schema", () => {
+      expect(fileTypePromptMetadata.java.hasComplexSchema).toBe(true);
     });
 
     it("should include expected instructions", () => {
@@ -62,8 +62,8 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.javascript.contentDesc).toBe("JavaScript/TypeScript code");
     });
 
-    it("should not be marked as complex schema", () => {
-      expect(fileTypePromptMetadata.javascript.hasComplexSchema).toBe(false);
+    it("should be marked as complex schema", () => {
+      expect(fileTypePromptMetadata.javascript.hasComplexSchema).toBe(true);
     });
 
     it("should include expected instructions", () => {
@@ -101,8 +101,8 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.csharp.contentDesc).toBe("C# source code");
     });
 
-    it("should not be marked as complex schema", () => {
-      expect(fileTypePromptMetadata.csharp.hasComplexSchema).toBe(false);
+    it("should be marked as complex schema", () => {
+      expect(fileTypePromptMetadata.csharp.hasComplexSchema).toBe(true);
     });
 
     it("should include C#-specific instructions", () => {
@@ -118,8 +118,8 @@ describe("fileTypeMetadataConfig", () => {
       expect(fileTypePromptMetadata.ruby.contentDesc).toBe("Ruby code");
     });
 
-    it("should not be marked as complex schema", () => {
-      expect(fileTypePromptMetadata.ruby.hasComplexSchema).toBe(false);
+    it("should be marked as complex schema", () => {
+      expect(fileTypePromptMetadata.ruby.hasComplexSchema).toBe(true);
     });
 
     it("should include Ruby-specific instructions", () => {

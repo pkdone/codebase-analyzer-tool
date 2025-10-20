@@ -17,6 +17,8 @@ import {
   concatenationChainSanitizer,
   overEscapedSequencesSanitizer,
   completeTruncatedStructures,
+  fixTruncatedPropertyNames,
+  fixUnquotedPropertyNames,
   hasSignificantSanitizationSteps,
   type Sanitizer,
   type PostParseTransform,
@@ -57,6 +59,8 @@ export class JsonProcessor {
    * 10. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
    * 11. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
    * 12. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
+   * 13. fixTruncatedPropertyNames - Fix truncated or malformed property names
+   * 14. fixUnquotedPropertyNames - Add quotes around unquoted property names
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -77,6 +81,8 @@ export class JsonProcessor {
     concatenationChainSanitizer,
     overEscapedSequencesSanitizer,
     completeTruncatedStructures,
+    fixTruncatedPropertyNames,
+    fixUnquotedPropertyNames,
   ] as const satisfies readonly Sanitizer[];
 
   /**
