@@ -25,11 +25,12 @@ describe("fileTypeMetadataConfig", () => {
     });
 
     it("should always have a default configuration", () => {
-      expect(fileTypePromptMetadata.default).toBeDefined();
-      expect(fileTypePromptMetadata.default.contentDesc).toBe("project file content");
-      expect(typeof fileTypePromptMetadata.default.instructions).toBe("string");
-      expect(fileTypePromptMetadata.default.responseSchema).toBeDefined();
-      expect(typeof fileTypePromptMetadata.default.hasComplexSchema).toBe("boolean");
+      const defaultConfig = fileTypePromptMetadata.default;
+      expect(defaultConfig).toBeDefined();
+      expect(defaultConfig.contentDesc).toBe("project file content");
+      expect(typeof defaultConfig.instructions).toBe("string");
+      expect(defaultConfig.responseSchema).toBeDefined();
+      expect(typeof defaultConfig.hasComplexSchema).toBe("boolean");
     });
   });
 

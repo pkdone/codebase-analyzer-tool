@@ -1,9 +1,7 @@
 import "reflect-metadata";
 import { fileTypePromptMetadata } from "../../../src/promptTemplates/sources.prompts";
-import {
-  FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS,
-  SourcePromptTemplate,
-} from "../../../src/promptTemplates/prompt.types";
+import { SourcePromptTemplate } from "../../../src/promptTemplates/prompt.types";
+import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";
 
@@ -136,7 +134,7 @@ describe("File Handler Configuration", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
       const canonicalTypes = new Set<
         import("../../../src/promptTemplates/prompt.types").CanonicalFileType
-      >(FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values());
+      >(Array.from(fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values()));
 
       for (const canonicalType of canonicalTypes) {
         expect(fileTypePromptMetadata).toHaveProperty(canonicalType);
@@ -147,7 +145,8 @@ describe("File Handler Configuration", () => {
       // Test that unknown suffix maps to default
       const unknownSuffix = "unknown";
       const canonicalType =
-        FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ?? "default";
+        fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(unknownSuffix) ??
+        "default";
 
       expect(canonicalType).toBe("default");
       expect(fileTypePromptMetadata).toHaveProperty("default");

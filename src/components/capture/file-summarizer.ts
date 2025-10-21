@@ -12,11 +12,7 @@ import {
 } from "../../promptTemplates/sources.prompts";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
-import {
-  FILENAME_TO_CANONICAL_TYPE_MAPPINGS,
-  FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS,
-  DEFAULT_FILE_TYPE,
-} from "../../promptTemplates/prompt.types";
+import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
 /**
  * Type for source summary
@@ -76,8 +72,10 @@ export class FileSummarizer {
     type: string,
   ): keyof typeof fileTypePromptMetadata {
     const filename = path.basename(filepath).toLowerCase();
-    const byFilenameFileType = FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
-    const byExtensionFileType = FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase());
-    return byFilenameFileType ?? byExtensionFileType ?? DEFAULT_FILE_TYPE;
+    const byFilenameFileType =
+      fileTypeMappingsConfig.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
+    const byExtensionFileType =
+      fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase());
+    return byFilenameFileType ?? byExtensionFileType ?? fileTypeMappingsConfig.DEFAULT_FILE_TYPE;
   }
 }

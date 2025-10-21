@@ -1,7 +1,7 @@
 import { appConfig } from "../../src/config/app.config";
 import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
-import { JAVA_FILE_TYPE } from "../../src/promptTemplates/prompt.types";
+import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
 import { outputConfig } from "../../src/config/output.config";
 import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../src/config/logging.config";
 
@@ -25,7 +25,7 @@ describe("individual config modules", () => {
   });
 
   it("JAVA_FILE_TYPE constant should be defined", () => {
-    expect(JAVA_FILE_TYPE).toBe("java");
+    expect(fileTypeMappingsConfig.JAVA_FILE_TYPE).toBe("java");
   });
 
   it("outputConfig should expose output directory", () => {

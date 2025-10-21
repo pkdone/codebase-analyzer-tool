@@ -165,7 +165,7 @@ describe("FileSummarizer", () => {
     // Since LLMRouter is a default export class, we don't use mockImplementation
     // Instead, we directly inject the mock instance
     // Monkey patch fileTypePromptMetadata to use our dynamic createConfig outputs for types encountered
-    const metadata = fileTypePromptMetadata;
+    const metadata = fileTypePromptMetadata as any;
     // Override specific entries for deterministic behavior in tests
     metadata.java = createConfig("TestClass.java", "java");
     metadata.javascript = createConfig("index.ts", "typescript");
