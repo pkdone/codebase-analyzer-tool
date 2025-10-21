@@ -488,7 +488,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
   - Look for annotations like @Controller, @RequestMapping in servlet definitions
   - If detected, provide: { name: "Spring MVC", version: <if identifiable>, configFile: <current file path> }
   
-  If a UI framework is detected, populate the uiFramework field. Otherwise, leave it undefined.`,
+  If a UI framework is detected, populate the uiFramework field. Otherwise, omit the field entirely from the JSON response.`,
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
