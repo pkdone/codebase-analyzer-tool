@@ -1,9 +1,31 @@
 <%- include('section-header', { title: 'Application Statistics', jsonFile: jsonFilesConfig.jsonDataFiles.appStats }) %>
-<p>Application: <b><%= appStats.projectName %></b></p>
-<p>Snapshot date/time: <b><%= appStats.currentDate %></b></p>
-<p>LLM provider: <b><%= appStats.llmProvider %></b></p>
-<p>Files count: <b><%= appStats.fileCount %></b></p>
-<p>Lines of code: <b><%= appStats.linesOfCode %></b></p>
+
+<div class="stats-grid">
+  <div class="card">
+    <span class="card-title">Project Name</span>
+    <span class="card-value"><%= appStats.projectName %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Snapshot Date</span>
+    <span class="card-value"><%= appStats.currentDate %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">LLM Provider</span>
+    <span class="card-value long-text"><%= appStats.llmProvider %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Files Count</span>
+    <span class="card-value"><%= appStats.fileCount %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Lines of Code</span>
+    <span class="card-value"><%= appStats.linesOfCode %></span>
+  </div>
+</div>
 
 <%- include('section-header', { title: 'Application Description', jsonFile: jsonFilesConfig.jsonDataFiles.appDescription }) %>
 <p><%= appStats.appDescription %></p> 

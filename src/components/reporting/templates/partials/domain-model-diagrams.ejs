@@ -1,0 +1,45 @@
+<%- include('section-header', { title: 'Derived Domain Model', jsonFile: 'domain-model-diagrams.json' }) %>
+
+<div class="note-box">
+  <p><strong>Note:</strong> This domain model has been derived from what the application does and how it functions  - it intentionally does not reflect how the current code manages and persists business data.</p>
+</div>
+
+<% domainModelData.boundedContexts.forEach((context, index) => { %>
+  <div class="diagram-container">
+    <h3 class="bounded-context-title"><%= context.name %> bounded context</h3>
+    <p><%= context.description %></p>
+    
+    <div class="domain-diagram-svg">
+      <%- contextDiagramSvgs[index] %>
+    </div>
+    
+    <div class="domain-details">
+      <% if (context.aggregates.length > 0) { %>
+        <h4 class="aggregates-header">Aggregates (<%= context.aggregates.length %>)</h4>
+        <ul class="aggregates-list">
+          <% context.aggregates.forEach(aggregate => { %>
+            <li><strong><%= aggregate.name %></strong>: <%= aggregate.description %></li>
+          <% }); %>
+        </ul>
+      <% } %>
+      
+      <% if (context.repositories.length > 0) { %>
+        <h4 class="repositories-header">Repositories (<%= context.repositories.length %>)</h4>
+        <ul class="repositories-list">
+          <% context.repositories.forEach(repository => { %>
+            <li><strong><%= repository.name %></strong>: <%= repository.description %></li>
+          <% }); %>
+        </ul>
+      <% } %>
+      
+      <% if (context.entities.length > 0) { %>
+        <h4 class="entities-header">Entities (<%= context.entities.length %>)</h4>
+        <ul class="entities-list">
+          <% context.entities.forEach(entity => { %>
+            <li><strong><%= entity.name %></strong>: <%= entity.description %></li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+<% }); %>

@@ -1,0 +1,9 @@
+<%- include('section-header', { title: label, jsonFile: jsonFile }) %>
+
+<div class="badge-container">
+  <% data.forEach(tech => { %>
+    <span class="badge" title="<%= tech.description %>">
+      <%= tech.name %>
+    </span>
+  <% }); %>
+</div>

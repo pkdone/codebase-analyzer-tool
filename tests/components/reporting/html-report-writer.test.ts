@@ -113,6 +113,23 @@ describe("HtmlReportWriter", () => {
     moduleCoupling: null,
     couplingStatistics: null,
     uiTechnologyAnalysis: null,
+
+    // Enhanced UI data
+    businessProcessesFlowchartSvgs: [],
+    domainModelData: {
+      boundedContexts: [],
+      aggregates: [],
+      entities: [],
+      repositories: [],
+    },
+    contextDiagramSvgs: [],
+    microservicesData: [],
+    architectureDiagramSvg: "",
+
+    // Table view models for enhanced sections
+    microservicesTableViewModel: new (jest.requireActual(
+      "../../../src/components/reporting/view-models/table-view-model",
+    ).TableViewModel)([]),
   };
 
   beforeEach(() => {

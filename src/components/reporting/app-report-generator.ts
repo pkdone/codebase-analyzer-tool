@@ -6,10 +6,23 @@ import { DatabaseReportDataProvider } from "./data-providers/database-report-dat
 import { CodeStructureDataProvider } from "./data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "./data-providers/app-statistics-data-provider";
 import { AppSummaryCategoriesProvider } from "./data-providers/categories-data-provider";
+import { DomainModelDataProvider } from "./data-providers/domain-model-data-provider";
 import { DependencyTreePngGenerator } from "./generators/dependency-tree-png-generator";
 import { PieChartGenerator } from "./generators/pie-chart-generator";
+import { FlowchartSvgGenerator } from "./generators/flowchart-svg-generator";
+import { DomainModelSvgGenerator } from "./generators/domain-model-svg-generator";
+import { ArchitectureSvgGenerator } from "./generators/architecture-svg-generator";
 import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
+
+// Extended interface for business process data with additional properties
+type BusinessProcessData = AppSummaryNameDescArray[0] & {
+  keyBusinessActivities?: {
+    activity: string;
+    description: string;
+  }[];
+};
 import type { ReportData } from "./report-gen.types";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
@@ -43,10 +56,18 @@ export default class AppReportGenerator {
     private readonly appStatsDataProvider: AppStatisticsDataProvider,
     @inject(TOKENS.AppSummaryCategoriesProvider)
     private readonly categoriesDataProvider: AppSummaryCategoriesProvider,
+    @inject(TOKENS.DomainModelDataProvider)
+    private readonly domainModelDataProvider: DomainModelDataProvider,
     @inject(TOKENS.DependencyTreePngGenerator)
     private readonly pngGenerator: DependencyTreePngGenerator,
     @inject(TOKENS.PieChartGenerator)
     private readonly pieChartGenerator: PieChartGenerator,
+    @inject(TOKENS.FlowchartSvgGenerator)
+    private readonly flowchartSvgGenerator: FlowchartSvgGenerator,
+    @inject(TOKENS.DomainModelSvgGenerator)
+    private readonly domainModelSvgGenerator: DomainModelSvgGenerator,
+    @inject(TOKENS.ArchitectureSvgGenerator)
+    private readonly architectureSvgGenerator: ArchitectureSvgGenerator,
   ) {}
 
   /**
@@ -284,6 +305,28 @@ export default class AppReportGenerator {
         }
       : null;
 
+    // Generate enhanced UI data
+    const businessProcessesFlowchartSvgs = this.generateBusinessProcessesFlowcharts(
+      reportData.categorizedData,
+    );
+    const domainModelData = this.domainModelDataProvider.getDomainModelData(
+      reportData.categorizedData,
+    );
+    const contextDiagramSvgs = this.domainModelSvgGenerator.generateMultipleContextDiagramsSvg(
+      domainModelData.boundedContexts,
+    );
+    const microservicesData = this.extractMicroservicesData(reportData.categorizedData);
+    const architectureDiagramSvg = this.architectureSvgGenerator.generateArchitectureDiagramSvg(
+      microservicesData,
+      reportData.integrationPoints,
+    );
+
+    // Create table view models for enhanced sections
+    const microservicesTableViewModel = this.createTableViewModelForCategory(
+      reportData.categorizedData,
+      "potentialMicroservices",
+    );
+
     return {
       appStats: reportData.appStats,
       fileTypesData: processedFileTypesData,
@@ -308,6 +351,16 @@ export default class AppReportGenerator {
       procsAndTriggersTableViewModel,
       topLevelJavaClassesTableViewModel,
       integrationPointsTableViewModel,
+
+      // Enhanced UI data
+      businessProcessesFlowchartSvgs,
+      domainModelData,
+      contextDiagramSvgs,
+      microservicesData,
+      architectureDiagramSvg,
+
+      // Table view models for enhanced sections
+      microservicesTableViewModel,
     };
   }
 
@@ -409,5 +462,247 @@ export default class AppReportGenerator {
     }
 
     return uniqueClasspaths.size;
+  }
+
+  /**
+   * Generate flowchart SVGs for business processes
+   */
+  private generateBusinessProcessesFlowcharts(
+    categorizedData: {
+      category: string;
+      label: string;
+      data: AppSummaryNameDescArray;
+    }[],
+  ): string[] {
+    const businessProcessesCategory = categorizedData.find(
+      (category) => category.category === "businessProcesses",
+    );
+
+    if (!businessProcessesCategory || businessProcessesCategory.data.length === 0) {
+      return [];
+    }
+
+    // Convert AppSummaryNameDescArray to BusinessProcess format
+    const businessProcesses = businessProcessesCategory.data.map((item) => ({
+      name: item.name,
+      description: item.description,
+      keyBusinessActivities: (item as BusinessProcessData).keyBusinessActivities ?? [],
+    }));
+
+    return this.flowchartSvgGenerator.generateMultipleFlowchartsSvg(businessProcesses);
+  }
+
+  /**
+   * Extract microservices data from categorized data
+   */
+  private extractMicroservicesData(
+    categorizedData: {
+      category: string;
+      label: string;
+      data: AppSummaryNameDescArray;
+    }[],
+  ): {
+    name: string;
+    description: string;
+    entities: {
+      name: string;
+      description: string;
+      attributes: string[];
+    }[];
+    endpoints: {
+      path: string;
+      method: string;
+      description: string;
+    }[];
+    operations: {
+      operation: string;
+      method: string;
+      description: string;
+    }[];
+  }[] {
+    const microservicesCategory = categorizedData.find(
+      (category) => category.category === "potentialMicroservices",
+    );
+
+    if (!microservicesCategory || microservicesCategory.data.length === 0) {
+      return [];
+    }
+
+    return microservicesCategory.data.map((item) => ({
+      name: item.name,
+      description: item.description,
+      entities: this.extractEntitiesFromDescription(item.description),
+      endpoints: this.extractEndpointsFromDescription(item.description),
+      operations: this.extractOperationsFromDescription(item.description),
+    }));
+  }
+
+  /**
+   * Extract entities from microservice description
+   */
+  private extractEntitiesFromDescription(description: string): {
+    name: string;
+    description: string;
+    attributes: string[];
+  }[] {
+    // Look for entity patterns in description
+    const entityPatterns = [/entities:\s*\[([^\]]+)\]/i, /entities\s+like\s+([^.]+)/i];
+
+    const entities: {
+      name: string;
+      description: string;
+      attributes: string[];
+    }[] = [];
+
+    for (const pattern of entityPatterns) {
+      const match = description.match(pattern);
+      if (match) {
+        const entityText = match[1];
+        const entityNames = entityText
+          .split(/[,;]/)
+          .map((entity) => entity.trim())
+          .filter((entity) => entity.length > 0);
+
+        entityNames.forEach((entityName) => {
+          entities.push({
+            name: entityName,
+            description: `Entity in ${entityName}`,
+            attributes: this.extractAttributesFromEntity(entityName),
+          });
+        });
+      }
+    }
+
+    return entities.slice(0, 3); // Limit to 3 entities
+  }
+
+  /**
+   * Extract attributes from entity name
+   */
+  private extractAttributesFromEntity(entityName: string): string[] {
+    // Generate common attributes based on entity name
+    const commonAttributes = ["id", "name", "createdAt", "updatedAt"];
+    const specificAttributes = entityName.toLowerCase().includes("order")
+      ? ["orderId", "status", "total"]
+      : entityName.toLowerCase().includes("user")
+        ? ["userId", "email", "role"]
+        : ["type", "value"];
+
+    return [...commonAttributes, ...specificAttributes].slice(0, 5);
+  }
+
+  /**
+   * Extract endpoints from microservice description
+   */
+  private extractEndpointsFromDescription(description: string): {
+    path: string;
+    method: string;
+    description: string;
+  }[] {
+    // Look for endpoint patterns
+    const endpointPatterns = [/endpoints:\s*\[([^\]]+)\]/i, /API\s+endpoints?\s*:?\s*([^.]+)/i];
+
+    const endpoints: {
+      path: string;
+      method: string;
+      description: string;
+    }[] = [];
+
+    for (const pattern of endpointPatterns) {
+      const match = description.match(pattern);
+      if (match) {
+        const endpointText = match[1];
+        const endpointLines = endpointText.split(/[,;]/).map((line) => line.trim());
+
+        endpointLines.forEach((line) => {
+          if (line.includes("/")) {
+            const method = line.includes("GET") ? "GET" : line.includes("POST") ? "POST" : "GET";
+            const pathMatch = /\/[^\s]+/.exec(line);
+            const path = pathMatch ? [pathMatch[0]] : ["/api/endpoint"];
+            endpoints.push({
+              path: path[0],
+              method,
+              description: `API endpoint for ${line}`,
+            });
+          }
+        });
+      }
+    }
+
+    // Generate default endpoints if none found
+    if (endpoints.length === 0) {
+      endpoints.push(
+        { path: "/api/items", method: "GET", description: "List items" },
+        { path: "/api/items", method: "POST", description: "Create item" },
+        { path: "/api/items/{id}", method: "GET", description: "Get item by ID" },
+      );
+    }
+
+    return endpoints.slice(0, 4); // Limit to 4 endpoints
+  }
+
+  /**
+   * Extract operations from microservice description
+   */
+  private extractOperationsFromDescription(description: string): {
+    operation: string;
+    method: string;
+    description: string;
+  }[] {
+    // Look for operation patterns
+    const operationPatterns = [/operations:\s*\[([^\]]+)\]/i, /operations?\s*:?\s*([^.]+)/i];
+
+    const operations: {
+      operation: string;
+      method: string;
+      description: string;
+    }[] = [];
+
+    for (const pattern of operationPatterns) {
+      const match = description.match(pattern);
+      if (match) {
+        const operationText = match[1];
+        const operationLines = operationText.split(/[,;]/).map((line) => line.trim());
+
+        operationLines.forEach((line) => {
+          const method = line.includes("GET") ? "GET" : line.includes("POST") ? "POST" : "GET";
+          operations.push({
+            operation: line,
+            method,
+            description: `Operation: ${line}`,
+          });
+        });
+      }
+    }
+
+    // Generate default operations if none found
+    if (operations.length === 0) {
+      operations.push(
+        { operation: "List Items", method: "GET", description: "Retrieve all items" },
+        { operation: "Create Item", method: "POST", description: "Create new item" },
+        { operation: "Update Item", method: "PUT", description: "Update existing item" },
+      );
+    }
+
+    return operations.slice(0, 3); // Limit to 3 operations
+  }
+
+  /**
+   * Create table view model for a specific category
+   */
+  private createTableViewModelForCategory(
+    categorizedData: {
+      category: string;
+      label: string;
+      data: AppSummaryNameDescArray;
+    }[],
+    categoryName: string,
+  ): TableViewModel {
+    const category = categorizedData.find((c) => c.category === categoryName);
+    if (!category || category.data.length === 0) {
+      return new TableViewModel([]);
+    }
+
+    return new TableViewModel(category.data as DisplayableTableRow[]);
   }
 }

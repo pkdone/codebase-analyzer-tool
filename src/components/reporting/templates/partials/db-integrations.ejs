@@ -1,8 +1,92 @@
 <%- include('section-header', { title: 'Database Interactions', jsonFile: jsonFilesConfig.jsonDataFiles.dbInteractions }) %>
-<%- include('table', { viewModel: dbInteractionsTableViewModel }) %>
+
+<% if (dbInteractions && dbInteractions.length > 0) { %>
+  <table>
+    <thead>
+      <tr>
+        <th class="col-medium">Path</th>
+        <th class="col-small">Mechanism</th>
+        <th class="col-description">Description</th>
+        <th class="col-wide">Code Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% dbInteractions.forEach(item => { %>
+        <tr>
+          <td><code><%= item.path %></code></td>
+          <td><%= item.mechanism %></td>
+          <td><%= item.description %></td>
+          <td>
+            <pre><code class="language-sql"><%= item.codeExample %></code></pre>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } else { %>
+  <p>No database interactions found.</p>
+<% } %>
 
 <%- include('section-header', { title: 'Database Stored Procedures & Triggers', jsonFile: jsonFilesConfig.jsonDataFiles.procsAndTriggers }) %>
-<p>Stored Procedures: <b><%= procsAndTriggers.procs.total %></b>&nbsp;&nbsp;&nbsp;&nbsp;(complexity: low = <%= procsAndTriggers.procs.low %>, medium = <%= procsAndTriggers.procs.medium %>, high = <%= procsAndTriggers.procs.high %>)</p>
-<p>Triggers: <b><%= procsAndTriggers.trigs.total %></b>&nbsp;&nbsp;&nbsp;&nbsp;(complexity: low = <%= procsAndTriggers.trigs.low %>, medium = <%= procsAndTriggers.trigs.medium %>, high = <%= procsAndTriggers.trigs.high %>)</p>
 
-<%- include('table', { viewModel: procsAndTriggersTableViewModel }) %> 
+<div class="stats-grid">
+  <div class="card">
+    <span class="card-title">Stored Procedures</span>
+    <span class="card-value"><%= procsAndTriggers.procs.total %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Triggers</span>
+    <span class="card-value"><%= procsAndTriggers.trigs.total %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Low Complexity</span>
+    <span class="card-value"><%= procsAndTriggers.procs.low + procsAndTriggers.trigs.low %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">Medium Complexity</span>
+    <span class="card-value"><%= procsAndTriggers.procs.medium + procsAndTriggers.trigs.medium %></span>
+  </div>
+  
+  <div class="card">
+    <span class="card-title">High Complexity</span>
+    <span class="card-value"><%= procsAndTriggers.procs.high + procsAndTriggers.trigs.high %></span>
+  </div>
+</div>
+
+<% if (procsAndTriggersTableViewModel && procsAndTriggersTableViewModel.hasData()) { %>
+  <table>
+    <thead>
+      <tr>
+        <% 
+          const headers = procsAndTriggersTableViewModel.getDisplayHeaders();
+          const columnClasses = procsAndTriggersTableViewModel.getColumnClasses();
+          const rows = procsAndTriggersTableViewModel.getProcessedRows();
+        %>
+        <% headers.forEach((header, index) => { %>
+          <th class="<%= columnClasses[index] %>"><%= header %></th>
+        <% }); %>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(row => { %>
+        <tr>
+          <% row.forEach((cell, columnIndex) => { %>
+            <% const columnClass = columnClasses[columnIndex]; %>
+            <% if (cell.type === 'code') { %>
+              <td class="<%= columnClass %>">
+                <pre><code class="language-sql"><%- cell.content %></code></pre>
+              </td>
+            <% } else { %>
+              <td class="<%= columnClass %>"><%- cell.content %></td>
+            <% } %>
+          <% }); %>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } else { %>
+  <p>No stored procedures or triggers found.</p>
+<% } %> 

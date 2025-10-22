@@ -17,8 +17,12 @@ describe("AppReportGenerator - iterative tree traversal", () => {
     const mockCodeStructureProvider = {} as any;
     const mockAppStatsProvider = {} as any;
     const mockCategoriesProvider = {} as any;
+    const mockDomainModelProvider = {} as any;
     const mockPngGenerator = {} as any;
     const mockPieChartGenerator = {} as any;
+    const mockFlowchartSvgGenerator = {} as any;
+    const mockDomainModelSvgGenerator = {} as any;
+    const mockArchitectureSvgGenerator = {} as any;
 
     generator = new AppReportGenerator(
       mockSourcesRepo,
@@ -29,8 +33,12 @@ describe("AppReportGenerator - iterative tree traversal", () => {
       mockCodeStructureProvider,
       mockAppStatsProvider,
       mockCategoriesProvider,
+      mockDomainModelProvider,
       mockPngGenerator,
       mockPieChartGenerator,
+      mockFlowchartSvgGenerator,
+      mockDomainModelSvgGenerator,
+      mockArchitectureSvgGenerator,
     );
   });
 

@@ -22,7 +22,7 @@ async function copyAssets() {
     const dest = path.resolve(__dirname, PATHS.DEST_RELATIVE);
     await fs.mkdir(dest, { recursive: true });
     await fs.cp(src, dest, { recursive: true });
-    console.log("Templates copied successfully from:");
+    console.log("Templates and assets copied successfully from:");
     console.log(`  Source: ${src}`);
     console.log(`  Destination: ${dest}`);
   } catch (error) {

@@ -3,6 +3,7 @@ import path from "path";
 import ejs from "ejs";
 import { outputConfig } from "../../config/output.config";
 import { writeFile } from "../../common/fs/file-operations";
+import { promises as fs } from "fs";
 import type {
   AppStatistics,
   ProcsAndTriggers,
@@ -73,6 +74,67 @@ export interface PreparedHtmlReportData {
   procsAndTriggersTableViewModel: TableViewModel;
   topLevelJavaClassesTableViewModel: TableViewModel;
   integrationPointsTableViewModel: TableViewModel;
+
+  // Enhanced UI data
+  businessProcessesFlowchartSvgs: string[];
+  domainModelData: {
+    boundedContexts: {
+      name: string;
+      description: string;
+      aggregates: {
+        name: string;
+        description: string;
+        entities: string[];
+        repository?: string;
+      }[];
+      entities: {
+        name: string;
+        description: string;
+      }[];
+      repositories: {
+        name: string;
+        description: string;
+      }[];
+    }[];
+    aggregates: {
+      name: string;
+      description: string;
+      entities: string[];
+      repository?: string;
+    }[];
+    entities: {
+      name: string;
+      description: string;
+    }[];
+    repositories: {
+      name: string;
+      description: string;
+    }[];
+  };
+  contextDiagramSvgs: string[];
+  microservicesData: {
+    name: string;
+    description: string;
+    entities: {
+      name: string;
+      description: string;
+      attributes: string[];
+    }[];
+    endpoints: {
+      path: string;
+      method: string;
+      description: string;
+    }[];
+    operations: {
+      operation: string;
+      method: string;
+      description: string;
+    }[];
+  }[];
+  architectureDiagramSvg: string;
+
+  // Table view models for enhanced sections
+  microservicesTableViewModel: TableViewModel;
 }
 
 /**
@@ -97,6 +159,28 @@ export class HtmlReportWriter {
 
     const htmlContent = await ejs.renderFile(templatePath, preparedData);
     await writeFile(htmlFilePath, htmlContent);
+
+    // Copy CSS file to output directory
+    await this.copyCssFile(htmlFilePath);
+
     console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
+  }
+
+  /**
+   * Copy the CSS file from the templates directory to the output directory
+   */
+  private async copyCssFile(htmlFilePath: string): Promise<void> {
+    try {
+      const outputDir = path.dirname(htmlFilePath);
+      const cssSourcePath = path.join(__dirname, outputConfig.HTML_TEMPLATES_DIR, "style.css");
+      const cssDestPath = path.join(outputDir, "style.css");
+
+      // Copy the CSS file
+      await fs.copyFile(cssSourcePath, cssDestPath);
+      console.log(`CSS file copied to: ${cssDestPath}`);
+    } catch (error) {
+      console.error("Failed to copy CSS file:", error);
+      // Don't throw - the report can still work without CSS
+    }
   }
 }

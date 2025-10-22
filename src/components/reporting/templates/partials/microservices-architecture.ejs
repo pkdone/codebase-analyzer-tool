@@ -1,0 +1,72 @@
+<%- include('section-header', { title: 'Microservices Architecture', jsonFile: 'microservices-architecture.json' }) %>
+
+<div class="diagram-container">
+  <h3>Architecture Overview</h3>
+  <p>This diagram shows the microservices and their integration points within the system.</p>
+  
+  <div class="architecture-diagram-svg">
+    <%- architectureDiagramSvg %>
+  </div>
+</div>
+
+<% if (microservicesData && microservicesData.length > 0) { %>
+  <div class="microservices-details">
+    <h3>Microservices Details</h3>
+    
+    <% microservicesData.forEach(service => { %>
+      <div class="service-detail">
+        <h4><%= service.name %></h4>
+        <p><%= service.description %></p>
+        
+        <% if (service.entities && service.entities.length > 0) { %>
+          <h5>Entities</h5>
+          <ul>
+            <% service.entities.forEach(entity => { %>
+              <li>
+                <strong><%= entity.name %></strong>: <%= entity.description %>
+                <% if (entity.attributes && entity.attributes.length > 0) { %>
+                  <br><small>Attributes: <%= entity.attributes.join(', ') %></small>
+                <% } %>
+              </li>
+            <% }); %>
+          </ul>
+        <% } %>
+        
+        <% if (service.endpoints && service.endpoints.length > 0) { %>
+          <h5>API Endpoints</h5>
+          <ul>
+            <% service.endpoints.forEach(endpoint => { %>
+              <li>
+                <code><%= endpoint.method %></code> <code><%= endpoint.path %></code>
+                <br><small><%= endpoint.description %></small>
+              </li>
+            <% }); %>
+          </ul>
+        <% } %>
+        
+        <% if (service.operations && service.operations.length > 0) { %>
+          <h5>Operations</h5>
+          <ul>
+            <% service.operations.forEach(operation => { %>
+              <li>
+                <strong><%= operation.operation %></strong> (<%= operation.method %>)
+                <br><small><%= operation.description %></small>
+              </li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
+    <% }); %>
+  </div>
+<% } %>
+
+<!-- Original table views for reference -->
+<% if (microservicesTableViewModel && microservicesTableViewModel.hasData()) { %>
+  <h4>Potential Microservices Table View</h4>
+  <%- include('table', { viewModel: microservicesTableViewModel }) %>
+<% } %>
+
+<% if (integrationPointsTableViewModel && integrationPointsTableViewModel.hasData()) { %>
+  <h4>Integration Points Table View</h4>
+  <%- include('table', { viewModel: integrationPointsTableViewModel }) %>
+<% } %>
