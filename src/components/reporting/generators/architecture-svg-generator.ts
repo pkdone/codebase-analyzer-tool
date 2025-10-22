@@ -37,12 +37,12 @@ export interface ArchitectureDiagramSvgOptions {
 @injectable()
 export class ArchitectureSvgGenerator {
   private readonly defaultOptions: Required<ArchitectureDiagramSvgOptions> = {
-    width: 1200,
-    height: 800,
-    padding: 40,
-    fontSize: 11,
+    width: 1100,
+    height: 900,
+    padding: 60,
+    fontSize: 16,
     fontFamily: "system-ui, -apple-system, sans-serif",
-    serviceSpacing: 200,
+    serviceSpacing: 350,
   };
 
   /**
@@ -88,16 +88,22 @@ export class ArchitectureSvgGenerator {
     height: number,
     options: Required<ArchitectureDiagramSvgOptions>,
   ): string {
-    const centerY = height / 2;
-    const startX = options.padding;
+    // Calculate grid layout
+    const servicesPerRow = 3; // 3 services per row
+    const rows = Math.ceil(microservices.length / servicesPerRow);
+    const horizontalSpacing = (width - options.padding * 2) / servicesPerRow;
+    const verticalSpacing = (height - options.padding * 2) / rows;
 
-    // Generate service nodes
+    // Generate service nodes in grid layout
     const serviceNodes: string[] = [];
     const servicePositions: { x: number; y: number; name: string }[] = [];
 
     microservices.forEach((service, index) => {
-      const x = startX + index * options.serviceSpacing;
-      const y = centerY;
+      const row = Math.floor(index / servicesPerRow);
+      const col = index % servicesPerRow;
+
+      const x = options.padding + col * horizontalSpacing + horizontalSpacing / 2;
+      const y = options.padding + row * verticalSpacing + verticalSpacing / 2;
 
       servicePositions.push({ x, y, name: service.name });
       serviceNodes.push(this.createServiceNode(service, x, y, options));
@@ -130,8 +136,8 @@ export class ArchitectureSvgGenerator {
     y: number,
     options: Required<ArchitectureDiagramSvgOptions>,
   ): string {
-    const nodeWidth = 180;
-    const nodeHeight = 120;
+    const nodeWidth = 320; // Moderate block size
+    const nodeHeight = 200; // Moderate block size
     const rectX = x - nodeWidth / 2;
     const rectY = y - nodeHeight / 2;
 
@@ -149,76 +155,25 @@ export class ArchitectureSvgGenerator {
         stroke-width="3"
       />`;
 
-    // Create service title
+    // Create service title only (much larger font)
     const serviceTitle = `
       <text
         x="${x}"
-        y="${y - 30}"
+        y="${y}"
         text-anchor="middle"
+        dominant-baseline="middle"
         font-family="${options.fontFamily}"
-        font-size="${options.fontSize + 2}"
+        font-size="${options.fontSize + 5}"
         font-weight="700"
         fill="#001e2b"
       >
-        ${this.escapeXml(this.truncateText(service.name, 20))}
+        ${this.escapeXml(service.name)}
       </text>`;
-
-    // Create service subtitle
-    const serviceSubtitle = `
-      <text
-        x="${x}"
-        y="${y - 10}"
-        text-anchor="middle"
-        font-family="${options.fontFamily}"
-        font-size="${options.fontSize - 1}"
-        font-weight="500"
-        fill="#00684A"
-      >
-        Microservice
-      </text>`;
-
-    // Create endpoints list
-    const endpointsText = service.endpoints
-      .slice(0, 3) // Show max 3 endpoints
-      .map((endpoint, index) => {
-        const endpointY = y + 10 + index * 15;
-        return `
-          <text
-            x="${x}"
-            y="${endpointY}"
-            text-anchor="middle"
-            font-family="${options.fontFamily}"
-            font-size="${options.fontSize - 2}"
-            fill="#5f6b7a"
-          >
-            ${endpoint.method} ${this.truncateText(endpoint.path, 15)}
-          </text>`;
-      })
-      .join("");
-
-    // Add "..." if there are more endpoints
-    const moreEndpoints =
-      service.endpoints.length > 3
-        ? `
-      <text
-        x="${x}"
-        y="${y + 55}"
-        text-anchor="middle"
-        font-family="${options.fontFamily}"
-        font-size="${options.fontSize - 2}"
-        fill="#8b95a1"
-      >
-        +${service.endpoints.length - 3} more...
-      </text>`
-        : "";
 
     return `
       <g id="service-${this.sanitizeId(service.name)}">
         ${serviceBox}
         ${serviceTitle}
-        ${serviceSubtitle}
-        ${endpointsText}
-        ${moreEndpoints}
       </g>`;
   }
 
@@ -226,126 +181,12 @@ export class ArchitectureSvgGenerator {
    * Create connections between services based on integration points
    */
   private createIntegrationConnections(
-    servicePositions: { x: number; y: number; name: string }[],
-    integrationPoints: IntegrationPointInfo[],
-    options: Required<ArchitectureDiagramSvgOptions>,
+    _servicePositions: { x: number; y: number; name: string }[],
+    _integrationPoints: IntegrationPointInfo[],
+    _options: Required<ArchitectureDiagramSvgOptions>,
   ): string[] {
-    const connections: string[] = [];
-    const serviceMap = new Map(servicePositions.map((pos) => [pos.name.toLowerCase(), pos]));
-
-    integrationPoints.forEach((integration) => {
-      // Try to match integration points to services
-      const sourceService = this.findMatchingService(integration.namespace, serviceMap);
-      const targetService = this.findMatchingService(integration.name, serviceMap);
-
-      if (sourceService && targetService && sourceService !== targetService) {
-        connections.push(
-          this.createServiceConnection(
-            sourceService.x,
-            sourceService.y,
-            targetService.x,
-            targetService.y,
-            options,
-          ),
-        );
-      }
-    });
-
-    return connections;
-  }
-
-  /**
-   * Find a service that matches the integration point
-   */
-  private findMatchingService(
-    integrationName: string,
-    serviceMap: Map<string, { x: number; y: number; name: string }>,
-  ): { x: number; y: number; name: string } | null {
-    const integrationLower = integrationName.toLowerCase();
-
-    // Direct name match
-    if (serviceMap.has(integrationLower)) {
-      const result = serviceMap.get(integrationLower);
-      if (result) {
-        return result;
-      }
-    }
-
-    // Partial name match
-    for (const [_serviceName, servicePos] of serviceMap) {
-      if (_serviceName.includes(integrationLower) || integrationLower.includes(_serviceName)) {
-        return servicePos;
-      }
-    }
-
-    // Keyword-based matching
-    const keywords = this.extractKeywords(integrationName);
-    for (const [, servicePos] of serviceMap) {
-      const serviceKeywords = this.extractKeywords(servicePos.name);
-      const overlap = keywords.filter((keyword) => serviceKeywords.includes(keyword));
-      if (overlap.length > 0) {
-        return servicePos;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Extract keywords from a service name
-   */
-  private extractKeywords(name: string): string[] {
-    return name
-      .toLowerCase()
-      .split(/[^a-z0-9]+/)
-      .filter((word) => word.length >= 3)
-      .slice(0, 5);
-  }
-
-  /**
-   * Create a connection between two services
-   */
-  private createServiceConnection(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    options: Required<ArchitectureDiagramSvgOptions>,
-  ): string {
-    // Calculate connection points on service boundaries
-    const serviceWidth = 180;
-
-    const leftX = x1 + serviceWidth / 2;
-    const rightX = x2 - serviceWidth / 2;
-    const centerY = (y1 + y2) / 2;
-
-    return `
-      <g>
-        <line
-          x1="${leftX}"
-          y1="${centerY}"
-          x2="${rightX}"
-          y2="${centerY}"
-          stroke="#00ED64"
-          stroke-width="3"
-          stroke-dasharray="8,4"
-        />
-        <polygon
-          points="${rightX},${centerY} ${rightX - 15},${centerY - 5} ${rightX - 15},${centerY + 5}"
-          fill="#00ED64"
-        />
-        <text
-          x="${(leftX + rightX) / 2}"
-          y="${centerY - 10}"
-          text-anchor="middle"
-          font-family="${options.fontFamily}"
-          font-size="${options.fontSize - 2}"
-          fill="#00684A"
-          font-weight="500"
-        >
-          Integration
-        </text>
-      </g>`;
+    // Disable integration connections for cleaner diagram
+    return [];
   }
 
   /**
@@ -405,16 +246,6 @@ export class ArchitectureSvgGenerator {
           No microservices architecture defined
         </text>
       </svg>`;
-  }
-
-  /**
-   * Truncate text to fit within node width
-   */
-  private truncateText(text: string, maxLength: number): string {
-    if (text.length <= maxLength) {
-      return text;
-    }
-    return text.substring(0, maxLength - 3) + "...";
   }
 
   /**

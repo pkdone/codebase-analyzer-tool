@@ -127,9 +127,6 @@ describe("HtmlReportWriter", () => {
     architectureDiagramSvg: "",
 
     // Table view models for enhanced sections
-    microservicesTableViewModel: new (jest.requireActual(
-      "../../../src/components/reporting/view-models/table-view-model",
-    ).TableViewModel)([]),
   };
 
   beforeEach(() => {

@@ -239,9 +239,11 @@ ul li {
 }
 
 .diagram-container svg {
-  width: 100%;
+  /* Scale SVG to fit container with reasonable limits */
+  max-width: 100%;
+  width: auto;
   height: auto;
-  min-width: 100%; /* Ensure SVG doesn't shrink below container width */
+  min-width: 700px; /* Ensure blocks are readable */
 }
 
 /* Domain Model Color Scheme */

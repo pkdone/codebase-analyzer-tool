@@ -23,6 +23,25 @@ type BusinessProcessData = AppSummaryNameDescArray[0] & {
     description: string;
   }[];
 };
+
+// Extended interface for microservice data with additional properties
+type MicroserviceData = AppSummaryNameDescArray[0] & {
+  entities?: {
+    name: string;
+    description: string;
+    attributes?: string[];
+  }[];
+  endpoints?: {
+    path: string;
+    method: string;
+    description: string;
+  }[];
+  operations?: {
+    operation: string;
+    method: string;
+    description: string;
+  }[];
+};
 import type { ReportData } from "./report-gen.types";
 import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
@@ -322,10 +341,6 @@ export default class AppReportGenerator {
     );
 
     // Create table view models for enhanced sections
-    const microservicesTableViewModel = this.createTableViewModelForCategory(
-      reportData.categorizedData,
-      "potentialMicroservices",
-    );
 
     return {
       appStats: reportData.appStats,
@@ -360,7 +375,6 @@ export default class AppReportGenerator {
       architectureDiagramSvg,
 
       // Table view models for enhanced sections
-      microservicesTableViewModel,
     };
   }
 
@@ -528,181 +542,19 @@ export default class AppReportGenerator {
       return [];
     }
 
-    return microservicesCategory.data.map((item) => ({
-      name: item.name,
-      description: item.description,
-      entities: this.extractEntitiesFromDescription(item.description),
-      endpoints: this.extractEndpointsFromDescription(item.description),
-      operations: this.extractOperationsFromDescription(item.description),
-    }));
-  }
-
-  /**
-   * Extract entities from microservice description
-   */
-  private extractEntitiesFromDescription(description: string): {
-    name: string;
-    description: string;
-    attributes: string[];
-  }[] {
-    // Look for entity patterns in description
-    const entityPatterns = [/entities:\s*\[([^\]]+)\]/i, /entities\s+like\s+([^.]+)/i];
-
-    const entities: {
-      name: string;
-      description: string;
-      attributes: string[];
-    }[] = [];
-
-    for (const pattern of entityPatterns) {
-      const match = description.match(pattern);
-      if (match) {
-        const entityText = match[1];
-        const entityNames = entityText
-          .split(/[,;]/)
-          .map((entity) => entity.trim())
-          .filter((entity) => entity.length > 0);
-
-        entityNames.forEach((entityName) => {
-          entities.push({
-            name: entityName,
-            description: `Entity in ${entityName}`,
-            attributes: this.extractAttributesFromEntity(entityName),
-          });
-        });
-      }
-    }
-
-    return entities.slice(0, 3); // Limit to 3 entities
-  }
-
-  /**
-   * Extract attributes from entity name
-   */
-  private extractAttributesFromEntity(entityName: string): string[] {
-    // Generate common attributes based on entity name
-    const commonAttributes = ["id", "name", "createdAt", "updatedAt"];
-    const specificAttributes = entityName.toLowerCase().includes("order")
-      ? ["orderId", "status", "total"]
-      : entityName.toLowerCase().includes("user")
-        ? ["userId", "email", "role"]
-        : ["type", "value"];
-
-    return [...commonAttributes, ...specificAttributes].slice(0, 5);
-  }
-
-  /**
-   * Extract endpoints from microservice description
-   */
-  private extractEndpointsFromDescription(description: string): {
-    path: string;
-    method: string;
-    description: string;
-  }[] {
-    // Look for endpoint patterns
-    const endpointPatterns = [/endpoints:\s*\[([^\]]+)\]/i, /API\s+endpoints?\s*:?\s*([^.]+)/i];
-
-    const endpoints: {
-      path: string;
-      method: string;
-      description: string;
-    }[] = [];
-
-    for (const pattern of endpointPatterns) {
-      const match = description.match(pattern);
-      if (match) {
-        const endpointText = match[1];
-        const endpointLines = endpointText.split(/[,;]/).map((line) => line.trim());
-
-        endpointLines.forEach((line) => {
-          if (line.includes("/")) {
-            const method = line.includes("GET") ? "GET" : line.includes("POST") ? "POST" : "GET";
-            const pathMatch = /\/[^\s]+/.exec(line);
-            const path = pathMatch ? [pathMatch[0]] : ["/api/endpoint"];
-            endpoints.push({
-              path: path[0],
-              method,
-              description: `API endpoint for ${line}`,
-            });
-          }
-        });
-      }
-    }
-
-    // Generate default endpoints if none found
-    if (endpoints.length === 0) {
-      endpoints.push(
-        { path: "/api/items", method: "GET", description: "List items" },
-        { path: "/api/items", method: "POST", description: "Create item" },
-        { path: "/api/items/{id}", method: "GET", description: "Get item by ID" },
-      );
-    }
-
-    return endpoints.slice(0, 4); // Limit to 4 endpoints
-  }
-
-  /**
-   * Extract operations from microservice description
-   */
-  private extractOperationsFromDescription(description: string): {
-    operation: string;
-    method: string;
-    description: string;
-  }[] {
-    // Look for operation patterns
-    const operationPatterns = [/operations:\s*\[([^\]]+)\]/i, /operations?\s*:?\s*([^.]+)/i];
-
-    const operations: {
-      operation: string;
-      method: string;
-      description: string;
-    }[] = [];
-
-    for (const pattern of operationPatterns) {
-      const match = description.match(pattern);
-      if (match) {
-        const operationText = match[1];
-        const operationLines = operationText.split(/[,;]/).map((line) => line.trim());
-
-        operationLines.forEach((line) => {
-          const method = line.includes("GET") ? "GET" : line.includes("POST") ? "POST" : "GET";
-          operations.push({
-            operation: line,
-            method,
-            description: `Operation: ${line}`,
-          });
-        });
-      }
-    }
-
-    // Generate default operations if none found
-    if (operations.length === 0) {
-      operations.push(
-        { operation: "List Items", method: "GET", description: "Retrieve all items" },
-        { operation: "Create Item", method: "POST", description: "Create new item" },
-        { operation: "Update Item", method: "PUT", description: "Update existing item" },
-      );
-    }
-
-    return operations.slice(0, 3); // Limit to 3 operations
-  }
-
-  /**
-   * Create table view model for a specific category
-   */
-  private createTableViewModelForCategory(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: AppSummaryNameDescArray;
-    }[],
-    categoryName: string,
-  ): TableViewModel {
-    const category = categorizedData.find((c) => c.category === categoryName);
-    if (!category || category.data.length === 0) {
-      return new TableViewModel([]);
-    }
-
-    return new TableViewModel(category.data as DisplayableTableRow[]);
+    return microservicesCategory.data.map((item) => {
+      const microserviceItem = item as MicroserviceData;
+      return {
+        name: item.name,
+        description: item.description,
+        entities: (microserviceItem.entities ?? []).map((entity) => ({
+          name: entity.name,
+          description: entity.description,
+          attributes: entity.attributes ?? [],
+        })),
+        endpoints: microserviceItem.endpoints ?? [],
+        operations: microserviceItem.operations ?? [],
+      };
+    });
   }
 }

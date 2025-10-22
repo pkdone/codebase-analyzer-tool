@@ -1,4 +1,8 @@
-<%- include('section-header', { title: 'Microservices Architecture', jsonFile: 'microservices-architecture.json' }) %>
+<%- include('section-header', { title: 'Derived Microservices Architecture', jsonFile: 'microservices-architecture.json' }) %>
+
+<div class="note-box">
+  <p><strong>Note:</strong> This is a suggested new Microservices architecture derived from what the application does and how it functions  - it intentionally does not reflect the curent the current archiecture of the application or any of its existing Microservices (if any).</p>
+</div>
 
 <div class="diagram-container">
   <h3>Architecture Overview</h3>
@@ -61,11 +65,6 @@
 <% } %>
 
 <!-- Original table views for reference -->
-<% if (microservicesTableViewModel && microservicesTableViewModel.hasData()) { %>
-  <h4>Potential Microservices Table View</h4>
-  <%- include('table', { viewModel: microservicesTableViewModel }) %>
-<% } %>
-
 <% if (integrationPointsTableViewModel && integrationPointsTableViewModel.hasData()) { %>
   <h4>Integration Points Table View</h4>
   <%- include('table', { viewModel: integrationPointsTableViewModel }) %>

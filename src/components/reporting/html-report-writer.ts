@@ -134,7 +134,6 @@ export interface PreparedHtmlReportData {
   architectureDiagramSvg: string;
 
   // Table view models for enhanced sections
-  microservicesTableViewModel: TableViewModel;
 }
 
 /**

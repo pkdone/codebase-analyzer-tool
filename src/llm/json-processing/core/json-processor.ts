@@ -202,6 +202,7 @@ export class JsonProcessor {
    * Returns success with data if parsing succeeds at any step, or
    * returns failure info if all sanitizers are exhausted.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   private runPipelineLoop<T>(
     originalContent: string,
     resourceName: string,
@@ -279,6 +280,7 @@ export class JsonProcessor {
    * Applies (optionally) a sanitizer context and then attempts parse + validate.
    * Returns a discriminated result capturing success, parse failure, or validation failure.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   private applySanitizerAndParse<T>(
     content: string,
     resourceName: string,

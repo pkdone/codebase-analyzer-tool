@@ -9,6 +9,7 @@ import {
 } from "../../src/schemas/sources.values";
 
 // Helper: pick a known valid value and an invalid one
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 const pickValid = <T extends readonly string[]>(arr: T): string => arr[0];
 
 describe("Normalization fallback behavior (DATABASE -> INVALID, others -> INVALID)", () => {
