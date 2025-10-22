@@ -1,23 +1,19 @@
-<%- include('section-header', { title: 'Integration Points (APIs, Queues/Topics, etc.)', jsonFile: jsonFilesConfig.jsonDataFiles.integrationPoints }) %>
+<%- include('section-header', { title: 'Integration Points', jsonFile: jsonFilesConfig.jsonDataFiles.integrationPoints, jsonIconSvg: jsonIconSvg }) %>
 
 <% if (integrationPoints && integrationPoints.length > 0) { %>
-  <p>Total Integration Points: <b><%= integrationPoints.length %></b></p>
-  
-  <% 
-  const byMechanism = {};
-  integrationPoints.forEach(point => {
-    byMechanism[point.mechanism] = (byMechanism[point.mechanism] || 0) + 1;
-  });
-  %>
-  
-  <p>By Type: 
-    <% Object.entries(byMechanism).sort((a, b) => b[1] - a[1]).forEach(([mech, count]) => { %>
-      <b><%= mech %></b>: <%= count %>&nbsp;&nbsp;&nbsp;
+  <div class="card-grid">
+    <% integrationPoints.forEach(item => { %>
+      <div class="info-card">
+        <h3><%= item.name %></h3>
+        <p><strong>Namespace:</strong> <code><%= item.namespace %></code></p>
+        <p><strong>Mechanism:</strong> <code><%= item.mechanism %></code></p>
+        <p><strong>Direction:</strong> <%= item.direction || 'N/A' %></p>
+        <p><strong>Path/Topic:</strong> <code><%= item.path || item.queueOrTopicName || 'N/A' %></code></p>
+        <p><strong>Description:</strong> <%= item.description %></p>
+      </div>
     <% }); %>
-  </p>
-  
-  <%- include('table', { viewModel: integrationPointsTableViewModel }) %>
+  </div>
 <% } else { %>
-  <p><i>No integration points (APIs, queues, topics, SOAP services) detected in this codebase.</i></p>
+  <p>No integration points found.</p>
 <% } %>
 

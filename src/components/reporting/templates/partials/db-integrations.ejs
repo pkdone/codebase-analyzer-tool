@@ -1,7 +1,57 @@
-<%- include('section-header', { title: 'Database Interactions', jsonFile: jsonFilesConfig.jsonDataFiles.dbInteractions }) %>
+<%- include('section-header', { title: 'Database Stored Procedures & Triggers', jsonFile: jsonFilesConfig.jsonDataFiles.procsAndTriggers, jsonIconSvg: jsonIconSvg }) %>
+
+<div class="stats-grid">
+  <div class="card">
+    <span class="card-title">Stored Procedures</span>
+    <span class="card-value"><%= procsAndTriggers.procs.total %></span>
+  </div>
+  <div class="card">
+    <span class="card-title">Triggers</span>
+    <span class="card-value"><%= procsAndTriggers.trigs.total %></span>
+  </div>
+  <div class="card">
+    <span class="card-title">Low Complexity</span>
+    <span class="card-value"><%= procsAndTriggers.procs.low + procsAndTriggers.trigs.low %></span>
+  </div>
+  <div class="card">
+    <span class="card-title">Medium Complexity</span>
+    <span class="card-value"><%= procsAndTriggers.procs.medium + procsAndTriggers.trigs.medium %></span>
+  </div>
+  <div class="card">
+    <span class="card-title">High Complexity</span>
+    <span class="card-value"><%= procsAndTriggers.procs.high + procsAndTriggers.trigs.high %></span>
+  </div>
+</div>
+
+<% const combinedProcsTrigsList = [ ...procsAndTriggers.procs.list, ...procsAndTriggers.trigs.list ]; %>
+
+<% if (combinedProcsTrigsList && combinedProcsTrigsList.length > 0) { %>
+  <div class="card-grid">
+    <% combinedProcsTrigsList.forEach(item => { %>
+      <div class="info-card">
+        <h3>
+          <%= item.functionName %>
+          <% if (item.type === 'STORED PROCEDURE') { %>
+            <span class="badge badge-proc">Procedure</span>
+          <% } else { %>
+            <span class="badge badge-trig">Trigger</span>
+          <% } %>
+        </h3>
+        <p><strong>Path:</strong> <code><%= item.path %></code></p>
+        <p><strong>Complexity:</strong> <%= item.complexity %> (<%= item.complexityReason %>)</p>
+        <p><strong>Lines:</strong> <%= item.linesOfCode %></p>
+        <p><strong>Purpose:</strong> <%= item.purpose %></p>
+      </div>
+    <% }); %>
+  </div>
+<% } else { %>
+  <p>No stored procedures or triggers found.</p>
+<% } %>
+
+<%- include('section-header', { title: 'Database Interactions', jsonFile: jsonFilesConfig.jsonDataFiles.dbInteractions, jsonIconSvg: jsonIconSvg }) %>
 
 <% if (dbInteractions && dbInteractions.length > 0) { %>
-  <table>
+  <table class="data-table">
     <thead>
       <tr>
         <th class="col-medium">Path</th>
@@ -25,68 +75,4 @@
   </table>
 <% } else { %>
   <p>No database interactions found.</p>
-<% } %>
-
-<%- include('section-header', { title: 'Database Stored Procedures & Triggers', jsonFile: jsonFilesConfig.jsonDataFiles.procsAndTriggers }) %>
-
-<div class="stats-grid">
-  <div class="card">
-    <span class="card-title">Stored Procedures</span>
-    <span class="card-value"><%= procsAndTriggers.procs.total %></span>
-  </div>
-  
-  <div class="card">
-    <span class="card-title">Triggers</span>
-    <span class="card-value"><%= procsAndTriggers.trigs.total %></span>
-  </div>
-  
-  <div class="card">
-    <span class="card-title">Low Complexity</span>
-    <span class="card-value"><%= procsAndTriggers.procs.low + procsAndTriggers.trigs.low %></span>
-  </div>
-  
-  <div class="card">
-    <span class="card-title">Medium Complexity</span>
-    <span class="card-value"><%= procsAndTriggers.procs.medium + procsAndTriggers.trigs.medium %></span>
-  </div>
-  
-  <div class="card">
-    <span class="card-title">High Complexity</span>
-    <span class="card-value"><%= procsAndTriggers.procs.high + procsAndTriggers.trigs.high %></span>
-  </div>
-</div>
-
-<% if (procsAndTriggersTableViewModel && procsAndTriggersTableViewModel.hasData()) { %>
-  <table>
-    <thead>
-      <tr>
-        <% 
-          const headers = procsAndTriggersTableViewModel.getDisplayHeaders();
-          const columnClasses = procsAndTriggersTableViewModel.getColumnClasses();
-          const rows = procsAndTriggersTableViewModel.getProcessedRows();
-        %>
-        <% headers.forEach((header, index) => { %>
-          <th class="<%= columnClasses[index] %>"><%= header %></th>
-        <% }); %>
-      </tr>
-    </thead>
-    <tbody>
-      <% rows.forEach(row => { %>
-        <tr>
-          <% row.forEach((cell, columnIndex) => { %>
-            <% const columnClass = columnClasses[columnIndex]; %>
-            <% if (cell.type === 'code') { %>
-              <td class="<%= columnClass %>">
-                <pre><code class="language-sql"><%- cell.content %></code></pre>
-              </td>
-            <% } else { %>
-              <td class="<%= columnClass %>"><%- cell.content %></td>
-            <% } %>
-          <% }); %>
-        </tr>
-      <% }); %>
-    </tbody>
-  </table>
-<% } else { %>
-  <p>No stored procedures or triggers found.</p>
 <% } %> 

@@ -1,12 +1,11 @@
-<%- include('section-header', { title: 'Derived Microservices Architecture', jsonFile: 'microservices-architecture.json' }) %>
+<%- include('section-header', { title: 'Derived Microservices Architecture', jsonFile: 'microservices-architecture.json', jsonIconSvg: jsonIconSvg }) %>
 
 <div class="note-box">
   <p><strong>Note:</strong> This is a suggested new Microservices architecture derived from what the application does and how it functions  - it intentionally does not reflect the curent the current archiecture of the application or any of its existing Microservices (if any).</p>
 </div>
 
 <div class="diagram-container">
-  <h3>Architecture Overview</h3>
-  <p>This diagram shows the microservices and their integration points within the system.</p>
+  <h3>Microservicez</h3>
   
   <div class="architecture-diagram-svg">
     <%- architectureDiagramSvg %>
@@ -62,10 +61,4 @@
       </div>
     <% }); %>
   </div>
-<% } %>
-
-<!-- Original table views for reference -->
-<% if (integrationPointsTableViewModel && integrationPointsTableViewModel.hasData()) { %>
-  <h4>Integration Points Table View</h4>
-  <%- include('table', { viewModel: integrationPointsTableViewModel }) %>
 <% } %>

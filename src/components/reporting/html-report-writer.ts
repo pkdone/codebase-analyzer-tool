@@ -156,30 +156,29 @@ export class HtmlReportWriter {
       outputConfig.HTML_MAIN_TEMPLATE_FILE,
     );
 
-    const htmlContent = await ejs.renderFile(templatePath, preparedData);
+    // Read CSS file content to embed inline
+    const cssPath = path.join(__dirname, outputConfig.HTML_TEMPLATES_DIR, "style.css");
+    const cssContent = await fs.readFile(cssPath, "utf-8");
+
+    // Read JSON icon SVG content to embed inline
+    const jsonIconPath = path.join(
+      __dirname,
+      outputConfig.HTML_TEMPLATES_DIR,
+      "assets",
+      "json-icon.svg",
+    );
+    const jsonIconContent = await fs.readFile(jsonIconPath, "utf-8");
+
+    // Add CSS and JSON icon content to template data
+    const templateData = {
+      ...preparedData,
+      inlineCss: cssContent,
+      jsonIconSvg: jsonIconContent,
+    };
+
+    const htmlContent = await ejs.renderFile(templatePath, templateData);
     await writeFile(htmlFilePath, htmlContent);
 
-    // Copy CSS file to output directory
-    await this.copyCssFile(htmlFilePath);
-
     console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
-  }
-
-  /**
-   * Copy the CSS file from the templates directory to the output directory
-   */
-  private async copyCssFile(htmlFilePath: string): Promise<void> {
-    try {
-      const outputDir = path.dirname(htmlFilePath);
-      const cssSourcePath = path.join(__dirname, outputConfig.HTML_TEMPLATES_DIR, "style.css");
-      const cssDestPath = path.join(outputDir, "style.css");
-
-      // Copy the CSS file
-      await fs.copyFile(cssSourcePath, cssDestPath);
-      console.log(`CSS file copied to: ${cssDestPath}`);
-    } catch (error) {
-      console.error("Failed to copy CSS file:", error);
-      // Don't throw - the report can still work without CSS
-    }
   }
 }

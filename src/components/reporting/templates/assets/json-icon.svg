@@ -1,0 +1,4 @@
+<svg width="28" height="16" viewBox="0 0 28 16" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="28" height="16" rx="0" fill="#cc5500" stroke="#000" stroke-width="0.5"/>
+  <text x="14" y="11" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle" fill="#ffffff">JSON</text>
+</svg>

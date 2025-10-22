@@ -1,4 +1,4 @@
-<%- include('section-header', { title: 'Application Statistics', jsonFile: jsonFilesConfig.jsonDataFiles.appStats }) %>
+<%- include('section-header', { title: 'Statistics', jsonFile: jsonFilesConfig.jsonDataFiles.appStats, jsonIconSvg: jsonIconSvg }) %>
 
 <div class="stats-grid">
   <div class="card">
@@ -25,7 +25,4 @@
     <span class="card-title">Lines of Code</span>
     <span class="card-value"><%= appStats.linesOfCode %></span>
   </div>
-</div>
-
-<%- include('section-header', { title: 'Application Description', jsonFile: jsonFilesConfig.jsonDataFiles.appDescription }) %>
-<p><%= appStats.appDescription %></p> 
+</div> 

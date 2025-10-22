@@ -158,7 +158,15 @@ describe("HtmlReportWriter", () => {
 
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
 
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(expectedTemplatePath, mockPreparedData);
+      // Expect the template data to include inlineCss property
+      expect(mockEjs.renderFile).toHaveBeenCalledWith(
+        expectedTemplatePath,
+        expect.objectContaining({
+          ...mockPreparedData,
+          inlineCss: expect.any(String),
+          jsonIconSvg: expect.any(String),
+        }),
+      );
       expect(mockWriteFile).toHaveBeenCalledWith(
         htmlFilePath,
         "<html><body>Test Report</body></html>",
@@ -207,7 +215,14 @@ describe("HtmlReportWriter", () => {
         outputConfig.HTML_MAIN_TEMPLATE_FILE,
       );
 
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(expectedTemplatePath, mockPreparedData);
+      expect(mockEjs.renderFile).toHaveBeenCalledWith(
+        expectedTemplatePath,
+        expect.objectContaining({
+          ...mockPreparedData,
+          inlineCss: expect.any(String),
+          jsonIconSvg: expect.any(String),
+        }),
+      );
     });
 
     it("should pass through all prepared data to template", async () => {
@@ -215,11 +230,20 @@ describe("HtmlReportWriter", () => {
 
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
 
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(expect.any(String), mockPreparedData);
+      expect(mockEjs.renderFile).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          ...mockPreparedData,
+          inlineCss: expect.any(String),
+          jsonIconSvg: expect.any(String),
+        }),
+      );
 
       // Verify the exact data structure is passed through
       const passedData = (mockEjs.renderFile as jest.Mock).mock.calls[0][1];
-      expect(passedData).toEqual(mockPreparedData);
+      expect(passedData).toHaveProperty("inlineCss");
+      expect(typeof passedData.inlineCss).toBe("string");
+      expect(passedData.inlineCss).toContain("MongoDB Theme");
       expect(passedData).toHaveProperty("appStats");
       expect(passedData).toHaveProperty("categorizedData");
       expect(passedData).toHaveProperty("convertToDisplayName");
@@ -265,7 +289,13 @@ describe("HtmlReportWriter", () => {
 
       await htmlReportWriter.writeHTMLReportFile(emptyData, htmlFilePath);
 
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(expect.any(String), emptyData);
+      expect(mockEjs.renderFile).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          ...emptyData,
+          inlineCss: expect.any(String),
+        }),
+      );
       expect(mockWriteFile).toHaveBeenCalled();
     });
 
