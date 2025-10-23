@@ -28,7 +28,8 @@ describe("fileTypeMetadataConfig", () => {
       const defaultConfig = fileTypePromptMetadata.default;
       expect(defaultConfig).toBeDefined();
       expect(defaultConfig.contentDesc).toBe("project file content");
-      expect(typeof defaultConfig.instructions).toBe("string");
+      expect(typeof defaultConfig.instructions).toBe("object");
+      expect(Array.isArray(defaultConfig.instructions)).toBe(true);
       expect(defaultConfig.responseSchema).toBeDefined();
       expect(typeof defaultConfig.hasComplexSchema).toBe("boolean");
     });
@@ -45,11 +46,11 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include expected instructions", () => {
       const instructions = fileTypePromptMetadata.java.instructions;
-      expect(instructions).toContain("namespace");
-      expect(instructions).toContain("public methods");
-      expect(instructions).toContain("database integration");
-      expect(instructions).toContain("internal references");
-      expect(instructions).toContain("external references");
+      expect(instructions.join(" ")).toContain("namespace");
+      expect(instructions.join(" ")).toContain("public methods");
+      expect(instructions.join(" ")).toContain("database integration");
+      expect(instructions.join(" ")).toContain("internal references");
+      expect(instructions.join(" ")).toContain("external references");
     });
 
     it("should have a valid schema", () => {
@@ -69,9 +70,9 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include expected instructions", () => {
       const instructions = fileTypePromptMetadata.javascript.instructions;
-      expect(instructions).toContain("purpose");
-      expect(instructions).toContain("implementation");
-      expect(instructions).toContain("internal references");
+      expect(instructions.join(" ")).toContain("purpose");
+      expect(instructions.join(" ")).toContain("implementation");
+      expect(instructions.join(" ")).toContain("internal references");
     });
   });
 
@@ -86,9 +87,9 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include SQL-specific instructions", () => {
       const instructions = fileTypePromptMetadata.sql.instructions;
-      expect(instructions).toContain("stored procedure");
-      expect(instructions).toContain("triggers");
-      expect(instructions).toContain("tables");
+      expect(instructions.join(" ")).toContain("stored procedure");
+      expect(instructions.join(" ")).toContain("triggers");
+      expect(instructions.join(" ")).toContain("tables");
     });
 
     it("should have a valid schema", () => {
@@ -108,9 +109,10 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include C#-specific instructions", () => {
       const instructions = fileTypePromptMetadata.csharp.instructions;
-      expect(instructions).toContain("Entity Framework");
-      expect(instructions).toContain("Dapper");
-      expect(instructions).toContain("async/sync");
+      const instructionText = instructions.join(" ");
+      expect(instructionText).toContain("Entity Framework");
+      expect(instructionText).toContain("Dapper");
+      expect(instructionText).toContain("async/sync");
     });
   });
 
@@ -125,8 +127,9 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include Ruby-specific instructions", () => {
       const instructions = fileTypePromptMetadata.ruby.instructions;
-      expect(instructions).toContain("ActiveRecord");
-      expect(instructions).toContain("module");
+      const instructionText = instructions.join(" ");
+      expect(instructionText).toContain("ActiveRecord");
+      expect(instructionText).toContain("module");
     });
   });
 
@@ -135,7 +138,8 @@ describe("fileTypeMetadataConfig", () => {
       for (const config of Object.values(fileTypePromptMetadata)) {
         expect(config).toBeDefined();
         expect(typeof config.contentDesc).toBe("string");
-        expect(typeof config.instructions).toBe("string");
+        expect(typeof config.instructions).toBe("object");
+        expect(Array.isArray(config.instructions)).toBe(true);
         expect(config.responseSchema).toBeDefined();
         expect(typeof config.hasComplexSchema).toBe("boolean");
       }

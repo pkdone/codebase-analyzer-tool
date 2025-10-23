@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { appSummarySchema } from "../../schemas/app-summaries.schema";
-import { AppSummaryCategoryType } from "../../prompt-templates/app-summaries.types";
+import { AppSummaryCategoryType } from "../../prompt-templates/types/app-summaries.types";
 
 /**
  * Schema for all category fields of app summary (so excluding 'projectName' and 'llmProvider')

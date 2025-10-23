@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { fileTypePromptMetadata } from "../../../src/prompt-templates/sources.prompts";
-import { SourcePromptTemplate } from "../../../src/prompt-templates/sources.types";
+import { SourcePromptTemplate } from "../../../src/prompt-templates/types/sources.types";
 import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";
@@ -54,7 +54,8 @@ describe("File Handler Configuration", () => {
         expect(config).toHaveProperty("instructions");
         expect(config).toHaveProperty("responseSchema");
         expect(typeof config.contentDesc).toBe("string");
-        expect(typeof config.instructions).toBe("string");
+        expect(typeof config.instructions).toBe("object");
+        expect(Array.isArray(config.instructions)).toBe(true);
         expect(typeof config.hasComplexSchema).toBe("boolean");
       }
     });
@@ -64,7 +65,7 @@ describe("File Handler Configuration", () => {
     test("should enforce correct structure", () => {
       const testConfig: SourcePromptTemplate = {
         contentDesc: "test content",
-        instructions: "test instructions",
+        instructions: ["test instructions"],
         responseSchema: sourceSummarySchema,
         hasComplexSchema: false,
       };
@@ -74,14 +75,15 @@ describe("File Handler Configuration", () => {
       expect(testConfig).toHaveProperty("responseSchema");
       expect(testConfig).toHaveProperty("hasComplexSchema");
       expect(typeof testConfig.contentDesc).toBe("string");
-      expect(typeof testConfig.instructions).toBe("string");
+      expect(typeof testConfig.instructions).toBe("object");
+      expect(Array.isArray(testConfig.instructions)).toBe(true);
     });
 
     test("should work with type compatibility", () => {
       // Test that DynamicPromptConfig can work with inline schema types
       const typedConfig: SourcePromptTemplate = {
         contentDesc: "test content",
-        instructions: "test instructions",
+        instructions: ["test instructions"],
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
       };
@@ -133,7 +135,7 @@ describe("File Handler Configuration", () => {
   describe("Integration between file suffix mappings and prompt templates", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
       const canonicalTypes = new Set<
-        import("../../../src/prompt-templates/sources.types").CanonicalFileType
+        import("../../../src/prompt-templates/types/sources.types").CanonicalFileType
       >(Array.from(fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values()));
 
       for (const canonicalType of canonicalTypes) {

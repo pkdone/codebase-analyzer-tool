@@ -112,7 +112,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     return createPromptFromConfig(
       this.APP_CATEGORIES_SUMMARIZER_TEMPLATE,
       "codebase codeblock",
-      instructions,
+      [instructions], // Convert string to array
       appSummaryRecordCategoriesSchema,
       codeBlocksContent,
     );

@@ -160,7 +160,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const prompt = createPromptFromConfig(
       PARTIAL_INSIGHTS_TEMPLATE,
       "source files",
-      config.contentDescription,
+      [config.contentDescription], // Convert string to array
       config.responseSchema,
       codeContent,
     );
@@ -212,7 +212,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const prompt = createPromptFromConfig(
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
       "partial data",
-      `a consolidated list of '${config.label}'`,
+      [`a consolidated list of '${config.label}'`], // Convert string to array
       config.responseSchema,
       content,
     );

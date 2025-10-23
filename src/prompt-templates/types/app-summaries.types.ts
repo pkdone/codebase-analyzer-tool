@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AppSummaryCategories } from "../schemas/app-summaries.schema";
+import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 
 /**
  * Explicit type for app summary categories

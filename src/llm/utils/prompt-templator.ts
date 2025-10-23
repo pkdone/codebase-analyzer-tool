@@ -19,15 +19,18 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 - AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail`;
 
 /**
- * Convenience function for creating prompts
+ * Enhanced function for creating prompts with instruction fragments
+ * This allows for better composability and reusability of instruction components
  */
-export function createPromptFromConfig(
+export function createPromptFromConfigWithFragments(
   template: string,
   contentDesc: string,
-  specificInstructions: string,
+  instructionFragments: string[],
   schema: z.ZodType,
   codeContent: string,
 ): string {
+  const specificInstructions = instructionFragments.map((fragment) => `* ${fragment}`).join("\n");
+
   return fillPrompt(template, {
     contentDesc,
     specificInstructions,
@@ -35,4 +38,23 @@ export function createPromptFromConfig(
     jsonSchema: JSON.stringify(zodToJsonSchema(schema), null, 2),
     codeContent,
   });
+}
+
+/**
+ * Main function for creating prompts with instruction arrays
+ */
+export function createPromptFromConfig(
+  template: string,
+  contentDesc: string,
+  instructions: string[],
+  schema: z.ZodType,
+  codeContent: string,
+): string {
+  return createPromptFromConfigWithFragments(
+    template,
+    contentDesc,
+    instructions,
+    schema,
+    codeContent,
+  );
 }

@@ -67,7 +67,7 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     return createPromptFromConfig(
       SINGLE_PASS_INSIGHTS_TEMPLATE,
       "source files",
-      config.contentDescription,
+      [config.contentDescription], // Convert string to array
       config.responseSchema,
       codeContent,
     );

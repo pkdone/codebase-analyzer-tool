@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createPromptFromConfig } from "../../../src/llm/utils/prompt-templator";
-import { SourcePromptTemplate } from "../../../src/prompt-templates/sources.types";
+import { SourcePromptTemplate } from "../../../src/prompt-templates/types/sources.types";
 
 describe("prompt-utils", () => {
   describe("createPromptFromConfig", () => {
@@ -10,7 +10,7 @@ describe("prompt-utils", () => {
       const config: SourcePromptTemplate = {
         responseSchema: z.string(),
         contentDesc: "text file",
-        instructions: "process this text",
+        instructions: ["process this text"],
         hasComplexSchema: false,
       };
       const content = "test content";
@@ -36,7 +36,7 @@ describe("prompt-utils", () => {
           age: z.number(),
         }),
         contentDesc: "data file",
-        instructions: "extract data",
+        instructions: ["extract data"],
         hasComplexSchema: false,
       };
       const content = "sample data";
@@ -59,7 +59,7 @@ describe("prompt-utils", () => {
       const config: SourcePromptTemplate = {
         responseSchema: z.array(z.string()),
         contentDesc: "list file",
-        instructions: "create list",
+        instructions: ["create list"],
         hasComplexSchema: false,
       };
       const content = "item1, item2, item3";
@@ -82,7 +82,7 @@ describe("prompt-utils", () => {
       const config: SourcePromptTemplate = {
         responseSchema: z.union([z.string(), z.number()]),
         contentDesc: "mixed file",
-        instructions: "process mixed data",
+        instructions: ["process mixed data"],
         hasComplexSchema: false,
       };
       const content = "mixed content";
@@ -106,7 +106,7 @@ describe("prompt-utils", () => {
       const config: SourcePromptTemplate = {
         responseSchema: z.enum(["option1", "option2", "option3"]),
         contentDesc: "choice file",
-        instructions: "select option",
+        instructions: ["select option"],
         hasComplexSchema: false,
       };
       const content = "selection data";
@@ -129,7 +129,7 @@ describe("prompt-utils", () => {
       const config: SourcePromptTemplate = {
         responseSchema: z.literal("exactValue"),
         contentDesc: "literal file",
-        instructions: "match exact value",
+        instructions: ["match exact value"],
         hasComplexSchema: false,
       };
       const content = "exact match test";
@@ -154,7 +154,7 @@ describe("prompt-utils", () => {
           optional: z.string().optional(),
         }),
         contentDesc: "optional file",
-        instructions: "handle optional fields",
+        instructions: ["handle optional fields"],
         hasComplexSchema: false,
       };
       const content = "optional data";
@@ -185,7 +185,7 @@ describe("prompt-utils", () => {
           }),
         }),
         contentDesc: "nested file",
-        instructions: "handle nested structure",
+        instructions: ["handle nested structure"],
         hasComplexSchema: false,
       };
       const content = "nested content";
@@ -215,7 +215,7 @@ describe("prompt-utils", () => {
           ),
         }),
         contentDesc: "complex file",
-        instructions: "handle complex structure",
+        instructions: ["handle complex structure"],
         hasComplexSchema: false,
       };
       const content = "complex data";
@@ -244,7 +244,7 @@ describe("prompt-utils", () => {
       const config: SourcePromptTemplate = {
         responseSchema: z.string(),
         contentDesc: "test file",
-        instructions: "test instructions",
+        instructions: ["test instructions"],
         hasComplexSchema: false,
       };
       const content = "test content";
@@ -258,7 +258,7 @@ describe("prompt-utils", () => {
       );
 
       expect(result).toContain("File: test file");
-      expect(result).toContain("Instructions: test instructions");
+      expect(result).toContain("Instructions: * test instructions");
       expect(result).toContain("Content: test content");
       expect(result).toContain("ONLY provide an RFC8259 compliant JSON response");
     });

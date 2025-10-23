@@ -45,43 +45,43 @@ jest.mock("../../../src/prompt-templates/sources.prompts", () => ({
       contentDesc: "Java code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: "Java instructions",
+      instructions: ["Java instructions"],
     },
     javascript: {
       contentDesc: "JavaScript/TypeScript code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: "JavaScript instructions",
+      instructions: ["JavaScript instructions"],
     },
     default: {
       contentDesc: "project file content",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: "Default instructions",
+      instructions: ["Default instructions"],
     },
     sql: {
       contentDesc: "database DDL/DML/SQL code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: "SQL instructions",
+      instructions: ["SQL instructions"],
     },
     xml: {
       contentDesc: "XML code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: "XML instructions",
+      instructions: ["XML instructions"],
     },
     jsp: {
       contentDesc: "JSP code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: "JSP instructions",
+      instructions: ["JSP instructions"],
     },
     markdown: {
       contentDesc: "Markdown content",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: "Markdown instructions",
+      instructions: ["Markdown instructions"],
     },
   },
 }));
@@ -91,7 +91,7 @@ jest.mock("../../../src/llm/utils/prompt-templator", () => ({
     (
       _template: string,
       contentDesc: string,
-      _instructions: string,
+      _instructions: string[],
       _schema: unknown,
       content: string,
     ) => {
@@ -160,7 +160,7 @@ describe("FileSummarizer", () => {
         contentDesc,
         hasComplexSchema: false,
         responseSchema: z.object({}),
-        instructions: `Instructions for ${contentDesc}`,
+        instructions: [`Instructions for ${contentDesc}`],
       } as (typeof fileTypePromptMetadata)["default"]; // satisfy typing
     };
 

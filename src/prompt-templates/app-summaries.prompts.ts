@@ -13,7 +13,7 @@ import {
   moduleCouplingSchema,
   uiTechnologyAnalysisSchema,
 } from "../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate, AppSummaryCategoryType } from "./app-summaries.types";
+import { AppSummaryPromptTemplate, AppSummaryCategoryType } from "./types/app-summaries.types";
 
 /**
  * Template for single-pass insight generation strategy.
