@@ -49,11 +49,6 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
   ): Promise<PartialAppSummaryRecord | null> {
-    // billOfMaterials should never be processed by this strategy
-    if (category === "billOfMaterials") {
-      throw new Error("billOfMaterials should not be processed by map-reduce strategy");
-    }
-
     const categoryLabel = summaryCategoriesConfig[category].label;
 
     try {
@@ -164,13 +159,13 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     summaryChunk: string[],
   ): Promise<PartialAppSummaryRecord | null> {
     const config = summaryCategoriesConfig[category];
-    const content = joinArrayWithSeparators(summaryChunk);
+    const codeContent = joinArrayWithSeparators(summaryChunk);
     const prompt = createPromptFromConfig(
       PARTIAL_INSIGHTS_TEMPLATE,
       "source files",
       config.description,
       config.schema,
-      content,
+      codeContent,
     );
 
     try {

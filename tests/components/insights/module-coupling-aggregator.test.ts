@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { ModuleCouplingAggregator } from "../../../src/components/insights/module-coupling-aggregator";
+import { ModuleCouplingAggregator } from "../../../src/components/insights/data-aggregators/module-coupling-aggregator";
 import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
 
 describe("ModuleCouplingAggregator", () => {

@@ -9,7 +9,7 @@ import path from "node:path";
 import {
   fileTypePromptMetadata,
   SOURCES_SUMMARY_CAPTURE_TEMPLATE,
-} from "../../promptTemplates/sources.prompts";
+} from "../../prompt-templates/sources.prompts";
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";

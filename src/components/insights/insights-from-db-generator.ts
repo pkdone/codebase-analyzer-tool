@@ -7,18 +7,18 @@ import type { SourcesRepository } from "../../repositories/source/sources.reposi
 import { TOKENS } from "../../tokens";
 import { summaryCategoriesConfig, insightsTuningConfig } from "./insights-generation.config";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
-import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
+import type { ApplicationInsightsProcessor } from "./insights.types";
 import { AppSummaryCategoryEnum } from "./insights.types";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import { IInsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";
 import { SinglePassInsightStrategy } from "./strategies/single-pass-strategy";
 import { MapReduceInsightStrategy } from "./strategies/map-reduce-strategy";
 import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
-import { BomAggregator } from "./bom-aggregator";
-import { CodeQualityAggregator } from "./code-quality-aggregator";
-import { JobAggregator } from "./job-aggregator";
-import { ModuleCouplingAggregator } from "./module-coupling-aggregator";
-import { UiAggregator } from "./ui-aggregator";
+import { BomAggregator } from "./data-aggregators/bom-aggregator";
+import { CodeQualityAggregator } from "./data-aggregators/code-quality-aggregator";
+import { JobAggregator } from "./data-aggregators/job-aggregator";
+import { ModuleCouplingAggregator } from "./data-aggregators/module-coupling-aggregator";
+import { UiAggregator } from "./data-aggregators/ui-aggregator";
 
 /**
  * Generates metadata in database collections to capture application information,

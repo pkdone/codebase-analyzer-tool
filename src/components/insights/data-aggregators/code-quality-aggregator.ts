@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import { TOKENS } from "../../tokens";
+import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
+import { TOKENS } from "../../../tokens";
 
 /**
  * Aggregates code quality metrics using MongoDB aggregation pipelines.

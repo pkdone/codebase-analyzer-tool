@@ -1,4 +1,4 @@
-import { fileTypePromptMetadata } from "../../../src/promptTemplates/sources.prompts";
+import { fileTypePromptMetadata } from "../../../src/prompt-templates/sources.prompts";
 
 describe("fileTypeMetadataConfig", () => {
   describe("supported file types", () => {

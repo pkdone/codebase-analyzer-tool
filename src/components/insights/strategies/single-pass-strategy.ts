@@ -34,8 +34,8 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
 
     try {
       const schema = summaryCategoriesConfig[category].schema;
-      const content = joinArrayWithSeparators(sourceFileSummaries);
-      const prompt = this.createInsightsForCategoryPrompt(category, content);
+      const codeContent = joinArrayWithSeparators(sourceFileSummaries);
+      const prompt = this.createInsightsForCategoryPrompt(category, codeContent);
 
       const llmResponse = await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
         category,

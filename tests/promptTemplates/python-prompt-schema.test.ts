@@ -1,4 +1,4 @@
-import { fileTypePromptMetadata } from "../../src/promptTemplates/sources.prompts";
+import { fileTypePromptMetadata } from "../../src/prompt-templates/sources.prompts";
 import { sourceSummarySchema } from "../../src/schemas/sources.schema";
 
 describe("Python prompt metadata schema", () => {

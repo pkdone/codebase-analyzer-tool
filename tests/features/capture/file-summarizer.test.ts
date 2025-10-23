@@ -13,7 +13,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
 
-jest.mock("../../../src/promptTemplates/prompt.types", () => ({
+jest.mock("../../../src/prompt-templates/prompt.types", () => ({
   FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
     ["java", "java"],
     ["js", "javascript"],
@@ -37,7 +37,7 @@ jest.mock("../../../src/promptTemplates/prompt.types", () => ({
 }));
 
 // Fix the mock to use the correct export name
-jest.mock("../../../src/promptTemplates/sources.prompts", () => ({
+jest.mock("../../../src/prompt-templates/sources.prompts", () => ({
   fileTypePromptMetadata: {
     java: {
       contentDesc: "Java code",
@@ -106,7 +106,7 @@ const mockLogErrorMsgAndDetail = logging.logErrorMsgAndDetail as jest.MockedFunc
   typeof logging.logErrorMsgAndDetail
 >;
 
-import { fileTypePromptMetadata } from "../../../src/promptTemplates/sources.prompts";
+import { fileTypePromptMetadata } from "../../../src/prompt-templates/sources.prompts";
 
 describe("FileSummarizer", () => {
   let fileSummarizer: FileSummarizer;

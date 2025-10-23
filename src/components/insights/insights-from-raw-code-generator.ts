@@ -3,7 +3,7 @@ import { z } from "zod";
 import LLMRouter from "../../llm/core/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
 import { TOKENS } from "../../tokens";
-import type { ApplicationInsightsProcessor } from "./insights-generator.interface";
+import type { ApplicationInsightsProcessor } from "./insights.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";

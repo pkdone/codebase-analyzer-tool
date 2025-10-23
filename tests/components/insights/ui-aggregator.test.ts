@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { UiAggregator } from "../../../src/components/insights/ui-aggregator";
+import { UiAggregator } from "../../../src/components/insights/data-aggregators/ui-aggregator";
 import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
 
 describe("UiAggregator", () => {

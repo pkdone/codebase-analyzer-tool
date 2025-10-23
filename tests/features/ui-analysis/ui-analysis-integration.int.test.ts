@@ -3,7 +3,7 @@ import { container } from "tsyringe";
 import { TOKENS } from "../../../src/tokens";
 import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
 import { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
-import { UiAggregator } from "../../../src/components/insights/ui-aggregator";
+import { UiAggregator } from "../../../src/components/insights/data-aggregators/ui-aggregator";
 import { SourceRecord } from "../../../src/repositories/source/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../../helpers/database/db-test-helper";
 
