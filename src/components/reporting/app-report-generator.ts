@@ -12,9 +12,9 @@ import { PieChartGenerator } from "./generators/pie-chart-generator";
 import { FlowchartSvgGenerator } from "./generators/flowchart-svg-generator";
 import { DomainModelSvgGenerator } from "./generators/domain-model-svg-generator";
 import { ArchitectureSvgGenerator } from "./generators/architecture-svg-generator";
-import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
-import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
+import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
+import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
+import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
 
 // Extended interface for business process data with additional properties
 type BusinessProcessData = AppSummaryNameDescArray[0] & {
@@ -43,7 +43,7 @@ type MicroserviceData = AppSummaryNameDescArray[0] & {
   }[];
 };
 import type { ReportData } from "./report-gen.types";
-import type { HierarchicalJavaClassDependency } from "../../repositories/source/sources.model";
+import type { HierarchicalJavaClassDependency } from "../../repositories/sources/sources.model";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 import { convertToDisplayName } from "../../common/utils/text-utils";
 import { ensureDirectoryExists } from "../../common/fs/directory-operations";

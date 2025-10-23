@@ -2,7 +2,7 @@ import { injectable } from "tsyringe";
 import { createCanvas, CanvasRenderingContext2D } from "canvas";
 import path from "path";
 import { writeBinaryFile } from "../../../common/fs/file-operations";
-import type { ProjectedFileTypesCountAndLines } from "../../../repositories/source/sources.model";
+import type { ProjectedFileTypesCountAndLines } from "../../../repositories/sources/sources.model";
 import { pieChartConfig } from "../config/pie-chart.config";
 
 interface PieSlice {

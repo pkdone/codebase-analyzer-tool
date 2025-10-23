@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { CodeStructureDataProvider } from "../../../../src/components/reporting/data-providers/code-structure-data-provider";
-import type { SourcesRepository } from "../../../../src/repositories/source/sources.repository.interface";
+import type { SourcesRepository } from "../../../../src/repositories/sources/sources.repository.interface";
 import type {
   ProjectedTopLevelJavaClassDependencies,
   HierarchicalTopLevelJavaClassDependencies,
-} from "../../../../src/repositories/source/sources.model";
+} from "../../../../src/repositories/sources/sources.model";
 
 describe("CodeStructureDataProvider", () => {
   let codeStructureDataProvider: CodeStructureDataProvider;

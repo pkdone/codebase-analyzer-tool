@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { ModuleCouplingAggregator } from "../../../src/components/insights/data-aggregators/module-coupling-aggregator";
-import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
+import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 
 describe("ModuleCouplingAggregator", () => {
   let aggregator: ModuleCouplingAggregator;

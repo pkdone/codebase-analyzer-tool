@@ -1,5 +1,5 @@
 import { formatSourcesForPrompt } from "../../../src/llm/utils/prompt-formatting";
-import type { ProjectedSourceMetataContentAndSummary } from "../../../src/repositories/source/sources.model";
+import type { ProjectedSourceMetataContentAndSummary } from "../../../src/repositories/sources/sources.model";
 
 describe("prompt-formatting", () => {
   describe("formatSourcesForPrompt", () => {

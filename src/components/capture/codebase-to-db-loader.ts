@@ -8,8 +8,8 @@ import { getFileExtension } from "../../common/fs/path-utils";
 import { countLines } from "../../common/utils/text-utils";
 import { processItemsConcurrently } from "../../common/utils/async-utils";
 import { FileSummarizer } from "./file-summarizer";
-import type { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import type { SourceRecord } from "../../repositories/source/sources.model";
+import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
+import type { SourceRecord } from "../../repositories/sources/sources.model";
 import { TOKENS } from "../../tokens";
 import type { SourceSummaryType } from "./file-summarizer";
 

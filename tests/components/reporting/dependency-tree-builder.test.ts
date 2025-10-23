@@ -1,5 +1,5 @@
 import { convertToHierarchical } from "../../../src/components/reporting/utils/dependency-tree-builder";
-import type { ProjectedTopLevelJavaClassDependencies } from "../../../src/repositories/source/sources.model";
+import type { ProjectedTopLevelJavaClassDependencies } from "../../../src/repositories/sources/sources.model";
 
 describe("dependency-tree-builder", () => {
   test("shared child appears under multiple branches (no over-pruning)", () => {

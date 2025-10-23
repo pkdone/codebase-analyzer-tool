@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { AppSummaryCategoriesProvider } from "../../../../src/components/reporting/data-providers/categories-data-provider";
 import { AppSummaryCategories } from "../../../../src/schemas/app-summaries.schema";
-import type { AppSummaryRecordWithId } from "../../../../src/repositories/app-summary/app-summaries.model";
+import type { AppSummaryRecordWithId } from "../../../../src/repositories/app-summaries/app-summaries.model";
 
 describe("AppSummaryCategoriesProvider", () => {
   let categoriesDataProvider: AppSummaryCategoriesProvider;

@@ -1,4 +1,4 @@
-import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/source/sources.model";
+import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";
 
 /**
  * Formats source file metadata into markdown code blocks for LLM prompts.

@@ -17,8 +17,8 @@ import type {
 import type {
   ProjectedFileTypesCountAndLines,
   HierarchicalTopLevelJavaClassDependencies,
-} from "../../repositories/source/sources.model";
-import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
+} from "../../repositories/sources/sources.model";
+import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
 import type { TableViewModel } from "./view-models/table-view-model";
 
 export interface PreparedHtmlReportData {

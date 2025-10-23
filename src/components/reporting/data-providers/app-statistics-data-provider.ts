@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
-import type { AppSummaryRecordWithId } from "../../../repositories/app-summary/app-summaries.model";
+import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
+import type { AppSummaryRecordWithId } from "../../../repositories/app-summaries/app-summaries.model";
 import { TOKENS } from "../../../tokens";
 import type { AppStatistics } from "../report-gen.types";
 import { formatDateForDisplay } from "../../../common/utils/date-utils";

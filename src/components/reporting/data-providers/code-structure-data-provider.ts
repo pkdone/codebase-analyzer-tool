@@ -1,9 +1,9 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../../repositories/source/sources.repository.interface";
+import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import type {
   ProjectedTopLevelJavaClassDependencies,
   HierarchicalTopLevelJavaClassDependencies,
-} from "../../../repositories/source/sources.model";
+} from "../../../repositories/sources/sources.model";
 import { TOKENS } from "../../../tokens";
 import { convertToHierarchical } from "../utils/dependency-tree-builder";
 import { fileTypeMappingsConfig } from "../../../config/file-type-mappings.config";

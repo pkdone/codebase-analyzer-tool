@@ -1,9 +1,9 @@
 import { procedureTriggerSchema } from "../../schemas/sources.schema";
-import type { AppSummaryNameDescArray } from "../../repositories/app-summary/app-summaries.model";
+import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
 import type {
   ProjectedFileTypesCountAndLines,
   HierarchicalTopLevelJavaClassDependencies,
-} from "../../repositories/source/sources.model";
+} from "../../repositories/sources/sources.model";
 import type { TypeOf } from "zod";
 
 // Define complexity levels as constant array for type safety

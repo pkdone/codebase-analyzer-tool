@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import InsightsDataProvider from "../../../src/components/api/mcpServing/insights-data-provider";
-import type { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
 import { AppSummaryCategories } from "../../../src/schemas/app-summaries.schema";
 
 describe("InsightsDataProvider", () => {

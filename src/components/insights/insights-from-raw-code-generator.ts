@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../llm/core/llm-router";
-import type { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import { TOKENS } from "../../tokens";
 import type { ApplicationInsightsProcessor } from "./insights.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";

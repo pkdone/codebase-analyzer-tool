@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { MongoClient, Collection } from "mongodb";
-import AppSummaryRepositoryImpl from "../../src/repositories/app-summary/app-summaries.repository";
+import AppSummaryRepositoryImpl from "../../src/repositories/app-summaries/app-summaries.repository";
 import {
   AppSummaryRecord,
   PartialAppSummaryRecord,
-} from "../../src/repositories/app-summary/app-summaries.model";
+} from "../../src/repositories/app-summaries/app-summaries.model";
 import { databaseConfig } from "../../src/config/database.config";
 import * as mdbErrorUtils from "../../src/common/mongodb/mdb-error-utils";
 

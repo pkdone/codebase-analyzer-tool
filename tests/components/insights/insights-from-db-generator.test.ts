@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
-import { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
-import { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
+import { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
+import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";

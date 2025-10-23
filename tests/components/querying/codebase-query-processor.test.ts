@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import CodebaseQueryProcessor from "../../../src/components/querying/codebase-query-processor";
-import type { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
+import type { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../src/llm/core/llm-router";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import type { ProjectedSourceMetataContentAndSummary } from "../../../src/repositories/source/sources.model";
+import type { ProjectedSourceMetataContentAndSummary } from "../../../src/repositories/sources/sources.model";
 
 describe("CodebaseQueryProcessor", () => {
   let codebaseQueryProcessor: CodebaseQueryProcessor;

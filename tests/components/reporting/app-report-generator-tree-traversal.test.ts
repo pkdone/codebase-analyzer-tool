@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import AppReportGenerator from "../../../src/components/reporting/app-report-generator";
-import type { HierarchicalJavaClassDependency } from "../../../src/repositories/source/sources.model";
-import type { SourcesRepository } from "../../../src/repositories/source/sources.repository.interface";
-import type { AppSummariesRepository } from "../../../src/repositories/app-summary/app-summaries.repository.interface";
+import type { HierarchicalJavaClassDependency } from "../../../src/repositories/sources/sources.model";
+import type { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
+import type { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
 
 describe("AppReportGenerator - iterative tree traversal", () => {
   let generator: AppReportGenerator;

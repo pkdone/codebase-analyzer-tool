@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import type { AppSummaryNameDescArray } from "../../../repositories/app-summary/app-summaries.model";
+import type { AppSummaryNameDescArray } from "../../../repositories/app-summaries/app-summaries.model";
 
 // Extended interface for aggregate data with additional properties
 type AggregateData = AppSummaryNameDescArray[0] & {

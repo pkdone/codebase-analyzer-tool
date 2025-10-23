@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { TOKENS } from "../../src/tokens";
-import { SourcesRepository } from "../../src/repositories/source/sources.repository.interface";
-import { SourceRecord } from "../../src/repositories/source/sources.model";
+import { SourcesRepository } from "../../src/repositories/sources/sources.repository.interface";
+import { SourceRecord } from "../../src/repositories/sources/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
 import { LLMProviderManager } from "../../src/llm/core/llm-provider-manager";
 

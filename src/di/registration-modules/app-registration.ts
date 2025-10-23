@@ -2,10 +2,10 @@ import { container } from "tsyringe";
 import { TOKENS } from "../../tokens";
 
 // Repository imports
-import SourcesRepositoryImpl from "../../repositories/source/sources.repository";
-import AppSummariesRepositoryImpl from "../../repositories/app-summary/app-summaries.repository";
-import { SourcesRepository } from "../../repositories/source/sources.repository.interface";
-import { AppSummariesRepository } from "../../repositories/app-summary/app-summaries.repository.interface";
+import SourcesRepositoryImpl from "../../repositories/sources/sources.repository";
+import AppSummariesRepositoryImpl from "../../repositories/app-summaries/app-summaries.repository";
+import { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
+import { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 
 // Domain-specific registration functions
 import {

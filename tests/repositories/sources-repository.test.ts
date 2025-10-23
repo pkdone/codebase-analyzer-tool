@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { MongoClient, Collection, AggregationCursor, FindCursor } from "mongodb";
 import { Double } from "bson";
-import SourcesRepositoryImpl from "../../src/repositories/source/sources.repository";
-import { SourceRecord } from "../../src/repositories/source/sources.model";
+import SourcesRepositoryImpl from "../../src/repositories/sources/sources.repository";
+import { SourceRecord } from "../../src/repositories/sources/sources.model";
 import { databaseConfig } from "../../src/config/database.config";
 import * as logging from "../../src/common/utils/logging";
 import * as mdbErrorUtils from "../../src/common/mongodb/mdb-error-utils";

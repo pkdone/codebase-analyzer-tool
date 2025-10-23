@@ -5,7 +5,7 @@ import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summa
 import type {
   AppSummaryNameDescArray,
   AppSummaryRecordWithId,
-} from "../../../repositories/app-summary/app-summaries.model";
+} from "../../../repositories/app-summaries/app-summaries.model";
 
 /**
  * Categories that have dedicated custom sections and should not be rendered in the generic category loop

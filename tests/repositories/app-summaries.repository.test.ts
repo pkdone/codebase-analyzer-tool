@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { TOKENS } from "../../src/tokens";
-import AppSummariesRepositoryImpl from "../../src/repositories/app-summary/app-summaries.repository";
+import AppSummariesRepositoryImpl from "../../src/repositories/app-summaries/app-summaries.repository";
 import { MongoClient } from "mongodb";
-import { AppSummariesRepository } from "../../src/repositories/app-summary/app-summaries.repository.interface";
+import { AppSummariesRepository } from "../../src/repositories/app-summaries/app-summaries.repository.interface";
 
 describe("AppSummariesRepository DI & basic methods", () => {
   beforeAll(() => {

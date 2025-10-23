@@ -1,12 +1,12 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { TOKENS } from "../../src/tokens";
-import { AppSummariesRepository } from "../../src/repositories/app-summary/app-summaries.repository.interface";
+import { AppSummariesRepository } from "../../src/repositories/app-summaries/app-summaries.repository.interface";
 import { MongoClient } from "mongodb";
 import {
   AppSummaryRecord,
   PartialAppSummaryRecord,
-} from "../../src/repositories/app-summary/app-summaries.model";
+} from "../../src/repositories/app-summaries/app-summaries.model";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
 
 describe("AppSummaryRepository Integration Tests", () => {

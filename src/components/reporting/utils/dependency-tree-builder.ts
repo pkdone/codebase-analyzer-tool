@@ -3,7 +3,7 @@ import type {
   HierarchicalTopLevelJavaClassDependencies,
   HierarchicalJavaClassDependency,
   JavaClassDependency,
-} from "../../../repositories/source/sources.model";
+} from "../../../repositories/sources/sources.model";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { dependencyTreePngConfig } from "../config/dependency-tree-png.config";
 
