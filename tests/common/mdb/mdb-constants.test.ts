@@ -1,7 +1,7 @@
 import {
   MONGODB_DUPLICATE_OBJ_ERROR_CODES,
   MONGODB_NAMESPACE_EXISTS_ERROR_CODE,
-} from "../../../src/common/mdb/mdb.constants";
+} from "../../../src/common/mongodb/mdb.constants";
 
 describe("MongoDB Constants", () => {
   describe("MONGODB_DUPLICATE_OBJ_ERROR_CODES", () => {

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
-import { MongoDBClientFactory } from "../../../src/common/mdb/mdb-client-factory";
+import { MongoDBClientFactory } from "../../../src/common/mongodb/mdb-client-factory";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../../src/common/utils/logging";
 import { redactUrl } from "../../../src/common/security/url-redactor";
 

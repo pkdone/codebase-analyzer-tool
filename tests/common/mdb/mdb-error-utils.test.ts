@@ -2,7 +2,7 @@ import { MongoServerError } from "mongodb";
 import {
   isMongoServerErrorWithResponse,
   logMongoValidationErrorIfPresent,
-} from "../../../src/common/mdb/mdb-error-utils";
+} from "../../../src/common/mongodb/mdb-error-utils";
 
 // Simple spy for logging (avoid importing real logger implementation)
 jest.mock("../../../src/common/utils/logging", () => ({

@@ -12,6 +12,14 @@ import { IShutdownable } from "../interfaces/shutdownable.interface";
 export class MongoDBClientFactory implements IShutdownable {
   private readonly clients = new Map<string, MongoClient>();
 
+  /**
+   * Connects to a MongoDB instance using the given id and URL.
+   *
+   * @param id The id identifying the connection.
+   * @param url The MongoDB connection string.
+   * @param options Optional MongoDB client options.
+   * @returns A Promise resolving to the connected MongoClient instance.
+   */
   async connect(id: string, url: string, options?: MongoClientOptions): Promise<MongoClient> {
     const existingClient = this.clients.get(id);
 
@@ -26,10 +34,11 @@ export class MongoDBClientFactory implements IShutdownable {
       const newClient = new MongoClient(url, options);
       await newClient.connect();
 
+      // Wrap close() method to intercept client closure
       const originalClose = newClient.close.bind(newClient);
       newClient.close = async (...args: Parameters<MongoClient["close"]>) => {
-        this.clients.delete(id);
-        return originalClose(...args);
+        this.clients.delete(id); // Remove reference to client from the list
+        return originalClose(...args); // Call original close()
       };
 
       this.clients.set(id, newClient);
@@ -40,6 +49,13 @@ export class MongoDBClientFactory implements IShutdownable {
     }
   }
 
+  /**
+   * Retrieves an existing MongoDB client by id.
+   *
+   * @param id The id identifying the connection.
+   * @returns The MongoClient instance.
+   * @throws MongoError if the client is not connected.
+   */
   getClient(id: string): MongoClient {
     const client = this.clients.get(id);
     if (!client)
@@ -49,6 +65,9 @@ export class MongoDBClientFactory implements IShutdownable {
     return client;
   }
 
+  /**
+   * Closes all MongoDB connections managed by this factory.
+   */
   async closeAll(): Promise<void> {
     const closePromises = Array.from(this.clients, async ([id, client]) => {
       try {
@@ -65,6 +84,10 @@ export class MongoDBClientFactory implements IShutdownable {
     this.clients.clear();
   }
 
+  /**
+   * Implements IShutdownable interface for graceful shutdown.
+   * Delegates to closeAll() to close all MongoDB connections.
+   */
   async shutdown(): Promise<void> {
     await this.closeAll();
   }
