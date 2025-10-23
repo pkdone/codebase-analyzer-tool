@@ -1,4 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
+import { DELIMITERS } from "../config/json-processing.config";
 
 /**
  * Sanitizer that fixes unquoted property names in JSON responses.
@@ -28,7 +29,7 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
       unquotedPropertyPattern,
       (match, whitespace, propertyName, offset) => {
         // Simple check: if the character before the property name is a quote, it's already quoted
-        if (offset > 0 && jsonString[offset - 1] === '"') {
+        if (offset > 0 && jsonString[offset - 1] === DELIMITERS.DOUBLE_QUOTE) {
           return match; // Keep as is
         }
 

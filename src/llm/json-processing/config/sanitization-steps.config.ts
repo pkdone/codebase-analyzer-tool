@@ -7,7 +7,7 @@
 /**
  * Fixed step descriptions (no dynamic content)
  */
-export const SANITIZATION_STEP = {
+export const SANITIZATION_STEP = Object.freeze({
   TRIMMED_WHITESPACE: "Trimmed whitespace",
   REMOVED_CODE_FENCES: "Removed code fences",
   REMOVED_CONTROL_CHARS: "Removed control / zero-width characters",
@@ -17,12 +17,12 @@ export const SANITIZATION_STEP = {
   REMOVED_TRAILING_COMMAS: "Removed trailing commas",
   FIXED_OVER_ESCAPED_SEQUENCES: "Fixed over-escaped sequences",
   COMPLETED_TRUNCATED_STRUCTURES: "Completed truncated JSON structures",
-} as const;
+} as const);
 
 /**
  * Functions for generating dynamic step descriptions with counts
  */
-export const SANITIZATION_STEP_TEMPLATE = {
+export const SANITIZATION_STEP_TEMPLATE = Object.freeze({
   /**
    * Generate description for fixed concatenation chains
    * @param count - Number of concatenation chains fixed
@@ -45,17 +45,28 @@ export const SANITIZATION_STEP_TEMPLATE = {
    * @returns Description string with proper pluralization
    */
   fixedMismatchedDelimiters: (count: number): string =>
-    `Fixed ${count} mismatched delimiter${count > 1 ? "s" : ""}`,
-} as const;
+    `Fixed ${count} mismatched delimiter${count !== 1 ? "s" : ""}`,
+} as const);
 
 /**
  * Set of sanitization steps that are considered "insignificant" for mutation tracking.
  * These steps represent trivial formatting changes that don't indicate problematic LLM output.
  */
-export const INSIGNIFICANT_SANITIZATION_STEPS: ReadonlySet<string> = new Set([
+const insignificantSteps = new Set([
   SANITIZATION_STEP.TRIMMED_WHITESPACE,
   SANITIZATION_STEP.REMOVED_CODE_FENCES,
 ]);
+// Freeze the Set to prevent modifications
+insignificantSteps.add = () => {
+  throw new Error("Set is readonly");
+};
+insignificantSteps.delete = () => {
+  throw new Error("Set is readonly");
+};
+insignificantSteps.clear = () => {
+  throw new Error("Set is readonly");
+};
+export const INSIGNIFICANT_SANITIZATION_STEPS: ReadonlySet<string> = insignificantSteps;
 
 /**
  * Type helper for sanitization step descriptions

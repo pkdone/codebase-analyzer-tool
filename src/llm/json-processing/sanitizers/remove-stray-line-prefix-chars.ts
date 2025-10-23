@@ -1,5 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
-import { DELIMITERS } from "../config/delimiters.config";
+import { DELIMITERS, JSON_KEYWORDS } from "../config/json-processing.config";
 
 /**
  * Removes stray characters at the beginning of lines within JSON structures.
@@ -82,7 +82,21 @@ export const removeStrayLinePrefixChars: Sanitizer = (input) => {
 
   // Include opening/closing braces/brackets, quote, digit, comma, primitives.
   // Added ']' which was previously missing causing missed fixes for lines like `s  ],`.
-  const strayPrefixPattern = /^(\w+)([ \t]{2,})([[\]{}"0-9]|true|false|null|,)/;
+  const { OPEN_BRACKET, CLOSE_BRACKET, OPEN_BRACE, CLOSE_BRACE, DOUBLE_QUOTE, COMMA } = DELIMITERS;
+  const keywords = JSON_KEYWORDS.join("|");
+  // Escape special regex characters in delimiters
+  const escapedDelimiters = [
+    OPEN_BRACKET,
+    CLOSE_BRACKET,
+    OPEN_BRACE,
+    CLOSE_BRACE,
+    DOUBLE_QUOTE,
+    COMMA,
+  ]
+    .map((d) => d.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("");
+  const pattern = `^(\\w+)([ \\t]{2,})([${escapedDelimiters}]|\\d|${keywords})`;
+  const strayPrefixPattern = new RegExp(pattern);
   for (const [lineIndex, line] of lines.entries()) {
     // Skip prefix removal if currently inside a string literal spanning lines
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

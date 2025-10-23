@@ -1,6 +1,6 @@
 import { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
-import { DELIMITERS } from "../config/delimiters.config";
+import { SANITIZATION_STEP_TEMPLATE } from "../config/sanitization-steps.config";
+import { DELIMITERS } from "../config/json-processing.config";
 
 /**
  * Fixes mismatched closing delimiters in JSON where the wrong closing character is used.
@@ -72,7 +72,7 @@ export const fixMismatchedDelimiters: Sanitizer = (input) => {
           if (char !== expectedCloser) {
             // Special case: We see ] but expected }, AND there's a [ on the stack
             // This likely means the LLM wrote ] when it meant }], missing the }
-            // We detect this by checking if the next non-whitespace char is " (a property name)
+            // We detect this by checking if the next non-whitespace char is a value-starting token
             if (
               char === DELIMITERS.CLOSE_BRACKET &&
               expectedCloser === DELIMITERS.CLOSE_BRACE &&

@@ -1,7 +1,34 @@
 /**
- * Centralized configuration for JSON sanitization behavior.
- * Consolidates all magic numbers and thresholds used across sanitizers.
+ * Centralized configuration for JSON processing.
+ * Consolidates all constants, delimiters, and configuration values used across the JSON processing module.
  */
+
+/**
+ * Centralized delimiter and structural character constants used across JSON sanitization.
+ * Having these in one place eliminates magic strings and makes future enhancements
+ * (e.g., adding support for single quotes in relaxed modes) easier.
+ */
+export const DELIMITERS = Object.freeze({
+  OPEN_BRACE: "{",
+  CLOSE_BRACE: "}",
+  OPEN_BRACKET: "[",
+  CLOSE_BRACKET: "]",
+  DOUBLE_QUOTE: '"',
+  BACKSLASH: "\\",
+  COMMA: ",",
+  COLON: ":",
+  SPACE: " ",
+  TAB: "\t",
+  NEWLINE: "\n",
+  CARRIAGE_RETURN: "\r",
+});
+
+export type DelimiterKey = keyof typeof DELIMITERS;
+
+/**
+ * JSON keywords for validation and processing.
+ */
+export const JSON_KEYWORDS = Object.freeze(["true", "false", "null"] as const);
 
 /**
  * Configuration for concatenation chain sanitization.

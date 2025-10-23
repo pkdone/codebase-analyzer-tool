@@ -1,5 +1,5 @@
 import type { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
+import { SANITIZATION_STEP_TEMPLATE } from "../config/sanitization-steps.config";
 
 /**
  * Constants for diagnostic message formatting

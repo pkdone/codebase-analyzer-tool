@@ -1,5 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "./sanitization-steps.constants";
+import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
 
 /**
  * Removes trailing commas from JSON objects and arrays.

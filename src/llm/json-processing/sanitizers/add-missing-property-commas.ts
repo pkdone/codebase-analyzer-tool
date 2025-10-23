@@ -1,6 +1,6 @@
 import { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP_TEMPLATE } from "./sanitization-steps.constants";
-import { DELIMITERS } from "../config/delimiters.config";
+import { SANITIZATION_STEP_TEMPLATE } from "../config/sanitization-steps.config";
+import { DELIMITERS } from "../config/json-processing.config";
 
 /**
  * Stateful implementation to insert missing commas between object properties.

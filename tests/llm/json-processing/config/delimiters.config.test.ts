@@ -1,4 +1,4 @@
-import { DELIMITERS } from "../../../../src/llm/json-processing/config/delimiters.config";
+import { DELIMITERS } from "../../../../src/llm/json-processing/config/json-processing.config";
 
 describe("DELIMITERS config", () => {
   it("is frozen and has expected keys", () => {

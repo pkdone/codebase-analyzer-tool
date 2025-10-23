@@ -2,7 +2,7 @@ import {
   concatenationConfig,
   processingConfig,
   sanitizationConfig,
-} from "../../../src/llm/json-processing/config/sanitization.config";
+} from "../../../src/llm/json-processing/config/json-processing.config";
 
 describe("Sanitization Configuration", () => {
   describe("concatenationConfig", () => {

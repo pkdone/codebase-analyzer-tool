@@ -25,7 +25,7 @@ export {
   SANITIZATION_STEP_TEMPLATE,
   INSIGNIFICANT_SANITIZATION_STEPS,
   type SanitizationStepDescription,
-} from "./sanitization-steps.constants";
+} from "../config/sanitization-steps.config";
 
 // Export sanitization analysis utilities
 export { hasSignificantSanitizationSteps } from "./sanitization-analysis";

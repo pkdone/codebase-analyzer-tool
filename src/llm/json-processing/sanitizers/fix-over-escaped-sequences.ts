@@ -1,5 +1,5 @@
 import type { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "./sanitization-steps.constants";
+import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
 
 /**
  * Replacement pattern tuple: [RegExp, replacement string, description]

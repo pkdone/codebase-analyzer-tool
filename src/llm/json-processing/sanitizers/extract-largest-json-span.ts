@@ -1,5 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "./sanitization-steps.constants";
+import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
 
 /**
  * Extracts the largest valid JSON structure from content that includes extra text.
