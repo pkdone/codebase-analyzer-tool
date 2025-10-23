@@ -4,7 +4,7 @@ import {
   integrationEndpointSchema,
 } from "../schemas/sources.schema";
 import { z } from "zod";
-import { SourcePromptTemplate, CanonicalFileType } from "./prompt.types";
+import { SourcePromptTemplate, CanonicalFileType } from "./sources.types";
 
 /**
  * Base template for detailed file summary prompts shared by file summarization.

@@ -1,7 +1,12 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
-import { summaryCategoriesConfig, insightsTuningConfig } from "../insights-generation.config";
+import { insightsTuningConfig } from "../insights.config";
+import {
+  appSummaryPromptMetadata as summaryCategoriesConfig,
+  PARTIAL_INSIGHTS_TEMPLATE,
+  REDUCE_INSIGHTS_TEMPLATE,
+} from "../../../prompt-templates/app-summaries.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
@@ -13,14 +18,6 @@ import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.typ
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
-
-// Prompt template for partial insights (MAP phase)
-const PARTIAL_INSIGHTS_TEMPLATE =
-  "Act as a senior developer analyzing a subset of code. Based on the list of file summaries below in 'SOURCES', return a JSON response that contains {{specificInstructions}}. This is a partial analysis of a larger codebase; focus on extracting insights from this subset only. The JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";
-
-// Prompt template for consolidating partial insights (REDUCE phase)
-const REDUCE_INSIGHTS_TEMPLATE =
-  "Act as a senior developer. You have been provided with several JSON objects below in 'PARTIAL_DATA', each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized. The final JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nPARTIAL_DATA:\n{{codeContent}}";
 
 /**
  * Map-reduce insight generation strategy for large codebases.

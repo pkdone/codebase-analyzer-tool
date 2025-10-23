@@ -1,4 +1,4 @@
-import type { CanonicalFileType } from "../prompt-templates/prompt.types";
+import type { CanonicalFileType } from "../prompt-templates/sources.types";
 
 /**
  * File type mappings configuration with readonly maps for immutability.

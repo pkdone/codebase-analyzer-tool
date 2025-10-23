@@ -1,7 +1,5 @@
-import {
-  insightsTuningConfig,
-  summaryCategoriesConfig,
-} from "../../src/components/insights/insights-generation.config";
+import { insightsTuningConfig } from "../../src/components/insights/insights.config";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../src/prompt-templates/app-summaries.prompts";
 import { AppSummaryCategoryEnum } from "../../src/components/insights/insights.types";
 
 describe("insightsTuningConfig", () => {

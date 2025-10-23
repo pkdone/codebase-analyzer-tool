@@ -11,4 +11,4 @@ export interface SourcePromptTemplate<T extends z.ZodType = z.ZodType> {
 }
 
 /** Inferred TypeScript type for canonical file types */
-export type CanonicalFileType = (typeof import("./prompt.schemas").CANONICAL_FILE_TYPES)[number];
+export type CanonicalFileType = (typeof import("./sources.schemas").CANONICAL_FILE_TYPES)[number];

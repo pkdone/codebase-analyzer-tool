@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { AppSummaryCategories, appSummarySchema } from "../../schemas/app-summaries.schema";
+import { appSummarySchema } from "../../schemas/app-summaries.schema";
+import { AppSummaryCategoryType } from "../../prompt-templates/app-summaries.types";
 
 /**
  * Schema for all category fields of app summary (so excluding 'projectName' and 'llmProvider')
@@ -17,7 +18,7 @@ export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;
 /**
  * Type for the enum of app summary categories
  */
-export type AppSummaryCategoryEnum = z.infer<typeof AppSummaryCategories>;
+export type AppSummaryCategoryEnum = AppSummaryCategoryType;
 
 /**
  * Interface for application insights processors that analyze code and generate architectural insights.

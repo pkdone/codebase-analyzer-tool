@@ -29,7 +29,7 @@ describe("Dependency Injection token modularization", () => {
   it("insights-related tokens exist in TOKENS", () => {
     const insightsTokenKeys = [
       "InsightsFromDBGenerator",
-      "InsightsFromRawCodeGenerator", 
+      "InsightsFromRawCodeGenerator",
       "InsightsProcessorSelector",
       "LocalInsightsGenerator",
       "BomAggregator",
@@ -47,7 +47,7 @@ describe("Dependency Injection token modularization", () => {
       "JsonProcessor",
       "FileSummarizer",
     ];
-    
+
     for (const key of insightsTokenKeys) {
       expect((TOKENS as Record<string, symbol>)[key]).toBeDefined();
     }

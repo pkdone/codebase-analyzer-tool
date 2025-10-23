@@ -1,5 +1,5 @@
 import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
-import type { CanonicalFileType } from "../../src/prompt-templates/prompt.types";
+import type { CanonicalFileType } from "../../src/prompt-templates/sources.types";
 
 describe("file-type-mappings.config", () => {
   describe("fileTypeMappingsConfig", () => {

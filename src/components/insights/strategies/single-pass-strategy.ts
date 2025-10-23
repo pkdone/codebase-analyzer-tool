@@ -1,7 +1,10 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
-import { summaryCategoriesConfig } from "../insights-generation.config";
+import {
+  appSummaryPromptMetadata as summaryCategoriesConfig,
+  SINGLE_PASS_INSIGHTS_TEMPLATE,
+} from "../../../prompt-templates/app-summaries.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
@@ -18,9 +21,6 @@ const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
  */
 @injectable()
 export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
-  private readonly APP_CATEGORY_SUMMARIZER_TEMPLATE =
-    "Act as a senior developer analyzing the code in a legacy application. Take the list of paths and descriptions of its {{contentDesc}} shown below in the section marked 'SOURCES', and based on their content, return a JSON response that contains {{specificInstructions}}.\n\nThe JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";
-
   constructor(@inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter) {}
 
   /**
@@ -65,7 +65,7 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
   ): string {
     const config = summaryCategoriesConfig[type];
     return createPromptFromConfig(
-      this.APP_CATEGORY_SUMMARIZER_TEMPLATE,
+      SINGLE_PASS_INSIGHTS_TEMPLATE,
       "source files",
       config.description,
       config.schema,

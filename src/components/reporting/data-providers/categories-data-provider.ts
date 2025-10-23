@@ -1,7 +1,8 @@
 import { injectable } from "tsyringe";
 import { z } from "zod";
-import { summaryCategoriesConfig } from "../../insights/insights-generation.config";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompt-templates/app-summaries.prompts";
 import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
+import { AppSummaryCategoryType } from "../../../prompt-templates/app-summaries.types";
 import type {
   AppSummaryNameDescArray,
   AppSummaryRecordWithId,
@@ -36,7 +37,7 @@ type CategoryWithCustomSection = (typeof CATEGORIES_WITH_CUSTOM_SECTIONS)[number
 // Define valid category keys for generating structured table reports, excluding categories with custom sections
 // This creates a type-safe readonly array of the valid keys
 const TABLE_CATEGORY_KEYS = AppSummaryCategories.options.filter(
-  (key): key is Exclude<z.infer<typeof AppSummaryCategories>, CategoryWithCustomSection> =>
+  (key): key is Exclude<AppSummaryCategoryType, CategoryWithCustomSection> =>
     !(CATEGORIES_WITH_CUSTOM_SECTIONS as readonly string[]).includes(key),
 );
 

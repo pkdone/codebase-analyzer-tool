@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createPromptFromConfig } from "../../../src/llm/utils/prompt-templator";
-import { SourcePromptTemplate } from "../../../src/prompt-templates/prompt.types";
+import { SourcePromptTemplate } from "../../../src/prompt-templates/sources.types";
 
 describe("prompt-utils", () => {
   describe("createPromptFromConfig", () => {
