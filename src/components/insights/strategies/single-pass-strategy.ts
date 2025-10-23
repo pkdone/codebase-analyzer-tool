@@ -33,7 +33,7 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     const categoryLabel = summaryCategoriesConfig[category].label;
 
     try {
-      const schema = summaryCategoriesConfig[category].schema;
+      const schema = summaryCategoriesConfig[category].responseSchema;
       const codeContent = joinArrayWithSeparators(sourceFileSummaries);
       const prompt = this.createInsightsForCategoryPrompt(category, codeContent);
 
@@ -67,8 +67,8 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     return createPromptFromConfig(
       SINGLE_PASS_INSIGHTS_TEMPLATE,
       "source files",
-      config.description,
-      config.schema,
+      config.contentDescription,
+      config.responseSchema,
       codeContent,
     );
   }

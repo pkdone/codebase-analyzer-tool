@@ -160,8 +160,8 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const prompt = createPromptFromConfig(
       PARTIAL_INSIGHTS_TEMPLATE,
       "source files",
-      config.description,
-      config.schema,
+      config.contentDescription,
+      config.responseSchema,
       codeContent,
     );
 
@@ -171,7 +171,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
         prompt,
         {
           outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.schema,
+          jsonSchema: config.responseSchema,
           hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
         },
       );
@@ -194,7 +194,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const config = summaryCategoriesConfig[category];
 
     // Get the key name for this category (e.g., "entities", "boundedContexts")
-    const categoryKey = Object.keys(config.schema.shape)[0];
+    const categoryKey = Object.keys(config.responseSchema.shape)[0];
 
     // Flatten the arrays from all partial results into a single combined list
     const combinedData = partialResults.flatMap((result) => {
@@ -213,7 +213,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
       "partial data",
       `a consolidated list of '${config.label}'`,
-      config.schema,
+      config.responseSchema,
       content,
     );
 
@@ -223,7 +223,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
         prompt,
         {
           outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.schema,
+          jsonSchema: config.responseSchema,
           hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
         },
       );

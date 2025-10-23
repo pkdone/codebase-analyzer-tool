@@ -81,7 +81,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
   ): Promise<AppSummaryRecordCategories | null> {
     try {
       const instructions = Object.values(summaryCategoriesConfig)
-        .map((category) => `* ${category.description}`)
+        .map((category) => `* ${category.contentDescription}`)
         .join("\n"); // Concatenate category descriptions. prefixed with "* " followed by newline
       const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
       const llmResponse = await this.llmRouter.executeCompletion<AppSummaryRecordCategories>(

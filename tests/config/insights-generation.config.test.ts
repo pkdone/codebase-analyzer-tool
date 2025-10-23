@@ -43,25 +43,25 @@ describe("summaryCategoriesConfig", () => {
     categories.forEach((category) => {
       expect(summaryCategoriesConfig[category]).toBeDefined();
       expect(summaryCategoriesConfig[category]).toHaveProperty("label");
-      expect(summaryCategoriesConfig[category]).toHaveProperty("description");
-      expect(summaryCategoriesConfig[category]).toHaveProperty("schema");
+      expect(summaryCategoriesConfig[category]).toHaveProperty("contentDescription");
+      expect(summaryCategoriesConfig[category]).toHaveProperty("responseSchema");
     });
   });
 
   it("should have non-empty labels and descriptions", () => {
     Object.values(summaryCategoriesConfig).forEach((config) => {
       expect(config.label).toBeTruthy();
-      expect(config.description).toBeTruthy();
+      expect(config.contentDescription).toBeTruthy();
       expect(typeof config.label).toBe("string");
-      expect(typeof config.description).toBe("string");
+      expect(typeof config.contentDescription).toBe("string");
     });
   });
 
   it("should have valid zod schemas", () => {
     Object.values(summaryCategoriesConfig).forEach((config) => {
-      expect(config.schema).toBeDefined();
-      expect(config.schema.parse).toBeDefined();
-      expect(typeof config.schema.parse).toBe("function");
+      expect(config.responseSchema).toBeDefined();
+      expect(config.responseSchema.parse).toBeDefined();
+      expect(typeof config.responseSchema.parse).toBe("function");
     });
   });
 });

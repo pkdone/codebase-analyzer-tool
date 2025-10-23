@@ -14,8 +14,8 @@ export interface AppSummaryPromptTemplate<
   T extends z.ZodObject<z.ZodRawShape> = z.ZodObject<z.ZodRawShape>,
 > {
   label: string;
-  description: string;
-  schema: T;
   summaryType: string;
-  specificInstructions: string;
+  contentDescription: string;
+  responseSchema: T;
+  instructions: string;
 }
