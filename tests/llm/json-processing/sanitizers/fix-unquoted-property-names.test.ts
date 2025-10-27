@@ -97,9 +97,9 @@ describe("fixUnquotedPropertyNames", () => {
       const input = '{"description": "This has unquoted: property names inside"}';
       const result = fixUnquotedPropertyNames(input);
 
-      // The sanitizer will actually fix this because it matches the pattern
-      expect(result.changed).toBe(true);
-      expect(result.content).toBe('{"description": "This has "unquoted": property names inside"}');
+      // The sanitizer should now correctly avoid modifying content inside strings
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
     });
 
     it("should handle escaped quotes in string values", () => {
@@ -114,10 +114,9 @@ describe("fixUnquotedPropertyNames", () => {
       const input = '{"url": "https://example.com:8080/path", unquoted: "value"}';
       const result = fixUnquotedPropertyNames(input);
 
+      // Should only fix the unquoted property, not touch content inside the string
       expect(result.changed).toBe(true);
-      expect(result.content).toBe(
-        '{"url": "https://"example.com":8080/path", "unquoted": "value"}',
-      );
+      expect(result.content).toBe('{"url": "https://example.com:8080/path", "unquoted": "value"}');
       expect(result.diagnostics).toContain("Fixed unquoted property name: unquoted");
     });
   });

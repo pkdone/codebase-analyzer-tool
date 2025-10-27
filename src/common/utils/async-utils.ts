@@ -1,4 +1,5 @@
 import pLimit from "p-limit";
+import { inspect } from "util";
 import { logErrorMsgAndDetail } from "./logging";
 
 /**
@@ -39,7 +40,13 @@ export async function processItemsConcurrently<T, R>(
       let itemIdentifier: string;
 
       try {
-        itemIdentifier = JSON.stringify(items[index]);
+        // Use util.inspect for safer object inspection (handles circular references)
+        // For simple strings, use JSON.stringify to maintain consistent formatting
+        if (typeof items[index] === "string") {
+          itemIdentifier = JSON.stringify(items[index]);
+        } else {
+          itemIdentifier = inspect(items[index], { depth: 2, maxStringLength: 200 });
+        }
       } catch {
         itemIdentifier = String(items[index]);
       }
