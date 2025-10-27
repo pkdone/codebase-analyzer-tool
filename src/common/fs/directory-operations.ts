@@ -16,19 +16,20 @@ export async function listDirectoryEntries(dirpath: string): Promise<Dirent[]> {
 export async function clearDirectory(dirPath: string): Promise<void> {
   try {
     const files = await fs.readdir(dirPath);
-    const removalPromises = files
-      .filter((file) => file !== ".gitignore")
-      .map(async (file) => {
-        const filePath = path.join(dirPath, file);
-        try {
-          await fs.rm(filePath, { recursive: true, force: true });
-        } catch (error: unknown) {
-          logErrorMsgAndDetail(
-            `When clearing directory '${dirPath}', unable to remove the item: ${filePath}`,
-            error,
-          );
-        }
+    const removalPromises: Promise<void>[] = [];
+
+    for (const file of files) {
+      if (file === ".gitignore") continue;
+
+      const filePath = path.join(dirPath, file);
+      const promise = fs.rm(filePath, { recursive: true, force: true }).catch((error: unknown) => {
+        logErrorMsgAndDetail(
+          `When clearing directory '${dirPath}', unable to remove the item: ${filePath}`,
+          error,
+        );
       });
+      removalPromises.push(promise);
+    }
 
     await Promise.allSettled(removalPromises);
   } catch (error: unknown) {

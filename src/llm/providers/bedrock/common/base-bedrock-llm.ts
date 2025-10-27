@@ -25,6 +25,15 @@ import {
 } from "./bedrock-response-parser";
 import { JsonProcessor } from "../../../json-processing/core/json-processor";
 
+const TOKEN_LIMIT_ERROR_KEYWORDS = new Set([
+  "too many input tokens",
+  "expected maxlength",
+  "input is too long",
+  "input length",
+  "too large for model",
+  "please reduce the length of the prompt",
+]);
+
 /**
  * Configuration object for Bedrock LLM providers.
  * Encapsulates all Bedrock-specific configuration parameters.
@@ -133,16 +142,14 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    */
   protected isTokenLimitExceeded(error: unknown): error is ValidationException {
     if (!(error instanceof ValidationException)) return false;
-    const errorKeywords = [
-      "too many input tokens",
-      "expected maxlength",
-      "input is too long",
-      "input length",
-      "too large for model",
-      "please reduce the length of the prompt",
-    ];
+
     const lowercaseContent = formatError(error).toLowerCase();
-    return errorKeywords.some((keyword) => lowercaseContent.includes(keyword));
+    for (const keyword of TOKEN_LIMIT_ERROR_KEYWORDS) {
+      if (lowercaseContent.includes(keyword)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

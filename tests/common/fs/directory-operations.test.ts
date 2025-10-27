@@ -1,11 +1,20 @@
-import { findFilesRecursively, sortFilesBySize } from "../../../src/common/fs/directory-operations";
+import {
+  findFilesRecursively,
+  sortFilesBySize,
+  clearDirectory,
+} from "../../../src/common/fs/directory-operations";
 import glob from "fast-glob";
 import { promises as fs } from "fs";
+import { logErrorMsgAndDetail } from "../../../src/common/utils/logging";
 
 jest.mock("fast-glob");
+jest.mock("../../../src/common/utils/logging");
 jest.mock("fs", () => ({
   promises: {
     stat: jest.fn(),
+    readdir: jest.fn(),
+    rm: jest.fn(),
+    mkdir: jest.fn(),
   },
 }));
 
@@ -177,6 +186,91 @@ describe("directory-operations", () => {
 
       const result2 = await sortFilesBySize(files);
       expect(result2).toEqual(["/test/file2.ts", "/test/file3.ts", "/test/file1.ts"]);
+    });
+  });
+
+  describe("clearDirectory", () => {
+    const mockReaddir = fs.readdir as jest.MockedFunction<typeof fs.readdir>;
+    const mockRm = fs.rm as jest.MockedFunction<typeof fs.rm>;
+    const mockMkdir = fs.mkdir as jest.MockedFunction<typeof fs.mkdir>;
+    const mockLogError = logErrorMsgAndDetail as jest.MockedFunction<typeof logErrorMsgAndDetail>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test("should delete all files except .gitignore", async () => {
+      mockReaddir.mockResolvedValue(["file1.txt", "file2.txt", ".gitignore", "subfolder"] as any);
+      mockRm.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await clearDirectory("/test/dir");
+
+      expect(mockReaddir).toHaveBeenCalledWith("/test/dir");
+      expect(mockRm).toHaveBeenCalledTimes(3); // file1.txt, file2.txt, subfolder
+      expect(mockRm).not.toHaveBeenCalledWith("/test/dir/.gitignore", expect.anything());
+      expect(mockMkdir).toHaveBeenCalledWith("/test/dir", { recursive: true });
+    });
+
+    test("should use for...of loop and skip .gitignore", async () => {
+      const files = ["file1.txt", ".gitignore", "file2.txt"];
+      mockReaddir.mockResolvedValue(files as any);
+      mockRm.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await clearDirectory("/test/dir");
+
+      expect(mockRm).toHaveBeenCalledTimes(2); // Only file1.txt and file2.txt
+      expect(mockRm).toHaveBeenCalledWith("/test/dir/file1.txt", { recursive: true, force: true });
+      expect(mockRm).toHaveBeenCalledWith("/test/dir/file2.txt", { recursive: true, force: true });
+    });
+
+    test("should handle rm errors gracefully", async () => {
+      mockReaddir.mockResolvedValue(["file1.txt", "file2.txt"] as any);
+      mockRm.mockRejectedValueOnce(new Error("Permission denied")).mockResolvedValueOnce(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await clearDirectory("/test/dir");
+
+      expect(mockLogError).toHaveBeenCalledWith(
+        expect.stringContaining("unable to remove the item"),
+        expect.any(Error),
+      );
+      expect(mockMkdir).toHaveBeenCalled();
+    });
+
+    test("should handle readdir errors gracefully", async () => {
+      mockReaddir.mockRejectedValue(new Error("Directory not found"));
+
+      await clearDirectory("/test/dir");
+
+      expect(mockLogError).toHaveBeenCalledWith(
+        "Unable to read directory for clearing: /test/dir",
+        expect.any(Error),
+      );
+      expect(mockMkdir).toHaveBeenCalled();
+    });
+
+    test("should handle mkdir errors gracefully", async () => {
+      mockReaddir.mockResolvedValue([]);
+      mockMkdir.mockRejectedValue(new Error("Permission denied"));
+
+      await clearDirectory("/test/dir");
+
+      expect(mockLogError).toHaveBeenCalledWith(
+        "Failed to ensure directory exists after clearing: /test/dir",
+        expect.any(Error),
+      );
+    });
+
+    test("should handle empty directory", async () => {
+      mockReaddir.mockResolvedValue([]);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await clearDirectory("/test/dir");
+
+      expect(mockRm).not.toHaveBeenCalled();
+      expect(mockMkdir).toHaveBeenCalledWith("/test/dir", { recursive: true });
     });
   });
 });

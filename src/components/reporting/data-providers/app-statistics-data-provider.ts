@@ -36,10 +36,7 @@ export class AppStatisticsDataProvider {
       llmProvider: appSummaryData.llmProvider,
       fileCount,
       linesOfCode,
-      appDescription:
-        typeof appSummaryData.appDescription === "string"
-          ? appSummaryData.appDescription
-          : "No description available",
+      appDescription: appSummaryData.appDescription ?? "No description available",
     };
   }
 }

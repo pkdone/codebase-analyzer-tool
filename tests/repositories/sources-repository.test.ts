@@ -259,6 +259,29 @@ describe("SourcesRepositoryImpl", () => {
 
         expect(result).toEqual({ fileCount: 0, linesOfCode: 0 });
       });
+
+      it("should use array destructuring to safely extract first element", async () => {
+        const projectName = "test-project";
+        // Mock with single result to test destructuring [stats] = results
+        const mockResults = [{ fileCount: 15, linesOfCode: 750 }];
+        mockAggregationCursor.toArray.mockResolvedValue(mockResults);
+
+        const result = await repository.getProjectFileAndLineStats(projectName);
+
+        expect(result).toEqual({ fileCount: 15, linesOfCode: 750 });
+        expect(mockCollection.aggregate).toHaveBeenCalledTimes(1);
+      });
+
+      it("should handle array destructuring with empty array (undefined first element)", async () => {
+        const projectName = "test-project";
+        // Mock with empty array - destructuring [stats] = [] will set stats to undefined
+        mockAggregationCursor.toArray.mockResolvedValue([]);
+
+        const result = await repository.getProjectFileAndLineStats(projectName);
+
+        // Should return default values when destructuring finds undefined
+        expect(result).toEqual({ fileCount: 0, linesOfCode: 0 });
+      });
     });
 
     describe("getProjectFileTypesCountAndLines", () => {

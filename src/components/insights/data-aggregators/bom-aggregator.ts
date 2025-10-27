@@ -100,18 +100,18 @@ export class BomAggregator {
     }));
 
     // Sort by conflict status (conflicts first), then by name
-    dependencies.sort((a, b) => {
+    const sortedDependencies = dependencies.toSorted((a, b) => {
       if (a.hasConflict !== b.hasConflict) {
         return a.hasConflict ? -1 : 1;
       }
       return a.name.localeCompare(b.name);
     });
 
-    const conflictCount = dependencies.filter((d) => d.hasConflict).length;
+    const conflictCount = sortedDependencies.filter((d) => d.hasConflict).length;
 
     return {
-      dependencies,
-      totalDependencies: dependencies.length,
+      dependencies: sortedDependencies,
+      totalDependencies: sortedDependencies.length,
       conflictCount,
       buildFiles: buildFilePaths,
     };

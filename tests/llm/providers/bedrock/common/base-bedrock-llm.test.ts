@@ -7,6 +7,7 @@ import {
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
 import { z } from "zod";
 import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
+import { ValidationException } from "@aws-sdk/client-bedrock-runtime";
 
 /**
  * Test implementation of BaseBedrockLLM to verify JSON stringification
@@ -178,5 +179,82 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     const parsedBody = JSON.parse(fullParams.body);
     expect(parsedBody).toHaveProperty("inputText");
     expect(parsedBody.inputText).toBe("embed this text");
+  });
+
+  describe("isTokenLimitExceeded - modern Set-based matching", () => {
+    const mockModelsKeys: LLMModelKeysSet = {
+      embeddingsModelKey: "EMBEDDINGS",
+      primaryCompletionModelKey: "COMPLETION",
+    };
+
+    const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
+      EMBEDDINGS: {
+        modelKey: "EMBEDDINGS",
+        urn: "test-embeddings-model",
+        purpose: LLMPurpose.EMBEDDINGS,
+        dimensions: 1536,
+        maxTotalTokens: 8192,
+      },
+      COMPLETION: {
+        modelKey: "COMPLETION",
+        urn: "test-completion-model",
+        purpose: LLMPurpose.COMPLETIONS,
+        maxCompletionTokens: 4096,
+        maxTotalTokens: 100000,
+      },
+    };
+
+    const mockConfig: LLMProviderSpecificConfig = {
+      requestTimeoutMillis: 60000,
+      maxRetryAttempts: 3,
+      minRetryDelayMillis: 1000,
+      maxRetryDelayMillis: 10000,
+      temperature: 0,
+      topP: 0.95,
+    };
+
+    it("should detect token limit exceeded errors using Set-based keyword matching", () => {
+      const llm = new TestBedrockLLM(
+        mockModelsKeys,
+        mockModelsMetadata,
+        [],
+        {
+          providerSpecificConfig: mockConfig,
+        },
+        createMockJsonProcessor(),
+      );
+
+      const mockError1 = new ValidationException({
+        message: "Too many input tokens",
+        $metadata: {},
+      } as any);
+
+      const mockError2 = new ValidationException({
+        message: "Input is too long for the model",
+        $metadata: {},
+      } as any);
+
+      const mockError3 = new ValidationException({
+        message: "Please reduce the length of the prompt",
+        $metadata: {},
+      } as any);
+
+      const nonTokenError = new ValidationException({
+        message: "Invalid parameter",
+        $metadata: {},
+      } as any);
+
+      const nonValidationError = new Error("Some other error");
+
+      // Access the protected method through bracket notation
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      const isTokenLimitExceeded = llm["isTokenLimitExceeded"].bind(llm);
+
+      expect(isTokenLimitExceeded(mockError1)).toBe(true);
+      expect(isTokenLimitExceeded(mockError2)).toBe(true);
+      expect(isTokenLimitExceeded(mockError3)).toBe(true);
+      expect(isTokenLimitExceeded(nonTokenError)).toBe(false);
+      expect(isTokenLimitExceeded(nonValidationError)).toBe(false);
+    });
   });
 });

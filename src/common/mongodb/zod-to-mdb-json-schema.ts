@@ -38,11 +38,11 @@ export const zBsonDecimal128 = z.instanceof(Decimal128).describe("bson:decimal12
 export const zBsonDate = z.coerce.date();
 
 function hasDescription(obj: unknown): obj is { description: string } {
-  return typeof obj === "object" && obj !== null && "description" in obj;
+  return typeof obj === "object" && obj !== null && Object.hasOwn(obj, "description");
 }
 
 function hasTypeName(obj: unknown): obj is { typeName: z.ZodFirstPartyTypeKind } {
-  return typeof obj === "object" && obj !== null && "typeName" in obj;
+  return typeof obj === "object" && obj !== null && Object.hasOwn(obj, "typeName");
 }
 
 const mongoSchemaOptions = {
