@@ -1,7 +1,8 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { Task } from "./task.types";
-import { TOKENS } from "../tokens";
+import { coreTokens } from "../di/core.tokens";
+import { reportingTokens } from "../components/reporting/reporting.tokens";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
 import AppReportGenerator from "../components/reporting/app-report-generator";
@@ -15,8 +16,9 @@ export class ReportGenerationTask implements Task {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.ProjectName) private readonly projectName: string,
-    @inject(TOKENS.AppReportGenerator) private readonly appReportGenerator: AppReportGenerator,
+    @inject(coreTokens.ProjectName) private readonly projectName: string,
+    @inject(reportingTokens.AppReportGenerator)
+    private readonly appReportGenerator: AppReportGenerator,
   ) {}
 
   /**

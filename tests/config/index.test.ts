@@ -3,7 +3,7 @@ import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
 import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
 import { outputConfig } from "../../src/config/output.config";
-import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../src/config/logging.config";
+import { loggingConfig } from "../../src/config/logging.config";
 
 describe("individual config modules", () => {
   it("appConfig should expose expected keys", () => {
@@ -34,7 +34,7 @@ describe("individual config modules", () => {
   });
 
   it("logging config constants should be defined", () => {
-    expect(ERROR_LOG_DIRECTORY).toBeDefined();
-    expect(ERROR_LOG_FILENAME_TEMPLATE).toBeDefined();
+    expect(loggingConfig.ERROR_LOG_DIRECTORY).toBeDefined();
+    expect(loggingConfig.ERROR_LOG_FILENAME_TEMPLATE).toBeDefined();
   });
 });

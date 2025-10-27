@@ -9,7 +9,7 @@ import { logErrorMsgAndDetail } from "../../../common/utils/logging";
 import { mcpConfig } from "./mcp.config";
 import { httpConfig } from "../../../config/http.config";
 import McpServerFactory from "./mcp-server-configurator";
-import { TOKENS } from "../../../tokens";
+import { apiTokens } from "../api.tokens";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 /**
@@ -34,7 +34,7 @@ export default class McpHttpServer {
    * Constructor.
    */
   constructor(
-    @inject(TOKENS.McpServerFactory) private readonly mcpServerFactory: McpServerFactory,
+    @inject(apiTokens.McpServerFactory) private readonly mcpServerFactory: McpServerFactory,
   ) {
     this.mcpServer = this.mcpServerFactory.configure();
   }

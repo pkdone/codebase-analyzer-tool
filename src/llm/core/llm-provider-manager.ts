@@ -14,7 +14,7 @@ import { LLMProviderManifest } from "../providers/llm-provider.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { listDirectoryEntries } from "../../common/fs/directory-operations";
 import { JsonProcessor } from "../json-processing/core/json-processor";
-import { TOKENS } from "../../tokens";
+import { llmTokens } from "./llm.tokens";
 
 /**
  * Manager for discovering, loading, and instantiating LLM providers based on their manifests
@@ -32,7 +32,7 @@ export class LLMProviderManager {
    */
   constructor(
     modelFamily: string,
-    @inject(TOKENS.JsonProcessor) private readonly jsonProcessor: JsonProcessor,
+    @inject(llmTokens.JsonProcessor) private readonly jsonProcessor: JsonProcessor,
   ) {
     this.modelFamily = modelFamily;
   }

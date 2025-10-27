@@ -10,7 +10,7 @@ import {
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
-import { TOKENS } from "../../../tokens";
+import { llmTokens } from "../../../llm/core/llm.tokens";
 import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
 import { llmProviderConfig } from "../../../llm/llm.config";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
@@ -28,8 +28,8 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   private readonly maxTokens: number;
 
   constructor(
-    @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(llmTokens.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
   ) {
     // Get the token limit from the manifest for chunking calculations
     const manifest = this.llmProviderManager.getLLMManifest();

@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../../../tokens";
+import { repositoryTokens } from "../../../di/repositories.tokens";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
 import { Complexity, isComplexity } from "../report-gen.types";
 import { procedureTriggerSchema } from "../../../schemas/sources.schema";
@@ -21,7 +21,8 @@ type ProcOrTrigItem = z.infer<typeof procedureTriggerSchema> & { filepath: strin
 @injectable()
 export class DatabaseReportDataProvider {
   constructor(
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
   ) {}
 
   /**

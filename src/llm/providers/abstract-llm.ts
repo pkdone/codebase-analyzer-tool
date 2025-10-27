@@ -22,7 +22,7 @@ import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
 import { writeFile } from "../../common/fs/file-operations";
 import { ensureDirectoryExists } from "../../common/fs/directory-operations";
-import { ERROR_LOG_DIRECTORY, ERROR_LOG_FILENAME_TEMPLATE } from "../../config/logging.config";
+import { loggingConfig } from "../../config/logging.config";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
@@ -338,8 +338,8 @@ export default abstract class AbstractLLM implements LLMProvider {
     try {
       // Use replaceAll for lint rule compliance (prefer replaceAll over replace with global regex)
       const timestamp = new Date().toISOString().replaceAll(/[:.]/g, "-");
-      const filename = ERROR_LOG_FILENAME_TEMPLATE.replace("{timestamp}", timestamp);
-      const errorDir = ERROR_LOG_DIRECTORY;
+      const filename = loggingConfig.ERROR_LOG_FILENAME_TEMPLATE.replace("{timestamp}", timestamp);
+      const errorDir = loggingConfig.ERROR_LOG_DIRECTORY;
       const filepath = `${errorDir}/${filename}`;
       await ensureDirectoryExists(errorDir);
       const logContent =

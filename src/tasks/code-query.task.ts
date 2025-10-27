@@ -4,7 +4,8 @@ import { readAndFilterLines } from "../common/fs/file-content-utils";
 import { formatError } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
-import { TOKENS } from "../tokens";
+import { coreTokens } from "../di/core.tokens";
+import { captureTokens } from "../components/capture/capture.tokens";
 import { inputConfig } from "../components/querying/config/input.config";
 
 /**
@@ -16,8 +17,8 @@ export class CodebaseQueryTask implements Task {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.ProjectName) private readonly projectName: string,
-    @inject(TOKENS.CodebaseQueryProcessor)
+    @inject(coreTokens.ProjectName) private readonly projectName: string,
+    @inject(captureTokens.CodebaseQueryProcessor)
     private readonly codebaseQueryProcessor: CodebaseQueryProcessor,
   ) {}
 

@@ -1,6 +1,8 @@
 import "reflect-metadata";
 import { bootstrapContainer, container } from "../../src/di/container";
-import { TOKENS } from "../../src/tokens";
+import { coreTokens } from "../../src/di/core.tokens";
+import { taskTokens } from "../../src/di/tasks.tokens";
+import { repositoryTokens } from "../../src/di/repositories.tokens";
 import { MongoDBClientFactory } from "../../src/common/mongodb/mdb-client-factory";
 import { MongoConnectionTestTask } from "../../src/tasks/mdb-connection-test.task";
 import { ReportGenerationTask } from "../../src/tasks/report-generation.task";
@@ -34,9 +36,11 @@ describe("DI Container Integration Tests", () => {
 
   afterEach(async () => {
     // Ensure DB connection is closed and container is reset
-    if (container.isRegistered(TOKENS.MongoDBClientFactory)) {
+    if (container.isRegistered(coreTokens.MongoDBClientFactory)) {
       try {
-        const mongoFactory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+        const mongoFactory = container.resolve<MongoDBClientFactory>(
+          coreTokens.MongoDBClientFactory,
+        );
         await mongoFactory.closeAll();
       } catch (error) {
         // Ignore errors during cleanup
@@ -74,7 +78,9 @@ describe("DI Container Integration Tests", () => {
       // Assert: Should be able to resolve MongoDB-dependent task
       let resolvedTask: MongoConnectionTestTask | undefined;
       expect(() => {
-        resolvedTask = container.resolve<MongoConnectionTestTask>(TOKENS.MongoConnectionTestTask);
+        resolvedTask = container.resolve<MongoConnectionTestTask>(
+          taskTokens.MongoConnectionTestTask,
+        );
       }).not.toThrow();
 
       expect(resolvedTask).toBeInstanceOf(MongoConnectionTestTask);
@@ -97,7 +103,7 @@ describe("DI Container Integration Tests", () => {
       // Assert: Should be able to resolve reporting task
       let resolvedTask: ReportGenerationTask | undefined;
       expect(() => {
-        resolvedTask = container.resolve<ReportGenerationTask>(TOKENS.ReportGenerationTask);
+        resolvedTask = container.resolve<ReportGenerationTask>(taskTokens.ReportGenerationTask);
       }).not.toThrow();
 
       expect(resolvedTask).toBeInstanceOf(ReportGenerationTask);
@@ -124,22 +130,24 @@ describe("DI Container Integration Tests", () => {
 
       // Assert: Verify that all MongoDB-related dependencies can be resolved
       expect(() => {
-        const mongoFactory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+        const mongoFactory = container.resolve<MongoDBClientFactory>(
+          coreTokens.MongoDBClientFactory,
+        );
         expect(mongoFactory).toBeDefined();
       }).not.toThrow();
 
       expect(() => {
-        const mongoClient = container.resolve<MongoClient>(TOKENS.MongoClient);
+        const mongoClient = container.resolve<MongoClient>(coreTokens.MongoClient);
         expect(mongoClient).toBeDefined();
       }).not.toThrow();
 
       expect(() => {
-        const sourcesRepo = container.resolve<any>(TOKENS.SourcesRepository);
+        const sourcesRepo = container.resolve<any>(repositoryTokens.SourcesRepository);
         expect(sourcesRepo).toBeDefined();
       }).not.toThrow();
 
       expect(() => {
-        const appSummariesRepo = container.resolve<any>(TOKENS.AppSummariesRepository);
+        const appSummariesRepo = container.resolve<any>(repositoryTokens.AppSummariesRepository);
         expect(appSummariesRepo).toBeDefined();
       }).not.toThrow();
     }, 30000);
@@ -158,8 +166,8 @@ describe("DI Container Integration Tests", () => {
 
       try {
         // Assert: Should be able to get a connected client
-        expect(container.isRegistered(TOKENS.MongoClient)).toBe(true);
-        const client = container.resolve<MongoClient>(TOKENS.MongoClient);
+        expect(container.isRegistered(coreTokens.MongoClient)).toBe(true);
+        const client = container.resolve<MongoClient>(coreTokens.MongoClient);
         expect(client).toBeDefined();
 
         // Verify we can perform basic operations (this tests real connectivity)
@@ -193,20 +201,20 @@ describe("DI Container Integration Tests", () => {
 
       try {
         // Assert: Multiple resolutions should return the same instance
-        expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
-        const factory1 = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
-        const factory2 = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+        expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
+        const factory1 = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
+        const factory2 = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
 
         expect(factory1).toBe(factory2);
 
         // Both should be able to get the same client
-        const client1 = container.resolve<MongoClient>(TOKENS.MongoClient);
-        const client2 = container.resolve<MongoClient>(TOKENS.MongoClient);
+        const client1 = container.resolve<MongoClient>(coreTokens.MongoClient);
+        const client2 = container.resolve<MongoClient>(coreTokens.MongoClient);
 
         expect(client1).toBe(client2); // Should be the same connection
       } finally {
         // Clean up
-        const factory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+        const factory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
         await factory.closeAll();
       }
     }, 30000);
@@ -234,7 +242,7 @@ describe("DI Container Integration Tests", () => {
 
       // Assert: Should still work correctly
       expect(() => {
-        const task = container.resolve<MongoConnectionTestTask>(TOKENS.MongoConnectionTestTask);
+        const task = container.resolve<MongoConnectionTestTask>(taskTokens.MongoConnectionTestTask);
         expect(task).toBeDefined();
       }).not.toThrow();
     }, 30000);
@@ -251,17 +259,17 @@ describe("DI Container Integration Tests", () => {
       await bootstrapContainer(config);
 
       // Assert: MongoDB dependencies should not be registered
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
 
       // Act: Bootstrap again with MongoDB
       config = { requiresMongoDB: true, requiresLLM: false };
       await bootstrapContainer(config);
 
       // Assert: MongoDB dependencies should now be registered and resolvable
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
 
       expect(() => {
-        const factory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+        const factory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
         expect(factory).toBeDefined();
       }).not.toThrow();
     }, 30000);
@@ -278,8 +286,8 @@ describe("DI Container Integration Tests", () => {
       await bootstrapContainer(config);
 
       // Verify factory is registered
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
-      const factory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
+      const factory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
 
       // Act: Clear the container completely (both instances and registrations)
       await factory.closeAll(); // Cleanup connections first
@@ -287,13 +295,13 @@ describe("DI Container Integration Tests", () => {
       container.reset(); // Clear all registrations
 
       // Assert: After clearing, should not be able to resolve
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
 
       // Re-bootstrap should work fine
       await expect(bootstrapContainer(config)).resolves.not.toThrow();
 
       // Final cleanup
-      const newFactory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
+      const newFactory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
       await newFactory.closeAll();
     }, 30000);
   });
@@ -315,8 +323,8 @@ describe("DI Container Integration Tests", () => {
       await bootstrapContainer(config);
 
       // Act: Resolve repositories and verify they have working methods
-      const sourcesRepo = container.resolve<any>(TOKENS.SourcesRepository);
-      const appSummariesRepo = container.resolve<any>(TOKENS.AppSummariesRepository);
+      const sourcesRepo = container.resolve<any>(repositoryTokens.SourcesRepository);
+      const appSummariesRepo = container.resolve<any>(repositoryTokens.AppSummariesRepository);
 
       // Assert: Repositories should have expected methods and schemas
       expect(sourcesRepo).toBeDefined();

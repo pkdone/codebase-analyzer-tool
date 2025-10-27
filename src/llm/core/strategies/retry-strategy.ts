@@ -9,7 +9,7 @@ import type {
 import { LLMResponseStatus } from "../../types/llm.types";
 import type { LLMRetryConfig } from "../../providers/llm-provider.types";
 import LLMStats from "../tracking/llm-stats";
-import { TOKENS } from "../../../tokens";
+import { llmTokens } from "../llm.tokens";
 
 /**
  * Custom error class for retryable LLM operations
@@ -35,7 +35,7 @@ function isRetryableError(error: unknown): error is RetryableError {
  */
 @injectable()
 export class RetryStrategy {
-  constructor(@inject(TOKENS.LLMStats) private readonly llmStats: LLMStats) {}
+  constructor(@inject(llmTokens.LLMStats) private readonly llmStats: LLMStats) {}
 
   /**
    * Execute an LLM function with retry logic for overloaded or invalid responses.

@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../../tokens";
+import { reportingTokens } from "../../components/reporting/reporting.tokens";
 
 // Reporting component imports
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
@@ -26,23 +26,32 @@ import AppReportGenerator from "../../components/reporting/app-report-generator"
  */
 export function registerReportingComponents(): void {
   // Register report writers and generators
-  container.registerSingleton(TOKENS.HtmlReportWriter, HtmlReportWriter);
-  container.registerSingleton(TOKENS.JsonReportWriter, JsonReportWriter);
-  container.registerSingleton(TOKENS.DependencyTreePngGenerator, DependencyTreePngGenerator);
-  container.registerSingleton(TOKENS.PieChartGenerator, PieChartGenerator);
-  container.registerSingleton(TOKENS.FlowchartSvgGenerator, FlowchartSvgGenerator);
-  container.registerSingleton(TOKENS.DomainModelSvgGenerator, DomainModelSvgGenerator);
-  container.registerSingleton(TOKENS.ArchitectureSvgGenerator, ArchitectureSvgGenerator);
+  container.registerSingleton(reportingTokens.HtmlReportWriter, HtmlReportWriter);
+  container.registerSingleton(reportingTokens.JsonReportWriter, JsonReportWriter);
+  container.registerSingleton(
+    reportingTokens.DependencyTreePngGenerator,
+    DependencyTreePngGenerator,
+  );
+  container.registerSingleton(reportingTokens.PieChartGenerator, PieChartGenerator);
+  container.registerSingleton(reportingTokens.FlowchartSvgGenerator, FlowchartSvgGenerator);
+  container.registerSingleton(reportingTokens.DomainModelSvgGenerator, DomainModelSvgGenerator);
+  container.registerSingleton(reportingTokens.ArchitectureSvgGenerator, ArchitectureSvgGenerator);
 
   // Register data providers
-  container.registerSingleton(TOKENS.DatabaseReportDataProvider, DatabaseReportDataProvider);
-  container.registerSingleton(TOKENS.CodeStructureDataProvider, CodeStructureDataProvider);
-  container.registerSingleton(TOKENS.AppStatisticsDataProvider, AppStatisticsDataProvider);
-  container.registerSingleton(TOKENS.AppSummaryCategoriesProvider, AppSummaryCategoriesProvider);
-  container.registerSingleton(TOKENS.DomainModelDataProvider, DomainModelDataProvider);
+  container.registerSingleton(
+    reportingTokens.DatabaseReportDataProvider,
+    DatabaseReportDataProvider,
+  );
+  container.registerSingleton(reportingTokens.CodeStructureDataProvider, CodeStructureDataProvider);
+  container.registerSingleton(reportingTokens.AppStatisticsDataProvider, AppStatisticsDataProvider);
+  container.registerSingleton(
+    reportingTokens.AppSummaryCategoriesProvider,
+    AppSummaryCategoriesProvider,
+  );
+  container.registerSingleton(reportingTokens.DomainModelDataProvider, DomainModelDataProvider);
 
   // Register main report generator
-  container.registerSingleton(TOKENS.AppReportGenerator, AppReportGenerator);
+  container.registerSingleton(reportingTokens.AppReportGenerator, AppReportGenerator);
 
   console.log("Reporting components registered");
 }

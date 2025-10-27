@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { TOKENS } from "../../../../src/tokens";
+import { coreTokens } from "../../../../src/di/core.tokens";
+import { apiTokens } from "../../../../src/components/api/api.tokens";
 import InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-provider";
 import { setupTestDatabase, teardownTestDatabase } from "../../../helpers/database/db-test-helper";
 
@@ -17,12 +18,14 @@ describe("AnalysisDataServer", () => {
 
   it("should return an array of objects where each object has keys 'name', 'description', and 'keyBusinessActivities'", async () => {
     // Check if ProjectName is registered, if not register a test project name
-    if (!container.isRegistered(TOKENS.ProjectName)) {
-      container.registerInstance(TOKENS.ProjectName, "test-project");
+    if (!container.isRegistered(coreTokens.ProjectName)) {
+      container.registerInstance(coreTokens.ProjectName, "test-project");
     }
 
     // Resolve the service under test directly from the container
-    const analysisDataServer = container.resolve<InsightsDataProvider>(TOKENS.InsightsDataProvider);
+    const analysisDataServer = container.resolve<InsightsDataProvider>(
+      apiTokens.InsightsDataProvider,
+    );
 
     console.log(`About to call getBusinessProcesses()...`);
     const result = await analysisDataServer.getBusinessProcesses();

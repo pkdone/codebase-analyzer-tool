@@ -3,7 +3,9 @@ import { injectable, inject } from "tsyringe";
 import type { InsightsProcessorSelector } from "../components/insights/insights-processor-selector";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
-import { TOKENS } from "../tokens";
+import { llmTokens } from "../llm/core/llm.tokens";
+import { coreTokens } from "../di/core.tokens";
+import { insightsTokens } from "../components/insights/insights.tokens";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
 
@@ -16,9 +18,9 @@ export class InsightsGenerationTask extends BaseLLMTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
-    @inject(TOKENS.ProjectName) projectName: string,
-    @inject(TOKENS.InsightsProcessorSelector)
+    @inject(llmTokens.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
+    @inject(coreTokens.ProjectName) projectName: string,
+    @inject(insightsTokens.InsightsProcessorSelector)
     private readonly insightsProcessorSelector: InsightsProcessorSelector,
   ) {
     super(llmStatsReporter, projectName);

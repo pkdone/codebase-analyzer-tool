@@ -17,7 +17,7 @@ import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strateg
 import { JsonValidator } from "../json-processing/core/json-validator";
 import { log, logErrorWithContext, logWithContext } from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
-import { TOKENS } from "../../tokens";
+import { llmTokens } from "./llm.tokens";
 import { hasSignificantSanitizationSteps } from "../json-processing/sanitizers";
 
 /**
@@ -33,7 +33,7 @@ export class LLMExecutionPipeline {
     private readonly retryStrategy: RetryStrategy,
     private readonly fallbackStrategy: FallbackStrategy,
     private readonly promptAdaptationStrategy: PromptAdaptationStrategy,
-    @inject(TOKENS.LLMStats) private readonly llmStats: LLMStats,
+    @inject(llmTokens.LLMStats) private readonly llmStats: LLMStats,
   ) {}
 
   /**

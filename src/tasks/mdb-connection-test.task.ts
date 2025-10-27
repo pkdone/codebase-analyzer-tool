@@ -2,7 +2,8 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { Task } from "./task.types";
 import type { SourcesRepository } from "../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../tokens";
+import { repositoryTokens } from "../di/repositories.tokens";
+import { coreTokens } from "../di/core.tokens";
 
 /**
  * Task to test the MongoDB connection.
@@ -13,8 +14,9 @@ export class MongoConnectionTestTask implements Task {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.ProjectName) private readonly projectName: string,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
+    @inject(coreTokens.ProjectName) private readonly projectName: string,
   ) {}
 
   /**

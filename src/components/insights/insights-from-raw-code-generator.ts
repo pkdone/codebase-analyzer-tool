@@ -2,7 +2,9 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import LLMRouter from "../../llm/core/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
-import { TOKENS } from "../../tokens";
+import { repositoryTokens } from "../../di/repositories.tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
+import { coreTokens } from "../../di/core.tokens";
 import type { ApplicationInsightsProcessor } from "./insights.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
@@ -33,11 +35,11 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Creates a new InsightsFromRawCodeGenerator.
    */
   constructor(
-    @inject(TOKENS.AppSummariesRepository)
+    @inject(repositoryTokens.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
-    @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(TOKENS.ProjectName) private readonly projectName: string,
-    @inject(TOKENS.EnvVars) private readonly env: EnvVars,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(coreTokens.ProjectName) private readonly projectName: string,
+    @inject(coreTokens.EnvVars) private readonly env: EnvVars,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
   }

@@ -1,5 +1,7 @@
 import { inject, injectable } from "tsyringe";
-import { TOKENS } from "../../tokens";
+import { coreTokens } from "../../di/core.tokens";
+import { insightsTokens } from "./insights.tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./insights-from-db-generator";
@@ -14,11 +16,12 @@ import { llmProviderConfig } from "../../llm/llm.config";
 @injectable()
 export class InsightsProcessorSelector {
   constructor(
-    @inject(TOKENS.EnvVars) private readonly envVars: EnvVars,
-    @inject(TOKENS.InsightsFromDBGenerator) private readonly dbGenerator: InsightsFromDBGenerator,
-    @inject(TOKENS.InsightsFromRawCodeGenerator)
+    @inject(coreTokens.EnvVars) private readonly envVars: EnvVars,
+    @inject(insightsTokens.InsightsFromDBGenerator)
+    private readonly dbGenerator: InsightsFromDBGenerator,
+    @inject(insightsTokens.InsightsFromRawCodeGenerator)
     private readonly rawCodeGenerator: InsightsFromRawCodeGenerator,
-    @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
+    @inject(llmTokens.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
   ) {}
 
   /**

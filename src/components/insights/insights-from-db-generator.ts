@@ -4,7 +4,10 @@ import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../../tokens";
+import { repositoryTokens } from "../../di/repositories.tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
+import { coreTokens } from "../../di/core.tokens";
+import { insightsTokens } from "./insights.tokens";
 import { insightsTuningConfig } from "./insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompt-templates/app-summaries.prompts";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
@@ -37,19 +40,20 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
    * Creates a new InsightsFromDBGenerator with strategy-based processing.
    */
   constructor(
-    @inject(TOKENS.AppSummariesRepository)
+    @inject(repositoryTokens.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
-    @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.ProjectName) private readonly projectName: string,
-    @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
-    @inject(TOKENS.BomAggregator) private readonly bomAggregator: BomAggregator,
-    @inject(TOKENS.CodeQualityAggregator)
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
+    @inject(coreTokens.ProjectName) private readonly projectName: string,
+    @inject(llmTokens.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
+    @inject(insightsTokens.BomAggregator) private readonly bomAggregator: BomAggregator,
+    @inject(insightsTokens.CodeQualityAggregator)
     private readonly codeQualityAggregator: CodeQualityAggregator,
-    @inject(TOKENS.JobAggregator) private readonly jobAggregator: JobAggregator,
-    @inject(TOKENS.ModuleCouplingAggregator)
+    @inject(insightsTokens.JobAggregator) private readonly jobAggregator: JobAggregator,
+    @inject(insightsTokens.ModuleCouplingAggregator)
     private readonly moduleCouplingAggregator: ModuleCouplingAggregator,
-    @inject(TOKENS.UiAggregator) private readonly uiAggregator: UiAggregator,
+    @inject(insightsTokens.UiAggregator) private readonly uiAggregator: UiAggregator,
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations

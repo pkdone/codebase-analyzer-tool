@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../../tokens";
+import { coreTokens } from "../core.tokens";
 import { MongoDBClientFactory } from "../../common/mongodb/mdb-client-factory";
 import { databaseConfig } from "../../config/database.config";
 import type { EnvVars } from "../../env/env.types";
@@ -9,18 +9,18 @@ import type { EnvVars } from "../../env/env.types";
  * Uses a factory function to handle async initialization cleanly while maintaining compatibility with testing.
  */
 export function registerMongoDBDependencies(): void {
-  if (container.isRegistered(TOKENS.MongoDBClientFactory)) {
+  if (container.isRegistered(coreTokens.MongoDBClientFactory)) {
     console.log("MongoDB dependencies already registered - skipping registration");
     return;
   }
 
   // Register the factory as singleton
-  container.registerSingleton(TOKENS.MongoDBClientFactory, MongoDBClientFactory);
+  container.registerSingleton(coreTokens.MongoDBClientFactory, MongoDBClientFactory);
   console.log("MongoDB Client Factory initialized and registered as singleton");
 
   // Register MongoDBClientFactory as a shutdownable component for automatic cleanup
-  container.register(TOKENS.Shutdownable, {
-    useFactory: (c) => c.resolve(TOKENS.MongoDBClientFactory),
+  container.register(coreTokens.Shutdownable, {
+    useFactory: (c) => c.resolve(coreTokens.MongoDBClientFactory),
   });
   console.log("MongoDBClientFactory registered as shutdownable component");
 }
@@ -30,19 +30,19 @@ export function registerMongoDBDependencies(): void {
  * This function should be called during application bootstrap after registering dependencies.
  */
 export async function connectAndRegisterMongoClient(): Promise<void> {
-  if (container.isRegistered(TOKENS.MongoClient)) {
+  if (container.isRegistered(coreTokens.MongoClient)) {
     console.log("MongoDB Client already registered - skipping connection");
     return;
   }
 
-  const factory = container.resolve<MongoDBClientFactory>(TOKENS.MongoDBClientFactory);
-  const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
+  const factory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
+  const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
 
   const client = await factory.connect(
     databaseConfig.DEFAULT_MONGO_SERVICE_ID,
     envVars.MONGODB_URL,
   );
 
-  container.registerInstance(TOKENS.MongoClient, client);
+  container.registerInstance(coreTokens.MongoClient, client);
   console.log("MongoDB Client connected and registered as instance");
 }

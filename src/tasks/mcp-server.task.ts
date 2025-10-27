@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import McpHttpServer from "../components/api/mcpServing/mcp-http-server";
 import { Task } from "./task.types";
-import { TOKENS } from "../tokens";
+import { apiTokens } from "../components/api/api.tokens";
 
 /**
  * Task to run the MCP insights server.
@@ -14,7 +14,7 @@ export class McpServerTask implements Task {
   /**
    * Constructor with dependency injection.
    */
-  constructor(@inject(TOKENS.McpHttpServer) private readonly mcpHttpServer: McpHttpServer) {}
+  constructor(@inject(apiTokens.McpHttpServer) private readonly mcpHttpServer: McpHttpServer) {}
 
   /**
    * Execute the service - starts the MCP insights server and keeps it running.

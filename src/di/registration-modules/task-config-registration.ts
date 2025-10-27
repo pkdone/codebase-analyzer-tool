@@ -1,4 +1,4 @@
-import { TOKENS } from "../../tokens";
+import { taskTokens } from "../tasks.tokens";
 import { TaskRunnerConfig } from "../../tasks/task.types";
 
 /**
@@ -6,16 +6,16 @@ import { TaskRunnerConfig } from "../../tasks/task.types";
  */
 const TASK_CONFIGURATIONS = new Map<symbol, TaskRunnerConfig>([
   // Main application tasks that require both MongoDB and LLM
-  [TOKENS.CodebaseCaptureTask, { requiresMongoDB: true, requiresLLM: true }],
-  [TOKENS.CodebaseQueryTask, { requiresMongoDB: true, requiresLLM: true }],
-  [TOKENS.InsightsGenerationTask, { requiresMongoDB: true, requiresLLM: true }],
-  [TOKENS.McpServerTask, { requiresMongoDB: true, requiresLLM: true }],
+  [taskTokens.CodebaseCaptureTask, { requiresMongoDB: true, requiresLLM: true }],
+  [taskTokens.CodebaseQueryTask, { requiresMongoDB: true, requiresLLM: true }],
+  [taskTokens.InsightsGenerationTask, { requiresMongoDB: true, requiresLLM: true }],
+  [taskTokens.McpServerTask, { requiresMongoDB: true, requiresLLM: true }],
 
   // Tasks with specific requirements
-  [TOKENS.OneShotGenerateInsightsTask, { requiresMongoDB: false, requiresLLM: true }],
-  [TOKENS.MongoConnectionTestTask, { requiresMongoDB: true, requiresLLM: false }],
-  [TOKENS.PluggableLLMsTestTask, { requiresMongoDB: false, requiresLLM: true }],
-  [TOKENS.ReportGenerationTask, { requiresMongoDB: true, requiresLLM: false }],
+  [taskTokens.OneShotGenerateInsightsTask, { requiresMongoDB: false, requiresLLM: true }],
+  [taskTokens.MongoConnectionTestTask, { requiresMongoDB: true, requiresLLM: false }],
+  [taskTokens.PluggableLLMsTestTask, { requiresMongoDB: false, requiresLLM: true }],
+  [taskTokens.ReportGenerationTask, { requiresMongoDB: true, requiresLLM: false }],
 ]);
 
 /**

@@ -1,6 +1,6 @@
 import { inject } from "tsyringe";
 import { MongoClient, Collection, Document } from "mongodb";
-import { TOKENS } from "../tokens";
+import { coreTokens } from "../di/core.tokens";
 
 /**
  * Base repository class that provides common MongoDB setup.
@@ -18,8 +18,8 @@ export abstract class BaseRepository<T extends Document> {
    * @param collectionName The name of the MongoDB collection
    */
   constructor(
-    @inject(TOKENS.MongoClient) mongoClient: MongoClient,
-    @inject(TOKENS.DatabaseName) dbName: string,
+    @inject(coreTokens.MongoClient) mongoClient: MongoClient,
+    @inject(coreTokens.DatabaseName) dbName: string,
     collectionName: string,
   ) {
     const db = mongoClient.db(dbName);

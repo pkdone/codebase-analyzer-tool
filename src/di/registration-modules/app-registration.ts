@@ -1,5 +1,8 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../../tokens";
+import { coreTokens } from "../core.tokens";
+import { repositoryTokens } from "../repositories.tokens";
+import { taskTokens } from "../tasks.tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
 
 // Repository imports
 import SourcesRepositoryImpl from "../../repositories/sources/sources.repository";
@@ -63,13 +66,16 @@ export function registerAppDependencies(config: TaskRunnerConfig): void {
  */
 function registerRepositories(): void {
   // Register the default database name for the application
-  container.registerInstance(TOKENS.DatabaseName, databaseConfig.CODEBASE_DB_NAME);
+  container.registerInstance(coreTokens.DatabaseName, databaseConfig.CODEBASE_DB_NAME);
 
   // Register repositories as singletons
-  container.registerSingleton<SourcesRepository>(TOKENS.SourcesRepository, SourcesRepositoryImpl);
+  container.registerSingleton<SourcesRepository>(
+    repositoryTokens.SourcesRepository,
+    SourcesRepositoryImpl,
+  );
 
   container.registerSingleton<AppSummariesRepository>(
-    TOKENS.AppSummariesRepository,
+    repositoryTokens.AppSummariesRepository,
     AppSummariesRepositoryImpl,
   );
 
@@ -82,16 +88,16 @@ function registerRepositories(): void {
  */
 function registerComponents(config: TaskRunnerConfig): void {
   // Register LLM strategies and pipeline components (always register since they may be needed)
-  container.registerSingleton(TOKENS.RetryStrategy, RetryStrategy);
-  container.registerSingleton(TOKENS.FallbackStrategy, FallbackStrategy);
-  container.registerSingleton(TOKENS.LLMExecutionPipeline, LLMExecutionPipeline);
+  container.registerSingleton(llmTokens.RetryStrategy, RetryStrategy);
+  container.registerSingleton(llmTokens.FallbackStrategy, FallbackStrategy);
+  container.registerSingleton(llmTokens.LLMExecutionPipeline, LLMExecutionPipeline);
 
   // Register lifecycle services
   // ShutdownService uses multi-injection to automatically collect all Shutdownable components
-  container.registerSingleton(TOKENS.ShutdownService, ShutdownService);
+  container.registerSingleton(coreTokens.ShutdownService, ShutdownService);
 
   // Register database components
-  container.registerSingleton(TOKENS.DatabaseInitializer, DatabaseInitializer);
+  container.registerSingleton(taskTokens.DatabaseInitializer, DatabaseInitializer);
 
   // Register domain-specific components
   registerCaptureComponents();
@@ -125,9 +131,9 @@ function registerLLMDependentComponents(): void {
  */
 function registerTasks(): void {
   // Register tasks that don't depend on LLMRouter as regular singletons
-  container.registerSingleton(TOKENS.ReportGenerationTask, ReportGenerationTask);
-  container.registerSingleton(TOKENS.MongoConnectionTestTask, MongoConnectionTestTask);
-  container.registerSingleton(TOKENS.McpServerTask, McpServerTask);
+  container.registerSingleton(taskTokens.ReportGenerationTask, ReportGenerationTask);
+  container.registerSingleton(taskTokens.MongoConnectionTestTask, MongoConnectionTestTask);
+  container.registerSingleton(taskTokens.McpServerTask, McpServerTask);
   // Register tasks that depend on LLMRouter with simplified singleton registrations
   registerLLMDependentTasks();
   console.log("Main executable tasks registered");
@@ -139,10 +145,10 @@ function registerTasks(): void {
  */
 function registerLLMDependentTasks(): void {
   // Simplified registrations using tsyringe's automatic dependency injection
-  container.registerSingleton(TOKENS.CodebaseQueryTask, CodebaseQueryTask);
-  container.registerSingleton(TOKENS.CodebaseCaptureTask, CodebaseCaptureTask);
-  container.registerSingleton(TOKENS.InsightsGenerationTask, InsightsGenerationTask);
-  container.registerSingleton(TOKENS.OneShotGenerateInsightsTask, OneShotGenerateInsightsTask);
-  container.registerSingleton(TOKENS.PluggableLLMsTestTask, PluggableLLMsTestTask);
+  container.registerSingleton(taskTokens.CodebaseQueryTask, CodebaseQueryTask);
+  container.registerSingleton(taskTokens.CodebaseCaptureTask, CodebaseCaptureTask);
+  container.registerSingleton(taskTokens.InsightsGenerationTask, InsightsGenerationTask);
+  container.registerSingleton(taskTokens.OneShotGenerateInsightsTask, OneShotGenerateInsightsTask);
+  container.registerSingleton(taskTokens.PluggableLLMsTestTask, PluggableLLMsTestTask);
   console.log("LLM-dependent tasks registered with simplified singleton registrations");
 }

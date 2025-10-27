@@ -10,7 +10,9 @@ import { processItemsConcurrently } from "../../common/utils/async-utils";
 import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
-import { TOKENS } from "../../tokens";
+import { repositoryTokens } from "../../di/repositories.tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
+import { captureTokens } from "./capture.tokens";
 import type { SourceSummaryType } from "./file-summarizer";
 
 /**
@@ -22,9 +24,10 @@ export default class CodebaseToDBLoader {
    * Constructor.
    */
   constructor(
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(TOKENS.FileSummarizer) private readonly fileSummarizer: FileSummarizer,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(captureTokens.FileSummarizer) private readonly fileSummarizer: FileSummarizer,
   ) {}
 
   /**

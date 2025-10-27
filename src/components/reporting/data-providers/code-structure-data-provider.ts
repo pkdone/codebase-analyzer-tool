@@ -4,7 +4,7 @@ import type {
   ProjectedTopLevelJavaClassDependencies,
   HierarchicalTopLevelJavaClassDependencies,
 } from "../../../repositories/sources/sources.model";
-import { TOKENS } from "../../../tokens";
+import { repositoryTokens } from "../../../di/repositories.tokens";
 import { convertToHierarchical } from "../utils/dependency-tree-builder";
 import { fileTypeMappingsConfig } from "../../../config/file-type-mappings.config";
 
@@ -15,7 +15,8 @@ import { fileTypeMappingsConfig } from "../../../config/file-type-mappings.confi
 @injectable()
 export class CodeStructureDataProvider {
   constructor(
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
   ) {}
 
   /**

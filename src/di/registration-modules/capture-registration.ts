@@ -1,4 +1,4 @@
-import { TOKENS } from "../../tokens";
+import { captureTokens } from "../../components/capture/capture.tokens";
 import { registerComponents } from "../registration-utils";
 
 // Capture component imports
@@ -25,8 +25,8 @@ export function registerCaptureComponents(): void {
 export function registerLLMDependentCaptureComponents(): void {
   registerComponents(
     [
-      { token: TOKENS.FileSummarizer, implementation: FileSummarizer },
-      { token: TOKENS.CodebaseToDBLoader, implementation: CodebaseToDBLoader },
+      { token: captureTokens.FileSummarizer, implementation: FileSummarizer },
+      { token: captureTokens.CodebaseToDBLoader, implementation: CodebaseToDBLoader },
     ],
     "LLM-dependent capture components registered",
   );

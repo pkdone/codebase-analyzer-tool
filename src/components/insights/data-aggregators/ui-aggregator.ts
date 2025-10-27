@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../../../tokens";
+import { repositoryTokens } from "../../../di/repositories.tokens";
 
 /**
  * Type definitions for UI analysis summary
@@ -51,7 +51,7 @@ export class UiAggregator {
   private readonly HIGH_SCRIPTLET_THRESHOLD = 10;
 
   constructor(
-    @inject(TOKENS.SourcesRepository)
+    @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 

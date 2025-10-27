@@ -22,7 +22,7 @@ import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error-utils";
 import { BaseRepository } from "../base-repository";
-import { TOKENS } from "../../tokens";
+import { coreTokens } from "../../di/core.tokens";
 import { inject, injectable } from "tsyringe";
 
 /**
@@ -37,8 +37,8 @@ export default class SourcesRepositoryImpl
    * Constructor.
    */
   constructor(
-    @inject(TOKENS.MongoClient) mongoClient: MongoClient,
-    @inject(TOKENS.DatabaseName) dbName: string,
+    @inject(coreTokens.MongoClient) mongoClient: MongoClient,
+    @inject(coreTokens.DatabaseName) dbName: string,
   ) {
     super(mongoClient, dbName, databaseConfig.SOURCES_COLLECTION_NAME);
   }

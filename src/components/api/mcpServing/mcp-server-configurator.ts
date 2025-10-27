@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import InsightsDataProvider from "./insights-data-provider";
 import { mcpConfig } from "./mcp.config";
-import { TOKENS } from "../../../tokens";
+import { apiTokens } from "../api.tokens";
 
 /**
  * Factory class for creating and configuring MCP server instances.
@@ -13,7 +13,8 @@ export default class McpServerFactory {
    * Constructor.
    */
   constructor(
-    @inject(TOKENS.InsightsDataProvider) private readonly analysisDataServer: InsightsDataProvider,
+    @inject(apiTokens.InsightsDataProvider)
+    private readonly analysisDataServer: InsightsDataProvider,
   ) {}
 
   /**

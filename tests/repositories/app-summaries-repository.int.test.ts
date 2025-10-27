@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { TOKENS } from "../../src/tokens";
+import { repositoryTokens } from "../../src/di/repositories.tokens";
 import { AppSummariesRepository } from "../../src/repositories/app-summaries/app-summaries.repository.interface";
 import { MongoClient } from "mongodb";
 import {
@@ -19,7 +19,7 @@ describe("AppSummaryRepository Integration Tests", () => {
     mongoClient = await setupTestDatabase();
     // Resolve the repository, which is now configured to use the test DB
     appSummariesRepository = container.resolve<AppSummariesRepository>(
-      TOKENS.AppSummariesRepository,
+      repositoryTokens.AppSummariesRepository,
     );
   }, 60000);
 

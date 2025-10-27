@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../../../tokens";
+import { repositoryTokens } from "../../../di/repositories.tokens";
 
 interface AggregatedDependency {
   name: string;
@@ -17,7 +17,7 @@ interface AggregatedDependency {
 @injectable()
 export class BomAggregator {
   constructor(
-    @inject(TOKENS.SourcesRepository)
+    @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 

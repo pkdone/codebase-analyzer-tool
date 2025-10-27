@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../../../tokens";
+import { repositoryTokens } from "../../../di/repositories.tokens";
 
 /**
  * Aggregates code quality metrics using MongoDB aggregation pipelines.
@@ -9,7 +9,7 @@ import { TOKENS } from "../../../tokens";
 @injectable()
 export class CodeQualityAggregator {
   constructor(
-    @inject(TOKENS.SourcesRepository)
+    @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 

@@ -6,7 +6,8 @@ import { LLMStatsReporter } from "../../llm/core/tracking/llm-stats-reporter";
 import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
 import { LLMInfoProvider } from "../../llm/core/llm-info-provider";
 import { JsonProcessor } from "../../llm/json-processing/core/json-processor";
-import { TOKENS } from "../../tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
+import { coreTokens } from "../core.tokens";
 
 /**
  * Register LLM provider management services in the DI container.
@@ -16,11 +17,11 @@ import { TOKENS } from "../../tokens";
  */
 export function registerLLMProviders(): void {
   // Register LLM utility classes
-  container.registerSingleton(TOKENS.JsonProcessor, JsonProcessor);
-  container.registerSingleton(TOKENS.LLMStats, LLMStats);
-  container.registerSingleton(TOKENS.LLMStatsReporter, LLMStatsReporter);
-  container.registerSingleton(TOKENS.PromptAdaptationStrategy, PromptAdaptationStrategy);
-  container.registerSingleton(TOKENS.LLMInfoProvider, LLMInfoProvider);
+  container.registerSingleton(llmTokens.JsonProcessor, JsonProcessor);
+  container.registerSingleton(llmTokens.LLMStats, LLMStats);
+  container.registerSingleton(llmTokens.LLMStatsReporter, LLMStatsReporter);
+  container.registerSingleton(llmTokens.PromptAdaptationStrategy, PromptAdaptationStrategy);
+  container.registerSingleton(llmTokens.LLMInfoProvider, LLMInfoProvider);
   // RetryStrategy, FallbackStrategy, and LLMExecutionPipeline are now registered in app-registration.ts
 
   console.log("LLM services registered");
@@ -31,28 +32,28 @@ export function registerLLMProviders(): void {
  * This function should be called during application bootstrap after registering dependencies.
  */
 export async function initializeAndRegisterLLMComponents(): Promise<void> {
-  if (container.isRegistered(TOKENS.LLMProviderManager)) {
+  if (container.isRegistered(llmTokens.LLMProviderManager)) {
     console.log("LLM components already registered - skipping initialization");
     return;
   }
 
   // Directly instantiate, initialize, and register to avoid resolve/re-register pattern
-  const modelFamily = container.resolve<string>(TOKENS.LLMModelFamily);
-  const jsonProcessor = container.resolve<JsonProcessor>(TOKENS.JsonProcessor);
+  const modelFamily = container.resolve<string>(llmTokens.LLMModelFamily);
+  const jsonProcessor = container.resolve<JsonProcessor>(llmTokens.JsonProcessor);
   const manager = new LLMProviderManager(modelFamily, jsonProcessor);
   await manager.initialize();
 
   // Register the initialized instance
-  container.registerInstance(TOKENS.LLMProviderManager, manager);
+  container.registerInstance(llmTokens.LLMProviderManager, manager);
   console.log("LLMProviderManager registered with async initialization");
 
   // Register LLMRouter as a singleton (now that LLMProviderManager is ready)
-  container.registerSingleton(TOKENS.LLMRouter, LLMRouter);
+  container.registerSingleton(llmTokens.LLMRouter, LLMRouter);
   console.log("LLMRouter registered as singleton");
 
   // Register LLMRouter as a shutdownable component for automatic cleanup
-  container.register(TOKENS.Shutdownable, {
-    useFactory: (c) => c.resolve(TOKENS.LLMRouter),
+  container.register(coreTokens.Shutdownable, {
+    useFactory: (c) => c.resolve(llmTokens.LLMRouter),
   });
   console.log("LLMRouter registered as shutdownable component");
 }

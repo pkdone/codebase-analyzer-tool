@@ -3,6 +3,7 @@ import { ignoreOverride } from "zod-to-json-schema";
 import type { JsonSchema7Type } from "zod-to-json-schema";
 import { ObjectId, Decimal128 } from "bson";
 import { toMongoJsonSchema } from "./utils/json-schema-utils";
+import { isJsonObject } from "../utils/type-guards";
 
 /**
  * Recursively traverse a JSON Schema object and replace unsupported keywords for MongoDB.
@@ -13,22 +14,21 @@ function sanitizeMongoUnsupportedKeywords(schema: unknown): unknown {
   if (Array.isArray(schema)) {
     return schema.map((item) => sanitizeMongoUnsupportedKeywords(item));
   }
-  if (schema && typeof schema === "object") {
-    const obj = schema as Record<string, unknown>;
+  if (isJsonObject(schema)) {
     // If const present, replace with enum single value array
-    if (Object.hasOwn(obj, "const")) {
-      const constVal = obj.const;
+    if (Object.hasOwn(schema, "const")) {
+      const constVal = schema.const;
       // Only add enum if enum not already defined to avoid overwriting
-      if (!Object.hasOwn(obj, "enum")) {
-        obj.enum = [constVal];
+      if (!Object.hasOwn(schema, "enum")) {
+        schema.enum = [constVal];
       }
-      delete obj.const; // Remove unsupported keyword
+      delete schema.const; // Remove unsupported keyword
     }
     // Recurse into known container properties
-    for (const key of Object.keys(obj)) {
-      obj[key] = sanitizeMongoUnsupportedKeywords(obj[key]);
+    for (const key of Object.keys(schema)) {
+      schema[key] = sanitizeMongoUnsupportedKeywords(schema[key]);
     }
-    return obj;
+    return schema;
   }
   return schema;
 }

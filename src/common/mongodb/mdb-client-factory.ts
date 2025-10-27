@@ -1,8 +1,9 @@
-import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
+import { MongoClient, MongoClientOptions } from "mongodb";
 import { injectable } from "tsyringe";
 import { logErrorMsgAndDetail, logWarningMsg } from "../utils/logging";
 import { redactUrl } from "../security/url-redactor";
 import { IShutdownable } from "../interfaces/shutdownable.interface";
+import { DatabaseConnectionError } from "../errors/app-error";
 
 /**
  * A factory class for creating and managing MongoDB client connections.
@@ -45,7 +46,8 @@ export class MongoDBClientFactory implements IShutdownable {
       return newClient;
     } catch (error: unknown) {
       logErrorMsgAndDetail("Failed to connect to MongoDB", error);
-      throw new MongoError(`Failed to connect to MongoDB with id '${id}'.`);
+      const cause = error instanceof Error ? error : undefined;
+      throw new DatabaseConnectionError(`Failed to connect to MongoDB with id '${id}'.`, cause);
     }
   }
 
@@ -54,12 +56,12 @@ export class MongoDBClientFactory implements IShutdownable {
    *
    * @param id The id identifying the connection.
    * @returns The MongoClient instance.
-   * @throws MongoError if the client is not connected.
+   * @throws DatabaseError if the client is not connected.
    */
   getClient(id: string): MongoClient {
     const client = this.clients.get(id);
     if (!client)
-      throw new MongoError(
+      throw new DatabaseConnectionError(
         `No active connection found for id '${id}'. Call \`connect(id, url)\` first.`,
       );
     return client;

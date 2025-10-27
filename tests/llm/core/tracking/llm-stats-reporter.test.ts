@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { LLMStatsReporter } from "../../../../src/llm/core/tracking/llm-stats-reporter";
 import LLMStats from "../../../../src/llm/core/tracking/llm-stats";
-import { TOKENS } from "../../../../src/tokens";
+import { llmTokens } from "../../../../src/llm/core/llm.tokens";
 
 describe("LLMStatsReporter", () => {
   let llmStatsReporter: LLMStatsReporter;
@@ -12,7 +12,7 @@ describe("LLMStatsReporter", () => {
     // Clear the container and register fresh instances
     container.clearInstances();
     llmStats = new LLMStats();
-    container.registerInstance(TOKENS.LLMStats, llmStats);
+    container.registerInstance(llmTokens.LLMStats, llmStats);
     llmStatsReporter = container.resolve(LLMStatsReporter);
   });
 

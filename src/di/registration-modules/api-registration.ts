@@ -1,4 +1,4 @@
-import { TOKENS } from "../../tokens";
+import { apiTokens } from "../../components/api/api.tokens";
 import { registerComponents } from "../registration-utils";
 
 // API component imports
@@ -17,9 +17,9 @@ import McpHttpServer from "../../components/api/mcpServing/mcp-http-server";
 export function registerApiComponents(): void {
   registerComponents(
     [
-      { token: TOKENS.InsightsDataProvider, implementation: InsightsDataProvider },
-      { token: TOKENS.McpServerFactory, implementation: McpServerFactory },
-      { token: TOKENS.McpHttpServer, implementation: McpHttpServer },
+      { token: apiTokens.InsightsDataProvider, implementation: InsightsDataProvider },
+      { token: apiTokens.McpServerFactory, implementation: McpServerFactory },
+      { token: apiTokens.McpHttpServer, implementation: McpHttpServer },
     ],
     "API components registered",
   );

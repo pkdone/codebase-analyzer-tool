@@ -1,7 +1,8 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
-import { TOKENS } from "../tokens";
+import { coreTokens } from "../di/core.tokens";
+import { repositoryTokens } from "../di/repositories.tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/logging";
 import type { SourcesRepository } from "../repositories/sources/sources.repository.interface";
@@ -33,10 +34,11 @@ export class DatabaseInitializer {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.MongoClient) private readonly mongoClient: MongoClient,
-    @inject(TOKENS.DatabaseName) dbName: string,
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.AppSummariesRepository)
+    @inject(coreTokens.MongoClient) private readonly mongoClient: MongoClient,
+    @inject(coreTokens.DatabaseName) dbName: string,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
+    @inject(repositoryTokens.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
   ) {
     this.db = this.mongoClient.db(dbName);

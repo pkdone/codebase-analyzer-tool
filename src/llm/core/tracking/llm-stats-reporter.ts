@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { TOKENS } from "../../../tokens";
+import { llmTokens } from "../llm.tokens";
 import type LLMStats from "./llm-stats";
 
 /**
@@ -8,7 +8,7 @@ import type LLMStats from "./llm-stats";
  */
 @injectable()
 export class LLMStatsReporter {
-  constructor(@inject(TOKENS.LLMStats) private readonly llmStats: LLMStats) {}
+  constructor(@inject(llmTokens.LLMStats) private readonly llmStats: LLMStats) {}
 
   /**
    * Print the accumulated statistics of LLM invocation result types.

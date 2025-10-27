@@ -1,18 +1,16 @@
 /**
  * High-level task orchestrators tokens.
  */
-import { TOKENS } from "../tokens";
-
 export const taskTokens = {
-  CodebaseCaptureTask: TOKENS.CodebaseCaptureTask,
-  CodebaseQueryTask: TOKENS.CodebaseQueryTask,
-  InsightsGenerationTask: TOKENS.InsightsGenerationTask,
-  OneShotGenerateInsightsTask: TOKENS.OneShotGenerateInsightsTask,
-  PluggableLLMsTestTask: TOKENS.PluggableLLMsTestTask,
-  MongoConnectionTestTask: TOKENS.MongoConnectionTestTask,
-  McpServerTask: TOKENS.McpServerTask,
-  ReportGenerationTask: TOKENS.ReportGenerationTask,
-  DatabaseInitializer: TOKENS.DatabaseInitializer,
+  CodebaseCaptureTask: Symbol("CodebaseCaptureTask"),
+  CodebaseQueryTask: Symbol("CodebaseQueryTask"),
+  InsightsGenerationTask: Symbol("InsightsGenerationTask"),
+  OneShotGenerateInsightsTask: Symbol("OneShotGenerateInsightsTask"),
+  PluggableLLMsTestTask: Symbol("PluggableLLMsTestTask"),
+  MongoConnectionTestTask: Symbol("MongoConnectionTestTask"),
+  McpServerTask: Symbol("McpServerTask"),
+  ReportGenerationTask: Symbol("ReportGenerationTask"),
+  DatabaseInitializer: Symbol("DatabaseInitializer"),
 } as const;
 
 export type TaskToken = keyof typeof taskTokens;

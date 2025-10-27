@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import type LLMRouter from "../../llm/core/llm-router";
-import { TOKENS } from "../../tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
 import path from "node:path";
@@ -25,7 +25,7 @@ export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
 @injectable()
 export class FileSummarizer {
   constructor(
-    @inject(TOKENS.LLMRouter)
+    @inject(llmTokens.LLMRouter)
     private readonly llmRouter: LLMRouter,
   ) {}
 

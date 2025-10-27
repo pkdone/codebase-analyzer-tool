@@ -4,7 +4,7 @@ import { readFile } from "../common/fs/file-operations";
 import { LLMModelQuality, LLMOutputFormat } from "../llm/types/llm.types";
 import LLMRouter from "../llm/core/llm-router";
 import { Task } from "./task.types";
-import { TOKENS } from "../tokens";
+import { llmTokens } from "../llm/core/llm.tokens";
 
 /**
  * File path to the sample prompt file
@@ -19,7 +19,7 @@ export class PluggableLLMsTestTask implements Task {
   /**
    * Constructor with dependency injection.
    */
-  constructor(@inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter) {}
+  constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {}
 
   /**
    * Execute the task - tests the LLM functionality.

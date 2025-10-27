@@ -14,7 +14,8 @@ import { log, logWithContext } from "./tracking/llm-context-logging";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMProviderManager } from "./llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
-import { TOKENS } from "../../tokens";
+import { llmTokens } from "./llm.tokens";
+import { coreTokens } from "../../di/core.tokens";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
   getOverriddenCompletionCandidates,
@@ -47,10 +48,10 @@ export default class LLMRouter implements IShutdownable {
    * @param executionPipeline The execution pipeline for orchestrating LLM calls
    */
   constructor(
-    @inject(TOKENS.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
-    @inject(TOKENS.EnvVars) private readonly envVars: EnvVars,
+    @inject(llmTokens.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
+    @inject(coreTokens.EnvVars) private readonly envVars: EnvVars,
     private readonly executionPipeline: LLMExecutionPipeline,
-    @inject(TOKENS.LLMInfoProvider) private readonly llmInfoProvider: LLMInfoProvider,
+    @inject(llmTokens.LLMInfoProvider) private readonly llmInfoProvider: LLMInfoProvider,
   ) {
     this.llm = this.llmProviderManager.getLLMProvider(this.envVars);
     this.modelsMetadata = this.llm.getModelsMetadata();

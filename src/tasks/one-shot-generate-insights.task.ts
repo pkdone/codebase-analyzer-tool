@@ -7,7 +7,9 @@ import type LLMRouter from "../llm/core/llm-router";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
-import { TOKENS } from "../tokens";
+import { llmTokens } from "../llm/core/llm.tokens";
+import { insightsTokens } from "../components/insights/insights.tokens";
+import { coreTokens } from "../di/core.tokens";
 
 /**
  * Task to generate inline insights.
@@ -18,12 +20,12 @@ export class OneShotGenerateInsightsTask extends BaseLLMTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(TOKENS.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
-    @inject(TOKENS.EnvVars) private readonly env: EnvVars,
-    @inject(TOKENS.LocalInsightsGenerator)
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(llmTokens.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
+    @inject(coreTokens.EnvVars) private readonly env: EnvVars,
+    @inject(insightsTokens.LocalInsightsGenerator)
     private readonly insightsFileGenerator: LocalInsightsGenerator,
-    @inject(TOKENS.ProjectName) projectName: string,
+    @inject(coreTokens.ProjectName) projectName: string,
   ) {
     super(llmStatsReporter, projectName);
   }

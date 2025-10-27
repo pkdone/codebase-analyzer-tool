@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
-import { TOKENS } from "../../tokens";
+import { reportingTokens } from "./reporting.tokens";
+import { repositoryTokens } from "../../di/repositories.tokens";
 import { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-writer";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { DatabaseReportDataProvider } from "./data-providers/database-report-data-provider";
@@ -62,30 +63,31 @@ export default class AppReportGenerator {
    * Constructor
    */
   constructor(
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.AppSummariesRepository)
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
+    @inject(repositoryTokens.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
-    @inject(TOKENS.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
-    @inject(TOKENS.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
-    @inject(TOKENS.DatabaseReportDataProvider)
+    @inject(reportingTokens.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
+    @inject(reportingTokens.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
+    @inject(reportingTokens.DatabaseReportDataProvider)
     private readonly databaseDataProvider: DatabaseReportDataProvider,
-    @inject(TOKENS.CodeStructureDataProvider)
+    @inject(reportingTokens.CodeStructureDataProvider)
     private readonly codeStructureDataProvider: CodeStructureDataProvider,
-    @inject(TOKENS.AppStatisticsDataProvider)
+    @inject(reportingTokens.AppStatisticsDataProvider)
     private readonly appStatsDataProvider: AppStatisticsDataProvider,
-    @inject(TOKENS.AppSummaryCategoriesProvider)
+    @inject(reportingTokens.AppSummaryCategoriesProvider)
     private readonly categoriesDataProvider: AppSummaryCategoriesProvider,
-    @inject(TOKENS.DomainModelDataProvider)
+    @inject(reportingTokens.DomainModelDataProvider)
     private readonly domainModelDataProvider: DomainModelDataProvider,
-    @inject(TOKENS.DependencyTreePngGenerator)
+    @inject(reportingTokens.DependencyTreePngGenerator)
     private readonly pngGenerator: DependencyTreePngGenerator,
-    @inject(TOKENS.PieChartGenerator)
+    @inject(reportingTokens.PieChartGenerator)
     private readonly pieChartGenerator: PieChartGenerator,
-    @inject(TOKENS.FlowchartSvgGenerator)
+    @inject(reportingTokens.FlowchartSvgGenerator)
     private readonly flowchartSvgGenerator: FlowchartSvgGenerator,
-    @inject(TOKENS.DomainModelSvgGenerator)
+    @inject(reportingTokens.DomainModelSvgGenerator)
     private readonly domainModelSvgGenerator: DomainModelSvgGenerator,
-    @inject(TOKENS.ArchitectureSvgGenerator)
+    @inject(reportingTokens.ArchitectureSvgGenerator)
     private readonly architectureSvgGenerator: ArchitectureSvgGenerator,
   ) {}
 

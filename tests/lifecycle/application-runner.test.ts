@@ -4,7 +4,7 @@ import { bootstrapContainer, container } from "../../src/di/container";
 import { getTaskConfiguration } from "../../src/di/registration-modules/task-config-registration";
 import { runTask } from "../../src/lifecycle/task-executor";
 import { ShutdownService } from "../../src/lifecycle/shutdown-service";
-import { TOKENS } from "../../src/tokens";
+import { coreTokens } from "../../src/di/core.tokens";
 
 // Mock dependencies
 jest.mock("../../src/di/container");
@@ -49,7 +49,7 @@ describe("Application Runner", () => {
     // Mock container methods
     (container.isRegistered as jest.Mock).mockReturnValue(true);
     (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
-      if (token === TOKENS.ShutdownService) {
+      if (token === coreTokens.ShutdownService) {
         return mockShutdownService;
       }
       throw new Error(`Unexpected token: ${token.toString()}`);
@@ -96,8 +96,8 @@ describe("Application Runner", () => {
       // Wait for async execution to complete
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.ShutdownService);
-      expect(container.resolve).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(container.isRegistered).toHaveBeenCalledWith(coreTokens.ShutdownService);
+      expect(container.resolve).toHaveBeenCalledWith(coreTokens.ShutdownService);
       expect(mockShutdownService.gracefulShutdown).toHaveBeenCalledTimes(1);
     });
 
@@ -109,8 +109,8 @@ describe("Application Runner", () => {
       // Wait for async execution to complete
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.ShutdownService);
-      expect(container.resolve).not.toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(container.isRegistered).toHaveBeenCalledWith(coreTokens.ShutdownService);
+      expect(container.resolve).not.toHaveBeenCalledWith(coreTokens.ShutdownService);
       expect(mockShutdownService.gracefulShutdown).not.toHaveBeenCalled();
     });
   });
@@ -213,7 +213,7 @@ describe("Application Runner", () => {
     it("should handle shutdown service resolution errors", async () => {
       const resolutionError = new Error("Failed to resolve shutdown service");
       (container.resolve as jest.Mock).mockImplementation((token: symbol): unknown => {
-        if (token === TOKENS.ShutdownService) {
+        if (token === coreTokens.ShutdownService) {
           throw resolutionError;
         }
         throw new Error(`Unexpected token: ${token.toString()}`);
@@ -224,7 +224,7 @@ describe("Application Runner", () => {
       // Wait for async execution to complete
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      expect(container.isRegistered).toHaveBeenCalledWith(TOKENS.ShutdownService);
+      expect(container.isRegistered).toHaveBeenCalledWith(coreTokens.ShutdownService);
       expect(mockConsoleError).toHaveBeenCalledWith(
         "Failed to perform graceful shutdown:",
         resolutionError,

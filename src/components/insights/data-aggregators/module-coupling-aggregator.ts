@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../../../tokens";
+import { repositoryTokens } from "../../../di/repositories.tokens";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;
 
@@ -13,7 +13,7 @@ export class ModuleCouplingAggregator {
   private readonly DEFAULT_MODULE_DEPTH = 2;
 
   constructor(
-    @inject(TOKENS.SourcesRepository)
+    @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 

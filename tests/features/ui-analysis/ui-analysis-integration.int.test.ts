@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { TOKENS } from "../../../src/tokens";
+import { repositoryTokens } from "../../../src/di/repositories.tokens";
+import { insightsTokens } from "../../../src/components/insights/insights.tokens";
 import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
 import { UiAggregator } from "../../../src/components/insights/data-aggregators/ui-aggregator";
@@ -17,9 +18,11 @@ describe("UI Technology Analysis Integration Test", () => {
     // Setup the temporary database
     await setupTestDatabase();
     // Resolve repositories and aggregator from DI container
-    sourcesRepository = container.resolve<SourcesRepository>(TOKENS.SourcesRepository);
-    appSummaryRepository = container.resolve<AppSummariesRepository>(TOKENS.AppSummariesRepository);
-    uiAggregator = container.resolve<UiAggregator>(TOKENS.UiAggregator);
+    sourcesRepository = container.resolve<SourcesRepository>(repositoryTokens.SourcesRepository);
+    appSummaryRepository = container.resolve<AppSummariesRepository>(
+      repositoryTokens.AppSummariesRepository,
+    );
+    uiAggregator = container.resolve<UiAggregator>(insightsTokens.UiAggregator);
   }, 60000);
 
   afterAll(async () => {

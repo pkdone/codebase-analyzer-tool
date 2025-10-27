@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import type { AppSummaryRecordWithId } from "../../../repositories/app-summaries/app-summaries.model";
-import { TOKENS } from "../../../tokens";
+import { repositoryTokens } from "../../../di/repositories.tokens";
 import type { AppStatistics } from "../report-gen.types";
 import { formatDateForDisplay } from "../../../common/utils/date-utils";
 
@@ -13,7 +13,8 @@ export class AppStatisticsDataProvider {
   private readonly currentDate: string;
 
   constructor(
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
   ) {
     this.currentDate = formatDateForDisplay();
   }

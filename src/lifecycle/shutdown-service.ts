@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, injectAll } from "tsyringe";
 import { IShutdownable } from "../common/interfaces/shutdownable.interface";
-import { TOKENS } from "../tokens";
+import { coreTokens } from "../di/core.tokens";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.
@@ -10,7 +10,9 @@ import { TOKENS } from "../tokens";
  */
 @injectable()
 export class ShutdownService {
-  constructor(@injectAll(TOKENS.Shutdownable) private readonly shutdownables: IShutdownable[]) {}
+  constructor(
+    @injectAll(coreTokens.Shutdownable) private readonly shutdownables: IShutdownable[],
+  ) {}
 
   /**
    * Perform graceful shutdown of all registered services.

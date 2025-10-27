@@ -3,7 +3,7 @@ import { bootstrapContainer, container } from "../di/container";
 import { getTaskConfiguration } from "../di/registration-modules/task-config-registration";
 import { runTask } from "./task-executor";
 import { ShutdownService } from "./shutdown-service";
-import { TOKENS } from "../tokens";
+import { coreTokens } from "../di/core.tokens";
 
 /**
  * Main application entry point that orchestrates the application lifecycle:
@@ -30,8 +30,8 @@ export function bootstrapAndRunTask(taskToken: symbol): void {
     } finally {
       // Gracefully shutdown all registered services
       try {
-        if (container.isRegistered(TOKENS.ShutdownService)) {
-          const shutdownService = container.resolve<ShutdownService>(TOKENS.ShutdownService);
+        if (container.isRegistered(coreTokens.ShutdownService)) {
+          const shutdownService = container.resolve<ShutdownService>(coreTokens.ShutdownService);
           await shutdownService.gracefulShutdown();
         }
       } catch (shutdownError: unknown) {

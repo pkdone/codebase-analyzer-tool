@@ -2,7 +2,8 @@ import "reflect-metadata";
 import { inject } from "tsyringe";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { Task } from "./task.types";
-import { TOKENS } from "../tokens";
+import { llmTokens } from "../llm/core/llm.tokens";
+import { coreTokens } from "../di/core.tokens";
 
 /**
  * Abstract base class for tasks that use LLM and require stats reporting.
@@ -10,8 +11,8 @@ import { TOKENS } from "../tokens";
  */
 export abstract class BaseLLMTask implements Task {
   constructor(
-    @inject(TOKENS.LLMStatsReporter) protected readonly llmStatsReporter: LLMStatsReporter,
-    @inject(TOKENS.ProjectName) protected readonly projectName: string,
+    @inject(llmTokens.LLMStatsReporter) protected readonly llmStatsReporter: LLMStatsReporter,
+    @inject(coreTokens.ProjectName) protected readonly projectName: string,
   ) {}
 
   /**

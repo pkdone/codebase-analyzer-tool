@@ -8,7 +8,7 @@ import {
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
-import { TOKENS } from "../../../tokens";
+import { llmTokens } from "../../../llm/core/llm.tokens";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 
@@ -21,7 +21,7 @@ const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
  */
 @injectable()
 export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
-  constructor(@inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter) {}
+  constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {}
 
   /**
    * Generate insights for a category by processing all summaries in a single pass.

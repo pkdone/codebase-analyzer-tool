@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../../tokens";
+import { captureTokens } from "../../components/capture/capture.tokens";
 
 // Querying component imports
 import CodebaseQueryProcessor from "../../components/querying/codebase-query-processor";
@@ -20,7 +20,7 @@ export function registerQueryingComponents(): void {
  * These components require LLM functionality to be available.
  */
 export function registerLLMDependentQueryingComponents(): void {
-  container.registerSingleton(TOKENS.CodebaseQueryProcessor, CodebaseQueryProcessor);
+  container.registerSingleton(captureTokens.CodebaseQueryProcessor, CodebaseQueryProcessor);
 
   console.log("LLM-dependent querying components registered");
 }

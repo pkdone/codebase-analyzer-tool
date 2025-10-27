@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../../../tokens";
+import { repositoryTokens } from "../../../di/repositories.tokens";
 
 interface AggregatedJob {
   jobName: string;
@@ -19,7 +19,7 @@ interface AggregatedJob {
 @injectable()
 export class JobAggregator {
   constructor(
-    @inject(TOKENS.SourcesRepository)
+    @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 

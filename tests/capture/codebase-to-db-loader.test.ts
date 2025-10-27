@@ -1,6 +1,8 @@
 import "reflect-metadata";
 import CodebaseToDBLoader from "../../src/components/capture/codebase-to-db-loader";
-import { TOKENS } from "../../src/tokens";
+import { repositoryTokens } from "../../src/di/repositories.tokens";
+import { llmTokens } from "../../src/llm/core/llm.tokens";
+import { captureTokens } from "../../src/components/capture/capture.tokens";
 import { container } from "tsyringe";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({
@@ -38,9 +40,9 @@ const mockFileSummarizer = {
 
 describe("CodebaseToDBLoader", () => {
   it("captures codebase and stores sources", async () => {
-    container.registerInstance(TOKENS.SourcesRepository, mockRepo);
-    container.registerInstance(TOKENS.LLMRouter, mockLLMRouter);
-    container.registerInstance(TOKENS.FileSummarizer, mockFileSummarizer);
+    container.registerInstance(repositoryTokens.SourcesRepository, mockRepo);
+    container.registerInstance(llmTokens.LLMRouter, mockLLMRouter);
+    container.registerInstance(captureTokens.FileSummarizer, mockFileSummarizer);
     const loader = new CodebaseToDBLoader(mockRepo, mockLLMRouter, mockFileSummarizer);
     await loader.captureCodebaseToDatabase("proj", "/root", true);
     expect(mockRepo.insertSource).toHaveBeenCalled();

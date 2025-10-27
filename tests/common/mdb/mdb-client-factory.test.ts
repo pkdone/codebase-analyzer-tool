@@ -1,5 +1,6 @@
 import "reflect-metadata";
-import { MongoClient, MongoClientOptions, MongoError } from "mongodb";
+import { MongoClient, MongoClientOptions } from "mongodb";
+import { DatabaseConnectionError } from "../../../src/common/errors/app-error";
 import { MongoDBClientFactory } from "../../../src/common/mongodb/mdb-client-factory";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../../src/common/utils/logging";
 import { redactUrl } from "../../../src/common/security/url-redactor";
@@ -113,7 +114,7 @@ describe("MongoDBClientFactory", () => {
         await factory.connect(id, url);
         fail("Expected MongoError to be thrown");
       } catch (error: unknown) {
-        expect(error).toBeInstanceOf(MongoError);
+        expect(error).toBeInstanceOf(DatabaseConnectionError);
         // The important part is that a MongoError is thrown when connection fails
       }
 
@@ -137,7 +138,7 @@ describe("MongoDBClientFactory", () => {
 
       // Verify client is removed from factory
       expect(() => factory.getClient(id)).toThrow(
-        new MongoError(
+        new DatabaseConnectionError(
           `No active connection found for id '${id}'. Call \`connect(id, url)\` first.`,
         ),
       );
@@ -175,7 +176,7 @@ describe("MongoDBClientFactory", () => {
       const id = "non-existent";
 
       expect(() => factory.getClient(id)).toThrow(
-        new MongoError(
+        new DatabaseConnectionError(
           `No active connection found for id '${id}'. Call \`connect(id, url)\` first.`,
         ),
       );
@@ -225,11 +226,7 @@ describe("MongoDBClientFactory", () => {
 
       // All clients should be removed from factory
       clients.forEach(({ id }) => {
-        expect(() => factory.getClient(id)).toThrow(
-          new MongoError(
-            `No active connection found for id '${id}'. Call \`connect(id, url)\` first.`,
-          ),
-        );
+        expect(() => factory.getClient(id)).toThrow(DatabaseConnectionError);
       });
     });
 
@@ -277,11 +274,7 @@ describe("MongoDBClientFactory", () => {
 
       // All clients should still be removed from factory despite errors
       clients.forEach(({ id }) => {
-        expect(() => factory.getClient(id)).toThrow(
-          new MongoError(
-            `No active connection found for id '${id}'. Call \`connect(id, url)\` first.`,
-          ),
-        );
+        expect(() => factory.getClient(id)).toThrow(DatabaseConnectionError);
       });
     });
 
@@ -330,7 +323,7 @@ describe("MongoDBClientFactory", () => {
 
       // Verify all clients are removed
       connections.forEach(({ id }) => {
-        expect(() => factory.getClient(id)).toThrow(MongoError);
+        expect(() => factory.getClient(id)).toThrow(DatabaseConnectionError);
       });
     });
 
@@ -360,9 +353,9 @@ describe("MongoDBClientFactory", () => {
         await factory.connect("bad", badUrl);
         fail("Expected MongoError to be thrown");
       } catch (error: unknown) {
-        expect(error).toBeInstanceOf(MongoError);
+        expect(error).toBeInstanceOf(DatabaseConnectionError);
       }
-      expect(() => factory.getClient("bad")).toThrow(MongoError);
+      expect(() => factory.getClient("bad")).toThrow(DatabaseConnectionError);
 
       // Good connection should still work
       expect(factory.getClient("good")).toBe(mockClient);

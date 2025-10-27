@@ -2,7 +2,8 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { MongoClient } from "mongodb";
 import { randomUUID } from "crypto";
-import { TOKENS } from "../../../src/tokens";
+import { coreTokens } from "../../../src/di/core.tokens";
+import { taskTokens } from "../../../src/di/tasks.tokens";
 import { databaseConfig } from "../../../src/config/database.config";
 import { registerAppDependencies } from "../../../src/di/registration-modules";
 import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
@@ -73,8 +74,8 @@ export async function setupTestDatabase(): Promise<MongoClient> {
 
   // Clear previous registrations and register test-specific dependencies
   container.clearInstances();
-  container.registerInstance(TOKENS.MongoClient, testMongoClient);
-  container.registerInstance(TOKENS.DatabaseName, testDbName);
+  container.registerInstance(coreTokens.MongoClient, testMongoClient);
+  container.registerInstance(coreTokens.DatabaseName, testDbName);
 
   // Set test environment for project name registration
   process.env.CODEBASE_DIR_PATH ??= "/test/project";
@@ -85,7 +86,7 @@ export async function setupTestDatabase(): Promise<MongoClient> {
   // Initialize the schema in the new test database
   const databaseInitializer = container.resolve<
     import("../../../src/tasks/database-initializer").DatabaseInitializer
-  >(TOKENS.DatabaseInitializer);
+  >(taskTokens.DatabaseInitializer);
   const vectorDimensions = await getVectorDimensions();
   await databaseInitializer.initializeDatabaseSchema(vectorDimensions);
 

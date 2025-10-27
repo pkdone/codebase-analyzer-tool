@@ -6,7 +6,10 @@ import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
 import { DatabaseInitializer } from "./database-initializer";
 import { databaseConfig } from "../config/database.config";
-import { TOKENS } from "../tokens";
+import { llmTokens } from "../llm/core/llm.tokens";
+import { taskTokens } from "../di/tasks.tokens";
+import { coreTokens } from "../di/core.tokens";
+import { captureTokens } from "../components/capture/capture.tokens";
 import { clearDirectory } from "../common/fs/directory-operations";
 import { outputConfig } from "../config/output.config";
 
@@ -19,12 +22,13 @@ export class CodebaseCaptureTask extends BaseLLMTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(TOKENS.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
-    @inject(TOKENS.DatabaseInitializer)
+    @inject(llmTokens.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
+    @inject(taskTokens.DatabaseInitializer)
     private readonly databaseInitializer: DatabaseInitializer,
-    @inject(TOKENS.EnvVars) private readonly env: EnvVars,
-    @inject(TOKENS.ProjectName) projectName: string,
-    @inject(TOKENS.CodebaseToDBLoader) private readonly codebaseToDBLoader: CodebaseToDBLoader,
+    @inject(coreTokens.EnvVars) private readonly env: EnvVars,
+    @inject(coreTokens.ProjectName) projectName: string,
+    @inject(captureTokens.CodebaseToDBLoader)
+    private readonly codebaseToDBLoader: CodebaseToDBLoader,
   ) {
     super(llmStatsReporter, projectName);
   }

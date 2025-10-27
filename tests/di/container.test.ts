@@ -1,6 +1,8 @@
 import { bootstrapContainer, container } from "../../src/di/container";
 import { TaskRunnerConfig } from "../../src/tasks/task.types";
-import { TOKENS } from "../../src/tokens";
+import { coreTokens } from "../../src/di/core.tokens";
+import { taskTokens } from "../../src/di/tasks.tokens";
+import { llmTokens } from "../../src/llm/core/llm.tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests
 jest.mock("../../src/llm/core/llm-provider-manager");
@@ -49,13 +51,13 @@ describe("Dependency Registration", () => {
       await bootstrapContainer(config);
 
       // Verify that environment variables and tasks are registered
-      expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
-      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
-      expect(container.isRegistered(TOKENS.InsightsGenerationTask)).toBe(true);
+      expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
+      expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
+      expect(container.isRegistered(taskTokens.InsightsGenerationTask)).toBe(true);
 
       // Verify that LLM and MongoDB dependencies are not registered
-      expect(container.isRegistered(TOKENS.LLMProviderManager)).toBe(false);
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
+      expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
     });
 
     it("should register MongoDB dependencies when required", async () => {
@@ -67,13 +69,13 @@ describe("Dependency Registration", () => {
       await bootstrapContainer(config);
 
       // Verify that MongoDB dependencies are registered along with basic dependencies
-      expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
-      expect(container.isRegistered(TOKENS.MongoClient)).toBe(true);
-      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
+      expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoClient)).toBe(true);
+      expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
 
       // Verify that LLM dependencies are not registered
-      expect(container.isRegistered(TOKENS.LLMProviderManager)).toBe(false);
+      expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
     });
 
     it("should handle multiple calls without errors (idempotent)", async () => {
@@ -89,8 +91,8 @@ describe("Dependency Registration", () => {
       await expect(bootstrapContainer(config)).resolves.not.toThrow();
 
       // Dependencies should still be registered
-      expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
-      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
+      expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
+      expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
     });
 
     it("should handle multiple calls with MongoDB without errors", async () => {
@@ -101,14 +103,14 @@ describe("Dependency Registration", () => {
 
       // First registration
       await bootstrapContainer(config);
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
 
       // Second registration should not throw errors
       await expect(bootstrapContainer(config)).resolves.not.toThrow();
 
       // Dependencies should still be registered
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
-      expect(container.isRegistered(TOKENS.MongoClient)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoClient)).toBe(true);
     });
   });
 
@@ -122,7 +124,7 @@ describe("Dependency Registration", () => {
       await bootstrapContainer(config);
 
       // Should be able to resolve environment variables
-      const envVars = container.resolve(TOKENS.EnvVars);
+      const envVars = container.resolve(coreTokens.EnvVars);
 
       expect(envVars).toBeDefined();
       expect(envVars).toHaveProperty("CODEBASE_DIR_PATH");
@@ -137,8 +139,8 @@ describe("Dependency Registration", () => {
       await bootstrapContainer(config);
 
       // Should be able to resolve MongoDB dependencies
-      const mongoFactory = container.resolve(TOKENS.MongoDBClientFactory);
-      const mongoClient = container.resolve(TOKENS.MongoClient);
+      const mongoFactory = container.resolve(coreTokens.MongoDBClientFactory);
+      const mongoClient = container.resolve(coreTokens.MongoClient);
 
       expect(mongoFactory).toBeDefined();
       expect(mongoClient).toBeDefined();
@@ -153,7 +155,7 @@ describe("Dependency Registration", () => {
       await bootstrapContainer(config);
 
       // Should be able to resolve MongoDB-dependent task
-      const mongoConnectionTestTask = container.resolve(TOKENS.MongoConnectionTestTask);
+      const mongoConnectionTestTask = container.resolve(taskTokens.MongoConnectionTestTask);
 
       expect(mongoConnectionTestTask).toBeDefined();
     });
@@ -167,8 +169,8 @@ describe("Dependency Registration", () => {
       await bootstrapContainer(config);
 
       // Resolve the same dependencies multiple times
-      const mongoFactory1 = container.resolve(TOKENS.MongoDBClientFactory);
-      const mongoFactory2 = container.resolve(TOKENS.MongoDBClientFactory);
+      const mongoFactory1 = container.resolve(coreTokens.MongoDBClientFactory);
+      const mongoFactory2 = container.resolve(coreTokens.MongoDBClientFactory);
 
       // Should be the same instance due to singleton registration
       expect(mongoFactory1).toBe(mongoFactory2);
@@ -176,9 +178,9 @@ describe("Dependency Registration", () => {
 
     it("should check registration state correctly", async () => {
       // Initially nothing should be registered
-      expect(container.isRegistered(TOKENS.EnvVars)).toBe(false);
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
-      expect(container.isRegistered(TOKENS.LLMProviderManager)).toBe(false);
+      expect(container.isRegistered(coreTokens.EnvVars)).toBe(false);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
+      expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
 
       const config: TaskRunnerConfig = {
         requiresLLM: false,
@@ -188,9 +190,9 @@ describe("Dependency Registration", () => {
       await bootstrapContainer(config);
 
       // Check that correct dependencies are now registered
-      expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
-      expect(container.isRegistered(TOKENS.LLMProviderManager)).toBe(false);
+      expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
+      expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
     });
   });
 
@@ -203,15 +205,15 @@ describe("Dependency Registration", () => {
 
       // First registration
       await bootstrapContainer(config);
-      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
+      expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
 
       // Second registration should not cause issues
       await bootstrapContainer(config);
-      expect(container.isRegistered(TOKENS.CodebaseQueryTask)).toBe(true);
+      expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
 
       // Test that registration is idempotent - verify task tokens are registered
-      expect(container.isRegistered(TOKENS.InsightsGenerationTask)).toBe(true);
-      expect(container.isRegistered(TOKENS.PluggableLLMsTestTask)).toBe(true);
+      expect(container.isRegistered(taskTokens.InsightsGenerationTask)).toBe(true);
+      expect(container.isRegistered(taskTokens.PluggableLLMsTestTask)).toBe(true);
     });
 
     it("should handle mixed dependency scenarios", async () => {
@@ -222,8 +224,8 @@ describe("Dependency Registration", () => {
       };
 
       await bootstrapContainer(config1);
-      expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(false);
+      expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
 
       // Then register with MongoDB
       const config2: TaskRunnerConfig = {
@@ -232,8 +234,8 @@ describe("Dependency Registration", () => {
       };
 
       await bootstrapContainer(config2);
-      expect(container.isRegistered(TOKENS.EnvVars)).toBe(true);
-      expect(container.isRegistered(TOKENS.MongoDBClientFactory)).toBe(true);
+      expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
     });
   });
 });

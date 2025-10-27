@@ -3,7 +3,8 @@ import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
-import { TOKENS } from "../../tokens";
+import { repositoryTokens } from "../../di/repositories.tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
 import { inputConfig } from "./config/input.config";
 import { formatSourcesForPrompt } from "../../llm/utils/prompt-formatting";
 
@@ -36,8 +37,9 @@ export default class CodebaseQueryProcessor {
    * Constructor.
    */
   constructor(
-    @inject(TOKENS.SourcesRepository) private readonly sourcesRepository: SourcesRepository,
-    @inject(TOKENS.LLMRouter) private readonly llmRouter: LLMRouter,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
   ) {}
 
   /**

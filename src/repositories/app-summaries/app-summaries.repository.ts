@@ -9,7 +9,7 @@ import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error
 import { getJSONSchema } from "./app-summaries.model";
 import { BaseRepository } from "../base-repository";
 import { MongoClient } from "mongodb";
-import { TOKENS } from "../../tokens";
+import { coreTokens } from "../../di/core.tokens";
 import { inject, injectable } from "tsyringe";
 
 /**
@@ -24,8 +24,8 @@ export default class AppSummariesRepositoryImpl
    * Constructor.
    */
   constructor(
-    @inject(TOKENS.MongoClient) mongoClient: MongoClient,
-    @inject(TOKENS.DatabaseName) dbName: string,
+    @inject(coreTokens.MongoClient) mongoClient: MongoClient,
+    @inject(coreTokens.DatabaseName) dbName: string,
   ) {
     super(mongoClient, dbName, databaseConfig.SUMMARIES_COLLECTION_NAME);
   }

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { TOKENS } from "../../src/tokens";
+import { repositoryTokens } from "../../src/di/repositories.tokens";
 import { SourcesRepository } from "../../src/repositories/sources/sources.repository.interface";
 import { SourceRecord } from "../../src/repositories/sources/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
@@ -44,7 +44,7 @@ describe("SourcesRepository Integration Tests", () => {
     // Setup the temporary database and get the client
     await setupTestDatabase();
     // Resolve the repository, which is now configured to use the test DB
-    sourcesRepository = container.resolve<SourcesRepository>(TOKENS.SourcesRepository);
+    sourcesRepository = container.resolve<SourcesRepository>(repositoryTokens.SourcesRepository);
   }, 60000);
 
   afterAll(async () => {

@@ -1,5 +1,6 @@
 import { container } from "tsyringe";
-import { TOKENS } from "../../tokens";
+import { coreTokens } from "../core.tokens";
+import { llmTokens } from "../../llm/core/llm.tokens";
 import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import { loadBaseEnvVarsOnly } from "../../env/env";
@@ -14,18 +15,18 @@ import dotenv from "dotenv";
  * Uses conditional registration with tsyringe's isRegistered check to prevent duplicates.
  */
 export function registerBaseEnvDependencies(): void {
-  if (!container.isRegistered(TOKENS.EnvVars)) {
+  if (!container.isRegistered(coreTokens.EnvVars)) {
     const envVars = loadBaseEnvVarsOnly();
-    container.registerInstance(TOKENS.EnvVars, envVars);
+    container.registerInstance(coreTokens.EnvVars, envVars);
     console.log("Base environment variables loaded and registered.");
   }
   registerProjectName();
 }
 
 export async function registerLlmEnvDependencies(): Promise<void> {
-  if (!container.isRegistered(TOKENS.EnvVars)) {
+  if (!container.isRegistered(coreTokens.EnvVars)) {
     const envVars = await loadEnvIncludingLLMVars();
-    container.registerInstance(TOKENS.EnvVars, envVars);
+    container.registerInstance(coreTokens.EnvVars, envVars);
     console.log("LLM environment variables loaded and registered.");
   }
   registerProjectName();
@@ -33,18 +34,18 @@ export async function registerLlmEnvDependencies(): Promise<void> {
 }
 
 function registerProjectName(): void {
-  if (!container.isRegistered(TOKENS.ProjectName)) {
-    const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
+  if (!container.isRegistered(coreTokens.ProjectName)) {
+    const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
     const projectName = getProjectNameFromPath(envVars.CODEBASE_DIR_PATH);
-    container.registerInstance(TOKENS.ProjectName, projectName);
+    container.registerInstance(coreTokens.ProjectName, projectName);
     console.log(`Project name '${projectName}' derived and registered.`);
   }
 }
 
 function registerLlmModelFamily(): void {
-  const envVars = container.resolve<EnvVars>(TOKENS.EnvVars);
-  if (envVars.LLM && !container.isRegistered(TOKENS.LLMModelFamily)) {
-    container.registerInstance(TOKENS.LLMModelFamily, envVars.LLM);
+  const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
+  if (envVars.LLM && !container.isRegistered(llmTokens.LLMModelFamily)) {
+    container.registerInstance(llmTokens.LLMModelFamily, envVars.LLM);
     console.log(`LLM model family '${envVars.LLM}' registered.`);
   }
 }
