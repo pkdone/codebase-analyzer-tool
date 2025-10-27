@@ -160,7 +160,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const prompt = createPromptFromConfig(
       PARTIAL_INSIGHTS_TEMPLATE,
       "source files",
-      [config.contentDescription], // Convert string to array
+      config.instructions,
       config.responseSchema,
       codeContent,
     );

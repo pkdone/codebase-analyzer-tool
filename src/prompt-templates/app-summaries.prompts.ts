@@ -86,7 +86,7 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "application description",
     contentDescription: COMMON_INSTRUCTIONS.DETAILED_DESCRIPTION,
     responseSchema: appDescriptionSchema,
-    instructions: COMMON_INSTRUCTIONS.DETAILED_DESCRIPTION,
+    instructions: [COMMON_INSTRUCTIONS.DETAILED_DESCRIPTION],
   },
 
   technologies: {
@@ -94,7 +94,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "technology inventory",
     contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
     responseSchema: technologiesSchema,
-    instructions: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
+    ],
   },
 
   businessProcesses: {
@@ -102,7 +104,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "business process analysis",
     contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
     responseSchema: businessProcessesSchema,
-    instructions: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
+    ],
   },
 
   boundedContexts: {
@@ -110,7 +114,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "bounded context analysis",
     contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
     responseSchema: boundedContextsSchema,
-    instructions: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
+    ],
   },
 
   aggregates: {
@@ -118,7 +124,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "domain aggregate analysis",
     contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
     responseSchema: aggregatesSchema,
-    instructions: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
+    ],
   },
 
   entities: {
@@ -126,7 +134,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "domain entity analysis",
     contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
     responseSchema: entitiesSchema,
-    instructions: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
+    ],
   },
 
   repositories: {
@@ -134,7 +144,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "repository pattern analysis",
     contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
     responseSchema: repositoriesSchema,
-    instructions: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
+    ],
   },
 
   potentialMicroservices: {
@@ -142,7 +154,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "microservice recommendations",
     contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of recommended microservices ${COMMON_INSTRUCTIONS.MODERNIZATION_RECOMMENDATIONS}`,
     responseSchema: potentialMicroservicesSchema,
-    instructions: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of recommended microservices ${COMMON_INSTRUCTIONS.MODERNIZATION_RECOMMENDATIONS}`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of recommended microservices ${COMMON_INSTRUCTIONS.MODERNIZATION_RECOMMENDATIONS}`,
+    ],
   },
 
   billOfMaterials: {
@@ -150,7 +164,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "dependency inventory",
     contentDescription: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection ${COMMON_INSTRUCTIONS.SECURITY_RISKS}`,
     responseSchema: billOfMaterialsSchema,
-    instructions: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection ${COMMON_INSTRUCTIONS.SECURITY_RISKS}`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection ${COMMON_INSTRUCTIONS.SECURITY_RISKS}`,
+    ],
   },
 
   codeQualitySummary: {
@@ -158,7 +174,7 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "code quality analysis",
     contentDescription: COMMON_INSTRUCTIONS.AGGREGATED_METRICS,
     responseSchema: codeQualitySummarySchema,
-    instructions: COMMON_INSTRUCTIONS.AGGREGATED_METRICS,
+    instructions: [COMMON_INSTRUCTIONS.AGGREGATED_METRICS],
   },
 
   scheduledJobsSummary: {
@@ -166,7 +182,9 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "scheduled job analysis",
     contentDescription: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
     responseSchema: scheduledJobsSummarySchema,
-    instructions: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
+    ],
   },
 
   moduleCoupling: {
@@ -174,7 +192,7 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "module coupling analysis",
     contentDescription: COMMON_INSTRUCTIONS.DEPENDENCY_MATRIX,
     responseSchema: moduleCouplingSchema,
-    instructions: COMMON_INSTRUCTIONS.DEPENDENCY_MATRIX,
+    instructions: [COMMON_INSTRUCTIONS.DEPENDENCY_MATRIX],
   },
 
   uiTechnologyAnalysis: {
@@ -182,6 +200,8 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
     summaryType: "UI technology analysis",
     contentDescription: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries ${COMMON_INSTRUCTIONS.TECHNICAL_DEBT_ASSESSMENT}`,
     responseSchema: uiTechnologyAnalysisSchema,
-    instructions: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries ${COMMON_INSTRUCTIONS.TECHNICAL_DEBT_ASSESSMENT}`,
+    instructions: [
+      `${COMMON_INSTRUCTIONS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries ${COMMON_INSTRUCTIONS.TECHNICAL_DEBT_ASSESSMENT}`,
+    ],
   },
 } as const;

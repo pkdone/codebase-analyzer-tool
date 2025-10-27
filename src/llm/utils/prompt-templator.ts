@@ -1,60 +1,47 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { fillPrompt } from "type-safe-prompt";
 import { z } from "zod";
-
-// Instructions for the LLM to respond with a JSON object
-const JSON_OUTPUT_INSTRUCTIONS = `
-In your response, only include JSON and do not include any additional text explanations outside the JSON object.
-NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
-NEVER use " or ' quote symbols as part of the text you use for JSON description values, even if you want to quote a piece of existing text, existing message or show a path
-ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.
-CRITICAL JSON FORMAT REQUIREMENTS:
-- ALL property names MUST be enclosed in double quotes (e.g., "name": "value", NOT name: "value")
-- ALL string values MUST be enclosed in double quotes
-- Use proper JSON syntax with commas separating properties
-- Do not include any unquoted property names or values
-- Ensure all brackets, braces, and quotes are properly matched
-- COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen")
-- ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
-- AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail`;
+import { PROMPT_FRAGMENTS } from "../../prompt-templates/prompt-fragments";
 
 /**
- * Enhanced function for creating prompts with instruction fragments
- * This allows for better composability and reusability of instruction components
+ * Creates a prompt by filling template placeholders with the provided values.
+ * This is a simple, declarative template-filling function that expects pre-formatted
+ * instruction strings from the caller.
+ *
+ * @param template - The template string with placeholders (e.g., {{contentDesc}}, {{specificInstructions}})
+ * @param contentDesc - Description of the content being analyzed
+ * @param specificInstructions - Pre-formatted instruction string (should include "* " prefix for each instruction line)
+ * @param schema - Zod schema for validation
+ * @param codeContent - The actual content to analyze
+ * @returns The filled prompt string
  */
-export function createPromptFromConfigWithFragments(
+export function createPrompt(
   template: string,
   contentDesc: string,
-  instructionFragments: string[],
+  specificInstructions: string,
   schema: z.ZodType,
   codeContent: string,
 ): string {
-  const specificInstructions = instructionFragments.map((fragment) => `* ${fragment}`).join("\n");
-
   return fillPrompt(template, {
     contentDesc,
     specificInstructions,
-    forceJSON: JSON_OUTPUT_INSTRUCTIONS,
+    forceJSON: PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT,
     jsonSchema: JSON.stringify(zodToJsonSchema(schema), null, 2),
     codeContent,
   });
 }
 
 /**
- * Main function for creating prompts with instruction arrays
+ * Creates a prompt from configuration, formatting instructions array into bullet points.
+ * This function wraps createPrompt with automatic formatting.
  */
 export function createPromptFromConfig(
   template: string,
   contentDesc: string,
-  instructions: string[],
+  instructions: readonly string[],
   schema: z.ZodType,
   codeContent: string,
 ): string {
-  return createPromptFromConfigWithFragments(
-    template,
-    contentDesc,
-    instructions,
-    schema,
-    codeContent,
-  );
+  const specificInstructions = instructions.map((instruction) => `* ${instruction}`).join("\n");
+  return createPrompt(template, contentDesc, specificInstructions, schema, codeContent);
 }

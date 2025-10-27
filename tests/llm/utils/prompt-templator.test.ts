@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createPromptFromConfig } from "../../../src/llm/utils/prompt-templator";
+import { createPrompt, createPromptFromConfig } from "../../../src/llm/utils/prompt-templator";
 import { SourcePromptTemplate } from "../../../src/prompt-templates/types/sources.types";
 
 describe("prompt-utils", () => {
@@ -260,6 +260,49 @@ describe("prompt-utils", () => {
       expect(result).toContain("File: test file");
       expect(result).toContain("Instructions: * test instructions");
       expect(result).toContain("Content: test content");
+      expect(result).toContain("ONLY provide an RFC8259 compliant JSON response");
+    });
+  });
+
+  describe("createPrompt", () => {
+    it("should create a prompt with pre-formatted instructions", () => {
+      const template =
+        "Instructions: {{specificInstructions}}\nSchema: {{jsonSchema}}\nContent: {{codeContent}}\n{{forceJSON}}";
+      const specificInstructions = "* First instruction\n* Second instruction";
+      const schema = z.string();
+      const content = "test content";
+
+      const result = createPrompt(template, "test file", specificInstructions, schema, content);
+
+      expect(result).toContain("* First instruction");
+      expect(result).toContain("* Second instruction");
+      expect(result).toContain("test content");
+      expect(result).toContain("ONLY provide an RFC8259 compliant JSON response");
+    });
+
+    it("should handle complex template with all placeholders", () => {
+      const template = `
+        File: {{contentDesc}}
+        Instructions: {{specificInstructions}}
+        Schema: {{jsonSchema}}
+        Content: {{codeContent}}
+        {{forceJSON}}
+      `;
+      const specificInstructions = "* Task 1\n* Task 2\n* Task 3";
+      const schema = z.object({
+        name: z.string(),
+        value: z.number(),
+      });
+      const content = "sample data";
+
+      const result = createPrompt(template, "data.txt", specificInstructions, schema, content);
+
+      expect(result).toContain("File: data.txt");
+      expect(result).toContain("* Task 1");
+      expect(result).toContain("* Task 2");
+      expect(result).toContain("* Task 3");
+      expect(result).toContain("sample data");
+      expect(result).toContain('"type": "object"');
       expect(result).toContain("ONLY provide an RFC8259 compliant JSON response");
     });
   });

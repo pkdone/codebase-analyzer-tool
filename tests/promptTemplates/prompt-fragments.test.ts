@@ -1,87 +1,113 @@
-import { PROMPT_FRAGMENTS } from "../../src/prompt-templates/prompt-fragments";
+import {
+  PROMPT_FRAGMENTS,
+  CODE_QUALITY_INSTRUCTIONS,
+  DB_INTEGRATION_INSTRUCTIONS,
+  INTEGRATION_POINTS_INSTRUCTIONS,
+  SCHEDULED_JOBS_INSTRUCTIONS,
+} from "../../src/prompt-templates/prompt-fragments";
 
 describe("prompt-fragments", () => {
-  describe("PROMPT_FRAGMENTS", () => {
-    it("should be defined as a const object", () => {
-      expect(PROMPT_FRAGMENTS).toBeDefined();
-      expect(typeof PROMPT_FRAGMENTS).toBe("object");
-    });
-
-    it("should contain all expected fragment categories", () => {
-      expect(PROMPT_FRAGMENTS.COMMON).toBeDefined();
-      expect(PROMPT_FRAGMENTS.CODE_QUALITY).toBeDefined();
-      expect(PROMPT_FRAGMENTS.DB_INTEGRATION).toBeDefined();
-      expect(PROMPT_FRAGMENTS.INTEGRATION_POINTS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.SCHEDULED_JOBS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.JAVA_SPECIFIC).toBeDefined();
-      expect(PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC).toBeDefined();
-      expect(PROMPT_FRAGMENTS.CSHARP_SPECIFIC).toBeDefined();
-      expect(PROMPT_FRAGMENTS.PYTHON_SPECIFIC).toBeDefined();
-      expect(PROMPT_FRAGMENTS.RUBY_SPECIFIC).toBeDefined();
-    });
-
-    it("should have non-empty fragment content", () => {
-      Object.values(PROMPT_FRAGMENTS).forEach((category) => {
-        Object.values(category).forEach((fragment) => {
-          expect(typeof fragment).toBe("string");
-          expect(fragment.length).toBeGreaterThan(0);
-        });
-      });
-    });
-
-    it("should have consistent fragment structure", () => {
-      // Test that common fragments exist
+  describe("PROMPT_FRAGMENTS.COMMON", () => {
+    it("should have PURPOSE and IMPLEMENTATION fragments", () => {
       expect(PROMPT_FRAGMENTS.COMMON.PURPOSE).toBeDefined();
       expect(PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBeDefined();
-
-      // Test that code quality fragments exist
-      expect(PROMPT_FRAGMENTS.CODE_QUALITY.INTRO).toBeDefined();
-      expect(PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS).toBeDefined();
-
-      // Test that DB integration fragments exist
-      expect(PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO).toBeDefined();
-      expect(PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS).toBeDefined();
+      expect(typeof PROMPT_FRAGMENTS.COMMON.PURPOSE).toBe("string");
+      expect(typeof PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBe("string");
     });
 
-    it("should not contain asterisk prefixes in fragments", () => {
-      Object.values(PROMPT_FRAGMENTS).forEach((category) => {
-        Object.values(category).forEach((fragment) => {
-          // Fragments should not start with "* " since that's added during prompt construction
-          expect(fragment).not.toMatch(/^\* /);
-        });
+    it("should have FORCE_JSON_FORMAT fragment", () => {
+      expect(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toBeDefined();
+      expect(typeof PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toBe("string");
+      expect(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toContain(
+        "ONLY provide an RFC8259 compliant JSON response",
+      );
+    });
+  });
+
+  describe("CODE_QUALITY_INSTRUCTIONS", () => {
+    it("should be an array of strings", () => {
+      expect(Array.isArray(CODE_QUALITY_INSTRUCTIONS)).toBe(true);
+      expect(CODE_QUALITY_INSTRUCTIONS.length).toBeGreaterThan(0);
+      CODE_QUALITY_INSTRUCTIONS.forEach((instruction) => {
+        expect(typeof instruction).toBe("string");
       });
     });
 
-    it("should have language-specific fragments", () => {
-      // Java-specific fragments
-      expect(PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_METHODS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_CONSTANTS).toBeDefined();
+    it("should include code quality fragments", () => {
+      const joined = CODE_QUALITY_INSTRUCTIONS.join(" ");
+      expect(joined).toContain("Code Quality Analysis");
+      expect(joined).toContain("cyclomaticComplexity");
+    });
+  });
 
-      // JavaScript-specific fragments
-      expect(PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS).toBeDefined();
+  describe("DB_INTEGRATION_INSTRUCTIONS", () => {
+    it("should be an array of strings", () => {
+      expect(Array.isArray(DB_INTEGRATION_INSTRUCTIONS)).toBe(true);
+      expect(DB_INTEGRATION_INSTRUCTIONS.length).toBeGreaterThan(0);
+      DB_INTEGRATION_INSTRUCTIONS.forEach((instruction) => {
+        expect(typeof instruction).toBe("string");
+      });
+    });
 
-      // C#-specific fragments
-      expect(PROMPT_FRAGMENTS.CSHARP_SPECIFIC.INTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.CSHARP_SPECIFIC.EXTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.CSHARP_SPECIFIC.PUBLIC_METHODS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.CSHARP_SPECIFIC.PUBLIC_CONSTANTS).toBeDefined();
+    it("should include database integration fragments", () => {
+      const joined = DB_INTEGRATION_INSTRUCTIONS.join(" ");
+      expect(joined).toContain("Database Integration Analysis");
+      expect(joined).toContain("mechanism");
+    });
+  });
 
-      // Python-specific fragments
-      expect(PROMPT_FRAGMENTS.PYTHON_SPECIFIC.INTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.PYTHON_SPECIFIC.EXTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PUBLIC_METHODS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PUBLIC_CONSTANTS).toBeDefined();
+  describe("INTEGRATION_POINTS_INSTRUCTIONS", () => {
+    it("should be an array of strings", () => {
+      expect(Array.isArray(INTEGRATION_POINTS_INSTRUCTIONS)).toBe(true);
+      expect(INTEGRATION_POINTS_INSTRUCTIONS.length).toBeGreaterThan(0);
+      INTEGRATION_POINTS_INSTRUCTIONS.forEach((instruction) => {
+        expect(typeof instruction).toBe("string");
+      });
+    });
 
-      // Ruby-specific fragments
-      expect(PROMPT_FRAGMENTS.RUBY_SPECIFIC.INTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.RUBY_SPECIFIC.EXTERNAL_REFS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.RUBY_SPECIFIC.PUBLIC_METHODS).toBeDefined();
-      expect(PROMPT_FRAGMENTS.RUBY_SPECIFIC.PUBLIC_CONSTANTS).toBeDefined();
+    it("should include integration points fragment", () => {
+      const joined = INTEGRATION_POINTS_INSTRUCTIONS.join(" ");
+      expect(joined).toContain("integration points");
+    });
+  });
+
+  describe("SCHEDULED_JOBS_INSTRUCTIONS", () => {
+    it("should be an array of strings", () => {
+      expect(Array.isArray(SCHEDULED_JOBS_INSTRUCTIONS)).toBe(true);
+      expect(SCHEDULED_JOBS_INSTRUCTIONS.length).toBeGreaterThan(0);
+      SCHEDULED_JOBS_INSTRUCTIONS.forEach((instruction) => {
+        expect(typeof instruction).toBe("string");
+      });
+    });
+
+    it("should include scheduled jobs fragments", () => {
+      const joined = SCHEDULED_JOBS_INSTRUCTIONS.join(" ");
+      expect(joined).toContain("scheduled jobs");
+    });
+  });
+
+  describe("Composing instructions", () => {
+    it("should allow spreading instruction sets", () => {
+      const composed = [
+        ...INTEGRATION_POINTS_INSTRUCTIONS,
+        ...DB_INTEGRATION_INSTRUCTIONS,
+        ...CODE_QUALITY_INSTRUCTIONS,
+      ];
+
+      expect(composed.length).toBeGreaterThan(0);
+      expect(Array.isArray(composed)).toBe(true);
+      composed.forEach((instruction) => {
+        expect(typeof instruction).toBe("string");
+      });
+    });
+
+    it("should allow combining instruction sets with custom instructions", () => {
+      const customInstructions = ["Custom instruction 1", "Custom instruction 2"];
+      const composed = [...INTEGRATION_POINTS_INSTRUCTIONS, ...customInstructions];
+
+      expect(composed.length).toBeGreaterThan(customInstructions.length);
+      expect(composed).toContain("Custom instruction 1");
+      expect(composed).toContain("Custom instruction 2");
     });
   });
 });

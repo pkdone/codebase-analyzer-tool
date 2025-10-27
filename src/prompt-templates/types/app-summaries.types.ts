@@ -17,5 +17,5 @@ export interface AppSummaryPromptTemplate<
   summaryType: string;
   contentDescription: string;
   responseSchema: T;
-  instructions: string;
+  instructions: readonly string[];
 }

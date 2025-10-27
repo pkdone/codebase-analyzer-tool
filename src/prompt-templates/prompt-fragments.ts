@@ -9,6 +9,20 @@ export const PROMPT_FRAGMENTS = {
   COMMON: {
     PURPOSE: "A detailed definition of its purpose",
     IMPLEMENTATION: "A detailed definition of its implementation",
+    FORCE_JSON_FORMAT: `
+In your response, only include JSON and do not include any additional text explanations outside the JSON object.
+NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
+NEVER use " or ' quote symbols as part of the text you use for JSON description values, even if you want to quote a piece of existing text, existing message or show a path
+ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.
+CRITICAL JSON FORMAT REQUIREMENTS:
+- ALL property names MUST be enclosed in double quotes (e.g., "name": "value", NOT name: "value")
+- ALL string values MUST be enclosed in double quotes
+- Use proper JSON syntax with commas separating properties
+- Do not include any unquoted property names or values
+- Ensure all brackets, braces, and quotes are properly matched
+- COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen")
+- ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
+- AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail`,
   },
 
   CODE_QUALITY: {
@@ -126,3 +140,25 @@ STRONGLY RECOMMENDED FIELDS (provide whenever possible):
       "A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals",
   },
 } as const;
+
+/**
+ * Composable instruction sets for common patterns across file types
+ */
+export const CODE_QUALITY_INSTRUCTIONS = [
+  PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
+  PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
+  PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
+  PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+] as const;
+
+export const DB_INTEGRATION_INSTRUCTIONS = [
+  PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
+  PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+] as const;
+
+export const INTEGRATION_POINTS_INSTRUCTIONS = [PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO] as const;
+
+export const SCHEDULED_JOBS_INSTRUCTIONS = [
+  PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+  PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+] as const;
