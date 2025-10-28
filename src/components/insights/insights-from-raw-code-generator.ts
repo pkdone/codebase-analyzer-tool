@@ -81,8 +81,9 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     codeBlocksContent: string,
   ): Promise<AppSummaryRecordCategories | null> {
     try {
-      const instructions = Object.values(summaryCategoriesConfig)
-        .flatMap((category) => category.instructions);
+      const instructions = Object.values(summaryCategoriesConfig).flatMap(
+        (category) => category.instructions,
+      );
       const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
       const llmResponse = await this.llmRouter.executeCompletion<AppSummaryRecordCategories>(
         "all-categories",
@@ -112,7 +113,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     return createPromptFromConfig(
       ALL_CATEGORIES_TEMPLATE,
       "codebase codeblock",
-      instructions, 
+      instructions,
       appSummaryRecordCategoriesSchema,
       codeBlocksContent,
     );

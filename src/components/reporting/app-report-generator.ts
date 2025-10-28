@@ -1,132 +1,57 @@
-import { injectable, inject } from "tsyringe";
+import { injectable, inject, injectAll } from "tsyringe";
 import { reportingTokens } from "./reporting.tokens";
 import { repositoryTokens } from "../../di/repositories.tokens";
 import { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-writer";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
-import { DatabaseReportDataProvider } from "./data-providers/database-report-data-provider";
-import { CodeStructureDataProvider } from "./data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "./data-providers/app-statistics-data-provider";
 import { AppSummaryCategoriesProvider } from "./data-providers/categories-data-provider";
-import { DomainModelDataProvider } from "./data-providers/domain-model-data-provider";
-import { DependencyTreePngGenerator } from "./generators/dependency-tree-png-generator";
-import { PieChartGenerator } from "./generators/pie-chart-generator";
-import { FlowchartSvgGenerator } from "./generators/flowchart-svg-generator";
-import { DomainModelSvgGenerator } from "./generators/domain-model-svg-generator";
-import { ArchitectureSvgGenerator } from "./generators/architecture-svg-generator";
-import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
-import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
-
-// Extended interface for business process data with additional properties
-type BusinessProcessData = AppSummaryNameDescArray[0] & {
-  keyBusinessActivities?: {
-    activity: string;
-    description: string;
-  }[];
-};
-
-// Extended interface for microservice data with additional properties
-type MicroserviceData = AppSummaryNameDescArray[0] & {
-  entities?: {
-    name: string;
-    description: string;
-    attributes?: string[];
-  }[];
-  endpoints?: {
-    path: string;
-    method: string;
-    description: string;
-  }[];
-  operations?: {
-    operation: string;
-    method: string;
-    description: string;
-  }[];
-};
 import type { ReportData } from "./report-gen.types";
-import type { HierarchicalJavaClassDependency } from "../../repositories/sources/sources.model";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
 import { convertToDisplayName } from "../../common/utils/text-utils";
-import { ensureDirectoryExists } from "../../common/fs/directory-operations";
-import { htmlReportConstants } from "./html-report.constants";
 import { reportSectionsConfig } from "./report-sections.config";
+import type { ReportSection } from "./sections/report-section.interface";
+import { SECTION_NAMES } from "./reporting.constants";
 import path from "path";
 
 /**
- * Class responsible for orchestrating report generation.
- * Data formatting is handled by HtmlReportWriter and JSON output by JsonReportWriter.
- * Data aggregation is handled by dedicated data provider classes.
+ * Class responsible for orchestrating report generation using a modular section-based architecture.
+ * Report sections are injected via multi-injection and handle their own data fetching, processing,
+ * and preparation for both HTML and JSON outputs.
  */
 @injectable()
 export default class AppReportGenerator {
   /**
    * Constructor
+   * @param sections - Array of report sections (injected via multi-injection)
    */
   constructor(
-    @inject(repositoryTokens.SourcesRepository)
-    private readonly sourcesRepository: SourcesRepository,
     @inject(repositoryTokens.AppSummariesRepository)
     private readonly appSummariesRepository: AppSummariesRepository,
     @inject(reportingTokens.HtmlReportWriter) private readonly htmlWriter: HtmlReportWriter,
     @inject(reportingTokens.JsonReportWriter) private readonly jsonWriter: JsonReportWriter,
-    @inject(reportingTokens.DatabaseReportDataProvider)
-    private readonly databaseDataProvider: DatabaseReportDataProvider,
-    @inject(reportingTokens.CodeStructureDataProvider)
-    private readonly codeStructureDataProvider: CodeStructureDataProvider,
     @inject(reportingTokens.AppStatisticsDataProvider)
     private readonly appStatsDataProvider: AppStatisticsDataProvider,
     @inject(reportingTokens.AppSummaryCategoriesProvider)
     private readonly categoriesDataProvider: AppSummaryCategoriesProvider,
-    @inject(reportingTokens.DomainModelDataProvider)
-    private readonly domainModelDataProvider: DomainModelDataProvider,
-    @inject(reportingTokens.DependencyTreePngGenerator)
-    private readonly pngGenerator: DependencyTreePngGenerator,
-    @inject(reportingTokens.PieChartGenerator)
-    private readonly pieChartGenerator: PieChartGenerator,
-    @inject(reportingTokens.FlowchartSvgGenerator)
-    private readonly flowchartSvgGenerator: FlowchartSvgGenerator,
-    @inject(reportingTokens.DomainModelSvgGenerator)
-    private readonly domainModelSvgGenerator: DomainModelSvgGenerator,
-    @inject(reportingTokens.ArchitectureSvgGenerator)
-    private readonly architectureSvgGenerator: ArchitectureSvgGenerator,
+    @injectAll("ReportSection")
+    private readonly sections: ReportSection[],
   ) {}
 
   /**
    * Generate the HTML static file report using the HtmlReportWriter and write JSON files using JsonReportWriter.
+   * Uses a modular section-based architecture where each section handles its own data fetching and processing.
    */
   async generateReport(
     projectName: string,
     outputDir: string,
     outputFilename: string,
   ): Promise<void> {
-    const [
-      appSummaryData,
-      fileTypesData,
-      integrationPoints,
-      dbInteractions,
-      procsAndTriggers,
-      topLevelJavaClasses,
-      billOfMaterials,
-      codeQualitySummary,
-      scheduledJobsSummary,
-      moduleCoupling,
-      uiTechnologyAnalysis,
-    ] = await Promise.all([
-      this.appSummariesRepository.getProjectAppSummaryFields(
-        projectName,
-        reportSectionsConfig.allRequiredAppSummaryFields,
-      ),
-      this.sourcesRepository.getProjectFileTypesCountAndLines(projectName),
-      this.databaseDataProvider.getIntegrationPoints(projectName),
-      this.databaseDataProvider.getDatabaseInteractions(projectName),
-      this.databaseDataProvider.buildProceduresAndTriggersSummary(projectName),
-      this.codeStructureDataProvider.getTopLevelJavaClasses(projectName),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "billOfMaterials"),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "codeQualitySummary"),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "scheduledJobsSummary"),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "moduleCoupling"),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "uiTechnologyAnalysis"),
-    ]);
+    // Fetch base app summary data required for all sections
+    const appSummaryData = await this.appSummariesRepository.getProjectAppSummaryFields(
+      projectName,
+      reportSectionsConfig.allRequiredAppSummaryFields,
+    );
 
     if (!appSummaryData) {
       throw new Error(
@@ -134,34 +59,31 @@ export default class AppReportGenerator {
       );
     }
 
-    // Generate data using consolidated app summary data
+    // Generate core app statistics and categorized data
     const appStats = await this.appStatsDataProvider.getAppStatistics(projectName, appSummaryData);
     const categorizedData = this.categoriesDataProvider.getCategorizedData(appSummaryData);
-    const reportData: ReportData = {
-      appStats,
-      fileTypesData,
-      categorizedData,
-      dbInteractions,
-      procsAndTriggers,
-      topLevelJavaClasses,
-      integrationPoints,
-      billOfMaterials: (billOfMaterials ?? []) as unknown as ReportData["billOfMaterials"],
-      codeQualitySummary: (codeQualitySummary ??
-        null) as unknown as ReportData["codeQualitySummary"],
-      scheduledJobsSummary: (scheduledJobsSummary ??
-        null) as unknown as ReportData["scheduledJobsSummary"],
-      moduleCoupling: (moduleCoupling ?? null) as unknown as ReportData["moduleCoupling"],
-      uiTechnologyAnalysis: (uiTechnologyAnalysis ??
-        null) as unknown as ReportData["uiTechnologyAnalysis"],
-    };
 
-    // Prepare data for both writers
-    const preparedJsonData = this.structureDataForJsonFiles(reportData);
+    // Fetch data from all sections in parallel
+    const sectionDataMap = new Map<string, unknown>();
+    await Promise.all(
+      this.sections.map(async (section) => {
+        const data = await section.getData(projectName);
+        sectionDataMap.set(section.getName(), data);
+      }),
+    );
+
+    // Build base report data from section outputs
+    const reportData = this.buildReportDataFromSections(sectionDataMap, appStats, categorizedData);
+
+    // Prepare HTML and JSON data from sections
     const htmlFilePath = path.join(outputDir, outputFilename);
-    const preparedHtmlData = await this.generateHtmlReportAssetsAndViewModel(
+    const preparedHtmlData = await this.prepareHtmlDataFromSections(
       reportData,
+      sectionDataMap,
       htmlFilePath,
     );
+
+    const preparedJsonData = this.prepareJsonDataFromSections(reportData, sectionDataMap);
 
     // Generate reports using prepared data
     await this.jsonWriter.writeAllJSONFiles(preparedJsonData);
@@ -169,9 +91,112 @@ export default class AppReportGenerator {
   }
 
   /**
-   * Structures report data into filename/data pairs for JSON file output.
+   * Build ReportData from section outputs and base data
    */
-  private structureDataForJsonFiles(reportData: ReportData): PreparedJsonData[] {
+  private buildReportDataFromSections(
+    sectionDataMap: Map<string, unknown>,
+    appStats: ReportData["appStats"],
+    categorizedData: ReportData["categorizedData"],
+  ): ReportData {
+    // Extract data from sections
+    const fileTypesData =
+      (sectionDataMap.get(SECTION_NAMES.FILE_TYPES) as ReportData["fileTypesData"] | undefined) ??
+      [];
+    const dbSectionData = sectionDataMap.get(SECTION_NAMES.DATABASE) as
+      | {
+          integrationPoints?: ReportData["integrationPoints"];
+          dbInteractions?: ReportData["dbInteractions"];
+          procsAndTriggers?: ReportData["procsAndTriggers"];
+        }
+      | undefined;
+    const topLevelJavaClasses =
+      (sectionDataMap.get(SECTION_NAMES.CODE_STRUCTURE) as
+        | ReportData["topLevelJavaClasses"]
+        | undefined) ?? [];
+    const advancedDataSection = sectionDataMap.get(SECTION_NAMES.ADVANCED_DATA) as
+      | {
+          billOfMaterials?: ReportData["billOfMaterials"];
+          codeQualitySummary?: ReportData["codeQualitySummary"];
+          scheduledJobsSummary?: ReportData["scheduledJobsSummary"];
+          moduleCoupling?: ReportData["moduleCoupling"];
+          uiTechnologyAnalysis?: ReportData["uiTechnologyAnalysis"];
+        }
+      | undefined;
+
+    return {
+      appStats,
+      fileTypesData,
+      categorizedData,
+      integrationPoints: dbSectionData?.integrationPoints ?? [],
+      dbInteractions: dbSectionData?.dbInteractions ?? [],
+      procsAndTriggers: dbSectionData?.procsAndTriggers ?? {
+        procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+        trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+      },
+      topLevelJavaClasses,
+      billOfMaterials: (advancedDataSection?.billOfMaterials ??
+        []) as unknown as ReportData["billOfMaterials"],
+      codeQualitySummary: (advancedDataSection?.codeQualitySummary ??
+        null) as unknown as ReportData["codeQualitySummary"],
+      scheduledJobsSummary: (advancedDataSection?.scheduledJobsSummary ??
+        null) as unknown as ReportData["scheduledJobsSummary"],
+      moduleCoupling: (advancedDataSection?.moduleCoupling ??
+        null) as unknown as ReportData["moduleCoupling"],
+      uiTechnologyAnalysis: (advancedDataSection?.uiTechnologyAnalysis ??
+        null) as unknown as ReportData["uiTechnologyAnalysis"],
+    };
+  }
+
+  /**
+   * Prepare HTML data by delegating to each section
+   */
+  private async prepareHtmlDataFromSections(
+    reportData: ReportData,
+    sectionDataMap: Map<string, unknown>,
+    htmlFilePath: string,
+  ): Promise<PreparedHtmlReportData> {
+    const htmlDir = path.dirname(htmlFilePath);
+
+    // Prepare HTML data from all sections
+    const sectionHtmlDataList = await Promise.all(
+      this.sections.map(async (section) => {
+        const sectionData = sectionDataMap.get(section.getName());
+        return section.prepareHtmlData(reportData, sectionData ?? {}, htmlDir);
+      }),
+    );
+
+    // Merge all section HTML data
+    const mergedHtmlData = sectionHtmlDataList.reduce<Partial<PreparedHtmlReportData>>(
+      (acc, sectionData) => ({ ...acc, ...sectionData }),
+      {},
+    );
+
+    // Add categorized data view models
+    const categorizedDataWithViewModels = reportData.categorizedData.map((category) => ({
+      ...category,
+      tableViewModel: new TableViewModel(category.data as DisplayableTableRow[]),
+    }));
+
+    return {
+      ...mergedHtmlData,
+      appStats: reportData.appStats,
+      categorizedData: categorizedDataWithViewModels,
+      jsonFilesConfig: reportSectionsConfig,
+      convertToDisplayName,
+    } as PreparedHtmlReportData;
+  }
+
+  /**
+   * Prepare JSON data by delegating to each section
+   */
+  private prepareJsonDataFromSections(
+    reportData: ReportData,
+    sectionDataMap: Map<string, unknown>,
+  ): PreparedJsonData[] {
+    // Collect JSON data from all sections
+    const allJsonData: PreparedJsonData[] = [];
+
+    // Add complete report JSON file
     const completeReportData = {
       appStats: reportData.appStats,
       fileTypesData: reportData.fileTypesData,
@@ -185,378 +210,35 @@ export default class AppReportGenerator {
       scheduledJobsSummary: reportData.scheduledJobsSummary,
       moduleCoupling: reportData.moduleCoupling,
     };
-    const preparedData: PreparedJsonData[] = [
-      {
-        filename: `${reportSectionsConfig.jsonDataFiles.completeReport}.json`,
-        data: completeReportData,
-      },
+    allJsonData.push({
+      filename: `${reportSectionsConfig.jsonDataFiles.completeReport}.json`,
+      data: completeReportData,
+    });
+
+    // Add app stats and app description JSON files
+    allJsonData.push(
       { filename: reportSectionsConfig.jsonDataFiles.appStats, data: reportData.appStats },
       {
         filename: reportSectionsConfig.jsonDataFiles.appDescription,
         data: { appDescription: reportData.appStats.appDescription },
       },
-      { filename: reportSectionsConfig.jsonDataFiles.fileTypes, data: reportData.fileTypesData },
-      {
-        filename: reportSectionsConfig.jsonDataFiles.dbInteractions,
-        data: reportData.dbInteractions,
-      },
-      {
-        filename: reportSectionsConfig.jsonDataFiles.procsAndTriggers,
-        data: reportData.procsAndTriggers,
-      },
-      {
-        filename: reportSectionsConfig.jsonDataFiles.topLevelJavaClasses,
-        data: reportData.topLevelJavaClasses,
-      },
-      {
-        filename: reportSectionsConfig.jsonDataFiles.integrationPoints,
-        data: reportData.integrationPoints,
-      },
-      {
-        filename: "bill-of-materials.json",
-        data: reportData.billOfMaterials,
-      },
-      {
-        filename: "code-quality-summary.json",
-        data: reportData.codeQualitySummary,
-      },
-      {
-        filename: "scheduled-jobs-summary.json",
-        data: reportData.scheduledJobsSummary,
-      },
-      {
-        filename: "module-coupling.json",
-        data: reportData.moduleCoupling,
-      },
-    ];
+    );
 
-    // Add categorized data files
+    // Collect JSON data from each section
+    for (const section of this.sections) {
+      const sectionData = sectionDataMap.get(section.getName());
+      const sectionJsonData = section.prepareJsonData(reportData, sectionData ?? {});
+      allJsonData.push(...sectionJsonData);
+    }
+
+    // Add categorized data JSON files
     for (const categoryData of reportData.categorizedData) {
-      preparedData.push({
+      allJsonData.push({
         filename: reportSectionsConfig.getCategoryJSONFilename(categoryData.category),
         data: categoryData.data,
       });
     }
 
-    return preparedData;
-  }
-
-  /**
-   * Prepares HTML template data by processing all report data, generating assets, and creating view models.
-   */
-  // Renamed from prepareHtmlData to make side effects (asset generation) explicit
-  private async generateHtmlReportAssetsAndViewModel(
-    reportData: ReportData,
-    htmlFilePath: string,
-  ): Promise<PreparedHtmlReportData> {
-    const htmlDir = path.dirname(htmlFilePath);
-    await this.ensureReportDirectories(htmlDir);
-
-    const processedFileTypesData = this.processFileTypesData(reportData.fileTypesData);
-    const fileTypesPieChartPath = await this.generateFileTypesChart(
-      processedFileTypesData,
-      htmlDir,
-    );
-
-    // Create view models for file types summary
-    const fileTypesDisplayData = processedFileTypesData.map((item) => ({
-      [htmlReportConstants.columnHeaders.FILE_TYPE]: item.fileType,
-      [htmlReportConstants.columnHeaders.FILES_COUNT]: item.files,
-      [htmlReportConstants.columnHeaders.LINES_COUNT]: item.lines,
-    }));
-    const fileTypesTableViewModel = new TableViewModel(fileTypesDisplayData);
-
-    // Create view models for categorized data
-    const categorizedDataWithViewModels = reportData.categorizedData.map((category) => ({
-      ...category,
-      tableViewModel: new TableViewModel(category.data as DisplayableTableRow[]),
-    }));
-
-    // Create view models for database interactions
-    // Database interactions need to be cast via unknown due to strict type checking
-    const dbInteractionsTableViewModel = new TableViewModel(
-      reportData.dbInteractions as unknown as DisplayableTableRow[],
-    );
-
-    // Create view model for stored procedures and triggers
-    const combinedProcsTrigsList = [
-      ...reportData.procsAndTriggers.procs.list,
-      ...reportData.procsAndTriggers.trigs.list,
-    ];
-    // Combined list needs to be cast via unknown due to strict type checking
-    const procsAndTriggersTableViewModel = new TableViewModel(
-      combinedProcsTrigsList as unknown as DisplayableTableRow[],
-    );
-
-    // Generate PNG files for each top-level Java class and create hyperlinks
-    const topLevelJavaClassesDisplayData = await this.generateDependencyTreeDisplayData(
-      reportData.topLevelJavaClasses,
-      htmlDir,
-    );
-    const topLevelJavaClassesTableViewModel = new TableViewModel(topLevelJavaClassesDisplayData);
-
-    // Create view model for integration points
-    const integrationPointsTableViewModel = new TableViewModel(
-      reportData.integrationPoints as unknown as DisplayableTableRow[],
-    );
-
-    // Calculate BOM statistics
-    const bomStatistics = {
-      total: reportData.billOfMaterials.length,
-      conflicts: reportData.billOfMaterials.filter((d) => d.hasConflict).length,
-      buildFiles: new Set(reportData.billOfMaterials.flatMap((d) => d.locations)).size,
-    };
-
-    // Calculate Scheduled Jobs statistics
-    const jobsStatistics = reportData.scheduledJobsSummary
-      ? {
-          total: reportData.scheduledJobsSummary.totalJobs,
-          triggerTypesCount: reportData.scheduledJobsSummary.triggerTypes.length,
-          jobFilesCount: reportData.scheduledJobsSummary.jobFiles.length,
-        }
-      : null;
-
-    // Calculate Module Coupling statistics
-    const couplingStatistics = reportData.moduleCoupling
-      ? {
-          totalModules: reportData.moduleCoupling.totalModules,
-          totalCouplings: reportData.moduleCoupling.totalCouplings,
-          highestCouplingCount: reportData.moduleCoupling.highestCouplingCount,
-          moduleDepth: reportData.moduleCoupling.moduleDepth,
-        }
-      : null;
-
-    // Generate enhanced UI data
-    const businessProcessesFlowchartSvgs = this.generateBusinessProcessesFlowcharts(
-      reportData.categorizedData,
-    );
-    const domainModelData = this.domainModelDataProvider.getDomainModelData(
-      reportData.categorizedData,
-    );
-    const contextDiagramSvgs = this.domainModelSvgGenerator.generateMultipleContextDiagramsSvg(
-      domainModelData.boundedContexts,
-    );
-    const microservicesData = this.extractMicroservicesData(reportData.categorizedData);
-    const architectureDiagramSvg = this.architectureSvgGenerator.generateArchitectureDiagramSvg(
-      microservicesData,
-      reportData.integrationPoints,
-    );
-
-    // Create table view models for enhanced sections
-
-    return {
-      appStats: reportData.appStats,
-      fileTypesData: processedFileTypesData,
-      fileTypesPieChartPath: fileTypesPieChartPath,
-      categorizedData: categorizedDataWithViewModels,
-      dbInteractions: reportData.dbInteractions,
-      procsAndTriggers: reportData.procsAndTriggers,
-      topLevelJavaClasses: reportData.topLevelJavaClasses,
-      integrationPoints: reportData.integrationPoints,
-      billOfMaterials: reportData.billOfMaterials,
-      bomStatistics,
-      codeQualitySummary: reportData.codeQualitySummary,
-      scheduledJobsSummary: reportData.scheduledJobsSummary,
-      jobsStatistics,
-      moduleCoupling: reportData.moduleCoupling,
-      couplingStatistics,
-      uiTechnologyAnalysis: reportData.uiTechnologyAnalysis,
-      jsonFilesConfig: reportSectionsConfig,
-      convertToDisplayName,
-      fileTypesTableViewModel,
-      dbInteractionsTableViewModel,
-      procsAndTriggersTableViewModel,
-      topLevelJavaClassesTableViewModel,
-      integrationPointsTableViewModel,
-
-      // Enhanced UI data
-      businessProcessesFlowchartSvgs,
-      domainModelData,
-      contextDiagramSvgs,
-      microservicesData,
-      architectureDiagramSvg,
-
-      // Table view models for enhanced sections
-    };
-  }
-
-  /**
-   * Ensure required directories exist for report generation
-   */
-  private async ensureReportDirectories(htmlDir: string): Promise<void> {
-    const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
-    const chartsDir = path.join(htmlDir, htmlReportConstants.directories.CHARTS);
-    await ensureDirectoryExists(pngDir);
-    await ensureDirectoryExists(chartsDir);
-  }
-
-  /**
-   * Process file types data to show "unknown" for empty file types
-   */
-  private processFileTypesData(
-    fileTypesData: ReportData["fileTypesData"],
-  ): ReportData["fileTypesData"] {
-    return fileTypesData.map((item) => ({
-      ...item,
-      fileType: item.fileType || "unknown",
-    }));
-  }
-
-  /**
-   * Generate file types pie chart and return the path
-   */
-  private async generateFileTypesChart(
-    processedFileTypesData: ReportData["fileTypesData"],
-    htmlDir: string,
-  ): Promise<string> {
-    const chartsDir = path.join(htmlDir, htmlReportConstants.directories.CHARTS);
-    const fileTypesPieChartFilename = await this.pieChartGenerator.generateFileTypesPieChart(
-      processedFileTypesData,
-      chartsDir,
-    );
-    return htmlReportConstants.paths.CHARTS_DIR + fileTypesPieChartFilename;
-  }
-
-  /**
-   * Generate dependency tree PNG files and create display data with hyperlinks
-   */
-  private async generateDependencyTreeDisplayData(
-    topLevelJavaClasses: ReportData["topLevelJavaClasses"],
-    htmlDir: string,
-  ): Promise<DisplayableTableRow[]> {
-    const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
-
-    return await Promise.all(
-      topLevelJavaClasses.map(async (classData) => {
-        // Generate PNG file for this class's dependency tree
-        const pngFileName = await this.pngGenerator.generateHierarchicalDependencyTreePng(
-          classData.namespace,
-          classData.dependencies,
-          pngDir,
-        );
-
-        // Create hyperlink to the PNG file
-        const pngRelativePath = htmlReportConstants.paths.DEPENDENCY_TREES_DIR + pngFileName;
-        const classpathLink = htmlReportConstants.html.LINK_TEMPLATE(
-          pngRelativePath,
-          classData.namespace,
-        );
-
-        // Count total dependencies from hierarchical structure
-        const dependencyCount = this.countUniqueDependencies(classData.dependencies);
-
-        return {
-          [htmlReportConstants.columnHeaders.CLASSPATH]: classpathLink,
-          [htmlReportConstants.columnHeaders.DEPENDENCIES_COUNT]: dependencyCount,
-        };
-      }),
-    );
-  }
-
-  /**
-   * Counts unique dependencies in a hierarchical dependency structure, excluding the root element.
-   * Uses an iterative approach with a stack to avoid potential stack overflow with deep trees.
-   */
-  private countUniqueDependencies(
-    dependencies: readonly HierarchicalJavaClassDependency[],
-  ): number {
-    const uniqueClasspaths = new Set<string>();
-    const stack = [...dependencies]; // Initialize stack with top-level dependencies
-
-    while (stack.length > 0) {
-      const dependency = stack.pop();
-      if (!dependency) continue;
-
-      uniqueClasspaths.add(dependency.namespace);
-
-      // Add children to the stack to be processed
-      if (dependency.dependencies && dependency.dependencies.length > 0) {
-        for (const child of dependency.dependencies) {
-          stack.push(child);
-        }
-      }
-    }
-
-    return uniqueClasspaths.size;
-  }
-
-  /**
-   * Generate flowchart SVGs for business processes
-   */
-  private generateBusinessProcessesFlowcharts(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: AppSummaryNameDescArray;
-    }[],
-  ): string[] {
-    const businessProcessesCategory = categorizedData.find(
-      (category) => category.category === "businessProcesses",
-    );
-
-    if (!businessProcessesCategory || businessProcessesCategory.data.length === 0) {
-      return [];
-    }
-
-    // Convert AppSummaryNameDescArray to BusinessProcess format
-    const businessProcesses = businessProcessesCategory.data.map((item) => ({
-      name: item.name,
-      description: item.description,
-      keyBusinessActivities: (item as BusinessProcessData).keyBusinessActivities ?? [],
-    }));
-
-    return this.flowchartSvgGenerator.generateMultipleFlowchartsSvg(businessProcesses);
-  }
-
-  /**
-   * Extract microservices data from categorized data
-   */
-  private extractMicroservicesData(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: AppSummaryNameDescArray;
-    }[],
-  ): {
-    name: string;
-    description: string;
-    entities: {
-      name: string;
-      description: string;
-      attributes: string[];
-    }[];
-    endpoints: {
-      path: string;
-      method: string;
-      description: string;
-    }[];
-    operations: {
-      operation: string;
-      method: string;
-      description: string;
-    }[];
-  }[] {
-    const microservicesCategory = categorizedData.find(
-      (category) => category.category === "potentialMicroservices",
-    );
-
-    if (!microservicesCategory || microservicesCategory.data.length === 0) {
-      return [];
-    }
-
-    return microservicesCategory.data.map((item) => {
-      const microserviceItem = item as MicroserviceData;
-      return {
-        name: item.name,
-        description: item.description,
-        entities: (microserviceItem.entities ?? []).map((entity) => ({
-          name: entity.name,
-          description: entity.description,
-          attributes: entity.attributes ?? [],
-        })),
-        endpoints: microserviceItem.endpoints ?? [],
-        operations: microserviceItem.operations ?? [],
-      };
-    });
+    return allJsonData;
   }
 }

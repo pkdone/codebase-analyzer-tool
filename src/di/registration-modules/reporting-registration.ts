@@ -15,6 +15,11 @@ import { AppStatisticsDataProvider } from "../../components/reporting/data-provi
 import { AppSummaryCategoriesProvider } from "../../components/reporting/data-providers/categories-data-provider";
 import { DomainModelDataProvider } from "../../components/reporting/data-providers/domain-model-data-provider";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
+import { FileTypesSection } from "../../components/reporting/sections/file-types-section";
+import { DatabaseSection } from "../../components/reporting/sections/database-section";
+import { CodeStructureSection } from "../../components/reporting/sections/code-structure-section";
+import { EnhancedUiSection } from "../../components/reporting/sections/enhanced-ui-section";
+import { AdvancedDataSection } from "../../components/reporting/sections/advanced-data-section";
 
 /**
  * Register reporting-related components in the DI container.
@@ -49,6 +54,13 @@ export function registerReportingComponents(): void {
     AppSummaryCategoriesProvider,
   );
   container.registerSingleton(reportingTokens.DomainModelDataProvider, DomainModelDataProvider);
+
+  // Register report sections (using multi-injection pattern)
+  container.registerSingleton("ReportSection", FileTypesSection);
+  container.registerSingleton("ReportSection", DatabaseSection);
+  container.registerSingleton("ReportSection", CodeStructureSection);
+  container.registerSingleton("ReportSection", EnhancedUiSection);
+  container.registerSingleton("ReportSection", AdvancedDataSection);
 
   // Register main report generator
   container.registerSingleton(reportingTokens.AppReportGenerator, AppReportGenerator);
