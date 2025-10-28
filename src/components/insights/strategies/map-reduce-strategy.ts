@@ -3,14 +3,14 @@ import { z } from "zod";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompt-templates/app-summaries.prompts";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/templates/app-summaries.prompts";
 import {
   PARTIAL_INSIGHTS_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../../prompt-templates/strategy.prompts";
+} from "../../../prompts/templates/strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
-import { buildPrompt } from "../../../llm/utils/prompt-templator";
+import { Prompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../llm/core/llm.tokens";
 import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
 import { llmProviderConfig } from "../../../llm/llm.config";
@@ -158,13 +158,13 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   ): Promise<PartialAppSummaryRecord | null> {
     const config = summaryCategoriesConfig[category];
     const codeContent = joinArrayWithSeparators(summaryChunk);
-    const prompt = buildPrompt(
+    const prompt = new Prompt(
       PARTIAL_INSIGHTS_TEMPLATE,
       "source files",
       config.instructions,
       config.responseSchema,
       codeContent,
-    );
+    ).render();
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
@@ -212,13 +212,13 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     // Format as JSON for the reduce prompt
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
 
-    const prompt = buildPrompt(
+    const prompt = new Prompt(
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
       "partial data",
       [`a consolidated list of '${config.label}'`], // Convert string to array
       config.responseSchema,
       content,
-    );
+    ).render();
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

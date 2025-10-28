@@ -1,6 +1,6 @@
 import "reflect-metadata";
-import { fileTypePromptMetadata } from "../../../src/prompt-templates/sources.prompts";
-import { SourcePromptTemplate } from "../../../src/prompt-templates/types/sources.types";
+import { fileTypePromptMetadata } from "../../../src/prompts/templates/sources.prompts";
+import { SourcePromptTemplate } from "../../../src/prompts/types/sources.types";
 import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";
@@ -135,7 +135,7 @@ describe("File Handler Configuration", () => {
   describe("Integration between file suffix mappings and prompt templates", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
       const canonicalTypes = new Set<
-        import("../../../src/prompt-templates/types/sources.types").CanonicalFileType
+        import("../../../src/prompts/types/sources.types").CanonicalFileType
       >(Array.from(fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.values()));
 
       for (const canonicalType of canonicalTypes) {

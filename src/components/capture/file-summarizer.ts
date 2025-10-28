@@ -9,8 +9,8 @@ import path from "node:path";
 import {
   fileTypePromptMetadata,
   SOURCES_SUMMARY_CAPTURE_TEMPLATE,
-} from "../../prompt-templates/sources.prompts";
-import { buildPrompt } from "../../llm/utils/prompt-templator";
+} from "../../prompts/templates/sources.prompts";
+import { Prompt } from "../../prompts/prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
@@ -38,13 +38,13 @@ export class FileSummarizer {
       if (content.trim().length === 0) throw new Error("File is empty");
       const canonicalFileType = this.getCanonicalFileType(filepath, type);
       const promptMetadata = fileTypePromptMetadata[canonicalFileType];
-      const prompt = buildPrompt(
+      const prompt = new Prompt(
         SOURCES_SUMMARY_CAPTURE_TEMPLATE,
         promptMetadata.contentDesc,
         promptMetadata.instructions,
         promptMetadata.responseSchema,
         content,
-      );
+      ).render();
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
         filepath,
         prompt,

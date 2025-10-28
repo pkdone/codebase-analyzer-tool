@@ -2,9 +2,9 @@ import {
   sourceSummarySchema,
   databaseIntegrationSchema,
   integrationEndpointSchema,
-} from "../schemas/sources.schema";
+} from "../../schemas/sources.schema";
 import { z } from "zod";
-import { SourcePromptTemplate, CanonicalFileType } from "./types/sources.types";
+import { SourcePromptTemplate, CanonicalFileType } from "../types/sources.types";
 import {
   PROMPT_FRAGMENTS,
   CLASS_LANGUAGE_BASE_INSTRUCTIONS,
@@ -133,64 +133,9 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_CONSTANTS,
       PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_METHODS,
       PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-      `REST APIs (mechanism: 'REST'):
-- JAX-RS annotations (@Path, @GET, @POST, @PUT, @DELETE, @PATCH) - include path, method, request/response body
-- Spring annotations (@RestController, @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping)
-- Servlet mappings (web.xml or @WebServlet) - include URL patterns
-- HTTP client calls (RestTemplate, WebClient, HttpClient, OkHttp, Feign @FeignClient)
-
-SOAP Services (mechanism: 'SOAP'):
-- JAX-WS annotations (@WebService, @WebMethod, @SOAPBinding) - include service name, operation name, SOAP version
-- WSDL references or Apache CXF service definitions
-- SOAPConnectionFactory, SOAPMessage usage
-- SOAP client proxy usage (Service.create, getPort)
-
-JMS Messaging (mechanism: 'JMS-QUEUE' or 'JMS-TOPIC'):
-- Queue operations: MessageProducer sending to Queue, QueueSender, @JmsListener with destination type QUEUE
-- Topic operations: TopicPublisher, @JmsListener with destination type TOPIC
-- Include queue/topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
-- ConnectionFactory, Session, MessageProducer/MessageConsumer patterns
-
-Kafka (mechanism: 'KAFKA-TOPIC'):
-- KafkaProducer, KafkaConsumer usage - include topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
-- @KafkaListener annotations - include topic names, consumer group
-
-RabbitMQ (mechanism: 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'):
-- RabbitTemplate send/receive operations - include queue/exchange name and direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL if inferable)
-- @RabbitListener annotations - include queue names, direction
-
-Other Messaging:
-- ActiveMQ: @JmsListener with ActiveMQ-specific config => 'ACTIVEMQ-QUEUE' or 'ACTIVEMQ-TOPIC'
-- AWS SQS/SNS: AmazonSQS client, sendMessage, receiveMessage => 'AWS-SQS' or 'AWS-SNS'
-- Azure Service Bus: ServiceBusClient, QueueClient, TopicClient => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
-
-WebSockets (mechanism: 'WEBSOCKET'):
-- @ServerEndpoint annotations - include endpoint path
-- WebSocketHandler implementations
-
-gRPC (mechanism: 'GRPC'):
-- @GrpcService annotations or gRPC stub usage - include service name, methods`,
+      PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTEGRATION_INSTRUCTIONS,
       ...DB_INTEGRATION_INSTRUCTIONS,
-      `Mechanism mapping - if any of the following are true, you MUST assume database interaction:
-- Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
-- Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'
-- Uses Hibernate API directly (SessionFactory, Session, Criteria API) => mechanism: 'HIBERNATE'
-- Uses standard JPA annotations and EntityManager (without Spring Data) => mechanism: 'JPA'
-- Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => mechanism: 'EJB'
-- Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => mechanism: 'SQL'
-- Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'
-- Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => mechanism: 'ORM'
-- Defines DDL / migration style schema changes inline => mechanism: 'DDL'
-- Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'
-- Invokes stored procedures (CallableStatement, @Procedure, etc.) => mechanism: 'STORED-PROCEDURE'
-- Creates or manages database triggers => mechanism: 'TRIGGER'
-- Creates or invokes database functions => mechanism: 'FUNCTION'
-- Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'
-- Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'
-- Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'
-    - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
-    - Otherwise, if the code does not use a database => mechanism: 'NONE'
-(note, JMS and JNDI are not related to interacting with a database)`,
+      PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING,
       ...CODE_QUALITY_INSTRUCTIONS,
     ],
   },
@@ -264,58 +209,12 @@ gRPC (mechanism: 'GRPC'):
     instructions: [
       PROMPT_FRAGMENTS.COMMON.PURPOSE,
       PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      "A list of the internal references to other modules used by this source file (by using `require` or `import` keywords) belonging to the same application referenced by the code in this source file (do not include external or 3rd party modules/libraries in the list of internal references)",
-      "A list of the external references to other external modules/libraries used by this source file (by using `require` or `import` keywords), which do not belong to this same application that this source file is part of",
+      PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
+      PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
       PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-      `REST APIs (mechanism: 'REST'):
-- Express route definitions (app.get, app.post, app.put, app.delete, router.use)
-- Fastify route definitions (fastify.get, fastify.post, etc.)
-- Koa route definitions (router.get, router.post, etc.)
-- NestJS decorators (@Get, @Post, @Put, @Delete, @Patch, @Controller)
-- HTTP client calls (fetch, axios, request, superagent, got)
-
-GraphQL (mechanism: 'GRAPHQL'):
-- Schema definitions (type Query, type Mutation, resolvers)
-- Apollo Server or GraphQL Yoga setup
-- GraphQL client usage (Apollo Client, urql)
-
-tRPC (mechanism: 'TRPC'):
-- Procedure definitions (publicProcedure, protectedProcedure)
-- Router definitions
-
-WebSockets (mechanism: 'WEBSOCKET'):
-- Socket.io usage (io.on, socket.emit)
-- ws library (WebSocket server/client)
-- WebSocket API usage
-
-Messaging Systems:
-- RabbitMQ (amqplib): Channel.sendToQueue, consume => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
-- Kafka (kafkajs): producer.send, consumer.subscribe => 'KAFKA-TOPIC'
-- AWS SQS/SNS (aws-sdk): sendMessage, subscribe => 'AWS-SQS' or 'AWS-SNS'
-- Redis Pub/Sub: publish, subscribe => 'REDIS-PUBSUB'
-
-gRPC (mechanism: 'GRPC'):
-- @grpc/grpc-js usage, service definitions
-
-Server-Sent Events (mechanism: 'SSE'):
-- res.writeHead with text/event-stream`,
+      PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTEGRATION_INSTRUCTIONS,
       ...DB_INTEGRATION_INSTRUCTIONS,
-      `Mechanism mapping:
-- Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'
-- Uses Prisma Client (PrismaClient, prisma.user.findMany) => mechanism: 'PRISMA'
-- Uses TypeORM (Repository, EntityManager, @Entity decorators) => mechanism: 'TYPEORM'
-- Uses Sequelize models (sequelize.define, Model.findAll) => mechanism: 'SEQUELIZE'
-- Uses Knex query builder (knex.select, knex('table')) => mechanism: 'KNEX'
-- Uses Drizzle ORM (drizzle, select, insert) => mechanism: 'DRIZZLE'
-- Uses Redis client (redis.set, redis.get, ioredis) => mechanism: 'REDIS'
-- Uses Elasticsearch client (@elastic/elasticsearch, client.search) => mechanism: 'ELASTICSEARCH'
-- Uses Cassandra driver (cassandra-driver, client.execute with CQL) => mechanism: 'CASSANDRA-CQL'
-- Uses MongoDB driver directly (MongoClient, db.collection) without Mongoose => mechanism: 'MQL'
-- Contains raw SQL strings without ORM => mechanism: 'SQL'
-- Uses generic database driver (pg, mysql2, tedious) without ORM => mechanism: 'DRIVER'
-- Defines DDL / migration scripts => mechanism: 'DDL'
-- Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
-- Otherwise, if no database interaction => mechanism: 'NONE'`,
+      PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING,
       ...CODE_QUALITY_INSTRUCTIONS,
     ],
   },

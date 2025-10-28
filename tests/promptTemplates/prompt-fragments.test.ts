@@ -6,7 +6,7 @@ import {
   SCHEDULED_JOBS_INSTRUCTIONS,
   CLASS_LANGUAGE_BASE_INSTRUCTIONS,
   MODULE_LANGUAGE_BASE_INSTRUCTIONS,
-} from "../../src/prompt-templates/prompt-fragments";
+} from "../../src/prompts/templates/prompt-fragments";
 
 describe("prompt-fragments", () => {
   describe("PROMPT_FRAGMENTS.COMMON", () => {

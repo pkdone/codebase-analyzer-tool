@@ -1,8 +1,8 @@
 import { injectable } from "tsyringe";
 import { z } from "zod";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompt-templates/app-summaries.prompts";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/templates/app-summaries.prompts";
 import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryCategoryType } from "../../../prompt-templates/types/app-summaries.types";
+import { AppSummaryCategoryType } from "../../../prompts/types/app-summaries.types";
 import type {
   AppSummaryNameDescArray,
   AppSummaryRecordWithId,

@@ -12,8 +12,8 @@ import {
   scheduledJobsSummarySchema,
   moduleCouplingSchema,
   uiTechnologyAnalysisSchema,
-} from "../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate, AppSummaryCategoryType } from "./types/app-summaries.types";
+} from "../../schemas/app-summaries.schema";
+import { AppSummaryPromptTemplate, AppSummaryCategoryType } from "../types/app-summaries.types";
 
 /**
  * Common instruction fragments used across multiple app summary templates

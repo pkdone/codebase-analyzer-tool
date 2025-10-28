@@ -13,6 +13,9 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
 
+jest.unmock("../../../src/prompts/templates/sources.prompts");
+jest.unmock("../../../src/prompts/templates/prompt-fragments");
+
 jest.mock("../../../src/config/file-type-mappings.config", () => ({
   fileTypeMappingsConfig: {
     FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
@@ -39,7 +42,20 @@ jest.mock("../../../src/config/file-type-mappings.config", () => ({
 }));
 
 // Fix the mock to use the correct export name
-jest.mock("../../../src/prompt-templates/sources.prompts", () => ({
+jest.mock("../../../src/prompts/templates/sources.prompts", () => ({
+  SOURCES_SUMMARY_CAPTURE_TEMPLATE: `Act as a programmer. Take the {{contentDesc}} shown below in the section marked 'CODE' and based on its content, return a JSON response containing data that includes the following:
+
+{{specificInstructions}}
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{{jsonSchema}}
+\`\`\`
+
+{{forceJSON}}
+
+CODE:
+{{codeContent}}`,
   fileTypePromptMetadata: {
     java: {
       contentDesc: "Java code",
@@ -86,29 +102,17 @@ jest.mock("../../../src/prompt-templates/sources.prompts", () => ({
   },
 }));
 
-jest.mock("../../../src/llm/utils/prompt-templator", () => ({
-  buildPrompt: jest.fn(
-    (
-      _template: string,
-      contentDesc: string,
-      _instructions: string[],
-      _schema: unknown,
-      content: string,
-    ) => {
-      return `Mock prompt for ${contentDesc} with content: ${content}`;
-    },
-  ),
-  promptConfig: {
-    FORCE_JSON_RESPONSE_TEXT: "Mock JSON response text",
-  },
-}));
+// Note: We no longer mock buildPrompt as FileSummarizer now uses the Prompt class directly
 
 // LLMRouter is mocked, we'll create a mock instance directly
 const mockLogErrorMsgAndDetail = logging.logErrorMsgAndDetail as jest.MockedFunction<
   typeof logging.logErrorMsgAndDetail
 >;
 
-import { fileTypePromptMetadata } from "../../../src/prompt-templates/sources.prompts";
+import {
+  fileTypePromptMetadata,
+  SOURCES_SUMMARY_CAPTURE_TEMPLATE,
+} from "../../../src/prompts/templates/sources.prompts";
 
 describe("FileSummarizer", () => {
   let fileSummarizer: FileSummarizer;
@@ -116,6 +120,7 @@ describe("FileSummarizer", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    console.log("SOURCES_SUMMARY_CAPTURE_TEMPLATE:", typeof SOURCES_SUMMARY_CAPTURE_TEMPLATE);
 
     // Create mock instance with proper typing
     mockLLMRouter = {
@@ -204,7 +209,7 @@ describe("FileSummarizer", () => {
         expect(result).toEqual(mockSuccessResponse);
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
-          expect.stringContaining("Mock prompt for Java code"),
+          expect.stringContaining("Java code"),
           {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
@@ -373,7 +378,7 @@ describe("FileSummarizer", () => {
 
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
-          expect.stringContaining("Mock prompt for Java code"),
+          expect.stringContaining("Java code"),
           {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
@@ -393,7 +398,7 @@ describe("FileSummarizer", () => {
 
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
-          expect.stringContaining("Mock prompt for JavaScript/TypeScript code"),
+          expect.stringContaining("JavaScript/TypeScript code"),
           {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
@@ -424,7 +429,7 @@ describe("FileSummarizer", () => {
 
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
-          expect.stringContaining("Mock prompt for database DDL/DML/SQL code"),
+          expect.stringContaining("database DDL/DML/SQL code"),
           {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
@@ -466,7 +471,7 @@ describe("FileSummarizer", () => {
         // Should use markdown handler due to LICENSE filename mapping
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
-          expect.stringContaining("Mock prompt for Markdown content"),
+          expect.stringContaining("Markdown content"),
           {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
@@ -477,9 +482,9 @@ describe("FileSummarizer", () => {
 
       test("should handle case variations in file types", async () => {
         const testCases = [
-          { type: "JAVA", expectedPrompt: "Mock prompt for Java code" },
-          { type: "JavaScript", expectedPrompt: "Mock prompt for JavaScript/TypeScript code" },
-          { type: "SQL", expectedPrompt: "Mock prompt for database DDL/DML/SQL code" },
+          { type: "JAVA", expectedPrompt: "Java code" },
+          { type: "JavaScript", expectedPrompt: "JavaScript/TypeScript code" },
+          { type: "SQL", expectedPrompt: "database DDL/DML/SQL code" },
         ];
 
         for (const testCase of testCases) {
@@ -536,7 +541,7 @@ describe("FileSummarizer", () => {
         expect(result).toEqual(mockSuccessResponse);
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
           filepath,
-          expect.stringContaining("Mock prompt for project file content"), // Default prompt pattern
+          expect.stringContaining("project file content"), // Default prompt pattern
           {
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),

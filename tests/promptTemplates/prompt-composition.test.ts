@@ -1,5 +1,5 @@
-import { PROMPT_FRAGMENTS } from "../../src/prompt-templates/prompt-fragments";
-import { fileTypePromptMetadata } from "../../src/prompt-templates/sources.prompts";
+import { PROMPT_FRAGMENTS } from "../../src/prompts/templates/prompt-fragments";
+import { fileTypePromptMetadata } from "../../src/prompts/templates/sources.prompts";
 
 describe("prompt-composition", () => {
   describe("fileTypePromptMetadata", () => {

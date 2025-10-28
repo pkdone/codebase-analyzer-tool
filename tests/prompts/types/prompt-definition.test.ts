@@ -1,4 +1,4 @@
-import { PromptDefinition } from "../../../src/prompt-templates/types/prompt-definition.types";
+import { PromptDefinition } from "../../../src/prompts/types/prompt-definition.types";
 import { z } from "zod";
 
 describe("PromptDefinition", () => {

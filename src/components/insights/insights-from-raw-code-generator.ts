@@ -9,10 +9,10 @@ import type { ApplicationInsightsProcessor } from "./insights.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
-import { buildPrompt } from "../../llm/utils/prompt-templator";
+import { Prompt } from "../../prompts/prompt";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompt-templates/app-summaries.prompts";
-import { ALL_CATEGORIES_TEMPLATE } from "../../prompt-templates/strategy.prompts";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/templates/app-summaries.prompts";
+import { ALL_CATEGORIES_TEMPLATE } from "../../prompts/templates/strategy.prompts";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories
@@ -110,12 +110,12 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     instructions: readonly string[],
     codeBlocksContent: string,
   ): string {
-    return buildPrompt(
+    return new Prompt(
       ALL_CATEGORIES_TEMPLATE,
       "codebase codeblock",
       instructions,
       appSummaryRecordCategoriesSchema,
       codeBlocksContent,
-    );
+    ).render();
   }
 }

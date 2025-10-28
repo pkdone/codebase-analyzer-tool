@@ -3,10 +3,10 @@ import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
+import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";
 import { repositoryTokens } from "../../di/repositories.tokens";
 import { llmTokens } from "../../llm/core/llm.tokens";
 import { inputConfig } from "./config/input.config";
-import { formatSourcesForPrompt } from "../../llm/utils/prompt-formatting";
 
 /**
  * Creates a prompt for querying the codebase with a specific question.
@@ -63,7 +63,7 @@ export default class CodebaseQueryProcessor {
       return "Unable to answer question because no relevent code was found";
     }
 
-    const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
+    const codeBlocksAsText = this.formatSourcesForPrompt(bestMatchFiles);
     const resourceName = `Codebase query`;
     const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
     const response = await this.llmRouter.executeCompletion<string>(resourceName, prompt, {
@@ -79,5 +79,28 @@ export default class CodebaseQueryProcessor {
       );
       return "Unable to answer question because no insight was generated";
     }
+  }
+
+  /**
+   * Formats source file metadata into markdown code blocks for LLM prompts.
+   *
+   * This utility converts an array of source files (with their content and file types)
+   * into a single formatted string using markdown code block syntax. Each file's content
+   * is wrapped in a code block with the appropriate language identifier.
+   *
+   * This is commonly used for:
+   * - Preparing code for RAG (Retrieval-Augmented Generation) workflows
+   * - Formatting vector search results for LLM consumption
+   * - Creating structured prompts from multiple source files
+   *
+   * @param sourceFileMetadataList - Array of source file metadata including content and type
+   * @returns Formatted string with markdown code blocks for each file
+   */
+  private formatSourcesForPrompt(
+    sourceFileMetadataList: ProjectedSourceMetataContentAndSummary[],
+  ): string {
+    return sourceFileMetadataList
+      .map((fileMetadata) => `\`\`\`${fileMetadata.type}\n${fileMetadata.content}\n\`\`\`\n\n`)
+      .join("");
   }
 }

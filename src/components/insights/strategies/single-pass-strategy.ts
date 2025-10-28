@@ -1,11 +1,11 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompt-templates/app-summaries.prompts";
-import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../../prompt-templates/strategy.prompts";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/templates/app-summaries.prompts";
+import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../../prompts/templates/strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
-import { buildPrompt } from "../../../llm/utils/prompt-templator";
+import { Prompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../llm/core/llm.tokens";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
@@ -62,12 +62,12 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     codeContent: string,
   ): string {
     const config = summaryCategoriesConfig[type];
-    return buildPrompt(
+    return new Prompt(
       SINGLE_PASS_INSIGHTS_TEMPLATE,
       "source files",
       config.instructions,
       config.responseSchema,
       codeContent,
-    );
+    ).render();
   }
 }
