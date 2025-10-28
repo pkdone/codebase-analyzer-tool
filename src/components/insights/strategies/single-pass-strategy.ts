@@ -5,7 +5,7 @@ import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../pr
 import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../../prompt-templates/strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
-import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
+import { buildPrompt } from "../../../llm/utils/prompt-templator";
 import { llmTokens } from "../../../llm/core/llm.tokens";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
@@ -62,7 +62,7 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     codeContent: string,
   ): string {
     const config = summaryCategoriesConfig[type];
-    return createPromptFromConfig(
+    return buildPrompt(
       SINGLE_PASS_INSIGHTS_TEMPLATE,
       "source files",
       config.instructions,

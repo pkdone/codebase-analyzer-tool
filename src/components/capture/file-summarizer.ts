@@ -10,7 +10,7 @@ import {
   fileTypePromptMetadata,
   SOURCES_SUMMARY_CAPTURE_TEMPLATE,
 } from "../../prompt-templates/sources.prompts";
-import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
+import { buildPrompt } from "../../llm/utils/prompt-templator";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
@@ -38,7 +38,7 @@ export class FileSummarizer {
       if (content.trim().length === 0) throw new Error("File is empty");
       const canonicalFileType = this.getCanonicalFileType(filepath, type);
       const promptMetadata = fileTypePromptMetadata[canonicalFileType];
-      const prompt = createPromptFromConfig(
+      const prompt = buildPrompt(
         SOURCES_SUMMARY_CAPTURE_TEMPLATE,
         promptMetadata.contentDesc,
         promptMetadata.instructions,

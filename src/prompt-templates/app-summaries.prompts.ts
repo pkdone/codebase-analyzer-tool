@@ -16,9 +16,10 @@ import {
 import { AppSummaryPromptTemplate, AppSummaryCategoryType } from "./types/app-summaries.types";
 
 /**
- * Common instruction phrases used across multiple app summary templates
+ * Common instruction fragments used across multiple app summary templates
+ * These are composed into instruction arrays for consistency
  */
-const COMMON_INSTRUCTIONS = {
+const COMMON_INSTRUCTION_FRAGMENTS = {
   DETAILED_DESCRIPTION: "a detailed description of the application's purpose and implementation",
   CONCISE_LIST: "a concise list",
   COMPREHENSIVE_LIST: "a comprehensive list",
@@ -40,124 +41,124 @@ export const appSummaryPromptMetadata: Record<AppSummaryCategoryType, AppSummary
   appDescription: {
     label: "Application Description",
     summaryType: "application description",
-    contentDescription: COMMON_INSTRUCTIONS.DETAILED_DESCRIPTION,
+    contentDescription: COMMON_INSTRUCTION_FRAGMENTS.DETAILED_DESCRIPTION,
     responseSchema: appDescriptionSchema,
-    instructions: [COMMON_INSTRUCTIONS.DETAILED_DESCRIPTION],
+    instructions: [COMMON_INSTRUCTION_FRAGMENTS.DETAILED_DESCRIPTION],
   },
 
   technologies: {
     label: "Technologies",
     summaryType: "technology inventory",
-    contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
     responseSchema: technologiesSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
+      "a concise list of key external and host platform technologies depended on by the application",
     ],
   },
 
   businessProcesses: {
     label: "Business Processes",
     summaryType: "business process analysis",
-    contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
     responseSchema: businessProcessesSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
+      "a concise list of the application's main business processes with their key business activity steps that are linearly conducted by each process",
     ],
   },
 
   boundedContexts: {
     label: "Bounded Contexts",
     summaryType: "bounded context analysis",
-    contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
     responseSchema: boundedContextsSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
+      "a concise list of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models",
     ],
   },
 
   aggregates: {
     label: "Aggregates",
     summaryType: "domain aggregate analysis",
-    contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
     responseSchema: aggregatesSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
+      "a concise list of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories",
     ],
   },
 
   entities: {
     label: "Entities",
     summaryType: "domain entity analysis",
-    contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
     responseSchema: entitiesSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
+      "a concise list of Domain-Driven Design entities that represent core business concepts and contain business logic",
     ],
   },
 
   repositories: {
     label: "Repositories",
     summaryType: "repository pattern analysis",
-    contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
     responseSchema: repositoriesSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
+      "a concise list of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate",
     ],
   },
 
   potentialMicroservices: {
     label: "Potential Microservices",
     summaryType: "microservice recommendations",
-    contentDescription: `${COMMON_INSTRUCTIONS.CONCISE_LIST} of recommended microservices ${COMMON_INSTRUCTIONS.MODERNIZATION_RECOMMENDATIONS}`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of recommended microservices ${COMMON_INSTRUCTION_FRAGMENTS.MODERNIZATION_RECOMMENDATIONS}`,
     responseSchema: potentialMicroservicesSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.CONCISE_LIST} of recommended microservices ${COMMON_INSTRUCTIONS.MODERNIZATION_RECOMMENDATIONS}`,
+      "a concise list of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints",
     ],
   },
 
   billOfMaterials: {
     label: "Bill of Materials",
     summaryType: "dependency inventory",
-    contentDescription: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection ${COMMON_INSTRUCTIONS.SECURITY_RISKS}`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection ${COMMON_INSTRUCTION_FRAGMENTS.SECURITY_RISKS}`,
     responseSchema: billOfMaterialsSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection ${COMMON_INSTRUCTIONS.SECURITY_RISKS}`,
+      "a comprehensive list of all third-party dependencies with version conflict detection to identify technical debt and security risks",
     ],
   },
 
   codeQualitySummary: {
     label: "Code Quality Summary",
     summaryType: "code quality analysis",
-    contentDescription: COMMON_INSTRUCTIONS.AGGREGATED_METRICS,
+    contentDescription: COMMON_INSTRUCTION_FRAGMENTS.AGGREGATED_METRICS,
     responseSchema: codeQualitySummarySchema,
-    instructions: [COMMON_INSTRUCTIONS.AGGREGATED_METRICS],
+    instructions: [COMMON_INSTRUCTION_FRAGMENTS.AGGREGATED_METRICS],
   },
 
   scheduledJobsSummary: {
     label: "Scheduled Jobs",
     summaryType: "scheduled job analysis",
-    contentDescription: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
     responseSchema: scheduledJobsSummarySchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
+      "a comprehensive list of batch processes, scheduled jobs, and automated scripts that perform critical business operations",
     ],
   },
 
   moduleCoupling: {
     label: "Module Coupling",
     summaryType: "module coupling analysis",
-    contentDescription: COMMON_INSTRUCTIONS.DEPENDENCY_MATRIX,
+    contentDescription: COMMON_INSTRUCTION_FRAGMENTS.DEPENDENCY_MATRIX,
     responseSchema: moduleCouplingSchema,
-    instructions: [COMMON_INSTRUCTIONS.DEPENDENCY_MATRIX],
+    instructions: [COMMON_INSTRUCTION_FRAGMENTS.DEPENDENCY_MATRIX],
   },
 
   uiTechnologyAnalysis: {
     label: "UI Technology Analysis",
     summaryType: "UI technology analysis",
-    contentDescription: `${COMMON_INSTRUCTIONS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries ${COMMON_INSTRUCTIONS.TECHNICAL_DEBT_ASSESSMENT}`,
+    contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries ${COMMON_INSTRUCTION_FRAGMENTS.TECHNICAL_DEBT_ASSESSMENT}`,
     responseSchema: uiTechnologyAnalysisSchema,
     instructions: [
-      `${COMMON_INSTRUCTIONS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries ${COMMON_INSTRUCTIONS.TECHNICAL_DEBT_ASSESSMENT}`,
+      "a comprehensive analysis of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries to assess technical debt and plan modernization efforts",
     ],
   },
 } as const;

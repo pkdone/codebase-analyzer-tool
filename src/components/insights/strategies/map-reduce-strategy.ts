@@ -10,7 +10,7 @@ import {
 } from "../../../prompt-templates/strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
-import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
+import { buildPrompt } from "../../../llm/utils/prompt-templator";
 import { llmTokens } from "../../../llm/core/llm.tokens";
 import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
 import { llmProviderConfig } from "../../../llm/llm.config";
@@ -158,7 +158,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   ): Promise<PartialAppSummaryRecord | null> {
     const config = summaryCategoriesConfig[category];
     const codeContent = joinArrayWithSeparators(summaryChunk);
-    const prompt = createPromptFromConfig(
+    const prompt = buildPrompt(
       PARTIAL_INSIGHTS_TEMPLATE,
       "source files",
       config.instructions,
@@ -212,7 +212,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     // Format as JSON for the reduce prompt
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
 
-    const prompt = createPromptFromConfig(
+    const prompt = buildPrompt(
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
       "partial data",
       [`a consolidated list of '${config.label}'`], // Convert string to array

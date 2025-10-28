@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { createPromptFromConfig } from "../../../src/llm/utils/prompt-templator";
+import { buildPrompt } from "../../../src/llm/utils/prompt-templator";
 
 describe("prompt-templator-enhanced", () => {
-  describe("createPromptFromConfig", () => {
+  describe("buildPrompt", () => {
     it("should create a prompt with instruction fragments", () => {
       const template = "Generate JSON: {{specificInstructions}}\nContent: {{codeContent}}";
       const fragments = ["Extract the name", "Extract the purpose", "Extract the implementation"];
@@ -13,7 +13,7 @@ describe("prompt-templator-enhanced", () => {
       });
       const content = "test content";
 
-      const result = createPromptFromConfig(template, "test file", fragments, schema, content);
+      const result = buildPrompt(template, "test file", fragments, schema, content);
 
       expect(result).toContain("* Extract the name");
       expect(result).toContain("* Extract the purpose");
@@ -27,7 +27,7 @@ describe("prompt-templator-enhanced", () => {
       const schema = z.string();
       const content = "test content";
 
-      const result = createPromptFromConfig(template, "test file", fragments, schema, content);
+      const result = buildPrompt(template, "test file", fragments, schema, content);
 
       expect(result).toContain("Generate JSON:");
       expect(result).toContain("test content");
@@ -39,7 +39,7 @@ describe("prompt-templator-enhanced", () => {
       const schema = z.string();
       const content = "content";
 
-      const result = createPromptFromConfig(template, "test", fragments, schema, content);
+      const result = buildPrompt(template, "test", fragments, schema, content);
 
       expect(result).toContain("* First instruction");
       expect(result).toContain("* Second instruction");
@@ -51,7 +51,7 @@ describe("prompt-templator-enhanced", () => {
       const schema = z.string();
       const content = "content";
 
-      const result = createPromptFromConfig(template, "test", fragments, schema, content);
+      const result = buildPrompt(template, "test", fragments, schema, content);
 
       const lines = result.split("\n");
       const instructionLines = lines.filter((line: string) => line.includes("*"));
@@ -64,7 +64,7 @@ describe("prompt-templator-enhanced", () => {
       const schema = z.string();
       const content = "test content";
 
-      const result = createPromptFromConfig(template, "test file", instructions, schema, content);
+      const result = buildPrompt(template, "test file", instructions, schema, content);
 
       expect(result).toContain("* Extract name");
       expect(result).toContain("* Extract purpose");

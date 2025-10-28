@@ -87,7 +87,7 @@ jest.mock("../../../src/prompt-templates/sources.prompts", () => ({
 }));
 
 jest.mock("../../../src/llm/utils/prompt-templator", () => ({
-  createPromptFromConfig: jest.fn(
+  buildPrompt: jest.fn(
     (
       _template: string,
       contentDesc: string,
