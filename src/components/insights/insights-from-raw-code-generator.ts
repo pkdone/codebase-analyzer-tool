@@ -82,9 +82,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
   ): Promise<AppSummaryRecordCategories | null> {
     try {
       const instructions = Object.values(summaryCategoriesConfig)
-        .flatMap((category) => category.instructions)
-        .map((instruction) => `* ${instruction}`)
-        .join("\n"); // Concatenate all instructions from all categories
+        .flatMap((category) => category.instructions);
       const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
       const llmResponse = await this.llmRouter.executeCompletion<AppSummaryRecordCategories>(
         "all-categories",
@@ -108,13 +106,13 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Create a prompt for the LLM to generate insights for all categories
    */
   private createInsightsAllCategoriesPrompt(
-    instructions: string,
+    instructions: readonly string[],
     codeBlocksContent: string,
   ): string {
     return createPromptFromConfig(
       ALL_CATEGORIES_TEMPLATE,
       "codebase codeblock",
-      [instructions], // Convert string to array
+      instructions, 
       appSummaryRecordCategoriesSchema,
       codeBlocksContent,
     );

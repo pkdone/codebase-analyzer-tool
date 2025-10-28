@@ -139,6 +139,24 @@ STRONGLY RECOMMENDED FIELDS (provide whenever possible):
     PUBLIC_METHODS:
       "A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals",
   },
+
+  REST_API_DETECTION: {
+    INTRO: "REST APIs (mechanism: 'REST'):",
+  },
+
+  GRAPHQL_DETECTION: {
+    INTRO: "GraphQL (mechanism: 'GRAPHQL'):",
+  },
+
+  GRPC_DETECTION: {
+    INTRO: "gRPC (mechanism: 'GRPC'):",
+  },
+
+  WEBSOCKET_DETECTION: {
+    INTRO: "WebSockets (mechanism: 'WEBSOCKET'):",
+  },
+
+  MESSAGING_INTRO: "Messaging Systems:",
 } as const;
 
 /**
@@ -161,4 +179,24 @@ export const INTEGRATION_POINTS_INSTRUCTIONS = [PROMPT_FRAGMENTS.INTEGRATION_POI
 export const SCHEDULED_JOBS_INSTRUCTIONS = [
   PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
   PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+] as const;
+
+/**
+ * Common instruction sets for coding languages with class/interface structures
+ * (Java, C#, etc.). Includes name, kind, namespace extraction.
+ */
+export const CLASS_LANGUAGE_BASE_INSTRUCTIONS = [
+  "The name of the main public class/interface of the file",
+  "Its kind ('class' or 'interface')",
+  "Its namespace (classpath)",
+] as const;
+
+/**
+ * Common instruction sets for coding languages with module structures
+ * (Python, Ruby, etc.). Includes name, kind, namespace extraction.
+ */
+export const MODULE_LANGUAGE_BASE_INSTRUCTIONS = [
+  "The name of the primary public entity of the file (class, module, or main function)",
+  "Its kind ('class', 'module', or enum; choose the dominant one)",
+  "Its namespace (fully qualified module path)",
 ] as const;

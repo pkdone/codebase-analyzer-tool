@@ -5,7 +5,13 @@ import {
 } from "../schemas/sources.schema";
 import { z } from "zod";
 import { SourcePromptTemplate, CanonicalFileType } from "./types/sources.types";
-import { PROMPT_FRAGMENTS } from "./prompt-fragments";
+import {
+  PROMPT_FRAGMENTS,
+  CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+  MODULE_LANGUAGE_BASE_INSTRUCTIONS,
+  CODE_QUALITY_INSTRUCTIONS,
+  DB_INTEGRATION_INSTRUCTIONS,
+} from "./prompt-fragments";
 
 /**
  * Base template for detailed file summary prompts shared by file summarization.
@@ -119,9 +125,7 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
           .optional(),
       }),
     instructions: [
-      "The name of the main public class/interface of the file",
-      "Its kind ('class' or 'interface')",
-      "Its namespace (classpath)",
+      ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
       PROMPT_FRAGMENTS.COMMON.PURPOSE,
       PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
       PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS,
@@ -166,8 +170,7 @@ WebSockets (mechanism: 'WEBSOCKET'):
 
 gRPC (mechanism: 'GRPC'):
 - @GrpcService annotations or gRPC stub usage - include service name, methods`,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+      ...DB_INTEGRATION_INSTRUCTIONS,
       `Mechanism mapping - if any of the following are true, you MUST assume database interaction:
 - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
 - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'
@@ -185,13 +188,10 @@ gRPC (mechanism: 'GRPC'):
 - Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'
 - Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'
 - Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'
-- Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
-- Otherwise, if the code does not use a database => mechanism: 'NONE'
+    - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
+    - Otherwise, if the code does not use a database => mechanism: 'NONE'
 (note, JMS and JNDI are not related to interacting with a database)`,
-      PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-      PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-      PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
-      PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+      ...CODE_QUALITY_INSTRUCTIONS,
     ],
   },
 
@@ -299,8 +299,7 @@ gRPC (mechanism: 'GRPC'):
 
 Server-Sent Events (mechanism: 'SSE'):
 - res.writeHead with text/event-stream`,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+      ...DB_INTEGRATION_INSTRUCTIONS,
       `Mechanism mapping:
 - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'
 - Uses Prisma Client (PrismaClient, prisma.user.findMany) => mechanism: 'PRISMA'
@@ -317,10 +316,7 @@ Server-Sent Events (mechanism: 'SSE'):
 - Defines DDL / migration scripts => mechanism: 'DDL'
 - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
 - Otherwise, if no database interaction => mechanism: 'NONE'`,
-      PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-      PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-      PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
-      PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+      ...CODE_QUALITY_INSTRUCTIONS,
     ],
   },
 
@@ -509,9 +505,8 @@ Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as s
           .optional(),
       }),
     instructions: [
-      "The name of the main public class/interface/record/struct of the file",
-      "Its kind ('class', 'interface', 'record', or 'struct')",
-      "Its Fully qualified type name (namespace)",
+      ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+      "Its kind ('class', 'interface', 'record', or 'struct')", // Override with C#-specific kinds
       PROMPT_FRAGMENTS.COMMON.PURPOSE,
       PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
       "A list of the internal references to other application classes - fully qualified type names (only include 'using' directives that clearly belong to this same application's code – exclude BCL / System.* and third-party packages)",
@@ -538,8 +533,7 @@ Messaging Systems:
 gRPC (mechanism: 'GRPC'):
 - Grpc.Net.Client, Grpc.Core service definitions
 - gRPC client stubs and service implementations`,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+      ...DB_INTEGRATION_INSTRUCTIONS,
       `Mechanism mapping:
 - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'
 - Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => mechanism: 'DAPPER'
@@ -554,10 +548,7 @@ gRPC (mechanism: 'GRPC'):
 - Uses Redis client (StackExchange.Redis) => mechanism: 'REDIS'
 - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'
 - Otherwise when no DB interaction present => mechanism: 'NONE'`,
-      PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-      PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-      PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
-      PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+      ...CODE_QUALITY_INSTRUCTIONS,
     ],
   },
 
@@ -623,9 +614,8 @@ gRPC (mechanism: 'GRPC'):
           .optional(),
       }),
     instructions: [
-      "The name of the primary public entity of the file (class, module, or main function)",
-      "Its kind ('class', 'module', 'function', or 'package'; choose the dominant one)",
-      "Its namespace (dotted module path if inferable, else filename without extension)",
+      ...MODULE_LANGUAGE_BASE_INSTRUCTIONS,
+      "Its kind ('class', 'module', 'function', or 'package'; choose the dominant one)", // Override with Python-specific kinds
       PROMPT_FRAGMENTS.COMMON.PURPOSE,
       PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
       "A list of internal references (imports that belong to this same project; exclude Python stdlib & third‑party packages)",
@@ -653,8 +643,7 @@ gRPC (mechanism: 'GRPC'): grpc.* Servicer classes, stub usage
 Messaging: Celery tasks (@app.task) => mechanism 'OTHER' (specify Celery); RabbitMQ (pika), Kafka (producer/consumer), Redis Pub/Sub (redis.publish/subscribe), AWS SQS/SNS (boto3)
 WebSockets (mechanism: 'WEBSOCKET'): FastAPI WebSocket endpoints, Django Channels consumers
 Server-Sent Events (mechanism: 'SSE'): streaming responses with 'text/event-stream'`,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+      ...DB_INTEGRATION_INSTRUCTIONS,
       `Mechanism mapping:
 - SQLAlchemy ORM (Session, declarative Base) => 'SQLALCHEMY'
 - Django ORM (models.Model, QuerySet) => 'DJANGO-ORM'
@@ -733,9 +722,8 @@ File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMetho
           .optional(),
       }),
     instructions: [
-      "The name of the main public class/module of the file",
-      "Its kind ('class', 'module', or 'enum')",
-      "Its namespace (fully qualified module path)",
+      ...MODULE_LANGUAGE_BASE_INSTRUCTIONS,
+      "Its kind ('class', 'module', or 'enum')", // Override with Ruby-specific kinds
       PROMPT_FRAGMENTS.COMMON.PURPOSE,
       PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
       "A list of the internal references to other Ruby source files in the same project that this file depends on (only include paths required via require or require_relative that clearly belong to this same application; exclude Ruby standard library and external gem dependencies)",
@@ -765,8 +753,7 @@ Messaging Systems:
 WebSockets (mechanism: 'WEBSOCKET'):
 - Action Cable channels
 - WebSocket-Rails usage`,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+      ...DB_INTEGRATION_INSTRUCTIONS,
       `Mechanism mapping - if any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
 - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'
 - Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'
@@ -780,10 +767,7 @@ WebSockets (mechanism: 'WEBSOCKET'):
 - Creates or manages triggers (via execute or DSL) => mechanism: 'TRIGGER'
 - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'
 - Otherwise, if no database interaction is evident => mechanism: 'NONE'`,
-      PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-      PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-      PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
-      PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+      ...CODE_QUALITY_INSTRUCTIONS,
     ],
   },
 
