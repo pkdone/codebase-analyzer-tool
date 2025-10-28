@@ -3,7 +3,7 @@ import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import {
   JsonProcessingError,
   JsonProcessingErrorType,
-} from "../../../src/llm/types/llm-errors.types";
+} from "../../../src/llm/json-processing/types/json-processing.errors";
 import { z } from "zod";
 
 /**

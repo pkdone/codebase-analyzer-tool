@@ -1,5 +1,5 @@
 import { LLMGeneratedContent, LLMCompletionOptions } from "../../types/llm.types";
-import { JsonProcessingError, JsonProcessingErrorType } from "../../types/llm-errors.types";
+import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonValidator } from "./json-validator";
 import { unwrapJsonSchemaStructure, convertNullToUndefined } from "../utils/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";

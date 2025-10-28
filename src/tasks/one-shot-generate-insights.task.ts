@@ -3,7 +3,6 @@ import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
 import { LocalInsightsGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
-import type LLMRouter from "../llm/core/llm-router";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
@@ -20,7 +19,6 @@ export class OneShotGenerateInsightsTask extends BaseLLMTask {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(llmTokens.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(insightsTokens.LocalInsightsGenerator)
@@ -44,7 +42,6 @@ export class OneShotGenerateInsightsTask extends BaseLLMTask {
     await clearDirectory(outputConfig.OUTPUT_DIR);
     const prompts = await this.insightsFileGenerator.loadPrompts();
     await this.insightsFileGenerator.generateInsightsToFiles(
-      this.llmRouter,
       this.env.CODEBASE_DIR_PATH,
       this.env.LLM,
       prompts,

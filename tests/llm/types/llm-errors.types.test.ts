@@ -4,8 +4,6 @@ import {
   BadResponseMetadataLLMError,
   BadConfigurationLLMError,
   RejectionResponseLLMError,
-  JsonProcessingError,
-  JsonProcessingErrorType,
 } from "../../../src/llm/types/llm-errors.types";
 
 /**
@@ -151,53 +149,6 @@ describe("LLM Error Classes - ES2022 Error Cause Support", () => {
 
       expect(rejectionError.cause).toBe(apiError);
       expect((rejectionError.cause as Error).message).toBe("Rate limit exceeded");
-    });
-  });
-
-  describe("JsonProcessingError", () => {
-    it("should automatically chain underlying error as cause", () => {
-      const parseError = new SyntaxError("Unexpected token } in JSON at position 42");
-      const error = new JsonProcessingError(
-        JsonProcessingErrorType.PARSE,
-        "Failed to parse JSON",
-        '{"invalid": }',
-        '{"invalid": null}',
-        ["removeTrailingCommas"],
-        parseError,
-      );
-
-      expect(error.cause).toBe(parseError);
-      expect(error.underlyingError).toBe(parseError);
-      expect((error.cause as SyntaxError).message).toContain("Unexpected token");
-    });
-
-    it("should handle undefined underlying error gracefully", () => {
-      const error = new JsonProcessingError(
-        JsonProcessingErrorType.VALIDATION,
-        "Schema validation failed",
-        '{"valid": "json"}',
-        '{"valid": "json"}',
-        [],
-      );
-
-      expect(error.cause).toBeUndefined();
-      expect(error.underlyingError).toBeUndefined();
-    });
-
-    it("should preserve full error chain for debugging", () => {
-      const rootCause = new Error("Invalid JSON structure");
-      const error = new JsonProcessingError(
-        JsonProcessingErrorType.PARSE,
-        "JSON sanitization failed",
-        '{"broken": json}',
-        '{"broken": "json"}',
-        ["fixQuotes", "removeTrailingCommas"],
-        rootCause,
-      );
-
-      expect(error.cause).toBe(rootCause);
-      expect(error.type).toBe("parse");
-      expect(error.appliedSanitizers).toEqual(["fixQuotes", "removeTrailingCommas"]);
     });
   });
 

@@ -21,7 +21,6 @@ import { UiAggregator } from "../../components/insights/data-aggregators/ui-aggr
  * - Managing insight generation strategies based on LLM capabilities
  */
 export function registerInsightsComponents(): void {
-  container.registerSingleton(insightsTokens.LocalInsightsGenerator, LocalInsightsGenerator);
   container.registerSingleton(insightsTokens.BomAggregator, BomAggregator);
   container.registerSingleton(insightsTokens.CodeQualityAggregator, CodeQualityAggregator);
   container.registerSingleton(insightsTokens.JobAggregator, JobAggregator);
@@ -36,6 +35,7 @@ export function registerInsightsComponents(): void {
  * These components require LLM functionality to be available.
  */
 export function registerLLMDependentInsightsComponents(): void {
+  container.registerSingleton(insightsTokens.LocalInsightsGenerator, LocalInsightsGenerator);
   container.registerSingleton(insightsTokens.InsightsFromDBGenerator, InsightsFromDBGenerator);
   container.registerSingleton(
     insightsTokens.InsightsFromRawCodeGenerator,

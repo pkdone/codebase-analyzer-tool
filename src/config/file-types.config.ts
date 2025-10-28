@@ -32,5 +32,8 @@ export const CANONICAL_FILE_TYPES = [
   "default",
 ] as const;
 
+/** Inferred TypeScript type for canonical file types */
+export type CanonicalFileType = (typeof CANONICAL_FILE_TYPES)[number];
+
 /** Zod enum schema for canonical file types */
 export const canonicalFileTypeSchema = z.enum(CANONICAL_FILE_TYPES);

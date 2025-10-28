@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { LocalInsightsGenerator } from "../../src/components/insights/insights-from-raw-code-to-local-files";
+import LLMRouter from "../../src/llm/core/llm-router";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({
   ensureDirectoryExists: jest.fn().mockResolvedValue(undefined),
@@ -15,10 +16,12 @@ jest.mock("../../src/common/fs/file-operations", () => ({
 jest.mock("../../src/components/insights/utils/codebase-formatter", () => ({
   formatCodebaseForPrompt: jest.fn(async () => "CODEBLOCK"),
 }));
+jest.mock("../../src/llm/core/llm-router");
 
 describe("LocalInsightsGenerator", () => {
   it("loads prompts filtering only .prompt files", async () => {
-    const gen = new LocalInsightsGenerator();
+    const mockLlMRouter = {} as unknown as LLMRouter;
+    const gen = new LocalInsightsGenerator(mockLlMRouter);
     const prompts = await gen.loadPrompts();
     expect(prompts).toHaveLength(1);
     expect(prompts[0].filename).toBe("requirement00");

@@ -4,7 +4,7 @@ import VertexAIGeminiLLM, { VertexAIConfig } from "./vertex-ai-gemini-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
 import { VERTEXAI_COMMON_ERROR_PATTERNS } from "./vertex-ai-error-patterns";
-import { getRequiredEnvVar } from "../../../../common/utils/env-utils";
+import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";

@@ -1,8 +1,8 @@
-import { getRequiredEnvVar } from "../../../src/common/utils/env-utils";
+import { getRequiredEnvVar } from "../../../src/env/env-utils";
 import { EnvVars } from "../../../src/env/env.types";
 
 describe("getRequiredEnvVar", () => {
-  it("should be importable from common/utils", () => {
+  it("should be importable from env", () => {
     expect(getRequiredEnvVar).toBeDefined();
     expect(typeof getRequiredEnvVar).toBe("function");
   });

@@ -1,4 +1,4 @@
-import { EnvVars } from "../../env/env.types";
+import { EnvVars } from "./env.types";
 
 /**
  * Helper to retrieve a required environment variable from the already validated EnvVars object.

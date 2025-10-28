@@ -1,6 +1,6 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { JsonProcessingError } from "../../../src/llm/types/llm-errors.types";
+import { JsonProcessingError } from "../../../src/llm/json-processing/types/json-processing.errors";
 
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),

@@ -1,4 +1,4 @@
-import { CANONICAL_FILE_TYPES } from "../../src/prompt-templates/types/sources-file-types";
+import { CANONICAL_FILE_TYPES } from "../../src/config/file-types.config";
 
 describe("prompt.types individual exports", () => {
   describe("CANONICAL_FILE_TYPES", () => {

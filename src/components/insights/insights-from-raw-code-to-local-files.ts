@@ -8,6 +8,8 @@ import { listDirectoryEntries, ensureDirectoryExists } from "../../common/fs/dir
 import pLimit from "p-limit";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatError } from "../../common/utils/error-formatters";
+import { inject } from "tsyringe";
+import { llmTokens } from "../../llm/core/llm.tokens";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
@@ -27,6 +29,11 @@ export interface FileRequirementPrompt {
  */
 @injectable()
 export class LocalInsightsGenerator {
+  /**
+   * Constructor with dependency injection.
+   */
+  constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {}
+
   /**
    * Load prompts from files in the input folder
    */
@@ -60,7 +67,6 @@ export class LocalInsightsGenerator {
    * Process source files with prompts and write individual output files.
    */
   async generateInsightsToFiles(
-    llmRouter: LLMRouter,
     srcDirPath: string,
     llmName: string,
     prompts: FileRequirementPrompt[],
@@ -70,11 +76,7 @@ export class LocalInsightsGenerator {
     const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {
       return limit(async () => {
-        const result = await this.executePromptAgainstCodebase(
-          prompt,
-          codeBlocksContent,
-          llmRouter,
-        );
+        const result = await this.executePromptAgainstCodebase(prompt, codeBlocksContent);
         const outputFileName = `${prompt.filename}.result`;
         const outputFilePath = path.join(process.cwd(), outputConfig.OUTPUT_DIR, outputFileName);
         await writeFile(
@@ -94,14 +96,13 @@ export class LocalInsightsGenerator {
   private async executePromptAgainstCodebase(
     prompt: FileRequirementPrompt,
     codeBlocksContents: string,
-    llmRouter: LLMRouter,
   ): Promise<string> {
     const resource = prompt.filename;
     const fullPrompt = `${prompt.question}\n${codeBlocksContents}`;
     let response = "";
 
     try {
-      const executionResult = await llmRouter.executeCompletion(resource, fullPrompt, {
+      const executionResult = await this.llmRouter.executeCompletion(resource, fullPrompt, {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
