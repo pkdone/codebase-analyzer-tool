@@ -14,7 +14,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
 }));
 
 jest.unmock("../../../src/prompts/templates/sources.prompts");
-jest.unmock("../../../src/prompts/templates/prompt-fragments");
+jest.unmock("../../../src/prompts/templates/sources-prompt-fragments");
 
 jest.mock("../../../src/config/file-type-mappings.config", () => ({
   fileTypeMappingsConfig: {
@@ -43,19 +43,6 @@ jest.mock("../../../src/config/file-type-mappings.config", () => ({
 
 // Fix the mock to use the correct export name
 jest.mock("../../../src/prompts/templates/sources.prompts", () => ({
-  SOURCES_SUMMARY_CAPTURE_TEMPLATE: `Act as a programmer. Take the {{contentDesc}} shown below in the section marked 'CODE' and based on its content, return a JSON response containing data that includes the following:
-
-{{specificInstructions}}
-
-The JSON response must follow this JSON schema:
-\`\`\`json
-{{jsonSchema}}
-\`\`\`
-
-{{forceJSON}}
-
-CODE:
-{{codeContent}}`,
   fileTypePromptMetadata: {
     java: {
       contentDesc: "Java code",
@@ -109,10 +96,7 @@ const mockLogErrorMsgAndDetail = logging.logErrorMsgAndDetail as jest.MockedFunc
   typeof logging.logErrorMsgAndDetail
 >;
 
-import {
-  fileTypePromptMetadata,
-  SOURCES_SUMMARY_CAPTURE_TEMPLATE,
-} from "../../../src/prompts/templates/sources.prompts";
+import { fileTypePromptMetadata } from "../../../src/prompts/templates/sources.prompts";
 
 describe("FileSummarizer", () => {
   let fileSummarizer: FileSummarizer;
@@ -120,7 +104,6 @@ describe("FileSummarizer", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    console.log("SOURCES_SUMMARY_CAPTURE_TEMPLATE:", typeof SOURCES_SUMMARY_CAPTURE_TEMPLATE);
 
     // Create mock instance with proper typing
     mockLLMRouter = {

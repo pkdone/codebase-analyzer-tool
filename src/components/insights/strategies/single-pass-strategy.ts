@@ -2,7 +2,10 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/templates/app-summaries.prompts";
-import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../../prompts/templates/strategy.prompts";
+import {
+  SINGLE_PASS_INSIGHTS_TEMPLATE,
+  STRATEGY_CONTENT_HEADERS,
+} from "../../../prompts/templates/app-summaries-strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { Prompt } from "../../../prompts/prompt";
@@ -68,6 +71,11 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
       config.instructions,
       config.responseSchema,
       codeContent,
-    ).render();
+    )
+      .withRole(
+        "Act as a senior developer analyzing the code in a legacy application. Take the list of paths and descriptions.",
+      )
+      .withContentHeader(STRATEGY_CONTENT_HEADERS.SINGLE_PASS)
+      .render();
   }
 }

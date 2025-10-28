@@ -6,11 +6,12 @@ import { llmTokens } from "../../llm/core/llm.tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
 import path from "node:path";
-import {
-  fileTypePromptMetadata,
-  SOURCES_SUMMARY_CAPTURE_TEMPLATE,
-} from "../../prompts/templates/sources.prompts";
+import { fileTypePromptMetadata } from "../../prompts/templates/sources.prompts";
 import { Prompt } from "../../prompts/prompt";
+import {
+  MASTER_PROMPT_TEMPLATE,
+  PROMPT_CONTENT_HEADERS,
+} from "../../prompts/templates/master.prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
@@ -39,12 +40,15 @@ export class FileSummarizer {
       const canonicalFileType = this.getCanonicalFileType(filepath, type);
       const promptMetadata = fileTypePromptMetadata[canonicalFileType];
       const prompt = new Prompt(
-        SOURCES_SUMMARY_CAPTURE_TEMPLATE,
+        MASTER_PROMPT_TEMPLATE,
         promptMetadata.contentDesc,
         promptMetadata.instructions,
         promptMetadata.responseSchema,
         content,
-      ).render();
+      )
+        .withRole("Act as a programmer.")
+        .withContentHeader(PROMPT_CONTENT_HEADERS.CODE)
+        .render();
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
         filepath,
         prompt,

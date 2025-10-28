@@ -1,4 +1,5 @@
 import { fileTypePromptMetadata } from "../../../src/prompts/templates/sources.prompts";
+import { areInstructionSections } from "../../../src/prompts/types/prompt-definition.types";
 
 describe("fileTypeMetadataConfig", () => {
   describe("supported file types", () => {
@@ -46,11 +47,15 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include expected instructions", () => {
       const instructions = fileTypePromptMetadata.java.instructions;
-      expect(instructions.join(" ")).toContain("namespace");
-      expect(instructions.join(" ")).toContain("public methods");
-      expect(instructions.join(" ")).toContain("database integration");
-      expect(instructions.join(" ")).toContain("internal references");
-      expect(instructions.join(" ")).toContain("external references");
+      const instructionArray = areInstructionSections(instructions)
+        ? instructions.flatMap((section) => section.points)
+        : instructions;
+      const instructionText = instructionArray.join(" ");
+      expect(instructionText).toContain("namespace");
+      expect(instructionText).toContain("public methods");
+      expect(instructionText).toContain("database integration");
+      expect(instructionText).toContain("internal references");
+      expect(instructionText).toContain("external references");
     });
 
     it("should have a valid schema", () => {
@@ -70,9 +75,13 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include expected instructions", () => {
       const instructions = fileTypePromptMetadata.javascript.instructions;
-      expect(instructions.join(" ")).toContain("purpose");
-      expect(instructions.join(" ")).toContain("implementation");
-      expect(instructions.join(" ")).toContain("internal references");
+      const instructionArray = areInstructionSections(instructions)
+        ? instructions.flatMap((section) => section.points)
+        : instructions;
+      const instructionText = instructionArray.join(" ");
+      expect(instructionText).toContain("purpose");
+      expect(instructionText).toContain("implementation");
+      expect(instructionText).toContain("internal references");
     });
   });
 
@@ -87,9 +96,13 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include SQL-specific instructions", () => {
       const instructions = fileTypePromptMetadata.sql.instructions;
-      expect(instructions.join(" ")).toContain("stored procedure");
-      expect(instructions.join(" ")).toContain("triggers");
-      expect(instructions.join(" ")).toContain("tables");
+      const instructionArray = areInstructionSections(instructions)
+        ? instructions.flatMap((section) => section.points)
+        : instructions;
+      const instructionText = instructionArray.join(" ");
+      expect(instructionText).toContain("stored procedure");
+      expect(instructionText).toContain("triggers");
+      expect(instructionText).toContain("tables");
     });
 
     it("should have a valid schema", () => {
@@ -109,7 +122,10 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include C#-specific instructions", () => {
       const instructions = fileTypePromptMetadata.csharp.instructions;
-      const instructionText = instructions.join(" ");
+      const instructionArray = areInstructionSections(instructions)
+        ? instructions.flatMap((section) => section.points)
+        : instructions;
+      const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("Entity Framework");
       expect(instructionText).toContain("Dapper");
       expect(instructionText).toContain("async/sync");
@@ -127,7 +143,10 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include Ruby-specific instructions", () => {
       const instructions = fileTypePromptMetadata.ruby.instructions;
-      const instructionText = instructions.join(" ");
+      const instructionArray = areInstructionSections(instructions)
+        ? instructions.flatMap((section) => section.points)
+        : instructions;
+      const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("ActiveRecord");
       expect(instructionText).toContain("module");
     });

@@ -12,7 +12,10 @@ import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging"
 import { Prompt } from "../../prompts/prompt";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/templates/app-summaries.prompts";
-import { ALL_CATEGORIES_TEMPLATE } from "../../prompts/templates/strategy.prompts";
+import {
+  ALL_CATEGORIES_TEMPLATE,
+  STRATEGY_CONTENT_HEADERS,
+} from "../../prompts/templates/app-summaries-strategy.prompts";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories
@@ -81,8 +84,17 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     codeBlocksContent: string,
   ): Promise<AppSummaryRecordCategories | null> {
     try {
-      const instructions = Object.values(summaryCategoriesConfig).flatMap(
-        (category) => category.instructions,
+      const instructions: readonly string[] = Object.values(summaryCategoriesConfig).flatMap(
+        (category) => {
+          const inst = category.instructions;
+          if (Array.isArray(inst) && inst.length > 0) {
+            if (typeof inst[0] === "object" && "points" in inst[0]) {
+              // It's an InstructionSection array
+              return inst.flatMap((section: { points: readonly string[] }) => section.points);
+            }
+          }
+          return inst as readonly string[];
+        },
       );
       const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
       const llmResponse = await this.llmRouter.executeCompletion<AppSummaryRecordCategories>(
@@ -116,6 +128,9 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       instructions,
       appSummaryRecordCategoriesSchema,
       codeBlocksContent,
-    ).render();
+    )
+      .withRole("Act as a senior developer analyzing the code in a legacy application.")
+      .withContentHeader(STRATEGY_CONTENT_HEADERS.ALL_CATEGORIES)
+      .render();
   }
 }

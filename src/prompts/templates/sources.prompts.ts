@@ -6,30 +6,13 @@ import {
 import { z } from "zod";
 import { SourcePromptTemplate, CanonicalFileType } from "../types/sources.types";
 import {
-  PROMPT_FRAGMENTS,
+  SOURCES_PROMPT_FRAGMENTS,
   CLASS_LANGUAGE_BASE_INSTRUCTIONS,
   MODULE_LANGUAGE_BASE_INSTRUCTIONS,
   CODE_QUALITY_INSTRUCTIONS,
   DB_INTEGRATION_INSTRUCTIONS,
-} from "./prompt-fragments";
-
-/**
- * Base template for detailed file summary prompts shared by file summarization.
- * Centralized here to keep prompt building logic in one place.
- */
-export const SOURCES_SUMMARY_CAPTURE_TEMPLATE = `Act as a programmer. Take the {{contentDesc}} shown below in the section marked 'CODE' and based on its content, return a JSON response containing data that includes the following:
-
-{{specificInstructions}}
-
-The JSON response must follow this JSON schema:
-\`\`\`json
-{{jsonSchema}}
-\`\`\`
-
-{{forceJSON}}
-
-CODE:
-{{codeContent}}`;
+} from "./sources-prompt-fragments";
+import { SOURCES_INSTRUCTION_SECTION_TITLES } from "./sources-instruction-titles";
 
 /**
  * Data-driven mapping of prompt types to their templates and schemas
@@ -45,9 +28,17 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
       databaseIntegration: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION,
+        points: [SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO],
+      },
     ],
   },
 
@@ -125,18 +116,41 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
           .optional(),
       }),
     instructions: [
-      ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS,
-      PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS,
-      PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_CONSTANTS,
-      PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_METHODS,
-      PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-      PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ...DB_INTEGRATION_INSTRUCTIONS,
-      PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING,
-      ...CODE_QUALITY_INSTRUCTIONS,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS,
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS,
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_CONSTANTS,
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.PUBLIC_METHODS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        points: [
+          ...DB_INTEGRATION_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+        points: CODE_QUALITY_INSTRUCTIONS,
+      },
     ],
   },
 
@@ -207,15 +221,38 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
           .optional(),
       }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
-      PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
-      PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-      PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTEGRATION_INSTRUCTIONS,
-      ...DB_INTEGRATION_INSTRUCTIONS,
-      PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING,
-      ...CODE_QUALITY_INSTRUCTIONS,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
+          SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        points: [
+          ...DB_INTEGRATION_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+        points: CODE_QUALITY_INSTRUCTIONS,
+      },
     ],
   },
 
@@ -247,14 +284,25 @@ export const fileTypePromptMetadata: Record<CanonicalFileType, SourcePromptTempl
         }),
       }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      "A list of the tables (if any) it defines - for each table, include the names of the table's fields, if known",
-      "A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score",
-      "A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score",
-      `Database Integration Analysis (REQUIRED) - Extract ALL possible database details:
-REQUIRED: mechanism (must be 'NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), description (detailed explanation), codeExample (max 6 lines)
-STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present)`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DATABASE_OBJECTS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TABLE_LIST,
+          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.STORED_PROCEDURE_LIST,
+          SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.TRIGGER_LIST,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        points: [SOURCES_PROMPT_FRAGMENTS.SQL_SPECIFIC.DB_INTEGRATION_ANALYSIS],
+      },
     ],
   },
 
@@ -268,31 +316,17 @@ STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific databas
       uiFramework: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `UI Framework Detection (REQUIRED for web application config files)
-If this XML file is a web application configuration file, you MUST analyze and identify the UI framework:
-
-Struts Framework Detection:
-- Look for <servlet-class> containing "org.apache.struts.action.ActionServlet" or "StrutsPrepareAndExecuteFilter"
-- Check for <servlet-name> with "action" or "struts"
-- Look for DOCTYPE or root element referencing struts-config
-- Extract version from DTD/XSD if available (e.g., "struts-config_1_3.dtd" => version "1.3")
-- If detected, provide: { name: "Struts", version: "X.X" (if found), configFile: <current file path> }
-
-JSF (JavaServer Faces) Framework Detection:
-- Look for <servlet-class> containing "javax.faces.webapp.FacesServlet" or "jakarta.faces.webapp.FacesServlet"
-- Check for root element <faces-config> in faces-config.xml
-- Extract version from namespace (e.g., "http://xmlns.jcp.org/xml/ns/javaee" with version="2.2")
-- If detected, provide: { name: "JSF", version: "X.X" (if found), configFile: <current file path> }
-
-Spring MVC Framework Detection:
-- Look for <servlet-class> containing "org.springframework.web.servlet.DispatcherServlet"
-- Check for root element containing "http://www.springframework.org/schema/mvc"
-- Look for annotations like @Controller, @RequestMapping in servlet definitions
-- If detected, provide: { name: "Spring MVC", version: <if identifiable>, configFile: <current file path> }
-
-If a UI framework is detected, populate the uiFramework field. Otherwise, omit the field entirely from the JSON response.`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION,
+        points: [SOURCES_PROMPT_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION],
+      },
     ],
   },
 
@@ -309,26 +343,28 @@ If a UI framework is detected, populate the uiFramework field. Otherwise, omit t
       jspMetrics: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS,
-      PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS,
-      "A list of data input fields it contains (if any). For each field, provide its name (or an approximate name), its type (e.g., 'text', 'hidden', 'password'), and a detailed description of its purpose",
-      `JSP Metrics Analysis (REQUIRED for all JSP files)
-You MUST analyze and provide the following JSP metrics in the jspMetrics object:
-- scriptletCount (REQUIRED): Count the exact number of Java scriptlets (<% ... %>) in this file
-- expressionCount (REQUIRED): Count the exact number of expressions (<%= ... %>) in this file
-- declarationCount (REQUIRED): Count the exact number of declarations (<%! ... %>) in this file
-- customTags (REQUIRED if any exist): For each <%@ taglib ... %> directive, extract:
-  * prefix: The tag library prefix from the taglib directive
-  * uri: The URI of the tag library from the taglib directive
-
-Examples:
-- <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> => { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" }
-- <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> => { prefix: "fmt", uri: "http://java.sun.com/jsp/jstl/fmt" }
-- <%@ taglib prefix="custom" uri="/WEB-INF/custom.tld" %> => { prefix: "custom", uri: "/WEB-INF/custom.tld" }
-
-Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>.`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.REFERENCES,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS,
+          SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.USER_INPUT_FIELDS,
+        points: [SOURCES_PROMPT_FRAGMENTS.JSP_SPECIFIC.DATA_INPUT_FIELDS],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.JSP_METRICS_ANALYSIS,
+        points: [SOURCES_PROMPT_FRAGMENTS.JSP_SPECIFIC.JSP_METRICS_ANALYSIS],
+      },
     ],
   },
 
@@ -340,7 +376,14 @@ Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as s
       purpose: true,
       implementation: true,
     }),
-    instructions: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
+    instructions: [
+      {
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+    ],
   },
 
   //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -404,50 +447,52 @@ Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as s
           .optional(),
       }),
     instructions: [
-      ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
-      "Its kind ('class', 'interface', 'record', or 'struct')", // Override with C#-specific kinds
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      "A list of the internal references to other application classes - fully qualified type names (only include 'using' directives that clearly belong to this same application's code – exclude BCL / System.* and third-party packages)",
-      "A list of the external references to 3rd party / NuGet package classes (Fully qualified type names) it depends on (exclude System.* where possible)",
-      "A list of public constants / readonly static fields (if any) – include name, value (redact secrets), and a short type/role description",
-      "A list of its public methods (if any) – for each method list: name, purpose (detailed), parameters (name and type), return type, async/sync indicator, and a very detailed implementation description highlighting notable control flow, LINQ queries, awaits, exception handling, and important business logic decisions",
-      PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-      `REST APIs (mechanism: 'REST'):
-- ASP.NET Core MVC/Web API controller actions with [HttpGet], [HttpPost], [HttpPut], [HttpDelete], [HttpPatch], [Route]
-- ASP.NET Core Minimal API endpoints (MapGet, MapPost, MapPut, MapDelete)
-- HTTP client calls (HttpClient, RestSharp, Refit interfaces)
-
-WCF/SOAP Services (mechanism: 'SOAP'):
-- WCF service contracts ([ServiceContract], [OperationContract])
-- SOAP service references, WCF client proxies
-- BasicHttpBinding, WSHttpBinding configurations
-
-Messaging Systems:
-- Azure Service Bus (ServiceBusClient, QueueClient for queues, TopicClient for topics) => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
-- RabbitMQ.Client usage (IModel.BasicPublish, BasicConsume) => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
-- MSMQ (MessageQueue class) => 'OTHER' (specify MSMQ in description and protocol)
-- AWS SQS/SNS (AWSSDK) => 'AWS-SQS' or 'AWS-SNS'
-
-gRPC (mechanism: 'GRPC'):
-- Grpc.Net.Client, Grpc.Core service definitions
-- gRPC client stubs and service implementations`,
-      ...DB_INTEGRATION_INSTRUCTIONS,
-      `Mechanism mapping:
-- Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'
-- Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => mechanism: 'DAPPER'
-- Uses other micro ORMs (NPoco, ServiceStack.OrmLite, PetaPoco) => mechanism: 'MICRO-ORM'
-- Uses ADO.NET primitives (SqlConnection, SqlCommand, DataReader) without ORM => mechanism: 'ADO-NET'
-- Executes raw SQL strings or stored procedures via SqlCommand => mechanism: 'SQL'
-- Invokes stored procedures explicitly (CommandType.StoredProcedure) => mechanism: 'STORED-PROCEDURE'
-- Uses database provider drivers directly (NpgsqlConnection, MySqlConnection) without abstraction => mechanism: 'DRIVER'
-- Contains EF Core migrations or explicit DDL (CREATE/ALTER/DROP TABLE) => mechanism: 'DDL'
-- Performs data manipulation operations (bulk INSERT, SqlBulkCopy) => mechanism: 'DML'
-- Creates or invokes database functions => mechanism: 'FUNCTION'
-- Uses Redis client (StackExchange.Redis) => mechanism: 'REDIS'
-- Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'
-- Otherwise when no DB interaction present => mechanism: 'NONE'`,
-      ...CODE_QUALITY_INSTRUCTIONS,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.CLASS_INFO,
+        points: [
+          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.KIND_OVERRIDE,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.PURPOSE_AND_IMPLEMENTATION,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.REFERENCES,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.INTERNAL_REFS,
+          SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.EXTERNAL_REFS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.PUBLIC_API,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.PUBLIC_CONSTANTS,
+          SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.PUBLIC_METHODS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        points: [
+          ...DB_INTEGRATION_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.DB_MECHANISM_MAPPING,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+        points: CODE_QUALITY_INSTRUCTIONS,
+      },
     ],
   },
 
@@ -513,51 +558,55 @@ gRPC (mechanism: 'GRPC'):
           .optional(),
       }),
     instructions: [
-      ...MODULE_LANGUAGE_BASE_INSTRUCTIONS,
-      "Its kind ('class', 'module', 'function', or 'package'; choose the dominant one)", // Override with Python-specific kinds
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      "A list of internal references (imports that belong to this same project; exclude Python stdlib & third‑party packages)",
-      "A list of external references (third‑party libraries imported; exclude stdlib modules like sys, os, json, typing, pathlib, re, math, datetime, logging, asyncio, dataclasses, functools, itertools)",
-      "A list of public constants (UPPERCASE module-level assignments; include name, redacted value, brief type/role)",
-      `A list of its public functions/methods – for each include:
-- name
-- purpose (detailed)
-- parameters (name + type hint or inferred type; if no hint, describe expected type)
-- returnType (type hint or inferred description of returned value shape)
-- implementation (very detailed explanation of logic, branches, important data transformations, exception handling)
-- cyclomaticComplexity (see rules)
-- linesOfCode (exclude blank lines & comments)
-- codeSmells (if any; use EXACT enum labels)`,
-      PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-      `REST APIs (mechanism: 'REST'):
-- Flask @app.route decorators (path, methods)
-- FastAPI endpoint decorators (@app.get/post/put/delete/patch)
-- Django REST Framework views / viewsets (method names, URL pattern if inferable)
-- aiohttp route registrations
-- HTTP client calls (requests/httpx/aiohttp ClientSession)
-
-GraphQL (mechanism: 'GRAPHQL'): Graphene / Strawberry schema & resolver definitions
-gRPC (mechanism: 'GRPC'): grpc.* Servicer classes, stub usage
-Messaging: Celery tasks (@app.task) => mechanism 'OTHER' (specify Celery); RabbitMQ (pika), Kafka (producer/consumer), Redis Pub/Sub (redis.publish/subscribe), AWS SQS/SNS (boto3)
-WebSockets (mechanism: 'WEBSOCKET'): FastAPI WebSocket endpoints, Django Channels consumers
-Server-Sent Events (mechanism: 'SSE'): streaming responses with 'text/event-stream'`,
-      ...DB_INTEGRATION_INSTRUCTIONS,
-      `Mechanism mapping:
-- SQLAlchemy ORM (Session, declarative Base) => 'SQLALCHEMY'
-- Django ORM (models.Model, QuerySet) => 'DJANGO-ORM'
-- Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => 'DRIVER' or 'SQL' (if many inline SQL strings)
-- Async drivers (asyncpg, aiomysql) => 'DRIVER'
-- Inline CREATE/ALTER => also 'DDL'
-- Bulk data scripts => also 'DML'
-- Stored procedure/function invocation (CALL/EXEC) => 'STORED-PROCEDURE' or 'FUNCTION'
-- No database access => 'NONE'`,
-      PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-      `Cyclomatic complexity (Python):
-- Start at 1; +1 for each if / elif / for / while / except / finally / with (when it controls resource flow) / comprehension 'for' / ternary / logical operator (and/or) in a condition / match case arm
-- +1 for each additional 'if' inside a comprehension
-For each public function/method capture: cyclomaticComplexity, linesOfCode, and ${PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS}
-File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMethodLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY')`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.MODULE_INFO,
+        points: [
+          ...MODULE_LANGUAGE_BASE_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.KIND_OVERRIDE,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.PURPOSE_AND_IMPLEMENTATION,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.REFERENCES,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.INTERNAL_REFS,
+          SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.EXTERNAL_REFS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.PUBLIC_API,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PUBLIC_CONSTANTS,
+          SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PUBLIC_METHODS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        points: [
+          ...DB_INTEGRATION_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.DB_MECHANISM_MAPPING,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PYTHON_COMPLEXITY_METRICS,
+        ],
+      },
     ],
   },
 
@@ -621,52 +670,52 @@ File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMetho
           .optional(),
       }),
     instructions: [
-      ...MODULE_LANGUAGE_BASE_INSTRUCTIONS,
-      "Its kind ('class', 'module', or 'enum')", // Override with Ruby-specific kinds
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      "A list of the internal references to other Ruby source files in the same project that this file depends on (only include paths required via require or require_relative that clearly belong to this same application; exclude Ruby standard library and external gem dependencies)",
-      "A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)",
-      "A list of public (non-internal) constants it defines (if any) – for each constant include its name, value (redact secrets), and a short type/role description",
-      "A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals",
-      PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-      `REST APIs (mechanism: 'REST'):
-- Rails controller actions (routes.rb get/post/put/delete/patch, controller action methods)
-- Sinatra route definitions (get, post, put, delete, patch blocks)
-- Grape API endpoints (get, post, put, delete, patch declarations)
-- HTTP client calls (Net::HTTP, RestClient, HTTParty, Faraday)
-
-GraphQL (mechanism: 'GRAPHQL'):
-- GraphQL type definitions (GraphQL::ObjectType, field definitions)
-- GraphQL mutations and queries
-
-SOAP (mechanism: 'SOAP'):
-- Savon SOAP client usage
-- SOAP service definitions
-
-Messaging Systems:
-- RabbitMQ (bunny gem): channel.queue, publish => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
-- Redis Pub/Sub: redis.publish, subscribe => 'REDIS-PUBSUB'
-- AWS SQS/SNS (aws-sdk) => 'AWS-SQS' or 'AWS-SNS'
-
-WebSockets (mechanism: 'WEBSOCKET'):
-- Action Cable channels
-- WebSocket-Rails usage`,
-      ...DB_INTEGRATION_INSTRUCTIONS,
-      `Mechanism mapping - if any of the following are present you MUST assume database interaction (include table/model names where you can infer them):
-- Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'
-- Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'
-- Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or 'MICRO-ORM' if lightweight)
-- Uses Redis client (redis-rb, redis.set/get) => mechanism: 'REDIS'
-- Executes raw SQL strings (SELECT / INSERT / etc.) => mechanism: 'SQL'
-- Invokes stored procedures (via connection.exec with CALL) => mechanism: 'STORED-PROCEDURE'
-- Uses database driver / adapter directly (PG gem, mysql2 gem) without ORM => mechanism: 'DRIVER'
-- Defines migration DSL (create_table, add_column, change_table) => mechanism: 'DDL'
-- Performs data manipulation (bulk insert helpers, seeding, data-only scripts) => mechanism: 'DML'
-- Creates or manages triggers (via execute or DSL) => mechanism: 'TRIGGER'
-- Creates or invokes functions / stored routines => mechanism: 'FUNCTION'
-- Otherwise, if no database interaction is evident => mechanism: 'NONE'`,
-      ...CODE_QUALITY_INSTRUCTIONS,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.CLASS_INFO,
+        points: [
+          ...MODULE_LANGUAGE_BASE_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.KIND_OVERRIDE,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.PURPOSE_AND_IMPLEMENTATION,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.REFERENCES,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.INTERNAL_REFS,
+          SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.EXTERNAL_REFS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.PUBLIC_API,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.PUBLIC_CONSTANTS,
+          SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.PUBLIC_METHODS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        points: [
+          ...DB_INTEGRATION_INSTRUCTIONS,
+          SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.DB_MECHANISM_MAPPING,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+        points: CODE_QUALITY_INSTRUCTIONS,
+      },
     ],
   },
 
@@ -680,15 +729,17 @@ WebSockets (mechanism: 'WEBSOCKET'):
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of dependencies declared in this POM file - for each dependency extract:
-- name (artifactId)
-- groupId
-- version (resolve properties if possible, e.g., \${spring.version})
-- scope (compile, test, runtime, provided, import, system)
-- type (jar, war, pom, etc.)
-Note: Extract dependencies from both <dependencies> and <dependencyManagement> sections`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN],
+      },
     ],
   },
 
@@ -702,14 +753,17 @@ Note: Extract dependencies from both <dependencies> and <dependencyManagement> s
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of dependencies declared - for each dependency extract:
-- name (artifact name after the colon, e.g., for 'org.springframework:spring-core:5.3.9' the name is 'spring-core')
-- groupId (group before the colon, e.g., 'org.springframework')
-- version (version number, or 'latest' if using dynamic versions)
-- scope (implementation, api, testImplementation, runtimeOnly, etc. - map these to standard Maven scopes)
-Handle both Groovy DSL and Kotlin DSL syntax`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.GRADLE],
+      },
     ],
   },
 
@@ -723,14 +777,17 @@ Handle both Groovy DSL and Kotlin DSL syntax`,
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of dependencies declared - for each dependency extract:
-- name (jar file name or artifact name)
-- groupId (organization or project name if specified)
-- version (extract from jar filename if versioned, e.g., 'commons-lang3-3.12.0.jar' -> version: '3.12.0')
-- scope (compile, test, runtime based on classpath definitions)
-Look for dependencies in <classpath>, <path>, <pathelement>, and <ivy:dependency> elements`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.ANT],
+      },
     ],
   },
 
@@ -744,13 +801,17 @@ Look for dependencies in <classpath>, <path>, <pathelement>, and <ivy:dependency
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of dependencies - for each dependency extract:
-- name (package name)
-- version (semver version, remove ^ and ~ prefixes)
-- scope (dependencies = 'compile', devDependencies = 'test', peerDependencies = 'provided')
-Extract from both dependencies and devDependencies sections`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NPM],
+      },
     ],
   },
 
@@ -764,13 +825,17 @@ Extract from both dependencies and devDependencies sections`,
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of PackageReference dependencies - for each dependency extract:
-- name (package name from Include attribute)
-- version (Version attribute value)
-- scope (compile for regular, test if in test project based on SDK type)
-Look for <PackageReference> elements in modern SDK-style projects`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.DOTNET],
+      },
     ],
   },
 
@@ -784,13 +849,17 @@ Look for <PackageReference> elements in modern SDK-style projects`,
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of package dependencies - for each package extract:
-- name (id attribute)
-- version (version attribute)
-- scope (compile, or test if targetFramework suggests test package)
-Parse all <package> elements in the configuration`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NUGET],
+      },
     ],
   },
 
@@ -804,14 +873,17 @@ Parse all <package> elements in the configuration`,
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of gem dependencies - for each gem extract:
-- name (gem name)
-- version (specified version or version from Gemfile.lock, remove ~> and >= prefixes)
-- scope (default is 'compile', :development = 'test', :test = 'test')
-- groupId (use 'rubygems' as a standard groupId)
-Parse gem declarations including version constraints`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.RUBY_BUNDLER],
+      },
     ],
   },
 
@@ -825,14 +897,17 @@ Parse gem declarations including version constraints`,
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of package dependencies - for each package extract:
-- name (package name before == or >= or ~=)
-- version (version specifier, remove operators like ==, >=, ~=)
-- scope (default is 'compile', dev dependencies in Pipfile have scope 'test')
-- groupId (use 'pypi' as standard groupId)
-Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_PIP],
+      },
     ],
   },
 
@@ -846,13 +921,17 @@ Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of dependencies from install_requires - for each package extract:
-- name (package name)
-- version (version from string, remove operators)
-- scope ('compile' for install_requires, 'test' for tests_require or extras_require['test'])
-- groupId (use 'pypi' as standard groupId)`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_SETUP],
+      },
     ],
   },
 
@@ -866,13 +945,17 @@ Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
       dependencies: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      `A comprehensive list of dependencies from [tool.poetry.dependencies] - for each dependency extract:
-- name (dependency key name)
-- version (version constraint, remove ^ and ~ prefixes)
-- scope ('compile' for dependencies, 'test' for dev-dependencies)
-- groupId (use 'pypi' as standard groupId)`,
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+        points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_POETRY],
+      },
     ],
   },
 
@@ -886,13 +969,23 @@ Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
       scheduledJobs: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-      PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
-      "Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references",
-      "Identify database operations (mysql, psql, mongo commands)",
-      "Note any external API calls (curl, wget)",
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+          SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.CRON_EXPRESSIONS,
+          SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.DATABASE_OPS,
+          SOURCES_PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
+        ],
+      },
     ],
   },
 
@@ -906,14 +999,24 @@ Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
       scheduledJobs: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-      PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
-      "Look for Windows Task Scheduler references (schtasks, AT commands)",
-      "Identify database operations (sqlcmd, osql, BCP)",
-      "Note network operations (NET USE, COPY to UNC paths)",
-      "Identify service operations (NET START, SC commands)",
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+          SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.TASK_SCHEDULER,
+          SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.DATABASE_OPS,
+          SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.NETWORK_OPS,
+          SOURCES_PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
+        ],
+      },
     ],
   },
 
@@ -927,14 +1030,24 @@ Handle various version specifiers: ==, >=, <=, ~=, and ranges`,
       scheduledJobs: true,
     }),
     instructions: [
-      PROMPT_FRAGMENTS.COMMON.PURPOSE,
-      PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-      PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
-      "Extract all EXEC statements to identify programs/procedures called",
-      "Identify DD statements for file I/O",
-      "Note COND parameters that indicate job dependencies",
-      "Look for SORT, IEBGENER, or custom program calls",
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+          SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        ],
+      },
+      {
+        title: SOURCES_INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
+        points: [
+          SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+          SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+          SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.EXEC_STATEMENTS,
+          SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.DD_STATEMENTS,
+          SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.COND_PARAMETERS,
+          SOURCES_PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
+        ],
+      },
     ],
   },
 } as const;

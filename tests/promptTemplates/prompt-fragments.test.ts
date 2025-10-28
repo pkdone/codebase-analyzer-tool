@@ -1,26 +1,26 @@
 import {
-  PROMPT_FRAGMENTS,
+  SOURCES_PROMPT_FRAGMENTS,
   CODE_QUALITY_INSTRUCTIONS,
   DB_INTEGRATION_INSTRUCTIONS,
   INTEGRATION_POINTS_INSTRUCTIONS,
   SCHEDULED_JOBS_INSTRUCTIONS,
   CLASS_LANGUAGE_BASE_INSTRUCTIONS,
   MODULE_LANGUAGE_BASE_INSTRUCTIONS,
-} from "../../src/prompts/templates/prompt-fragments";
+} from "../../src/prompts/templates/sources-prompt-fragments";
 
 describe("prompt-fragments", () => {
   describe("PROMPT_FRAGMENTS.COMMON", () => {
     it("should have PURPOSE and IMPLEMENTATION fragments", () => {
-      expect(PROMPT_FRAGMENTS.COMMON.PURPOSE).toBeDefined();
-      expect(PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBeDefined();
-      expect(typeof PROMPT_FRAGMENTS.COMMON.PURPOSE).toBe("string");
-      expect(typeof PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBe("string");
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE).toBeDefined();
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBeDefined();
+      expect(typeof SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE).toBe("string");
+      expect(typeof SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBe("string");
     });
 
     it("should have FORCE_JSON_FORMAT fragment", () => {
-      expect(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toBeDefined();
-      expect(typeof PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toBe("string");
-      expect(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toContain(
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toBeDefined();
+      expect(typeof SOURCES_PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toBe("string");
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toContain(
         "ONLY provide an RFC8259 compliant JSON response",
       );
     });
@@ -124,28 +124,28 @@ describe("prompt-fragments", () => {
 
   describe("New detection fragments", () => {
     it("should have REST_API_DETECTION fragment", () => {
-      expect(PROMPT_FRAGMENTS.REST_API_DETECTION).toBeDefined();
-      expect(PROMPT_FRAGMENTS.REST_API_DETECTION.INTRO).toContain("REST");
+      expect(SOURCES_PROMPT_FRAGMENTS.REST_API_DETECTION).toBeDefined();
+      expect(SOURCES_PROMPT_FRAGMENTS.REST_API_DETECTION.INTRO).toContain("REST");
     });
 
     it("should have GRAPHQL_DETECTION fragment", () => {
-      expect(PROMPT_FRAGMENTS.GRAPHQL_DETECTION).toBeDefined();
-      expect(PROMPT_FRAGMENTS.GRAPHQL_DETECTION.INTRO).toContain("GRAPHQL");
+      expect(SOURCES_PROMPT_FRAGMENTS.GRAPHQL_DETECTION).toBeDefined();
+      expect(SOURCES_PROMPT_FRAGMENTS.GRAPHQL_DETECTION.INTRO).toContain("GRAPHQL");
     });
 
     it("should have GRPC_DETECTION fragment", () => {
-      expect(PROMPT_FRAGMENTS.GRPC_DETECTION).toBeDefined();
-      expect(PROMPT_FRAGMENTS.GRPC_DETECTION.INTRO).toContain("GRPC");
+      expect(SOURCES_PROMPT_FRAGMENTS.GRPC_DETECTION).toBeDefined();
+      expect(SOURCES_PROMPT_FRAGMENTS.GRPC_DETECTION.INTRO).toContain("GRPC");
     });
 
     it("should have WEBSOCKET_DETECTION fragment", () => {
-      expect(PROMPT_FRAGMENTS.WEBSOCKET_DETECTION).toBeDefined();
-      expect(PROMPT_FRAGMENTS.WEBSOCKET_DETECTION.INTRO).toContain("WEBSOCKET");
+      expect(SOURCES_PROMPT_FRAGMENTS.WEBSOCKET_DETECTION).toBeDefined();
+      expect(SOURCES_PROMPT_FRAGMENTS.WEBSOCKET_DETECTION.INTRO).toContain("WEBSOCKET");
     });
 
     it("should have MESSAGING_INTRO fragment", () => {
-      expect(PROMPT_FRAGMENTS.MESSAGING_INTRO).toBeDefined();
-      expect(PROMPT_FRAGMENTS.MESSAGING_INTRO).toContain("Messaging");
+      expect(SOURCES_PROMPT_FRAGMENTS.MESSAGING_INTRO).toBeDefined();
+      expect(SOURCES_PROMPT_FRAGMENTS.MESSAGING_INTRO).toContain("Messaging");
     });
   });
 
