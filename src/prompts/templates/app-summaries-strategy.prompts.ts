@@ -3,7 +3,7 @@
  * These templates are used across different insight generation strategies
  */
 
-import { MASTER_PROMPT_TEMPLATE, PROMPT_CONTENT_HEADERS } from "./master.prompt";
+import { MASTER_PROMPT_TEMPLATE } from "./master.prompt";
 
 /**
  * Template for single-pass insight generation strategy.
@@ -28,13 +28,3 @@ export const REDUCE_INSIGHTS_TEMPLATE = MASTER_PROMPT_TEMPLATE;
  * Used by InsightsFromRawCodeGenerator for one-shot insight generation
  */
 export const ALL_CATEGORIES_TEMPLATE = MASTER_PROMPT_TEMPLATE;
-
-/**
- * Content headers for strategy templates
- */
-export const STRATEGY_CONTENT_HEADERS = {
-  SINGLE_PASS: PROMPT_CONTENT_HEADERS.SOURCES,
-  PARTIAL: PROMPT_CONTENT_HEADERS.SOURCES,
-  REDUCE: PROMPT_CONTENT_HEADERS.PARTIAL_DATA,
-  ALL_CATEGORIES: PROMPT_CONTENT_HEADERS.SOURCES,
-} as const;

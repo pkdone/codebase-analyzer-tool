@@ -66,7 +66,7 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     const config = summaryCategoriesConfig[type];
     return new Prompt(
       SINGLE_PASS_INSIGHTS_TEMPLATE,
-      "source files",
+      "list of file summaries",
       config.instructions,
       config.responseSchema,
       codeContent,

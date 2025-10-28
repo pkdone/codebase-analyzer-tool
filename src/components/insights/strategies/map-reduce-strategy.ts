@@ -160,7 +160,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const codeContent = joinArrayWithSeparators(summaryChunk);
     const prompt = new Prompt(
       PARTIAL_INSIGHTS_TEMPLATE,
-      "source files",
+      "list of file summaries",
       config.instructions,
       config.responseSchema,
       codeContent,
@@ -215,8 +215,8 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
 
     const prompt = new Prompt(
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
-      "partial data",
-      [`a consolidated list of '${config.label}'`], // Convert string to array
+      "several JSON objects",
+      [`a consolidated list of '${config.label}'`], 
       config.responseSchema,
       content,
     )

@@ -3,7 +3,6 @@ import { fillPrompt } from "type-safe-prompt";
 import { z } from "zod";
 import { SOURCES_PROMPT_FRAGMENTS } from "./templates/sources-prompt-fragments";
 import { areInstructionSections, type InstructionSection } from "./types/prompt-definition.types";
-import { DEFAULT_PROMPT_ROLE, PROMPT_CONTENT_HEADERS } from "./templates/master.prompt";
 
 /**
  * Represents a prompt with its template, content, and rendering logic.
@@ -14,9 +13,7 @@ export class Prompt {
   private readonly contentDesc: string;
   private readonly instructions: readonly string[] | readonly InstructionSection[];
   private readonly schema: z.ZodType;
-  private readonly codeContent: string;
-  private readonly role: string;
-  private readonly contentHeader: string;
+  private readonly content: string;
 
   /**
    * Creates a new Prompt instance.
@@ -25,26 +22,20 @@ export class Prompt {
    * @param contentDesc - Description of the content being analyzed
    * @param instructions - Array of instruction strings to be formatted as bullet points, or array of instruction sections
    * @param schema - Zod schema for validation
-   * @param codeContent - The actual content to analyze
-   * @param role - Optional role for the prompt
-   * @param contentHeader - Optional content header for the prompt
+   * @param content - The actual content to analyze
    */
   constructor(
     template: string,
     contentDesc: string,
     instructions: readonly string[] | readonly InstructionSection[],
     schema: z.ZodType,
-    codeContent: string,
-    role?: string,
-    contentHeader?: string,
+    content: string,
   ) {
     this.template = template;
     this.contentDesc = contentDesc;
     this.instructions = instructions;
     this.schema = schema;
-    this.codeContent = codeContent;
-    this.role = role ?? DEFAULT_PROMPT_ROLE;
-    this.contentHeader = contentHeader ?? PROMPT_CONTENT_HEADERS.CODE;
+    this.content = content;
   }
 
   /**
@@ -57,13 +48,11 @@ export class Prompt {
     const instructionsText = this.formatInstructions();
 
     return fillPrompt(this.template, {
-      role: this.role,
       instructions: instructionsText,
       forceJSON: SOURCES_PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT,
       jsonSchema: JSON.stringify(zodToJsonSchema(this.schema), null, 2),
       contentDesc: this.contentDesc,
-      contentHeader: this.contentHeader,
-      codeContent: this.codeContent,
+      content: this.content,
     });
   }
 

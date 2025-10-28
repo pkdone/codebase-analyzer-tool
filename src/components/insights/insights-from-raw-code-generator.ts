@@ -123,7 +123,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
   ): string {
     return new Prompt(
       ALL_CATEGORIES_TEMPLATE,
-      "codebase codeblock",
+      "list of file summaries",
       instructions,
       appSummaryRecordCategoriesSchema,
       codeBlocksContent,
