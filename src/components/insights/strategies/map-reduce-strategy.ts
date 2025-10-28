@@ -7,7 +7,6 @@ import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../pr
 import {
   PARTIAL_INSIGHTS_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-  STRATEGY_CONTENT_HEADERS,
 } from "../../../prompts/templates/app-summaries-strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
@@ -166,10 +165,6 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       config.responseSchema,
       codeContent,
     )
-      .withRole(
-        "Act as a senior developer analyzing a subset of code. This is a partial analysis of a larger codebase; focus on extracting insights from this subset only.",
-      )
-      .withContentHeader(STRATEGY_CONTENT_HEADERS.PARTIAL)
       .render();
 
     try {
@@ -225,10 +220,6 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       config.responseSchema,
       content,
     )
-      .withRole(
-        "Act as a senior developer. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized.",
-      )
-      .withContentHeader(STRATEGY_CONTENT_HEADERS.REDUCE)
       .render();
 
     try {

@@ -10,7 +10,6 @@ import { fileTypePromptMetadata } from "../../prompts/templates/sources.prompts"
 import { Prompt } from "../../prompts/prompt";
 import {
   MASTER_PROMPT_TEMPLATE,
-  PROMPT_CONTENT_HEADERS,
 } from "../../prompts/templates/master.prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
@@ -46,8 +45,6 @@ export class FileSummarizer {
         promptMetadata.responseSchema,
         content,
       )
-        .withRole("Act as a programmer.")
-        .withContentHeader(PROMPT_CONTENT_HEADERS.CODE)
         .render();
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
         filepath,

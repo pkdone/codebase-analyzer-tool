@@ -14,7 +14,6 @@ import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/templates/app-summaries.prompts";
 import {
   ALL_CATEGORIES_TEMPLATE,
-  STRATEGY_CONTENT_HEADERS,
 } from "../../prompts/templates/app-summaries-strategy.prompts";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
@@ -129,8 +128,6 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       appSummaryRecordCategoriesSchema,
       codeBlocksContent,
     )
-      .withRole("Act as a senior developer analyzing the code in a legacy application.")
-      .withContentHeader(STRATEGY_CONTENT_HEADERS.ALL_CATEGORIES)
       .render();
   }
 }

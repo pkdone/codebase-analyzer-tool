@@ -14,8 +14,8 @@ The JSON response must follow this JSON schema:
 
 {{forceJSON}}
 
-{{contentHeader}}:
-{{codeContent}}`;
+CONTENT:
+{{content}}`;
 
 /**
  * Default role for prompts

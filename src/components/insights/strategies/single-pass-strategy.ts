@@ -4,7 +4,6 @@ import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/templates/app-summaries.prompts";
 import {
   SINGLE_PASS_INSIGHTS_TEMPLATE,
-  STRATEGY_CONTENT_HEADERS,
 } from "../../../prompts/templates/app-summaries-strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
@@ -72,10 +71,6 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
       config.responseSchema,
       codeContent,
     )
-      .withRole(
-        "Act as a senior developer analyzing the code in a legacy application. Take the list of paths and descriptions.",
-      )
-      .withContentHeader(STRATEGY_CONTENT_HEADERS.SINGLE_PASS)
       .render();
   }
 }

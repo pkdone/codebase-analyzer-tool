@@ -48,36 +48,6 @@ export class Prompt {
   }
 
   /**
-   * Sets the role for this prompt.
-   */
-  withRole(role: string): Prompt {
-    return new Prompt(
-      this.template,
-      this.contentDesc,
-      this.instructions,
-      this.schema,
-      this.codeContent,
-      role,
-      this.contentHeader,
-    );
-  }
-
-  /**
-   * Sets the content header for this prompt.
-   */
-  withContentHeader(header: string): Prompt {
-    return new Prompt(
-      this.template,
-      this.contentDesc,
-      this.instructions,
-      this.schema,
-      this.codeContent,
-      this.role,
-      header,
-    );
-  }
-
-  /**
    * Renders the prompt by filling template placeholders with the provided values.
    * This method handles all prompt formatting, including converting instruction arrays to bullet points.
    *
@@ -91,6 +61,7 @@ export class Prompt {
       instructions: instructionsText,
       forceJSON: SOURCES_PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT,
       jsonSchema: JSON.stringify(zodToJsonSchema(this.schema), null, 2),
+      contentDesc: this.contentDesc,
       contentHeader: this.contentHeader,
       codeContent: this.codeContent,
     });
