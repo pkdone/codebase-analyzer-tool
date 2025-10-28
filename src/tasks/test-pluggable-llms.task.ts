@@ -56,7 +56,7 @@ export class PluggableLLMsTestTask implements Task {
     );
     console.log(completionPrimaryResult ?? "<empty>");
 
-    // Test secondary LLM completion
+    // Test fallback LLM completion
     console.log("\n\n---COMPLETION (Secondary LLM)---");
     const completionSecondaryResult = await this.llmRouter.executeCompletion(
       "hard-coded-test-input",

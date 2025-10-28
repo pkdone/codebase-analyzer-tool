@@ -135,7 +135,7 @@ describe("LLMStats", () => {
       expect(stats.SUCCESS.symbol).toBe(">");
       expect(stats.FAILURE.description).toBe("LLM invocation failed (no data produced)");
       expect(stats.FAILURE.symbol).toBe("!");
-      expect(stats.SWITCH.description).toBe("Switched to secondary LLM to try to process request");
+      expect(stats.SWITCH.description).toBe("Switched to fallback LLM to try to process request");
       expect(stats.SWITCH.symbol).toBe("+");
       expect(stats.OVERLOAD_RETRY.description).toBe(
         "Retried calling LLM due to provider overload or network issue",

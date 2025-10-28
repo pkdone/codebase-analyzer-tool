@@ -16,7 +16,7 @@ export default class LLMStats {
     SUCCESS: { description: "LLM invocation succeeded", symbol: ">", count: 0 },
     FAILURE: { description: "LLM invocation failed (no data produced)", symbol: "!", count: 0 },
     SWITCH: {
-      description: "Switched to secondary LLM to try to process request",
+      description: "Switched to fallback LLM to try to process request",
       symbol: "+",
       count: 0,
     },
