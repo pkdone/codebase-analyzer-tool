@@ -13,7 +13,7 @@ import { Prompt } from "../../prompts/prompt";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/templates/app-summaries.prompts";
 import {
-  ALL_CATEGORIES_TEMPLATE,
+  SINGLE_PASS_INSIGHTS_TEMPLATE,
 } from "../../prompts/templates/app-summaries-strategy.prompts";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
@@ -122,7 +122,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     codeBlocksContent: string,
   ): string {
     return new Prompt(
-      ALL_CATEGORIES_TEMPLATE,
+      SINGLE_PASS_INSIGHTS_TEMPLATE,
       "list of file summaries",
       instructions,
       appSummaryRecordCategoriesSchema,
