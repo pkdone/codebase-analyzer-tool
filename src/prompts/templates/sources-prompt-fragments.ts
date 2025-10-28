@@ -28,17 +28,17 @@ CRITICAL JSON FORMAT REQUIREMENTS:
   CODE_QUALITY: {
     INTRO: "Code Quality Analysis (REQUIRED for all code files with methods)",
     METHOD_METRICS: `For each public method/function you identify, you MUST estimate and provide:
-- cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
-- linesOfCode: Count actual lines of code (exclude blank lines and comments)
-- codeSmells: Identify any of these common code smells present (USE EXACT UPPERCASE ENUMERATION LABELS; if none apply but a smell is clearly present, use OTHER with a short explanation). Allowed labels: LONG METHOD, LONG PARAMETER LIST, COMPLEX CONDITIONAL, DUPLICATE CODE, MAGIC NUMBERS, DEEP NESTING, DEAD CODE, GOD CLASS, LARGE CLASS, DATA CLASS, FEATURE ENVY, SHOTGUN SURGERY, OTHER:`,
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+  * linesOfCode: Count actual lines of code (exclude blank lines and comments)
+  * codeSmells: Identify any of these common code smells present (USE EXACT UPPERCASE ENUMERATION LABELS; if none apply but a smell is clearly present, use OTHER with a short explanation). Allowed labels: LONG METHOD, LONG PARAMETER LIST, COMPLEX CONDITIONAL, DUPLICATE CODE, MAGIC NUMBERS, DEEP NESTING, DEAD CODE, GOD CLASS, LARGE CLASS, DATA CLASS, FEATURE ENVY, SHOTGUN SURGERY, OTHER:`,
     METHOD_SMELLS: `'LONG METHOD' - method has > 50 lines of code
-'LONG PARAMETER LIST' - method has > 5 parameters
-'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
-'DUPLICATE CODE' - similar logic repeated in multiple places
-'MAGIC NUMBERS' - hardcoded numeric values without explanation
-'DEEP NESTING' - more than 3-4 levels of nesting
-'DEAD CODE' - unreachable or commented-out code
-Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA CLASS', 'FEATURE ENVY', 'SHOTGUN SURGERY'`,
+    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+    - 'DUPLICATE CODE' - similar logic repeated in multiple places
+    - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+    -'DEEP NESTING' - more than 3-4 levels of nesting
+    -'DEAD CODE' - unreachable or commented-out code
+TODO: Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA CLASS', 'FEATURE ENVY', 'SHOTGUN SURGERY'`,
     FILE_METRICS: `Additionally, provide file-level codeQualityMetrics:
 - totalMethods: Count of all methods in the file
 - averageComplexity: Average of all method complexities
@@ -56,21 +56,19 @@ Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA CLASS'
   DB_INTEGRATION: {
     INTRO: "Database Integration Analysis (REQUIRED for files that interact with databases)",
     REQUIRED_FIELDS: `For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
-
-REQUIRED FIELDS:
-- mechanism (REQUIRED): The integration type - see mechanism mapping below
-- description (REQUIRED): Detailed explanation of how database integration is achieved
-- codeExample (REQUIRED): A small redacted code snippet showing the database interaction
-
-STRONGLY RECOMMENDED FIELDS (provide whenever possible):
-- name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
-- databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
-- tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
-- operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
-- queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
-- transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
-- protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
-- connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')`,
+  * REQUIRED FIELDS:
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below
+    - description (REQUIRED): Detailed explanation of how database integration is achieved
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible):
+    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+    - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
+    - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+    - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+    - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+    - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')`,
   },
 
   INTEGRATION_POINTS: {
@@ -98,63 +96,56 @@ STRONGLY RECOMMENDED FIELDS (provide whenever possible):
     PUBLIC_METHODS:
       "A list of its public methods (if any) - for each public method, include the method's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation",
     PUBLIC_CONSTANTS: "A list of public constants (name, value and type) it defines (if any)",
-    INTEGRATION_INSTRUCTIONS: `REST APIs (mechanism: 'REST'):
-- JAX-RS annotations (@Path, @GET, @POST, @PUT, @DELETE, @PATCH) - include path, method, request/response body
-- Spring annotations (@RestController, @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping)
-- Servlet mappings (web.xml or @WebServlet) - include URL patterns
-- HTTP client calls (RestTemplate, WebClient, HttpClient, OkHttp, Feign @FeignClient)
-
-SOAP Services (mechanism: 'SOAP'):
-- JAX-WS annotations (@WebService, @WebMethod, @SOAPBinding) - include service name, operation name, SOAP version
-- WSDL references or Apache CXF service definitions
-- SOAPConnectionFactory, SOAPMessage usage
-- SOAP client proxy usage (Service.create, getPort)
-
-JMS Messaging (mechanism: 'JMS-QUEUE' or 'JMS-TOPIC'):
-- Queue operations: MessageProducer sending to Queue, QueueSender, @JmsListener with destination type QUEUE
-- Topic operations: TopicPublisher, @JmsListener with destination type TOPIC
-- Include queue/topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
-- ConnectionFactory, Session, MessageProducer/MessageConsumer patterns
-
-Kafka (mechanism: 'KAFKA-TOPIC'):
-- KafkaProducer, KafkaConsumer usage - include topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
-- @KafkaListener annotations - include topic names, consumer group
-
-RabbitMQ (mechanism: 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'):
-- RabbitTemplate send/receive operations - include queue/exchange name and direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL if inferable)
-- @RabbitListener annotations - include queue names, direction
-
-Other Messaging:
-- ActiveMQ: @JmsListener with ActiveMQ-specific config => 'ACTIVEMQ-QUEUE' or 'ACTIVEMQ-TOPIC'
-- AWS SQS/SNS: AmazonSQS client, sendMessage, receiveMessage => 'AWS-SQS' or 'AWS-SNS'
-- Azure Service Bus: ServiceBusClient, QueueClient, TopicClient => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
-
-WebSockets (mechanism: 'WEBSOCKET'):
-- @ServerEndpoint annotations - include endpoint path
-- WebSocketHandler implementations
-
-gRPC (mechanism: 'GRPC'):
-- @GrpcService annotations or gRPC stub usage - include service name, methods`,
-    DB_MECHANISM_MAPPING: `Mechanism mapping - if any of the following are true, you MUST assume database interaction:
-- Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
-- Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'
-- Uses Hibernate API directly (SessionFactory, Session, Criteria API) => mechanism: 'HIBERNATE'
-- Uses standard JPA annotations and EntityManager (without Spring Data) => mechanism: 'JPA'
-- Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => mechanism: 'EJB'
-- Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => mechanism: 'SQL'
-- Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'
-- Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => mechanism: 'ORM'
-- Defines DDL / migration style schema changes inline => mechanism: 'DDL'
-- Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'
-- Invokes stored procedures (CallableStatement, @Procedure, etc.) => mechanism: 'STORED-PROCEDURE'
-- Creates or manages database triggers => mechanism: 'TRIGGER'
-- Creates or invokes database functions => mechanism: 'FUNCTION'
-- Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'
-- Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'
-- Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'
-    - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
-    - Otherwise, if the code does not use a database => mechanism: 'NONE'
-(note, JMS and JNDI are not related to interacting with a database)`,
+    INTEGRATION_INSTRUCTIONS: `  * REST APIs (mechanism: 'REST'):
+    - JAX-RS annotations (@Path, @GET, @POST, @PUT, @DELETE, @PATCH) - include path, method, request/response body
+    - Spring annotations (@RestController, @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping)
+    - Servlet mappings (web.xml or @WebServlet) - include URL patterns
+    - HTTP client calls (RestTemplate, WebClient, HttpClient, OkHttp, Feign @FeignClient)
+  * SOAP Services (mechanism: 'SOAP'):
+    - JAX-WS annotations (@WebService, @WebMethod, @SOAPBinding) - include service name, operation name, SOAP version
+    - WSDL references or Apache CXF service definitions
+    - SOAPConnectionFactory, SOAPMessage usage
+    - SOAP client proxy usage (Service.create, getPort)
+   * JMS Messaging (mechanism: 'JMS-QUEUE' or 'JMS-TOPIC'):
+    - Queue operations: MessageProducer sending to Queue, QueueSender, @JmsListener with destination type QUEUE
+    - Topic operations: TopicPublisher, @JmsListener with destination type TOPIC
+    - Include queue/topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
+    - ConnectionFactory, Session, MessageProducer/MessageConsumer patterns
+  * Kafka (mechanism: 'KAFKA-TOPIC'):
+    - KafkaProducer, KafkaConsumer usage - include topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
+    - @KafkaListener annotations - include topic names, consumer group
+  * RabbitMQ (mechanism: 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'):
+    - RabbitTemplate send/receive operations - include queue/exchange name and direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL if inferable)
+   - @RabbitListener annotations - include queue names, direction
+  * Other Messaging:
+    - ActiveMQ: @JmsListener with ActiveMQ-specific config => 'ACTIVEMQ-QUEUE' or 'ACTIVEMQ-TOPIC'
+    - AWS SQS/SNS: AmazonSQS client, sendMessage, receiveMessage => 'AWS-SQS' or 'AWS-SNS'
+    - Azure Service Bus: ServiceBusClient, QueueClient, TopicClient => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
+  * WebSockets (mechanism: 'WEBSOCKET'):
+    - @ServerEndpoint annotations - include endpoint path
+    - WebSocketHandler implementations
+  * gRPC (mechanism: 'GRPC'):
+  - @GrpcService annotations or gRPC stub usage - include service name, methods`,
+    DB_MECHANISM_MAPPING: `    - mechanism: If any of the following are true, you MUST assume database interaction:
+      - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
+      - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'
+      - Uses Hibernate API directly (SessionFactory, Session, Criteria API) => mechanism: 'HIBERNATE'
+      - Uses standard JPA annotations and EntityManager (without Spring Data) => mechanism: 'JPA'
+      - Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => mechanism: 'EJB'
+      - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => mechanism: 'SQL'
+      - Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'
+      - Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => mechanism: 'ORM'
+      - Defines DDL / migration style schema changes inline => mechanism: 'DDL'
+      - Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'
+      - Invokes stored procedures (CallableStatement, @Procedure, etc.) => mechanism: 'STORED-PROCEDURE'
+      - Creates or manages database triggers => mechanism: 'TRIGGER'
+      - Creates or invokes database functions => mechanism: 'FUNCTION'
+      - Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'
+      - Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'
+      - Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'
+      - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
+      - Otherwise, if the code does not use a database => mechanism: 'NONE'
+    (note, JMS and JNDI are not related to interacting with a database)`,
   },
 
   JAVASCRIPT_SPECIFIC: {

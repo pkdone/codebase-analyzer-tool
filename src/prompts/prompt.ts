@@ -76,8 +76,8 @@ export class Prompt {
   private formatSectionInstructions(sections: readonly InstructionSection[]): string {
     return sections
       .map((section) => {
-        const title = section.title ? `\n**${section.title}**\n` : "";
-        const points = section.points.map((point) => `* ${point}`).join("\n");
+        const title = section.title ? `__${section.title}__\n` : "";
+        const points = section.points.map((point) => point).join("\n");
         return `${title}${points}`;
       })
       .join("\n\n");
