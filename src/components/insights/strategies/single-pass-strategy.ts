@@ -1,10 +1,8 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
-import {
-  appSummaryPromptMetadata as summaryCategoriesConfig,
-  SINGLE_PASS_INSIGHTS_TEMPLATE,
-} from "../../../prompt-templates/app-summaries.prompts";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompt-templates/app-summaries.prompts";
+import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../../prompt-templates/strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";

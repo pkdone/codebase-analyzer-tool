@@ -41,7 +41,7 @@ export class FileSummarizer {
       const prompt = createPromptFromConfig(
         SOURCES_SUMMARY_CAPTURE_TEMPLATE,
         promptMetadata.contentDesc,
-        promptMetadata.instructions, // Now always an array
+        promptMetadata.instructions,
         promptMetadata.responseSchema,
         content,
       );

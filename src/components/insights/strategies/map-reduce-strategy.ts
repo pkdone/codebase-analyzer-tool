@@ -1,12 +1,13 @@
 import { injectable, inject } from "tsyringe";
+import { z } from "zod";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompt-templates/app-summaries.prompts";
 import {
-  appSummaryPromptMetadata as summaryCategoriesConfig,
   PARTIAL_INSIGHTS_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../../prompt-templates/app-summaries.prompts";
+} from "../../../prompt-templates/strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { createPromptFromConfig } from "../../../llm/utils/prompt-templator";
@@ -194,7 +195,9 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const config = summaryCategoriesConfig[category];
 
     // Get the key name for this category (e.g., "entities", "boundedContexts")
-    const categoryKey = Object.keys(config.responseSchema.shape)[0];
+    // Type assertion needed because responseSchema is typed as ZodType, but we know app summaries are ZodObject
+    const schemaShape = (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape;
+    const categoryKey = Object.keys(schemaShape)[0];
 
     // Flatten the arrays from all partial results into a single combined list
     const combinedData = partialResults.flatMap((result) => {

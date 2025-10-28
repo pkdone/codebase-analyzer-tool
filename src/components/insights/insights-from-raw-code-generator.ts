@@ -12,6 +12,7 @@ import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging"
 import { createPromptFromConfig } from "../../llm/utils/prompt-templator";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompt-templates/app-summaries.prompts";
+import { ALL_CATEGORIES_TEMPLATE } from "../../prompt-templates/strategy.prompts";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories
@@ -27,8 +28,6 @@ const ALL_CATEGORIES_SCHEMA_IS_VERTEXAI_INCOMPATIBLE = true;
 @injectable()
 export default class InsightsFromRawCodeGenerator implements ApplicationInsightsProcessor {
   // Private fields
-  private readonly APP_CATEGORIES_SUMMARIZER_TEMPLATE =
-    "Act as a senior developer analyzing the code in a legacy application. Analyze the application's codebase shown below in the section marked 'SOURCES', and based on the code, return a JSON response that contains:\n\n {{specificInstructions}}.\n\nThe JSON response must follow this JSON schema:\n```json\n{{jsonSchema}}\n```\n\n{{forceJSON}}\n\nSOURCES:\n{{codeContent}}";
   private readonly llmProviderDescription: string;
 
   /**
@@ -113,7 +112,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     codeBlocksContent: string,
   ): string {
     return createPromptFromConfig(
-      this.APP_CATEGORIES_SUMMARIZER_TEMPLATE,
+      ALL_CATEGORIES_TEMPLATE,
       "codebase codeblock",
       [instructions], // Convert string to array
       appSummaryRecordCategoriesSchema,
