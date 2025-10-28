@@ -9,8 +9,8 @@ import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/templates/sources.prompts";
 import { Prompt } from "../../prompts/prompt";
 import {
-  MASTER_PROMPT_TEMPLATE,
-} from "../../prompts/templates/master.prompt";
+  SOURCES_TEMPLATE,
+} from "../../prompts/templates/sources-template.prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
@@ -39,7 +39,7 @@ export class FileSummarizer {
       const canonicalFileType = this.getCanonicalFileType(filepath, type);
       const promptMetadata = fileTypePromptMetadata[canonicalFileType];
       const prompt = new Prompt(
-        MASTER_PROMPT_TEMPLATE,
+        SOURCES_TEMPLATE,
         promptMetadata.contentDesc,
         promptMetadata.instructions,
         promptMetadata.responseSchema,
