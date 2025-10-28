@@ -2,9 +2,7 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/templates/app-summaries.prompts";
-import {
-  SINGLE_PASS_INSIGHTS_TEMPLATE,
-} from "../../../prompts/templates/app-summaries-strategy.prompts";
+import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../../prompts/templates/app-summaries-strategy.prompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { Prompt } from "../../../prompts/prompt";
@@ -70,7 +68,6 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
       config.instructions,
       config.responseSchema,
       codeContent,
-    )
-      .render();
+    ).render();
   }
 }

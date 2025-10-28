@@ -12,9 +12,7 @@ import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging"
 import { Prompt } from "../../prompts/prompt";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/templates/app-summaries.prompts";
-import {
-  SINGLE_PASS_INSIGHTS_TEMPLATE,
-} from "../../prompts/templates/app-summaries-strategy.prompts";
+import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../prompts/templates/app-summaries-strategy.prompts";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories
@@ -127,7 +125,6 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       instructions,
       appSummaryRecordCategoriesSchema,
       codeBlocksContent,
-    )
-      .render();
+    ).render();
   }
 }

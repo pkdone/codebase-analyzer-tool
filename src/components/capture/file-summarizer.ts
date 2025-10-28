@@ -8,9 +8,7 @@ import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
 import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/templates/sources.prompts";
 import { Prompt } from "../../prompts/prompt";
-import {
-  SOURCES_TEMPLATE,
-} from "../../prompts/templates/sources-template.prompt";
+import { SOURCES_TEMPLATE } from "../../prompts/templates/sources-template.prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
@@ -44,8 +42,7 @@ export class FileSummarizer {
         promptMetadata.instructions,
         promptMetadata.responseSchema,
         content,
-      )
-        .render();
+      ).render();
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
         filepath,
         prompt,

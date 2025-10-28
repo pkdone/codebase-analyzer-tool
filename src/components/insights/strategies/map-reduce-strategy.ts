@@ -164,8 +164,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       config.instructions,
       config.responseSchema,
       codeContent,
-    )
-      .render();
+    ).render();
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
@@ -216,11 +215,10 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const prompt = new Prompt(
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
       "several JSON objects",
-      [`a consolidated list of '${config.label}'`], 
+      [`a consolidated list of '${config.label}'`],
       config.responseSchema,
       content,
-    )
-      .render();
+    ).render();
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

@@ -16,4 +16,3 @@ The JSON response must follow this JSON schema:
 
 CODE:
 {{content}}`;
-
