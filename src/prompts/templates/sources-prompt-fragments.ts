@@ -9,8 +9,7 @@ export const SOURCES_PROMPT_FRAGMENTS = {
   COMMON: {
     PURPOSE: "A detailed definition of its purpose",
     IMPLEMENTATION: "A detailed definition of its implementation",
-    FORCE_JSON_FORMAT: `
-In your response, only include JSON and do not include any additional text explanations outside the JSON object.
+    FORCE_JSON_FORMAT: `In your response, only include JSON and do not include any additional text explanations outside the JSON object.
 NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
 NEVER use " or ' quote symbols as part of the text you use for JSON description values, even if you want to quote a piece of existing text, existing message or show a path
 ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.
@@ -22,35 +21,37 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 - Ensure all brackets, braces, and quotes are properly matched
 - COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen")
 - ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
-- AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail`,
+- AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail
+- EXAMPLE: ✅ CORRECT: {"name": "value", "items": [{"id": 1}]}  ❌ INCORRECT: {name: "value", items: [{id: 1}]}
+- CRITICAL: All property names at every nesting level MUST have double quotes.`,
   },
 
   CODE_QUALITY: {
-    INTRO: "Code Quality Analysis (REQUIRED for all code files with methods)",
+    INTRO: "Code Quality Analysis (REQUIRED for all code files and for all public methods)",
     METHOD_METRICS: `For each public method/function you identify, you MUST estimate and provide:
   * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
   * linesOfCode: Count actual lines of code (exclude blank lines and comments)
-  * codeSmells: Identify any of these common code smells present (USE EXACT UPPERCASE ENUMERATION LABELS; if none apply but a smell is clearly present, use OTHER with a short explanation). Allowed labels: LONG METHOD, LONG PARAMETER LIST, COMPLEX CONDITIONAL, DUPLICATE CODE, MAGIC NUMBERS, DEEP NESTING, DEAD CODE, GOD CLASS, LARGE CLASS, DATA CLASS, FEATURE ENVY, SHOTGUN SURGERY, OTHER:`,
-    METHOD_SMELLS: `'LONG METHOD' - method has > 50 lines of code
+  * codeSmells: Identify any of these common code smells present. Allowed labels:`,
+    METHOD_SMELLS: `    - 'LONG METHOD' - method has > 50 lines of code
     - 'LONG PARAMETER LIST' - method has > 5 parameters
     - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
     - 'DUPLICATE CODE' - similar logic repeated in multiple places
     - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
-    -'DEEP NESTING' - more than 3-4 levels of nesting
-    -'DEAD CODE' - unreachable or commented-out code
-TODO: Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA CLASS', 'FEATURE ENVY', 'SHOTGUN SURGERY'`,
-    FILE_METRICS: `Additionally, provide file-level codeQualityMetrics:
-- totalMethods: Count of all methods in the file
-- averageComplexity: Average of all method complexities
-- maxComplexity: Highest complexity score in the file
-- averageMethodLength: Average lines of code per method
-- fileSmells: File-level smells such as:
-  'GOD CLASS' - class has > 20 methods or > 500 lines of code
-  'TOO MANY METHODS' - class has > 20 public methods
-  'FEATURE ENVY' - methods heavily use data from other classes
-  'DATA CLASS' - class only contains fields and getters/setters
-  'LARGE FILE' - class file exceeds 500 lines of code
-  'OTHER' - some other file-level smell`,
+    - 'DEEP NESTING' - more than 3-4 levels of nesting
+    - 'DEAD CODE' - unreachable or commented-out code
+    - 'OTHER' - some other method-level smell`,
+    FILE_METRICS: `For file-level codeQualityMetrics, provide:
+  * totalMethods: Count of all methods in the file
+  * averageComplexity: Average of all method complexities
+  * maxComplexity: Highest complexity score in the file
+  * averageMethodLength: Average lines of code per method
+  * fileSmells: File-level smells. Allowed labels:
+    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public methods
+    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'DATA CLASS' - class only contains fields and getters/setters
+    - 'LARGE FILE' - class file exceeds 500 lines of code
+    - 'OTHER' - some other file-level smell`,
   },
 
   DB_INTEGRATION: {
@@ -116,7 +117,7 @@ TODO: Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA 
     - @KafkaListener annotations - include topic names, consumer group
   * RabbitMQ (mechanism: 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'):
     - RabbitTemplate send/receive operations - include queue/exchange name and direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL if inferable)
-   - @RabbitListener annotations - include queue names, direction
+    - @RabbitListener annotations - include queue names, direction
   * Other Messaging:
     - ActiveMQ: @JmsListener with ActiveMQ-specific config => 'ACTIVEMQ-QUEUE' or 'ACTIVEMQ-TOPIC'
     - AWS SQS/SNS: AmazonSQS client, sendMessage, receiveMessage => 'AWS-SQS' or 'AWS-SNS'
@@ -125,7 +126,7 @@ TODO: Optionally (only when clearly evident): 'GOD CLASS', 'LARGE CLASS', 'DATA 
     - @ServerEndpoint annotations - include endpoint path
     - WebSocketHandler implementations
   * gRPC (mechanism: 'GRPC'):
-  - @GrpcService annotations or gRPC stub usage - include service name, methods`,
+    - @GrpcService annotations or gRPC stub usage - include service name, methods`,
     DB_MECHANISM_MAPPING: `    - mechanism: If any of the following are true, you MUST assume database interaction:
       - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
       - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'
