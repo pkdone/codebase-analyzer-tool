@@ -1,6 +1,6 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/templates/sources-prompt-fragments";
-import { fileTypePromptMetadata } from "../../src/prompts/templates/sources.prompts";
-import { areInstructionSections } from "../../src/prompts/types/prompt-definition.types";
+import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/sources/common-fragments";
+import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
+import { InstructionSection } from "../../src/prompts/types/prompt-definition.types";
 
 describe("prompt-composition", () => {
   describe("fileTypePromptMetadata", () => {
@@ -17,9 +17,9 @@ describe("prompt-composition", () => {
       const javaInstructions = fileTypePromptMetadata.java.instructions;
 
       // Instructions are now structured sections - flatten to check content
-      const instructionArray = areInstructionSections(javaInstructions)
-        ? javaInstructions.flatMap((section) => section.points)
-        : javaInstructions;
+      const instructionArray = javaInstructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
 
       expect(instructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
       expect(instructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
@@ -36,9 +36,9 @@ describe("prompt-composition", () => {
       const jsInstructions = fileTypePromptMetadata.javascript.instructions;
 
       // Instructions are now structured sections - flatten to check content
-      const jsInstructionArray = areInstructionSections(jsInstructions)
-        ? jsInstructions.flatMap((section) => section.points)
-        : jsInstructions;
+      const jsInstructionArray = jsInstructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
 
       expect(jsInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
       expect(jsInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
@@ -55,13 +55,13 @@ describe("prompt-composition", () => {
       const sqlInstructions = fileTypePromptMetadata.sql.instructions;
 
       // Instructions are now structured sections - flatten to check content
-      const markdownInstructionArray = areInstructionSections(markdownInstructions)
-        ? markdownInstructions.flatMap((section) => section.points)
-        : markdownInstructions;
+      const markdownInstructionArray = markdownInstructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
 
-      const sqlInstructionArray = areInstructionSections(sqlInstructions)
-        ? sqlInstructions.flatMap((section) => section.points)
-        : sqlInstructions;
+      const sqlInstructionArray = sqlInstructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
 
       expect(markdownInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
       expect(markdownInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
@@ -78,9 +78,9 @@ describe("prompt-composition", () => {
         const instructions = metadata.instructions;
 
         // Convert to string array if needed
-        const instructionArray = areInstructionSections(instructions)
-          ? instructions.flatMap((section) => section.points)
-          : instructions;
+        const instructionArray = instructions.flatMap(
+          (section: InstructionSection) => section.points,
+        );
 
         // All file types should have purpose and implementation
         const instructionText = instructionArray.join(" ");
@@ -97,11 +97,11 @@ describe("prompt-composition", () => {
         const instructions = metadata.instructions;
 
         // Convert to string array if needed
-        const instructionArray = areInstructionSections(instructions)
-          ? instructions.flatMap((section) => section.points)
-          : instructions;
+        const instructionArray = instructions.flatMap(
+          (section: InstructionSection) => section.points,
+        );
 
-        // Each instruction should be a non-empty string
+        // Each instruction point should be a non-empty string
         instructionArray.forEach((instruction) => {
           expect(typeof instruction).toBe("string");
           expect(instruction.length).toBeGreaterThan(0);
@@ -117,9 +117,9 @@ describe("prompt-composition", () => {
         const instructions = metadata.instructions;
 
         // Convert to string array if needed
-        const instructionArray = areInstructionSections(instructions)
-          ? instructions.flatMap((section) => section.points)
-          : instructions;
+        const instructionArray = instructions.flatMap(
+          (section: InstructionSection) => section.points,
+        );
 
         // These file types should use code quality fragments
         const instructionText = instructionArray.join(" ");
@@ -130,17 +130,17 @@ describe("prompt-composition", () => {
     it("should have language-specific fragments in appropriate file types", () => {
       // Java should use Java-specific fragments
       const javaInstructions = fileTypePromptMetadata.java.instructions;
-      const javaInstructionArray = areInstructionSections(javaInstructions)
-        ? javaInstructions.flatMap((section) => section.points)
-        : javaInstructions;
+      const javaInstructionArray = javaInstructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
       expect(javaInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
       expect(javaInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
 
       // JavaScript should use JavaScript-specific fragments
       const jsInstructions = fileTypePromptMetadata.javascript.instructions;
-      const jsInstructionArray = areInstructionSections(jsInstructions)
-        ? jsInstructions.flatMap((section) => section.points)
-        : jsInstructions;
+      const jsInstructionArray = jsInstructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
       expect(jsInstructionArray).toContain(
         SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
       );

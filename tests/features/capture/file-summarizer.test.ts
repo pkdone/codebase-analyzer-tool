@@ -13,8 +13,8 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
 }));
 
-jest.unmock("../../../src/prompts/templates/sources.prompts");
-jest.unmock("../../../src/prompts/templates/sources-prompt-fragments");
+jest.unmock("../../../src/prompts/definitions/sources");
+jest.unmock("../../../src/prompts/definitions/sources/common-fragments");
 
 jest.mock("../../../src/config/file-type-mappings.config", () => ({
   fileTypeMappingsConfig: {
@@ -42,49 +42,49 @@ jest.mock("../../../src/config/file-type-mappings.config", () => ({
 }));
 
 // Fix the mock to use the correct export name
-jest.mock("../../../src/prompts/templates/sources.prompts", () => ({
+jest.mock("../../../src/prompts/definitions/sources", () => ({
   fileTypePromptMetadata: {
     java: {
       contentDesc: "Java code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: ["Java instructions"],
+      instructions: [{ points: ["Java instructions"] }],
     },
     javascript: {
       contentDesc: "JavaScript/TypeScript code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: ["JavaScript instructions"],
+      instructions: [{ points: ["JavaScript instructions"] }],
     },
     default: {
       contentDesc: "project file content",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: ["Default instructions"],
+      instructions: [{ points: ["Default instructions"] }],
     },
     sql: {
       contentDesc: "database DDL/DML/SQL code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: ["SQL instructions"],
+      instructions: [{ points: ["SQL instructions"] }],
     },
     xml: {
       contentDesc: "XML code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: ["XML instructions"],
+      instructions: [{ points: ["XML instructions"] }],
     },
     jsp: {
       contentDesc: "JSP code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: ["JSP instructions"],
+      instructions: [{ points: ["JSP instructions"] }],
     },
     markdown: {
       contentDesc: "Markdown content",
       hasComplexSchema: false,
       responseSchema: z.object({}),
-      instructions: ["Markdown instructions"],
+      instructions: [{ points: ["Markdown instructions"] }],
     },
   },
 }));
@@ -96,7 +96,7 @@ const mockLogErrorMsgAndDetail = logging.logErrorMsgAndDetail as jest.MockedFunc
   typeof logging.logErrorMsgAndDetail
 >;
 
-import { fileTypePromptMetadata } from "../../../src/prompts/templates/sources.prompts";
+import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
 
 describe("FileSummarizer", () => {
   let fileSummarizer: FileSummarizer;
@@ -148,7 +148,7 @@ describe("FileSummarizer", () => {
         contentDesc,
         hasComplexSchema: false,
         responseSchema: z.object({}),
-        instructions: [`Instructions for ${contentDesc}`],
+        instructions: [{ points: [`Instructions for ${contentDesc}`] }],
       } as (typeof fileTypePromptMetadata)["default"]; // satisfy typing
     };
 

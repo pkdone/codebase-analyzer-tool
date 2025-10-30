@@ -1,5 +1,5 @@
-import { fileTypePromptMetadata } from "../../../src/prompts/templates/sources.prompts";
-import { areInstructionSections } from "../../../src/prompts/types/prompt-definition.types";
+import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
+import { InstructionSection } from "../../../src/prompts/types/prompt-definition.types";
 
 describe("fileTypeMetadataConfig", () => {
   describe("supported file types", () => {
@@ -47,9 +47,9 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include expected instructions", () => {
       const instructions = fileTypePromptMetadata.java.instructions;
-      const instructionArray = areInstructionSections(instructions)
-        ? instructions.flatMap((section) => section.points)
-        : instructions;
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("namespace");
       expect(instructionText).toContain("public methods");
@@ -75,9 +75,9 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include expected instructions", () => {
       const instructions = fileTypePromptMetadata.javascript.instructions;
-      const instructionArray = areInstructionSections(instructions)
-        ? instructions.flatMap((section) => section.points)
-        : instructions;
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("purpose");
       expect(instructionText).toContain("implementation");
@@ -96,9 +96,9 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include SQL-specific instructions", () => {
       const instructions = fileTypePromptMetadata.sql.instructions;
-      const instructionArray = areInstructionSections(instructions)
-        ? instructions.flatMap((section) => section.points)
-        : instructions;
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("stored procedure");
       expect(instructionText).toContain("triggers");
@@ -122,9 +122,9 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include C#-specific instructions", () => {
       const instructions = fileTypePromptMetadata.csharp.instructions;
-      const instructionArray = areInstructionSections(instructions)
-        ? instructions.flatMap((section) => section.points)
-        : instructions;
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("Entity Framework");
       expect(instructionText).toContain("Dapper");
@@ -143,9 +143,9 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include Ruby-specific instructions", () => {
       const instructions = fileTypePromptMetadata.ruby.instructions;
-      const instructionArray = areInstructionSections(instructions)
-        ? instructions.flatMap((section) => section.points)
-        : instructions;
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("ActiveRecord");
       expect(instructionText).toContain("module");

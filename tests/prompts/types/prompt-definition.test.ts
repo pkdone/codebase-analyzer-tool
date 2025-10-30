@@ -1,10 +1,13 @@
-import { PromptDefinition } from "../../../src/prompts/types/prompt-definition.types";
+import {
+  PromptDefinition,
+  InstructionSection,
+} from "../../../src/prompts/types/prompt-definition.types";
 import { z } from "zod";
 
 describe("PromptDefinition", () => {
   const createMockPromptDefinition = (overrides?: Partial<PromptDefinition>): PromptDefinition => ({
     contentDesc: "test content",
-    instructions: ["instruction 1", "instruction 2"],
+    instructions: [{ points: ["instruction 1", "instruction 2"] }],
     responseSchema: z.string(),
     hasComplexSchema: false,
     ...overrides,
@@ -14,12 +17,12 @@ describe("PromptDefinition", () => {
     it("should have required fields", () => {
       const definition: PromptDefinition = {
         contentDesc: "test",
-        instructions: ["test"],
+        instructions: [{ points: ["test"] }],
         responseSchema: z.string(),
       };
 
       expect(definition.contentDesc).toBe("test");
-      expect(definition.instructions).toEqual(["test"]);
+      expect(definition.instructions).toEqual([{ points: ["test"] }]);
       expect(definition.responseSchema).toBeDefined();
     });
 
@@ -37,10 +40,10 @@ describe("PromptDefinition", () => {
   });
 
   describe("compatibility", () => {
-    it("should accept readonly string arrays for instructions", () => {
+    it("should accept readonly InstructionSection arrays for instructions", () => {
       const definition: PromptDefinition = {
         contentDesc: "test",
-        instructions: ["a", "b", "c"] as readonly string[],
+        instructions: [{ points: ["a"] }, { points: ["b"] }, { points: ["c"] }],
         responseSchema: z.string(),
       };
 
@@ -67,9 +70,9 @@ describe("PromptDefinition", () => {
       const sourceFileDefinition: PromptDefinition = {
         contentDesc: "JVM code",
         instructions: [
-          "Extract the class name",
-          "Extract the purpose",
-          "Extract the implementation",
+          { points: ["Extract the class name"] },
+          { points: ["Extract the purpose"] },
+          { points: ["Extract the implementation"] },
         ],
         responseSchema: z.object({
           name: z.string(),
@@ -87,7 +90,7 @@ describe("PromptDefinition", () => {
     it("should work with app summary prompting", () => {
       const appSummaryDefinition: PromptDefinition = {
         contentDesc: "source files",
-        instructions: ["Extract entities", "Extract bounded contexts"],
+        instructions: [{ points: ["Extract entities", "Extract bounded contexts"] }],
         responseSchema: z.object({
           entities: z.array(z.string()),
           boundedContexts: z.array(z.string()),
@@ -96,14 +99,17 @@ describe("PromptDefinition", () => {
       };
 
       expect(appSummaryDefinition.contentDesc).toBe("source files");
-      expect(appSummaryDefinition.instructions).toHaveLength(2);
+      expect(appSummaryDefinition.instructions).toHaveLength(1);
+      expect(appSummaryDefinition.instructions[0].points).toHaveLength(2);
       expect(appSummaryDefinition.hasComplexSchema).toBe(false);
     });
   });
 
   describe("immutability", () => {
-    it("should support readonly instructions arrays", () => {
-      const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
+    it("should support readonly InstructionSection arrays", () => {
+      const readonlyInstructions: readonly InstructionSection[] = [
+        { points: ["instruction 1", "instruction 2"] },
+      ];
 
       const definition: PromptDefinition = {
         contentDesc: "test",
@@ -111,7 +117,7 @@ describe("PromptDefinition", () => {
         responseSchema: z.string(),
       };
 
-      expect(definition.instructions).toEqual(["instruction 1", "instruction 2"]);
+      expect(definition.instructions).toEqual([{ points: ["instruction 1", "instruction 2"] }]);
     });
   });
 });

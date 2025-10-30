@@ -3,11 +3,11 @@ import { z } from "zod";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/templates/app-summaries.prompts";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import {
   PARTIAL_INSIGHTS_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../../prompts/templates/app-summaries-strategy.prompts";
+} from "../../../prompts/templates/app-summaries-templatesprompts";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { Prompt } from "../../../prompts/prompt";
@@ -215,7 +215,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const prompt = new Prompt(
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
       "several JSON objects",
-      [`a consolidated list of '${config.label}'`],
+      [{ points: [`a consolidated list of '${config.label}'`] }],
       config.responseSchema,
       content,
     ).render();

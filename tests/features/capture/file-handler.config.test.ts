@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { fileTypePromptMetadata } from "../../../src/prompts/templates/sources.prompts";
+import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
 import { SourcePromptTemplate } from "../../../src/prompts/types/sources.types";
 import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
@@ -65,7 +65,7 @@ describe("File Handler Configuration", () => {
     test("should enforce correct structure", () => {
       const testConfig: SourcePromptTemplate = {
         contentDesc: "test content",
-        instructions: ["test instructions"],
+        instructions: [{ points: ["test instructions"] }],
         responseSchema: sourceSummarySchema,
         hasComplexSchema: false,
       };
@@ -83,7 +83,7 @@ describe("File Handler Configuration", () => {
       // Test that DynamicPromptConfig can work with inline schema types
       const typedConfig: SourcePromptTemplate = {
         contentDesc: "test content",
-        instructions: ["test instructions"],
+        instructions: [{ points: ["test instructions"] }],
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
       };

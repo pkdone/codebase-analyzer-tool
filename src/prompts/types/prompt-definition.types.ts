@@ -11,19 +11,14 @@ export interface InstructionSection {
 }
 
 /**
- * Type for backward compatibility - can be either array of strings or sections
- */
-export type Instructions = readonly string[] | readonly InstructionSection[];
-
-/**
  * Formal prompt definition interface for consistent structure
  * This enforces a standard shape for prompt configurations across the application.
  */
 export interface PromptDefinition {
   /** Description of the content being analyzed (e.g., "JVM code", "source files") */
   contentDesc: string;
-  /** Array of instructions for the LLM (legacy format), which will be formatted as bullet points */
-  instructions: Instructions;
+  /** Array of instruction sections for the LLM, which will be formatted appropriately */
+  instructions: readonly InstructionSection[];
   /** Zod schema for validating the LLM response */
   responseSchema: z.ZodType;
   /** Whether the schema is complex and incompatible with some LLM providers */
@@ -32,18 +27,4 @@ export interface PromptDefinition {
   role?: string;
   /** Content header (e.g., "CODE:", "SOURCES:") - defaults to "CODE:" */
   contentHeader?: string;
-}
-
-/**
- * Type guard to check if instructions are in section format
- */
-export function areInstructionSections(
-  instructions: Instructions,
-): instructions is readonly InstructionSection[] {
-  return (
-    Array.isArray(instructions) &&
-    instructions.length > 0 &&
-    typeof instructions[0] === "object" &&
-    "points" in instructions[0]
-  );
 }

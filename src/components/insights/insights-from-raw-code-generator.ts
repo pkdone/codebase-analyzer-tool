@@ -10,9 +10,10 @@ import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { Prompt } from "../../prompts/prompt";
+import { InstructionSection } from "../../prompts/types/prompt-definition.types";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/templates/app-summaries.prompts";
-import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../prompts/templates/app-summaries-strategy.prompts";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
+import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../prompts/templates/app-summaries-templatesprompts";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories
@@ -81,18 +82,13 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     codeBlocksContent: string,
   ): Promise<AppSummaryRecordCategories | null> {
     try {
-      const instructions: readonly string[] = Object.values(summaryCategoriesConfig).flatMap(
-        (category) => {
-          const inst = category.instructions;
-          if (Array.isArray(inst) && inst.length > 0) {
-            if (typeof inst[0] === "object" && "points" in inst[0]) {
-              // It's an InstructionSection array
-              return inst.flatMap((section: { points: readonly string[] }) => section.points);
-            }
-          }
-          return inst as readonly string[];
-        },
-      );
+      const instructions: readonly InstructionSection[] = Object.values(
+        summaryCategoriesConfig,
+      ).flatMap((category) => {
+        const inst = category.instructions;
+        // All instructions are now InstructionSection[]
+        return inst;
+      });
       const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
       const llmResponse = await this.llmRouter.executeCompletion<AppSummaryRecordCategories>(
         "all-categories",
@@ -116,7 +112,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Create a prompt for the LLM to generate insights for all categories
    */
   private createInsightsAllCategoriesPrompt(
-    instructions: readonly string[],
+    instructions: readonly InstructionSection[],
     codeBlocksContent: string,
   ): string {
     return new Prompt(

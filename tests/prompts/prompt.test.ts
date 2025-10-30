@@ -1,8 +1,8 @@
 import { Prompt } from "../../src/prompts/prompt";
-import { SOURCES_TEMPLATE } from "../../src/prompts/templates/sources-template.prompt";
-import { fileTypePromptMetadata } from "../../src/prompts/templates/sources.prompts";
-import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/templates/sources-prompt-fragments";
-import { SOURCES_INSTRUCTION_SECTION_TITLES } from "../../src/prompts/templates/sources-instruction-titles";
+import { SOURCES_TEMPLATE } from "../../src/prompts/templates/sources-templates.prompt";
+import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
+import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/sources/common-fragments";
+import { SOURCES_INSTRUCTION_SECTION_TITLES } from "../../src/prompts/definitions/sources/instruction-titles";
 
 describe("Prompt", () => {
   const javaCodeSample = `package com.acme.myapp.address.ejb;

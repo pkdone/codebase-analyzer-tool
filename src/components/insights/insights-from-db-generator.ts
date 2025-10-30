@@ -9,7 +9,7 @@ import { llmTokens } from "../../llm/core/llm.tokens";
 import { coreTokens } from "../../di/core.tokens";
 import { insightsTokens } from "./insights.tokens";
 import { insightsTuningConfig } from "./insights.config";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/templates/app-summaries.prompts";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { ApplicationInsightsProcessor } from "./insights.types";
 import { AppSummaryCategoryEnum } from "./insights.types";

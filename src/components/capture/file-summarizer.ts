@@ -6,9 +6,9 @@ import { llmTokens } from "../../llm/core/llm.tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
 import path from "node:path";
-import { fileTypePromptMetadata } from "../../prompts/templates/sources.prompts";
+import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
 import { Prompt } from "../../prompts/prompt";
-import { SOURCES_TEMPLATE } from "../../prompts/templates/sources-template.prompt";
+import { SOURCES_TEMPLATE } from "../../prompts/templates/sources-templates.prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
