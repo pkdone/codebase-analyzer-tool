@@ -3,7 +3,6 @@ import { fillPrompt } from "type-safe-prompt";
 import { z } from "zod";
 import { COMMON_FRAGMENTS } from "./definitions/fragments";
 import { type InstructionSection, type PromptDefinition } from "./types/prompt-definition.types";
-import { REDUCE_INSIGHTS_TEMPLATE } from "./templates/app-summaries-templates.prompt";
 
 /**
  * Represents a prompt with its template, content, and rendering logic.
@@ -30,42 +29,6 @@ export class Prompt {
     this.content = content;
   }
 
-  /**
-   * Static factory method for creating prompts for source file analysis.
-   *
-   * @param definition - The prompt definition for the source file type
-   * @param content - The source file content to analyze
-   * @returns A new Prompt instance configured for source file analysis
-   */
-  static forSource(definition: PromptDefinition, content: string): Prompt {
-    return new Prompt(definition, content);
-  }
-
-  /**
-   * Static factory method for creating prompts for app summary analysis.
-   *
-   * @param definition - The prompt definition for the app summary category
-   * @param content - The code content to analyze
-   * @returns A new Prompt instance configured for app summary analysis
-   */
-  static forAppSummary(definition: PromptDefinition, content: string): Prompt {
-    return new Prompt(definition, content);
-  }
-
-  /**
-   * Static factory method for creating prompts for the REDUCE phase of map-reduce strategy.
-   * This method performs special template manipulation that requires custom logic.
-   *
-   * @param definition - The prompt definition for consolidating results
-   * @param content - The partial results content to consolidate
-   * @param categoryKey - The category key for the REDUCE template (e.g., "entities", "technologies")
-   * @returns A new Prompt instance configured for reducing partial insights
-   */
-  static forReduce(definition: PromptDefinition, content: string, categoryKey: string): Prompt {
-    const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
-    const modifiedDefinition = { ...definition, template };
-    return new Prompt(modifiedDefinition, content);
-  }
 
   /**
    * Renders the prompt by filling template placeholders with the provided values.

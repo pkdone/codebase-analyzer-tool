@@ -61,6 +61,6 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     codeContent: string,
   ): string {
     const config = summaryCategoriesConfig[type];
-    return Prompt.forAppSummary(config, codeContent).render();
+    return new Prompt(config, codeContent).render();
   }
 }

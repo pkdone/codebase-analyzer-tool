@@ -1,7 +1,27 @@
 /**
- * Centralized prompt templates for strategy classes
- * These templates are used across different insight generation strategies
+ * Centralized prompt templates for the application
+ * Consolidates all prompt templates in one location for better organization
  */
+
+/**
+ * Sources prompt template used for capturing source code summaries.
+ * This centralizes the common structure for all LLM prompts in the application.
+ */
+export const SOURCES_TEMPLATE = `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked 'CODE', return a JSON response that contains:
+
+{{instructions}}.
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{{jsonSchema}}
+\`\`\`
+
+{{forceJSON}}
+
+CODE:
+\`\`\`
+{{content}}
+\`\`\``;
 
 /**
  * Unified template for app summary insight generation strategies.

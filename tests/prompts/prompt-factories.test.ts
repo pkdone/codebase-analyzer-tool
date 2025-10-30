@@ -1,13 +1,13 @@
 import { Prompt } from "../../src/prompts/prompt";
 import { PromptDefinition } from "../../src/prompts/types/prompt-definition.types";
 import { z } from "zod";
-import { SOURCES_TEMPLATE } from "../../src/prompts/templates/sources-templates.prompt";
 import {
+  SOURCES_TEMPLATE,
   APP_SUMMARY_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../src/prompts/templates/app-summaries-templates.prompt";
+} from "../../src/prompts/templates/prompt-templates";
 
-describe("Prompt Factory Methods", () => {
+describe("Prompt Constructor and Templates", () => {
   const sourceDefinition: PromptDefinition = {
     label: "Test",
     contentDesc: "test content",
@@ -24,19 +24,11 @@ describe("Prompt Factory Methods", () => {
     template: APP_SUMMARY_TEMPLATE,
   };
 
-  const reduceDefinition: PromptDefinition = {
-    label: "Test",
-    contentDesc: "test content",
-    instructions: [{ points: ["instruction 1"] }],
-    responseSchema: z.string(),
-    template: REDUCE_INSIGHTS_TEMPLATE,
-  };
-
   const testContent = "test file content";
 
-  describe("Prompt.forSource", () => {
+  describe("Prompt constructor", () => {
     it("should create a prompt with SOURCES_TEMPLATE", () => {
-      const prompt = Prompt.forSource(sourceDefinition, testContent);
+      const prompt = new Prompt(sourceDefinition, testContent);
       const rendered = prompt.render();
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
@@ -44,17 +36,8 @@ describe("Prompt Factory Methods", () => {
       expect(rendered).toContain(testContent);
     });
 
-    it("should render the same as manual instantiation", () => {
-      const factoryPrompt = Prompt.forSource(sourceDefinition, testContent).render();
-      const manualPrompt = new Prompt(sourceDefinition, testContent).render();
-
-      expect(factoryPrompt).toBe(manualPrompt);
-    });
-  });
-
-  describe("Prompt.forAppSummary", () => {
     it("should create a prompt with APP_SUMMARY_TEMPLATE", () => {
-      const prompt = Prompt.forAppSummary(appSummaryDefinition, testContent);
+      const prompt = new Prompt(appSummaryDefinition, testContent);
       const rendered = prompt.render();
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
@@ -62,15 +45,8 @@ describe("Prompt Factory Methods", () => {
       expect(rendered).toContain(testContent);
     });
 
-    it("should render the same as manual instantiation", () => {
-      const factoryPrompt = Prompt.forAppSummary(appSummaryDefinition, testContent).render();
-      const manualPrompt = new Prompt(appSummaryDefinition, testContent).render();
-
-      expect(factoryPrompt).toBe(manualPrompt);
-    });
-
     it("should handle partialAnalysisNote parameter", () => {
-      const prompt = Prompt.forAppSummary(appSummaryDefinition, testContent);
+      const prompt = new Prompt(appSummaryDefinition, testContent);
       const partialNote = "This is a partial analysis note";
       const rendered = prompt.render({ partialAnalysisNote: partialNote });
 
@@ -78,39 +54,41 @@ describe("Prompt Factory Methods", () => {
     });
   });
 
-  describe("Prompt.forReduce", () => {
-    it("should create a prompt with REDUCE_INSIGHTS_TEMPLATE", () => {
-      const categoryKey = "entities";
-      const prompt = Prompt.forReduce(reduceDefinition, testContent, categoryKey);
-      const rendered = prompt.render();
-
-      expect(rendered).toContain("Act as a senior developer analyzing the code");
-      expect(rendered).toContain("FRAGMENTED_DATA:");
-      expect(rendered).toContain(categoryKey);
-      expect(rendered).toContain(testContent);
+  describe("Template consolidation", () => {
+    it("should export all required templates", () => {
+      expect(SOURCES_TEMPLATE).toBeDefined();
+      expect(APP_SUMMARY_TEMPLATE).toBeDefined();
+      expect(REDUCE_INSIGHTS_TEMPLATE).toBeDefined();
     });
 
-    it("should replace categoryKey placeholder in template", () => {
-      const categoryKey = "technologies";
-      const prompt = Prompt.forReduce(reduceDefinition, testContent, categoryKey);
+    it("should have consistent template structure", () => {
+      expect(SOURCES_TEMPLATE).toContain("{{contentDesc}}");
+      expect(SOURCES_TEMPLATE).toContain("{{instructions}}");
+      expect(SOURCES_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(SOURCES_TEMPLATE).toContain("{{content}}");
+
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{contentDesc}}");
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{instructions}}");
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{content}}");
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{partialAnalysisNote}}");
+
+      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{contentDesc}}");
+      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{categoryKey}}");
+      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{content}}");
+    });
+
+    it("should handle reduce template with category key replacement", () => {
+      const categoryKey = "entities";
+      const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
+      const reduceDefinition = { ...sourceDefinition, template };
+      const prompt = new Prompt(reduceDefinition, testContent);
       const rendered = prompt.render();
 
+      expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(`'${categoryKey}'`);
       expect(rendered).not.toContain("{{categoryKey}}");
-    });
-
-    it("should render the same as manual instantiation", () => {
-      const categoryKey = "entities";
-      const factoryPrompt = Prompt.forReduce(reduceDefinition, testContent, categoryKey).render();
-      // For manual instantiation, we need to replace the categoryKey placeholder ourselves
-      const templateWithCategory = reduceDefinition.template.replace(
-        "{{categoryKey}}",
-        categoryKey,
-      );
-      const manualDefinition = { ...reduceDefinition, template: templateWithCategory };
-      const manualPrompt = new Prompt(manualDefinition, testContent).render();
-
-      expect(factoryPrompt).toBe(manualPrompt);
     });
   });
 });

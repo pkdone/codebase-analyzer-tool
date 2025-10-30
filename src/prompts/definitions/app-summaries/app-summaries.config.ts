@@ -14,7 +14,7 @@ import {
   uiTechnologyAnalysisSchema,
 } from "../../../schemas/app-summaries.schema";
 import { APP_SUMMARY_FRAGMENTS } from "../fragments";
-import { APP_SUMMARY_TEMPLATE } from "../../templates/app-summaries-templates.prompt";
+import { APP_SUMMARY_TEMPLATE } from "../../templates/prompt-templates";
 import { z } from "zod";
 
 /**

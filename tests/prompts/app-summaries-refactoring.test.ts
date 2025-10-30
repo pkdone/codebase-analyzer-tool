@@ -1,5 +1,5 @@
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
-import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates/app-summaries-templates.prompt";
+import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates/prompt-templates";
 import { Prompt } from "../../src/prompts/prompt";
 
 describe("App Summaries Refactoring", () => {

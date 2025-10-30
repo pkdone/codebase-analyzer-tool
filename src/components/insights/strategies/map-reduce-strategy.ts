@@ -12,7 +12,7 @@ import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
 import { llmProviderConfig } from "../../../llm/llm.config";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
-import { REDUCE_INSIGHTS_TEMPLATE } from "../../../prompts/templates/app-summaries-templates.prompt";
+import { REDUCE_INSIGHTS_TEMPLATE } from "../../../prompts/templates/prompt-templates";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -157,7 +157,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const codeContent = joinArrayWithSeparators(summaryChunk);
     const partialAnalysisNote =
       "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ";
-    const prompt = Prompt.forAppSummary(config, codeContent).render({
+    const prompt = new Prompt(config, codeContent).render({
       partialAnalysisNote,
     });
 
@@ -205,13 +205,14 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     });
 
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
+    const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
     const reduceConfig = {
       contentDesc: "several JSON objects",
       instructions: [{ points: [`a consolidated list of '${config.label ?? category}'`] }],
       responseSchema: config.responseSchema,
-      template: REDUCE_INSIGHTS_TEMPLATE,
+      template: template,
     };
-    const prompt = Prompt.forReduce(reduceConfig, content, categoryKey).render();
+    const prompt = new Prompt(reduceConfig, content).render();
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

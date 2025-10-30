@@ -35,7 +35,7 @@ export class FileSummarizer {
       if (content.trim().length === 0) throw new Error("File is empty");
       const canonicalFileType = this.getCanonicalFileType(filepath, type);
       const promptMetadata = fileTypePromptMetadata[canonicalFileType];
-      const prompt = Prompt.forSource(promptMetadata, content).render();
+      const prompt = new Prompt(promptMetadata, content).render();
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
         filepath,
         prompt,

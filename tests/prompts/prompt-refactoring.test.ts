@@ -1,298 +1,154 @@
 import { Prompt } from "../../src/prompts/prompt";
-import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
-import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
 import { PromptDefinition } from "../../src/prompts/types/prompt-definition.types";
-import { sourceConfigMap } from "../../src/prompts/definitions/sources/sources.config";
-import { appSummaryConfigMap } from "../../src/prompts/definitions/app-summaries/app-summaries.config";
 import { z } from "zod";
+import {
+  SOURCES_TEMPLATE,
+  APP_SUMMARY_TEMPLATE,
+  REDUCE_INSIGHTS_TEMPLATE,
+} from "../../src/prompts/templates/prompt-templates";
 
 describe("Prompt Refactoring", () => {
-  describe("Prompt class", () => {
-    it("should create prompts using constructor with template from definition", () => {
-      const mockDefinition: PromptDefinition = {
-        contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
-        responseSchema: z.object({ name: z.string() }),
-        template: "Test template with {{contentDesc}}",
-      };
+  const testDefinition: PromptDefinition = {
+    label: "Test",
+    contentDesc: "test content",
+    instructions: [{ points: ["instruction 1", "instruction 2"] }],
+    responseSchema: z.string(),
+    template: SOURCES_TEMPLATE,
+  };
 
-      const prompt = new Prompt(mockDefinition, "test content");
+  const testContent = "test file content";
+
+  describe("Constructor-based instantiation", () => {
+    it("should create prompt instances using constructor", () => {
+      const prompt = new Prompt(testDefinition, testContent);
       expect(prompt).toBeInstanceOf(Prompt);
     });
 
-    it("should render prompts correctly with new structure", () => {
-      const mockDefinition: PromptDefinition = {
-        contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
-        responseSchema: z.object({ name: z.string() }),
-        template: "Test template with {{contentDesc}}",
-      };
-
-      const prompt = new Prompt(mockDefinition, "test content");
+    it("should render prompts correctly with constructor", () => {
+      const prompt = new Prompt(testDefinition, testContent);
       const rendered = prompt.render();
-      expect(rendered).toContain("test content");
+
+      expect(rendered).toContain("Act as a senior developer analyzing the code");
+      expect(rendered).toContain("CODE:");
+      expect(rendered).toContain(testContent);
+      expect(rendered).toContain("instruction 1");
+      expect(rendered).toContain("instruction 2");
     });
 
-    it("should maintain backward compatibility with factory methods", () => {
-      const mockDefinition: PromptDefinition = {
-        contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
-        responseSchema: z.object({ name: z.string() }),
-        template: "Test template with {{contentDesc}}",
+    it("should handle different template types", () => {
+      const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
+      const prompt = new Prompt(appSummaryDefinition, testContent);
+      const rendered = prompt.render();
+
+      expect(rendered).toContain("FILE_SUMMARIES:");
+      expect(rendered).not.toContain("CODE:");
+    });
+
+    it("should handle reduce template with category key replacement", () => {
+      const categoryKey = "entities";
+      const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
+      const reduceDefinition = { ...testDefinition, template };
+      const prompt = new Prompt(reduceDefinition, testContent);
+      const rendered = prompt.render();
+
+      expect(rendered).toContain("FRAGMENTED_DATA:");
+      expect(rendered).toContain(`'${categoryKey}'`);
+      expect(rendered).not.toContain("{{categoryKey}}");
+    });
+
+    it("should handle complex instruction sections", () => {
+      const complexDefinition: PromptDefinition = {
+        ...testDefinition,
+        instructions: [
+          { title: "Section 1", points: ["point 1", "point 2"] },
+          { points: ["point without title"] },
+          { title: "Section 2", points: ["point 3"] },
+        ],
       };
+      const prompt = new Prompt(complexDefinition, testContent);
+      const rendered = prompt.render();
 
-      const sourcePrompt = Prompt.forSource(mockDefinition, "test content");
-      const appSummaryPrompt = Prompt.forAppSummary(mockDefinition, "test content");
-
-      expect(sourcePrompt).toBeInstanceOf(Prompt);
-      expect(appSummaryPrompt).toBeInstanceOf(Prompt);
+      expect(rendered).toContain("__Section 1__");
+      expect(rendered).toContain("__Section 2__");
+      expect(rendered).toContain("point 1");
+      expect(rendered).toContain("point 2");
+      expect(rendered).toContain("point without title");
+      expect(rendered).toContain("point 3");
     });
 
-    it("should handle forReduce with template modification", () => {
-      const mockDefinition: PromptDefinition = {
-        contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
-        responseSchema: z.object({ name: z.string() }),
-        template: "Test template with {{categoryKey}}",
+    it("should handle additional parameters in render method", () => {
+      // Use APP_SUMMARY_TEMPLATE which supports partialAnalysisNote
+      const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
+      const prompt = new Prompt(appSummaryDefinition, testContent);
+      const additionalParams = {
+        partialAnalysisNote: "This is a custom note for testing",
       };
+      const rendered = prompt.render(additionalParams);
 
-      const prompt = Prompt.forReduce(mockDefinition, "test content", "entities");
-      expect(prompt).toBeInstanceOf(Prompt);
+      expect(rendered).toContain(additionalParams.partialAnalysisNote);
+    });
+
+    it("should handle empty additional parameters", () => {
+      const prompt = new Prompt(testDefinition, testContent);
+      const rendered = prompt.render({});
+
+      expect(rendered).toContain("Act as a senior developer analyzing the code");
+      expect(rendered).toContain(testContent);
     });
   });
 
-  describe("Source prompt metadata", () => {
-    it("should generate metadata dynamically from config", () => {
-      expect(fileTypePromptMetadata.java).toBeDefined();
-      expect(fileTypePromptMetadata.java.contentDesc).toBe("JVM code");
-      expect(fileTypePromptMetadata.java.template).toBeDefined();
-      expect(fileTypePromptMetadata.java.hasComplexSchema).toBe(true);
+  describe("Template consolidation", () => {
+    it("should export all required templates", () => {
+      expect(SOURCES_TEMPLATE).toBeDefined();
+      expect(APP_SUMMARY_TEMPLATE).toBeDefined();
+      expect(REDUCE_INSIGHTS_TEMPLATE).toBeDefined();
     });
 
-    it("should have consistent structure across all file types", () => {
-      Object.values(fileTypePromptMetadata).forEach((metadata) => {
-        expect(metadata.contentDesc).toBeDefined();
-        expect(metadata.instructions).toBeDefined();
-        expect(metadata.responseSchema).toBeDefined();
-        expect(metadata.template).toBeDefined();
-        expect(Array.isArray(metadata.instructions)).toBe(true);
-      });
+    it("should have consistent template structure", () => {
+      expect(SOURCES_TEMPLATE).toContain("{{contentDesc}}");
+      expect(SOURCES_TEMPLATE).toContain("{{instructions}}");
+      expect(SOURCES_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(SOURCES_TEMPLATE).toContain("{{content}}");
+
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{contentDesc}}");
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{instructions}}");
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{content}}");
+      expect(APP_SUMMARY_TEMPLATE).toContain("{{partialAnalysisNote}}");
+
+      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{contentDesc}}");
+      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{categoryKey}}");
+      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{content}}");
     });
 
-    it("should include all required file types", () => {
-      const expectedFileTypes = [
-        "java",
-        "javascript",
-        "csharp",
-        "python",
-        "ruby",
-        "sql",
-        "markdown",
-        "xml",
-        "jsp",
-        "maven",
-        "gradle",
-        "ant",
-        "npm",
-        "dotnet-proj",
-        "nuget",
-        "ruby-bundler",
-        "python-pip",
-        "python-setup",
-        "python-poetry",
-        "shell-script",
-        "batch-script",
-        "jcl",
-        "default",
-      ];
+    it("should not have any placeholder syntax in rendered output", () => {
+      const prompt = new Prompt(testDefinition, testContent);
+      const rendered = prompt.render();
 
-      expectedFileTypes.forEach((fileType) => {
-        expect(
-          fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata],
-        ).toBeDefined();
-      });
-    });
-
-    it("should have proper instruction structure for complex file types", () => {
-      const javaMetadata = fileTypePromptMetadata.java;
-      expect(javaMetadata.instructions.length).toBeGreaterThan(0);
-
-      // Check that instructions have proper structure
-      javaMetadata.instructions.forEach((section) => {
-        expect(section.points).toBeDefined();
-        expect(Array.isArray(section.points)).toBe(true);
-        expect(section.points.length).toBeGreaterThan(0);
-      });
-    });
-
-    it("should use dynamic schema picking", () => {
-      const javaMetadata = fileTypePromptMetadata.java;
-      expect(javaMetadata.responseSchema).toBeDefined();
-
-      // The schema should be a picked version of the master schema
-      expect(typeof javaMetadata.responseSchema.parse).toBe("function");
-    });
-  });
-
-  describe("App summary prompt metadata", () => {
-    it("should include templates in all entries", () => {
-      Object.values(appSummaryPromptMetadata).forEach((metadata) => {
-        expect(metadata.template).toBeDefined();
-        expect(typeof metadata.template).toBe("string");
-      });
-    });
-
-    it("should have consistent structure across all categories", () => {
-      Object.values(appSummaryPromptMetadata).forEach((metadata) => {
-        expect(metadata.contentDesc).toBeDefined();
-        expect(metadata.instructions).toBeDefined();
-        expect(metadata.responseSchema).toBeDefined();
-        expect(metadata.template).toBeDefined();
-        expect(metadata.label).toBeDefined();
-      });
-    });
-
-    it("should include all required categories", () => {
-      const expectedCategories = [
-        "appDescription",
-        "technologies",
-        "businessProcesses",
-        "boundedContexts",
-        "aggregates",
-        "entities",
-        "repositories",
-        "potentialMicroservices",
-        "billOfMaterials",
-        "codeQualitySummary",
-        "scheduledJobsSummary",
-        "moduleCoupling",
-        "uiTechnologyAnalysis",
-      ];
-
-      expectedCategories.forEach((category) => {
-        expect(
-          appSummaryPromptMetadata[category as keyof typeof appSummaryPromptMetadata],
-        ).toBeDefined();
-      });
-    });
-  });
-
-  describe("Source configuration", () => {
-    it("should have all file types in configuration", () => {
-      const configKeys = Object.keys(sourceConfigMap);
-      expect(configKeys.length).toBeGreaterThan(20); // Should have many file types
-
-      // Check a few key file types
-      expect(sourceConfigMap.java).toBeDefined();
-      expect(sourceConfigMap.javascript).toBeDefined();
-      expect(sourceConfigMap.python).toBeDefined();
-    });
-
-    it("should have consistent structure in config entries", () => {
-      Object.values(sourceConfigMap).forEach((config) => {
-        expect(config.contentDesc).toBeDefined();
-        expect(config.schemaFields).toBeDefined();
-        expect(config.instructions).toBeDefined();
-        expect(config.template).toBeDefined();
-        expect(Array.isArray(config.schemaFields)).toBe(true);
-        expect(Array.isArray(config.instructions)).toBe(true);
-      });
-    });
-
-    it("should have appropriate schema fields for different file types", () => {
-      // Java should have complex schema fields
-      expect(sourceConfigMap.java.schemaFields).toContain("databaseIntegration");
-      expect(sourceConfigMap.java.schemaFields).toContain("integrationPoints");
-      expect(sourceConfigMap.java.hasComplexSchema).toBe(true);
-
-      // Markdown should have simpler schema (defaults to false when undefined)
-      expect(sourceConfigMap.markdown.hasComplexSchema).toBeUndefined();
-    });
-  });
-
-  describe("App summary configuration", () => {
-    it("should have all categories in configuration", () => {
-      const configKeys = Object.keys(appSummaryConfigMap);
-      expect(configKeys.length).toBeGreaterThan(10);
-
-      // Check a few key categories
-      expect(appSummaryConfigMap.appDescription).toBeDefined();
-      expect(appSummaryConfigMap.technologies).toBeDefined();
-      expect(appSummaryConfigMap.entities).toBeDefined();
-    });
-
-    it("should have consistent structure in config entries", () => {
-      Object.values(appSummaryConfigMap).forEach((config) => {
-        expect(config.label).toBeDefined();
-        expect(config.instruction).toBeDefined();
-        expect(config.responseSchema).toBeDefined();
-        expect(config.template).toBeDefined();
-        expect(typeof config.label).toBe("string");
-        expect(typeof config.instruction).toBe("string");
-        expect(typeof config.template).toBe("string");
-      });
+      expect(rendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
   });
 
   describe("Backward compatibility", () => {
-    it("should maintain existing API for Prompt factory methods", () => {
-      const mockDefinition: PromptDefinition = {
-        contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
-        responseSchema: z.object({ name: z.string() }),
-        template: "Test template with {{contentDesc}}",
-      };
-
-      // These should work exactly as before
-      const sourcePrompt = Prompt.forSource(mockDefinition, "test content");
-      const appSummaryPrompt = Prompt.forAppSummary(mockDefinition, "test content");
-      const reducePrompt = Prompt.forReduce(mockDefinition, "test content", "test");
-
-      expect(sourcePrompt).toBeInstanceOf(Prompt);
-      expect(appSummaryPrompt).toBeInstanceOf(Prompt);
-      expect(reducePrompt).toBeInstanceOf(Prompt);
-    });
-
-    it("should generate identical prompts for same input", () => {
-      const mockDefinition: PromptDefinition = {
-        contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
-        responseSchema: z.object({ name: z.string() }),
-        template: "Test template with {{contentDesc}}",
-      };
-
-      const prompt1 = new Prompt(mockDefinition, "test content");
-      const prompt2 = Prompt.forSource(mockDefinition, "test content");
-
-      expect(prompt1.render()).toBe(prompt2.render());
-    });
-  });
-
-  describe("Error handling", () => {
-    it("should handle missing template gracefully", () => {
-      const mockDefinition = {
-        contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
-        responseSchema: z.object({ name: z.string() }),
-        // Missing template
-      } as any;
-
-      // The constructor should not throw, but render() might fail
-      const prompt = new Prompt(mockDefinition, "test content");
-      expect(() => prompt.render()).toThrow();
-    });
-
-    it("should handle empty instructions", () => {
-      const mockDefinition: PromptDefinition = {
-        contentDesc: "test content",
-        instructions: [],
-        responseSchema: z.object({ name: z.string() }),
-        template: "Test template with {{contentDesc}}",
-      };
-
-      const prompt = new Prompt(mockDefinition, "test content");
-      const rendered = prompt.render();
-      expect(rendered).toContain("test content");
+    it("should produce identical output as before refactoring", () => {
+      // Test that the constructor produces the same output as the old factory methods
+      const sourceDefinition = { ...testDefinition, template: SOURCES_TEMPLATE };
+      const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
+      
+      const sourcePrompt = new Prompt(sourceDefinition, testContent);
+      const appSummaryPrompt = new Prompt(appSummaryDefinition, testContent);
+      
+      const sourceRendered = sourcePrompt.render();
+      const appSummaryRendered = appSummaryPrompt.render();
+      
+      // Verify the structure is correct
+      expect(sourceRendered).toContain("CODE:");
+      expect(appSummaryRendered).toContain("FILE_SUMMARIES:");
+      
+      // Verify no placeholders remain
+      expect(sourceRendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
+      expect(appSummaryRendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
   });
 });

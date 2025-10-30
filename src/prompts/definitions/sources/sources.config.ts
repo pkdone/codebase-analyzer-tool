@@ -6,7 +6,7 @@ import {
   DB_INTEGRATION_INSTRUCTIONS,
 } from "../fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
-import { SOURCES_TEMPLATE } from "../../templates/sources-templates.prompt";
+import { SOURCES_TEMPLATE } from "../../templates/prompt-templates";
 import { InstructionSection } from "../../types/prompt-definition.types";
 
 /**
