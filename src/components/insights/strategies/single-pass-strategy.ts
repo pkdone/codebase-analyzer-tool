@@ -2,7 +2,6 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
-import { APP_SUMMARY_TEMPLATE } from "../../../prompts/templates/app-summaries-templates.prompt";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { Prompt } from "../../../prompts/prompt";
@@ -62,6 +61,6 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     codeContent: string,
   ): string {
     const config = summaryCategoriesConfig[type];
-    return new Prompt(APP_SUMMARY_TEMPLATE, config, codeContent).render();
+    return Prompt.forAppSummary(config, codeContent).render();
   }
 }

@@ -4,10 +4,6 @@ import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
-import {
-  APP_SUMMARY_TEMPLATE,
-  REDUCE_INSIGHTS_TEMPLATE,
-} from "../../../prompts/templates/app-summaries-templates.prompt";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { Prompt } from "../../../prompts/prompt";
@@ -160,7 +156,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const codeContent = joinArrayWithSeparators(summaryChunk);
     const partialAnalysisNote =
       "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ";
-    const prompt = new Prompt(APP_SUMMARY_TEMPLATE, config, codeContent).render({
+    const prompt = Prompt.forAppSummary(config, codeContent).render({
       partialAnalysisNote,
     });
 
@@ -215,11 +211,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       instructions: [{ points: [`a consolidated list of '${config.label ?? category}'`] }],
       responseSchema: config.responseSchema,
     };
-    const prompt = new Prompt(
-      REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
-      reduceConfig,
-      content,
-    ).render();
+    const prompt = Prompt.forReduce(reduceConfig, content, categoryKey).render();
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

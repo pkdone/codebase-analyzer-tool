@@ -8,7 +8,6 @@ import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
 import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
 import { Prompt } from "../../prompts/prompt";
-import { SOURCES_TEMPLATE } from "../../prompts/templates/sources-templates.prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
 
@@ -36,7 +35,7 @@ export class FileSummarizer {
       if (content.trim().length === 0) throw new Error("File is empty");
       const canonicalFileType = this.getCanonicalFileType(filepath, type);
       const promptMetadata = fileTypePromptMetadata[canonicalFileType];
-      const prompt = new Prompt(SOURCES_TEMPLATE, promptMetadata, content).render();
+      const prompt = Prompt.forSource(promptMetadata, content).render();
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
         filepath,
         prompt,
