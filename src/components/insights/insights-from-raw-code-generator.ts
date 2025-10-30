@@ -13,7 +13,7 @@ import { Prompt } from "../../prompts/prompt";
 import { InstructionSection } from "../../prompts/types/prompt-definition.types";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
-import { SINGLE_PASS_INSIGHTS_TEMPLATE } from "../../prompts/templates/app-summaries-templatesprompts";
+import { APP_SUMMARY_TEMPLATE } from "../../prompts/templates/app-summaries-templates.prompt";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories
@@ -115,12 +115,11 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     instructions: readonly InstructionSection[],
     codeBlocksContent: string,
   ): string {
-    return new Prompt(
-      SINGLE_PASS_INSIGHTS_TEMPLATE,
-      "list of file summaries",
+    const allCategoriesConfig = {
+      contentDesc: "list of file summaries",
       instructions,
-      appSummaryRecordCategoriesSchema,
-      codeBlocksContent,
-    ).render();
+      responseSchema: appSummaryRecordCategoriesSchema,
+    };
+    return new Prompt(APP_SUMMARY_TEMPLATE, allCategoriesConfig, codeBlocksContent).render();
   }
 }

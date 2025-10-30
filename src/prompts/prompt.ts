@@ -2,7 +2,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { fillPrompt } from "type-safe-prompt";
 import { z } from "zod";
 import { COMMON_FRAGMENTS } from "./definitions/fragments";
-import { type InstructionSection } from "./types/prompt-definition.types";
+import { type InstructionSection, type PromptDefinition } from "./types/prompt-definition.types";
 
 /**
  * Represents a prompt with its template, content, and rendering logic.
@@ -19,22 +19,14 @@ export class Prompt {
    * Creates a new Prompt instance.
    *
    * @param template - The template string with placeholders (e.g., {{contentDesc}}, {{specificInstructions}})
-   * @param contentDesc - Description of the content being analyzed
-   * @param instructions - Array of instruction sections to be formatted
-   * @param schema - Zod schema for validation
+   * @param promptDefinition - The prompt definition containing content description, instructions, and schema
    * @param content - The actual content to analyze
    */
-  constructor(
-    template: string,
-    contentDesc: string,
-    instructions: readonly InstructionSection[],
-    schema: z.ZodType,
-    content: string,
-  ) {
+  constructor(template: string, promptDefinition: PromptDefinition, content: string) {
     this.template = template;
-    this.contentDesc = contentDesc;
-    this.instructions = instructions;
-    this.schema = schema;
+    this.contentDesc = promptDefinition.contentDesc;
+    this.instructions = promptDefinition.instructions;
+    this.schema = promptDefinition.responseSchema;
     this.content = content;
   }
 
@@ -42,18 +34,24 @@ export class Prompt {
    * Renders the prompt by filling template placeholders with the provided values.
    * This method handles all prompt formatting, including converting instruction sections to formatted text.
    *
+   * @param additionalParams - Optional additional parameters to merge into the template data
    * @returns The fully rendered prompt string
    */
-  render(): string {
+  render(additionalParams: Record<string, string> = {}): string {
     const instructionsText = this.formatInstructions();
 
-    return fillPrompt(this.template, {
+    const templateData = {
       instructions: instructionsText,
       forceJSON: COMMON_FRAGMENTS.FORCE_JSON_FORMAT,
       jsonSchema: JSON.stringify(zodToJsonSchema(this.schema), null, 2),
       contentDesc: this.contentDesc,
       content: this.content,
-    });
+      // Handle partialAnalysisNote - if not provided or empty, use empty string
+      partialAnalysisNote: additionalParams.partialAnalysisNote || "",
+      ...additionalParams, // Merge additional params
+    };
+
+    return fillPrompt(this.template, templateData);
   }
 
   /**

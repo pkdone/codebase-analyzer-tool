@@ -5,9 +5,9 @@ import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import {
-  PARTIAL_INSIGHTS_TEMPLATE,
+  APP_SUMMARY_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../../prompts/templates/app-summaries-templatesprompts";
+} from "../../../prompts/templates/app-summaries-templates.prompt";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { Prompt } from "../../../prompts/prompt";
@@ -158,13 +158,11 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   ): Promise<PartialAppSummaryRecord | null> {
     const config = summaryCategoriesConfig[category];
     const codeContent = joinArrayWithSeparators(summaryChunk);
-    const prompt = new Prompt(
-      PARTIAL_INSIGHTS_TEMPLATE,
-      "list of file summaries",
-      config.instructions,
-      config.responseSchema,
-      codeContent,
-    ).render();
+    const partialAnalysisNote =
+      "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ";
+    const prompt = new Prompt(APP_SUMMARY_TEMPLATE, config, codeContent).render({
+      partialAnalysisNote,
+    });
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
@@ -212,11 +210,14 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     // Format as JSON for the reduce prompt
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
 
+    const reduceConfig = {
+      contentDesc: "several JSON objects",
+      instructions: [{ points: [`a consolidated list of '${config.label ?? category}'`] }],
+      responseSchema: config.responseSchema,
+    };
     const prompt = new Prompt(
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
-      "several JSON objects",
-      [{ points: [`a consolidated list of '${config.label ?? category}'`] }],
-      config.responseSchema,
+      reduceConfig,
       content,
     ).render();
 

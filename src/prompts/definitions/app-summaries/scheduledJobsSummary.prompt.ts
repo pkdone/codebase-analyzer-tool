@@ -2,15 +2,15 @@ import { scheduledJobsSummarySchema } from "../../../schemas/app-summaries.schem
 import { PromptDefinition } from "../../types/prompt-definition.types";
 import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
+const INSTRUCTION = `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`;
+
 export const scheduledJobsSummaryPrompt: PromptDefinition = {
   label: "Scheduled Jobs",
-  contentDesc: `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
+  contentDesc: INSTRUCTION,
   responseSchema: scheduledJobsSummarySchema,
   instructions: [
     {
-      points: [
-        "a comprehensive list of batch processes, scheduled jobs, and automated scripts that perform critical business operations",
-      ],
+      points: [INSTRUCTION],
     },
   ],
 };

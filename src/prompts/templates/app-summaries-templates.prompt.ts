@@ -4,34 +4,14 @@
  */
 
 /**
- * Template for single-pass insight generation strategy.
- * Used for small to medium codebases that can be processed in one LLM call.
+ * Unified template for app summary insight generation strategies.
+ * Used for both single-pass and map-reduce strategies with optional partial analysis note.
  */
-export const SINGLE_PASS_INSIGHTS_TEMPLATE = `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+export const APP_SUMMARY_TEMPLATE = `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
 {{instructions}}.
 
-The JSON response must follow this JSON schema:
-\`\`\`json
-{{jsonSchema}}
-\`\`\`
-
-{{forceJSON}}
-
-FILE_SUMMARIES:
-{{content}}`;
-
-/**
- * Template for partial insights generation (MAP phase of map-reduce strategy).
- * Used for processing subsets of code in large codebases.
- */
-export const PARTIAL_INSIGHTS_TEMPLATE = `Act as a senior developer analyzing a subset of code in a legacy application. Based on the {{contentDesc}} shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
-
-{{instructions}}.
-
-Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only.
-
-The JSON response must follow this JSON schema:
+{{partialAnalysisNote}}The JSON response must follow this JSON schema:
 \`\`\`json
 {{jsonSchema}}
 \`\`\`
