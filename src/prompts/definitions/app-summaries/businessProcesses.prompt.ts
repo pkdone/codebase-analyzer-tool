@@ -1,11 +1,10 @@
 import { businessProcessesSchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate } from "../../types/app-summaries.types";
-import { COMMON_INSTRUCTION_FRAGMENTS } from "./common-fragments";
+import { PromptDefinition } from "../../types/prompt-definition.types";
+import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
-export const businessProcessesPrompt: AppSummaryPromptTemplate = {
+export const businessProcessesPrompt: PromptDefinition = {
   label: "Business Processes",
-  summaryType: "business process analysis",
-  contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
+  contentDesc: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
   responseSchema: businessProcessesSchema,
   instructions: [
     {

@@ -1,11 +1,10 @@
 import { scheduledJobsSummarySchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate } from "../../types/app-summaries.types";
-import { COMMON_INSTRUCTION_FRAGMENTS } from "./common-fragments";
+import { PromptDefinition } from "../../types/prompt-definition.types";
+import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
-export const scheduledJobsSummaryPrompt: AppSummaryPromptTemplate = {
+export const scheduledJobsSummaryPrompt: PromptDefinition = {
   label: "Scheduled Jobs",
-  summaryType: "scheduled job analysis",
-  contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
+  contentDesc: `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
   responseSchema: scheduledJobsSummarySchema,
   instructions: [
     {

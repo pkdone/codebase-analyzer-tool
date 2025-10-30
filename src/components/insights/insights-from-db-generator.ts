@@ -159,7 +159,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
   ): Promise<void> {
-    const categoryLabel = summaryCategoriesConfig[category].label;
+    const categoryLabel = summaryCategoriesConfig[category].label ?? category;
 
     try {
       console.log(`Processing ${categoryLabel}`);

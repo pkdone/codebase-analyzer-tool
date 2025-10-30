@@ -1,15 +1,9 @@
 /**
- * Reusable prompt instruction fragments for building complex prompts.
- * These fragments can be composed to create instruction sets for different file types.
- *
- * IMPORTANT: These fragments do NOT include the "* " prefix - that is added during
- * prompt construction to maintain consistency with the existing system.
+ * Common prompt fragments used across all prompt types.
+ * These fragments are shared between sources and app-summaries prompts.
  */
-export const SOURCES_PROMPT_FRAGMENTS = {
-  COMMON: {
-    PURPOSE: "A detailed definition of its purpose",
-    IMPLEMENTATION: "A detailed definition of its implementation",
-    FORCE_JSON_FORMAT: `In your response, only include JSON and do not include any additional text explanations outside the JSON object.
+export const COMMON_FRAGMENTS = {
+  FORCE_JSON_FORMAT: `In your response, only include JSON and do not include any additional text explanations outside the JSON object.
 NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
 NEVER use " or ' quote symbols as part of the text you use for JSON description values, even if you want to quote a piece of existing text, existing message or show a path
 ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.
@@ -24,6 +18,19 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 - AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail
 - EXAMPLE: ✅ CORRECT: {"name": "value", "items": [{"id": 1}]}  ❌ INCORRECT: {name: "value", items: [{id: 1}]}
 - CRITICAL: All property names at every nesting level MUST have double quotes.`,
+};
+
+/**
+ * Reusable prompt instruction fragments for building complex prompts.
+ * These fragments can be composed to create instruction sets for different file types.
+ *
+ * IMPORTANT: These fragments do NOT include the "* " prefix - that is added during
+ * prompt construction to maintain consistency with the existing system.
+ */
+export const SOURCES_FRAGMENTS = {
+  COMMON: {
+    PURPOSE: "A detailed definition of its purpose",
+    IMPLEMENTATION: "A detailed definition of its implementation",
   },
 
   CODE_QUALITY: {
@@ -476,24 +483,24 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
  * Composable instruction sets for common patterns across file types
  */
 export const CODE_QUALITY_INSTRUCTIONS = [
-  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
-  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+  SOURCES_FRAGMENTS.CODE_QUALITY.INTRO,
+  SOURCES_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
+  SOURCES_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
+  SOURCES_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
 ] as const;
 
 export const DB_INTEGRATION_INSTRUCTIONS = [
-  SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-  SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+  SOURCES_FRAGMENTS.DB_INTEGRATION.INTRO,
+  SOURCES_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
 ] as const;
 
 export const INTEGRATION_POINTS_INSTRUCTIONS = [
-  SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+  SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO,
 ] as const;
 
 export const SCHEDULED_JOBS_INSTRUCTIONS = [
-  SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-  SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+  SOURCES_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+  SOURCES_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
 ] as const;
 
 /**
@@ -515,3 +522,22 @@ export const MODULE_LANGUAGE_BASE_INSTRUCTIONS = [
   "Its kind ('class', 'module', or enum; choose the dominant one)",
   "Its namespace (fully qualified module path)",
 ] as const;
+
+/**
+ * Common instruction fragments used across multiple app summary templates
+ * These are composed into instruction arrays for consistency
+ */
+export const APP_SUMMARY_FRAGMENTS = {
+  DETAILED_DESCRIPTION: "a detailed description of the application's purpose and implementation",
+  CONCISE_LIST: "a concise list",
+  COMPREHENSIVE_LIST: "a comprehensive list",
+  COMPREHENSIVE_ANALYSIS: "a comprehensive analysis",
+  AGGREGATED_METRICS:
+    "aggregated code quality metrics including complexity analysis, code smell detection, and maintainability indicators to help prioritize refactoring efforts",
+  DEPENDENCY_MATRIX:
+    "a dependency matrix showing coupling relationships between modules to identify highly coupled components (candidates for single services) and loosely coupled components (candidates for easy separation)",
+  TECHNICAL_DEBT_ASSESSMENT: "to assess technical debt and plan modernization efforts",
+  SECURITY_RISKS: "to identify technical debt and security risks",
+  MODERNIZATION_RECOMMENDATIONS:
+    "to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints",
+} as const;

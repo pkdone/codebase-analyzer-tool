@@ -1,7 +1,7 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { fillPrompt } from "type-safe-prompt";
 import { z } from "zod";
-import { SOURCES_PROMPT_FRAGMENTS } from "./definitions/sources/common-fragments";
+import { COMMON_FRAGMENTS } from "./definitions/fragments";
 import { type InstructionSection } from "./types/prompt-definition.types";
 
 /**
@@ -49,7 +49,7 @@ export class Prompt {
 
     return fillPrompt(this.template, {
       instructions: instructionsText,
-      forceJSON: SOURCES_PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT,
+      forceJSON: COMMON_FRAGMENTS.FORCE_JSON_FORMAT,
       jsonSchema: JSON.stringify(zodToJsonSchema(this.schema), null, 2),
       contentDesc: this.contentDesc,
       content: this.content,
@@ -57,31 +57,15 @@ export class Prompt {
   }
 
   /**
-   * Formats instructions into a string.
-   * Handles instruction sections with optional titles, ensuring backward compatibility
-   * for sections without titles (legacy flat lists) by adding bullet point prefixes.
+   * Formats instruction sections with optional titles, joining points with newlines.
+   * Sections with titles have the title formatted with underscores, then points are listed.
+   * Sections without titles list points directly.
    */
   private formatInstructions(): string {
-    return this.formatSectionInstructions(this.instructions);
-  }
-
-  /**
-   * Formats instructions that are organized into sections with optional titles.
-   * For sections with titles: title is formatted, points are included as-is.
-   * For sections without titles (legacy flat lists): points are formatted with "* " prefix to match old behavior.
-   */
-  private formatSectionInstructions(sections: readonly InstructionSection[]): string {
-    return sections
+    return this.instructions
       .map((section) => {
-        const hasTitle = Boolean(section.title);
-        const title = hasTitle ? `__${section.title ?? ""}__\n` : "";
-
-        // If section has a title, points are formatted without "* " prefix (they're contextual under the title)
-        // If section has no title (legacy flat list), add "* " prefix to each point for backward compatibility
-        const points = hasTitle
-          ? section.points.join("\n")
-          : section.points.map((point) => `* ${point}`).join("\n");
-
+        const title = section.title ? `__${section.title}__\n` : "";
+        const points = section.points.join("\n");
         return `${title}${points}`;
       })
       .join("\n\n");

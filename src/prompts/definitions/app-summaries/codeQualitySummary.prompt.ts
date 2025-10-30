@@ -1,11 +1,10 @@
 import { codeQualitySummarySchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate } from "../../types/app-summaries.types";
-import { COMMON_INSTRUCTION_FRAGMENTS } from "./common-fragments";
+import { PromptDefinition } from "../../types/prompt-definition.types";
+import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
-export const codeQualitySummaryPrompt: AppSummaryPromptTemplate = {
+export const codeQualitySummaryPrompt: PromptDefinition = {
   label: "Code Quality Summary",
-  summaryType: "code quality analysis",
-  contentDescription: COMMON_INSTRUCTION_FRAGMENTS.AGGREGATED_METRICS,
+  contentDesc: APP_SUMMARY_FRAGMENTS.AGGREGATED_METRICS,
   responseSchema: codeQualitySummarySchema,
-  instructions: [{ points: [COMMON_INSTRUCTION_FRAGMENTS.AGGREGATED_METRICS] }],
+  instructions: [{ points: [APP_SUMMARY_FRAGMENTS.AGGREGATED_METRICS] }],
 };

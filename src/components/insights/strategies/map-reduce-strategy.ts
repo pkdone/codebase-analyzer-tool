@@ -47,7 +47,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
   ): Promise<PartialAppSummaryRecord | null> {
-    const categoryLabel = summaryCategoriesConfig[category].label;
+    const categoryLabel = summaryCategoriesConfig[category].label ?? category;
 
     try {
       console.log(`  - Using map-reduce strategy for ${categoryLabel}`);
@@ -178,7 +178,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       );
     } catch (error: unknown) {
       logWarningMsg(
-        `Failed to generate partial insights for ${config.label} chunk: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Failed to generate partial insights for ${config.label ?? category} chunk: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       return null;
     }
@@ -215,7 +215,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     const prompt = new Prompt(
       REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey),
       "several JSON objects",
-      [{ points: [`a consolidated list of '${config.label}'`] }],
+      [{ points: [`a consolidated list of '${config.label ?? category}'`] }],
       config.responseSchema,
       content,
     ).render();
@@ -232,7 +232,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       );
     } catch (error: unknown) {
       logWarningMsg(
-        `Failed to consolidate partial insights for ${config.label}: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       return null;
     }

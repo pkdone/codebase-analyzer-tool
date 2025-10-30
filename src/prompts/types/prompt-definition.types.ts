@@ -23,8 +23,6 @@ export interface PromptDefinition {
   responseSchema: z.ZodType;
   /** Whether the schema is complex and incompatible with some LLM providers */
   hasComplexSchema?: boolean;
-  /** Optional role for the prompt (defaults to "Act as a senior developer.") */
-  role?: string;
-  /** Content header (e.g., "CODE:", "SOURCES:") - defaults to "CODE:" */
-  contentHeader?: string;
+  /** Optional label for UI display and logging (e.g., "Aggregates", "Java Source") */
+  label?: string;
 }

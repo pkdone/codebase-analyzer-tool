@@ -1,11 +1,10 @@
 import { appDescriptionSchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate } from "../../types/app-summaries.types";
-import { COMMON_INSTRUCTION_FRAGMENTS } from "./common-fragments";
+import { PromptDefinition } from "../../types/prompt-definition.types";
+import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
-export const appDescriptionPrompt: AppSummaryPromptTemplate = {
+export const appDescriptionPrompt: PromptDefinition = {
   label: "Application Description",
-  summaryType: "application description",
-  contentDescription: COMMON_INSTRUCTION_FRAGMENTS.DETAILED_DESCRIPTION,
+  contentDesc: APP_SUMMARY_FRAGMENTS.DETAILED_DESCRIPTION,
   responseSchema: appDescriptionSchema,
-  instructions: [{ points: [COMMON_INSTRUCTION_FRAGMENTS.DETAILED_DESCRIPTION] }],
+  instructions: [{ points: [APP_SUMMARY_FRAGMENTS.DETAILED_DESCRIPTION] }],
 };

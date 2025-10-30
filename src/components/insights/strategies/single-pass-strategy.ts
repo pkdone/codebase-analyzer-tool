@@ -28,7 +28,7 @@ export class SinglePassInsightStrategy implements IInsightGenerationStrategy {
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
   ): Promise<PartialAppSummaryRecord | null> {
-    const categoryLabel = summaryCategoriesConfig[category].label;
+    const categoryLabel = summaryCategoriesConfig[category].label ?? category;
 
     try {
       const schema = summaryCategoriesConfig[category].responseSchema;

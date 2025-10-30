@@ -1,11 +1,10 @@
 import { moduleCouplingSchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate } from "../../types/app-summaries.types";
-import { COMMON_INSTRUCTION_FRAGMENTS } from "./common-fragments";
+import { PromptDefinition } from "../../types/prompt-definition.types";
+import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
-export const moduleCouplingPrompt: AppSummaryPromptTemplate = {
+export const moduleCouplingPrompt: PromptDefinition = {
   label: "Module Coupling",
-  summaryType: "module coupling analysis",
-  contentDescription: COMMON_INSTRUCTION_FRAGMENTS.DEPENDENCY_MATRIX,
+  contentDesc: APP_SUMMARY_FRAGMENTS.DEPENDENCY_MATRIX,
   responseSchema: moduleCouplingSchema,
-  instructions: [{ points: [COMMON_INSTRUCTION_FRAGMENTS.DEPENDENCY_MATRIX] }],
+  instructions: [{ points: [APP_SUMMARY_FRAGMENTS.DEPENDENCY_MATRIX] }],
 };

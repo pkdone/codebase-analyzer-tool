@@ -57,7 +57,7 @@ export class AppSummaryCategoriesProvider {
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
     const results = TABLE_CATEGORY_KEYS.map((category: ValidCategoryKey) => {
       const config = summaryCategoriesConfig[category];
-      const label = config.label;
+      const label = config.label ?? category;
       const fieldData = appSummaryData[category];
       const data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];
       console.log(`Generated ${label} table`);

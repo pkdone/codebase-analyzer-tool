@@ -43,7 +43,7 @@ describe("summaryCategoriesConfig", () => {
     categories.forEach((category) => {
       expect(summaryCategoriesConfig[category]).toBeDefined();
       expect(summaryCategoriesConfig[category]).toHaveProperty("label");
-      expect(summaryCategoriesConfig[category]).toHaveProperty("contentDescription");
+      expect(summaryCategoriesConfig[category]).toHaveProperty("contentDesc");
       expect(summaryCategoriesConfig[category]).toHaveProperty("responseSchema");
     });
   });
@@ -51,9 +51,9 @@ describe("summaryCategoriesConfig", () => {
   it("should have non-empty labels and descriptions", () => {
     Object.values(summaryCategoriesConfig).forEach((config) => {
       expect(config.label).toBeTruthy();
-      expect(config.contentDescription).toBeTruthy();
+      expect(config.contentDesc).toBeTruthy();
       expect(typeof config.label).toBe("string");
-      expect(typeof config.contentDescription).toBe("string");
+      expect(typeof config.contentDesc).toBe("string");
     });
   });
 

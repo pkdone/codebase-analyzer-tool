@@ -1,11 +1,10 @@
 import { technologiesSchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate } from "../../types/app-summaries.types";
-import { COMMON_INSTRUCTION_FRAGMENTS } from "./common-fragments";
+import { PromptDefinition } from "../../types/prompt-definition.types";
+import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
-export const technologiesPrompt: AppSummaryPromptTemplate = {
+export const technologiesPrompt: PromptDefinition = {
   label: "Technologies",
-  summaryType: "technology inventory",
-  contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
+  contentDesc: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
   responseSchema: technologiesSchema,
   instructions: [
     {

@@ -2,7 +2,7 @@
  * Standardized section titles for instruction-based prompts.
  * These constants ensure consistency and prevent typos across all prompt definitions.
  */
-export const SOURCES_INSTRUCTION_SECTION_TITLES = {
+export const INSTRUCTION_SECTION_TITLES = {
   BASIC_INFO: "Basic Information",
   CLASS_INFO: "Class Information",
   MODULE_INFO: "Module Information",

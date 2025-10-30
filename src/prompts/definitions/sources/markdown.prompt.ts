@@ -1,6 +1,6 @@
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
 import { SourcePromptTemplate } from "../../types/sources.types";
-import { SOURCES_PROMPT_FRAGMENTS } from "./common-fragments";
+import { SOURCES_FRAGMENTS } from "../fragments";
 
 export const markdownPrompt: SourcePromptTemplate = {
   contentDesc: "Markdown content",
@@ -11,10 +11,7 @@ export const markdownPrompt: SourcePromptTemplate = {
   }),
   instructions: [
     {
-      points: [
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ],
+      points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
     },
   ],
 };

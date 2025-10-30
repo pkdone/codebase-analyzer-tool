@@ -1,11 +1,10 @@
 import { billOfMaterialsSchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate } from "../../types/app-summaries.types";
-import { COMMON_INSTRUCTION_FRAGMENTS } from "./common-fragments";
+import { PromptDefinition } from "../../types/prompt-definition.types";
+import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
-export const billOfMaterialsPrompt: AppSummaryPromptTemplate = {
+export const billOfMaterialsPrompt: PromptDefinition = {
   label: "Bill of Materials",
-  summaryType: "dependency inventory",
-  contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection ${COMMON_INSTRUCTION_FRAGMENTS.SECURITY_RISKS}`,
+  contentDesc: `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection ${APP_SUMMARY_FRAGMENTS.SECURITY_RISKS}`,
   responseSchema: billOfMaterialsSchema,
   instructions: [
     {

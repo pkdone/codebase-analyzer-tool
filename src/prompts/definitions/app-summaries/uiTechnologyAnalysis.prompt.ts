@@ -1,11 +1,10 @@
 import { uiTechnologyAnalysisSchema } from "../../../schemas/app-summaries.schema";
-import { AppSummaryPromptTemplate } from "../../types/app-summaries.types";
-import { COMMON_INSTRUCTION_FRAGMENTS } from "./common-fragments";
+import { PromptDefinition } from "../../types/prompt-definition.types";
+import { APP_SUMMARY_FRAGMENTS } from "../fragments";
 
-export const uiTechnologyAnalysisPrompt: AppSummaryPromptTemplate = {
+export const uiTechnologyAnalysisPrompt: PromptDefinition = {
   label: "UI Technology Analysis",
-  summaryType: "UI technology analysis",
-  contentDescription: `${COMMON_INSTRUCTION_FRAGMENTS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries ${COMMON_INSTRUCTION_FRAGMENTS.TECHNICAL_DEBT_ASSESSMENT}`,
+  contentDesc: `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries ${APP_SUMMARY_FRAGMENTS.TECHNICAL_DEBT_ASSESSMENT}`,
   responseSchema: uiTechnologyAnalysisSchema,
   instructions: [
     {

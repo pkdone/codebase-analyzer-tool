@@ -1,4 +1,4 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/sources/common-fragments";
+import { SOURCES_FRAGMENTS } from "../../src/prompts/definitions/fragments";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
 import { InstructionSection } from "../../src/prompts/types/prompt-definition.types";
 
@@ -21,10 +21,10 @@ describe("prompt-composition", () => {
         (section: InstructionSection) => section.points,
       );
 
-      expect(instructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(instructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
-      expect(instructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
-      expect(instructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
+      expect(instructionArray).toContain(SOURCES_FRAGMENTS.COMMON.PURPOSE);
+      expect(instructionArray).toContain(SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(instructionArray).toContain(SOURCES_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
+      expect(instructionArray).toContain(SOURCES_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
 
       // Check for DB integration and code quality by flattening all points
       const allInstructions = instructionArray.join(" ");
@@ -40,14 +40,10 @@ describe("prompt-composition", () => {
         (section: InstructionSection) => section.points,
       );
 
-      expect(jsInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(jsInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
-      expect(jsInstructionArray).toContain(
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
-      );
-      expect(jsInstructionArray).toContain(
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
-      );
+      expect(jsInstructionArray).toContain(SOURCES_FRAGMENTS.COMMON.PURPOSE);
+      expect(jsInstructionArray).toContain(SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(jsInstructionArray).toContain(SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS);
+      expect(jsInstructionArray).toContain(SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS);
     });
 
     it("should compose simple file type instructions from fragments", () => {
@@ -63,11 +59,11 @@ describe("prompt-composition", () => {
         (section: InstructionSection) => section.points,
       );
 
-      expect(markdownInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(markdownInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(markdownInstructionArray).toContain(SOURCES_FRAGMENTS.COMMON.PURPOSE);
+      expect(markdownInstructionArray).toContain(SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION);
 
-      expect(sqlInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(sqlInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(sqlInstructionArray).toContain(SOURCES_FRAGMENTS.COMMON.PURPOSE);
+      expect(sqlInstructionArray).toContain(SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION);
     });
 
     it("should maintain backward compatibility for converted types", () => {
@@ -133,20 +129,16 @@ describe("prompt-composition", () => {
       const javaInstructionArray = javaInstructions.flatMap(
         (section: InstructionSection) => section.points,
       );
-      expect(javaInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
-      expect(javaInstructionArray).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
+      expect(javaInstructionArray).toContain(SOURCES_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
+      expect(javaInstructionArray).toContain(SOURCES_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
 
       // JavaScript should use JavaScript-specific fragments
       const jsInstructions = fileTypePromptMetadata.javascript.instructions;
       const jsInstructionArray = jsInstructions.flatMap(
         (section: InstructionSection) => section.points,
       );
-      expect(jsInstructionArray).toContain(
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
-      );
-      expect(jsInstructionArray).toContain(
-        SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
-      );
+      expect(jsInstructionArray).toContain(SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS);
+      expect(jsInstructionArray).toContain(SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS);
     });
   });
 });

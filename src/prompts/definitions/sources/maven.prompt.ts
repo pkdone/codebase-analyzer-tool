@@ -1,7 +1,7 @@
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
 import { SourcePromptTemplate } from "../../types/sources.types";
-import { SOURCES_PROMPT_FRAGMENTS } from "./common-fragments";
-import { SOURCES_INSTRUCTION_SECTION_TITLES } from "./instruction-titles";
+import { SOURCES_FRAGMENTS } from "../fragments";
+import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
 
 export const mavenPrompt: SourcePromptTemplate = {
   contentDesc: "Maven POM (Project Object Model) build file",
@@ -13,15 +13,12 @@ export const mavenPrompt: SourcePromptTemplate = {
   }),
   instructions: [
     {
-      title: SOURCES_INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-      points: [
-        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
-        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
-      ],
+      title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+      points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
     },
     {
-      title: SOURCES_INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
-      points: [SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN],
+      title: INSTRUCTION_SECTION_TITLES.DEPENDENCIES,
+      points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN],
     },
   ],
 };

@@ -14,7 +14,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
 }));
 
 jest.unmock("../../../src/prompts/definitions/sources");
-jest.unmock("../../../src/prompts/definitions/sources/common-fragments");
+jest.unmock("../../../src/prompts/definitions/fragments");
 
 jest.mock("../../../src/config/file-type-mappings.config", () => ({
   fileTypeMappingsConfig: {
