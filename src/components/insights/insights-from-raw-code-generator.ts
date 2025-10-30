@@ -10,10 +10,10 @@ import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { Prompt } from "../../prompts/prompt";
-import { InstructionSection } from "../../prompts/types/prompt-definition.types";
+import { InstructionSection } from "../../prompts/prompt.types";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
-import { APP_SUMMARY_TEMPLATE } from "../../prompts/templates/prompt-templates";
+import { APP_SUMMARY_TEMPLATE } from "../../prompts/prompt";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories

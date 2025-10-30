@@ -1,11 +1,11 @@
 import { Prompt } from "../../src/prompts/prompt";
-import { PromptDefinition } from "../../src/prompts/types/prompt-definition.types";
+import { PromptDefinition } from "../../src/prompts/prompt.types";
 import { z } from "zod";
 import {
   SOURCES_TEMPLATE,
   APP_SUMMARY_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../src/prompts/templates/prompt-templates";
+} from "../../src/prompts/prompt";
 
 describe("Prompt Refactoring", () => {
   const testDefinition: PromptDefinition = {
@@ -135,17 +135,17 @@ describe("Prompt Refactoring", () => {
       // Test that the constructor produces the same output as the old factory methods
       const sourceDefinition = { ...testDefinition, template: SOURCES_TEMPLATE };
       const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
-      
+
       const sourcePrompt = new Prompt(sourceDefinition, testContent);
       const appSummaryPrompt = new Prompt(appSummaryDefinition, testContent);
-      
+
       const sourceRendered = sourcePrompt.render();
       const appSummaryRendered = appSummaryPrompt.render();
-      
+
       // Verify the structure is correct
       expect(sourceRendered).toContain("CODE:");
       expect(appSummaryRendered).toContain("FILE_SUMMARIES:");
-      
+
       // Verify no placeholders remain
       expect(sourceRendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
       expect(appSummaryRendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);

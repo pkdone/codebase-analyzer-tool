@@ -1,4 +1,4 @@
-import { CanonicalFileType } from "../../types/sources.types";
+import { CanonicalFileType } from "../../prompt.types";
 import {
   SOURCES_FRAGMENTS,
   CLASS_LANGUAGE_BASE_INSTRUCTIONS,
@@ -6,8 +6,8 @@ import {
   DB_INTEGRATION_INSTRUCTIONS,
 } from "../fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
-import { SOURCES_TEMPLATE } from "../../templates/prompt-templates";
-import { InstructionSection } from "../../types/prompt-definition.types";
+import { SOURCES_TEMPLATE } from "../../prompt";
+import { InstructionSection } from "../../prompt.types";
 
 /**
  * Configuration entry for a source prompt definition

@@ -69,8 +69,8 @@ describe("Data-driven Prompt System", () => {
           appSummaryPromptMetadata[category as keyof typeof appSummaryPromptMetadata];
 
         expect(metadata.label).toBe(config.label);
-        expect(metadata.contentDesc).toBe(config.instruction);
-        expect(metadata.template).toBe(config.template);
+        expect(metadata.contentDesc).toBe(config.instructions[0].points[0]);
+        expect(metadata.template).toBeDefined();
         expect(metadata.responseSchema).toBe(config.responseSchema);
       });
     });

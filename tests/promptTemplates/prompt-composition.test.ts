@@ -1,6 +1,6 @@
 import { SOURCES_FRAGMENTS } from "../../src/prompts/definitions/fragments";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
-import { InstructionSection } from "../../src/prompts/types/prompt-definition.types";
+import { InstructionSection } from "../../src/prompts/prompt.types";
 
 describe("prompt-composition", () => {
   describe("fileTypePromptMetadata", () => {

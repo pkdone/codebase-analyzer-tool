@@ -1,6 +1,6 @@
-import { AppSummaryCategoryType } from "../../types/app-summaries.types";
-import { PromptDefinition } from "../../types/prompt-definition.types";
+import { AppSummaryCategoryType, PromptDefinition } from "../../prompt.types";
 import { appSummaryConfigMap } from "./app-summaries.config";
+import { APP_SUMMARY_TEMPLATE } from "../../prompt";
 
 /**
  * Data-driven mapping of app summary categories to their templates and schemas.
@@ -10,14 +10,10 @@ export const appSummaryPromptMetadata = Object.fromEntries(
   Object.entries(appSummaryConfigMap).map(([key, config]) => {
     const definition: PromptDefinition = {
       label: config.label,
-      contentDesc: config.instruction,
+      contentDesc: config.instructions[0].points[0], // Use first instruction point as contentDesc
       responseSchema: config.responseSchema,
-      template: config.template,
-      instructions: [
-        {
-          points: [config.instruction],
-        },
-      ],
+      template: APP_SUMMARY_TEMPLATE,
+      instructions: config.instructions,
     };
     return [key, definition];
   }),

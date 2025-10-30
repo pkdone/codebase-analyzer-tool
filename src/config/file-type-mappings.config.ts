@@ -1,4 +1,4 @@
-import type { CanonicalFileType } from "./file-types.config";
+import type { CanonicalFileType } from "../prompts/prompt.types";
 
 /**
  * File type mappings configuration with readonly maps for immutability.

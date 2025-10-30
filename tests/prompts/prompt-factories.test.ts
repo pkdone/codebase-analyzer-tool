@@ -1,11 +1,11 @@
 import { Prompt } from "../../src/prompts/prompt";
-import { PromptDefinition } from "../../src/prompts/types/prompt-definition.types";
+import { PromptDefinition } from "../../src/prompts/prompt.types";
 import { z } from "zod";
 import {
   SOURCES_TEMPLATE,
   APP_SUMMARY_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../src/prompts/templates/prompt-templates";
+} from "../../src/prompts/prompt";
 
 describe("Prompt Constructor and Templates", () => {
   const sourceDefinition: PromptDefinition = {

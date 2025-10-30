@@ -1,7 +1,6 @@
-import { CanonicalFileType } from "../../types/sources.types";
+import { CanonicalFileType, PromptDefinition } from "../../prompt.types";
 import { sourceConfigMap } from "./sources.config";
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
-import { PromptDefinition } from "../../types/prompt-definition.types";
 
 /**
  * Dynamically generates prompt metadata from the centralized configuration
@@ -19,8 +18,9 @@ function generatePromptMetadata(): Record<CanonicalFileType, PromptDefinition> {
     result[fileType] = {
       contentDesc: config.contentDesc,
       hasComplexSchema: config.hasComplexSchema,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      responseSchema: sourceSummarySchema.pick(schemaFields as any),
+      responseSchema: sourceSummarySchema.pick(
+        schemaFields as Parameters<typeof sourceSummarySchema.pick>[0],
+      ),
       instructions: config.instructions,
       template: config.template,
     };

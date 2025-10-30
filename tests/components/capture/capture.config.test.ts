@@ -1,5 +1,5 @@
 import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
-import { InstructionSection } from "../../../src/prompts/types/prompt-definition.types";
+import { InstructionSection } from "../../../src/prompts/prompt.types";
 
 describe("fileTypeMetadataConfig", () => {
   describe("supported file types", () => {
