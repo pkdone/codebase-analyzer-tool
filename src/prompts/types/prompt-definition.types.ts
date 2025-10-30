@@ -25,4 +25,6 @@ export interface PromptDefinition {
   hasComplexSchema?: boolean;
   /** Optional label for UI display and logging (e.g., "Aggregates", "Java Source") */
   label?: string;
+  /** Template string for rendering the prompt */
+  template: string;
 }

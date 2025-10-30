@@ -12,6 +12,7 @@ export const appSummaryPromptMetadata = Object.fromEntries(
       label: config.label,
       contentDesc: config.instruction,
       responseSchema: config.responseSchema,
+      template: config.template,
       instructions: [
         {
           points: [config.instruction],

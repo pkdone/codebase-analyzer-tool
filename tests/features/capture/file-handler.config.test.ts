@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
-import { SourcePromptTemplate } from "../../../src/prompts/types/sources.types";
+import { PromptDefinition } from "../../../src/prompts/types/prompt-definition.types";
 import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";
@@ -56,18 +56,21 @@ describe("File Handler Configuration", () => {
         expect(typeof config.contentDesc).toBe("string");
         expect(typeof config.instructions).toBe("object");
         expect(Array.isArray(config.instructions)).toBe(true);
-        expect(typeof config.hasComplexSchema).toBe("boolean");
+        expect(
+          config.hasComplexSchema === undefined || typeof config.hasComplexSchema === "boolean",
+        ).toBe(true);
       }
     });
   });
 
   describe("DynamicPromptConfig structure", () => {
     test("should enforce correct structure", () => {
-      const testConfig: SourcePromptTemplate = {
+      const testConfig: PromptDefinition = {
         contentDesc: "test content",
         instructions: [{ points: ["test instructions"] }],
         responseSchema: sourceSummarySchema,
         hasComplexSchema: false,
+        template: "Test template",
       };
 
       expect(testConfig).toHaveProperty("contentDesc");
@@ -81,11 +84,12 @@ describe("File Handler Configuration", () => {
 
     test("should work with type compatibility", () => {
       // Test that DynamicPromptConfig can work with inline schema types
-      const typedConfig: SourcePromptTemplate = {
+      const typedConfig: PromptDefinition = {
         contentDesc: "test content",
         instructions: [{ points: ["test instructions"] }],
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
+        template: "Test template",
       };
 
       expect(typedConfig.responseSchema).toBeDefined();

@@ -12,6 +12,7 @@ import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
 import { llmProviderConfig } from "../../../llm/llm.config";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
+import { REDUCE_INSIGHTS_TEMPLATE } from "../../../prompts/templates/app-summaries-templates.prompt";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -203,13 +204,12 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       return [];
     });
 
-    // Format as JSON for the reduce prompt
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
-
     const reduceConfig = {
       contentDesc: "several JSON objects",
       instructions: [{ points: [`a consolidated list of '${config.label ?? category}'`] }],
       responseSchema: config.responseSchema,
+      template: REDUCE_INSIGHTS_TEMPLATE,
     };
     const prompt = Prompt.forReduce(reduceConfig, content, categoryKey).render();
 

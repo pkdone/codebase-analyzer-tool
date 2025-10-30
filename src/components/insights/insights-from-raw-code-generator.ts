@@ -13,6 +13,7 @@ import { Prompt } from "../../prompts/prompt";
 import { InstructionSection } from "../../prompts/types/prompt-definition.types";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
+import { APP_SUMMARY_TEMPLATE } from "../../prompts/templates/app-summaries-templates.prompt";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories
@@ -118,6 +119,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       contentDesc: "list of file summaries",
       instructions,
       responseSchema: appSummaryRecordCategoriesSchema,
+      template: APP_SUMMARY_TEMPLATE,
     };
     return Prompt.forAppSummary(allCategoriesConfig, codeBlocksContent).render();
   }

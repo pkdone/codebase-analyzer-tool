@@ -1,6 +1,4 @@
 import { Prompt } from "../../src/prompts/prompt";
-import { SOURCES_TEMPLATE } from "../../src/prompts/templates/sources-templates.prompt";
-import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates/app-summaries-templates.prompt";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
 import { SOURCES_FRAGMENTS, COMMON_FRAGMENTS } from "../../src/prompts/definitions/fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../src/prompts/definitions/instruction-titles";
@@ -87,7 +85,7 @@ public abstract class AddressEJB implements EntityBean {
   describe("render()", () => {
     it("should render prompt correctly with Java file type metadata", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(SOURCES_TEMPLATE, javaMetadata, javaCodeSample);
+      const prompt = new Prompt(javaMetadata, javaCodeSample);
 
       const renderedPrompt = prompt.render();
 
@@ -146,7 +144,7 @@ public abstract class AddressEJB implements EntityBean {
 
     it("should format instruction sections with titles correctly", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(SOURCES_TEMPLATE, javaMetadata, javaCodeSample);
+      const prompt = new Prompt(javaMetadata, javaCodeSample);
 
       const renderedPrompt = prompt.render();
 
@@ -166,7 +164,7 @@ public abstract class AddressEJB implements EntityBean {
 
     it("should include all template placeholders correctly", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(SOURCES_TEMPLATE, javaMetadata, javaCodeSample);
+      const prompt = new Prompt(javaMetadata, javaCodeSample);
 
       const renderedPrompt = prompt.render();
 
@@ -186,9 +184,22 @@ public abstract class AddressEJB implements EntityBean {
         contentDesc: "test content",
         instructions: [{ points: ["test instruction"] }],
         responseSchema: javaMetadata.responseSchema,
+        template: `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
+
+{{instructions}}.
+
+{{partialAnalysisNote}}The JSON response must follow this JSON schema:
+\`\`\`json
+{{jsonSchema}}
+\`\`\`
+
+{{forceJSON}}
+
+FILE_SUMMARIES:
+{{content}}`,
       };
 
-      const prompt = new Prompt(APP_SUMMARY_TEMPLATE, config, javaCodeSample);
+      const prompt = new Prompt(config, javaCodeSample);
 
       const additionalParams = {
         partialAnalysisNote: "This is a custom note for testing",

@@ -10,6 +10,8 @@ describe("prompt-composition", () => {
         const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
         expect(Array.isArray(metadata.instructions)).toBe(true);
         expect(metadata.instructions.length).toBeGreaterThan(0);
+        expect(metadata.template).toBeDefined();
+        expect(typeof metadata.template).toBe("string");
       });
     });
 

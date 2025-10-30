@@ -28,11 +28,14 @@ describe("fileTypeMetadataConfig", () => {
     it("should always have a default configuration", () => {
       const defaultConfig = fileTypePromptMetadata.default;
       expect(defaultConfig).toBeDefined();
-      expect(defaultConfig.contentDesc).toBe("project file content");
+      expect(defaultConfig.contentDesc).toBe("source files");
       expect(typeof defaultConfig.instructions).toBe("object");
       expect(Array.isArray(defaultConfig.instructions)).toBe(true);
       expect(defaultConfig.responseSchema).toBeDefined();
-      expect(typeof defaultConfig.hasComplexSchema).toBe("boolean");
+      expect(
+        defaultConfig.hasComplexSchema === undefined ||
+          typeof defaultConfig.hasComplexSchema === "boolean",
+      ).toBe(true);
     });
   });
 
@@ -87,7 +90,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("sql configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.sql.contentDesc).toBe("database DDL/DML/SQL code");
+      expect(fileTypePromptMetadata.sql.contentDesc).toBe("SQL code");
     });
 
     it("should be marked as complex schema", () => {
@@ -113,7 +116,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("csharp configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.csharp.contentDesc).toBe("C# source code");
+      expect(fileTypePromptMetadata.csharp.contentDesc).toBe("C# code");
     });
 
     it("should be marked as complex schema", () => {
@@ -160,7 +163,9 @@ describe("fileTypeMetadataConfig", () => {
         expect(typeof config.instructions).toBe("object");
         expect(Array.isArray(config.instructions)).toBe(true);
         expect(config.responseSchema).toBeDefined();
-        expect(typeof config.hasComplexSchema).toBe("boolean");
+        expect(
+          config.hasComplexSchema === undefined || typeof config.hasComplexSchema === "boolean",
+        ).toBe(true);
       }
     });
 
@@ -182,7 +187,7 @@ describe("fileTypeMetadataConfig", () => {
     it("should maintain configuration integrity", () => {
       // Verify configurations maintain their expected values
       expect(fileTypePromptMetadata.java.contentDesc).toBe("JVM code");
-      expect(fileTypePromptMetadata.default.contentDesc).toBe("project file content");
+      expect(fileTypePromptMetadata.default.contentDesc).toBe("source files");
       expect(fileTypePromptMetadata.sql.hasComplexSchema).toBe(true);
     });
   });

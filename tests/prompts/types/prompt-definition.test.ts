@@ -10,6 +10,7 @@ describe("PromptDefinition", () => {
     instructions: [{ points: ["instruction 1", "instruction 2"] }],
     responseSchema: z.string(),
     hasComplexSchema: false,
+    template: "Test template",
     ...overrides,
   });
 
@@ -19,6 +20,7 @@ describe("PromptDefinition", () => {
         contentDesc: "test",
         instructions: [{ points: ["test"] }],
         responseSchema: z.string(),
+        template: "Test template",
       };
 
       expect(definition.contentDesc).toBe("test");
@@ -45,6 +47,7 @@ describe("PromptDefinition", () => {
         contentDesc: "test",
         instructions: [{ points: ["a"] }, { points: ["b"] }, { points: ["c"] }],
         responseSchema: z.string(),
+        template: "Test template",
       };
 
       expect(Array.isArray(definition.instructions)).toBe(true);
@@ -80,6 +83,7 @@ describe("PromptDefinition", () => {
           implementation: z.string(),
         }),
         hasComplexSchema: true,
+        template: "Test template",
       };
 
       expect(sourceFileDefinition.contentDesc).toBe("JVM code");
@@ -96,6 +100,7 @@ describe("PromptDefinition", () => {
           boundedContexts: z.array(z.string()),
         }),
         hasComplexSchema: false,
+        template: "Test template",
       };
 
       expect(appSummaryDefinition.contentDesc).toBe("source files");
@@ -115,6 +120,7 @@ describe("PromptDefinition", () => {
         contentDesc: "test",
         instructions: readonlyInstructions,
         responseSchema: z.string(),
+        template: "Test template",
       };
 
       expect(definition.instructions).toEqual([{ points: ["instruction 1", "instruction 2"] }]);

@@ -3,11 +3,7 @@ import { fillPrompt } from "type-safe-prompt";
 import { z } from "zod";
 import { COMMON_FRAGMENTS } from "./definitions/fragments";
 import { type InstructionSection, type PromptDefinition } from "./types/prompt-definition.types";
-import { SOURCES_TEMPLATE } from "./templates/sources-templates.prompt";
-import {
-  APP_SUMMARY_TEMPLATE,
-  REDUCE_INSIGHTS_TEMPLATE,
-} from "./templates/app-summaries-templates.prompt";
+import { REDUCE_INSIGHTS_TEMPLATE } from "./templates/app-summaries-templates.prompt";
 
 /**
  * Represents a prompt with its template, content, and rendering logic.
@@ -23,12 +19,11 @@ export class Prompt {
   /**
    * Creates a new Prompt instance.
    *
-   * @param template - The template string with placeholders (e.g., {{contentDesc}}, {{specificInstructions}})
-   * @param promptDefinition - The prompt definition containing content description, instructions, and schema
+   * @param promptDefinition - The prompt definition containing all configuration including template
    * @param content - The actual content to analyze
    */
-  constructor(template: string, promptDefinition: PromptDefinition, content: string) {
-    this.template = template;
+  constructor(promptDefinition: PromptDefinition, content: string) {
+    this.template = promptDefinition.template;
     this.contentDesc = promptDefinition.contentDesc;
     this.instructions = promptDefinition.instructions;
     this.schema = promptDefinition.responseSchema;
@@ -43,7 +38,7 @@ export class Prompt {
    * @returns A new Prompt instance configured for source file analysis
    */
   static forSource(definition: PromptDefinition, content: string): Prompt {
-    return new Prompt(SOURCES_TEMPLATE, definition, content);
+    return new Prompt(definition, content);
   }
 
   /**
@@ -54,11 +49,12 @@ export class Prompt {
    * @returns A new Prompt instance configured for app summary analysis
    */
   static forAppSummary(definition: PromptDefinition, content: string): Prompt {
-    return new Prompt(APP_SUMMARY_TEMPLATE, definition, content);
+    return new Prompt(definition, content);
   }
 
   /**
    * Static factory method for creating prompts for the REDUCE phase of map-reduce strategy.
+   * This method performs special template manipulation that requires custom logic.
    *
    * @param definition - The prompt definition for consolidating results
    * @param content - The partial results content to consolidate
@@ -67,7 +63,8 @@ export class Prompt {
    */
   static forReduce(definition: PromptDefinition, content: string, categoryKey: string): Prompt {
     const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
-    return new Prompt(template, definition, content);
+    const modifiedDefinition = { ...definition, template };
+    return new Prompt(modifiedDefinition, content);
   }
 
   /**

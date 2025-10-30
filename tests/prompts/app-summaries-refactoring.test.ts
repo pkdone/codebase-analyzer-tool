@@ -56,7 +56,7 @@ describe("App Summaries Refactoring", () => {
       const testContent = "Test file content";
       const partialAnalysisNote = "This is a partial analysis note for testing";
 
-      const prompt = new Prompt(APP_SUMMARY_TEMPLATE, config, testContent);
+      const prompt = new Prompt(config, testContent);
       const renderedPrompt = prompt.render({ partialAnalysisNote });
 
       // Verify the template structure
@@ -72,7 +72,7 @@ describe("App Summaries Refactoring", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
 
-      const prompt = new Prompt(APP_SUMMARY_TEMPLATE, config, testContent);
+      const prompt = new Prompt(config, testContent);
       const renderedPrompt = prompt.render();
 
       // Verify the template structure
@@ -92,7 +92,7 @@ describe("App Summaries Refactoring", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
 
-      const prompt = new Prompt(APP_SUMMARY_TEMPLATE, config, testContent);
+      const prompt = new Prompt(config, testContent);
       const renderedPrompt = prompt.render({ partialAnalysisNote: "" });
 
       // Verify the template structure without the note
