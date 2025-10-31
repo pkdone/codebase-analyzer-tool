@@ -403,7 +403,7 @@ export const sourceSummarySchema = z
     dependencies: z
       .array(dependencySchema)
       .optional()
-      .describe("A list of dependencies declared in this build file."),
+      .describe("A list of dependencies declared in this project configuration file."),
     scheduledJobs: z
       .array(scheduledJobSchema)
       .optional()
@@ -437,7 +437,7 @@ export const sourceSummarySchema = z
       .describe("JSP-specific metrics for scriptlets and tag libraries"),
     uiFramework: uiFrameworkSchema
       .optional()
-      .describe("UI framework identification from configuration files"),
+      .describe("UI framework identification from configuration and UI files"),
   })
   .passthrough();
 

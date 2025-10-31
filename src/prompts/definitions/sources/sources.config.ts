@@ -112,8 +112,8 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [
           SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
           SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
-          "A list of any constants or configuration values defined in this file",
-          "A list of any functions or procedures defined in this file",
+          "A list of any exported constants or configuration values defined in this file",
+          "A list of any exported functions or procedures defined in this file",
         ],
       },
       {
@@ -375,42 +375,16 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   markdown: {
     contentDesc: "Markdown documentation",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
-      "internalReferences",
-      "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        points: [
-          "A list of internal references to other documentation files in the same project",
-          "A list of external references to external documentation, websites, or resources",
-          "A list of any constants or configuration values defined in this documentation",
-          "A list of any procedures or methods documented in this file",
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [
-          SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-          "Look for API endpoints, webhooks, or integration points mentioned in the documentation",
         ],
       },
       {
@@ -420,10 +394,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           "Look for database schemas, queries, or data models mentioned in the documentation",
         ],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
@@ -431,55 +401,21 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     contentDesc: "XML configuration",
     hasComplexSchema: true,
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
-      "internalReferences",
-      "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
+      "uiFramework",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
       },
       {
-        title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
+        title: INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION,
         points: [
-          "A list of internal references to other configuration files in the same project",
-          "A list of external references to external schemas, DTDs, or configuration files",
-          "A list of any constants or configuration values defined in this XML file",
-          "A list of any procedures or methods referenced in this configuration",
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [
-          SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-          "Look for servlet mappings, web services, or other integration points in the XML configuration",
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [
-          ...DB_INTEGRATION_INSTRUCTIONS,
-          "Look for database connection configurations, data sources, or ORM settings in the XML file",
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: [
-          ...CODE_QUALITY_INSTRUCTIONS,
           SOURCES_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION,
         ],
       },
@@ -490,24 +426,17 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     contentDesc: "JSP page",
     hasComplexSchema: true,
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
+      "dataInputFields",
+      "uiFramework",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -522,25 +451,13 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         ],
       },
       {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [
-          SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-          "Look for form actions, AJAX calls, or other integration points in the JSP page",
-        ],
+        title: INSTRUCTION_SECTION_TITLES.USER_INPUT_FIELDS,
+        points: [SOURCES_FRAGMENTS.JSP_SPECIFIC.DATA_INPUT_FIELDS],
       },
       {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        title: INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION,
         points: [
-          ...DB_INTEGRATION_INSTRUCTIONS,
-          "Look for database queries, JDBC connections, or ORM usage in the JSP page",
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: [
-          ...CODE_QUALITY_INSTRUCTIONS,
-          SOURCES_FRAGMENTS.JSP_SPECIFIC.DATA_INPUT_FIELDS,
-          SOURCES_FRAGMENTS.JSP_SPECIFIC.JSP_METRICS_ANALYSIS,
+          "Analyze the JSP file to identify any UI frameworks used. Look for framework-specific tags, directives, or patterns that indicate the use of frameworks like JSF, Struts, Spring MVC, or other Java web frameworks.",
         ],
       },
     ],
@@ -550,24 +467,17 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   maven: {
     contentDesc: "Maven POM file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
+      "databaseIntegration",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -584,34 +494,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   gradle: {
     contentDesc: "Gradle build file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
+      "databaseIntegration",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -628,34 +527,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   ant: {
     contentDesc: "Ant build file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -672,34 +560,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   npm: {
     contentDesc: "NPM package file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -716,34 +593,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "dotnet-proj": {
     contentDesc: "dotnet project file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -760,34 +626,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   nuget: {
     contentDesc: "NuGet package file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -804,34 +659,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "ruby-bundler": {
     contentDesc: "Ruby Gemfile",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -848,34 +692,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "python-pip": {
     contentDesc: "Python requirements file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -892,34 +725,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "python-setup": {
     contentDesc: "Python setup.py file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -936,34 +758,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "python-poetry": {
     contentDesc: "Python pyproject.toml file",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -980,34 +791,24 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "shell-script": {
     contentDesc: "Shell script",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
+      "scheduledJobs",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -1035,38 +836,25 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           "Look for database commands, queries, or connections in the script",
         ],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: [
-          ...CODE_QUALITY_INSTRUCTIONS,
-          "Look for scheduled jobs, cron expressions, or automated tasks in the script",
-          "A list of scheduled jobs or automated tasks defined in this script",
-        ],
-      },
+      // TODO: missing scheduled jobs instructions
     ],
     template: SOURCES_TEMPLATE,
   },
   "batch-script": {
     contentDesc: "Batch script",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
+      "scheduledJobs",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -1094,38 +882,25 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           "Look for database commands, queries, or connections in the batch file",
         ],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: [
-          ...CODE_QUALITY_INSTRUCTIONS,
-          "Look for scheduled jobs, task scheduler references, or automated tasks in the batch file",
-          "A list of scheduled jobs or automated tasks defined in this batch file",
-        ],
-      },
+      // TODO: missing scheduled jobs instructions
     ],
     template: SOURCES_TEMPLATE,
   },
   jcl: {
     contentDesc: "JCL job control language",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
       "internalReferences",
       "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
       "integrationPoints",
-      "codeQualityMetrics",
+      "scheduledJobs",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
         ],
@@ -1153,56 +928,23 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           "Look for database operations, queries, or connections in the JCL job",
         ],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: [
-          ...CODE_QUALITY_INSTRUCTIONS,
-          "Look for scheduled jobs, job dependencies, or automated tasks in the JCL job",
-          "A list of scheduled jobs or automated tasks defined in this JCL job",
-        ],
-      },
+      // TODO: missing scheduled jobs instructions  
     ],
     template: SOURCES_TEMPLATE,
   },
   default: {
     contentDesc: "source files",
     schemaFields: [
-      "name",
-      "kind",
-      "namespace",
       "purpose",
       "implementation",
-      "internalReferences",
-      "externalReferences",
-      "publicConstants",
-      "publicMethods",
       "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
     ],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
-          ...CLASS_LANGUAGE_BASE_INSTRUCTIONS,
           SOURCES_FRAGMENTS.COMMON.PURPOSE,
           SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
-        points: [
-          "A list of internal references to other files in the same project",
-          "A list of external references to external libraries, frameworks, or resources",
-          "A list of any constants or configuration values defined in this file",
-          "A list of any functions or procedures defined in this file",
-        ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [
-          SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-          "Look for API calls, webhooks, or other integration points in the file",
         ],
       },
       {
@@ -1211,10 +953,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           ...DB_INTEGRATION_INSTRUCTIONS,
           "Look for database operations, queries, or connections in the file",
         ],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        points: CODE_QUALITY_INSTRUCTIONS,
       },
     ],
     template: SOURCES_TEMPLATE,

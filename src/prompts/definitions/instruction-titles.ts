@@ -15,9 +15,8 @@ export const INSTRUCTION_SECTION_TITLES = {
   DATABASE_INTEGRATION: "Database Integration",
   DATABASE_INTEGRATION_ANALYSIS: "Database Integration Analysis",
   CODE_QUALITY_METRICS: "Code Quality Metrics",
+  UI_FRAMEWORK_DETECTION: "User Interface Framework",
   DEPENDENCIES: "Dependencies",
   DATABASE_OBJECTS: "Database Objects",
   SCHEDULED_JOBS: "Scheduled Jobs",
-  UI_FRAMEWORK_DETECTION: "UI Framework Detection",
-  JSP_METRICS_ANALYSIS: "JSP Metrics Analysis",
 } as const;

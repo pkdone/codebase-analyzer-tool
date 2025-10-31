@@ -133,8 +133,8 @@ describe("Data-driven Prompt System", () => {
       const markdownInstructionText = markdownInstructions
         .flatMap((section) => section.points)
         .join(" ");
-      // Markdown files now include code quality metrics which contain cyclomaticComplexity
-      expect(markdownInstructionText).toContain("cyclomaticComplexity");
+      // Markdown files are documentation and don't include code quality metrics
+      expect(markdownInstructionText).not.toContain("cyclomaticComplexity");
     });
   });
 
@@ -166,10 +166,10 @@ describe("Data-driven Prompt System", () => {
       const sqlConfig = sourceConfigMap.sql;
       expect(sqlConfig.schemaFields).toContain("databaseIntegration");
 
-      // Maven should have simpler field set
+      // Maven should have simpler field set (build files don't have "name" field)
       const mavenConfig = sourceConfigMap.maven;
-      expect(mavenConfig.schemaFields).toContain("name");
       expect(mavenConfig.schemaFields).toContain("purpose");
+      expect(mavenConfig.schemaFields).toContain("internalReferences"); // Dependencies are stored as internalReferences
     });
   });
 

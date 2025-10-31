@@ -62,13 +62,13 @@ export const SOURCES_FRAGMENTS = {
   },
 
   DB_INTEGRATION: {
-    INTRO: "Database Integration Analysis (REQUIRED for files that interact with databases)",
+    INTRO: "Database Integration Analysis (REQUIRED for source files that interact with databases)",
     REQUIRED_FIELDS: `For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
   * REQUIRED FIELDS:
-    - mechanism (REQUIRED): The integration type - see mechanism mapping below
-    - description (REQUIRED): Detailed explanation of how database integration is achieved
-    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction
-  * STRONGLY RECOMMENDED FIELDS (provide whenever possible):
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below (use "NONE" if no database integration)
+    - description (REQUIRED): Detailed explanation of how database integration is achieved (use "n/a" if no database integration)
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction  (use "n/a" if no database integration)
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible, using "n/a" if no database integration):
     - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
     - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
     - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
@@ -341,7 +341,7 @@ STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific databas
   },
 
   XML_SPECIFIC: {
-    UI_FRAMEWORK_DETECTION: `UI Framework Detection (REQUIRED for web application config files)
+    UI_FRAMEWORK_DETECTION: `UI Frameworks Detection (REQUIRED for web application config files)
 If this XML file is a web application configuration file, you MUST analyze and identify the UI framework:
   * Struts Framework Detection:
     - Look for <servlet-class> containing "org.apache.struts.action.ActionServlet" or "StrutsPrepareAndExecuteFilter"
