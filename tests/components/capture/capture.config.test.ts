@@ -90,7 +90,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("sql configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.sql.contentDesc).toBe("SQL code");
+      expect(fileTypePromptMetadata.sql.contentDesc).toBe("database DDL/DML/SQL code");
     });
 
     it("should be marked as complex schema", () => {
