@@ -386,24 +386,6 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
    Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>.`,
   },
 
-  REST_API_DETECTION: {
-    INTRO: "REST APIs (mechanism: 'REST'):",
-  },
-
-  GRAPHQL_DETECTION: {
-    INTRO: "GraphQL (mechanism: 'GRAPHQL'):",
-  },
-
-  GRPC_DETECTION: {
-    INTRO: "gRPC (mechanism: 'GRPC'):",
-  },
-
-  WEBSOCKET_DETECTION: {
-    INTRO: "WebSockets (mechanism: 'WEBSOCKET'):",
-  },
-
-  MESSAGING_INTRO: "Messaging Systems:",
-
   SHELL_SCRIPT_SPECIFIC: {
     CRON_EXPRESSIONS:
       "Look for cron expressions in comments like '# Cron: 0 2 * * *' or systemd timer references",
@@ -542,8 +524,4 @@ export const APP_SUMMARY_FRAGMENTS = {
     "aggregated code quality metrics including complexity analysis, code smell detection, and maintainability indicators to help prioritize refactoring efforts",
   DEPENDENCY_MATRIX:
     "a dependency matrix showing coupling relationships between modules to identify highly coupled components (candidates for single services) and loosely coupled components (candidates for easy separation)",
-  TECHNICAL_DEBT_ASSESSMENT: "to assess technical debt and plan modernization efforts",
-  SECURITY_RISKS: "to identify technical debt and security risks",
-  MODERNIZATION_RECOMMENDATIONS:
-    "to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints",
 } as const;

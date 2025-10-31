@@ -123,33 +123,6 @@ describe("prompt-fragments", () => {
     });
   });
 
-  describe("New detection fragments", () => {
-    it("should have REST_API_DETECTION fragment", () => {
-      expect(SOURCES_FRAGMENTS.REST_API_DETECTION).toBeDefined();
-      expect(SOURCES_FRAGMENTS.REST_API_DETECTION.INTRO).toContain("REST");
-    });
-
-    it("should have GRAPHQL_DETECTION fragment", () => {
-      expect(SOURCES_FRAGMENTS.GRAPHQL_DETECTION).toBeDefined();
-      expect(SOURCES_FRAGMENTS.GRAPHQL_DETECTION.INTRO).toContain("GRAPHQL");
-    });
-
-    it("should have GRPC_DETECTION fragment", () => {
-      expect(SOURCES_FRAGMENTS.GRPC_DETECTION).toBeDefined();
-      expect(SOURCES_FRAGMENTS.GRPC_DETECTION.INTRO).toContain("GRPC");
-    });
-
-    it("should have WEBSOCKET_DETECTION fragment", () => {
-      expect(SOURCES_FRAGMENTS.WEBSOCKET_DETECTION).toBeDefined();
-      expect(SOURCES_FRAGMENTS.WEBSOCKET_DETECTION.INTRO).toContain("WEBSOCKET");
-    });
-
-    it("should have MESSAGING_INTRO fragment", () => {
-      expect(SOURCES_FRAGMENTS.MESSAGING_INTRO).toBeDefined();
-      expect(SOURCES_FRAGMENTS.MESSAGING_INTRO).toContain("Messaging");
-    });
-  });
-
   describe("Composing instructions", () => {
     it("should allow spreading instruction sets", () => {
       const composed = [
