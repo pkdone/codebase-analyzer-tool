@@ -20,7 +20,7 @@ describe("Data-driven Prompt System", () => {
         const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
 
         expect(metadata.contentDesc).toBe(config.contentDesc);
-        expect(metadata.hasComplexSchema).toBe(config.hasComplexSchema);
+        expect(metadata.hasComplexSchema).toBe(config.hasComplexSchema ?? true);
         expect(metadata.template).toBe(config.template);
         expect(metadata.instructions).toEqual(config.instructions);
       });
@@ -46,9 +46,9 @@ describe("Data-driven Prompt System", () => {
       expect(fileTypePromptMetadata.javascript.hasComplexSchema).toBe(true);
       expect(fileTypePromptMetadata.python.hasComplexSchema).toBe(true);
 
-      // Simple schemas (default to false when undefined)
-      expect(fileTypePromptMetadata.markdown.hasComplexSchema).toBeUndefined();
-      expect(fileTypePromptMetadata.maven.hasComplexSchema).toBeUndefined();
+      // Simple schemas (default to true when undefined)
+      expect(fileTypePromptMetadata.markdown.hasComplexSchema).toBe(true);
+      expect(fileTypePromptMetadata.maven.hasComplexSchema).toBe(true);
     });
   });
 

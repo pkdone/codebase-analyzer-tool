@@ -14,7 +14,7 @@ import { InstructionSection } from "../../prompt.types";
  */
 interface SourceConfigEntry {
   contentDesc: string;
-  hasComplexSchema?: boolean; // Defaults to false when undefined
+  hasComplexSchema?: boolean; // Defaults to true when undefined
   schemaFields: string[];
   instructions: readonly InstructionSection[];
   template: string;
@@ -27,7 +27,6 @@ interface SourceConfigEntry {
 export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   java: {
     contentDesc: "JVM code",
-    hasComplexSchema: true,
     schemaFields: [
       "name",
       "kind",
@@ -83,7 +82,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
-    hasComplexSchema: true,
     schemaFields: [
       "name",
       "kind",
@@ -139,7 +137,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   csharp: {
     contentDesc: "C# code",
-    hasComplexSchema: true,
     schemaFields: [
       "name",
       "kind",
@@ -196,7 +193,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   python: {
     contentDesc: "Python code",
-    hasComplexSchema: true,
     schemaFields: [
       "name",
       "kind",
@@ -256,7 +252,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   ruby: {
     contentDesc: "Ruby code",
-    hasComplexSchema: true,
     schemaFields: [
       "name",
       "kind",
@@ -313,7 +308,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   sql: {
     contentDesc: "database DDL/DML/SQL code",
-    hasComplexSchema: true,
     schemaFields: [
       "purpose",
       "implementation",
@@ -359,7 +353,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   xml: {
     contentDesc: "XML configuration",
-    hasComplexSchema: true,
     schemaFields: ["purpose", "implementation", "uiFramework"],
     instructions: [
       {
@@ -375,7 +368,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   jsp: {
     contentDesc: "JSP code",
-    hasComplexSchema: true,
     schemaFields: [
       "purpose",
       "implementation",

@@ -17,7 +17,7 @@ function generatePromptMetadata(): Record<CanonicalFileType, PromptDefinition> {
 
     result[fileType] = {
       contentDesc: config.contentDesc,
-      hasComplexSchema: config.hasComplexSchema,
+      hasComplexSchema: config.hasComplexSchema ?? true,
       responseSchema: sourceSummarySchema.pick(
         schemaFields as Parameters<typeof sourceSummarySchema.pick>[0],
       ),
