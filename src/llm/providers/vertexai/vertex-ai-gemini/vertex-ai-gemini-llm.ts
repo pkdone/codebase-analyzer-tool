@@ -31,6 +31,7 @@ import {
 import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { toMongoJsonSchema } from "../../../../common/mongodb/utils/json-schema-utils";
+import { isJsonObject } from "../../../../common/utils/type-guards";
 import { JsonProcessor } from "../../../json-processing/core/json-processor";
 
 /**
@@ -273,9 +274,10 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       // ClientError - INVALID_ARGUMENT - fieldViolations errors
       if (options.jsonSchema && !options.hasComplexSchema) {
         const jsonSchema = toMongoJsonSchema(options.jsonSchema);
+        const sanitizedSchema = sanitizeVertexAISchema(jsonSchema);
 
-        if (isVertexAICompatibleSchema(jsonSchema)) {
-          generationConfig.responseSchema = jsonSchema;
+        if (isVertexAICompatibleSchema(sanitizedSchema)) {
+          generationConfig.responseSchema = sanitizedSchema;
         } else {
           logWarningMsg(
             "Generated JSON schema is not compatible with VertexAI SDK's Schema type. " +
@@ -338,6 +340,31 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       return numbers.length > 0 ? [numbers] : [];
     });
   }
+}
+
+/**
+ * Recursively remove unsupported keywords from JSON Schema for Vertex AI compatibility.
+ * Vertex AI doesn't support the `const` keyword in response schemas, which causes
+ * INVALID_ARGUMENT errors when present at any nesting level (e.g., within anyOf, allOf, items, etc.).
+ */
+export function sanitizeVertexAISchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) {
+    return schema.map((item) => sanitizeVertexAISchema(item));
+  }
+
+  if (isJsonObject(schema)) {
+    // Create a new object to avoid mutating the original
+    const sanitized: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(schema)) {
+      if (key === "const") continue; // Skip const fields - Vertex AI doesn't support them
+      sanitized[key] = sanitizeVertexAISchema(value); // Recursively sanitize nested objs ^ arrays
+    }
+
+    return sanitized;
+  }
+
+  return schema;
 }
 
 /**
