@@ -112,8 +112,8 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [
           SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.INTERNAL_REFS,
           SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.EXTERNAL_REFS,
-          "A list of any exported constants or configuration values defined in this file",
-          "A list of any exported functions or procedures defined in this file",
+          SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.PUBLIC_CONSTANTS,
+          SOURCES_FRAGMENTS.JAVASCRIPT_SPECIFIC.PUBLIC_METHODS,
         ],
       },
       {
@@ -325,10 +325,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_OBJECTS,
@@ -347,25 +344,15 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   markdown: {
     contentDesc: "Markdown documentation",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "databaseIntegration",
-    ],
+    schemaFields: ["purpose", "implementation", "databaseIntegration"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [
-          ...DB_INTEGRATION_INSTRUCTIONS,
-          "Look for database schemas, queries, or data models mentioned in the documentation",
-        ],
+        points: [...DB_INTEGRATION_INSTRUCTIONS, SOURCES_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION],
       },
     ],
     template: SOURCES_TEMPLATE,
@@ -373,24 +360,15 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   xml: {
     contentDesc: "XML configuration",
     hasComplexSchema: true,
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "uiFramework",
-    ],
+    schemaFields: ["purpose", "implementation", "uiFramework"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION,
-        points: [
-          SOURCES_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION,
-        ],
+        points: [SOURCES_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION],
       },
     ],
     template: SOURCES_TEMPLATE,
@@ -409,10 +387,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
@@ -433,349 +408,162 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     template: SOURCES_TEMPLATE,
   },
   maven: {
-    contentDesc: "Maven POM file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "integrationPoints",
-      "databaseIntegration",
-    ],
+    contentDesc: "Maven POM (Project Object Model) build file",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   gradle: {
-    contentDesc: "Gradle build file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "integrationPoints",
-      "databaseIntegration",
-    ],
+    contentDesc: "Gradle build configuration file",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.GRADLE],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   ant: {
-    contentDesc: "Ant build file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "databaseIntegration",
-      "integrationPoints",
-    ],
+    contentDesc: "Apache Ant build.xml file",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.ANT],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   npm: {
-    contentDesc: "NPM package file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "databaseIntegration",
-      "integrationPoints",
-    ],
+    contentDesc: "npm package.json or lock file",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.NPM],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "dotnet-proj": {
-    contentDesc: "dotnet project file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "databaseIntegration",
-      "integrationPoints",
-    ],
+    contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.DOTNET],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   nuget: {
-    contentDesc: "NuGet package file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "databaseIntegration",
-      "integrationPoints",
-    ],
+    contentDesc: "NuGet packages.config file (legacy .NET)",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.NUGET],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "ruby-bundler": {
-    contentDesc: "Ruby Gemfile",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "databaseIntegration",
-      "integrationPoints",
-    ],
+    contentDesc: "Ruby Gemfile or Gemfile.lock",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.RUBY_BUNDLER],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "python-pip": {
-    contentDesc: "Python requirements file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "databaseIntegration",
-      "integrationPoints",
-    ],
+    contentDesc: "Python requirements.txt or Pipfile",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_PIP],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
     ],
     template: SOURCES_TEMPLATE,
   },
   "python-setup": {
     contentDesc: "Python setup.py file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "databaseIntegration",
-      "integrationPoints",
-    ],
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_SETUP],
       },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
-      },
     ],
     template: SOURCES_TEMPLATE,
   },
   "python-poetry": {
-    contentDesc: "Python pyproject.toml file",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "databaseIntegration",
-      "integrationPoints",
-    ],
+    contentDesc: "Python pyproject.toml (Poetry)",
+    schemaFields: ["purpose", "implementation", "dependencies"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [SOURCES_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_POETRY],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
-        points: [SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO],
-      },
-      {
-        title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [...DB_INTEGRATION_INSTRUCTIONS],
       },
     ],
     template: SOURCES_TEMPLATE,
   },
   "shell-script": {
     contentDesc: "Shell script (bash/sh)",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "scheduledJobs",
-    ],
+    schemaFields: ["purpose", "implementation", "scheduledJobs"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
@@ -792,18 +580,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   "batch-script": {
     contentDesc: "Windows batch script (.bat/.cmd)",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "scheduledJobs",
-    ],
+    schemaFields: ["purpose", "implementation", "scheduledJobs"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
@@ -821,18 +602,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   jcl: {
     contentDesc: "Mainframe JCL (Job Control Language)",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "scheduledJobs",
-    ],
+    schemaFields: ["purpose", "implementation", "scheduledJobs"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS,
@@ -850,25 +624,15 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   default: {
     contentDesc: "source files",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "databaseIntegration",
-    ],
+    schemaFields: ["purpose", "implementation", "databaseIntegration"],
     instructions: [
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        points: [
-          SOURCES_FRAGMENTS.COMMON.PURPOSE,
-          SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION,
-        ],
+        points: [SOURCES_FRAGMENTS.COMMON.PURPOSE, SOURCES_FRAGMENTS.COMMON.IMPLEMENTATION],
       },
       {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        points: [
-          ...DB_INTEGRATION_INSTRUCTIONS,
-          "Look for database operations, queries, or connections in the file",
-        ],
+        points: [...DB_INTEGRATION_INSTRUCTIONS, SOURCES_FRAGMENTS.COMMON.DB_IN_FILE],
       },
     ],
     template: SOURCES_TEMPLATE,

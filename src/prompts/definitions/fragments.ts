@@ -31,6 +31,9 @@ export const SOURCES_FRAGMENTS = {
   COMMON: {
     PURPOSE: "A detailed definition of its purpose",
     IMPLEMENTATION: "A detailed definition of its implementation",
+    DB_IN_DOCUMENTATION:
+      "Look for database schemas, queries, or data models mentioned in the documentation",
+    DB_IN_FILE: "Look for database operations, queries, or connections in the file",
   },
 
   CODE_QUALITY: {
@@ -161,6 +164,9 @@ export const SOURCES_FRAGMENTS = {
       "A list of the internal references to other modules used by this source file (by using `require` or `import` keywords) belonging to the same application referenced by the code in this source file (do not include external or 3rd party modules/libraries in the list of internal references)",
     EXTERNAL_REFS:
       "A list of the external references to other external modules/libraries used by this source file (by using `require` or `import` keywords), which do not belong to this same application that this source file is part of",
+    PUBLIC_CONSTANTS:
+      "A list of any exported constants or configuration values defined in this file",
+    PUBLIC_METHODS: "A list of any exported functions or procedures defined in this file",
     INTEGRATION_INSTRUCTIONS: `  * REST APIs (mechanism: 'REST'):
     - Express route definitions (app.get, app.post, app.put, app.delete, router.use)
     - Fastify route definitions (fastify.get, fastify.post, etc.)

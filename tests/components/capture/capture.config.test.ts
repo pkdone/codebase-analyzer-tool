@@ -1,4 +1,5 @@
 import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
+import { sourceConfigMap } from "../../../src/prompts/definitions/sources/sources.config";
 import { InstructionSection } from "../../../src/prompts/prompt.types";
 
 describe("fileTypeMetadataConfig", () => {
@@ -152,6 +153,111 @@ describe("fileTypeMetadataConfig", () => {
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("ActiveRecord");
       expect(instructionText).toContain("module");
+    });
+  });
+
+  describe("maven configuration", () => {
+    it("should have appropriate content description", () => {
+      expect(fileTypePromptMetadata.maven.contentDesc).toBe(
+        "Maven POM (Project Object Model) build file",
+      );
+    });
+
+    it("should include dependencies in schema fields", () => {
+      const config = sourceConfigMap.maven;
+      expect(config.schemaFields).toContain("dependencies");
+      expect(config.schemaFields).not.toContain("internalReferences");
+      expect(config.schemaFields).not.toContain("externalReferences");
+      expect(config.schemaFields).not.toContain("integrationPoints");
+      expect(config.schemaFields).not.toContain("databaseIntegration");
+    });
+
+    it("should have only BASIC_INFO and REFERENCES_AND_DEPS instruction sections", () => {
+      const instructions = fileTypePromptMetadata.maven.instructions;
+      expect(instructions.length).toBe(2);
+      expect(instructions[0].title).toBe("Basic Information");
+      expect(instructions[1].title).toBe("References and Dependencies");
+
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
+      const instructionText = instructionArray.join(" ");
+      expect(instructionText).toContain("dependencies");
+      expect(instructionText).toContain("POM file");
+    });
+  });
+
+  describe("gradle configuration", () => {
+    it("should have appropriate content description", () => {
+      expect(fileTypePromptMetadata.gradle.contentDesc).toBe("Gradle build configuration file");
+    });
+
+    it("should include dependencies in schema fields", () => {
+      const config = sourceConfigMap.gradle;
+      expect(config.schemaFields).toContain("dependencies");
+      expect(config.schemaFields).not.toContain("internalReferences");
+      expect(config.schemaFields).not.toContain("externalReferences");
+    });
+
+    it("should have dependency extraction instructions", () => {
+      const instructions = fileTypePromptMetadata.gradle.instructions;
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
+      const instructionText = instructionArray.join(" ");
+      expect(instructionText).toContain("dependencies");
+      expect(instructionText).toContain("Groovy DSL");
+      expect(instructionText).toContain("Kotlin DSL");
+    });
+  });
+
+  describe("npm configuration", () => {
+    it("should have appropriate content description", () => {
+      expect(fileTypePromptMetadata.npm.contentDesc).toBe("npm package.json or lock file");
+    });
+
+    it("should include dependencies in schema fields", () => {
+      const config = sourceConfigMap.npm;
+      expect(config.schemaFields).toContain("dependencies");
+      expect(config.schemaFields).not.toContain("internalReferences");
+      expect(config.schemaFields).not.toContain("externalReferences");
+    });
+
+    it("should have dependency extraction instructions for npm", () => {
+      const instructions = fileTypePromptMetadata.npm.instructions;
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
+      const instructionText = instructionArray.join(" ");
+      expect(instructionText).toContain("dependencies");
+      expect(instructionText).toContain("package name");
+      expect(instructionText).toContain("version");
+    });
+  });
+
+  describe("python-pip configuration", () => {
+    it("should have appropriate content description", () => {
+      expect(fileTypePromptMetadata["python-pip"].contentDesc).toBe(
+        "Python requirements.txt or Pipfile",
+      );
+    });
+
+    it("should include dependencies in schema fields", () => {
+      const config = sourceConfigMap["python-pip"];
+      expect(config.schemaFields).toContain("dependencies");
+      expect(config.schemaFields).not.toContain("internalReferences");
+      expect(config.schemaFields).not.toContain("externalReferences");
+    });
+
+    it("should have dependency extraction instructions for pip", () => {
+      const instructions = fileTypePromptMetadata["python-pip"].instructions;
+      const instructionArray = instructions.flatMap(
+        (section: InstructionSection) => section.points,
+      );
+      const instructionText = instructionArray.join(" ");
+      expect(instructionText).toContain("dependencies");
+      expect(instructionText).toContain("Pipfile");
+      expect(instructionText).toContain("version specifier");
     });
   });
 

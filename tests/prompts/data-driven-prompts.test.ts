@@ -169,7 +169,7 @@ describe("Data-driven Prompt System", () => {
       // Maven should have simpler field set (build files don't have "name" field)
       const mavenConfig = sourceConfigMap.maven;
       expect(mavenConfig.schemaFields).toContain("purpose");
-      expect(mavenConfig.schemaFields).toContain("internalReferences"); // Dependencies are stored as internalReferences
+      expect(mavenConfig.schemaFields).toContain("dependencies"); // Build files store dependencies directly
     });
   });
 
