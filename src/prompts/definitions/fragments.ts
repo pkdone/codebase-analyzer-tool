@@ -16,8 +16,10 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 - ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
 - AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail
 - ESCAPE QUOTES IN STRING VALUES: If you must include double quotes inside a string value (e.g., HTML attributes like type="hidden", code snippets, or quoted text), you MUST escape them with backslashes. For example: "description": "Creates <input type=\\"hidden\\"> element" NOT "description": "Creates <input type="hidden"> element"
+- NO STRAY TEXT: Do NOT include any stray words, fragments, or text directly before property names. Each property name must start with a double quote immediately after the preceding delimiter (comma, closing brace/bracket, or newline). Example: ✅ CORRECT: },\n  "property":  ❌ INCORRECT: },\nword"property": or },\ntribal"property":
 - EXAMPLE: ✅ CORRECT: {"name": "value", "items": [{"id": 1}]}  ❌ INCORRECT: {name: "value", items: [{id: 1}]}
 - EXAMPLE FOR QUOTES: ✅ CORRECT: {"implementation": "Uses <input type=\\"hidden\\">"}  ❌ INCORRECT: {"implementation": "Uses <input type="hidden">"}
+- EXAMPLE FOR STRAY TEXT: ✅ CORRECT: },\n  "integrationPoints": [  ❌ INCORRECT: },\ntribal"integrationPoints": [
 - CRITICAL: All property names at every nesting level MUST have double quotes.`,
 };
 

@@ -18,6 +18,7 @@ export const SANITIZATION_STEP = Object.freeze({
   FIXED_OVER_ESCAPED_SEQUENCES: "Fixed over-escaped sequences",
   COMPLETED_TRUNCATED_STRUCTURES: "Completed truncated JSON structures",
   FIXED_UNESCAPED_QUOTES_IN_STRINGS: "Fixed unescaped quotes in string values",
+  FIXED_STRAY_TEXT_BEFORE_PROPERTY_NAMES: "Fixed stray text concatenated before property names",
 } as const);
 
 /**
