@@ -17,6 +17,7 @@ export const SANITIZATION_STEP = Object.freeze({
   REMOVED_TRAILING_COMMAS: "Removed trailing commas",
   FIXED_OVER_ESCAPED_SEQUENCES: "Fixed over-escaped sequences",
   COMPLETED_TRUNCATED_STRUCTURES: "Completed truncated JSON structures",
+  FIXED_UNESCAPED_QUOTES_IN_STRINGS: "Fixed unescaped quotes in string values",
 } as const);
 
 /**

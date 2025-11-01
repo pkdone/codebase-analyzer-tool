@@ -15,6 +15,7 @@ export { overEscapedSequencesSanitizer } from "./fix-over-escaped-sequences";
 export { completeTruncatedStructures } from "./complete-truncated-structures";
 export { fixTruncatedPropertyNames } from "./fix-truncated-property-names";
 export { fixUndefinedValues } from "./fix-undefined-values";
+export { fixUnescapedQuotesInStrings } from "./fix-unescaped-quotes-in-strings";
 export { fixUnquotedPropertyNames } from "./fix-unquoted-property-names";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
