@@ -38,7 +38,7 @@ describe("fixStrayTextBeforePropertyNames", () => {
     });
   });
 
-  describe("real-world error case", () => {
+  describe("real-world error cases", () => {
     it("should fix the exact error pattern from AsyncSenderEJB log", () => {
       const input =
         '    "codeExample": "n/a"\n  },\ntribal"integrationPoints": [\n    {\n      "mechanism": "JMS-QUEUE"';
@@ -52,6 +52,24 @@ describe("fixStrayTextBeforePropertyNames", () => {
       const fixedPart = result.content.substring(result.content.indexOf('"integrationPoints"'));
       expect(fixedPart).toContain('"integrationPoints":');
       expect(fixedPart).not.toContain("tribal");
+    });
+
+    it("should fix the exact error pattern from ClientStateValueTag log", () => {
+      const input =
+        '  "publicConstants": [],\ne"publicMethods": [\n    {\n      "name": "setName"';
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"publicMethods":');
+      expect(result.content).not.toContain('e"publicMethods"');
+      // Verify the fix was applied correctly - check that the stray "e" before the quote is removed
+      const beforePublicMethods = result.content.substring(
+        0,
+        result.content.indexOf('"publicMethods"'),
+      );
+      expect(beforePublicMethods).not.toContain('e"');
+      expect(beforePublicMethods).toMatch(/[\]},]\s*\n\s*$/);
     });
   });
 
@@ -122,13 +140,29 @@ describe("fixStrayTextBeforePropertyNames", () => {
   });
 
   describe("edge cases", () => {
-    it("should not modify single character prefixes (handled by other sanitizers)", () => {
-      const input = '}e"name":';
+    it("should handle single character stray text before property names", () => {
+      const input = '  ],\ne"publicMethods": [';
       const result = fixStrayTextBeforePropertyNames(input);
 
-      // Single character might be legitimate truncation, let other sanitizers handle it
-      expect(result.changed).toBe(false);
-      expect(result.content).toBe(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('  ],\n"publicMethods": [');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should fix single character stray text after closing bracket", () => {
+      const input = ']e"property":';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe(']"property":');
+    });
+
+    it("should fix single character stray text after comma", () => {
+      const input = '"key": "value",\nf"next":';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('"key": "value",\n"next":');
     });
 
     it("should not modify if stray text is a JSON keyword", () => {

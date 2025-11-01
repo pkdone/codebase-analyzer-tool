@@ -11,6 +11,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * - `tribal"integrationPoints":` -> `"integrationPoints":`
  * - `word"propertyName":` -> `"propertyName":`
  * - `fragment"name":` -> `"name":`
+ * - `e"publicMethods":` -> `"publicMethods":` (single character stray text)
  *
  * This is different from `removeStrayLinePrefixChars` which handles stray text
  * with whitespace between the text and the JSON token. This sanitizer handles
@@ -32,13 +33,13 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (
     // Pattern: word characters directly before a quoted property name
     // Matches: word"propertyName": where word is stray text and propertyName is valid
     // This pattern appears after object/array delimiters or newlines (property boundaries)
-    // The stray word should be at least 2 characters (to avoid false positives with single chars)
+    // The stray text can be 1 or more characters (single chars like "e" or multi-char like "tribal")
     // and should not be a valid JSON keyword
     // Note: Match delimiters (}, ], ,, or \n) or start of string, followed by optional whitespace
     // then stray text directly concatenated to the quote
-    // This catches patterns like: }word"property":, \nword"property":, or \n    word"property":
+    // This catches patterns like: }word"property":, \nword"property":, e"property":, or \n    word"property":
     const strayTextPattern =
-      /([}\],]|\n|^)(\s*)([a-zA-Z_$]{2,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+      /([}\],]|\n|^)(\s*)([a-zA-Z_$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
 
     sanitized = sanitized.replace(
       strayTextPattern,
