@@ -229,4 +229,101 @@ describe("fixTruncatedPropertyNames", () => {
       expect(result.content).toBe(input);
     });
   });
+
+  describe("missing opening quote in truncated property names", () => {
+    it("should fix single character property names with missing opening quote", () => {
+      const input = '{"codeSmells": []},\ne": "ServiceLocatorException"}';
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"codeSmells": []},\n"name": "ServiceLocatorException"}');
+      expect(result.description).toBe("Fixed truncated property names");
+      expect(result.diagnostics).toContain(
+        'Fixed missing opening quote in truncated property: e" -> "name"',
+      );
+    });
+
+    it("should fix the actual error scenario from the log file", () => {
+      // This is the exact error scenario - "name" truncated to "e" with missing opening quote
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "ServiceLocatorException",
+      "purpose": "Constructor with message and exception",
+      "codeSmells": []
+    },
+e": "ServiceLocatorException",
+      "purpose": "Constructor with exception only"
+    }
+  ]
+}`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "ServiceLocatorException"');
+      // Check that the broken pattern (e": at start of line or after delimiter) is not present
+      // We can't use simple includes because "name" contains "e", so check for the specific malformed pattern
+      const hasBrokenPattern = /([}\],\n]|^)\s*e":\s*"ServiceLocatorException"/.test(result.content);
+      expect(hasBrokenPattern).toBe(false);
+      expect(result.diagnostics).toContain(
+        'Fixed missing opening quote in truncated property: e" -> "name"',
+      );
+    });
+
+    it("should handle single character 'n' truncation", () => {
+      const input = '{"test": "value",\nn": "nameValue"}';
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "nameValue"');
+      expect(result.content).not.toContain('n": "nameValue"');
+    });
+
+    it("should not modify single characters that are not mapped", () => {
+      const input = '{"test": "value",\nx": "unknownValue"}';
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should handle multiple missing opening quotes", () => {
+      const input = '{\n  "prop1": "value1",\n  e": "name1",\n  "prop2": "value2",\n  n": "name2"\n}';
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "name1"');
+      expect(result.content).toContain('"name": "name2"');
+      // Check that the broken patterns are not present (using regex to avoid false positives from "name" containing "e")
+      const hasBrokenE = /([}\],\n]|^)\s*e":\s*"name1"/.test(result.content);
+      const hasBrokenN = /([}\],\n]|^)\s*n":\s*"name2"/.test(result.content);
+      expect(hasBrokenE).toBe(false);
+      expect(hasBrokenN).toBe(false);
+      expect(result.diagnostics?.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("should preserve whitespace when fixing", () => {
+      const input = '    e": "value"';
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('    "name": "value"');
+    });
+
+    it("should handle both missing opening quote and regular truncation in same JSON", () => {
+      const input = '{"eferences": [],\n  e": "ServiceLocator"}';
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"references": []');
+      expect(result.content).toContain('"name": "ServiceLocator"');
+      expect(result.diagnostics).toContain(
+        "Fixed truncated property name: eferences -> references",
+      );
+      expect(result.diagnostics).toContain(
+        'Fixed missing opening quote in truncated property: e" -> "name"',
+      );
+    });
+  });
 });
