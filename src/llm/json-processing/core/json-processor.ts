@@ -1,7 +1,11 @@
 import { LLMGeneratedContent, LLMCompletionOptions } from "../../types/llm.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonValidator } from "./json-validator";
-import { unwrapJsonSchemaStructure, convertNullToUndefined } from "../utils/post-parse-transforms";
+import {
+  unwrapJsonSchemaStructure,
+  convertNullToUndefined,
+  normalizeDatabaseIntegrationArray,
+} from "../utils/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";
 import { JsonProcessorResult } from "../json-processing-result.types";
 import {
@@ -95,10 +99,12 @@ export class JsonProcessor {
    * Currently contains:
    * - convertNullToUndefined: Converts null to undefined for optional fields (applied first)
    * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data
+   * - normalizeDatabaseIntegrationArray: Converts databaseIntegration from array to single object
    */
   private readonly POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
     convertNullToUndefined,
     unwrapJsonSchemaStructure,
+    normalizeDatabaseIntegrationArray,
   ] as const;
 
   /**
