@@ -57,8 +57,9 @@ describe("json-tools", () => {
       const result = jsonProcessor.parseAndValidate(invalidJson, "content", completionOptions);
       expect(result.success).toBe(false);
       if (!result.success) {
+        // Plain text without JSON structure now gets a clearer error message
         expect(result.error.message).toMatch(
-          /cannot be parsed to JSON after all sanitization attempts/,
+          /contains no JSON structure|cannot be parsed to JSON after all sanitization attempts/,
         );
       }
     });
@@ -690,8 +691,9 @@ describe("json-tools", () => {
       );
       expect(result.success).toBe(false);
       if (!result.success) {
+        // Plain text without JSON structure now gets a clearer error message
         expect(result.error.message).toMatch(
-          /cannot be parsed to JSON after all sanitization attempts/,
+          /contains no JSON structure|cannot be parsed to JSON after all sanitization attempts/,
         );
       }
     });

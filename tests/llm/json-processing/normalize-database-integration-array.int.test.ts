@@ -171,4 +171,3 @@ describe("normalizeDatabaseIntegrationArray - Integration with sourceSummarySche
     }
   });
 });
-

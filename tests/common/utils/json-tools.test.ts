@@ -62,9 +62,9 @@ describe("JSON utilities", () => {
       const result = jsonProcessor.parseAndValidate(text, "content", completionOptions);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.message).toMatch(
-          /cannot be parsed to JSON after all sanitization attempts/,
-        );
+        // Plain text without JSON structure now gets a clearer error message
+        expect(result.error.message).toMatch(/contains no JSON structure/);
+        expect(result.error.message).toMatch(/plain text rather than JSON/);
       }
     });
 

@@ -416,9 +416,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         expect(Array.isArray(dbIntegration.tablesAccessed)).toBe(true);
         expect(dbIntegration.tablesAccessed).toContain("dual");
         expect(Array.isArray(dbIntegration.operationType)).toBe(true);
-        expect(dbIntegration.operationType).toEqual(
-          expect.arrayContaining(["READ", "DDL"]),
-        );
+        expect(dbIntegration.operationType).toEqual(expect.arrayContaining(["READ", "DDL"]));
       }
     });
   });

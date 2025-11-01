@@ -80,7 +80,10 @@ describe("json-tools resilient parsing", () => {
     const result = jsonProcessor.parseAndValidate(noJson, "res8", baseOptions);
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.message).toMatch(/doesn't contain valid JSON|cannot be parsed/i);
+      // Plain text without JSON structure now gets a clearer error message
+      expect(result.error.message).toMatch(
+        /contains no JSON structure|doesn't contain valid JSON|cannot be parsed/i,
+      );
     }
   });
 

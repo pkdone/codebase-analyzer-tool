@@ -264,7 +264,9 @@ e": "ServiceLocatorException",
       expect(result.content).toContain('"name": "ServiceLocatorException"');
       // Check that the broken pattern (e": at start of line or after delimiter) is not present
       // We can't use simple includes because "name" contains "e", so check for the specific malformed pattern
-      const hasBrokenPattern = /([}\],\n]|^)\s*e":\s*"ServiceLocatorException"/.test(result.content);
+      const hasBrokenPattern = /([}\],\n]|^)\s*e":\s*"ServiceLocatorException"/.test(
+        result.content,
+      );
       expect(hasBrokenPattern).toBe(false);
       expect(result.diagnostics).toContain(
         'Fixed missing opening quote in truncated property: e" -> "name"',
@@ -289,7 +291,8 @@ e": "ServiceLocatorException",
     });
 
     it("should handle multiple missing opening quotes", () => {
-      const input = '{\n  "prop1": "value1",\n  e": "name1",\n  "prop2": "value2",\n  n": "name2"\n}';
+      const input =
+        '{\n  "prop1": "value1",\n  e": "name1",\n  "prop2": "value2",\n  n": "name2"\n}';
       const result = fixTruncatedPropertyNames(input);
 
       expect(result.changed).toBe(true);

@@ -99,9 +99,7 @@ export function normalizeDatabaseIntegrationArray(parsed: unknown): unknown {
  * Merges multiple database integration objects into a single object.
  * Handles fields that are arrays by merging them, and combines string fields.
  */
-function mergeDatabaseIntegrationObjects(
-  objects: unknown[],
-): Record<string, unknown> {
+function mergeDatabaseIntegrationObjects(objects: unknown[]): Record<string, unknown> {
   if (objects.length === 0) {
     return {};
   }
@@ -174,7 +172,12 @@ function mergeDatabaseIntegrationObjects(
   // and merge arrays if present in multiple objects
   for (const obj of validObjects.slice(1)) {
     for (const [key, value] of Object.entries(obj)) {
-      if (key === "tablesAccessed" || key === "operationType" || key === "description" || key === "codeExample") {
+      if (
+        key === "tablesAccessed" ||
+        key === "operationType" ||
+        key === "description" ||
+        key === "codeExample"
+      ) {
         // Already handled above
         continue;
       }

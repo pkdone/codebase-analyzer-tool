@@ -1,6 +1,9 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { JsonProcessingError } from "../../../src/llm/json-processing/types/json-processing.errors";
+import {
+  JsonProcessingError,
+  JsonProcessingErrorType,
+} from "../../../src/llm/json-processing/types/json-processing.errors";
 
 describe("JsonProcessor", () => {
   let jsonProcessor: JsonProcessor;
@@ -91,6 +94,64 @@ describe("JsonProcessor", () => {
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error.message).toMatch(/my-resource/);
+        }
+      });
+
+      it("should provide clear error message for completely non-JSON responses", () => {
+        const plainText = "This is not JSON at all";
+        const result = jsonProcessor.parseAndValidate(
+          plainText,
+          "test-resource",
+          completionOptions,
+        );
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error).toBeInstanceOf(JsonProcessingError);
+          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
+          expect(result.error.message).toContain("contains no JSON structure");
+          expect(result.error.message).toContain("plain text rather than JSON");
+          expect(result.error.message).toContain("test-resource");
+          expect(result.error.appliedSanitizers).toEqual([]);
+          expect(result.error.originalContent).toBe(plainText);
+        }
+      });
+
+      it("should detect non-JSON responses without braces or brackets", () => {
+        const testCases = [
+          "This is plain text",
+          "Just a regular sentence with no JSON.",
+          "Error: Could not generate response",
+          "",
+          "   ",
+        ];
+
+        for (const input of testCases) {
+          const result = jsonProcessor.parseAndValidate(input, "test-resource", completionOptions);
+          expect(result.success).toBe(false);
+          if (!result.success) {
+            expect(result.error.message).toContain("contains no JSON structure");
+            expect(result.error.appliedSanitizers).toEqual([]);
+          }
+        }
+      });
+
+      it("should not trigger early detection for content with JSON-like structure", () => {
+        const testCases = [
+          '{"key": "value"}',
+          "[1, 2, 3]",
+          'Here is your JSON: {"name": "test"}',
+          '```json\n{"data": true}\n```',
+          'Some text before {"json": "here"} and after',
+        ];
+
+        for (const input of testCases) {
+          const result = jsonProcessor.parseAndValidate(input, "test-resource", completionOptions);
+          // These should go through the normal sanitization pipeline, not be caught by early detection
+          // They may succeed or fail, but shouldn't get the "no JSON structure" error
+          if (!result.success) {
+            expect(result.error.message).not.toContain("contains no JSON structure");
+          }
         }
       });
     });

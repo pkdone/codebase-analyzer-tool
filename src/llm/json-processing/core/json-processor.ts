@@ -137,7 +137,31 @@ export class JsonProcessor {
       return { success: false, error };
     }
 
+    // Early detection: Check if content has any JSON-like structure at all
+    // This helps provide clearer error messages for completely non-JSON responses
+    if (!this.hasJsonLikeStructure(content)) {
+      const error = new JsonProcessingError(
+        JsonProcessingErrorType.PARSE,
+        `LLM response for resource '${resourceName}' contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
+        content,
+        content,
+        [],
+      );
+      return { success: false, error };
+    }
+
     return this.runSanitizationPipeline<T>(content, resourceName, completionOptions);
+  }
+
+  /**
+   * Checks if the content has any JSON-like structure (contains opening braces or brackets).
+   * Used for early detection of completely non-JSON responses to provide better error messages.
+   */
+  private hasJsonLikeStructure(content: string): boolean {
+    const trimmed = content.trim();
+    // Check for opening JSON delimiters (after removing code fences and whitespace)
+    // This is a simple heuristic - if there's no { or [, it's likely not JSON
+    return trimmed.includes("{") || trimmed.includes("[");
   }
 
   /**

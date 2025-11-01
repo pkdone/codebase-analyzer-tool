@@ -56,7 +56,10 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
       if (!result.success) {
         expect(result.error).toBeInstanceOf(JsonProcessingError);
         expect(result.error.type).toBe("parse");
-        expect(result.error.message).toContain("after all sanitization attempts");
+        // Plain text without JSON structure now gets a clearer error message
+        expect(result.error.message).toMatch(
+          /contains no JSON structure|after all sanitization attempts/,
+        );
       }
     });
   });
