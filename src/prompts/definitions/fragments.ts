@@ -8,6 +8,7 @@ NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in 
 ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.
 CRITICAL JSON FORMAT REQUIREMENTS:
 - ALL property names MUST be enclosed in double quotes (e.g., "name": "value", NOT name: "value")
+- BOTH opening and closing quotes are REQUIRED for property names (e.g., "name": "value" is correct, NOT name": "value" or "name: "value")
 - ALL string values MUST be enclosed in double quotes
 - Use proper JSON syntax with commas separating properties
 - Do not include any unquoted property names or values

@@ -242,6 +242,71 @@ describe("fixUnquotedPropertyNames", () => {
     });
   });
 
+  describe("property names with missing opening quotes", () => {
+    it("should fix property names with missing opening quotes", () => {
+      const input = '{description": "value", name": "test"}';
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"description": "value", "name": "test"}');
+      expect(result.description).toBe("Fixed unquoted property names");
+      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: description\"");
+      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: name\"");
+    });
+
+    it("should handle mixed missing opening quotes and unquoted properties", () => {
+      const input = '{"quoted": "value", description": "test", unquoted: "another"}';
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"quoted": "value", "description": "test", "unquoted": "another"}');
+      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: description\"");
+      expect(result.diagnostics).toContain("Fixed unquoted property name: unquoted");
+    });
+
+    it("should not modify already properly quoted property names", () => {
+      const input = '{"description": "value", "name": "test"}';
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+      expect(result.description).toBeUndefined();
+      expect(result.diagnostics).toBeUndefined();
+    });
+
+    it("should handle nested objects with missing opening quotes", () => {
+      const input = '{"outer": {description": "value", "quoted": "test"}}';
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"outer": {"description": "value", "quoted": "test"}}');
+      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: description\"");
+    });
+
+    it("should not modify property names inside string values", () => {
+      const input = '{"description": "This has description": inside the string"}';
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should handle the specific error case from log file", () => {
+      // This is based on the actual error from the log: description": at line 283
+      const input = `{
+      returnType: "Node",
+      description": "The method takes a Document object as a parameter"
+    }`;
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"returnType":');
+      expect(result.content).toContain('"description":');
+      expect(result.diagnostics).toContain("Fixed unquoted property name: returnType");
+      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: description\"");
+    });
+  });
+
   describe("performance considerations", () => {
     it("should handle large JSON strings efficiently", () => {
       const largeObject = Array.from({ length: 1000 }, (_, i) => `prop${i}: "value${i}"`).join(
