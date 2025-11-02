@@ -27,6 +27,7 @@ import {
   fixStrayTextBeforePropertyNames,
   fixStrayTextBeforeUnquotedProperties,
   fixStrayCharsAfterPropertyValues,
+  removeStrayLinesBetweenStructures,
   fixUnquotedPropertyNames,
   hasSignificantSanitizationSteps,
   type Sanitizer,
@@ -73,8 +74,9 @@ export class JsonProcessor {
    * 15. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
    * 16. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
    * 17. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
-   * 18. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
-   * 19. fixUnquotedPropertyNames - Add quotes around unquoted property names
+   * 18. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
+   * 19. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
+   * 20. fixUnquotedPropertyNames - Add quotes around unquoted property names
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -101,6 +103,7 @@ export class JsonProcessor {
     fixStrayTextBeforePropertyNames,
     fixStrayTextBeforeUnquotedProperties,
     fixStrayCharsAfterPropertyValues,
+    removeStrayLinesBetweenStructures,
     fixUnquotedPropertyNames,
   ] as const satisfies readonly Sanitizer[];
 

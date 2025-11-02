@@ -40,6 +40,8 @@ NO STRAY TEXT: Do NOT include any stray words, fragments, characters, or text di
 
 NO STRAY CHARS AFTER VALUES: Do NOT include any stray characters, words, or text directly after string property values. Each string value must end with a double quote immediately before the comma, closing brace/bracket, or newline. This includes underscores (e.g., "_"), single characters (e.g., "e"), or full words. Example: ✅ CORRECT: "type": "String",  ❌ INCORRECT: "type": "String"_ or "type": "String"word:
 
+NO STRAY LINES: Do NOT include any complete lines of text between JSON structures. After a closing bracket (]), closing brace (}), or comma, do NOT insert file paths, comments, explanations, or any other text on separate lines. Each property or structure must follow immediately after the preceding delimiter (with only whitespace/newlines for formatting). Example: ✅ CORRECT: },\n  "nextProperty": "value"  ❌ INCORRECT: },\nsrc/main/java/com/example/MyClass.java\n  "nextProperty": "value" or },\nThis is a comment\n  "nextProperty": "value"
+
 COMPREHENSIVE EXAMPLES:
 ✅ CORRECT: {"name": "value", "items": [{"id": 1}]}
 ❌ INCORRECT: {name: "value", items: [{id: 1}]}

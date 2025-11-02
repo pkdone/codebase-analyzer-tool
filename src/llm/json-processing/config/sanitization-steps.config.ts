@@ -23,6 +23,8 @@ export const SANITIZATION_STEP = Object.freeze({
     "Fixed stray text before property names with missing opening quotes",
   FIXED_STRAY_CHARS_AFTER_PROPERTY_VALUES:
     "Fixed stray characters concatenated after property values",
+  REMOVED_STRAY_LINES_BETWEEN_STRUCTURES:
+    "Removed stray lines between JSON structures",
 } as const);
 
 /**

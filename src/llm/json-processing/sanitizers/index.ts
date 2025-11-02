@@ -19,6 +19,7 @@ export { fixUnescapedQuotesInStrings } from "./fix-unescaped-quotes-in-strings";
 export { fixStrayTextBeforePropertyNames } from "./fix-stray-text-before-property-names";
 export { fixStrayTextBeforeUnquotedProperties } from "./fix-stray-text-before-unquoted-properties";
 export { fixStrayCharsAfterPropertyValues } from "./fix-stray-chars-after-property-values";
+export { removeStrayLinesBetweenStructures } from "./remove-stray-lines-between-structures";
 export { fixUnquotedPropertyNames } from "./fix-unquoted-property-names";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
