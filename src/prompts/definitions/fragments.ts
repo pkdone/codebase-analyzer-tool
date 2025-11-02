@@ -6,23 +6,55 @@ export const COMMON_FRAGMENTS = {
   FORCE_JSON_FORMAT: `In your response, only include JSON and do not include any additional text explanations outside the JSON object.
 NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
 ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.
-CRITICAL JSON FORMAT REQUIREMENTS:
+
+CRITICAL JSON FORMAT REQUIREMENTS (MUST FOLLOW EXACTLY):
 - ALL property names MUST be enclosed in double quotes (e.g., "name": "value", NOT name: "value")
 - BOTH opening and closing quotes are REQUIRED for property names (e.g., "name": "value" is correct, NOT name": "value" or "name: "value")
 - ALL string values MUST be enclosed in double quotes
 - Use proper JSON syntax with commas separating properties
 - Do not include any unquoted property names or values
 - Ensure all brackets, braces, and quotes are properly matched
-- COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen")
-- ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
-- AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail
-- ESCAPE QUOTES IN STRING VALUES: If you must include double quotes inside a string value (e.g., HTML attributes like type="hidden", code snippets, or quoted text), you MUST escape them with backslashes. For example: "description": "Creates <input type=\\"hidden\\"> element" NOT "description": "Creates <input type="hidden"> element"
-- NO STRAY TEXT: Do NOT include any stray words, fragments, characters, or text directly before property names. Each property name must start with a double quote immediately after the preceding delimiter (comma, closing brace/bracket, or newline). This includes single characters (e.g., "e") as well as full words (e.g., "tribal"). Example: ✅ CORRECT: },\n  "property":  ❌ INCORRECT: },\ne"property": or },\nword"property": or },\ntribal"property":
-- NO STRAY CHARS AFTER VALUES: Do NOT include any stray characters, words, or text directly after string property values. Each string value must end with a double quote immediately before the comma, closing brace/bracket, or newline. This includes underscores (e.g., "_"), single characters (e.g., "e"), or full words. Example: ✅ CORRECT: "type": "String",  ❌ INCORRECT: "type": "String"_ or "type": "String"word:
-- EXAMPLE: ✅ CORRECT: {"name": "value", "items": [{"id": 1}]}  ❌ INCORRECT: {name: "value", items: [{id: 1}]}
-- EXAMPLE FOR QUOTES: ✅ CORRECT: {"implementation": "Uses <input type=\\"hidden\\">"}  ❌ INCORRECT: {"implementation": "Uses <input type="hidden">"}
-- EXAMPLE FOR STRAY TEXT: ✅ CORRECT: },\n  "integrationPoints": [  ❌ INCORRECT: },\ne"publicMethods": [ or },\ntribal"integrationPoints": [
-- CRITICAL: All property names at every nesting level MUST have double quotes.`,
+
+PROPERTY NAME QUOTING RULES (APPLY TO ALL NESTED LEVELS):
+Every property name, at every nesting level, must follow this exact pattern: "propertyName": value
+✅ CORRECT: {"name": "value", "nested": {"inner": "data"}}
+❌ INCORRECT: {name: "value", nested: {inner: "data"}}
+❌ INCORRECT: {name": "value", "nested": {inner": "data"}}
+❌ INCORRECT: {"name": "value", nested: {"inner": "data"}}
+
+COMMON MISTAKES TO AVOID:
+- Unquoted property names: name: "value" → MUST be "name": "value"
+- Missing opening quote: name": "value" → MUST be "name": "value"
+- Missing closing quote: "name: "value" → MUST be "name": "value"
+- Stray text before property: e"name": → MUST be "name":
+- Stray text before property: word"name": → MUST be "name":
+- Incomplete quotes: cyclomaticComplexity": → MUST be "cyclomaticComplexity":
+
+COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen")
+ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
+AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail
+
+ESCAPE QUOTES IN STRING VALUES: If you must include double quotes inside a string value (e.g., HTML attributes like type="hidden", code snippets, or quoted text), you MUST escape them with backslashes. For example: "description": "Creates <input type=\\"hidden\\"> element" NOT "description": "Creates <input type="hidden"> element"
+
+NO STRAY TEXT: Do NOT include any stray words, fragments, characters, or text directly before property names. Each property name must start with a double quote immediately after the preceding delimiter (comma, closing brace/bracket, or newline). This includes single characters (e.g., "e") as well as full words (e.g., "tribal"). Example: ✅ CORRECT: },\n  "property":  ❌ INCORRECT: },\ne"property": or },\nword"property": or },\ntribal"property":
+
+NO STRAY CHARS AFTER VALUES: Do NOT include any stray characters, words, or text directly after string property values. Each string value must end with a double quote immediately before the comma, closing brace/bracket, or newline. This includes underscores (e.g., "_"), single characters (e.g., "e"), or full words. Example: ✅ CORRECT: "type": "String",  ❌ INCORRECT: "type": "String"_ or "type": "String"word:
+
+COMPREHENSIVE EXAMPLES:
+✅ CORRECT: {"name": "value", "items": [{"id": 1}]}
+❌ INCORRECT: {name: "value", items: [{id: 1}]}
+
+✅ CORRECT: {"implementation": "Uses <input type=\\"hidden\\">"}
+❌ INCORRECT: {"implementation": "Uses <input type="hidden">"}
+
+✅ CORRECT: },\n  "integrationPoints": [
+❌ INCORRECT: },\ne"publicMethods": [ or },\ntribal"integrationPoints": [
+
+✅ CORRECT: {"publicMethods": [{"name": "method1", "parameters": [{"name": "param1", "type": "String"}]}]}
+❌ INCORRECT: {publicMethods: [{name: "method1", parameters: [{name: "param1", type: "String"}]}]}
+❌ INCORRECT: {"publicMethods": [{name": "method1", parameters: [{name": "param1", type": "String"}]}]}
+
+CRITICAL: All property names at every nesting level MUST have double quotes. Be consistent - if you quote one property, quote ALL properties. VALIDATION CHECK: Before finalizing your response, mentally verify that every property name starts and ends with double quotes. Think: "Did I quote ALL property names at ALL nesting levels?"`,
 };
 
 /**
