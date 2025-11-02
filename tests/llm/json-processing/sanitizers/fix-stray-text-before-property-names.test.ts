@@ -164,6 +164,18 @@ describe("fixStrayTextBeforePropertyNames", () => {
       expect(result.content).toBe('"key": "value",\n"next":');
     });
 
+    it("should fix the exact error pattern from PurchaseOrderLocal log - comma, newline, single char", () => {
+      // This is the exact pattern from the error: },\ne"publicMethods":
+      const input = '    },\ne"publicMethods": [';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('    },\n"publicMethods": [');
+      expect(result.content).not.toContain('e"publicMethods"');
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics).toContain('Removed stray text "e" before property "publicMethods"');
+    });
+
     it("should not modify if stray text is a JSON keyword", () => {
       const input = '}true"property":';
       const result = fixStrayTextBeforePropertyNames(input);

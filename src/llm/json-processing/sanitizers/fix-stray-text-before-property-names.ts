@@ -61,6 +61,9 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
 
         // Verify we're not inside a string value by checking context before the match
         // Look backwards to see if we're inside a string (odd number of quotes before us)
+        // However, if we have a clear delimiter (}, ], or ,) followed by newline, we can be
+        // more confident this is a property boundary and not inside a string
+        let isInsideString = false;
         if (offsetNum !== undefined && stringStr) {
           const beforeMatch = stringStr.substring(Math.max(0, offsetNum - 200), offsetNum);
           let quoteCount = 0;
@@ -76,10 +79,19 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
               quoteCount++;
             }
           }
-          // If we're inside a string (odd quote count), don't fix
-          if (quoteCount % 2 === 1) {
-            return match;
-          }
+          // If we're inside a string (odd quote count), mark as inside string
+          isInsideString = quoteCount % 2 === 1;
+        }
+
+        // If we have a clear property delimiter (}, ], ,) followed by newline and stray text,
+        // this is almost certainly a property boundary, not inside a string value
+        // We can safely fix it even if quote-counting suggests we're inside a string
+        const hasClearDelimiterAndNewline =
+          /[}\],]/.test(delimiterStr) && whitespaceStr.includes("\n");
+
+        // Don't fix if we're inside a string AND we don't have a clear delimiter context
+        if (isInsideString && !hasClearDelimiterAndNewline) {
+          return match;
         }
 
         if (isValidDelimiter && !isStrayTextValid) {
