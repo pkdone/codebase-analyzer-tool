@@ -289,10 +289,9 @@ describe("fixStrayCharsAfterPropertyValues", () => {
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"type": "String"');
       expect(result.content).not.toContain('"type": "String"_');
-      
+
       // Verify the JSON can be parsed
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
 });
-

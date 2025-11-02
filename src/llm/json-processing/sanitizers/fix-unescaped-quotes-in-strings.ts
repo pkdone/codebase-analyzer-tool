@@ -34,24 +34,24 @@ export const fixUnescapedQuotesInStrings: Sanitizer = (jsonString: string): Sani
       if (matchIndex === -1) return match;
 
       const contextBefore = sanitized.substring(Math.max(0, matchIndex - 500), matchIndex);
-      
+
       // Verify we're in a value context (after a colon, inside a string)
       // Patterns that indicate we're in a string value:
       // - ": "something" ... = "value" (property value with quotes)
       // - ": ... = "value" (property value, might not have quotes if it's a long string)
       // - We're after a colon and before the next property or end of object
-      const isInStringValue = 
-        /:\s*"[^"]*=/.test(contextBefore) ||  // : "something" ... = 
-        /:\s*[^"]*=/.test(contextBefore) ||    // : something ... = (long string value)
-        contextBefore.includes('": "') ||       // property: "value
-        contextBefore.includes('":{') ||        // property: {
-        (contextBefore.includes(':') && !/"\s*$/.exec(contextBefore)); // Has colon, not at end of property name
+      const isInStringValue =
+        /:\s*"[^"]*=/.test(contextBefore) || // : "something" ... =
+        /:\s*[^"]*=/.test(contextBefore) || // : something ... = (long string value)
+        contextBefore.includes('": "') || // property: "value
+        contextBefore.includes('":{') || // property: {
+        (contextBefore.includes(":") && !/"\s*$/.exec(contextBefore)); // Has colon, not at end of property name
 
       if (isInStringValue) {
         hasChanges = true;
-        const afterStr = typeof after === 'string' ? after : '';
+        const afterStr = typeof after === "string" ? after : "";
         const spacesAfterMatch = /^\s*/.exec(afterStr);
-        const spacesAfter = spacesAfterMatch?.[0] ?? '';
+        const spacesAfter = spacesAfterMatch?.[0] ?? "";
         const restAfter = afterStr.substring(spacesAfter.length);
         diagnostics.push(`Escaped quote in HTML attribute: = "${value}"`);
         return `${equalsAndSpace}\\"${value}\\"${spacesAfter}${restAfter}`;

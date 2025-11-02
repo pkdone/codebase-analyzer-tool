@@ -22,9 +22,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * before a quoted property name, and removes the stray text while preserving
  * the proper property name format.
  */
-export const fixStrayTextBeforePropertyNames: Sanitizer = (
-  jsonString: string,
-): SanitizerResult => {
+export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
     let sanitized = jsonString;
     let hasChanges = false;
@@ -38,8 +36,7 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (
     // Note: Match delimiters (}, ], ,, or \n) or start of string, followed by optional whitespace
     // then stray text directly concatenated to the quote
     // This catches patterns like: }word"property":, \nword"property":, e"property":, or \n    word"property":
-    const strayTextPattern =
-      /([}\],]|\n|^)(\s*)([a-zA-Z_$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    const strayTextPattern = /([}\],]|\n|^)(\s*)([a-zA-Z_$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
 
     sanitized = sanitized.replace(
       strayTextPattern,
@@ -55,9 +52,7 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (
         // Verify we're in a valid property context
         // The delimiter should be }, ], ,, \n, or start of string
         const isValidDelimiter =
-          delimiterStr === "" ||
-          delimiterStr === "\n" ||
-          /[}\],]/.test(delimiterStr);
+          delimiterStr === "" || delimiterStr === "\n" || /[}\],]/.test(delimiterStr);
 
         // Additional check: ensure the stray text doesn't look like valid JSON
         // (not a JSON keyword or structure)
@@ -89,7 +84,9 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (
 
         if (isValidDelimiter && !isStrayTextValid) {
           hasChanges = true;
-          diagnostics.push(`Removed stray text "${strayTextStr}" before property "${propertyNameStr}"`);
+          diagnostics.push(
+            `Removed stray text "${strayTextStr}" before property "${propertyNameStr}"`,
+          );
           // Preserve delimiter and whitespace
           const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
           return `${finalDelimiter}${whitespaceStr}"${propertyNameStr}":`;
@@ -121,4 +118,3 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (
     };
   }
 };
-

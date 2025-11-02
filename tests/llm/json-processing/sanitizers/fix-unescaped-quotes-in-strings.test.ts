@@ -54,8 +54,7 @@ describe("fixUnescapedQuotesInStrings", () => {
     });
 
     it("should fix multiple HTML attributes in same string", () => {
-      const input =
-        '{"implementation": "Creates `<input type="text" name="field">` elements."}';
+      const input = '{"implementation": "Creates `<input type="text" name="field">` elements."}';
       const result = fixUnescapedQuotesInStrings(input);
 
       expect(result.changed).toBe(true);
@@ -139,8 +138,7 @@ describe("fixUnescapedQuotesInStrings", () => {
 
   describe("nested structures", () => {
     it("should handle quotes in nested object string values", () => {
-      const input =
-        '{"outer": {"description": "Nested string with type="hidden" HTML"}}';
+      const input = '{"outer": {"description": "Nested string with type="hidden" HTML"}}';
       const result = fixUnescapedQuotesInStrings(input);
 
       expect(result.changed).toBe(true);
@@ -268,8 +266,7 @@ describe("fixUnescapedQuotesInStrings", () => {
 
   describe("multiple fixes in one string", () => {
     it("should fix multiple unescaped quotes in the same string value", () => {
-      const input =
-        '{"code": "HTML with <input type="text" name="field" id="myId"> element"}';
+      const input = '{"code": "HTML with <input type="text" name="field" id="myId"> element"}';
 
       const result = fixUnescapedQuotesInStrings(input);
 
@@ -283,4 +280,3 @@ describe("fixUnescapedQuotesInStrings", () => {
     });
   });
 });
-

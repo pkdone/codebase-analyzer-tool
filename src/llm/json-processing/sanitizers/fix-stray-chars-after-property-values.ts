@@ -30,8 +30,7 @@ export const fixStrayCharsAfterPropertyValues: Sanitizer = (
     // The stray characters can be underscores, word characters, or other non-JSON characters
     // Must be followed by whitespace then comma/closing delimiter, or newline (indicating end of property)
     // The (?:\s*[,}\]]|\s*\n) pattern matches either whitespace+delimiter or whitespace+newline
-    const strayCharsAfterValuePattern =
-      /("(?:[^"\\]|\\.)*")([a-zA-Z_$0-9]+)(?=\s*[,}\]]|\s*\n)/g;
+    const strayCharsAfterValuePattern = /("(?:[^"\\]|\\.)*")([a-zA-Z_$0-9]+)(?=\s*[,}\]]|\s*\n)/g;
 
     sanitized = sanitized.replace(
       strayCharsAfterValuePattern,
@@ -86,4 +85,3 @@ export const fixStrayCharsAfterPropertyValues: Sanitizer = (
     };
   }
 };
-

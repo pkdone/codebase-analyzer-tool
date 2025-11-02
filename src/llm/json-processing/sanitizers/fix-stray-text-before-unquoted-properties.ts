@@ -29,8 +29,7 @@ export const fixStrayTextBeforeUnquotedProperties: Sanitizer = (
     // Matches: word": value where word is stray text before an unquoted property name
     // The pattern appears after delimiters or newlines (property boundaries)
     // This catches patterns like: }word": [], word": "value", \nword": {
-    const strayTextBeforeUnquotedPattern =
-      /([}\],]|\n|^)(\s*)([a-zA-Z_$]{2,})"\s*:/g;
+    const strayTextBeforeUnquotedPattern = /([}\],]|\n|^)(\s*)([a-zA-Z_$]{2,})"\s*:/g;
 
     // Known property name corrections (common typos/hallucinations)
     const propertyNameCorrections: Record<string, string> = {
@@ -51,9 +50,7 @@ export const fixStrayTextBeforeUnquotedProperties: Sanitizer = (
         // Verify we're in a valid property context
         // The delimiter should be }, ], ,, \n, or start of string
         const isValidDelimiter =
-          delimiterStr === "" ||
-          delimiterStr === "\n" ||
-          /[}\],]/.test(delimiterStr);
+          delimiterStr === "" || delimiterStr === "\n" || /[}\],]/.test(delimiterStr);
 
         // Additional check: ensure the stray text doesn't look like valid JSON
         // (not a JSON keyword or structure)
@@ -105,9 +102,7 @@ export const fixStrayTextBeforeUnquotedProperties: Sanitizer = (
           // This is reasonable because the pattern word": suggests the word was meant to be quoted
           if (strayTextStr.length >= 2 && /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(strayTextStr)) {
             hasChanges = true;
-            diagnostics.push(
-              `Fixed missing opening quote before property name "${strayTextStr}"`,
-            );
+            diagnostics.push(`Fixed missing opening quote before property name "${strayTextStr}"`);
             const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
             return `${finalDelimiter}${whitespaceStr}"${strayTextStr}":`;
           }
@@ -130,9 +125,7 @@ export const fixStrayTextBeforeUnquotedProperties: Sanitizer = (
     };
   } catch (error) {
     // If sanitization fails, return the original string
-    console.warn(
-      `fixStrayTextBeforeUnquotedProperties sanitizer failed: ${String(error)}`,
-    );
+    console.warn(`fixStrayTextBeforeUnquotedProperties sanitizer failed: ${String(error)}`);
     return {
       content: jsonString,
       changed: false,
@@ -141,4 +134,3 @@ export const fixStrayTextBeforeUnquotedProperties: Sanitizer = (
     };
   }
 };
-

@@ -158,8 +158,7 @@ describe("fixStrayTextBeforeUnquotedProperties", () => {
 
   describe("nested structures", () => {
     it("should handle stray text in nested objects", () => {
-      const input =
-        '{"outer": {\n    "inner": "value"\n  },\nstrayText": "value"}';
+      const input = '{"outer": {\n    "inner": "value"\n  },\nstrayText": "value"}';
       const result = fixStrayTextBeforeUnquotedProperties(input);
 
       // The sanitizer should fix this if the context is valid
@@ -200,7 +199,7 @@ describe("fixStrayTextBeforeUnquotedProperties", () => {
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"tablesAccessed": []');
       expect(result.content).not.toContain('tribulations": []');
-      
+
       // Verify the JSON can be parsed
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
@@ -208,8 +207,7 @@ describe("fixStrayTextBeforeUnquotedProperties", () => {
 
   describe("multiple fixes", () => {
     it("should fix multiple instances of stray text", () => {
-      const input =
-        '  },\nproperty1": "value1",\nproperty2": "value2"';
+      const input = '  },\nproperty1": "value1",\nproperty2": "value2"';
       const result = fixStrayTextBeforeUnquotedProperties(input);
 
       // The regex should match both instances
@@ -254,4 +252,3 @@ describe("fixStrayTextBeforeUnquotedProperties", () => {
     });
   });
 });
-

@@ -55,8 +55,7 @@ describe("fixStrayTextBeforePropertyNames", () => {
     });
 
     it("should fix the exact error pattern from ClientStateValueTag log", () => {
-      const input =
-        '  "publicConstants": [],\ne"publicMethods": [\n    {\n      "name": "setName"';
+      const input = '  "publicConstants": [],\ne"publicMethods": [\n    {\n      "name": "setName"';
 
       const result = fixStrayTextBeforePropertyNames(input);
 
@@ -222,15 +221,14 @@ describe("fixStrayTextBeforePropertyNames", () => {
       // Note: This test case is complex because it requires matching stray text
       // after both a closing brace+comma+newline sequence AND after a comma+newline sequence.
       // The sanitizer should handle at least one of these cases.
-      const input =
-        '  },\nword1"property1": "value1",\nword2"property2": "value2"';
+      const input = '  },\nword1"property1": "value1",\nword2"property2": "value2"';
 
       const result = fixStrayTextBeforePropertyNames(input);
 
       // Verify the sanitizer processes the input (may or may not match depending on context checks)
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
-      
+
       // If it changed, verify the changes are correct
       if (result.changed) {
         expect(result.content).not.toBe(input);
@@ -276,4 +274,3 @@ describe("fixStrayTextBeforePropertyNames", () => {
     });
   });
 });
-
