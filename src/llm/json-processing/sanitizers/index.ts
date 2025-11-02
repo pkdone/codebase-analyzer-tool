@@ -12,6 +12,7 @@ export { addMissingPropertyCommas } from "./add-missing-property-commas";
 export { removeTrailingCommas } from "./remove-trailing-commas";
 export { concatenationChainSanitizer } from "./fix-concatenation-chains";
 export { overEscapedSequencesSanitizer } from "./fix-over-escaped-sequences";
+export { fixInvalidEscapeSequencesSanitizer } from "./fix-invalid-escape-sequences";
 export { completeTruncatedStructures } from "./complete-truncated-structures";
 export { fixTruncatedPropertyNames } from "./fix-truncated-property-names";
 export { fixUndefinedValues } from "./fix-undefined-values";

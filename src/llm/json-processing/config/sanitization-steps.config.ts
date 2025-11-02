@@ -16,6 +16,7 @@ export const SANITIZATION_STEP = Object.freeze({
   COLLAPSED_DUPLICATE_JSON: "Collapsed duplicated identical JSON object",
   REMOVED_TRAILING_COMMAS: "Removed trailing commas",
   FIXED_OVER_ESCAPED_SEQUENCES: "Fixed over-escaped sequences",
+  FIXED_INVALID_ESCAPE_SEQUENCES: "Fixed invalid escape sequences",
   COMPLETED_TRUNCATED_STRUCTURES: "Completed truncated JSON structures",
   FIXED_UNESCAPED_QUOTES_IN_STRINGS: "Fixed unescaped quotes in string values",
   FIXED_STRAY_TEXT_BEFORE_PROPERTY_NAMES: "Fixed stray text concatenated before property names",

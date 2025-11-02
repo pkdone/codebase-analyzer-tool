@@ -20,6 +20,7 @@ import {
   removeTrailingCommas,
   concatenationChainSanitizer,
   overEscapedSequencesSanitizer,
+  fixInvalidEscapeSequencesSanitizer,
   completeTruncatedStructures,
   fixTruncatedPropertyNames,
   fixUndefinedValues,
@@ -68,15 +69,16 @@ export class JsonProcessor {
    * 9. removeTrailingCommas - Remove invalid trailing commas
    * 10. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
    * 11. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
-   * 12. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
-   * 13. fixTruncatedPropertyNames - Fix truncated or malformed property names
-   * 14. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
-   * 15. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
-   * 16. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
-   * 17. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
-   * 18. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
-   * 19. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
-   * 20. fixUnquotedPropertyNames - Add quotes around unquoted property names
+   * 12. fixInvalidEscapeSequencesSanitizer - Fix invalid JSON escape sequences (e.g., \ , \x, \1-\9)
+   * 13. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
+   * 14. fixTruncatedPropertyNames - Fix truncated or malformed property names
+   * 15. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
+   * 16. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
+   * 17. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
+   * 18. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
+   * 19. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
+   * 20. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
+   * 21. fixUnquotedPropertyNames - Add quotes around unquoted property names
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -96,6 +98,7 @@ export class JsonProcessor {
     removeTrailingCommas,
     concatenationChainSanitizer,
     overEscapedSequencesSanitizer,
+    fixInvalidEscapeSequencesSanitizer,
     completeTruncatedStructures,
     fixTruncatedPropertyNames,
     fixUndefinedValues,
