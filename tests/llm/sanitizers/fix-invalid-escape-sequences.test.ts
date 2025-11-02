@@ -148,7 +148,7 @@ describe("fixInvalidEscapeSequences", () => {
       expect(() => JSON.parse(result)).not.toThrow();
 
       // Verify the backslash-space was fixed
-      expect(result).not.toContain('\\ ');
+      expect(result).not.toContain("\\ ");
       // After fixing, the \  becomes just a space, so '(e.g., ' ' becomes '(e.g., ' '
       expect(result).toContain("(e.g., ' ' for spaces)"); // Single quote, space, single quote
     });
@@ -197,4 +197,3 @@ describe("fixInvalidEscapeSequencesSanitizer", () => {
     expect(() => JSON.parse(result.content)).not.toThrow();
   });
 });
-

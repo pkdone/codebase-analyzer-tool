@@ -227,4 +227,3 @@ export const fixInvalidEscapeSequencesSanitizer: Sanitizer = (input) => {
   }
   return { content: input, changed: false };
 };
-

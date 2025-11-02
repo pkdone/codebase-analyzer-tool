@@ -173,7 +173,9 @@ describe("fixStrayTextBeforePropertyNames", () => {
       expect(result.content).toBe('    },\n"publicMethods": [');
       expect(result.content).not.toContain('e"publicMethods"');
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics).toContain('Removed stray text "e" before property "publicMethods"');
+      expect(result.diagnostics).toContain(
+        'Removed stray text "e" before property "publicMethods"',
+      );
     });
 
     it("should not modify if stray text is a JSON keyword", () => {

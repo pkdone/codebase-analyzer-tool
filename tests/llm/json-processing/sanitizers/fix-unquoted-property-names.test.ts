@@ -250,8 +250,10 @@ describe("fixUnquotedPropertyNames", () => {
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"description": "value", "name": "test"}');
       expect(result.description).toBe("Fixed unquoted property names");
-      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: description\"");
-      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: name\"");
+      expect(result.diagnostics).toContain(
+        'Fixed property name with missing opening quote: description"',
+      );
+      expect(result.diagnostics).toContain('Fixed property name with missing opening quote: name"');
     });
 
     it("should handle mixed missing opening quotes and unquoted properties", () => {
@@ -259,8 +261,12 @@ describe("fixUnquotedPropertyNames", () => {
       const result = fixUnquotedPropertyNames(input);
 
       expect(result.changed).toBe(true);
-      expect(result.content).toBe('{"quoted": "value", "description": "test", "unquoted": "another"}');
-      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: description\"");
+      expect(result.content).toBe(
+        '{"quoted": "value", "description": "test", "unquoted": "another"}',
+      );
+      expect(result.diagnostics).toContain(
+        'Fixed property name with missing opening quote: description"',
+      );
       expect(result.diagnostics).toContain("Fixed unquoted property name: unquoted");
     });
 
@@ -280,7 +286,9 @@ describe("fixUnquotedPropertyNames", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"outer": {"description": "value", "quoted": "test"}}');
-      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: description\"");
+      expect(result.diagnostics).toContain(
+        'Fixed property name with missing opening quote: description"',
+      );
     });
 
     it("should not modify property names inside string values", () => {
@@ -303,7 +311,9 @@ describe("fixUnquotedPropertyNames", () => {
       expect(result.content).toContain('"returnType":');
       expect(result.content).toContain('"description":');
       expect(result.diagnostics).toContain("Fixed unquoted property name: returnType");
-      expect(result.diagnostics).toContain("Fixed property name with missing opening quote: description\"");
+      expect(result.diagnostics).toContain(
+        'Fixed property name with missing opening quote: description"',
+      );
     });
   });
 

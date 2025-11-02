@@ -52,7 +52,7 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
     while (previousSanitized !== sanitized) {
       previousSanitized = sanitized;
       const missingOpeningQuotePattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)"\s*:/g;
-      
+
       sanitized = sanitized.replace(
         missingOpeningQuotePattern,
         (match, whitespace, propertyName, offset: unknown) => {
@@ -69,7 +69,9 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           }
 
           hasChanges = true;
-          diagnostics.push(`Fixed property name with missing opening quote: ${propertyName as string}"`);
+          diagnostics.push(
+            `Fixed property name with missing opening quote: ${propertyName as string}"`,
+          );
           return `${whitespace}"${propertyName as string}":`;
         },
       );
