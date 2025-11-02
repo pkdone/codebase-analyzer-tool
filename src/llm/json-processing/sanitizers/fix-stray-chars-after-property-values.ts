@@ -8,10 +8,12 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * directly concatenated after the closing quote of a string value, which breaks JSON parsing.
  *
  * Examples of issues this sanitizer handles:
- * - `"type": "String"_` -> `"type": "String"`
- * - `"value": "test"word` -> `"value": "test"`
- * - `"name": "John"123` -> `"name": "John"`
- * - `"id": "abc"_word` -> `"id": "abc"`
+ * - `"type": "String"_` -> `"type": "String"` (stray text immediately after quote)
+ * - `"value": "test"word` -> `"value": "test"` (stray text immediately after quote)
+ * - `"name": "John"123` -> `"name": "John"` (stray text immediately after quote)
+ * - `"id": "abc"_word` -> `"id": "abc"` (stray text immediately after quote)
+ * - `"type": "String" appraisals` -> `"type": "String"` (stray text after space)
+ * - `"type": "String"\narrived` -> `"type": "String"` (stray text on new line)
  *
  * Strategy:
  * Uses regex to identify patterns where non-JSON characters appear directly after
@@ -25,12 +27,14 @@ export const fixStrayCharsAfterPropertyValues: Sanitizer = (
     let hasChanges = false;
     const diagnostics: string[] = [];
 
-    // Pattern: quoted string value followed by stray characters before comma, closing delimiter, or newline
-    // Matches: "value"strayChars where strayChars are not valid JSON tokens (comma, }, ], whitespace, etc.)
+    // Pattern: quoted string value followed by optional whitespace/newlines, then stray characters before comma, closing delimiter, or newline
+    // Matches: "value"strayChars OR "value" \nstrayChars OR "value" strayChars
     // The stray characters can be underscores, word characters, or other non-JSON characters
     // Must be followed by whitespace then comma/closing delimiter, or newline (indicating end of property)
-    // The (?:\s*[,}\]]|\s*\n) pattern matches either whitespace+delimiter or whitespace+newline
-    const strayCharsAfterValuePattern = /("(?:[^"\\]|\\.)*")([a-zA-Z_$0-9]+)(?=\s*[,}\]]|\s*\n)/g;
+    // The pattern allows optional whitespace (including newlines) between the quote and the stray text
+    // (?:\s+)? makes the whitespace optional (matches both "value"word and "value" word or "value"\nword)
+    const strayCharsAfterValuePattern =
+      /("(?:[^"\\]|\\.)*")(?:\s+)?([a-zA-Z_$0-9]+)(?=\s*[,}\]]|\s*\n)/g;
 
     sanitized = sanitized.replace(
       strayCharsAfterValuePattern,

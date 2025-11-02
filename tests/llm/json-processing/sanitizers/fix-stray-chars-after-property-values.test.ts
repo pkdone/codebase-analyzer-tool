@@ -293,5 +293,67 @@ describe("fixStrayCharsAfterPropertyValues", () => {
       // Verify the JSON can be parsed
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
+
+    it("should handle stray text with space after property value (from URLMappingsXmlDAO error)", () => {
+      // Exact pattern from error log: "type": "String" appraisals
+      const input = `    {
+      "name": "WEB_ACTION_CLASS",
+      "value": "web-action-class",
+      "type": "String" appraisals
+    },`;
+
+      const result = fixStrayCharsAfterPropertyValues(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"type": "String"');
+      expect(result.content).not.toContain("appraisals");
+      expect(result.content).toMatch(/"type": "String"\s*\n\s*}/);
+    });
+
+    it("should handle stray text on new line after property value (from URLMappingsXmlDAO error)", () => {
+      // Exact pattern from error log: "type": "String"\narrived
+      const input = `    {
+      "name": "HANDLER_RESULT",
+      "value": "handler-result",
+      "type": "String"
+arrived
+    },`;
+
+      const result = fixStrayCharsAfterPropertyValues(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"type": "String"');
+      expect(result.content).not.toContain("arrived");
+      expect(result.content).toMatch(/"type": "String"\s*\n\s*}/);
+    });
+
+    it("should handle both error patterns in the same JSON object", () => {
+      // Test both patterns from the error log in one object
+      const input = `{
+  "publicConstants": [
+    {
+      "name": "WEB_ACTION_CLASS",
+      "value": "web-action-class",
+      "type": "String" appraisals
+    },
+    {
+      "name": "HANDLER_RESULT",
+      "value": "handler-result",
+      "type": "String"
+arrived
+    }
+  ]
+}`;
+
+      const result = fixStrayCharsAfterPropertyValues(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"type": "String"');
+      expect(result.content).not.toContain("appraisals");
+      expect(result.content).not.toContain("arrived");
+
+      // Verify the JSON can be parsed after fixing both issues
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
   });
 });
