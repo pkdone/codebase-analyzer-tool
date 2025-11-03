@@ -195,5 +195,61 @@ function mergeDatabaseIntegrationObjects(objects: unknown[]): Record<string, unk
   return result;
 }
 
+/**
+ * Fixes parameter object property name typos (type_ -> type).
+ *
+ * This post-parse transform addresses cases where LLM responses contain parameter
+ * objects with typos in property names, specifically `type_` instead of `type`.
+ * This happens because JSON parsing succeeds (type_ is valid JSON), but schema
+ * validation fails because the schema expects `type`, not `type_`.
+ *
+ * Transformation:
+ * - Recursively processes all objects in the parsed structure
+ * - When finding parameter arrays (typically in publicMethods), fixes type_ -> type
+ * - Also handles other common parameter object typos like name_ -> name
+ */
+export function fixParameterPropertyNameTypos(parsed: unknown): unknown {
+  if (typeof parsed !== "object" || parsed === null) {
+    return parsed;
+  }
+
+  // Handle arrays
+  if (Array.isArray(parsed)) {
+    return parsed.map((item) => fixParameterPropertyNameTypos(item));
+  }
+
+  // Handle plain objects
+  const obj = parsed as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+
+  // Process each property
+  for (const [key, value] of Object.entries(obj)) {
+    let processedKey = key;
+    let processedValue = value;
+
+    // Fix common typos in property names
+    if (key === "type_" && !("type" in obj)) {
+      processedKey = "type";
+    } else if (key === "name_" && !("name" in obj)) {
+      processedKey = "name";
+    }
+
+    // Recursively process nested objects and arrays
+    processedValue = fixParameterPropertyNameTypos(value);
+
+    result[processedKey] = processedValue;
+  }
+
+  // Handle symbol keys (preserve them as-is)
+  const symbols = Object.getOwnPropertySymbols(obj);
+  for (const sym of symbols) {
+    const symObj = obj as Record<symbol, unknown>;
+    const resultSym = result as Record<symbol, unknown>;
+    resultSym[sym] = fixParameterPropertyNameTypos(symObj[sym]);
+  }
+
+  return result;
+}
+
 // Re-export for use in json-processor
 export { convertNullToUndefined };

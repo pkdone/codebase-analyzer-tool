@@ -5,6 +5,7 @@ import {
   unwrapJsonSchemaStructure,
   convertNullToUndefined,
   normalizeDatabaseIntegrationArray,
+  fixParameterPropertyNameTypos,
 } from "../utils/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";
 import { JsonProcessorResult } from "../json-processing-result.types";
@@ -138,6 +139,7 @@ export class JsonProcessor {
    */
   private readonly POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
     convertNullToUndefined,
+    fixParameterPropertyNameTypos,
     unwrapJsonSchemaStructure,
     normalizeDatabaseIntegrationArray,
   ] as const;
