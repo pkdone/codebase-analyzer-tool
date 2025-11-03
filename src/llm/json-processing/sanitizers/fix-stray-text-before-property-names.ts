@@ -210,16 +210,24 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
     // Third pass: Fix stray text (including non-ASCII) before array string values
     // Pattern: word"stringValue", where word is stray text and stringValue is an array element
     // Example: করার"org.apache...", -> "org.apache...",
-    // This handles cases where non-ASCII text appears before array string elements
+    // Example: e"org.junit.jupiter.api.extension.ExtendWith", -> "org.junit.jupiter.api.extension.ExtendWith",
+    // This handles cases where non-ASCII or ASCII stray text appears before array string elements
     // Note: The delimiter can be }, ], ,, \n, or start of line, followed by whitespace
+    // Updated to handle comma-newline sequences: match either (delimiter+newline) or (delimiter without newline)
     // Updated to use a broader character class that includes all Unicode letters and symbols
     const strayTextBeforeArrayValuePattern =
-      /([}\],]|\n|^)(\s*)([^\s"{}[\],]{1,})"([^"]+)"\s*,/g;
+      /(?:([}\],])\s*\n|([}\],])|(\n)|(^))(\s*)([^\s"{}[\],]{1,})"([^"]+)"\s*,/g;
 
     sanitized = sanitized.replace(
       strayTextBeforeArrayValuePattern,
-      (match, delimiter, whitespace, strayText, stringValue, offset, string) => {
+      (match, delimiterWithNewline, delimiter, newlineOnly, startOnly, whitespace, strayText, stringValue, offset, string) => {
+        // Extract and type-check all parameters
+        const delimiterWithNewlineStr = typeof delimiterWithNewline === "string" ? delimiterWithNewline : "";
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const newlineOnlyStr = typeof newlineOnly === "string" ? newlineOnly : "";
+        const startOnlyStr = typeof startOnly === "string" ? startOnly : "";
+        // Combine delimiter groups - one of them will be non-empty
+        const combinedDelimiter = delimiterWithNewlineStr || delimiterStr || newlineOnlyStr || startOnlyStr || "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const stringValueStr = typeof stringValue === "string" ? stringValue : "";
@@ -266,9 +274,11 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
               else if (char === "{") openBraces--;
             }
           }
-          // Also check: if we're after a comma within what looks like an array structure
+          // Also check: if we're after a comma-newline or comma within what looks like an array structure
           // This handles cases where the pattern matches but bracket counting missed it
-          if (!isInArray && delimiterStr === ",") {
+          // delimiterWithNewlineStr will contain the comma if it matched with newline
+          const isAfterComma = delimiterWithNewlineStr === "," || delimiterStr === ",";
+          if (!isInArray && isAfterComma) {
             // Look for an opening bracket before us
             const hasOpeningBracket = beforeMatch.includes("[");
             if (hasOpeningBracket && openBraces === 0) {
@@ -278,8 +288,11 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
         }
 
         // Verify the delimiter context
+        // Accept empty, newline, or delimiter characters (delimiterWithNewlineStr handles comma-newline)
         const isValidDelimiter =
-          delimiterStr === "" || delimiterStr === "\n" || /[}\],]/.test(delimiterStr);
+          combinedDelimiter === "" ||
+          combinedDelimiter === "\n" ||
+          /[}\],]/.test(combinedDelimiter);
 
         // Check if we're inside a string value (shouldn't be for array elements)
         let isInsideString = false;
@@ -310,7 +323,17 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
           diagnostics.push(
             `Removed ${textType} stray text "${strayTextStr}" before array element "${stringValueStr.substring(0, 50)}${stringValueStr.length > 50 ? "..." : ""}"`,
           );
-          const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
+          // Preserve the delimiter format - if it was delimiter+newline, keep it
+          let finalDelimiter = "";
+          if (delimiterWithNewlineStr) {
+            finalDelimiter = `${delimiterWithNewlineStr}\n`;
+          } else if (delimiterStr) {
+            finalDelimiter = delimiterStr;
+          } else if (newlineOnlyStr) {
+            finalDelimiter = "\n";
+          } else if (startOnlyStr) {
+            finalDelimiter = "";
+          }
           return `${finalDelimiter}${whitespaceStr}"${stringValueStr}",`;
         }
 

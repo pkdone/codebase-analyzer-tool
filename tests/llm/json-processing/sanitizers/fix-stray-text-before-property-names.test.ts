@@ -108,6 +108,37 @@ describe("fixStrayTextBeforePropertyNames", () => {
       // Should not modify - the Bengali text is inside a string value, not before a property
       expect(result.changed).toBe(false);
     });
+
+    it("should handle stray ASCII text (e) after comma-newline (exact error from log)", () => {
+      const input = `  "externalReferences": [
+    "org.junit.jupiter.api.Test",
+e"org.junit.jupiter.api.extension.ExtendWith",
+    "org.slf4j.Logger"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.junit.jupiter.api.extension.ExtendWith"');
+      expect(result.content).not.toContain('e"org.junit.jupiter.api.extension.ExtendWith"');
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("ASCII") || d.includes("stray text"))).toBe(true);
+    });
+
+    it("should handle stray text after comma-newline in array", () => {
+      const input = `  "items": [
+    "item1",
+    stray"item2",
+    "item3"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      if (result.changed) {
+        expect(result.content).toContain('"item2"');
+        expect(result.content).not.toContain('stray"item2"');
+      }
+    });
   });
 
   describe("real-world error cases", () => {
