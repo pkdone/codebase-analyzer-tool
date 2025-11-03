@@ -32,6 +32,8 @@ export const SANITIZATION_STEP = Object.freeze({
   FIXED_PROPERTY_NAME_TYPOS: "Fixed property name typos (trailing underscores, double underscores)",
   FIXED_TRUNCATED_ARRAY_ELEMENTS:
     "Fixed truncated array elements (missing opening brace and property name)",
+  FIXED_CORRUPTED_ARRAY_OBJECT_START:
+    "Fixed corrupted array object start (missing opening brace and property name with stray text)",
 } as const);
 
 /**
