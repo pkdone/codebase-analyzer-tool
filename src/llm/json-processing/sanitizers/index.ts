@@ -33,6 +33,7 @@ export { fixCorruptedArrayObjectStart } from "./fix-corrupted-array-object-start
 export { fixUnquotedStringValues } from "./fix-unquoted-string-values";
 export { fixStrayTextBetweenColonAndValue } from "./fix-stray-text-between-colon-and-value";
 export { fixTailEndTruncatedProperties } from "./fix-tail-end-truncated-properties";
+export { fixUnquotedPropertyTypos } from "./fix-unquoted-property-typos";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 

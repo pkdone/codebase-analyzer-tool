@@ -39,6 +39,8 @@ export const SANITIZATION_STEP = Object.freeze({
     "Fixed stray text between colon and opening quote of value",
   FIXED_TAIL_END_TRUNCATED_PROPERTIES:
     "Fixed tail-end truncated property names with missing opening quotes",
+  FIXED_UNQUOTED_PROPERTY_TYPOS:
+    "Fixed property names with missing opening quotes that are typos of valid properties",
 } as const);
 
 /**

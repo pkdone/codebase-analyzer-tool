@@ -40,6 +40,7 @@ import {
   fixUnquotedStringValues,
   fixStrayTextBetweenColonAndValue,
   fixTailEndTruncatedProperties,
+  fixUnquotedPropertyTypos,
   fixPropertyNameTypos,
   fixCorruptedArrayObjectStart,
   hasSignificantSanitizationSteps,
@@ -98,6 +99,7 @@ export class JsonProcessor {
  * 26. fixUnquotedStringValues - Add quotes around unquoted string values
  * 27. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
  * 28. fixTailEndTruncatedProperties - Fix tail-end truncated property names with missing opening quotes
+ * 29. fixUnquotedPropertyTypos - Fix property names with missing opening quotes that are typos
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -137,6 +139,7 @@ export class JsonProcessor {
     fixUnquotedStringValues,
     fixStrayTextBetweenColonAndValue,
     fixTailEndTruncatedProperties,
+    fixUnquotedPropertyTypos,
     fixPropertyNameTypos,
   ] as const satisfies readonly Sanitizer[];
 
