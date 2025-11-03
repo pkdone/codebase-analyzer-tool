@@ -26,6 +26,7 @@ import {
   fixInvalidEscapeSequencesSanitizer,
   completeTruncatedStructures,
   fixTruncatedPropertyNames,
+  fixTruncatedArrayElements,
   fixUndefinedValues,
   fixUnescapedQuotesInStrings,
   fixStrayTextBeforePropertyNames,
@@ -112,6 +113,7 @@ export class JsonProcessor {
     completeTruncatedStructures,
     fixTruncatedPropertyNames,
     fixMissingOpeningBraces,
+    fixTruncatedArrayElements,
     fixConcatenatedPropertyNames,
     fixUndefinedValues,
     fixUnescapedQuotesInStrings,
@@ -121,7 +123,6 @@ export class JsonProcessor {
     removeStrayLinesBetweenStructures,
     removeTruncationMarkers,
     fixAssignmentSyntax,
-    fixConcatenatedPropertyNames,
     fixUnquotedPropertyNames,
     fixPropertyNameTypos,
   ] as const satisfies readonly Sanitizer[];

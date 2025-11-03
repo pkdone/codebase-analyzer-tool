@@ -28,6 +28,7 @@ export { removeTruncationMarkers } from "./remove-truncation-markers";
 export { fixAssignmentSyntax } from "./fix-assignment-syntax";
 export { fixUnquotedPropertyNames } from "./fix-unquoted-property-names";
 export { fixPropertyNameTypos } from "./fix-property-name-typos";
+export { fixTruncatedArrayElements } from "./fix-truncated-array-elements";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 
