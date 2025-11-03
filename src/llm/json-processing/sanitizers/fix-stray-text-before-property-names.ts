@@ -45,6 +45,7 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
     // \p{L} matches any Unicode letter, \p{M} matches marks, \p{N} matches numbers
     // We use [\w\u0080-\uFFFF$] as a fallback for environments that don't support \p{} patterns
     // Note: $ is explicitly included since \w doesn't include it
+    // Pattern also handles cases like: ],e"property": or },e"property": (no whitespace after comma)
     const strayTextPattern =
       /([}\],]|\n|^)(\s*)([\w\u0080-\uFFFF$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
 
@@ -101,13 +102,15 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
 
         // Additional check: if we're right after a closing brace/bracket+comma pattern,
         // we're definitely at a property boundary, regardless of quote counting
-        // This handles cases like: },\ne"publicMethods": where the delimiter matched is ","
-        // but we're actually after a "}," sequence
+        // This handles cases like: },\ne"publicMethods": or ],e"publicMethods": where the delimiter matched is ","
+        // but we're actually after a "}," or "]," sequence (with or without whitespace/newline)
         let isAfterClosingDelimiter = false;
         if (offsetNum !== undefined && offsetNum > 0) {
-          const beforeDelimiter = stringStr.substring(Math.max(0, offsetNum - 5), offsetNum);
-          // Check if we're after }, ], or }, patterns
-          if (/[}\]]\s*,\s*$/.test(beforeDelimiter)) {
+          // Look back further to catch ],e or },e patterns where there's no whitespace between comma and stray text
+          const beforeDelimiter = stringStr.substring(Math.max(0, offsetNum - 10), offsetNum);
+          // Check if we're after }, ], or }, patterns (with or without whitespace/newline)
+          // This includes cases like: ],e or },e (no whitespace between comma and stray text)
+          if (/[}\]]\s*,\s*[\w\u0080-\uFFFF$]*$/.test(beforeDelimiter) || /[}\]]\s*,\s*$/.test(beforeDelimiter)) {
             isAfterClosingDelimiter = true;
           }
         }

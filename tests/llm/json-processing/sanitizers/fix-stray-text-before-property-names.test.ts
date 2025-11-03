@@ -517,5 +517,22 @@ extraText: "externalReferences": [
       expect(result.content).toContain('"next":');
       expect(result.content).not.toContain("strayText:");
     });
+
+    it("should fix the exact error pattern from DocumentWritePlatformService log - closing bracket, comma, newline, e", () => {
+      // This is the exact pattern from the error log: ],\ne"publicMethods": [
+      // The error shows a duplicate publicMethods property after closing an array
+      const input = `      "codeSmells": [
+        "LONG PARAMETER LIST"
+      ],
+e"publicMethods": [
+    {
+      "name": "updateDocument"`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('e"publicMethods"');
+      expect(result.content).toContain('"publicMethods":');
+    });
   });
 });
