@@ -12,14 +12,17 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * - `word"propertyName":` -> `"propertyName":`
  * - `fragment"name":` -> `"name":`
  * - `e"publicMethods":` -> `"publicMethods":` (single character stray text)
+ * - `extraText: "externalReferences":` -> `"externalReferences":` (stray text with colon)
  *
  * This is different from `removeStrayLinePrefixChars` which handles stray text
  * with whitespace between the text and the JSON token. This sanitizer handles
- * cases where the stray text is directly concatenated (no whitespace).
+ * cases where the stray text is directly concatenated (no whitespace) or followed
+ * by a colon before the property name.
  *
  * Strategy:
  * Uses regex to identify patterns where a word (not valid JSON) appears directly
- * before a quoted property name, and removes the stray text while preserving
+ * before a quoted property name, or where stray text with a colon appears before
+ * a quoted property name, and removes the stray text while preserving
  * the proper property name format.
  */
 export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): SanitizerResult => {
@@ -114,6 +117,80 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
             `Removed stray text "${strayTextStr}" before property "${propertyNameStr}"`,
           );
           // Preserve delimiter and whitespace
+          const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
+          return `${finalDelimiter}${whitespaceStr}"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // Second pass: Fix stray text with colon before quoted property names
+    // Pattern: word: "propertyName": where word is stray text
+    // Example: extraText: "externalReferences": -> "externalReferences":
+    const strayTextWithColonPattern = /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+
+    sanitized = sanitized.replace(
+      strayTextWithColonPattern,
+      (match, delimiter, whitespace, strayText, propertyName, offset, string) => {
+        // Type assertions for regex match groups
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const offsetNum = typeof offset === "number" ? offset : undefined;
+        const stringStr = typeof string === "string" ? string : sanitized;
+
+        // Verify we're in a valid property context
+        const isValidDelimiter =
+          delimiterStr === "" || delimiterStr === "\n" || /[}\],]/.test(delimiterStr);
+
+        // Check if stray text is a valid JSON keyword
+        const jsonKeywords = ["true", "false", "null", "undefined"];
+        const isStrayTextValid = jsonKeywords.includes(strayTextStr.toLowerCase());
+
+        // Check if we're inside a string value
+        let isInsideString = false;
+        if (offsetNum !== undefined && stringStr) {
+          const beforeMatch = stringStr.substring(Math.max(0, offsetNum - 200), offsetNum);
+          let quoteCount = 0;
+          let escape = false;
+          for (const char of beforeMatch) {
+            if (escape) {
+              escape = false;
+              continue;
+            }
+            if (char === "\\") {
+              escape = true;
+            } else if (char === '"') {
+              quoteCount++;
+            }
+          }
+          isInsideString = quoteCount % 2 === 1;
+        }
+
+        // Check for clear delimiter context
+        const hasClearDelimiterAndNewline =
+          /[}\],]/.test(delimiterStr) && whitespaceStr.includes("\n");
+
+        let isAfterClosingDelimiter = false;
+        if (offsetNum !== undefined && offsetNum > 0) {
+          const beforeDelimiter = stringStr.substring(Math.max(0, offsetNum - 5), offsetNum);
+          if (/[}\]]\s*,\s*$/.test(beforeDelimiter)) {
+            isAfterClosingDelimiter = true;
+          }
+        }
+
+        // Don't fix if we're inside a string AND we don't have a clear delimiter context
+        if (isInsideString && !hasClearDelimiterAndNewline && !isAfterClosingDelimiter) {
+          return match;
+        }
+
+        if (isValidDelimiter && !isStrayTextValid) {
+          hasChanges = true;
+          diagnostics.push(
+            `Removed stray text with colon "${strayTextStr}:" before property "${propertyNameStr}"`,
+          );
           const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
           return `${finalDelimiter}${whitespaceStr}"${propertyNameStr}":`;
         }

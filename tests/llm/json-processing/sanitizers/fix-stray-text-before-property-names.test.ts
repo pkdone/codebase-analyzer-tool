@@ -308,4 +308,114 @@ describe("fixStrayTextBeforePropertyNames", () => {
       });
     });
   });
+
+  describe("stray text with colon before property names", () => {
+    it("should remove stray text with colon before quoted property names", () => {
+      // This reproduces the exact error from response-error-2025-11-02T22-53-08-168Z.log
+      const input = `  ],
+extraText: "externalReferences": [
+    "jakarta.ws.rs.core.Response"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"externalReferences":');
+      expect(result.content).not.toContain('extraText: "externalReferences"');
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) =>
+          d.includes("Removed stray text with colon"),
+        ),
+      ).toBe(true);
+    });
+
+    it("should handle stray text with colon after closing brace", () => {
+      const input = '  }\nextraWord: "propertyName": "value"';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('  }\n"propertyName": "value"');
+    });
+
+    it("should handle stray text with colon after comma", () => {
+      const input = '  "key": "value",\nstrayText: "nextProperty": "nextValue"';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"nextProperty":');
+      expect(result.content).not.toContain("strayText:");
+    });
+
+    it("should handle stray text with colon and multiple spaces", () => {
+      const input = '  ],\nextraText   :   "propertyName": "value"';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"propertyName":');
+      expect(result.content).not.toContain("extraText");
+    });
+
+    it("should handle the exact error case from BulkImportWorkbookService log", () => {
+      const input = `  "internalReferences": [
+    "org.apache.fineract.infrastructure.bulkimport.data.GlobalEntityType",
+    "org.apache.fineract.infrastructure.bulkimport.data.ImportData",
+    "org.apache.fineract.infrastructure.documentmanagement.data.DocumentData"
+  ],
+extraText: "externalReferences": [
+    "jakarta.ws.rs.core.Response",
+    "org.glassfish.jersey.media.multipart.FormDataContentDisposition"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"externalReferences":');
+      expect(result.content).not.toContain('extraText: "externalReferences"');
+      // Verify the result can be parsed as JSON when wrapped
+      const wrappedResult = `{${result.content}}`;
+      expect(() => JSON.parse(wrappedResult)).not.toThrow();
+    });
+
+    it("should not modify valid JSON properties", () => {
+      const input = '{"name": "value", "description": "test"}';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should handle multiple stray text with colon patterns", () => {
+      const input =
+        '  },\nfirstStray: "firstProperty": "value1",\nsecondStray: "secondProperty": "value2"';
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"firstProperty":');
+      expect(result.content).toContain('"secondProperty":');
+      expect(result.content).not.toContain("firstStray:");
+      expect(result.content).not.toContain("secondStray:");
+    });
+
+    it("should not modify if stray text is a JSON keyword", () => {
+      const input = '  }\ntrue: "property": "value"';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      // "true" is a JSON keyword, should not be modified
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should handle nested structures with stray text and colon", () => {
+      const input =
+        '{"outer": {\n    "inner": "value"\n  },\nstrayText: "next": "value"}';
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"next":');
+      expect(result.content).not.toContain("strayText:");
+    });
+  });
 });
