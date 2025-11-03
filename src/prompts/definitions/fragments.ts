@@ -27,6 +27,7 @@ COMMON MISTAKES TO AVOID:
 - Unquoted property names: name: "value" → MUST be "name": "value"
 - Missing opening quote: name": "value" → MUST be "name": "value"
 - Missing closing quote: "name: "value" → MUST be "name": "value"
+- Missing closing quote AND colon: "name "value" → MUST be "name": "value" (CRITICAL: property names must have BOTH closing quote AND colon before the value)
 - Stray text before property: e"name": → MUST be "name":
 - Stray text before property: word"name": → MUST be "name":
 - Incomplete quotes: cyclomaticComplexity": → MUST be "cyclomaticComplexity":
@@ -59,7 +60,17 @@ COMPLETE PROPERTY DEFINITIONS: Every property must include both the property nam
 
 NO STRING CONCATENATION IN PROPERTY NAMES: Do NOT use string concatenation operators (+) in property names. If a property name is long, write it as a complete, single quoted string. Example: ✅ CORRECT: "cyclomaticComplexity": 1  ❌ INCORRECT: "cyclomati" + "cComplexity": 1 or "referen" + "ces": []
 
-COMPLETE PROPERTY QUOTING: Every property name must have BOTH opening and closing quotes. Do NOT write property names with only a closing quote. Example: ✅ CORRECT: "linesOfCode": 10  ❌ INCORRECT: linesOfCode": 10 or "linesOfCode: 10
+COMPLETE PROPERTY QUOTING: Every property name must have BOTH opening and closing quotes, AND must be followed by a colon. Do NOT write property names with only a closing quote, and do NOT omit the colon separator. Examples: 
+✅ CORRECT: "linesOfCode": 10  
+❌ INCORRECT: linesOfCode": 10 (missing opening quote)
+❌ INCORRECT: "linesOfCode: 10 (missing closing quote)
+❌ INCORRECT: "linesOfCode "value" (missing closing quote AND colon - this is a critical error that breaks JSON parsing!)
+
+PROPERTY NAME COLON REQUIREMENT: After every property name's closing quote, you MUST include a colon (:) before the value. Never write a property name with a space followed directly by the value's opening quote. The pattern "propertyName "value" is INVALID JSON and will fail to parse. Examples:
+✅ CORRECT: "name": "command"
+✅ CORRECT: "description": "This is a description"
+❌ INCORRECT: "name "command" (space and missing colon between property name and value - breaks JSON parsing!)
+❌ INCORRECT: "description "This is a description" (same error - breaks JSON parsing!)
 
 USE JSON PROPERTY SEPARATOR: JSON uses a single colon : to separate property names from values, NOT assignment operators like := or =. The property separator must be exactly : with optional whitespace. Example: ✅ CORRECT: "name": "value"  ❌ INCORRECT: "name":= "value" or "name"= "value"
 

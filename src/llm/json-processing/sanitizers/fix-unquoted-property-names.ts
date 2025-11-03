@@ -13,6 +13,10 @@ import { DELIMITERS } from "../config/json-processing.config";
  * - Invalid: {description": "value"}
  * - Fixed: {"description": "value"}
  *
+ * It also handles property names with missing closing quote and colon:
+ * - Invalid: {"name "value"}
+ * - Fixed: {"name": "value"}
+ *
  * The sanitizer is state-aware and tracks whether it's inside a string literal
  * to avoid corrupting valid JSON content within strings.
  */
@@ -111,6 +115,70 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
             `Fixed property name with missing opening quote: ${propertyNameStr}"`,
           );
           return `${whitespaceStr}"${propertyNameStr}":`;
+        },
+      );
+    }
+
+    // Third pass: Fix property names with missing closing quote and colon
+    // This pattern matches: "propertyName "value" (where closing quote and colon are missing)
+    // Example: "name "command" should become "name": "command"
+    // We need to run this in a loop because after fixing one, positions may shift
+    let previousSanitizedThirdPass = "";
+    while (previousSanitizedThirdPass !== sanitized) {
+      previousSanitizedThirdPass = sanitized;
+      // Pattern matches property name with opening quote, followed by one or more spaces, then a quote (value's opening quote)
+      const missingClosingQuoteAndColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s+"([^"]+)"/g;
+
+      sanitized = sanitized.replace(
+        missingClosingQuoteAndColonPattern,
+        (match, propertyName, value, offset: unknown) => {
+          const numericOffset = typeof offset === "number" ? offset : 0;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+
+          // Check if we're inside a string literal at the property name position
+          // (check at the position of the opening quote)
+          if (isInStringAt(numericOffset, sanitized)) {
+            return match; // Keep as is - inside a string
+          }
+
+          // Check if there's proper context before this match - we should be at a property boundary
+          // This helps avoid false matches inside string values
+          if (numericOffset > 0) {
+            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+            // Check if we're after a valid delimiter (property boundary)
+            // Pattern matches: ], }, [, or , followed by optional whitespace/newlines
+            // We check for delimiters followed by whitespace, which could include newlines
+            const isAfterPropertyBoundary = /[}\],][\s\n]*$/.test(beforeMatch);
+            
+            // If not at a clear boundary, check quote count to see if we might be in a string
+            if (!isAfterPropertyBoundary && numericOffset > 20) {
+              const largerContext = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+              let quoteCount = 0;
+              let escape = false;
+              for (const char of largerContext) {
+                if (escape) {
+                  escape = false;
+                  continue;
+                }
+                if (char === "\\") {
+                  escape = true;
+                } else if (char === '"') {
+                  quoteCount++;
+                }
+              }
+              // If odd number of quotes, we're inside a string - skip
+              if (quoteCount % 2 === 1) {
+                return match;
+              }
+            }
+          }
+
+          hasChanges = true;
+          diagnostics.push(
+            `Fixed property name with missing closing quote and colon: "${propertyNameStr} " -> "${propertyNameStr}":`,
+          );
+          return `"${propertyNameStr}": "${valueStr}"`;
         },
       );
     }

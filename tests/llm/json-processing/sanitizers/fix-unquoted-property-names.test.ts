@@ -407,4 +407,148 @@ anotherProperty": "value"
       expect(hasBrokenPattern).toBe(false);
     });
   });
+
+  describe("property names with missing closing quote and colon", () => {
+    it("should fix property names with missing closing quote and colon", () => {
+      // This reproduces the exact error from response-error-2025-11-02T22-46-24-322Z.log
+      // where "name "command" appears instead of "name": "command"
+      const input = `        {
+          "name": "clientId",
+          "type": "Long"
+        },
+        {
+          "name "command",
+          "type": "JsonCommand"
+        }`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "command"');
+      // Verify the broken pattern is not present
+      const hasBrokenPattern = result.content.includes('"name "command"');
+      expect(hasBrokenPattern).toBe(false);
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) =>
+          d.includes("Fixed property name with missing closing quote and colon"),
+        ),
+      ).toBe(true);
+    });
+
+    it("should handle multiple property names with missing closing quotes and colons", () => {
+      const input = '{"name "value1", "description "value2", "type "value3"}';
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "value1"');
+      expect(result.content).toContain('"description": "value2"');
+      expect(result.content).toContain('"type": "value3"');
+      const hasBrokenPattern = /"[a-zA-Z]+ "[a-zA-Z]+"/.test(result.content);
+      expect(hasBrokenPattern).toBe(false);
+      expect(result.diagnostics?.filter((d) =>
+        d.includes("Fixed property name with missing closing quote and colon"),
+      ).length).toBe(3);
+    });
+
+    it("should not modify valid JSON with proper quotes and colons", () => {
+      const input = '{"name": "value", "description": "test", "type": "example"}';
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should handle nested objects with missing closing quotes and colons", () => {
+      const input = '{"outer": {"name "value", "proper": "test"}}';
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{"outer": {"name": "value", "proper": "test"}}');
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) =>
+          d.includes("Fixed property name with missing closing quote and colon"),
+        ),
+      ).toBe(true);
+    });
+
+    it("should not modify property names inside string values", () => {
+      const input = '{"description": "This has "name "value" inside the string"}';
+
+      const result = fixUnquotedPropertyNames(input);
+
+      // Should not modify content inside string values
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should handle the exact error case from the log file", () => {
+      // This is the exact error case: "name "command" instead of "name": "command"
+      // Note: This is a fragment, so we wrap it in an object for JSON validation
+      const input = `      "parameters": [
+        {
+          "name": "clientId",
+          "type": "Long"
+        },
+        {
+          "name "command",
+          "type": "JsonCommand"
+        }
+      ]`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "command"');
+      // Verify the broken pattern is not present
+      const hasBrokenPattern = result.content.includes('"name "command"');
+      expect(hasBrokenPattern).toBe(false);
+      // Verify the result can be parsed as JSON when wrapped in an object
+      const wrappedResult = `{${result.content}}`;
+      expect(() => JSON.parse(wrappedResult)).not.toThrow();
+    });
+
+    it("should handle various property name patterns with missing closing quotes", () => {
+      const testCases = [
+        { input: '{"simpleName "value"}', expected: '{"simpleName": "value"}' },
+        { input: '{"name_with_underscore "value"}', expected: '{"name_with_underscore": "value"}' },
+        { input: '{"name-with-dash "value"}', expected: '{"name-with-dash": "value"}' },
+        { input: '{"name.with.dots "value"}', expected: '{"name.with.dots": "value"}' },
+        { input: '{"camelCase "value"}', expected: '{"camelCase": "value"}' },
+        { input: '{"PascalCase "value"}', expected: '{"PascalCase": "value"}' },
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        const result = fixUnquotedPropertyNames(input);
+        expect(result.changed).toBe(true);
+        expect(result.content).toBe(expected);
+      });
+    });
+
+    it("should handle whitespace variations", () => {
+      const input = '{"name  "value", "prop "test"}';
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "value"');
+      expect(result.content).toContain('"prop": "test"');
+    });
+
+    it("should handle arrays with objects containing missing closing quotes", () => {
+      const input = '[{"name "value1"}, {"name": "value2"}, {"description "value3"}]';
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "value1"');
+      expect(result.content).toContain('"description": "value3"');
+      // Verify the result can be parsed as JSON
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });
