@@ -45,7 +45,8 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
     // \p{L} matches any Unicode letter, \p{M} matches marks, \p{N} matches numbers
     // We use [\w\u0080-\uFFFF$] as a fallback for environments that don't support \p{} patterns
     // Note: $ is explicitly included since \w doesn't include it
-    const strayTextPattern = /([}\],]|\n|^)(\s*)([\w\u0080-\uFFFF$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    const strayTextPattern =
+      /([}\],]|\n|^)(\s*)([\w\u0080-\uFFFF$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
 
     sanitized = sanitized.replace(
       strayTextPattern,
@@ -220,14 +221,27 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
 
     sanitized = sanitized.replace(
       strayTextBeforeArrayValuePattern,
-      (match, delimiterWithNewline, delimiter, newlineOnly, startOnly, whitespace, strayText, stringValue, offset, string) => {
+      (
+        match,
+        delimiterWithNewline,
+        delimiter,
+        newlineOnly,
+        startOnly,
+        whitespace,
+        strayText,
+        stringValue,
+        offset,
+        string,
+      ) => {
         // Extract and type-check all parameters
-        const delimiterWithNewlineStr = typeof delimiterWithNewline === "string" ? delimiterWithNewline : "";
+        const delimiterWithNewlineStr =
+          typeof delimiterWithNewline === "string" ? delimiterWithNewline : "";
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const newlineOnlyStr = typeof newlineOnly === "string" ? newlineOnly : "";
         const startOnlyStr = typeof startOnly === "string" ? startOnly : "";
         // Combine delimiter groups - one of them will be non-empty
-        const combinedDelimiter = delimiterWithNewlineStr || delimiterStr || newlineOnlyStr || startOnlyStr || "";
+        const combinedDelimiter =
+          delimiterWithNewlineStr || delimiterStr || newlineOnlyStr || startOnlyStr || "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const stringValueStr = typeof stringValue === "string" ? stringValue : "";

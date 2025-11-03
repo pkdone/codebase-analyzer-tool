@@ -115,7 +115,8 @@ export const fixTruncatedArrayElements: Sanitizer = (jsonString: string): Saniti
 
     // Also handle cases where the word pattern doesn't have quotes yet
     // Pattern: },\n  wordValue\n (where wordValue should be inside an object)
-    const truncatedElementWithoutQuotePattern = /(\}\s*,)\s*\n(\s*)([a-z][a-zA-Z0-9_]*)\s*\n(\s*)"([a-z][a-zA-Z0-9_]*)"/g;
+    const truncatedElementWithoutQuotePattern =
+      /(\}\s*,)\s*\n(\s*)([a-z][a-zA-Z0-9_]*)\s*\n(\s*)"([a-z][a-zA-Z0-9_]*)"/g;
 
     sanitized = sanitized.replace(
       truncatedElementWithoutQuotePattern,
@@ -203,4 +204,3 @@ export const fixTruncatedArrayElements: Sanitizer = (jsonString: string): Saniti
     };
   }
 };
-

@@ -122,7 +122,9 @@ e"org.junit.jupiter.api.extension.ExtendWith",
       expect(result.content).toContain('"org.junit.jupiter.api.extension.ExtendWith"');
       expect(result.content).not.toContain('e"org.junit.jupiter.api.extension.ExtendWith"');
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("ASCII") || d.includes("stray text"))).toBe(true);
+      expect(result.diagnostics?.some((d) => d.includes("ASCII") || d.includes("stray text"))).toBe(
+        true,
+      );
     });
 
     it("should handle stray text after comma-newline in array", () => {
