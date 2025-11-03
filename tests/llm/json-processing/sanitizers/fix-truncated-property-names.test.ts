@@ -328,5 +328,73 @@ e": "ServiceLocatorException",
         'Fixed missing opening quote in truncated property: e" -> "name"',
       );
     });
+
+    it('should fix missing opening quote and colon pattern e"value"', () => {
+      const input = `{
+  "codeSmells": []
+},
+e"disburseLoanWithExceededOverAppliedAmountSucceed",
+  "purpose": "test"
+}`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "disburseLoanWithExceededOverAppliedAmountSucceed"');
+      expect(result.content).not.toContain('e"disburseLoanWithExceededOverAppliedAmountSucceed"');
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("missing opening quote and colon"))).toBe(true);
+    });
+
+    it("should handle the exact error scenario from the log file", () => {
+      const input = `    "codeSmells": []
+  },
+e"disburseLoanWithExceededOverAppliedAmountSucceed",
+    "purpose": "This test case serves as the positive counterpart"`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "disburseLoanWithExceededOverAppliedAmountSucceed"');
+      expect(result.content).not.toContain('e"disburseLoanWithExceededOverAppliedAmountSucceed"');
+    });
+
+    it("should fix multiple instances of missing quote and colon", () => {
+      const input = `{
+  e"value1",
+  "prop2": "test",
+  e"value2",
+}`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "value1"');
+      expect(result.content).toContain('"name": "value2"');
+      expect(result.diagnostics?.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("should preserve whitespace when fixing missing quote and colon", () => {
+      const input = `    e"value",
+`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe(`    "name": "value",
+`);
+    });
+
+    it("should not modify if pattern doesn't match known property name", () => {
+      const input = `{
+  x"unknownValue",
+}`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      // 'x' is not in the singleCharMappings, so should not be fixed
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
   });
 });

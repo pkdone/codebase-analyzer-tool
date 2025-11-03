@@ -30,9 +30,13 @@ COMMON MISTAKES TO AVOID:
 - Stray text before property: word"name": → MUST be "name":
 - Incomplete quotes: cyclomaticComplexity": → MUST be "cyclomaticComplexity":
 
-COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen")
+COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen"). Never truncate property names to single characters (e.g., use "name" not "e", "n", or "m")
 ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
 AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail
+
+ARRAY STRUCTURE REQUIREMENTS: When creating arrays of objects, ensure each object has a proper opening brace { immediately after the comma or opening bracket [. Do NOT omit opening braces when starting new objects in arrays. Example: ✅ CORRECT: [{"name": "obj1"}, {"name": "obj2"}]  ❌ INCORRECT: [{"name": "obj1"}, "name": "obj2"}]
+
+COMPLETE PROPERTY DEFINITIONS: Every property must include both the property name AND the colon separator. Never write truncated property names followed directly by values without colons. Example: ✅ CORRECT: "name": "value",  ❌ INCORRECT: e"value", or n"value", (where "name" was truncated to "e" or "n")
 
 ESCAPE QUOTES IN STRING VALUES: If you must include double quotes inside a string value (e.g., HTML attributes like type="hidden", code snippets, or quoted text), you MUST escape them with backslashes. For example: "description": "Creates <input type=\\"hidden\\"> element" NOT "description": "Creates <input type="hidden"> element"
 

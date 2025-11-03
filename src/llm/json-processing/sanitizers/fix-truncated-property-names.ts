@@ -189,13 +189,19 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       m: "name", // if truncated differently
     };
 
-    // Pattern 1: Fix truncated property names with missing opening quote
+    // Pattern 1: Fix truncated property names with missing opening quote and colon
     // Matches patterns like: e": "value"  (should be "name": "value")
     // This handles cases where the opening quote and most of the property name are missing
     // We match when the pattern appears after certain delimiters (}, ], comma, newline)
     // This ensures we're at a property boundary, not inside a valid property name
     // Allow optional newlines and whitespace between delimiter and the truncated property
     const missingOpeningQuotePattern = /([}\],]|^)(\n?\s*)([a-zA-Z])"\s*:/gm;
+
+    // Pattern 1b: Fix truncated property names with missing opening quote and missing colon
+    // Matches patterns like: e"value", (should be "name": "value",)
+    // This handles cases where both the opening quote and colon are missing
+    // The pattern matches: delimiter + whitespace + single char + quote + value + comma
+    const missingOpeningQuoteAndColonPattern = /([}\],]|^)(\n?\s*)([a-zA-Z])"([^"]+)"(\s*,)/gm;
 
     const beforeFirstPass = sanitized;
     sanitized = sanitized.replace(
@@ -217,8 +223,29 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       },
     );
 
+    // Apply Pattern 1b: Fix truncated property names missing both opening quote and colon
+    const beforeFirstPassB = sanitized;
+    sanitized = sanitized.replace(
+      missingOpeningQuoteAndColonPattern,
+      (match, delimiter, whitespace, singleChar, propertyValue, comma) => {
+        const lowerChar = (singleChar as string).toLowerCase();
+
+        // Check if this single character maps to a known property name
+        if (singleCharMappings[lowerChar]) {
+          const fixedName = singleCharMappings[lowerChar];
+          hasChanges = true;
+          diagnostics.push(
+            `Fixed missing opening quote and colon in truncated property: ${singleChar as string}"${propertyValue as string}" -> "${fixedName}": "${propertyValue as string}"`,
+          );
+          return `${delimiter}${whitespace}"${fixedName}": "${propertyValue as string}"${comma as string}`;
+        }
+
+        return match; // Keep as is if no mapping found
+      },
+    );
+
     // Track changes from first pass
-    if (sanitized !== beforeFirstPass) {
+    if (sanitized !== beforeFirstPass || sanitized !== beforeFirstPassB) {
       hasChanges = true;
     }
 
