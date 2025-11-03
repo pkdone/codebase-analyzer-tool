@@ -61,6 +61,8 @@ NO STRING CONCATENATION IN PROPERTY NAMES: Do NOT use string concatenation opera
 
 COMPLETE PROPERTY QUOTING: Every property name must have BOTH opening and closing quotes. Do NOT write property names with only a closing quote. Example: ✅ CORRECT: "linesOfCode": 10  ❌ INCORRECT: linesOfCode": 10 or "linesOfCode: 10
 
+USE JSON PROPERTY SEPARATOR: JSON uses a single colon : to separate property names from values, NOT assignment operators like := or =. The property separator must be exactly : with optional whitespace. Example: ✅ CORRECT: "name": "value"  ❌ INCORRECT: "name":= "value" or "name"= "value"
+
 NO PROPERTY NAME TYPOS: Ensure all property names match the exact schema requirements. Do NOT add trailing underscores, double underscores, or other typos to property names. Use the exact property names specified in the schema. Examples: ✅ CORRECT: "type": "String"  ❌ INCORRECT: "type_": "String" (trailing underscore) or "type__": "String" (double underscore). When writing property names, copy them exactly from the schema - do not modify or add characters.
 
 ESCAPE QUOTES IN STRING VALUES: If you must include double quotes inside a string value (e.g., HTML attributes like type="hidden", code snippets, or quoted text), you MUST escape them with backslashes. For example: "description": "Creates <input type=\\"hidden\\"> element" NOT "description": "Creates <input type="hidden"> element"
