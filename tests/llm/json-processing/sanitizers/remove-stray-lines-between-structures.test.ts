@@ -394,5 +394,26 @@ src/main/java/com/example/MyClass.java
       // Verify the JSON can be parsed
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
+
+    it("should fix the exact error pattern from LoanTermVariationsData log - closing bracket comma, stray word", () => {
+      // This is the exact pattern from the error log: ],\nprocrastinate\n  "externalReferences"
+      const input = `  "internalReferences": [
+    "org.apache.fineract.infrastructure.core.data.EnumOptionData",
+    "org.apachefineract.portfolio.loanaccount.domain.LoanTermVariationType"
+  ],
+procrastinate
+  "externalReferences": [
+    "lombok.Getter"
+  ]`;
+
+      const result = removeStrayLinesBetweenStructures(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("procrastinate");
+      expect(result.content).toContain('"externalReferences":');
+      expect(result.content).toMatch(/],\s*\n\s*"externalReferences"/);
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.length).toBeGreaterThan(0);
+    });
   });
 });
