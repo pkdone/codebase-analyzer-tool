@@ -4,6 +4,7 @@
 export { trimWhitespace } from "./trim-whitespace";
 export { removeCodeFences } from "./remove-code-fences";
 export { removeControlChars } from "./remove-control-chars";
+export { removeThoughtMarkers } from "./remove-thought-markers";
 export { removeStrayLinePrefixChars } from "./remove-stray-line-prefix-chars";
 export { extractLargestJsonSpan } from "./extract-largest-json-span";
 export { collapseDuplicateJsonObject } from "./collapse-duplicate-json-object";
