@@ -425,4 +425,125 @@ c"method2"`;
       expect(result.content).toBeDefined();
     });
   });
+
+  describe("stray text before property names", () => {
+    it("should fix the exact error pattern from the log file (e\"mechanism\":)", () => {
+      // Simplified version matching the exact error log pattern
+      const input = `  "integrationPoints": [
+    {
+      "mechanism": "REST",
+      "name": "Create Loan Account",
+      "responseBody": "JSON containing loanId or an error object."
+    },
+    {
+      "mechanism": "REST",
+      "name": "Post Interoperation Transaction Request",
+      "responseBody": "JSON containing transaction details or an error object."
+    },
+e"mechanism": "REST",
+      "name": "Apply for Fixed Deposit Account",
+      "responseBody": "JSON containing resourceId or an error object."
+    }
+  ]`;
+
+      const result = fixCorruptedArrayObjectStart(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.description).toBe(SANITIZATION_STEP.FIXED_CORRUPTED_ARRAY_OBJECT_START);
+      expect(result.content).toContain('"mechanism": "REST"');
+      expect(result.content).toMatch(/},\s*\n\s*{\s*\n\s*"mechanism": "REST"/);
+      expect(result.content).not.toContain('e"mechanism":');
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.diagnostics?.[0]).toContain("mechanism");
+    });
+
+    it("should fix stray text before property names with colon", () => {
+      const input = `  "integrationPoints": [
+    {
+      "mechanism": "REST",
+      "name": "test1"
+    },
+e"name": "test2",
+      "description": "test description"
+    }
+  ]`;
+
+      const result = fixCorruptedArrayObjectStart(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toMatch(/},\s*\n\s*{\s*\n\s*"name": "test2"/);
+      expect(result.content).not.toContain('e"name":');
+    });
+
+    it("should handle various stray characters before property names", () => {
+      const testCases = ["e", "c", "n", "a"];
+
+      for (const strayChar of testCases) {
+        const input = `  "items": [
+    {
+      "id": 1
+    },
+${strayChar}"id": 2,
+      "value": "test"
+    }
+  ]`;
+
+        const result = fixCorruptedArrayObjectStart(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toMatch(/},\s*\n\s*{\s*\n\s*"id": 2/);
+        expect(result.content).not.toContain(`${strayChar}"id":`);
+      }
+    });
+
+    it("should preserve property names when fixing", () => {
+      const input = `  "integrationPoints": [
+    {
+      "mechanism": "REST",
+      "name": "test1"
+    },
+e"mechanism": "HTTP",
+      "name": "test2"
+    }
+  ]`;
+
+      const result = fixCorruptedArrayObjectStart(input);
+
+      expect(result.changed).toBe(true);
+      // Should preserve the property name "mechanism" (not change it to "name")
+      expect(result.content).toContain('"mechanism": "HTTP"');
+      expect(result.content).toContain('"name": "test2"');
+    });
+
+    it("should handle whitespace variations before property names", () => {
+      const input = `  "items": [
+    {
+      "id": 1
+    },
+    e"id": 2,
+      "value": "test"
+    }
+  ]`;
+
+      const result = fixCorruptedArrayObjectStart(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toMatch(/"id": 2/);
+    });
+
+    it("should not fix if not in array context", () => {
+      const input = `    {
+      "object": {
+        "property": "value"
+      },
+e"another": "value"
+    }`;
+
+      const result = fixCorruptedArrayObjectStart(input);
+
+      // Should not fix outside array context
+      expect(result.changed).toBe(false);
+    });
+  });
 });
