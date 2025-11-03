@@ -31,6 +31,14 @@ COMMON MISTAKES TO AVOID:
 - Stray text before property: word"name": → MUST be "name":
 - Incomplete quotes: cyclomaticComplexity": → MUST be "cyclomaticComplexity":
 
+CRITICAL: NO STRAY TEXT BEFORE PROPERTY NAMES - This is a common error that breaks JSON parsing. When starting a new property after closing an object or array (}, or ],), ensure you start directly with the opening quote. Common mistakes:
+❌ INCORRECT: },\ne"publicMethods": [    (stray "e" character before property)
+❌ INCORRECT: },\nword"propertyName": {   (stray "word" before property)
+❌ INCORRECT: ],\nf"nextProperty": "value"  (stray "f" before property)
+✅ CORRECT: },\n"publicMethods": [        (no stray text, starts with quote)
+✅ CORRECT: },\n"propertyName": {         (no stray text, starts with quote)
+✅ CORRECT: ],\n"nextProperty": "value"   (no stray text, starts with quote)
+
 COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen"). Never truncate property names to single characters (e.g., use "name" not "e", "n", or "m")
 ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
 AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail

@@ -178,6 +178,27 @@ describe("fixStrayTextBeforePropertyNames", () => {
       );
     });
 
+    it("should fix the exact error pattern from LoanTransactionData log - }, newline, single char e before publicMethods", () => {
+      // This is the exact pattern from the error log: },\ne"publicMethods": [
+      // From fineract-loan/src/main/java/org/apache/fineract/portfolio/loanaccount/data/LoanTransactionData.java
+      const input = '      "codeSmells": []\n    },\ne"publicMethods": [\n    {';
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"publicMethods": [');
+      expect(result.content).not.toContain('e"publicMethods"');
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics).toContain(
+        'Removed stray text "e" before property "publicMethods"',
+      );
+      
+      // Verify the fix produces valid JSON structure
+      const fixedPart = result.content.substring(
+        result.content.indexOf('"publicMethods"'),
+      );
+      expect(fixedPart).toMatch(/^"publicMethods":\s*\[/);
+    });
+
     it("should not modify if stray text is a JSON keyword", () => {
       const input = '}true"property":';
       const result = fixStrayTextBeforePropertyNames(input);

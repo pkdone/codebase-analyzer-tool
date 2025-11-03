@@ -89,8 +89,22 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
         const hasClearDelimiterAndNewline =
           /[}\],]/.test(delimiterStr) && whitespaceStr.includes("\n");
 
+        // Additional check: if we're right after a closing brace/bracket+comma pattern,
+        // we're definitely at a property boundary, regardless of quote counting
+        // This handles cases like: },\ne"publicMethods": where the delimiter matched is ","
+        // but we're actually after a "}," sequence
+        let isAfterClosingDelimiter = false;
+        if (offsetNum !== undefined && offsetNum > 0) {
+          const beforeDelimiter = stringStr.substring(Math.max(0, offsetNum - 5), offsetNum);
+          // Check if we're after }, ], or }, patterns
+          if (/[}\]]\s*,\s*$/.test(beforeDelimiter)) {
+            isAfterClosingDelimiter = true;
+          }
+        }
+
         // Don't fix if we're inside a string AND we don't have a clear delimiter context
-        if (isInsideString && !hasClearDelimiterAndNewline) {
+        // However, if we're clearly after a closing delimiter, we can safely fix it
+        if (isInsideString && !hasClearDelimiterAndNewline && !isAfterClosingDelimiter) {
           return match;
         }
 
