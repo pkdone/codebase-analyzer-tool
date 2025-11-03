@@ -66,6 +66,8 @@ COMPLETE PROPERTY QUOTING: Every property name must have BOTH opening and closin
 ❌ INCORRECT: "linesOfCode: 10 (missing closing quote)
 ❌ INCORRECT: "linesOfCode "value" (missing closing quote AND colon - this is a critical error that breaks JSON parsing!)
 
+QUOTE ALL STRING VALUES: ALL string values must be enclosed in double quotes. This includes class names, type names, enum values, and any other string literals. Do NOT write unquoted string values after colons. Examples: ✅ CORRECT: "name": "GetChargeCalculation", "type": "String", "returnType": "CommandProcessingResult"  ❌ INCORRECT: "name":GetChargeCalculation", (missing quotes around value - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: "type":String, (unquoted value)  ❌ INCORRECT: "returnType":CommandProcessingResult (unquoted value)  ✅ CORRECT: "name": "GetChargeCalculation", "type": "String", "returnType": "CommandProcessingResult" (all values properly quoted)
+
 PROPERTY NAME COLON REQUIREMENT: After every property name's closing quote, you MUST include a colon (:) before the value. Never write a property name with a space followed directly by the value's opening quote. The pattern "propertyName "value" is INVALID JSON and will fail to parse. Examples:
 ✅ CORRECT: "name": "command"
 ✅ CORRECT: "description": "This is a description"

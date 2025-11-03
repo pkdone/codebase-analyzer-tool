@@ -20,7 +20,8 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
 
   describe("parse error type", () => {
     it("should return parse error for invalid JSON syntax", () => {
-      const invalidJson = '{"key": invalid}';
+      // Use invalid JSON that can't be auto-fixed (malformed structure)
+      const invalidJson = '{"key": {unclosed}';
       const result = jsonProcessor.parseAndValidate(invalidJson, "test-resource", {
         outputFormat: LLMOutputFormat.JSON,
       });
@@ -130,7 +131,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
   describe("error type consistency", () => {
     it("should enable programmatic error handling based on type", () => {
       const cases = [
-        { input: '{"invalid": json}', expectedType: "parse" as const },
+        { input: '{"invalid": {unclosed}', expectedType: "parse" as const },
         { input: '{"valid": "json"}', expectedType: "validation" as const },
       ];
 

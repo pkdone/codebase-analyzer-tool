@@ -34,6 +34,7 @@ export const SANITIZATION_STEP = Object.freeze({
     "Fixed truncated array elements (missing opening brace and property name)",
   FIXED_CORRUPTED_ARRAY_OBJECT_START:
     "Fixed corrupted array object start (missing opening brace and property name with stray text)",
+  FIXED_UNQUOTED_STRING_VALUES: "Fixed unquoted string values",
 } as const);
 
 /**

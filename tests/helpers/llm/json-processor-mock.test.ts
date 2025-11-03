@@ -57,7 +57,8 @@ describe("json-processor-mock", () => {
 
     it("should return failure result for invalid JSON", () => {
       const processor = createMockJsonProcessor();
-      const invalidJson = '{"key": invalid}';
+      // Use invalid JSON that can't be auto-fixed (malformed structure)
+      const invalidJson = '{"key": {unclosed}';
 
       const result = processor.parseAndValidate(invalidJson, "test-resource", {
         outputFormat: LLMOutputFormat.JSON,
