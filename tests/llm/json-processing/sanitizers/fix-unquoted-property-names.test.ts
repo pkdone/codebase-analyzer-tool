@@ -359,5 +359,52 @@ describe("fixUnquotedPropertyNames", () => {
       const hasBrokenPattern = /([^"]|^)linesOfCode"\s*:/.test(result.content);
       expect(hasBrokenPattern).toBe(false);
     });
+
+    it("should fix property names with missing opening quotes on newlines after closing brackets", () => {
+      // This test reproduces the exact error from response-error-2025-11-02T22-14-54-990Z.log
+      // where extraReferences": appears on a newline after a closing bracket
+      const input = `  "internalReferences": [
+    "org.apache.fineract.integrationtests.common.ClientHelper",
+    "org.apache.fineract.integrationtests.common.LoanTransactionHelper"
+  ],
+extraReferences": [
+    "io.restassured.builder.RequestSpecBuilder"
+  ]`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"extraReferences":');
+      // Verify the broken pattern is not present
+      const hasBrokenPattern = /([^"]|^)extraReferences"\s*:/.test(result.content);
+      expect(hasBrokenPattern).toBe(false);
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) =>
+          d.includes("Fixed property name with missing opening quote"),
+        ),
+      ).toBe(true);
+    });
+
+    it("should handle property names with missing quotes after arrays with many quoted strings", () => {
+      // Test case that could cause false positives in isInStringAt due to many quotes
+      const input = `{
+  "internalReferences": [
+    "ref1",
+    "ref2",
+    "ref3",
+    "ref4",
+    "ref5"
+  ],
+anotherProperty": "value"
+}`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"anotherProperty":');
+      const hasBrokenPattern = /([^"]|^)anotherProperty"\s*:/.test(result.content);
+      expect(hasBrokenPattern).toBe(false);
+    });
   });
 });

@@ -39,6 +39,16 @@ CRITICAL: NO STRAY TEXT BEFORE PROPERTY NAMES - This is a common error that brea
 ✅ CORRECT: },\n"propertyName": {         (no stray text, starts with quote)
 ✅ CORRECT: ],\n"nextProperty": "value"   (no stray text, starts with quote)
 
+CRITICAL: PROPERTY NAMES ON NEWLINES AFTER CLOSING BRACKETS - When a property appears on a new line after closing an array with ], or closing an object with }, you MUST include the opening quote at the start of the new line. This is especially critical after arrays with many quoted strings, as missing quotes will break JSON parsing:
+❌ INCORRECT:   ],
+  extraReferences": [    (missing opening quote - this breaks JSON parsing!)
+❌ INCORRECT:   ],
+  anotherProperty": "value"  (missing opening quote)
+✅ CORRECT:   ],
+  "extraReferences": [    (opening quote present)
+✅ CORRECT:   ],
+  "anotherProperty": "value"  (opening quote present)
+
 COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen"). Never truncate property names to single characters (e.g., use "name" not "e", "n", or "m")
 ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
 AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail

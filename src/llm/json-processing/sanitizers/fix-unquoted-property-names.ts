@@ -57,22 +57,60 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
         missingOpeningQuotePattern,
         (match, whitespace, propertyName, offset: unknown) => {
           const numericOffset = typeof offset === "number" ? offset : 0;
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
 
-          // Check if we're inside a string literal (check current sanitized string)
-          if (isInStringAt(numericOffset, sanitized)) {
+          // Calculate the position where the property name actually starts (after whitespace)
+          const propertyNameStart = numericOffset + whitespaceStr.length;
+
+          // Check if we're inside a string literal at the property name position
+          // (not at the whitespace position, which could be misleading)
+          if (isInStringAt(propertyNameStart, sanitized)) {
             return match; // Keep as is - inside a string
           }
 
           // Check if there's already an opening quote before the property name
-          if (numericOffset > 0 && sanitized[numericOffset - 1] === DELIMITERS.DOUBLE_QUOTE) {
+          if (propertyNameStart > 0 && sanitized[propertyNameStart - 1] === DELIMITERS.DOUBLE_QUOTE) {
             return match; // Keep as is - already properly quoted
+          }
+
+          // Additional check: verify we're at a property boundary by looking for
+          // valid delimiters before the whitespace (], }, or comma with optional whitespace/newline)
+          // This helps avoid false matches inside string values
+          if (numericOffset > 0) {
+            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 10), numericOffset);
+            // If we're right after a closing delimiter (], }, or ,), we're at a property boundary
+            const isAfterPropertyBoundary = /[}\],]\s*$/.test(beforeMatch);
+            // If we're not after a boundary and not at start of string, be more cautious
+            if (!isAfterPropertyBoundary && numericOffset > 10) {
+              // Check if the context before suggests we might be in a string
+              // by counting quotes in a larger window
+              const largerContext = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+              let quoteCount = 0;
+              let escape = false;
+              for (const char of largerContext) {
+                if (escape) {
+                  escape = false;
+                  continue;
+                }
+                if (char === "\\") {
+                  escape = true;
+                } else if (char === '"') {
+                  quoteCount++;
+                }
+              }
+              // If odd number of quotes, we might be in a string - skip if no clear boundary
+              if (quoteCount % 2 === 1 && !whitespaceStr.includes("\n")) {
+                return match;
+              }
+            }
           }
 
           hasChanges = true;
           diagnostics.push(
-            `Fixed property name with missing opening quote: ${propertyName as string}"`,
+            `Fixed property name with missing opening quote: ${propertyNameStr}"`,
           );
-          return `${whitespace}"${propertyName as string}":`;
+          return `${whitespaceStr}"${propertyNameStr}":`;
         },
       );
     }
