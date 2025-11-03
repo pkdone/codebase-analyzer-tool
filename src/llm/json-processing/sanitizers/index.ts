@@ -9,6 +9,7 @@ export { extractLargestJsonSpan } from "./extract-largest-json-span";
 export { collapseDuplicateJsonObject } from "./collapse-duplicate-json-object";
 export { fixMismatchedDelimiters } from "./fix-mismatched-delimiters";
 export { fixMissingOpeningBraces } from "./fix-missing-opening-braces";
+export { fixConcatenatedPropertyNames } from "./fix-concatenated-property-names";
 export { addMissingPropertyCommas } from "./add-missing-property-commas";
 export { removeTrailingCommas } from "./remove-trailing-commas";
 export { concatenationChainSanitizer } from "./fix-concatenation-chains";

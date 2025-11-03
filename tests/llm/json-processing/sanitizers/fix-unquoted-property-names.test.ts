@@ -332,4 +332,32 @@ describe("fixUnquotedPropertyNames", () => {
       expect(end - start).toBeLessThan(1000); // Should complete within 1 second
     });
   });
+
+  describe("missing opening quote scenarios", () => {
+    it("should fix missing opening quote pattern like linesOfCode\":", () => {
+      const input = `      linesOfCode": 26,`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe(`      "linesOfCode": 26,`);
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("missing opening quote"))).toBe(true);
+    });
+
+    it("should handle the exact error scenario from the log file", () => {
+      const input =
+        '      "cyclomaticComplexity": 9,\n      linesOfCode": 26,\n      "codeSmells": [';
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"linesOfCode": 26,');
+      // Verify the broken pattern (missing opening quote) is not present
+      // The broken pattern is: linesOfCode": (no quote before linesOfCode)
+      // The fixed pattern is: "linesOfCode": (has quote before)
+      const hasBrokenPattern = /([^"]|^)linesOfCode"\s*:/.test(result.content);
+      expect(hasBrokenPattern).toBe(false);
+    });
+  });
 });

@@ -17,6 +17,7 @@ import {
   collapseDuplicateJsonObject,
   fixMismatchedDelimiters,
   fixMissingOpeningBraces,
+  fixConcatenatedPropertyNames,
   addMissingPropertyCommas,
   removeTrailingCommas,
   concatenationChainSanitizer,
@@ -74,13 +75,14 @@ export class JsonProcessor {
    * 13. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
    * 14. fixTruncatedPropertyNames - Fix truncated or malformed property names
    * 15. fixMissingOpeningBraces - Insert missing opening braces for new objects in arrays
-   * 16. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
-   * 17. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
-   * 18. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
-   * 19. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
-   * 20. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
-   * 21. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
-   * 22. fixUnquotedPropertyNames - Add quotes around unquoted property names
+   * 16. fixConcatenatedPropertyNames - Fix concatenated string literals in property names
+   * 17. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
+   * 18. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
+   * 19. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
+   * 20. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
+   * 21. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
+   * 22. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
+   * 23. fixUnquotedPropertyNames - Add quotes around unquoted property names
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -104,12 +106,14 @@ export class JsonProcessor {
     completeTruncatedStructures,
     fixTruncatedPropertyNames,
     fixMissingOpeningBraces,
+    fixConcatenatedPropertyNames,
     fixUndefinedValues,
     fixUnescapedQuotesInStrings,
     fixStrayTextBeforePropertyNames,
     fixStrayTextBeforeUnquotedProperties,
     fixStrayCharsAfterPropertyValues,
     removeStrayLinesBetweenStructures,
+    fixConcatenatedPropertyNames,
     fixUnquotedPropertyNames,
   ] as const satisfies readonly Sanitizer[];
 

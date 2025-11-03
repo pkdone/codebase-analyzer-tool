@@ -38,6 +38,10 @@ ARRAY STRUCTURE REQUIREMENTS: When creating arrays of objects, ensure each objec
 
 COMPLETE PROPERTY DEFINITIONS: Every property must include both the property name AND the colon separator. Never write truncated property names followed directly by values without colons. Example: ✅ CORRECT: "name": "value",  ❌ INCORRECT: e"value", or n"value", (where "name" was truncated to "e" or "n")
 
+NO STRING CONCATENATION IN PROPERTY NAMES: Do NOT use string concatenation operators (+) in property names. If a property name is long, write it as a complete, single quoted string. Example: ✅ CORRECT: "cyclomaticComplexity": 1  ❌ INCORRECT: "cyclomati" + "cComplexity": 1 or "referen" + "ces": []
+
+COMPLETE PROPERTY QUOTING: Every property name must have BOTH opening and closing quotes. Do NOT write property names with only a closing quote. Example: ✅ CORRECT: "linesOfCode": 10  ❌ INCORRECT: linesOfCode": 10 or "linesOfCode: 10
+
 ESCAPE QUOTES IN STRING VALUES: If you must include double quotes inside a string value (e.g., HTML attributes like type="hidden", code snippets, or quoted text), you MUST escape them with backslashes. For example: "description": "Creates <input type=\\"hidden\\"> element" NOT "description": "Creates <input type="hidden"> element"
 
 VALID JSON ESCAPE SEQUENCES ONLY: When including backslashes in string values, you MUST use only valid JSON escape sequences. Valid escapes are: \\" (quote), \\\\ (backslash), \\/ (slash), \\b (backspace), \\f (form feed), \\n (newline), \\r (carriage return), \\t (tab), and \\uXXXX (unicode). DO NOT use invalid escapes like \\  (backslash-space), \\x (not valid in JSON), \\1-\\9 (octal not valid), or any other invalid escape sequences. If you need to describe code syntax that uses invalid escapes, either escape the backslash itself (\\\\ ) or avoid using them.
