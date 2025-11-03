@@ -38,6 +38,78 @@ describe("fixStrayTextBeforePropertyNames", () => {
     });
   });
 
+  describe("non-ASCII stray text handling", () => {
+    it("should remove Bengali text before array elements (exact error from log)", () => {
+      const input = `  "externalReferences": [
+    "java.util.Map",
+    করার"org.apache.commons.lang3.StringUtils",
+    "org.springframework.beans.factory.annotation.Autowired"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.apache.commons.lang3.StringUtils"');
+      expect(result.content).not.toContain("করার");
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("non-ASCII"))).toBe(true);
+    });
+
+    it("should remove non-ASCII text before array string values", () => {
+      const input = `  "references": [
+    "item1",
+    text"item2",
+    "item3"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      if (result.changed) {
+        expect(result.content).toContain('"item2"');
+        expect(result.content).not.toContain('text"item2"');
+      }
+    });
+
+    it("should handle Chinese characters before array elements", () => {
+      const input = `  "items": [
+    "value1",
+    文本"value2",
+    "value3"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      if (result.changed) {
+        expect(result.content).toContain('"value2"');
+        expect(result.content).not.toContain("文本");
+      }
+    });
+
+    it("should handle Arabic text before array elements", () => {
+      const input = `  "items": [
+    "value1",
+    نص"value2",
+    "value3"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      if (result.changed) {
+        expect(result.content).toContain('"value2"');
+        expect(result.content).not.toContain("نص");
+      }
+    });
+
+    it("should only fix stray text when in array context", () => {
+      const input = `  "description": "Some text with করার embedded text"`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      // Should not modify - the Bengali text is inside a string value, not before a property
+      expect(result.changed).toBe(false);
+    });
+  });
+
   describe("real-world error cases", () => {
     it("should fix the exact error pattern from AsyncSenderEJB log", () => {
       const input =

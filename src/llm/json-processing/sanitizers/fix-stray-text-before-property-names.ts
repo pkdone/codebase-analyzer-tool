@@ -13,6 +13,8 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * - `fragment"name":` -> `"name":`
  * - `e"publicMethods":` -> `"publicMethods":` (single character stray text)
  * - `extraText: "externalReferences":` -> `"externalReferences":` (stray text with colon)
+ * - `করার"org.apache...":` -> `"org.apache..."` (non-ASCII/Bengali stray text before array element)
+ * - `word"arrayValue",` -> `"arrayValue",` (stray text before array string values)
  *
  * This is different from `removeStrayLinePrefixChars` which handles stray text
  * with whitespace between the text and the JSON token. This sanitizer handles
@@ -39,7 +41,11 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
     // Note: Match delimiters (}, ], ,, or \n) or start of string, followed by optional whitespace
     // then stray text directly concatenated to the quote
     // This catches patterns like: }word"property":, \nword"property":, e"property":, or \n    word"property":
-    const strayTextPattern = /([}\],]|\n|^)(\s*)([a-zA-Z_$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    // Updated to also match non-ASCII characters (Unicode word characters) like Bengali text
+    // \p{L} matches any Unicode letter, \p{M} matches marks, \p{N} matches numbers
+    // We use [\w\u0080-\uFFFF$] as a fallback for environments that don't support \p{} patterns
+    // Note: $ is explicitly included since \w doesn't include it
+    const strayTextPattern = /([}\],]|\n|^)(\s*)([\w\u0080-\uFFFF$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
 
     sanitized = sanitized.replace(
       strayTextPattern,
@@ -128,8 +134,9 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
     // Second pass: Fix stray text with colon before quoted property names
     // Pattern: word: "propertyName": where word is stray text
     // Example: extraText: "externalReferences": -> "externalReferences":
+    // Updated to also match non-ASCII characters
     const strayTextWithColonPattern =
-      /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+      /([}\],]|\n|^)(\s*)([\w\u0080-\uFFFF][\w\u0080-\uFFFF]*)\s*:\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
 
     sanitized = sanitized.replace(
       strayTextWithColonPattern,
@@ -194,6 +201,117 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
           );
           const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
           return `${finalDelimiter}${whitespaceStr}"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // Third pass: Fix stray text (including non-ASCII) before array string values
+    // Pattern: word"stringValue", where word is stray text and stringValue is an array element
+    // Example: করার"org.apache...", -> "org.apache...",
+    // This handles cases where non-ASCII text appears before array string elements
+    // Note: The delimiter can be }, ], ,, \n, or start of line, followed by whitespace
+    // Updated to use a broader character class that includes all Unicode letters and symbols
+    const strayTextBeforeArrayValuePattern =
+      /([}\],]|\n|^)(\s*)([^\s"{}[\],]{1,})"([^"]+)"\s*,/g;
+
+    sanitized = sanitized.replace(
+      strayTextBeforeArrayValuePattern,
+      (match, delimiter, whitespace, strayText, stringValue, offset, string) => {
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+        const offsetNum = typeof offset === "number" ? offset : undefined;
+        const stringStr = typeof string === "string" ? string : sanitized;
+
+        // Check if we're in an array context
+        // Look backwards to see if we're inside an array
+        let isInArray = false;
+        if (offsetNum !== undefined && stringStr) {
+          const beforeMatch = stringStr.substring(Math.max(0, offsetNum - 500), offsetNum);
+          let openBrackets = 0;
+          let openBraces = 0;
+          let inString = false;
+          let escapeNext = false;
+          let lastBracketIndex = -1;
+
+          for (let i = beforeMatch.length - 1; i >= 0; i--) {
+            const char = beforeMatch[i];
+            if (escapeNext) {
+              escapeNext = false;
+              continue;
+            }
+            if (char === "\\") {
+              escapeNext = true;
+              continue;
+            }
+            if (char === '"') {
+              inString = !inString;
+              continue;
+            }
+            if (!inString) {
+              if (char === "]") {
+                openBrackets++;
+                if (lastBracketIndex === -1) lastBracketIndex = i;
+              } else if (char === "[") {
+                openBrackets--;
+                // If we've seen a closing bracket and braces are balanced, we're in an array
+                if (openBrackets === 0 && openBraces === 0 && lastBracketIndex > i) {
+                  isInArray = true;
+                  break;
+                }
+              } else if (char === "}") openBraces++;
+              else if (char === "{") openBraces--;
+            }
+          }
+          // Also check: if we're after a comma within what looks like an array structure
+          // This handles cases where the pattern matches but bracket counting missed it
+          if (!isInArray && delimiterStr === ",") {
+            // Look for an opening bracket before us
+            const hasOpeningBracket = beforeMatch.includes("[");
+            if (hasOpeningBracket && openBraces === 0) {
+              isInArray = true;
+            }
+          }
+        }
+
+        // Verify the delimiter context
+        const isValidDelimiter =
+          delimiterStr === "" || delimiterStr === "\n" || /[}\],]/.test(delimiterStr);
+
+        // Check if we're inside a string value (shouldn't be for array elements)
+        let isInsideString = false;
+        if (offsetNum !== undefined && stringStr) {
+          const beforeMatch = stringStr.substring(Math.max(0, offsetNum - 200), offsetNum);
+          let quoteCount = 0;
+          let escape = false;
+          for (const char of beforeMatch) {
+            if (escape) {
+              escape = false;
+              continue;
+            }
+            if (char === "\\") {
+              escape = true;
+            } else if (char === '"') {
+              quoteCount++;
+            }
+          }
+          isInsideString = quoteCount % 2 === 1;
+        }
+
+        // Only fix if we're in an array context and not inside a string
+        if (isInArray && !isInsideString && isValidDelimiter) {
+          hasChanges = true;
+          // Check if stray text is non-ASCII (likely foreign language text)
+          const isNonASCII = /[\u0080-\uFFFF]/.test(strayTextStr);
+          const textType = isNonASCII ? "non-ASCII" : "ASCII";
+          diagnostics.push(
+            `Removed ${textType} stray text "${strayTextStr}" before array element "${stringValueStr.substring(0, 50)}${stringValueStr.length > 50 ? "..." : ""}"`,
+          );
+          const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
+          return `${finalDelimiter}${whitespaceStr}"${stringValueStr}",`;
         }
 
         return match;
