@@ -32,6 +32,7 @@ import {
   fixStrayTextBeforeUnquotedProperties,
   fixStrayCharsAfterPropertyValues,
   removeStrayLinesBetweenStructures,
+  removeTruncationMarkers,
   fixUnquotedPropertyNames,
   fixPropertyNameTypos,
   hasSignificantSanitizationSteps,
@@ -116,10 +117,11 @@ export class JsonProcessor {
     fixStrayTextBeforePropertyNames,
     fixStrayTextBeforeUnquotedProperties,
     fixStrayCharsAfterPropertyValues,
-    removeStrayLinesBetweenStructures,
-    fixConcatenatedPropertyNames,
-    fixUnquotedPropertyNames,
-    fixPropertyNameTypos,
+  removeStrayLinesBetweenStructures,
+  removeTruncationMarkers,
+  fixConcatenatedPropertyNames,
+  fixUnquotedPropertyNames,
+  fixPropertyNameTypos,
   ] as const satisfies readonly Sanitizer[];
 
   /**

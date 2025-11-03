@@ -24,6 +24,7 @@ export { fixStrayTextBeforePropertyNames } from "./fix-stray-text-before-propert
 export { fixStrayTextBeforeUnquotedProperties } from "./fix-stray-text-before-unquoted-properties";
 export { fixStrayCharsAfterPropertyValues } from "./fix-stray-chars-after-property-values";
 export { removeStrayLinesBetweenStructures } from "./remove-stray-lines-between-structures";
+export { removeTruncationMarkers } from "./remove-truncation-markers";
 export { fixUnquotedPropertyNames } from "./fix-unquoted-property-names";
 export { fixPropertyNameTypos } from "./fix-property-name-typos";
 

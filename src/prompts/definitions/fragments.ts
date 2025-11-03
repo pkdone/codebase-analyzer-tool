@@ -73,6 +73,8 @@ NO STRAY CHARS AFTER VALUES: Do NOT include any stray characters, words, or text
 
 NO STRAY LINES: Do NOT include any complete lines of text between JSON structures. After a closing bracket (]), closing brace (}), or comma, do NOT insert file paths, comments, explanations, or any other text on separate lines. Each property or structure must follow immediately after the preceding delimiter (with only whitespace/newlines for formatting). Example: ✅ CORRECT: },\n  "nextProperty": "value"  ❌ INCORRECT: },\nsrc/main/java/com/example/MyClass.java\n  "nextProperty": "value" or },\nThis is a comment\n  "nextProperty": "value"
 
+NO TRUNCATION MARKERS: Do NOT add truncation indicators like ... or (truncated) or any other markers to indicate that your response was cut off. If you reach token limits, simply end the JSON structure properly by closing all open brackets, braces, and strings. Truncation markers break JSON parsing and are not valid JSON syntax. Example: ✅ CORRECT: "item1",\n"item2"\n]  ❌ INCORRECT: "item1",\n...\n] or "item1",\n(truncated)\n]
+
 COMPREHENSIVE EXAMPLES:
 ✅ CORRECT: {"name": "value", "items": [{"id": 1}]}
 ❌ INCORRECT: {name: "value", items: [{id: 1}]}
