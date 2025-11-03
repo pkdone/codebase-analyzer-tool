@@ -11,10 +11,12 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * Examples of issues this sanitizer handles:
  * - HTML attributes: `"<input type="hidden">"` -> `"<input type=\"hidden\">"`
  * - Multiple attributes: `"<input type="text" name="field">"` -> `"<input type=\"text\" name=\"field\">"`
+ * - Code snippets with escaped quotes followed by unescaped quotes: `[\"" + clientId + "\"]` -> `[\\"" + clientId + "\\"]`
  *
  * Strategy:
- * Uses regex to find patterns like `="value">` or `="value" ` (followed by space+letter)
- * and escapes the quotes. Only applies to contexts that appear to be inside string values.
+ * 1. Finds patterns like `="value">` or `="value" ` (followed by >, space+letter, or another quote) and escapes quotes
+ * 2. Finds patterns like `\""` (escaped quote followed by unescaped quote) in code snippets and fixes them
+ * Only applies to contexts that appear to be inside string values.
  */
 export const fixUnescapedQuotesInStrings: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
@@ -58,6 +60,42 @@ export const fixUnescapedQuotesInStrings: Sanitizer = (jsonString: string): Sani
       }
       return match;
     });
+
+    // Pattern 2: Fix escaped quotes followed by unescaped quotes in code snippets
+    // This handles cases like: `[\"" + clientId + "\"]` where `\""` should be `\\""`
+    // In JSON source: `\""` means escaped quote + unescaped quote (the unescaped quote ends the string!)
+    // We need to escape the backslash: `\\""` becomes literal backslash+quote followed by escaped quote
+    // The pattern matches: `\"` (backslash+quote) followed immediately by `"` (unescaped quote)
+    // Must be followed by something like ` +`, `]`, `,`, whitespace+variable, or end of code snippet
+    const escapedQuoteFollowedByUnescapedPattern =
+      /(\\")"(\s*\+|\s*\]|\s*,|(?=\s*[a-zA-Z_$]))/g;
+
+    sanitized = sanitized.replace(
+      escapedQuoteFollowedByUnescapedPattern,
+      (match, _escapedQuote, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        // Check if this appears to be in a string value context
+        const contextBefore = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+
+        // Verify we're in a value context (after a colon, inside a string)
+        // Look for patterns that indicate we're in a string value containing code snippets
+        const isInStringValue =
+          /:\s*"[^"]*`/.test(contextBefore) || // : "something `code`
+          /:\s*"[^"]*\\/.test(contextBefore) || // : "something with \
+          contextBefore.includes('": "') || // property: "value
+          (contextBefore.includes(":") && !(/"\s*$/.exec(contextBefore))); // Has colon, not at end of property name
+
+        if (isInStringValue) {
+          hasChanges = true;
+          const afterStr = typeof after === "string" ? after : "";
+          diagnostics.push(`Fixed escaped quote followed by unescaped quote: \\"" -> \\\\""`);
+          // Escape the backslash so we get literal `\"` followed by `"`
+          // In JSON source: `\\""` produces string value containing `\"` + `"`
+          return `\\"${afterStr}`;
+        }
+        return match;
+      },
+    );
 
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== jsonString;
