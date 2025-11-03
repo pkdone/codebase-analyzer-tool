@@ -25,6 +25,7 @@ export { fixStrayTextBeforeUnquotedProperties } from "./fix-stray-text-before-un
 export { fixStrayCharsAfterPropertyValues } from "./fix-stray-chars-after-property-values";
 export { removeStrayLinesBetweenStructures } from "./remove-stray-lines-between-structures";
 export { fixUnquotedPropertyNames } from "./fix-unquoted-property-names";
+export { fixPropertyNameTypos } from "./fix-property-name-typos";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 
