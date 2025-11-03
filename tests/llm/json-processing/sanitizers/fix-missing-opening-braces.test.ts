@@ -30,8 +30,7 @@ e"method2",
       "codeSmells": []
     },
 e"disburseLoanWithExceededOverAppliedAmountSucceed",
-      "purpose": "This test case serves"`
-        .trim();
+      "purpose": "This test case serves"`.trim();
 
       const result = fixMissingOpeningBraces(input);
 
@@ -236,4 +235,3 @@ n"nameValue"`;
     });
   });
 });
-

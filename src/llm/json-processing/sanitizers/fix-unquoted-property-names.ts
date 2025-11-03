@@ -74,7 +74,10 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           }
 
           // Check if there's already an opening quote before the property name
-          if (propertyNameStart > 0 && sanitized[propertyNameStart - 1] === DELIMITERS.DOUBLE_QUOTE) {
+          if (
+            propertyNameStart > 0 &&
+            sanitized[propertyNameStart - 1] === DELIMITERS.DOUBLE_QUOTE
+          ) {
             return match; // Keep as is - already properly quoted
           }
 
@@ -89,7 +92,10 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
             if (!isAfterPropertyBoundary && numericOffset > 10) {
               // Check if the context before suggests we might be in a string
               // by counting quotes in a larger window
-              const largerContext = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+              const largerContext = sanitized.substring(
+                Math.max(0, numericOffset - 200),
+                numericOffset,
+              );
               let quoteCount = 0;
               let escape = false;
               for (const char of largerContext) {
@@ -111,9 +117,7 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           }
 
           hasChanges = true;
-          diagnostics.push(
-            `Fixed property name with missing opening quote: ${propertyNameStr}"`,
-          );
+          diagnostics.push(`Fixed property name with missing opening quote: ${propertyNameStr}"`);
           return `${whitespaceStr}"${propertyNameStr}":`;
         },
       );
@@ -150,10 +154,13 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
             // Pattern matches: ], }, [, or , followed by optional whitespace/newlines
             // We check for delimiters followed by whitespace, which could include newlines
             const isAfterPropertyBoundary = /[}\],][\s\n]*$/.test(beforeMatch);
-            
+
             // If not at a clear boundary, check quote count to see if we might be in a string
             if (!isAfterPropertyBoundary && numericOffset > 20) {
-              const largerContext = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+              const largerContext = sanitized.substring(
+                Math.max(0, numericOffset - 200),
+                numericOffset,
+              );
               let quoteCount = 0;
               let escape = false;
               for (const char of largerContext) {

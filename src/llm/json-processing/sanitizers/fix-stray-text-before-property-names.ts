@@ -128,7 +128,8 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
     // Second pass: Fix stray text with colon before quoted property names
     // Pattern: word: "propertyName": where word is stray text
     // Example: extraText: "externalReferences": -> "externalReferences":
-    const strayTextWithColonPattern = /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    const strayTextWithColonPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
 
     sanitized = sanitized.replace(
       strayTextWithColonPattern,

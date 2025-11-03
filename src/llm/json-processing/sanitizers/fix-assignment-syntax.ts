@@ -18,9 +18,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * This sanitizer is careful to only fix actual property assignments, not string content
  * that might legitimately contain `:=`.
  */
-export const fixAssignmentSyntax: Sanitizer = (
-  jsonString: string,
-): SanitizerResult => {
+export const fixAssignmentSyntax: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
     let sanitized = jsonString;
     let hasChanges = false;
@@ -40,22 +38,18 @@ export const fixAssignmentSyntax: Sanitizer = (
         const quotedPropStr = typeof quotedProperty === "string" ? quotedProperty : "";
         const propNameStr = typeof propertyName === "string" ? propertyName : "";
         // If no whitespace was captured, default to a single space for readability
-        const wsAfter = typeof whitespaceAfter === "string" && whitespaceAfter ? whitespaceAfter : " ";
+        const wsAfter =
+          typeof whitespaceAfter === "string" && whitespaceAfter ? whitespaceAfter : " ";
 
         // Verify we're at a property boundary by checking context before the match
         // We should be after a comma, opening brace, or at the start of an object
         if (numericOffset > 0) {
-          const beforeMatch = sanitized.substring(
-            Math.max(0, numericOffset - 20),
-            numericOffset,
-          );
+          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 20), numericOffset);
 
           // Check if we're clearly in a property assignment context
           // Should be after: {, [, comma, or newline with whitespace
           const isPropertyContext =
-            /[{,\]]\s*$/.test(beforeMatch) ||
-            /\n\s*$/.test(beforeMatch) ||
-            numericOffset <= 20; // Start of JSON structure
+            /[{,\]]\s*$/.test(beforeMatch) || /\n\s*$/.test(beforeMatch) || numericOffset <= 20; // Start of JSON structure
 
           if (!isPropertyContext) {
             // Might be inside a string value, skip it
@@ -87,9 +81,7 @@ export const fixAssignmentSyntax: Sanitizer = (
         }
 
         hasChanges = true;
-        diagnostics.push(
-          `Fixed assignment syntax: "${propNameStr}":= -> "${propNameStr}":`,
-        );
+        diagnostics.push(`Fixed assignment syntax: "${propNameStr}":= -> "${propNameStr}":`);
 
         // Replace := with :, preserving whitespace after
         return `${quotedPropStr}:${wsAfter}`;
@@ -102,9 +94,7 @@ export const fixAssignmentSyntax: Sanitizer = (
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.FIXED_ASSIGNMENT_SYNTAX
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.FIXED_ASSIGNMENT_SYNTAX : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
@@ -118,4 +108,3 @@ export const fixAssignmentSyntax: Sanitizer = (
     };
   }
 };
-

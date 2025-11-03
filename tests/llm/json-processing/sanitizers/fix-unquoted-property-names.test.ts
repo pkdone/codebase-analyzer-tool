@@ -334,7 +334,7 @@ describe("fixUnquotedPropertyNames", () => {
   });
 
   describe("missing opening quote scenarios", () => {
-    it("should fix missing opening quote pattern like linesOfCode\":", () => {
+    it('should fix missing opening quote pattern like linesOfCode":', () => {
       const input = `      linesOfCode": 26,`;
 
       const result = fixUnquotedPropertyNames(input);
@@ -447,9 +447,11 @@ anotherProperty": "value"
       expect(result.content).toContain('"type": "value3"');
       const hasBrokenPattern = /"[a-zA-Z]+ "[a-zA-Z]+"/.test(result.content);
       expect(hasBrokenPattern).toBe(false);
-      expect(result.diagnostics?.filter((d) =>
-        d.includes("Fixed property name with missing closing quote and colon"),
-      ).length).toBe(3);
+      expect(
+        result.diagnostics?.filter((d) =>
+          d.includes("Fixed property name with missing closing quote and colon"),
+        ).length,
+      ).toBe(3);
     });
 
     it("should not modify valid JSON with proper quotes and colons", () => {

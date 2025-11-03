@@ -191,11 +191,9 @@ describe("fixStrayTextBeforePropertyNames", () => {
       expect(result.diagnostics).toContain(
         'Removed stray text "e" before property "publicMethods"',
       );
-      
+
       // Verify the fix produces valid JSON structure
-      const fixedPart = result.content.substring(
-        result.content.indexOf('"publicMethods"'),
-      );
+      const fixedPart = result.content.substring(result.content.indexOf('"publicMethods"'));
       expect(fixedPart).toMatch(/^"publicMethods":\s*\[/);
     });
 
@@ -323,11 +321,9 @@ extraText: "externalReferences": [
       expect(result.content).toContain('"externalReferences":');
       expect(result.content).not.toContain('extraText: "externalReferences"');
       expect(result.diagnostics).toBeDefined();
-      expect(
-        result.diagnostics?.some((d) =>
-          d.includes("Removed stray text with colon"),
-        ),
-      ).toBe(true);
+      expect(result.diagnostics?.some((d) => d.includes("Removed stray text with colon"))).toBe(
+        true,
+      );
     });
 
     it("should handle stray text with colon after closing brace", () => {
@@ -408,8 +404,7 @@ extraText: "externalReferences": [
     });
 
     it("should handle nested structures with stray text and colon", () => {
-      const input =
-        '{"outer": {\n    "inner": "value"\n  },\nstrayText: "next": "value"}';
+      const input = '{"outer": {\n    "inner": "value"\n  },\nstrayText: "next": "value"}';
 
       const result = fixStrayTextBeforePropertyNames(input);
 

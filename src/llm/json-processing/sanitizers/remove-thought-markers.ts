@@ -52,14 +52,17 @@ export const removeThoughtMarkers: Sanitizer = (jsonString: string): SanitizerRe
 
     // Pattern: word followed by opening brace (like "command{" or "data {")
     // Match at start of line or after whitespace/newline to avoid breaking property names
-    sanitized = sanitized.replace(/(^|\n|\r)\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\{/g, (match, prefix, word) => {
-      const lowerWord = (word as string).toLowerCase();
-      if (nonJsonWords.has(lowerWord)) {
-        hasChanges = true;
-        return `${prefix}{`;
-      }
-      return match;
-    });
+    sanitized = sanitized.replace(
+      /(^|\n|\r)\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\{/g,
+      (match, prefix, word) => {
+        const lowerWord = (word as string).toLowerCase();
+        if (nonJsonWords.has(lowerWord)) {
+          hasChanges = true;
+          return `${prefix}{`;
+        }
+        return match;
+      },
+    );
 
     // Also handle cases where there's no newline, just whitespace before word{
     sanitized = sanitized.replace(/\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\{/g, (match, word) => {
@@ -98,4 +101,3 @@ export const removeThoughtMarkers: Sanitizer = (jsonString: string): SanitizerRe
     };
   }
 };
-

@@ -141,9 +141,7 @@ export const fixPropertyNameTypos: Sanitizer = (jsonString: string): SanitizerRe
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.FIXED_PROPERTY_NAME_TYPOS
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.FIXED_PROPERTY_NAME_TYPOS : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
@@ -157,4 +155,3 @@ export const fixPropertyNameTypos: Sanitizer = (jsonString: string): SanitizerRe
     };
   }
 };
-

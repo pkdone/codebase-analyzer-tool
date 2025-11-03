@@ -118,12 +118,12 @@ export class JsonProcessor {
     fixStrayTextBeforePropertyNames,
     fixStrayTextBeforeUnquotedProperties,
     fixStrayCharsAfterPropertyValues,
-  removeStrayLinesBetweenStructures,
-  removeTruncationMarkers,
-  fixAssignmentSyntax,
-  fixConcatenatedPropertyNames,
-  fixUnquotedPropertyNames,
-  fixPropertyNameTypos,
+    removeStrayLinesBetweenStructures,
+    removeTruncationMarkers,
+    fixAssignmentSyntax,
+    fixConcatenatedPropertyNames,
+    fixUnquotedPropertyNames,
+    fixPropertyNameTypos,
   ] as const satisfies readonly Sanitizer[];
 
   /**

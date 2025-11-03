@@ -33,8 +33,8 @@ describe("removeTruncationMarkers", () => {
       expect(result.content).toMatch(/PostAccountNumberFormatsResponse.*\]/s);
       // Verify no truncation marker remains
       const lines = result.content.split("\n");
-      const hasTruncationMarker = lines.some(
-        (line) => /^\s*(\.\.\.|\[\.\.\.\]|\(truncated\))/.test(line.trim()),
+      const hasTruncationMarker = lines.some((line) =>
+        /^\s*(\.\.\.|\[\.\.\.\]|\(truncated\))/.test(line.trim()),
       );
       expect(hasTruncationMarker).toBe(false);
     });
@@ -193,4 +193,3 @@ describe("removeTruncationMarkers", () => {
     });
   });
 });
-

@@ -16,9 +16,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * Detects patterns where quoted strings are concatenated with + before a colon,
  * and merges them into a single property name by combining the string contents.
  */
-export const fixConcatenatedPropertyNames: Sanitizer = (
-  jsonString: string,
-): SanitizerResult => {
+export const fixConcatenatedPropertyNames: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
     let sanitized = jsonString;
     let hasChanges = false;
@@ -28,8 +26,7 @@ export const fixConcatenatedPropertyNames: Sanitizer = (
     // This matches concatenated quoted strings that form a property name
     // The pattern must be followed by a colon to indicate it's a property name
     // Matches: "part1" + "part2" + "part3": or "word1" + "word2":
-    const concatenatedPropertyNamePattern =
-      /"([^"]+)"\s*\+\s*"([^"]+)"(\s*\+\s*"[^"]+")*\s*:/g;
+    const concatenatedPropertyNamePattern = /"([^"]+)"\s*\+\s*"([^"]+)"(\s*\+\s*"[^"]+")*\s*:/g;
 
     sanitized = sanitized.replace(
       concatenatedPropertyNamePattern,
@@ -66,9 +63,7 @@ export const fixConcatenatedPropertyNames: Sanitizer = (
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.FIXED_CONCATENATED_PROPERTY_NAMES
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.FIXED_CONCATENATED_PROPERTY_NAMES : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
@@ -82,4 +77,3 @@ export const fixConcatenatedPropertyNames: Sanitizer = (
     };
   }
 };
-

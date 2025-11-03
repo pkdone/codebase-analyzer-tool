@@ -26,7 +26,8 @@ export const fixMissingOpeningBraces: Sanitizer = (jsonString: string): Sanitize
     // - Quoted property name: "propertyName"
     // - Truncated property pattern: e", n", etc. followed by value
     // This matches cases like: },\ne"value", or },\n  "property":
-    const missingOpeningBracePattern = /(\}\s*,)\s*\n(\s*)([a-zA-Z]{1,3}?"[a-zA-Z_$][a-zA-Z0-9_$]*"(?:\s*:|\s*,|")|[a-zA-Z]{1,3}"[^"]+")/g;
+    const missingOpeningBracePattern =
+      /(\}\s*,)\s*\n(\s*)([a-zA-Z]{1,3}?"[a-zA-Z_$][a-zA-Z0-9_$]*"(?:\s*:|\s*,|")|[a-zA-Z]{1,3}"[^"]+")/g;
 
     sanitized = sanitized.replace(
       missingOpeningBracePattern,
@@ -40,7 +41,7 @@ export const fixMissingOpeningBraces: Sanitizer = (jsonString: string): Sanitize
         const matchIndex = sanitized.indexOf(match);
         if (matchIndex > 0) {
           const beforeMatch = sanitized.substring(Math.max(0, matchIndex - 200), matchIndex);
-          
+
           // Check if we're in an array context (looking for [ before the closing brace)
           // Count brackets and braces to determine if we're inside an array
           let openBraces = 0;
@@ -104,4 +105,3 @@ export const fixMissingOpeningBraces: Sanitizer = (jsonString: string): Sanitize
     };
   }
 };
-

@@ -18,9 +18,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * 1. First pass: Remove standalone truncation marker lines
  * 2. Second pass: Handle truncated strings at the end of arrays/objects before closing delimiters
  */
-export const removeTruncationMarkers: Sanitizer = (
-  jsonString: string,
-): SanitizerResult => {
+export const removeTruncationMarkers: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
     let sanitized = jsonString;
     let hasChanges = false;
@@ -31,7 +29,8 @@ export const removeTruncationMarkers: Sanitizer = (
     // Truncation markers: `...`, `[...]`, `(truncated)`, `... (truncated)`, etc.
     // This pattern matches lines that contain only truncation indicators
     // Also handles cases where the marker appears after a comma or before a closing delimiter
-    const truncationMarkerPattern = /\n(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\)|\.\.\.\s*\(truncated\)|truncated|\.\.\.\s*truncated)(\s*)\n/g;
+    const truncationMarkerPattern =
+      /\n(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\)|\.\.\.\s*\(truncated\)|truncated|\.\.\.\s*truncated)(\s*)\n/g;
 
     sanitized = sanitized.replace(
       truncationMarkerPattern,
@@ -48,7 +47,8 @@ export const removeTruncationMarkers: Sanitizer = (
     // Matches: incomplete string (missing closing quote) followed by truncation marker and closing delimiter
     // Example: `"incomplete string...\n]` -> `"incomplete string",\n]`
     // This handles cases where the string itself was truncated, not just a marker line added
-    const incompleteStringPattern = /"([^"]*?)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
+    const incompleteStringPattern =
+      /"([^"]*?)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
 
     sanitized = sanitized.replace(
       incompleteStringPattern,
@@ -72,7 +72,8 @@ export const removeTruncationMarkers: Sanitizer = (
     // Pattern 3: Handle truncation markers right before closing delimiters (after string value)
     // Matches: `"value",\n...\n]` or `"value"\n...\n]` - truncation marker line before closing delimiter
     // Also handles: `...\n]` when the marker appears at the start of a line before the delimiter
-    const truncationBeforeDelimiterPattern = /("\s*,\s*|\n)(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
+    const truncationBeforeDelimiterPattern =
+      /("\s*,\s*|\n)(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
 
     sanitized = sanitized.replace(
       truncationBeforeDelimiterPattern,
@@ -101,9 +102,7 @@ export const removeTruncationMarkers: Sanitizer = (
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.REMOVED_TRUNCATION_MARKERS
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.REMOVED_TRUNCATION_MARKERS : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
@@ -117,4 +116,3 @@ export const removeTruncationMarkers: Sanitizer = (
     };
   }
 };
-

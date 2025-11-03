@@ -115,7 +115,16 @@ command{
     });
 
     it("should handle multiple common words", () => {
-      const testCases = ["command", "data", "result", "output", "json", "response", "object", "content"];
+      const testCases = [
+        "command",
+        "data",
+        "result",
+        "output",
+        "json",
+        "response",
+        "object",
+        "content",
+      ];
 
       testCases.forEach((word) => {
         const input = `${word}{
@@ -173,4 +182,3 @@ command{
     });
   });
 });
-

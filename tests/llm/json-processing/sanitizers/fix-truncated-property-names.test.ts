@@ -340,10 +340,14 @@ e"disburseLoanWithExceededOverAppliedAmountSucceed",
       const result = fixTruncatedPropertyNames(input);
 
       expect(result.changed).toBe(true);
-      expect(result.content).toContain('"name": "disburseLoanWithExceededOverAppliedAmountSucceed"');
+      expect(result.content).toContain(
+        '"name": "disburseLoanWithExceededOverAppliedAmountSucceed"',
+      );
       expect(result.content).not.toContain('e"disburseLoanWithExceededOverAppliedAmountSucceed"');
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("missing opening quote and colon"))).toBe(true);
+      expect(result.diagnostics?.some((d) => d.includes("missing opening quote and colon"))).toBe(
+        true,
+      );
     });
 
     it("should handle the exact error scenario from the log file", () => {
@@ -355,7 +359,9 @@ e"disburseLoanWithExceededOverAppliedAmountSucceed",
       const result = fixTruncatedPropertyNames(input);
 
       expect(result.changed).toBe(true);
-      expect(result.content).toContain('"name": "disburseLoanWithExceededOverAppliedAmountSucceed"');
+      expect(result.content).toContain(
+        '"name": "disburseLoanWithExceededOverAppliedAmountSucceed"',
+      );
       expect(result.content).not.toContain('e"disburseLoanWithExceededOverAppliedAmountSucceed"');
     });
 
