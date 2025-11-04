@@ -46,6 +46,7 @@ import {
   fixCorruptedArrayObjectStart,
   fixBinaryCorruptionPatterns,
   fixTruncatedPropertyNamesAfterBrace,
+  fixMissingOpeningQuoteInArrayStrings,
   hasSignificantSanitizationSteps,
   type Sanitizer,
   type PostParseTransform,
@@ -92,19 +93,20 @@ export class JsonProcessor {
    * 16. fixTruncatedPropertyNames - Fix truncated or malformed property names
    * 17. fixMissingOpeningBraces - Insert missing opening braces for new objects in arrays
    * 18. fixTruncatedPropertyNamesAfterBrace - Fix truncated property names after closing braces in arrays
-   * 19. fixConcatenatedPropertyNames - Fix concatenated string literals in property names
-   * 20. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
-   * 21. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
-   * 22. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
-   * 23. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
-   * 24. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
-   * 25. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
-   * 26. fixCorruptedArrayObjectStart - Fix corrupted array object starts (missing { and "name": with stray text)
-   * 27. fixUnquotedPropertyNames - Add quotes around unquoted property names
-   * 28. fixUnquotedStringValues - Add quotes around unquoted string values
-   * 29. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
-   * 30. fixTailEndTruncatedProperties - Fix tail-end truncated property names with missing opening quotes
-   * 31. fixUnquotedPropertyTypos - Fix property names with missing opening quotes that are typos
+   * 19. fixMissingOpeningQuoteInArrayStrings - Fix missing opening quotes in array string values
+   * 20. fixConcatenatedPropertyNames - Fix concatenated string literals in property names
+   * 21. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
+   * 22. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
+   * 23. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
+   * 24. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
+   * 25. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
+   * 26. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
+   * 27. fixCorruptedArrayObjectStart - Fix corrupted array object starts (missing { and "name": with stray text)
+   * 28. fixUnquotedPropertyNames - Add quotes around unquoted property names
+   * 29. fixUnquotedStringValues - Add quotes around unquoted string values
+   * 30. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
+   * 31. fixTailEndTruncatedProperties - Fix tail-end truncated property names with missing opening quotes
+   * 32. fixUnquotedPropertyTypos - Fix property names with missing opening quotes that are typos
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -131,6 +133,7 @@ export class JsonProcessor {
     fixTruncatedPropertyNames,
     fixMissingOpeningBraces,
     fixTruncatedPropertyNamesAfterBrace,
+    fixMissingOpeningQuoteInArrayStrings,
     fixTruncatedArrayElements,
     fixConcatenatedPropertyNames,
     fixUndefinedValues,

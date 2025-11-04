@@ -37,6 +37,7 @@ export { fixUnquotedPropertyTypos } from "./fix-unquoted-property-typos";
 export { fixCurlyQuotes } from "./fix-curly-quotes";
 export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns";
 export { fixTruncatedPropertyNamesAfterBrace } from "./fix-truncated-property-names-after-brace";
+export { fixMissingOpeningQuoteInArrayStrings } from "./fix-missing-opening-quote-in-array-strings";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 
