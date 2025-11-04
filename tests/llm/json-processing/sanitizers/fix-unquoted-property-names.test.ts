@@ -552,5 +552,27 @@ anotherProperty": "value"
       // Verify the result can be parsed as JSON
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
+
+    it("should fix the exact error pattern from WriteSurveyServiceImpl log - unquoted integrationPoints after closing brace", () => {
+      // This is the exact pattern from the error log: },\nintegrationPoints: [],
+      const input = `  "databaseIntegration": {
+    "mechanism": "SQL",
+    "name": "WriteSurveyServiceImpl"
+  },
+integrationPoints: [],
+  "codeQualityMetrics": {
+    "totalMethods": 3
+  }`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("integrationPoints:");
+      expect(result.content).toContain('"integrationPoints":');
+      expect(result.content).toMatch(/\},\s*\n\s*"integrationPoints":\s*\[\]/);
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.diagnostics).toContain("Fixed unquoted property name: integrationPoints");
+    });
   });
 });
