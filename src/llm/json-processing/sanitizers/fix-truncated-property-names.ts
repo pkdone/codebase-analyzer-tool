@@ -292,19 +292,54 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
           }
         }
 
-        // Skip if we're in an array context - let fixStrayTextBeforePropertyNames handle it
-        if (isInArray) {
-          return match;
+        // Check if this single character maps to a known property name
+        // If we're in an array context, we need to distinguish between:
+        // 1. Array of strings: ["value1", e"value2", "value3"] - should NOT fix (let fixStrayTextBeforePropertyNames handle it)
+        // 2. Array of objects: [{...}, e"value", "property": ...] - SHOULD fix (truncated property name)
+        // The key indicator is whether there's a closing brace } before the delimiter, which indicates
+        // we're in an array of objects context (the previous object closed with },)
+        // Check if there's a } immediately before the delimiter (within the last few characters)
+        let isInArrayOfObjects = false;
+        let isInArrayOfStrings = false;
+        if (isInArray && offsetNum !== undefined && typeof stringStr === "string") {
+          const beforeDelimiter = stringStr.substring(Math.max(0, offsetNum - 10), offsetNum);
+          // Check if there's a } before the delimiter (indicating }, pattern)
+          const hasClosingBraceBefore = beforeDelimiter.includes("}");
+          isInArrayOfObjects = hasClosingBraceBefore;
+          isInArrayOfStrings = !hasClosingBraceBefore;
+        } else if (isInArray && typeof delimiter === "string") {
+          // Fallback: check delimiter directly (though this won't catch }, pattern)
+          isInArrayOfObjects = delimiter.includes("}");
+          isInArrayOfStrings = !delimiter.includes("}");
         }
 
-        // Check if this single character maps to a known property name
+        // If we have a known mapping and we're NOT in an array of strings, we should fix it
+        // This handles:
+        // - Object context: e"value", -> "name": "value",
+        // - Array of objects: }, e"value", -> }, "name": "value",
+        // But NOT array of strings: , e"value", -> let fixStrayTextBeforePropertyNames handle it
         if (singleCharMappings[lowerChar]) {
           const fixedName = singleCharMappings[lowerChar];
+          // Skip if we're in an array of strings - let fixStrayTextBeforePropertyNames handle it
+          if (isInArrayOfStrings) {
+            return match;
+          }
           hasChanges = true;
-          diagnostics.push(
-            `Fixed missing opening quote and colon in truncated property: ${singleChar as string}"${propertyValue as string}" -> "${fixedName}": "${propertyValue as string}"`,
-          );
+          if (isInArrayOfObjects) {
+            diagnostics.push(
+              `Fixed missing opening quote and colon in truncated property (array of objects context): ${singleChar as string}"${propertyValue as string}" -> "${fixedName}": "${propertyValue as string}"`,
+            );
+          } else {
+            diagnostics.push(
+              `Fixed missing opening quote and colon in truncated property: ${singleChar as string}"${propertyValue as string}" -> "${fixedName}": "${propertyValue as string}"`,
+            );
+          }
           return `${delimiter}${whitespace}"${fixedName}": "${propertyValue as string}"${comma as string}`;
+        }
+
+        // If we're in an array context and no mapping found, skip it - let fixStrayTextBeforePropertyNames handle it
+        if (isInArray) {
+          return match;
         }
 
         return match; // Keep as is if no mapping found

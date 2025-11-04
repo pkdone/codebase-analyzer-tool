@@ -443,5 +443,33 @@ e"disburseLoanWithExceededOverAppliedAmountSucceed",
       );
       expect(result.content).not.toContain('e"disburseLoanWithExceededOverAppliedAmountSucceed"');
     });
+
+    it("should fix truncated property names in array-of-objects context when there's a known mapping", () => {
+      // This is the exact error case from response-error-2025-11-04T08-12-37-775Z.log
+      // Pattern: }, e"createShareProductToGLAccountMapping", in an array of objects
+      // Should be fixed to: }, "name": "createShareProductToGLAccountMapping",
+      const input = `  "publicMethods": [
+    {
+      "name": "createSavingProductToGLAccountMapping",
+      "codeSmells": []
+    },
+    e"createShareProductToGLAccountMapping",
+      "purpose": "Establishes the General Ledger account mappings"
+    }
+  ]`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      // Should fix this - even though it's in an array context, we have a known mapping (e -> name)
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "createShareProductToGLAccountMapping"');
+      expect(result.content).not.toContain('e"createShareProductToGLAccountMapping"');
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) =>
+          d.includes("missing opening quote and colon in truncated property (array of objects context)"),
+        ),
+      ).toBe(true);
+    });
   });
 });
