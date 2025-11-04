@@ -35,6 +35,7 @@ export { fixStrayTextBetweenColonAndValue } from "./fix-stray-text-between-colon
 export { fixTailEndTruncatedProperties } from "./fix-tail-end-truncated-properties";
 export { fixUnquotedPropertyTypos } from "./fix-unquoted-property-typos";
 export { fixCurlyQuotes } from "./fix-curly-quotes";
+export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 

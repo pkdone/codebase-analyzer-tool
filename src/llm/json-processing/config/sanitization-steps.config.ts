@@ -42,6 +42,8 @@ export const SANITIZATION_STEP = Object.freeze({
   FIXED_UNQUOTED_PROPERTY_TYPOS:
     "Fixed property names with missing opening quotes that are typos of valid properties",
   FIXED_CURLY_QUOTES: "Converted curly quotes (smart quotes) to regular ASCII quotes",
+  FIXED_BINARY_CORRUPTION_PATTERNS:
+    "Fixed binary corruption patterns (e.g., <y_bin_XXX> markers and stray text before braces)",
 } as const);
 
 /**

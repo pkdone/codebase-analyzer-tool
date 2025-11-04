@@ -48,6 +48,11 @@ COMPLETE PROPERTY QUOTING: Every property name must have BOTH opening and closin
   ✅ CORRECT: "linesOfCode": 10  
   ❌ INCORRECT: linesOfCode": 10 (missing opening quote)
   ❌ INCORRECT: "linesOfCode: 10 (missing closing quote)
+AVOID BINARY CORRUPTION MARKERS: Never include binary markers, corruption patterns, or placeholder text in your JSON response. Property names must be complete and valid. Examples:
+  ❌ INCORRECT: <y_bin_305>OfCode": 10 (binary marker corrupting property name)
+  ❌ INCORRECT: so{"name": "value"} (stray text before opening brace)
+  ✅ CORRECT: "linesOfCode": 10 (complete property name)
+  ✅ CORRECT: {"name": "value"} (proper structure with opening brace)
   ❌ INCORRECT: "linesOfCode "value" (missing closing quote AND colon - this is a critical error that breaks JSON parsing!)
 NO PROPERTY NAME TRUNCATION: NEVER truncate or abbreviate property names. Always write the complete property name with both opening and closing quotes. Do NOT write only the tail-end of a property name. Examples: ✅ CORRECT: "publicMethods": [...]  ❌ INCORRECT: alues": [...] (missing opening quote and beginning of "publicMethods" - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: nstants": [...] (missing opening quote and beginning of "publicConstants")  ❌ INCORRECT: egrationPoints": [...] (missing opening quote and beginning of "integrationPoints")  ✅ CORRECT: "publicMethods": [...], "publicConstants": [...], "integrationPoints": [...] (all complete with opening quotes)
 NO PROPERTY NAME TYPOS: Use the EXACT property names from the schema. Do NOT create variations or typos. Common mistakes: ✅ CORRECT: "externalReferences": [...]  ❌ INCORRECT: extraReferences": [...] (typo: "extra" instead of "external" AND missing opening quote - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: internReferences": [...] (typo: "intern" instead of "internal" AND missing opening quote)  ❌ INCORRECT: publMethods": [...] (typo: "publ" instead of "public" AND missing opening quote)  ✅ CORRECT: "externalReferences": [...], "internalReferences": [...], "publicMethods": [...] (exact schema property names with opening quotes)
