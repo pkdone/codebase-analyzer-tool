@@ -204,5 +204,43 @@ describe("extractLargestJsonSpan", () => {
       // Extracts the first complete structure
       expect(result.content).toBe("[1]");
     });
+
+    it("should skip code snippets like else{ and extract actual JSON", () => {
+      // This reproduces the exact error from response-error-2025-11-04T14-30-42-646Z.log
+      // where a code snippet "else{" appears in planning text before the actual JSON
+      // The actual JSON starts on the next line after else{
+      const input = `*   \`createJournalEntriesForChargeOffLoanRepaymentAndWriteOffs\`: This is huge. Let's count. 1 + \`if\` (1) + \`if\` (1) + \`if\` (1) + \`else if\` (1) + \`else if\` (1) + \`else if\` (1) + \`else\` (0) + \`if\` (1) + \`if\` (1) + \`else if\` (1) + \`else if\` (1) + \`else if\` (1) + \`else\` (0) + \`if\` (1) + \`if\` (1) + \`else if\` (1) + \`else if\` (1) + \`else if\` (1) + \`else\` (0) + \`else{
+{
+  "name": "AccrualBasedAccountingProcessorForLoan",
+  "kind": "CLASS",
+  "purpose": "This class is a core component..."
+}`;
+
+      const result = extractLargestJsonSpan(input);
+
+      expect(result.changed).toBe(true);
+      // Should extract the actual JSON object, not the code snippet "else{"
+      expect(result.content).toContain('"name": "AccrualBasedAccountingProcessorForLoan"');
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).not.toContain("else{");
+      expect(result.content).not.toContain("Let's count");
+    });
+
+    it("should skip code snippets like if{ and extract actual JSON", () => {
+      const input = `Some code example: if{ condition } else{ some code
+{
+  "actual": "json",
+  "data": true
+}`;
+
+      const result = extractLargestJsonSpan(input);
+
+      expect(result.changed).toBe(true);
+      // Should extract the actual JSON object, not the code snippets
+      expect(result.content).toContain('"actual": "json"');
+      expect(result.content).not.toContain("if{");
+      expect(result.content).not.toContain("else{");
+      expect(result.content).not.toContain("some code");
+    });
   });
 });

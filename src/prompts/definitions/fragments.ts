@@ -6,6 +6,7 @@ export const COMMON_FRAGMENTS = {
   FORCE_JSON_FORMAT: `In your response, only include JSON and do not include any additional text explanations outside the JSON object.
 NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
 NEVER include thought markers, thinking prefixes, or explanation text before the JSON. Do NOT write patterns like <ctrl94>thought, <thinking>, or command{ before the JSON. Start your response directly with { or [.
+CRITICAL: NEVER include code snippets, code examples, or programming language syntax in your response. Do NOT write code patterns like else{ or if{ in your planning or explanation text, as these can interfere with JSON extraction. Only include the JSON object itself, starting directly with { or [.
 ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.
 CRITICAL JSON FORMAT REQUIREMENTS (MUST FOLLOW EXACTLY):
 - ALL property names MUST be enclosed in double quotes (e.g., "name": "value", NOT name: "value")
