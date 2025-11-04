@@ -600,4 +600,58 @@ publicConstants: [
       expect(() => JSON.parse(`{${result.content}}`)).not.toThrow();
     });
   });
+
+  describe("unquoted property names after opening braces", () => {
+    it("should fix unquoted property name after opening brace in array object", () => {
+      // This reproduces the exact error from response-error-2025-11-04T14-30-41-499Z.log
+      // where name: appears after { in an array object
+      const input = `  "publicMethods": [
+    {
+      "name": "applyLoanRequest",
+      "codeSmells": []
+    },
+    {
+      name: "verifyClientCreatedOnServer",
+      "purpose": "Verifies that a client with a specific external ID does not exist on the Fineract server."
+    }
+  ]`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "verifyClientCreatedOnServer"');
+      // Verify the unquoted pattern is not present
+      const hasUnquotedPattern = /{\s*name:\s*"/.test(result.content);
+      expect(hasUnquotedPattern).toBe(false);
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) => d.includes("Fixed unquoted property name: name")),
+      ).toBe(true);
+    });
+
+    it("should fix unquoted property name immediately after opening brace", () => {
+      const input = `{
+  name: "value",
+  "other": "test"
+}`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "value"');
+      expect(result.content).not.toContain('name: "value"');
+    });
+
+    it("should fix unquoted property name after opening brace with indentation", () => {
+      const input = `    {
+      name: "value",
+      "other": "test"
+    }`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "value"');
+    });
+  });
 });

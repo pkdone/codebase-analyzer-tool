@@ -22,6 +22,7 @@ Every property name, at every nesting level, must follow this exact pattern: "pr
  ❌ INCORRECT: {name: "value", nested: {inner: "data"}}
  ❌ INCORRECT: {name": "value", "nested": {inner": "data"}}
  ❌ INCORRECT: {"name": "value", nested: {"inner": "data"}}
+CRITICAL: PROPERTY NAMES AFTER OPENING BRACES - When starting a new object with {, the FIRST property name MUST have quotes. Common mistakes: ❌ INCORRECT: {name: "value", (missing quotes around "name" - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: {\n      name: "value", (missing quotes after opening brace - CRITICAL: this breaks JSON parsing!)  ✅ CORRECT: {"name": "value", (complete with opening and closing quotes)  ✅ CORRECT: {\n      "name": "value", (complete with quotes even after opening brace)
 COMMON MISTAKES TO AVOID:
 - Unquoted property names: name: "value" → MUST be "name": "value"
 - Missing opening quote: name": "value" → MUST be "name": "value"

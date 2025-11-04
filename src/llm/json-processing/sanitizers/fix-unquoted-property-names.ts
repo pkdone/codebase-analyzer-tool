@@ -191,12 +191,16 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
     }
 
     // Second pass: Fix completely unquoted property names (e.g., name:)
+    // This pattern matches property names that are completely unquoted
+    // We add additional context checking to ensure we're at a property boundary
     const unquotedPropertyPattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s*:/g;
 
     sanitized = sanitized.replace(
       unquotedPropertyPattern,
       (match, whitespace, propertyName, offset: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
 
         // Check if already quoted (now checking sanitized string)
         if (numericOffset > 0 && sanitized[numericOffset - 1] === DELIMITERS.DOUBLE_QUOTE) {
@@ -208,9 +212,50 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           return match; // Keep as is - inside a string
         }
 
+        // Additional context check: verify we're at a property boundary
+        // This helps avoid false matches in other contexts
+        if (numericOffset > 0) {
+          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+          // Check if we're after a valid property boundary: {, }, ], ,, or newline
+          // This ensures we're in an object context, not somewhere else
+          const isAfterPropertyBoundary = /[{}\],]\s*$|\n\s*$/.test(beforeMatch);
+          
+          // If we're not at a clear boundary, be more cautious
+          // Check if the character immediately before the whitespace is a valid delimiter
+          const charBeforeWhitespace = numericOffset > 0 ? sanitized[numericOffset - 1] : "";
+          const isValidContext = 
+            isAfterPropertyBoundary || 
+            charBeforeWhitespace === "{" || 
+            charBeforeWhitespace === "," ||
+            charBeforeWhitespace === "\n" ||
+            numericOffset === 0;
+
+          if (!isValidContext) {
+            // Additional check: count quotes to see if we might be in a string
+            let quoteCount = 0;
+            let escape = false;
+            for (let i = Math.max(0, numericOffset - 200); i < numericOffset; i++) {
+              const char = sanitized[i];
+              if (escape) {
+                escape = false;
+                continue;
+              }
+              if (char === "\\") {
+                escape = true;
+              } else if (char === '"') {
+                quoteCount++;
+              }
+            }
+            // If odd number of quotes, we're likely inside a string - skip
+            if (quoteCount % 2 === 1) {
+              return match;
+            }
+          }
+        }
+
         hasChanges = true;
-        diagnostics.push(`Fixed unquoted property name: ${propertyName as string}`);
-        return `${whitespace}"${propertyName as string}":`;
+        diagnostics.push(`Fixed unquoted property name: ${propertyNameStr}`);
+        return `${whitespaceStr}"${propertyNameStr}":`;
       },
     );
 
