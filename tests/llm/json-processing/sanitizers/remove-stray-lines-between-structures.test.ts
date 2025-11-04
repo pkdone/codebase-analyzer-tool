@@ -415,5 +415,29 @@ procrastinate
       expect(result.diagnostics).toBeDefined();
       expect(result.diagnostics?.length).toBeGreaterThan(0);
     });
+
+    it("should fix the exact error pattern from DepositAccountDataValidator log - stray line with leading whitespace", () => {
+      // This reproduces the exact error from response-error-2025-11-04T14-31-23-388Z.log
+      // where "procrastinate" appears with leading whitespace between ], and "externalReferences"
+      const input = `  "internalReferences": [
+    "org.apache.fineract.portfolio.savings.DepositsApiConstants",
+    "org.apache.fineract.infrastructure.core.data.ApiParameterError"
+  ],
+ procrastinate
+  "externalReferences": [
+    "com.google.gson.JsonArray"
+  ]`;
+
+      const result = removeStrayLinesBetweenStructures(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("procrastinate");
+      expect(result.content).toContain('"externalReferences":');
+      expect(result.content).toMatch(/],\s*\n\s*"externalReferences"/);
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("procrastinate"))).toBe(true);
+      // Verify the result can be parsed as JSON
+      expect(() => JSON.parse(`{${result.content}}`)).not.toThrow();
+    });
   });
 });

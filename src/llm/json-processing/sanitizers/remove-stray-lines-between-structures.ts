@@ -46,12 +46,13 @@ export const removeStrayLinesBetweenStructures: Sanitizer = (
 
     // Pattern to match stray lines between JSON structures:
     // 1. After closing delimiter (], }, or ,) with optional whitespace, followed by newline
-    // 2. A complete line that doesn't start with valid JSON tokens
+    // 2. A complete line that doesn't start with valid JSON tokens (even with leading whitespace)
     // 3. Followed by newline and then a valid JSON token (quote, brace, or bracket)
     //
     // The stray line pattern:
-    // - Doesn't start with quote, brace, bracket
-    // - Doesn't start with whitespace followed by quote, brace, bracket (valid indented JSON)
+    // - Can have leading whitespace (but should not be valid indented JSON)
+    // - Doesn't start with quote, brace, bracket (even after whitespace)
+    // - Doesn't match valid indented JSON pattern (whitespace + quote/brace/bracket)
     // - Can contain any characters (file paths, text, etc.)
     //
     // Valid JSON line starts with:
@@ -64,40 +65,48 @@ export const removeStrayLinesBetweenStructures: Sanitizer = (
     // - ([}\],]): closing delimiter (}, ], or comma)
     // - (\s*): optional whitespace after delimiter
     // - \n: newline
-    // - ([^\s"{}[\]]): stray line starts with non-whitespace, non-JSON token character
-    // - ([^\n]*): rest of the stray line (can contain anything except newline)
+    // - (\s*): optional leading whitespace on stray line
+    // - ([^"{}[\n]+): stray line content (doesn't start with quote, brace, bracket even after whitespace)
     // - \n: newline after stray line
     // - (\s*): optional whitespace before next token
     // - (["{\[]): next valid JSON token (quote, opening brace, or opening bracket)
     //
     // Note: We also need to handle cases where the delimiter is ], or }, (closing bracket/brace + comma)
     // This requires a separate pattern that matches the full sequence
-    const precisePattern = /([}\],])(\s*)\n([^\s"{}[\]]+[^\n]*)\n(\s*)([{"[])/g;
+    const precisePattern = /([}\],])(\s*)\n(\s*)([^"{}[\n]+)\n(\s*)([{"[])/g;
 
     // Second pattern: Handle cases where delimiter is ], or }, (closing bracket/brace + comma on newline)
-    // Matches: ],\nprocrastinate\n  "property" or },\ntext\n  "property"
-    const delimiterCommaPattern = /([}\]]\s*,\s*)\n([^\s"{}[\]]+[^\n]*)\n(\s*)([{"[])/g;
+    // Matches: ],\nprocrastinate\n  "property" or },\ntext\n  "property" or ],\n procrastinate\n  "property"
+    // Updated to handle stray lines with leading whitespace
+    const delimiterCommaPattern = /([}\]]\s*,\s*)\n(\s*)([^"{}[\n]+)\n(\s*)([{"[])/g;
 
     sanitized = sanitized.replace(
       precisePattern,
-      (match, delimiter, whitespaceBefore, strayLine, whitespaceAfter, nextToken) => {
+      (match, delimiter, whitespaceBefore, strayLineWhitespace, strayLineContent, whitespaceAfter, nextToken) => {
         // Type assertions for regex match groups
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const whitespaceBeforeStr = typeof whitespaceBefore === "string" ? whitespaceBefore : "";
-        const strayLineStr = typeof strayLine === "string" ? strayLine : "";
+        const strayLineWhitespaceStr = typeof strayLineWhitespace === "string" ? strayLineWhitespace : "";
+        const strayLineContentStr = typeof strayLineContent === "string" ? strayLineContent : "";
         const whitespaceAfterStr = typeof whitespaceAfter === "string" ? whitespaceAfter : "";
         const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
 
+        // Reconstruct the full stray line (whitespace + content)
+        const fullStrayLine = strayLineWhitespaceStr + strayLineContentStr;
+
         // Verify the context: the stray line shouldn't be valid JSON
-        // Check if the line starts with something that could be valid JSON
-        const trimmedStrayLine = strayLineStr.trim();
+        // Check if the line (after trimming) starts with something that could be valid JSON
+        const trimmedStrayLine = fullStrayLine.trim();
         const startsWithValidJsonToken = /^["{}[\]]/.test(trimmedStrayLine);
 
+        // Check if it's valid indented JSON (whitespace + quote/brace/bracket)
+        const isIndentedJson = /^\s+["{[]/.test(fullStrayLine);
+
         // Also check if it's just whitespace (which is valid between structures)
-        const isJustWhitespace = /^\s*$/.test(strayLineStr);
+        const isJustWhitespace = /^\s*$/.test(fullStrayLine);
 
         // Don't remove if it looks like valid JSON or is just whitespace
-        if (startsWithValidJsonToken || isJustWhitespace) {
+        if (startsWithValidJsonToken || isJustWhitespace || isIndentedJson) {
           return match;
         }
 
@@ -111,7 +120,7 @@ export const removeStrayLinesBetweenStructures: Sanitizer = (
           hasChanges = true;
           // Abbreviate long stray lines in diagnostics
           const displayLine =
-            strayLineStr.length > 60 ? `${strayLineStr.substring(0, 57)}...` : strayLineStr;
+            trimmedStrayLine.length > 60 ? `${trimmedStrayLine.substring(0, 57)}...` : trimmedStrayLine;
           diagnostics.push(`Removed stray line: "${displayLine}"`);
 
           // Reconstruct without the stray line: delimiter + whitespace + newline + next token with whitespace
@@ -125,20 +134,28 @@ export const removeStrayLinesBetweenStructures: Sanitizer = (
     // Second pass: Handle cases where the delimiter includes a comma (], or },)
     sanitized = sanitized.replace(
       delimiterCommaPattern,
-      (match, delimiterComma, strayLine, whitespaceAfter, nextToken) => {
+      (match, delimiterComma, strayLineWhitespace, strayLineContent, whitespaceAfter, nextToken) => {
         // Type assertions for regex match groups
         const delimiterCommaStr = typeof delimiterComma === "string" ? delimiterComma : "";
-        const strayLineStr = typeof strayLine === "string" ? strayLine : "";
+        const strayLineWhitespaceStr = typeof strayLineWhitespace === "string" ? strayLineWhitespace : "";
+        const strayLineContentStr = typeof strayLineContent === "string" ? strayLineContent : "";
         const whitespaceAfterStr = typeof whitespaceAfter === "string" ? whitespaceAfter : "";
         const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
 
+        // Reconstruct the full stray line (whitespace + content)
+        const fullStrayLine = strayLineWhitespaceStr + strayLineContentStr;
+
         // Verify the context: the stray line shouldn't be valid JSON
-        const trimmedStrayLine = strayLineStr.trim();
+        const trimmedStrayLine = fullStrayLine.trim();
         const startsWithValidJsonToken = /^["{}[\]]/.test(trimmedStrayLine);
-        const isJustWhitespace = /^\s*$/.test(strayLineStr);
+        
+        // Check if it's valid indented JSON (whitespace + quote/brace/bracket)
+        const isIndentedJson = /^\s+["{[]/.test(fullStrayLine);
+        
+        const isJustWhitespace = /^\s*$/.test(fullStrayLine);
 
         // Don't remove if it looks like valid JSON or is just whitespace
-        if (startsWithValidJsonToken || isJustWhitespace) {
+        if (startsWithValidJsonToken || isJustWhitespace || isIndentedJson) {
           return match;
         }
 
@@ -152,7 +169,7 @@ export const removeStrayLinesBetweenStructures: Sanitizer = (
           hasChanges = true;
           // Abbreviate long stray lines in diagnostics
           const displayLine =
-            strayLineStr.length > 60 ? `${strayLineStr.substring(0, 57)}...` : strayLineStr;
+            trimmedStrayLine.length > 60 ? `${trimmedStrayLine.substring(0, 57)}...` : trimmedStrayLine;
           diagnostics.push(`Removed stray line: "${displayLine}"`);
 
           // Reconstruct without the stray line: delimiter+comma + newline + next token with whitespace
