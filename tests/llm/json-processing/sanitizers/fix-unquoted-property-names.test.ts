@@ -574,5 +574,30 @@ integrationPoints: [],
       expect(result.diagnostics?.length).toBeGreaterThan(0);
       expect(result.diagnostics).toContain("Fixed unquoted property name: integrationPoints");
     });
+
+    it("should handle the exact error case from TwoFactorConfigurationConstants log - unquoted publicConstants after externalReferences", () => {
+      // This is the exact pattern from the error log: "externalReferences": [],\npublicConstants: [
+      const input = `  "internalReferences": [],
+  "externalReferences": [],
+publicConstants: [
+    {
+      "name": "RESOURCE_NAME",
+      "value": "TWOFACTOR_CONFIGURATION"
+    }
+  ]`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("publicConstants:");
+      expect(result.content).toContain('"publicConstants":');
+      expect(result.content).toMatch(/\],\s*\n\s*"publicConstants":\s*\[/);
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.length).toBeGreaterThan(0);
+      expect(result.diagnostics).toContain("Fixed unquoted property name: publicConstants");
+      
+      // Verify the result can be parsed as JSON
+      expect(() => JSON.parse(`{${result.content}}`)).not.toThrow();
+    });
   });
 });
