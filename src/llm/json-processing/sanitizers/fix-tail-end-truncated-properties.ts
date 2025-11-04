@@ -108,14 +108,13 @@ export const fixTailEndTruncatedProperties: Sanitizer = (jsonString: string): Sa
             return match; // Keep as is - inside a string
           }
 
-          // Check if there's already an opening quote before the tail-end
-          const matchStart = numericOffset + (delimiterStr === "\n" ? 1 : 0);
-          if (matchStart > 0 && sanitized[matchStart - 1] === '"') {
-            // Check if the delimiter is actually part of a closing quote
-            const beforeDelimiter = sanitized.substring(Math.max(0, matchStart - 2), matchStart);
-            if (!beforeDelimiter.endsWith('"')) {
-              return match; // Already has opening quote
-            }
+          // Check if there's already an opening quote before the tail-end property name
+          // The tail-end starts after the delimiter and whitespace
+          const delimiterLength = delimiterStr === "\n" ? 1 : delimiterStr.length;
+          const tailEndStart = numericOffset + delimiterLength + whitespaceStr.length;
+          if (tailEndStart > 0 && sanitized[tailEndStart - 1] === '"') {
+            // Already has opening quote before the tail-end, skip this match
+            return match;
           }
 
           // Look up the tail-end in our mappings

@@ -111,6 +111,39 @@ alues": [
       expect(result.content).toMatch(/"databaseIntegration":\s*\{/);
     });
 
+    it("should handle the exact error case from response-error-2025-11-04T08-11-44-376Z.log", () => {
+      // This reproduces the exact error from the log file where alues": [ appears after },
+      const input = `      "cyclomaticComplexity": 2,
+      "linesOfCode": 7,
+      "codeSmells": []
+    },
+alues": [
+      {
+        "name": "retrieveLoanAccountApplicableCharges",
+        "purpose": "Retrieves a collection of charges that can be applied to a specific loan account.",
+        "parameters": [
+          {
+            "name": "loanId",
+            "type": "Long"
+          }
+        ],
+        "returnType": "Collection<ChargeData>",
+        "codeSmells": []
+      }
+    ]
+  ],
+  "integrationPoints": []`;
+
+      const result = fixTailEndTruncatedProperties(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.description).toBe(SANITIZATION_STEP.FIXED_TAIL_END_TRUNCATED_PROPERTIES);
+      expect(result.content).toContain('"publicMethods": [');
+      expect(result.content).not.toContain('alues":');
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("alues") && d.includes("publicMethods"))).toBe(true);
+    });
+
     it("should handle multiple occurrences", () => {
       const input = `    },
 alues": [
