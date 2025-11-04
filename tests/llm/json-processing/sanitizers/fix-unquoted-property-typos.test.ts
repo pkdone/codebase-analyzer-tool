@@ -21,6 +21,29 @@ extraReferences": [
       expect(result.diagnostics?.length).toBeGreaterThan(0);
     });
 
+    it("should fix the exact error pattern from LoanFixedPrincipalPercentageAmortizationTest log", () => {
+      // This reproduces the exact error from response-error-2025-11-04T14-36-17-638Z.log
+      // where "extraReferences": appears with missing opening quote and is a typo for "externalReferences"
+      const input = `  "internalReferences": [
+    "org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper"
+  ],
+extraReferences": [
+    "io.restassured.builder.RequestSpecBuilder",
+    "io.restassured.builder.ResponseSpecBuilder"
+  ]`;
+
+      const result = fixUnquotedPropertyTypos(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"externalReferences": [');
+      expect(result.content).not.toContain('extraReferences":');
+      expect(result.content).not.toContain('"extraReferences":');
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("extraReferences"))).toBe(true);
+      // Verify the result can be parsed as JSON
+      expect(() => JSON.parse(`{${result.content}}`)).not.toThrow();
+    });
+
     it("should fix internReferences typo", () => {
       const input = `    },
 internReferences": [

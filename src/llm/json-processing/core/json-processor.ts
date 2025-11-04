@@ -102,11 +102,11 @@ export class JsonProcessor {
    * 25. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
    * 26. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
    * 27. fixCorruptedArrayObjectStart - Fix corrupted array object starts (missing { and "name": with stray text)
-   * 28. fixUnquotedPropertyNames - Add quotes around unquoted property names
-   * 29. fixUnquotedStringValues - Add quotes around unquoted string values
-   * 30. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
-   * 31. fixTailEndTruncatedProperties - Fix tail-end truncated property names with missing opening quotes
-   * 32. fixUnquotedPropertyTypos - Fix property names with missing opening quotes that are typos
+   * 28. fixUnquotedPropertyTypos - Fix property names with missing opening quotes that are typos (runs before fixUnquotedPropertyNames)
+   * 29. fixUnquotedPropertyNames - Add quotes around unquoted property names
+   * 30. fixUnquotedStringValues - Add quotes around unquoted string values
+   * 31. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
+   * 32. fixTailEndTruncatedProperties - Fix tail-end truncated property names with missing opening quotes
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -146,11 +146,11 @@ export class JsonProcessor {
     fixBinaryCorruptionPatterns,
     removeTruncationMarkers,
     fixAssignmentSyntax,
+    fixUnquotedPropertyTypos, // Run before fixUnquotedPropertyNames to fix typos AND missing quotes together
     fixUnquotedPropertyNames,
     fixUnquotedStringValues,
     fixStrayTextBetweenColonAndValue,
     fixTailEndTruncatedProperties,
-    fixUnquotedPropertyTypos,
     fixPropertyNameTypos,
   ] as const satisfies readonly Sanitizer[];
 

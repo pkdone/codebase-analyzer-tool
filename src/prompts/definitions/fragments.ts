@@ -27,11 +27,13 @@ CRITICAL: PROPERTY NAMES AFTER OPENING BRACES - When starting a new object with 
 COMMON MISTAKES TO AVOID:
 - Unquoted property names: name: "value" → MUST be "name": "value"
 - Missing opening quote: name": "value" → MUST be "name": "value"
+- Missing opening quote with typo: extraReferences": → MUST be "externalReferences": (CRITICAL: both the opening quote AND the correct property name are required)
 - Missing closing quote: "name: "value" → MUST be "name": "value"
 - Missing closing quote AND colon: "name "value" → MUST be "name": "value" (CRITICAL: property names must have BOTH closing quote AND colon before the value)
 - Stray text before property: e"name": → MUST be "name":
 - Stray text before property: word"name": → MUST be "name":
 - Incomplete quotes: cyclomaticComplexity": → MUST be "cyclomaticComplexity":
+- Property name typos: extraReferences", internReferences", publMethods" → MUST use correct names: "externalReferences", "internalReferences", "publicMethods"
 CRITICAL: NO STRAY TEXT BEFORE PROPERTY NAMES - This is a common error that breaks JSON parsing. When starting a new property after closing an object or array (}, or ],), ensure you start directly with the opening quote. Common mistakes:
  ❌ INCORRECT: },\ne"publicMethods": [    (stray "e" character before property)
  ❌ INCORRECT: },\nword"propertyName": {   (stray "word" before property)
