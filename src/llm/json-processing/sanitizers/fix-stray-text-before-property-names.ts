@@ -263,8 +263,14 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
           let openBraces = 0;
           let inString = false;
           let escapeNext = false;
-          let lastBracketIndex = -1;
+          let foundArrayOpening = false;
 
+          // When scanning backwards:
+          // - ] means we're entering an array (from the future), so increment
+          // - [ means we're leaving an array (from the future), so decrement
+          // - } means we're entering an object, so increment
+          // - { means we're leaving an object, so decrement
+          // We're in an array if we find [ and at that point we have more closing brackets than opening
           for (let i = beforeMatch.length - 1; i >= 0; i--) {
             const char = beforeMatch[i];
             if (escapeNext) {
@@ -282,27 +288,35 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
             if (!inString) {
               if (char === "]") {
                 openBrackets++;
-                if (lastBracketIndex === -1) lastBracketIndex = i;
               } else if (char === "[") {
                 openBrackets--;
-                // If we've seen a closing bracket and braces are balanced, we're in an array
-                if (openBrackets === 0 && openBraces === 0 && lastBracketIndex > i) {
+                // If we find [ and we had more closing brackets than opening (openBrackets was positive before decrement),
+                // and braces are balanced or we're at the object level, we're in an array
+                // openBrackets > 0 means we've seen more ] than [ so far, meaning we're inside an array
+                if (openBrackets >= 0 && openBraces <= 0) {
                   isInArray = true;
+                  foundArrayOpening = true;
                   break;
                 }
-              } else if (char === "}") openBraces++;
-              else if (char === "{") openBraces--;
+              } else if (char === "}") {
+                openBraces++;
+              } else if (char === "{") {
+                openBraces--;
+              }
             }
           }
-          // Also check: if we're after a comma-newline or comma within what looks like an array structure
-          // This handles cases where the pattern matches but bracket counting missed it
-          // delimiterWithNewlineStr will contain the comma if it matched with newline
-          const isAfterComma = delimiterWithNewlineStr === "," || delimiterStr === ",";
-          if (!isInArray && isAfterComma) {
-            // Look for an opening bracket before us
-            const hasOpeningBracket = beforeMatch.includes("[");
-            if (hasOpeningBracket && openBraces === 0) {
-              isInArray = true;
+          // Fallback: if we're after a comma and there's an opening bracket in the context,
+          // and we're not deeply nested in objects (openBraces <= 0), we're likely in an array
+          // This handles cases where bracket counting didn't find the array opening
+          if (!foundArrayOpening) {
+            const isAfterComma = delimiterWithNewlineStr === "," || delimiterStr === ",";
+            if (isAfterComma) {
+              const hasOpeningBracket = beforeMatch.includes("[");
+              // If we have an opening bracket and we're not deeply nested in objects, we're likely in an array
+              // openBraces <= 0 means we're at the root object level or inside an array
+              if (hasOpeningBracket && openBraces <= 0) {
+                isInArray = true;
+              }
             }
           }
         }

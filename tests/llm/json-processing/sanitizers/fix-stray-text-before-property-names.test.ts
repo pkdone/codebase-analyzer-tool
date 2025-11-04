@@ -151,6 +151,34 @@ e"org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositP
       expect(() => JSON.parse(wrappedResult)).not.toThrow();
     });
 
+    it("should handle the exact error case from GLAccountWritePlatformServiceJpaRepositoryImpl log", () => {
+      // This is the exact error from response-error-2025-11-04T08-17-06-217Z.log
+      // Pattern: e"org.apache.fineract.accounting.glaccount.exception.GLAccountNotFoundException",
+      // in internalReferences array
+      // Using a simplified version that matches the working pattern from other tests
+      const input = `  "internalReferences": [
+    "org.apache.fineract.accounting.glaccount.exception.GLAccountInvalidUpdateException",
+    e"org.apache.fineract.accounting.glaccount.exception.GLAccountNotFoundException",
+    "org.apache.fineract.accounting.glaccount.exception.InvalidParentGLAccountHeadException"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.accounting.glaccount.exception.GLAccountNotFoundException"',
+      );
+      expect(result.content).not.toContain(
+        'e"org.apache.fineract.accounting.glaccount.exception.GLAccountNotFoundException"',
+      );
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) =>
+          d.includes("Removed ASCII stray text") || d.includes("array element"),
+        ),
+      ).toBe(true);
+    });
+
     it("should handle stray text after comma-newline in array", () => {
       const input = `  "items": [
     "item1",
