@@ -19,9 +19,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * the complete property name with proper quoting. This is especially important for
  * schema properties that appear frequently in JSON responses.
  */
-export const fixTailEndTruncatedProperties: Sanitizer = (
-  jsonString: string,
-): SanitizerResult => {
+export const fixTailEndTruncatedProperties: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
     // Helper to determine if a position is inside a string literal
     function isInStringAt(position: number, content: string): boolean {
@@ -143,9 +141,7 @@ export const fixTailEndTruncatedProperties: Sanitizer = (
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.FIXED_TAIL_END_TRUNCATED_PROPERTIES
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.FIXED_TAIL_END_TRUNCATED_PROPERTIES : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
@@ -159,4 +155,3 @@ export const fixTailEndTruncatedProperties: Sanitizer = (
     };
   }
 };
-

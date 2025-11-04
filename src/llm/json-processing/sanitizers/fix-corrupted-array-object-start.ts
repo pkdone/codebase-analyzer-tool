@@ -47,8 +47,7 @@ export const fixCorruptedArrayObjectStart: Sanitizer = (jsonString: string): San
     // - The stray text itself
     // - The quoted value string
     // - Comma after the quoted string
-    const corruptedPatternWithValue =
-      /(\}\s*,\s*)(\n?)(\s*)([a-zA-Z]{1,3})"([^"]+)"(\s*,)/g;
+    const corruptedPatternWithValue = /(\}\s*,\s*)(\n?)(\s*)([a-zA-Z]{1,3})"([^"]+)"(\s*,)/g;
 
     // Pattern 2: Corrupted array object starts with stray text before a property name
     // Matches: }, strayText"propertyName":
@@ -59,8 +58,7 @@ export const fixCorruptedArrayObjectStart: Sanitizer = (jsonString: string): San
     // - The stray text itself
     // - The quoted property name string
     // - Colon after the quoted string
-    const corruptedPatternWithPropertyName =
-      /(\}\s*,\s*)(\n?)(\s*)([a-zA-Z]{1,3})"([^"]+)"(\s*:)/g;
+    const corruptedPatternWithPropertyName = /(\}\s*,\s*)(\n?)(\s*)([a-zA-Z]{1,3})"([^"]+)"(\s*:)/g;
 
     // Helper function to check if we're in an array context
     function isInArrayContext(matchIndex: number, content: string): boolean {
@@ -159,13 +157,23 @@ export const fixCorruptedArrayObjectStart: Sanitizer = (jsonString: string): San
     // Pattern 2: Handle stray text before property names (just needs { inserted)
     sanitized = sanitized.replace(
       corruptedPatternWithPropertyName,
-      (match, braceComma, newline, indent, strayText, quotedPropertyName, colonAfter, offset: unknown) => {
+      (
+        match,
+        braceComma,
+        newline,
+        indent,
+        strayText,
+        quotedPropertyName,
+        colonAfter,
+        offset: unknown,
+      ) => {
         // Type assertions for regex match groups
         const braceCommaStr = typeof braceComma === "string" ? braceComma : "";
         const newlineStr = typeof newline === "string" ? newline : "";
         const indentStr = typeof indent === "string" ? indent : "";
         const strayTextStr = typeof strayText === "string" ? strayText : "";
-        const quotedPropertyNameStr = typeof quotedPropertyName === "string" ? quotedPropertyName : "";
+        const quotedPropertyNameStr =
+          typeof quotedPropertyName === "string" ? quotedPropertyName : "";
         const colonAfterStr = typeof colonAfter === "string" ? colonAfter : "";
         const numericOffset = typeof offset === "number" ? offset : 0;
 
@@ -208,9 +216,7 @@ export const fixCorruptedArrayObjectStart: Sanitizer = (jsonString: string): San
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.FIXED_CORRUPTED_ARRAY_OBJECT_START
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.FIXED_CORRUPTED_ARRAY_OBJECT_START : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {

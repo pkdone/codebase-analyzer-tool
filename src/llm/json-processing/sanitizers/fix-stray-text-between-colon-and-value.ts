@@ -72,35 +72,37 @@ export const fixStrayTextBetweenColonAndValue: Sanitizer = (
       sanitized = sanitized.replace(
         strayTextBetweenColonAndValuePattern,
         (match, propertyName, strayText, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-        const strayTextStr = typeof strayText === "string" ? strayText : "";
-        const valueStr = typeof value === "string" ? value : "";
+          const numericOffset = typeof offset === "number" ? offset : 0;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const strayTextStr = typeof strayText === "string" ? strayText : "";
+          const valueStr = typeof value === "string" ? value : "";
 
-        // Check if we're inside a string literal at the match position
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match; // Keep as is - inside a string
-        }
+          // Check if we're inside a string literal at the match position
+          if (isInStringAt(numericOffset, sanitized)) {
+            return match; // Keep as is - inside a string
+          }
 
-        // Verify this is actually after a quoted property name (not a false positive)
-        // The pattern already ensures this, but we do additional validation
-        if (numericOffset > 0) {
-          const contextBefore = sanitized.substring(
-            Math.max(0, numericOffset - 50),
-            numericOffset,
-          );
-          // Should see the property name pattern before the match
-          const hasPropertyNamePattern = /"\s*$/.test(contextBefore) || /[}\],\]]\s*$/.test(contextBefore);
-          if (!hasPropertyNamePattern && !contextBefore.trim().endsWith('"')) {
-            // Might not be a property context - be cautious
-            // Check if we're after an opening brace or bracket (array/object context)
-            const trimmedContext = contextBefore.trim();
-            const isInObjectOrArray = /[{]\s*$/.test(trimmedContext) || trimmedContext.includes("[");
-            if (!isInObjectOrArray) {
-              return match; // Skip if unclear
+          // Verify this is actually after a quoted property name (not a false positive)
+          // The pattern already ensures this, but we do additional validation
+          if (numericOffset > 0) {
+            const contextBefore = sanitized.substring(
+              Math.max(0, numericOffset - 50),
+              numericOffset,
+            );
+            // Should see the property name pattern before the match
+            const hasPropertyNamePattern =
+              /"\s*$/.test(contextBefore) || /[}\],\]]\s*$/.test(contextBefore);
+            if (!hasPropertyNamePattern && !contextBefore.trim().endsWith('"')) {
+              // Might not be a property context - be cautious
+              // Check if we're after an opening brace or bracket (array/object context)
+              const trimmedContext = contextBefore.trim();
+              const isInObjectOrArray =
+                /[{]\s*$/.test(trimmedContext) || trimmedContext.includes("[");
+              if (!isInObjectOrArray) {
+                return match; // Skip if unclear
+              }
             }
           }
-        }
 
           hasChanges = true;
           diagnostics.push(
@@ -135,4 +137,3 @@ export const fixStrayTextBetweenColonAndValue: Sanitizer = (
     };
   }
 };
-

@@ -13,9 +13,7 @@ alues": [
       const result = fixTailEndTruncatedProperties(input);
 
       expect(result.changed).toBe(true);
-      expect(result.description).toBe(
-        SANITIZATION_STEP.FIXED_TAIL_END_TRUNCATED_PROPERTIES,
-      );
+      expect(result.description).toBe(SANITIZATION_STEP.FIXED_TAIL_END_TRUNCATED_PROPERTIES);
       expect(result.content).toContain('"publicMethods": [');
       expect(result.content).not.toContain('alues":');
       expect(result.diagnostics).toBeDefined();
@@ -333,4 +331,3 @@ alues": [
     });
   });
 });
-

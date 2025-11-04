@@ -15,7 +15,7 @@ describe("fixCurlyQuotes", () => {
     });
 
     it("should convert right double curly quote to regular quote", () => {
-      const input = '\u201DexternalReferences\u201D: ['; // Right curly quote (U+201D)
+      const input = "\u201DexternalReferences\u201D: ["; // Right curly quote (U+201D)
       const result = fixCurlyQuotes(input);
 
       expect(result.changed).toBe(true);
@@ -24,7 +24,7 @@ describe("fixCurlyQuotes", () => {
     });
 
     it("should convert both left and right double curly quotes", () => {
-      const input = '{\u201Cname\u201D: \u201Cvalue\u201D, \u201Cproperty\u201D: \u201Ctest\u201D}'; // Both curly quotes
+      const input = "{\u201Cname\u201D: \u201Cvalue\u201D, \u201Cproperty\u201D: \u201Ctest\u201D}"; // Both curly quotes
       const result = fixCurlyQuotes(input);
 
       expect(result.changed).toBe(true);
@@ -104,7 +104,7 @@ describe("fixCurlyQuotes", () => {
     });
 
     it("should handle string with only curly quotes", () => {
-      const input = '\u201C\u201D'; // Both curly quotes
+      const input = "\u201C\u201D"; // Both curly quotes
       const result = fixCurlyQuotes(input);
 
       expect(result.changed).toBe(true);
@@ -112,7 +112,8 @@ describe("fixCurlyQuotes", () => {
     });
 
     it("should handle multiple occurrences of curly quotes", () => {
-      const input = '{\u201Cprop1\u201D: \u201Cval1\u201D, \u201Cprop2\u201D: \u201Cval2\u201D, \u201Cprop3\u201D: \u201Cval3\u201D}'; // Multiple curly quotes
+      const input =
+        "{\u201Cprop1\u201D: \u201Cval1\u201D, \u201Cprop2\u201D: \u201Cval2\u201D, \u201Cprop3\u201D: \u201Cval3\u201D}"; // Multiple curly quotes
       const result = fixCurlyQuotes(input);
 
       expect(result.changed).toBe(true);
@@ -125,7 +126,7 @@ describe("fixCurlyQuotes", () => {
 
   describe("complex JSON structures", () => {
     it("should handle nested objects with curly quotes", () => {
-      const input = '{\u201Couter\u201D: {\u201Cinner\u201D: \u201Cvalue\u201D}}'; // Curly quotes in nested structure
+      const input = "{\u201Couter\u201D: {\u201Cinner\u201D: \u201Cvalue\u201D}}"; // Curly quotes in nested structure
       const result = fixCurlyQuotes(input);
 
       expect(result.changed).toBe(true);
@@ -133,7 +134,7 @@ describe("fixCurlyQuotes", () => {
     });
 
     it("should handle arrays with curly quotes", () => {
-      const input = '{\u201Citems\u201D: [\u201Citem1\u201D, \u201Citem2\u201D]}'; // Curly quotes in arrays
+      const input = "{\u201Citems\u201D: [\u201Citem1\u201D, \u201Citem2\u201D]}"; // Curly quotes in arrays
       const result = fixCurlyQuotes(input);
 
       expect(result.changed).toBe(true);
@@ -160,4 +161,3 @@ describe("fixCurlyQuotes", () => {
     });
   });
 });
-

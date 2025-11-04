@@ -3,7 +3,7 @@ import { SANITIZATION_STEP } from "../../../../src/llm/json-processing/config/sa
 
 describe("fixCorruptedArrayObjectStart", () => {
   describe("basic functionality", () => {
-    it("should fix the exact error pattern from the log file (c\"withdrawal\")", () => {
+    it('should fix the exact error pattern from the log file (c"withdrawal")', () => {
       const input = `  "publicMethods": [
     {
       "name": "depositToRDAccount",
@@ -38,7 +38,7 @@ c"withdrawal",
       expect(result.diagnostics?.length).toBeGreaterThan(0);
     });
 
-    it("should fix e\"pattern corruption", () => {
+    it('should fix e"pattern corruption', () => {
       const input = `  "publicMethods": [
     {
       "name": "method1",
@@ -57,7 +57,7 @@ e"method2",
       expect(result.content).not.toContain('e"method2"');
     });
 
-    it("should fix n\"pattern corruption", () => {
+    it('should fix n"pattern corruption', () => {
       const input = `  "publicMethods": [
     {
       "name": "method1",
@@ -185,7 +185,7 @@ c"item2",
 
       if (result.changed) {
         // Should maintain proper indentation structure
-        expect(result.content).toContain('    {');
+        expect(result.content).toContain("    {");
         expect(result.content).toContain('      "name":');
       }
     });
@@ -353,7 +353,7 @@ c"withdrawal",
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"name": "withdrawal"');
       expect(result.content).not.toContain('c"withdrawal"');
-      
+
       // Verify the JSON structure is now valid
       const parsed = JSON.parse(result.content);
       expect(parsed.publicMethods).toBeDefined();
@@ -427,7 +427,7 @@ c"method2"`;
   });
 
   describe("stray text before property names", () => {
-    it("should fix the exact error pattern from the log file (e\"mechanism\":)", () => {
+    it('should fix the exact error pattern from the log file (e"mechanism":)', () => {
       // Simplified version matching the exact error log pattern
       const input = `  "integrationPoints": [
     {

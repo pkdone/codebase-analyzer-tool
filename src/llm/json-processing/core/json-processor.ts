@@ -111,11 +111,11 @@ export class JsonProcessor {
    */
   private readonly SANITIZATION_ORDERED_PIPELINE = [
     trimWhitespace,
-  removeCodeFences,
-  removeControlChars,
-  fixCurlyQuotes,
-  removeThoughtMarkers,
-  removeStrayLinePrefixChars,
+    removeCodeFences,
+    removeControlChars,
+    fixCurlyQuotes,
+    removeThoughtMarkers,
+    removeStrayLinePrefixChars,
     extractLargestJsonSpan,
     collapseDuplicateJsonObject,
     fixMismatchedDelimiters,

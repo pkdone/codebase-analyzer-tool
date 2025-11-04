@@ -153,4 +153,3 @@ export const fixUnquotedPropertyTypos: Sanitizer = (jsonString: string): Sanitiz
     };
   }
 };
-

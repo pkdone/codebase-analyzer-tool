@@ -110,7 +110,10 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
           const beforeDelimiter = stringStr.substring(Math.max(0, offsetNum - 10), offsetNum);
           // Check if we're after }, ], or }, patterns (with or without whitespace/newline)
           // This includes cases like: ],e or },e (no whitespace between comma and stray text)
-          if (/[}\]]\s*,\s*[\w\u0080-\uFFFF$]*$/.test(beforeDelimiter) || /[}\]]\s*,\s*$/.test(beforeDelimiter)) {
+          if (
+            /[}\]]\s*,\s*[\w\u0080-\uFFFF$]*$/.test(beforeDelimiter) ||
+            /[}\]]\s*,\s*$/.test(beforeDelimiter)
+          ) {
             isAfterClosingDelimiter = true;
           }
         }

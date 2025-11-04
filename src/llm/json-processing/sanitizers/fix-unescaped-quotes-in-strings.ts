@@ -67,8 +67,7 @@ export const fixUnescapedQuotesInStrings: Sanitizer = (jsonString: string): Sani
     // We need to escape the backslash: `\\""` becomes literal backslash+quote followed by escaped quote
     // The pattern matches: `\"` (backslash+quote) followed immediately by `"` (unescaped quote)
     // Must be followed by something like ` +`, `]`, `,`, whitespace+variable, or end of code snippet
-    const escapedQuoteFollowedByUnescapedPattern =
-      /(\\")"(\s*\+|\s*\]|\s*,|(?=\s*[a-zA-Z_$]))/g;
+    const escapedQuoteFollowedByUnescapedPattern = /(\\")"(\s*\+|\s*\]|\s*,|(?=\s*[a-zA-Z_$]))/g;
 
     sanitized = sanitized.replace(
       escapedQuoteFollowedByUnescapedPattern,
@@ -83,7 +82,7 @@ export const fixUnescapedQuotesInStrings: Sanitizer = (jsonString: string): Sani
           /:\s*"[^"]*`/.test(contextBefore) || // : "something `code`
           /:\s*"[^"]*\\/.test(contextBefore) || // : "something with \
           contextBefore.includes('": "') || // property: "value
-          (contextBefore.includes(":") && !(/"\s*$/.exec(contextBefore))); // Has colon, not at end of property name
+          (contextBefore.includes(":") && !/"\s*$/.exec(contextBefore)); // Has colon, not at end of property name
 
         if (isInStringValue) {
           hasChanges = true;

@@ -56,16 +56,24 @@ export const fixCurlyQuotes: Sanitizer = (jsonString: string): SanitizerResult =
     // Build diagnostics if changes were made
     if (hasChanges) {
       if (leftDoubleCount > 0) {
-        diagnostics.push(`Converted ${leftDoubleCount} left double curly quote${leftDoubleCount !== 1 ? "s" : ""} (") to regular quote`);
+        diagnostics.push(
+          `Converted ${leftDoubleCount} left double curly quote${leftDoubleCount !== 1 ? "s" : ""} (") to regular quote`,
+        );
       }
       if (rightDoubleCount > 0) {
-        diagnostics.push(`Converted ${rightDoubleCount} right double curly quote${rightDoubleCount !== 1 ? "s" : ""} (") to regular quote`);
+        diagnostics.push(
+          `Converted ${rightDoubleCount} right double curly quote${rightDoubleCount !== 1 ? "s" : ""} (") to regular quote`,
+        );
       }
       if (leftSingleCount > 0) {
-        diagnostics.push(`Converted ${leftSingleCount} left single curly quote${leftSingleCount !== 1 ? "s" : ""} (') to regular quote`);
+        diagnostics.push(
+          `Converted ${leftSingleCount} left single curly quote${leftSingleCount !== 1 ? "s" : ""} (') to regular quote`,
+        );
       }
       if (rightSingleCount > 0) {
-        diagnostics.push(`Converted ${rightSingleCount} right single curly quote${rightSingleCount !== 1 ? "s" : ""} (') to regular quote`);
+        diagnostics.push(
+          `Converted ${rightSingleCount} right single curly quote${rightSingleCount !== 1 ? "s" : ""} (') to regular quote`,
+        );
       }
     }
 
@@ -86,4 +94,3 @@ export const fixCurlyQuotes: Sanitizer = (jsonString: string): SanitizerResult =
     };
   }
 };
-

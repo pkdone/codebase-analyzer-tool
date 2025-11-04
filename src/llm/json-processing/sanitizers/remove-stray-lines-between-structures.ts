@@ -73,7 +73,7 @@ export const removeStrayLinesBetweenStructures: Sanitizer = (
     // Note: We also need to handle cases where the delimiter is ], or }, (closing bracket/brace + comma)
     // This requires a separate pattern that matches the full sequence
     const precisePattern = /([}\],])(\s*)\n([^\s"{}[\]]+[^\n]*)\n(\s*)([{"[])/g;
-    
+
     // Second pattern: Handle cases where delimiter is ], or }, (closing bracket/brace + comma on newline)
     // Matches: ],\nprocrastinate\n  "property" or },\ntext\n  "property"
     const delimiterCommaPattern = /([}\]]\s*,\s*)\n([^\s"{}[\]]+[^\n]*)\n(\s*)([{"[])/g;

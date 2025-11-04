@@ -106,9 +106,7 @@ export const fixUnquotedStringValues: Sanitizer = (jsonString: string): Sanitize
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.FIXED_UNQUOTED_STRING_VALUES
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.FIXED_UNQUOTED_STRING_VALUES : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {

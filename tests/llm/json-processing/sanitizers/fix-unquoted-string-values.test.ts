@@ -161,7 +161,9 @@ describe("fixUnquotedStringValues", () => {
       expect(result.changed).toBe(true);
       expect(result.content).toMatch(/"returnType":\s*"LoanChargeCommand"/);
       // Should preserve the already-quoted value
-      expect(result.content).toContain('"type": "org.apache.fineract.portfolio.charge.domain.Charge"');
+      expect(result.content).toContain(
+        '"type": "org.apache.fineract.portfolio.charge.domain.Charge"',
+      );
     });
   });
 
@@ -297,4 +299,3 @@ describe("fixUnquotedStringValues", () => {
     });
   });
 });
-
