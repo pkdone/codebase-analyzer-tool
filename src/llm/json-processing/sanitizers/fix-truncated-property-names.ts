@@ -224,11 +224,78 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
     );
 
     // Apply Pattern 1b: Fix truncated property names missing both opening quote and colon
+    // IMPORTANT: This pattern must NOT match array string values (e.g., e"value", in an array).
+    // Those should be handled by fixStrayTextBeforePropertyNames instead.
     const beforeFirstPassB = sanitized;
     sanitized = sanitized.replace(
       missingOpeningQuoteAndColonPattern,
-      (match, delimiter, whitespace, singleChar, propertyValue, comma) => {
+      (match, delimiter, whitespace, singleChar, propertyValue, comma, offset, string) => {
         const lowerChar = (singleChar as string).toLowerCase();
+        const offsetNum = typeof offset === "number" ? offset : undefined;
+        const stringStr = typeof string === "string" ? string : sanitized;
+
+        // Check if we're in an array context - if so, skip this pattern
+        // Array string values like e"value", should be handled by fixStrayTextBeforePropertyNames
+        let isInArray = false;
+        if (offsetNum !== undefined && stringStr) {
+          const beforeMatch = stringStr.substring(Math.max(0, offsetNum - 500), offsetNum);
+          let bracketDepth = 0; // Positive = inside array, 0 = outside array
+          let braceDepth = 0; // Positive = inside object, 0 = outside object
+          let inString = false;
+          let escapeNext = false;
+
+          // Iterate backwards to find if we're inside an array
+          // When iterating backwards from inside an array:
+          // - We see [ first (the opening bracket), which means we're inside that array
+          // - We see ] later (after our position), so we don't see it when looking backwards
+          // So if we find [ and bracketDepth is 0 (no unmatched ]), we're inside that array
+          for (let i = beforeMatch.length - 1; i >= 0; i--) {
+            const char = beforeMatch[i];
+            if (escapeNext) {
+              escapeNext = false;
+              continue;
+            }
+            if (char === "\\") {
+              escapeNext = true;
+              continue;
+            }
+            if (char === '"') {
+              inString = !inString;
+              continue;
+            }
+            if (!inString) {
+              if (char === "]") {
+                bracketDepth++; // Going backwards, ] means we're entering an array (from the future)
+              } else if (char === "[") {
+                bracketDepth--; // Going backwards, [ means we're leaving an array
+                // If bracketDepth is 0 or negative and braces are balanced, we found the opening of the array we're in
+                // This means we're currently inside this array (haven't seen its closing ] yet)
+                if (bracketDepth <= 0 && braceDepth === 0) {
+                  isInArray = true;
+                  break;
+                }
+              } else if (char === "}") {
+                braceDepth++; // Going backwards, } means we're entering an object
+              } else if (char === "{") {
+                braceDepth--; // Going backwards, { means we're leaving an object
+              }
+            }
+          }
+          // If we have unmatched closing brackets (bracketDepth > 0), we're inside an array
+          // Also check if we're after a comma (which is common in arrays)
+          const isAfterComma = delimiter === ",";
+          if (bracketDepth > 0 && braceDepth === 0) {
+            isInArray = true;
+          } else if (isAfterComma && bracketDepth > 0) {
+            // Even if braces aren't balanced, if we're after a comma and have open brackets, likely an array
+            isInArray = true;
+          }
+        }
+
+        // Skip if we're in an array context - let fixStrayTextBeforePropertyNames handle it
+        if (isInArray) {
+          return match;
+        }
 
         // Check if this single character maps to a known property name
         if (singleCharMappings[lowerChar]) {

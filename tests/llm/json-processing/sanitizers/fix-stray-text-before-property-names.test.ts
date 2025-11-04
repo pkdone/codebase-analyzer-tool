@@ -127,6 +127,30 @@ e"org.junit.jupiter.api.extension.ExtendWith",
       );
     });
 
+    it("should fix exact error pattern from RecurringDepositTest log - comma-newline-e pattern in internalReferences array", () => {
+      // This is the exact pattern from response-error-2025-11-04T08-05-53-733Z.log
+      // Line 44-45: "RecurringDepositAccountStatusChecker",\ne"RecurringDepositProductHelper",
+      const input = `  "internalReferences": [
+    "org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositAccountStatusChecker",
+e"org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositProductHelper",
+    "org.apache.fineract.integrationtests.common.savings.SavingsAccountHelper"
+  ]`;
+
+      const result = fixStrayTextBeforePropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositProductHelper"',
+      );
+      expect(result.content).not.toContain(
+        'e"org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositProductHelper"',
+      );
+      expect(result.diagnostics).toBeDefined();
+      // Verify the result can be parsed as JSON
+      const wrappedResult = `{${result.content}}`;
+      expect(() => JSON.parse(wrappedResult)).not.toThrow();
+    });
+
     it("should handle stray text after comma-newline in array", () => {
       const input = `  "items": [
     "item1",

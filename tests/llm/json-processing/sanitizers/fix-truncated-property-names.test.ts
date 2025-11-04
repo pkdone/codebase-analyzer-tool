@@ -402,5 +402,46 @@ e"disburseLoanWithExceededOverAppliedAmountSucceed",
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
+
+    it("should NOT fix array string values - those should be handled by fixStrayTextBeforePropertyNames", () => {
+      // This is the exact error pattern from response-error-2025-11-04T08-05-53-733Z.log
+      // Pattern 1b should NOT match e"value", in array context
+      const input = `  "internalReferences": [
+    "org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositAccountStatusChecker",
+e"org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositProductHelper",
+    "org.apache.fineract.integrationtests.common.savings.SavingsAccountHelper"
+  ]`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      // Should NOT fix this - it's an array string value, not a property name
+      // The pattern e"value", should remain unchanged so fixStrayTextBeforePropertyNames can handle it
+      expect(result.content).toContain(
+        'e"org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositProductHelper"',
+      );
+      // Should not have tried to convert it to "name": "value"
+      expect(result.content).not.toContain(
+        '"name": "org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositProductHelper"',
+      );
+    });
+
+    it("should still fix property names in object context (not array)", () => {
+      // This should still work - e"value", in object context (not array) should be fixed
+      const input = `{
+  "codeSmells": []
+},
+e"disburseLoanWithExceededOverAppliedAmountSucceed",
+  "purpose": "test"
+}`;
+
+      const result = fixTruncatedPropertyNames(input);
+
+      // Should fix this - it's in object context, not array
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"name": "disburseLoanWithExceededOverAppliedAmountSucceed"',
+      );
+      expect(result.content).not.toContain('e"disburseLoanWithExceededOverAppliedAmountSucceed"');
+    });
   });
 });
