@@ -10,6 +10,8 @@ import { Sanitizer, SanitizerResult } from "./sanitizers-types";
  * Examples of issues this sanitizer handles:
  * - `"codeSmells": []\n  },\ne"name":` -> `"codeSmells": []\n  },\n  {\n  "name":`
  * - `"items": [1, 2]\n  },\n  "next":` -> `"items": [1, 2]\n  },\n  {\n  "next":`
+ * - `"codeSmells": []\n  },\n  "name": "methodName",` -> `"codeSmells": []\n  },\n  {\n    "name": "methodName",`
+ * - `"codeSmells": []\n  },\n  "name": "value",` -> `"codeSmells": []\n  },\n  {\n    "name": "value",`
  *
  * Strategy:
  * Detects patterns where an object closes with `},` followed by newline and then
@@ -23,65 +25,108 @@ export const fixMissingOpeningBraces: Sanitizer = (jsonString: string): Sanitize
 
     // Pattern: closing brace + comma, followed by newline + whitespace, then property-like pattern
     // The property pattern can be:
-    // - Quoted property name: "propertyName"
+    // - Fully-quoted property name: "propertyName": or "propertyName", or "propertyName": "value",
     // - Truncated property pattern: e", n", etc. followed by value
-    // This matches cases like: },\ne"value", or },\n  "property":
+    // This matches cases like: },\n  "name": "value", or },\ne"value", or },\n  "property":
     const missingOpeningBracePattern =
-      /(\}\s*,)\s*\n(\s*)([a-zA-Z]{1,3}?"[a-zA-Z_$][a-zA-Z0-9_$]*"(?:\s*:|\s*,|")|[a-zA-Z]{1,3}"[^"]+")/g;
+      /(\}\s*,)\s*\n(\s*)([a-zA-Z]{1,3}?"[a-zA-Z_$][a-zA-Z0-9_$]*"(?:\s*:|\s*,|")|[a-zA-Z]{1,3}"[^"]+"|"[a-zA-Z_$][a-zA-Z0-9_$]*"(?:\s*:(?:\s*"[^"]*")?\s*,?)?)/g;
 
-    sanitized = sanitized.replace(
-      missingOpeningBracePattern,
-      (match, closingBraceComma, whitespace, propertyPattern) => {
-        const closingBraceCommaStr = typeof closingBraceComma === "string" ? closingBraceComma : "";
-        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-        const propertyPatternStr = typeof propertyPattern === "string" ? propertyPattern : "";
+    // Use matchAll to get all matches with their positions
+    const matches: { match: RegExpMatchArray; index: number }[] = [];
+    let match;
+    const regex = new RegExp(missingOpeningBracePattern);
+    while ((match = regex.exec(sanitized)) !== null) {
+      matches.push({ match, index: match.index });
+    }
 
-        // Check if this looks like we're inside an array and need to open a new object
-        // We need to verify that the previous context suggests we're in an array of objects
-        const matchIndex = sanitized.indexOf(match);
-        if (matchIndex > 0) {
-          const beforeMatch = sanitized.substring(Math.max(0, matchIndex - 200), matchIndex);
+    // Process matches in reverse order to avoid position shifts
+    for (let i = matches.length - 1; i >= 0; i--) {
+      const { match: matchResult, index: matchIndex } = matches[i];
+      const closingBraceComma = matchResult[1] || "";
+      const whitespace = matchResult[2] || "";
+      const propertyPattern = matchResult[3] || "";
 
-          // Check if we're in an array context (looking for [ before the closing brace)
-          // Count brackets and braces to determine if we're inside an array
-          let openBraces = 0;
-          let openBrackets = 0;
-          let inStringCheck = false;
-          let escapeCheck = false;
+      // Check if we're in an array context by looking backwards from the match position
+      const beforeMatch = sanitized.substring(0, matchIndex);
 
-          for (let i = beforeMatch.length - 1; i >= 0; i--) {
-            const char = beforeMatch[i];
-            if (escapeCheck) {
-              escapeCheck = false;
-              continue;
-            }
-            if (char === "\\") {
-              escapeCheck = true;
-              continue;
-            }
-            if (char === '"') {
-              inStringCheck = !inStringCheck;
-              continue;
-            }
-            if (!inStringCheck) {
-              if (char === "{") openBraces++;
-              else if (char === "}") openBraces--;
-              else if (char === "[") {
-                openBrackets++;
-                // If we find [ and we have balanced braces, we're likely in an array
-                if (openBraces === 0 && openBrackets > 0) {
-                  hasChanges = true;
-                  diagnostics.push("Inserted missing opening brace for new object in array");
-                  return `${closingBraceCommaStr}\n${whitespaceStr}{\n${whitespaceStr}  ${propertyPatternStr}`;
+      // Count brackets and braces to determine if we're inside an array
+      // Use a simpler approach: track depth going backwards
+      let braceDepth = 0; // Positive = inside object, 0 = outside
+      let bracketDepth = 0; // Positive = inside array, 0 = outside
+      let inStringCheck = false;
+      let escapeCheck = false;
+      let inArrayContext = false;
+      let braceDepthAtArrayStart = 0;
+      let arrayStartPosition = -1;
+
+      for (let j = beforeMatch.length - 1; j >= 0; j--) {
+        const char = beforeMatch[j];
+        if (escapeCheck) {
+          escapeCheck = false;
+          continue;
+        }
+        if (char === "\\") {
+          escapeCheck = true;
+          continue;
+        }
+        if (char === '"') {
+          inStringCheck = !inStringCheck;
+          continue;
+        }
+        if (!inStringCheck) {
+          // When iterating backwards:
+          // - } means entering an object (going backwards), so increment depth
+          // - { means leaving an object (going backwards), so decrement depth
+          // - ] means entering an array (going backwards), so increment depth
+          // - [ means leaving an array (going backwards), so decrement depth
+          if (char === "}") {
+            braceDepth++;
+          } else if (char === "{") {
+            braceDepth--;
+          } else if (char === "]") {
+            bracketDepth++;
+          } else if (char === "[") {
+            bracketDepth--;
+            // If we find [ and depths are balanced (0 or negative means we're outside those structures),
+            // we found a candidate array. We need to verify it's actually an array of objects.
+            // When scanning backwards, negative depths mean we've left those structures.
+            if (braceDepth <= 0 && bracketDepth <= 0) {
+              // We found a candidate array. Continue scanning to find the outermost one.
+              // We'll verify it's an array of objects by checking if there's content after [
+              // that suggests array elements (not just empty or primitive values)
+              const afterArrayStart = sanitized.substring(j, Math.min(j + 100, matchIndex));
+              // Check if there's a { in the content after [ (within reasonable distance)
+              // This indicates it's likely an array of objects
+              if (afterArrayStart.includes("{")) {
+                // Only set inArrayContext if we haven't found one yet, or if this one is better
+                // (further back, meaning it's the outer array)
+                if (!inArrayContext || j < arrayStartPosition) {
+                  inArrayContext = true;
+                  arrayStartPosition = j;
+                  braceDepthAtArrayStart = braceDepth;
                 }
-              } else if (char === "]") openBrackets--;
+                // Don't break - continue to find the outermost array
+              }
             }
           }
         }
+      }
 
-        return match;
-      },
-    );
+      // Check if we're in an array context
+      // Also verify that the property pattern looks like a property (has : or is followed by ,)
+      // This helps avoid false positives when the pattern matches quoted string values
+      // Additionally, verify that we were at brace depth <= 0 when we found the array
+      // (meaning we're at the array level, not inside a nested object)
+      // When scanning backwards, negative depths mean we're outside those structures
+      const looksLikeProperty = propertyPattern.includes(":") || propertyPattern.endsWith(",");
+      if (inArrayContext && looksLikeProperty && braceDepthAtArrayStart <= 0) {
+        const matchText = matchResult[0];
+        const replacement = `${closingBraceComma}\n${whitespace}{\n${whitespace}  ${propertyPattern}`;
+        sanitized = sanitized.substring(0, matchIndex) + replacement + sanitized.substring(matchIndex + matchText.length);
+        hasChanges = true;
+        diagnostics.push("Inserted missing opening brace for new object in array");
+      }
+    }
 
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== jsonString;

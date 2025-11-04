@@ -219,6 +219,80 @@ n"nameValue"`;
     });
   });
 
+  describe("fully-quoted property names after fixTruncatedPropertyNames", () => {
+    it("should handle fully-quoted property name after }, in array context", () => {
+      // This test case covers the scenario where fixTruncatedPropertyNames has already
+      // converted e"createShareProductToGLAccountMapping", to "name": "createShareProductToGLAccountMapping",
+      // and we need to add the missing opening brace
+      const input = `  "publicMethods": [
+    {
+      "name": "createSavingProductToGLAccountMapping",
+      "codeSmells": []
+    },
+    "name": "createShareProductToGLAccountMapping",
+      "purpose": "Establishes the General Ledger account mappings"
+    }
+  ]`;
+
+      const result = fixMissingOpeningBraces(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.description).toBe("Fixed missing opening braces for new objects in arrays");
+      expect(result.content).toContain(`},\n    {\n      "name": "createShareProductToGLAccountMapping",`);
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics).toContain("Inserted missing opening brace for new object in array");
+    });
+
+    it("should handle the exact error case from the log file", () => {
+      // This reproduces the exact error from response-error-2025-11-04T08-10-42-473Z.log
+      // After fixTruncatedPropertyNames runs, we have:
+      // }, "name": "createShareProductToGLAccountMapping",
+      // We need to fix it to:
+      // }, { "name": "createShareProductToGLAccountMapping",
+      const input = `  "publicMethods": [
+    {
+      "name": "createSavingProductToGLAccountMapping",
+      "purpose": "Creates the General Ledger account mappings for a new savings product.",
+      "codeSmells": []
+    },
+    "name": "createShareProductToGLAccountMapping",
+      "purpose": "Establishes the General Ledger account mappings for a new share product.",
+      "parameters": [
+        {
+          "name": "shareProductId",
+          "type": "Long"
+        }
+      ],
+      "codeSmells": []
+    }
+  ]`;
+
+      const result = fixMissingOpeningBraces(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(`},\n    {\n      "name": "createShareProductToGLAccountMapping",`);
+      // Verify the JSON structure is correct
+      expect(result.content).toMatch(/},\s*\{\s*"name":\s*"createShareProductToGLAccountMapping",/);
+    });
+
+    it("should handle property name followed by colon in array context", () => {
+      const input = `  "publicMethods": [
+    {
+      "name": "method1",
+      "codeSmells": []
+    },
+    "name": "method2",
+      "purpose": "test"
+    }
+  ]`;
+
+      const result = fixMissingOpeningBraces(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(`},\n    {\n      "name": "method2",`);
+    });
+  });
+
   describe("error handling", () => {
     it("should handle errors gracefully", () => {
       const input = `  "items": [
