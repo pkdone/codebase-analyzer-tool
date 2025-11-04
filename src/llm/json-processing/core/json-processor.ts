@@ -13,6 +13,7 @@ import {
   trimWhitespace,
   removeCodeFences,
   removeControlChars,
+  fixCurlyQuotes,
   removeThoughtMarkers,
   removeStrayLinePrefixChars,
   extractLargestJsonSpan,
@@ -74,32 +75,33 @@ export class JsonProcessor {
    * 1. trimWhitespace - Remove leading/trailing whitespace to simplify subsequent regex matching
    * 2. removeCodeFences - Strip markdown code fences (```json) before attempting to find JSON span
    * 3. removeControlChars - Remove control characters that would break JSON parsing
-   * 4. removeThoughtMarkers - Remove LLM thought markers and text before JSON (like <ctrl94>thought, command{)
-   * 5. removeStrayLinePrefixChars - Remove stray characters at the start of lines within JSON
-   * 6. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
-   * 7. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
-   * 8. fixMismatchedDelimiters - Correct bracket/brace mismatches
-   * 9. addMissingPropertyCommas - Insert missing commas between object properties
-   * 10. removeTrailingCommas - Remove invalid trailing commas
-   * 11. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
-   * 12. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
-   * 13. fixInvalidEscapeSequencesSanitizer - Fix invalid JSON escape sequences (e.g., \ , \x, \1-\9)
-   * 14. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
-   * 15. fixTruncatedPropertyNames - Fix truncated or malformed property names
-   * 16. fixMissingOpeningBraces - Insert missing opening braces for new objects in arrays
-   * 17. fixConcatenatedPropertyNames - Fix concatenated string literals in property names
-   * 18. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
-   * 19. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
-   * 20. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
-   * 21. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
- * 22. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
- * 23. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
- * 24. fixCorruptedArrayObjectStart - Fix corrupted array object starts (missing { and "name": with stray text)
- * 25. fixUnquotedPropertyNames - Add quotes around unquoted property names
- * 26. fixUnquotedStringValues - Add quotes around unquoted string values
- * 27. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
- * 28. fixTailEndTruncatedProperties - Fix tail-end truncated property names with missing opening quotes
- * 29. fixUnquotedPropertyTypos - Fix property names with missing opening quotes that are typos
+   * 4. fixCurlyQuotes - Convert curly quotes (smart quotes) to regular ASCII quotes
+   * 5. removeThoughtMarkers - Remove LLM thought markers and text before JSON (like <ctrl94>thought, command{)
+   * 6. removeStrayLinePrefixChars - Remove stray characters at the start of lines within JSON
+   * 7. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
+   * 8. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
+   * 9. fixMismatchedDelimiters - Correct bracket/brace mismatches
+   * 10. addMissingPropertyCommas - Insert missing commas between object properties
+   * 11. removeTrailingCommas - Remove invalid trailing commas
+   * 12. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
+   * 13. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
+   * 14. fixInvalidEscapeSequencesSanitizer - Fix invalid JSON escape sequences (e.g., \ , \x, \1-\9)
+   * 15. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
+   * 16. fixTruncatedPropertyNames - Fix truncated or malformed property names
+   * 17. fixMissingOpeningBraces - Insert missing opening braces for new objects in arrays
+   * 18. fixConcatenatedPropertyNames - Fix concatenated string literals in property names
+   * 19. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
+   * 20. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
+   * 21. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
+   * 22. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
+   * 23. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
+   * 24. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
+   * 25. fixCorruptedArrayObjectStart - Fix corrupted array object starts (missing { and "name": with stray text)
+   * 26. fixUnquotedPropertyNames - Add quotes around unquoted property names
+   * 27. fixUnquotedStringValues - Add quotes around unquoted string values
+   * 28. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
+   * 29. fixTailEndTruncatedProperties - Fix tail-end truncated property names with missing opening quotes
+   * 30. fixUnquotedPropertyTypos - Fix property names with missing opening quotes that are typos
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -109,10 +111,11 @@ export class JsonProcessor {
    */
   private readonly SANITIZATION_ORDERED_PIPELINE = [
     trimWhitespace,
-    removeCodeFences,
-    removeControlChars,
-    removeThoughtMarkers,
-    removeStrayLinePrefixChars,
+  removeCodeFences,
+  removeControlChars,
+  fixCurlyQuotes,
+  removeThoughtMarkers,
+  removeStrayLinePrefixChars,
     extractLargestJsonSpan,
     collapseDuplicateJsonObject,
     fixMismatchedDelimiters,

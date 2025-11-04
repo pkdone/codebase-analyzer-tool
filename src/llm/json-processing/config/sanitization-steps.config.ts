@@ -41,6 +41,7 @@ export const SANITIZATION_STEP = Object.freeze({
     "Fixed tail-end truncated property names with missing opening quotes",
   FIXED_UNQUOTED_PROPERTY_TYPOS:
     "Fixed property names with missing opening quotes that are typos of valid properties",
+  FIXED_CURLY_QUOTES: "Converted curly quotes (smart quotes) to regular ASCII quotes",
 } as const);
 
 /**

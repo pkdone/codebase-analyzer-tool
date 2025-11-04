@@ -11,6 +11,7 @@ CRITICAL JSON FORMAT REQUIREMENTS (MUST FOLLOW EXACTLY):
 - ALL property names MUST be enclosed in double quotes (e.g., "name": "value", NOT name: "value")
 - BOTH opening and closing quotes are REQUIRED for property names (e.g., "name": "value" is correct, NOT name": "value" or "name: "value")
 - This applies to ALL properties at ALL nesting levels, including properties that appear after closing braces or brackets (e.g., },\nintegrationPoints: [] is INCORRECT - must be },\n"integrationPoints": [])
+- Use ONLY regular ASCII double quotes (") for property names and string values - NEVER use curly quotes (smart quotes like " or ") as they break JSON parsing
 - ALL string values MUST be enclosed in double quotes
 - Use proper JSON syntax with commas separating properties
 - Do not include any unquoted property names or values
