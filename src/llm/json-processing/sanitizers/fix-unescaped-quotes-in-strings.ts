@@ -71,10 +71,11 @@ export const fixUnescapedQuotesInStrings: Sanitizer = (jsonString: string): Sani
 
     sanitized = sanitized.replace(
       escapedQuoteFollowedByUnescapedPattern,
-      (match, _escapedQuote, after, offset: unknown) => {
+      (match, _escapedQuote, after, offset: unknown, string: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
+        const stringStr = typeof string === "string" ? string : sanitized;
         // Check if this appears to be in a string value context
-        const contextBefore = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const contextBefore = stringStr.substring(Math.max(0, numericOffset - 500), numericOffset);
 
         // Verify we're in a value context (after a colon, inside a string)
         // Look for patterns that indicate we're in a string value containing code snippets
@@ -87,10 +88,12 @@ export const fixUnescapedQuotesInStrings: Sanitizer = (jsonString: string): Sani
         if (isInStringValue) {
           hasChanges = true;
           const afterStr = typeof after === "string" ? after : "";
-          diagnostics.push(`Fixed escaped quote followed by unescaped quote: \\"" -> \\\\""`);
-          // Escape the backslash so we get literal `\"` followed by `"`
-          // In JSON source: `\\""` produces string value containing `\"` + `"`
-          return `\\"${afterStr}`;
+          diagnostics.push(`Fixed escaped quote followed by unescaped quote: \\"" -> \\\\"\\\\"`);
+          // Escape the backslash and the second quote
+          // Original: `\"" +` means escaped quote + unescaped quote (closes string prematurely) + (invalid)
+          // Fixed: `\\"\\" +` means escaped backslash + escaped quote + escaped quote (all in string) + (valid)
+          // In JSON source: `\\"\\"` produces string value containing `\"` + `"`
+          return `\\"\\"${afterStr}`;
         }
         return match;
       },

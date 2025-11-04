@@ -164,6 +164,24 @@ describe("fixUnescapedQuotesInStrings", () => {
       expect(result.content).not.toContain('\\"" + variable');
       expect(result.diagnostics).toBeDefined();
     });
+
+    it("should handle the exact error case from UserHelper log (response-error-2025-11-04T08-21-17-786Z.log)", () => {
+      // This is the exact error: `[\"" + "clientId" + "\"]`
+      // The pattern `\"" +` needs to become `\\"\\" +` to keep both quotes in the string
+      const input =
+        '{"description": "This method adds: `\\"isSelfServiceUser\\" : true` and `\\"clients\\" : [\\"" + "clientId" + "\\"]`."}';
+
+      const result = fixUnescapedQuotesInStrings(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) => d.includes("Fixed escaped quote followed by unescaped quote")),
+      ).toBe(true);
+      // The pattern `\"" +` should be fixed to `\\"\\" +`
+      expect(result.content).toContain('\\"\\" +');
+      expect(result.content).not.toContain('\\"" +');
+    });
   });
 
   describe("nested structures", () => {
