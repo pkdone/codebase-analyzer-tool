@@ -101,6 +101,36 @@ describe("removeTruncationMarkers", () => {
       expect(result.content).toBe(input);
     });
 
+    it("should handle truncation marker where closing delimiter should be (exact error from FinancialActivityAccountsApiResource log)", () => {
+      // This is the exact error from response-error-2025-11-04T08-20-02-913Z.log
+      // Pattern: "item",\n...\n  "nextProperty" where ... replaces the missing closing ]
+      const input = `  "internalReferences": [
+    "org.apache.fineract.accounting.financialactivityaccount.api.FinancialActivityAccountsApiResourceSwagger.PostFinancialActivityAccountsResponse",
+...
+  "publicMethods": [
+    {
+      "name": "retrieveTemplate"
+    }
+  ]`;
+
+      const result = removeTruncationMarkers(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"internalReferences": [');
+      expect(result.content).toContain('],');
+      expect(result.content).toContain('"publicMethods": [');
+      expect(result.content).not.toContain("...");
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) =>
+          d.includes("added missing closing") || d.includes("array delimiter"),
+        ),
+      ).toBe(true);
+      // Verify the result can be parsed as JSON
+      const wrappedResult = `{${result.content}}`;
+      expect(() => JSON.parse(wrappedResult)).not.toThrow();
+    });
+
     it("should handle truncation markers with whitespace", () => {
       const input = `"item",
   ...

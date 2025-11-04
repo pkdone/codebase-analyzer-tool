@@ -29,17 +29,116 @@ export const removeTruncationMarkers: Sanitizer = (jsonString: string): Sanitize
     // Truncation markers: `...`, `[...]`, `(truncated)`, `... (truncated)`, etc.
     // This pattern matches lines that contain only truncation indicators
     // Also handles cases where the marker appears after a comma or before a closing delimiter
+    // Additionally, detects when truncation marker appears where a closing delimiter should be
+    // Note: The pattern can optionally match a trailing comma + newline before the marker for cases
+    // where the truncation marker replaces a closing delimiter (we'll remove the trailing comma)
     const truncationMarkerPattern =
-      /\n(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\)|\.\.\.\s*\(truncated\)|truncated|\.\.\.\s*truncated)(\s*)\n/g;
+      /(,\s*)?\n(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\)|\.\.\.\s*\(truncated\)|truncated|\.\.\.\s*truncated)(\s*)\n/g;
 
     sanitized = sanitized.replace(
       truncationMarkerPattern,
-      (_match, _whitespaceBefore, marker, _whitespaceAfter) => {
-        hasChanges = true;
+      (match, optionalComma, whitespaceBefore, marker, _whitespaceAfter, offset, string) => {
         const markerStr = typeof marker === "string" ? marker : "";
-        diagnostics.push(`Removed truncation marker: "${markerStr.trim()}"`);
-        // Replace with just the newlines (preserving structure)
-        return "\n\n";
+        const offsetNum = typeof offset === "number" ? offset : undefined;
+        const stringStr = typeof string === "string" ? string : sanitized;
+        const wsBefore = typeof whitespaceBefore === "string" ? whitespaceBefore : "";
+        const hasTrailingComma = optionalComma !== undefined && optionalComma !== null;
+
+        // Check if this truncation marker appears where a closing delimiter should be
+        // Look for context: comma before the marker, and property name after (indicating we're
+        // in an array/object that needs to close before the next property starts)
+        let needsClosingDelimiter = false;
+        let delimiterType: "]" | "}" | null = null;
+        let propertyIndent = "";
+        if (offsetNum !== undefined && stringStr) {
+          // Check what comes before (should be a comma from last array/object element)
+          // Use a larger window to ensure we capture the opening delimiter even in large JSON structures
+          const beforeMarker = stringStr.substring(Math.max(0, offsetNum - 500), offsetNum);
+          const afterMarker = stringStr.substring(offsetNum + match.length, Math.min(offsetNum + match.length + 100, stringStr.length));
+
+          // Check if we have a comma before and a quoted property name after
+          // Pattern: "value",\n...\n  "nextProperty"
+          // We check hasTrailingComma from the regex match, or fallback to checking beforeMarker
+          const hasCommaBefore = hasTrailingComma || /,\s*\n\s*$/.test(beforeMarker);
+          const propertyMatch = /^(\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/.exec(afterMarker);
+          const hasPropertyAfter = propertyMatch !== null;
+          propertyIndent = propertyMatch ? propertyMatch[1] || "" : "";
+
+          if (hasCommaBefore && hasPropertyAfter) {
+            // We're likely in an array or object that needs to close
+            // Determine if we're in an array or object by checking bracket/brace depth
+            let bracketDepth = 0;
+            let braceDepth = 0;
+            let inString = false;
+            let escapeNext = false;
+
+            // Scan backwards to find the opening delimiter
+            // When scanning backwards: ] increments depth (we're entering an array), [ decrements (we're leaving)
+            // We're in an array if we find [ and at that point bracketDepth is 0 or positive
+            // (meaning we haven't seen more [ than ] yet, so we're inside this array)
+            for (let i = beforeMarker.length - 1; i >= 0; i--) {
+              const char = beforeMarker[i];
+              if (escapeNext) {
+                escapeNext = false;
+                continue;
+              }
+              if (char === "\\") {
+                escapeNext = true;
+                continue;
+              }
+              if (char === '"') {
+                inString = !inString;
+                continue;
+              }
+              if (!inString) {
+                if (char === "]") {
+                  bracketDepth++;
+                } else if (char === "[") {
+                  // Check bracketDepth BEFORE decrementing
+                  // If bracketDepth >= 0, we haven't seen more [ than ], so we're in this array
+                  if (bracketDepth >= 0 && braceDepth <= 0) {
+                    delimiterType = "]";
+                    needsClosingDelimiter = true;
+                    break;
+                  }
+                  bracketDepth--;
+                } else if (char === "}") {
+                  braceDepth++;
+                } else if (char === "{") {
+                  // Check braceDepth BEFORE decrementing
+                  if (braceDepth >= 0 && bracketDepth <= 0) {
+                    delimiterType = "}";
+                    needsClosingDelimiter = true;
+                    break;
+                  }
+                  braceDepth--;
+                }
+              }
+            }
+          }
+        }
+
+        hasChanges = true;
+        if (needsClosingDelimiter && delimiterType) {
+          diagnostics.push(
+            `Removed truncation marker and added missing closing ${delimiterType === "]" ? "array" : "object"} delimiter`,
+          );
+          // Add the closing delimiter with appropriate indentation
+          // The trailing comma (if present) is already removed by the regex match
+          // (JSON doesn't allow trailing commas in arrays/objects)
+          // Use the indentation from the property that comes after (which we extracted earlier)
+          const indent = propertyIndent || (wsBefore.length >= 2 ? wsBefore.substring(2) : "");
+          // Return the closing delimiter with comma for the next property
+          return `\n${indent}${delimiterType},\n`;
+        } else {
+          diagnostics.push(`Removed truncation marker: "${markerStr.trim()}"`);
+          // If we matched a trailing comma, preserve it (the comma is valid if there's already a closing delimiter)
+          // Otherwise, replace with just the newlines
+          if (hasTrailingComma) {
+            return `,\n\n`;
+          }
+          return "\n\n";
+        }
       },
     );
 
