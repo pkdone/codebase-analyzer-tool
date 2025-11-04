@@ -176,7 +176,9 @@ describe("fixUnescapedQuotesInStrings", () => {
       expect(result.changed).toBe(true);
       expect(result.diagnostics).toBeDefined();
       expect(
-        result.diagnostics?.some((d) => d.includes("Fixed escaped quote followed by unescaped quote")),
+        result.diagnostics?.some((d) =>
+          d.includes("Fixed escaped quote followed by unescaped quote"),
+        ),
       ).toBe(true);
       // The pattern `\"" +` should be fixed to `\\"\\" +`
       expect(result.content).toContain('\\"\\" +');

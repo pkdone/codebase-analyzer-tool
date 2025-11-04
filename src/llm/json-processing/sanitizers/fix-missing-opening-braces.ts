@@ -122,7 +122,10 @@ export const fixMissingOpeningBraces: Sanitizer = (jsonString: string): Sanitize
       if (inArrayContext && looksLikeProperty && braceDepthAtArrayStart <= 0) {
         const matchText = matchResult[0];
         const replacement = `${closingBraceComma}\n${whitespace}{\n${whitespace}  ${propertyPattern}`;
-        sanitized = sanitized.substring(0, matchIndex) + replacement + sanitized.substring(matchIndex + matchText.length);
+        sanitized =
+          sanitized.substring(0, matchIndex) +
+          replacement +
+          sanitized.substring(matchIndex + matchText.length);
         hasChanges = true;
         diagnostics.push("Inserted missing opening brace for new object in array");
       }

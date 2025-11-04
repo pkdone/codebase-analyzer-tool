@@ -595,7 +595,7 @@ publicConstants: [
       expect(result.diagnostics).toBeDefined();
       expect(result.diagnostics?.length).toBeGreaterThan(0);
       expect(result.diagnostics).toContain("Fixed unquoted property name: publicConstants");
-      
+
       // Verify the result can be parsed as JSON
       expect(() => JSON.parse(`{${result.content}}`)).not.toThrow();
     });

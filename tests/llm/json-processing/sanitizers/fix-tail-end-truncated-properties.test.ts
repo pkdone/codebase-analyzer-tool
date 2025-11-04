@@ -141,7 +141,9 @@ alues": [
       expect(result.content).toContain('"publicMethods": [');
       expect(result.content).not.toContain('alues":');
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("alues") && d.includes("publicMethods"))).toBe(true);
+      expect(
+        result.diagnostics?.some((d) => d.includes("alues") && d.includes("publicMethods")),
+      ).toBe(true);
     });
 
     it("should handle multiple occurrences", () => {

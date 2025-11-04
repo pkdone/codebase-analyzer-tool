@@ -238,9 +238,13 @@ n"nameValue"`;
 
       expect(result.changed).toBe(true);
       expect(result.description).toBe("Fixed missing opening braces for new objects in arrays");
-      expect(result.content).toContain(`},\n    {\n      "name": "createShareProductToGLAccountMapping",`);
+      expect(result.content).toContain(
+        `},\n    {\n      "name": "createShareProductToGLAccountMapping",`,
+      );
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics).toContain("Inserted missing opening brace for new object in array");
+      expect(result.diagnostics).toContain(
+        "Inserted missing opening brace for new object in array",
+      );
     });
 
     it("should handle the exact error case from the log file", () => {
@@ -270,7 +274,9 @@ n"nameValue"`;
       const result = fixMissingOpeningBraces(input);
 
       expect(result.changed).toBe(true);
-      expect(result.content).toContain(`},\n    {\n      "name": "createShareProductToGLAccountMapping",`);
+      expect(result.content).toContain(
+        `},\n    {\n      "name": "createShareProductToGLAccountMapping",`,
+      );
       // Verify the JSON structure is correct
       expect(result.content).toMatch(/},\s*\{\s*"name":\s*"createShareProductToGLAccountMapping",/);
     });

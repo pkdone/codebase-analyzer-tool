@@ -76,7 +76,7 @@ export const fixBinaryCorruptionPatterns: Sanitizer = (jsonString: string): Sani
         const numericOffset = typeof offset === "number" ? offset : 0;
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const strayTextStr = typeof strayText === "string" ? strayText : "";
-        
+
         // Extract whitespace before the brace from the match
         // The match is: delimiter + \s* + \n + \s* + strayText + {
         // We need to preserve the whitespace after the newline
@@ -91,7 +91,7 @@ export const fixBinaryCorruptionPatterns: Sanitizer = (jsonString: string): Sani
         // Check if we're in an array context by looking backwards
         const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
         const isInArray = isInArrayContext(beforeMatch);
-        
+
         // Also check if we're after a closing brace-comma or bracket-comma pattern,
         // which strongly suggests we're in an array of objects
         const isAfterArrayDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
@@ -241,4 +241,3 @@ function isInArrayContext(beforeMatch: string): boolean {
 
   return false;
 }
-

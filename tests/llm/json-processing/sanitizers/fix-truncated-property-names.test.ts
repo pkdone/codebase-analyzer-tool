@@ -467,7 +467,9 @@ e"disburseLoanWithExceededOverAppliedAmountSucceed",
       expect(result.diagnostics).toBeDefined();
       expect(
         result.diagnostics?.some((d) =>
-          d.includes("missing opening quote and colon in truncated property (array of objects context)"),
+          d.includes(
+            "missing opening quote and colon in truncated property (array of objects context)",
+          ),
         ),
       ).toBe(true);
     });

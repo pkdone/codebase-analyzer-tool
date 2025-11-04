@@ -54,7 +54,10 @@ export const removeTruncationMarkers: Sanitizer = (jsonString: string): Sanitize
           // Check what comes before (should be a comma from last array/object element)
           // Use a larger window to ensure we capture the opening delimiter even in large JSON structures
           const beforeMarker = stringStr.substring(Math.max(0, offsetNum - 500), offsetNum);
-          const afterMarker = stringStr.substring(offsetNum + match.length, Math.min(offsetNum + match.length + 100, stringStr.length));
+          const afterMarker = stringStr.substring(
+            offsetNum + match.length,
+            Math.min(offsetNum + match.length + 100, stringStr.length),
+          );
 
           // Check if we have a comma before and a quoted property name after
           // Pattern: "value",\n...\n  "nextProperty"

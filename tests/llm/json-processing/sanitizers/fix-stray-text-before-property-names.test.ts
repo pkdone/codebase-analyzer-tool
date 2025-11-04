@@ -173,8 +173,8 @@ e"org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositP
       );
       expect(result.diagnostics).toBeDefined();
       expect(
-        result.diagnostics?.some((d) =>
-          d.includes("Removed ASCII stray text") || d.includes("array element"),
+        result.diagnostics?.some(
+          (d) => d.includes("Removed ASCII stray text") || d.includes("array element"),
         ),
       ).toBe(true);
     });

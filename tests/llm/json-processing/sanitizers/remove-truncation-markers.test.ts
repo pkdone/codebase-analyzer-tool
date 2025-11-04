@@ -117,13 +117,13 @@ describe("removeTruncationMarkers", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"internalReferences": [');
-      expect(result.content).toContain('],');
+      expect(result.content).toContain("],");
       expect(result.content).toContain('"publicMethods": [');
       expect(result.content).not.toContain("...");
       expect(result.diagnostics).toBeDefined();
       expect(
-        result.diagnostics?.some((d) =>
-          d.includes("added missing closing") || d.includes("array delimiter"),
+        result.diagnostics?.some(
+          (d) => d.includes("added missing closing") || d.includes("array delimiter"),
         ),
       ).toBe(true);
       // Verify the result can be parsed as JSON
