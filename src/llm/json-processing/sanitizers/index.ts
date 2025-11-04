@@ -36,6 +36,7 @@ export { fixTailEndTruncatedProperties } from "./fix-tail-end-truncated-properti
 export { fixUnquotedPropertyTypos } from "./fix-unquoted-property-typos";
 export { fixCurlyQuotes } from "./fix-curly-quotes";
 export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns";
+export { fixTruncatedPropertyNamesAfterBrace } from "./fix-truncated-property-names-after-brace";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 
