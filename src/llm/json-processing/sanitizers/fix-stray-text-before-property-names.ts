@@ -349,7 +349,14 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
         }
 
         // Only fix if we're in an array context and not inside a string
-        if (isInArray && !isInsideString && isValidDelimiter) {
+        // Also fix if we're clearly after a comma in what looks like an array context
+        // even if array detection didn't work perfectly (e.g., single char stray text like "a")
+        const isAfterCommaInArrayLikeContext =
+          (delimiterWithNewlineStr === "," || delimiterStr === ",") &&
+          !isInsideString &&
+          isValidDelimiter;
+
+        if ((isInArray || isAfterCommaInArrayLikeContext) && !isInsideString && isValidDelimiter) {
           hasChanges = true;
           // Check if stray text is non-ASCII (likely foreign language text)
           const isNonASCII = /[\u0080-\uFFFF]/.test(strayTextStr);

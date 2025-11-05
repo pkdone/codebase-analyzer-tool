@@ -81,12 +81,13 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           // We check for delimiters in a larger window to catch cases after long string values
           let isAfterPropertyBoundary = false;
           if (numericOffset > 0) {
-            // Check in a larger window (up to 50 chars) to catch delimiters after long strings
-            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+            // Check in a larger window (up to 200 chars) to catch delimiters after long strings
+            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
             // If we're right after a closing delimiter (], }, or ,), we're at a property boundary
             // This includes cases like: "long string",\n      propertyName": where the comma might be
             // many characters before due to the long string
-            isAfterPropertyBoundary = /[}\],]\s*$/.test(beforeMatch);
+            // Also handle cases where there's a newline after the delimiter: \nkind": or \n    kind":
+            isAfterPropertyBoundary = /[}\],]\s*$/.test(beforeMatch) || /[}\],]\s*\n\s*$/.test(beforeMatch);
           }
 
           // Check if we're inside a string literal at the property name position

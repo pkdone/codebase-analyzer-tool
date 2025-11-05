@@ -26,11 +26,12 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
 
     // Pattern: Missing opening quote in array string values
     // Matches: ,wordWithDotsAndLetters", or [wordWithDotsAndLetters", or \n    wordWithDotsAndLetters",
-    // This pattern handles three cases:
-    // Case 1: After comma or bracket: ,word" or [word"
+    // This pattern handles multiple cases:
+    // Case 1: After comma or bracket: ,word" or [word" (with or without newline)
     // Case 2: After newline (following ", on previous line): \n    word"
     // Case 3: After newline with whitespace (missing quote on new line): \n    word"
     // Case 4: Single character starting strings (e.g., g.apache... when it should be "org.apache...)
+    // Case 5: After comma on same line (no newline): ,fineract.infrastructure...", (handles cases like line 57)
     const missingOpeningQuotePattern1 = /((?:,|\[))\s*\n?(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
     const missingOpeningQuotePattern2 = /"\s*,\s*\n(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
     // Pattern 3: Handles cases where a newline appears with whitespace and a word-like pattern followed by quote and comma
@@ -39,6 +40,9 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
     // Pattern 4: Handles single character starting strings that are truncated (e.g., g.apache... should be "org.apache...)
     // This pattern matches a single lowercase letter followed by dots and more letters, then a quote and comma
     const missingOpeningQuotePattern4 = /"\s*,\s*\n(\s*)([a-z])(\.[a-zA-Z0-9_$.]+)"\s*,/g;
+    // Pattern 5: Handles missing opening quote after comma on same line (no newline between comma and word)
+    // This catches cases like: ",fineract.infrastructure...", where the opening quote is missing
+    const missingOpeningQuotePattern5 = /"\s*,\s*([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
 
     // Helper function to check if we're in an array context (not in an object)
     function isInArrayContext(matchIndex: number, content: string): boolean {
@@ -260,39 +264,35 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
         }
       }
 
-      // Try pattern 5: Missing opening quote for strings that look like package names
-      // Handles cases like: fineract.portfolio...", (missing opening quote and prefix)
-      // Pattern: comma or newline, then word starting with lowercase letter followed by dots
+      // Try pattern 5: Missing opening quote after comma on same line (no newline between comma and word)
+      // Handles cases like: ",fineract.infrastructure...", where the opening quote is missing
       if (!foundMatch) {
-        const missingOpeningQuotePattern5 = /"\s*,\s*\n(\s*)([a-z][a-zA-Z0-9_$.]*)"\s*,/g;
         const regex5 = new RegExp(missingOpeningQuotePattern5);
         let match5;
         while ((match5 = regex5.exec(sanitized)) !== null) {
           const matchIndex = match5.index;
-          const whitespace = match5[1] || "";
-          const unquotedValue = match5[2] || "";
+          const unquotedValue = match5[1] || "";
 
           // Check if we're in an array context
           const isLikelyArrayContext = isInArrayContext(matchIndex, sanitized);
 
           if (isLikelyArrayContext) {
-            // Check if this looks like a package name (starts with lowercase, contains dots)
-            // Common patterns: fineract.portfolio... -> org.apache.fineract.portfolio...
-            const looksLikePackageName = /^[a-z][a-zA-Z0-9_$.]*\.[a-zA-Z0-9_$.]+/.test(
-              unquotedValue,
-            );
+            // Check if this looks like it should be a string value (not a number or keyword)
+            const jsonKeywords = ["true", "false", "null", "undefined"];
+            const isKeyword = jsonKeywords.includes(unquotedValue.toLowerCase());
 
-            if (looksLikePackageName) {
+            // Skip if it's a JSON keyword (these are valid unquoted)
+            if (!isKeyword) {
               hasChanges = true;
               foundMatch = true;
 
               diagnostics.push(
-                `Fixed missing opening quote in array string: ${unquotedValue}" -> "${unquotedValue}"`,
+                `Fixed missing opening quote in array string (same line): ${unquotedValue}" -> "${unquotedValue}"`,
               );
 
-              // Reconstruct the fixed pattern - just add the opening quote
+              // Reconstruct the fixed pattern - add opening quote after comma
               const matchText = match5[0];
-              const replacement = `",\n${whitespace}"${unquotedValue}",`;
+              const replacement = `", "${unquotedValue}",`;
               sanitized =
                 sanitized.substring(0, matchIndex) +
                 replacement +
