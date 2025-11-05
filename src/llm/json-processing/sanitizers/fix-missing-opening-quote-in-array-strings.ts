@@ -30,11 +30,15 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
     // Case 1: After comma or bracket: ,word" or [word"
     // Case 2: After newline (following ", on previous line): \n    word"
     // Case 3: After newline with whitespace (missing quote on new line): \n    word"
+    // Case 4: Single character starting strings (e.g., g.apache... when it should be "org.apache...)
     const missingOpeningQuotePattern1 = /((?:,|\[))\s*\n?(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
     const missingOpeningQuotePattern2 = /"\s*,\s*\n(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
     // Pattern 3: Handles cases where a newline appears with whitespace and a word-like pattern followed by quote and comma
     // This catches cases like: \n    fineract.portfolio...", (missing opening quote)
     const missingOpeningQuotePattern3 = /\n(\s+)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
+    // Pattern 4: Handles single character starting strings that are truncated (e.g., g.apache... should be "org.apache...)
+    // This pattern matches a single lowercase letter followed by dots and more letters, then a quote and comma
+    const missingOpeningQuotePattern4 = /"\s*,\s*\n(\s*)([a-z])(\.[a-zA-Z0-9_$.]+)"\s*,/g;
 
     // Helper function to check if we're in an array context (not in an object)
     function isInArrayContext(matchIndex: number, content: string): boolean {
@@ -200,6 +204,52 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
               // Reconstruct the fixed pattern
               const matchText = match3[0];
               const replacement = `\n${whitespace}"${unquotedValue}",`;
+              sanitized =
+                sanitized.substring(0, matchIndex) +
+                replacement +
+                sanitized.substring(matchIndex + matchText.length);
+              break; // Break out to re-run regex on the updated string
+            }
+          }
+        }
+      }
+
+      // Try pattern 4: single character starting truncated strings (e.g., g.apache... -> "org.apache...)
+      if (!foundMatch) {
+        const regex4 = new RegExp(missingOpeningQuotePattern4);
+        let match4;
+        while ((match4 = regex4.exec(sanitized)) !== null) {
+          const matchIndex = match4.index;
+          const whitespace = match4[1] || "";
+          const singleChar = match4[2] || "";
+          const restOfString = match4[3] || "";
+
+          // Check if we're in an array context
+          const isLikelyArrayContext = isInArrayContext(matchIndex, sanitized);
+
+          if (isLikelyArrayContext) {
+            // Common patterns for truncated package names
+            // g.apache -> org.apache, j. -> java., etc.
+            const truncatedPrefixMappings: Record<string, string> = {
+              g: "org",
+              j: "java",
+              o: "org",
+            };
+
+            // Try to reconstruct the full string
+            const likelyPrefix = truncatedPrefixMappings[singleChar.toLowerCase()];
+            if (likelyPrefix) {
+              hasChanges = true;
+              foundMatch = true;
+
+              const fullString = `${likelyPrefix}${restOfString}`;
+              diagnostics.push(
+                `Fixed truncated array string: ${singleChar}${restOfString}" -> "${fullString}"`,
+              );
+
+              // Reconstruct the fixed pattern
+              const matchText = match4[0];
+              const replacement = `",\n${whitespace}"${fullString}",`;
               sanitized =
                 sanitized.substring(0, matchIndex) +
                 replacement +

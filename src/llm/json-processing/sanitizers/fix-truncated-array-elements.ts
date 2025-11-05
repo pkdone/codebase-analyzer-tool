@@ -31,16 +31,23 @@ export const fixTruncatedArrayElements: Sanitizer = (jsonString: string): Saniti
     // 1. Closing brace with comma: `},`
     // 2. Optional whitespace and newline: `\s*\n`
     // 3. Optional indentation whitespace
-    // 4. Word-like pattern that starts with lowercase letter (truncated property value)
+    // 4. Word-like pattern that starts with lowercase or uppercase letter (truncated property value)
     //    - Or a word starting with lowercase (e.g., `alculateInterest` from truncated "calculateInterest")
-    // 5. Followed by quote and comma
+    //    - Or a word starting with uppercase (e.g., `toInteger` from truncated method name)
+    // 5. Followed by quote and comma (or just quote and newline)
     //
     // Examples matched:
     // - `},\ncalculateInterest",`
     // - `},\n  alculateInterest",`
+    // - `},\ntoInteger",\n  "purpose":`
     //
     // We need to be careful to only match when we're actually in an array context
-    const truncatedElementPattern = /(\}\s*,)\s*\n(\s*)([a-z][a-zA-Z0-9_]*)"\s*,/g;
+    const truncatedElementPattern = /(\}\s*,)\s*\n(\s*)([a-zA-Z][a-zA-Z0-9_]*)"\s*,/g;
+
+    // Pattern to match truncated elements where the word is followed by quote, comma, and newline before next property
+    // Example: },\ntoInteger",\n  "purpose":
+    const truncatedElementWithNewlinePattern =
+      /(\}\s*,)\s*\n(\s*)([a-zA-Z][a-zA-Z0-9_]*)"\s*,\s*\n(\s*)"([a-zA-Z_$][a-zA-Z0-9_$.]*)"/g;
 
     sanitized = sanitized.replace(
       truncatedElementPattern,
@@ -106,6 +113,72 @@ export const fixTruncatedArrayElements: Sanitizer = (jsonString: string): Saniti
             const propertyIndentation = indentation + "  ";
 
             return `${closingBraceCommaStr}\n${indentation}{\n${propertyIndentation}"${propertyName}": "${wordValueStr}",`;
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // Also handle cases where the word pattern is followed by quote, comma, and newline before next property
+    // Pattern: },\ntoInteger",\n  "purpose":
+    sanitized = sanitized.replace(
+      truncatedElementWithNewlinePattern,
+      (match, closingBraceComma, whitespace1, wordValue, whitespace2, nextProperty) => {
+        const closingBraceCommaStr = typeof closingBraceComma === "string" ? closingBraceComma : "";
+        const whitespace1Str = typeof whitespace1 === "string" ? whitespace1 : "";
+        const wordValueStr = typeof wordValue === "string" ? wordValue : "";
+        const whitespace2Str = typeof whitespace2 === "string" ? whitespace2 : "";
+        const nextPropertyStr = typeof nextProperty === "string" ? nextProperty : "";
+
+        // Check array context
+        const matchIndex = sanitized.indexOf(match);
+        if (matchIndex > 0) {
+          const beforeMatch = sanitized.substring(Math.max(0, matchIndex - 500), matchIndex);
+
+          let openBraces = 0;
+          let openBrackets = 0;
+          let inString = false;
+          let escapeNext = false;
+          let foundArrayOpening = false;
+
+          for (let i = beforeMatch.length - 1; i >= 0; i--) {
+            const char = beforeMatch[i];
+            if (escapeNext) {
+              escapeNext = false;
+              continue;
+            }
+            if (char === "\\") {
+              escapeNext = true;
+              continue;
+            }
+            if (char === '"') {
+              inString = !inString;
+              continue;
+            }
+            if (!inString) {
+              if (char === "}") openBraces++;
+              else if (char === "{") openBraces--;
+              else if (char === "]") openBrackets++;
+              else if (char === "[") {
+                openBrackets--;
+                if (openBrackets === 0 && openBraces === 0) {
+                  foundArrayOpening = true;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (foundArrayOpening || (openBrackets > 0 && openBraces === 0)) {
+            diagnostics.push(
+              `Fixed truncated array element: inserted { and "name": before "${wordValueStr}"`,
+            );
+
+            const indentation = whitespace1Str;
+            const propertyIndentation = indentation + "  ";
+
+            return `${closingBraceCommaStr}\n${indentation}{\n${propertyIndentation}"name": "${wordValueStr}",\n${whitespace2Str}"${nextPropertyStr}"`;
           }
         }
 

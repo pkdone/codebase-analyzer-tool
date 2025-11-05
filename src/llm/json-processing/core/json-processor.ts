@@ -47,6 +47,7 @@ import {
   fixBinaryCorruptionPatterns,
   fixTruncatedPropertyNamesAfterBrace,
   fixMissingOpeningQuoteInArrayStrings,
+  fixCorruptedNumericValues,
   hasSignificantSanitizationSteps,
   type Sanitizer,
   type PostParseTransform,
@@ -149,6 +150,7 @@ export class JsonProcessor {
     fixUnquotedPropertyTypos, // Run before fixUnquotedPropertyNames to fix typos AND missing quotes together
     fixUnquotedPropertyNames,
     fixUnquotedStringValues,
+    fixCorruptedNumericValues, // Fix corrupted numeric values like _3 -> 3
     fixStrayTextBetweenColonAndValue,
     fixTailEndTruncatedProperties,
     fixPropertyNameTypos,

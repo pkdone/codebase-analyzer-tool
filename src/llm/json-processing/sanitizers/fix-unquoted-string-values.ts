@@ -51,10 +51,51 @@ export const fixUnquotedStringValues: Sanitizer = (jsonString: string): Sanitize
 
     // Pattern to match unquoted string values after a quoted property name and colon
     // Matches: "propertyName":UnquotedValue or "propertyName": UnquotedValue
+    // Also matches: "propertyName":word" (missing opening quote before value)
     // The value can be followed by: comma, closing brace/bracket, or stray quote+terminator
     const unquotedStringValuePattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$.]+)(\s*[,}\]]|"\s*[,}\]]|"\s*$|[,}\]]|$)/g;
 
+    // Pattern to match missing opening quote before value: "propertyName":word"
+    const missingOpeningQuoteBeforeValuePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$.]+)"/g;
+
+    // First pass: Fix missing opening quote before value (e.g., "name":severance" -> "name": "severance")
+    sanitized = sanitized.replace(
+      missingOpeningQuoteBeforeValuePattern,
+      (match, propertyName, unquotedValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
+
+        // Check if we're inside a string literal at the match position
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match; // Keep as is - inside a string
+        }
+
+        // Skip if the value is a JSON keyword (these are valid unquoted)
+        const jsonKeywords = ["true", "false", "null"];
+        if (jsonKeywords.includes(unquotedValueStr.toLowerCase())) {
+          return match;
+        }
+
+        hasChanges = true;
+        diagnostics.push(
+          `Fixed missing opening quote before value: "${propertyNameStr}":${unquotedValueStr}" -> "${propertyNameStr}": "${unquotedValueStr}"`,
+        );
+
+        // Reconstruct with quoted value
+        const colonIndex = match.indexOf(":");
+        const afterColon = match.substring(colonIndex + 1);
+        const whitespaceRegex = /^\s*/;
+        const whitespaceMatch = whitespaceRegex.exec(afterColon);
+        const whitespaceAfterColon = whitespaceMatch ? whitespaceMatch[0] : " ";
+
+        return `"${propertyNameStr}":${whitespaceAfterColon}"${unquotedValueStr}"`;
+      },
+    );
+
+    // Second pass: Fix other unquoted string values
     sanitized = sanitized.replace(
       unquotedStringValuePattern,
       (match, propertyName, unquotedValue, terminator, offset: unknown) => {
