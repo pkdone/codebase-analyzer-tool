@@ -26,7 +26,7 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       eferences: "references",
       refere: "references",
       refer: "references",
-      
+
       // Name variations - handles truncations like "se" (from "name")
       se: "name",
       nam: "name",
@@ -199,7 +199,7 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       n: "name", // if "name" was truncated to just "n"
       m: "name", // if truncated differently
     };
-    
+
     // Two-character mappings for cases where property names are truncated to 2 chars
     const twoCharMappings: Record<string, string> = {
       // "name" truncated to 2 chars
@@ -242,7 +242,7 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
         return match; // Keep as is if no mapping found
       },
     );
-    
+
     // Pattern 1a: Fix truncated property names with 2 characters (e.g., "se": -> "name":)
     const missingOpeningQuotePattern2Char = /([}\],]|^)(\n?\s*)([a-zA-Z]{2})"\s*:/gm;
     sanitized = sanitized.replace(

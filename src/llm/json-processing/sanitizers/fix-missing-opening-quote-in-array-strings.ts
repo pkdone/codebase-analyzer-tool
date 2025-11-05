@@ -264,8 +264,7 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
       // Handles cases like: fineract.portfolio...", (missing opening quote and prefix)
       // Pattern: comma or newline, then word starting with lowercase letter followed by dots
       if (!foundMatch) {
-        const missingOpeningQuotePattern5 =
-          /"\s*,\s*\n(\s*)([a-z][a-zA-Z0-9_$.]*)"\s*,/g;
+        const missingOpeningQuotePattern5 = /"\s*,\s*\n(\s*)([a-z][a-zA-Z0-9_$.]*)"\s*,/g;
         const regex5 = new RegExp(missingOpeningQuotePattern5);
         let match5;
         while ((match5 = regex5.exec(sanitized)) !== null) {
@@ -279,7 +278,9 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
           if (isLikelyArrayContext) {
             // Check if this looks like a package name (starts with lowercase, contains dots)
             // Common patterns: fineract.portfolio... -> org.apache.fineract.portfolio...
-            const looksLikePackageName = /^[a-z][a-zA-Z0-9_$.]*\.[a-zA-Z0-9_$.]+/.test(unquotedValue);
+            const looksLikePackageName = /^[a-z][a-zA-Z0-9_$.]*\.[a-zA-Z0-9_$.]+/.test(
+              unquotedValue,
+            );
 
             if (looksLikePackageName) {
               hasChanges = true;
