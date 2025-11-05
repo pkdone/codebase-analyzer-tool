@@ -48,6 +48,10 @@ import {
   fixTruncatedPropertyNamesAfterBrace,
   fixMissingOpeningQuoteInArrayStrings,
   fixCorruptedNumericValues,
+  fixTruncatedPropertyValues,
+  escapeControlCharsInStrings,
+  fixMissingQuotesAroundPropertyValues,
+  fixCorruptedTextInDescriptions,
   hasSignificantSanitizationSteps,
   type Sanitizer,
   type PostParseTransform,
@@ -119,6 +123,7 @@ export class JsonProcessor {
     trimWhitespace,
     removeCodeFences,
     removeControlChars,
+    escapeControlCharsInStrings, // Escape control chars in strings after removing standalone ones
     fixCurlyQuotes,
     removeThoughtMarkers,
     removeStrayLinePrefixChars,
@@ -139,6 +144,7 @@ export class JsonProcessor {
     fixConcatenatedPropertyNames,
     fixUndefinedValues,
     fixUnescapedQuotesInStrings,
+    fixCorruptedTextInDescriptions, // Fix corrupted text patterns in string values
     fixStrayTextBeforePropertyNames,
     fixStrayTextBeforeUnquotedProperties,
     fixStrayCharsAfterPropertyValues,
@@ -150,9 +156,11 @@ export class JsonProcessor {
     fixUnquotedPropertyTypos, // Run before fixUnquotedPropertyNames to fix typos AND missing quotes together
     fixUnquotedPropertyNames,
     fixUnquotedStringValues,
+    fixMissingQuotesAroundPropertyValues, // Fix missing quotes around property values (e.g., "name":value" -> "name": "value")
     fixCorruptedNumericValues, // Fix corrupted numeric values like _3 -> 3
     fixStrayTextBetweenColonAndValue,
     fixTailEndTruncatedProperties,
+    fixTruncatedPropertyValues, // Fix truncated property values (e.g., "type " -> "type": "String")
     fixPropertyNameTypos,
   ] as const satisfies readonly Sanitizer[];
 

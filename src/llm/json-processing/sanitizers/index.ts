@@ -39,6 +39,10 @@ export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns";
 export { fixTruncatedPropertyNamesAfterBrace } from "./fix-truncated-property-names-after-brace";
 export { fixMissingOpeningQuoteInArrayStrings } from "./fix-missing-opening-quote-in-array-strings";
 export { fixCorruptedNumericValues } from "./fix-corrupted-numeric-values";
+export { fixTruncatedPropertyValues } from "./fix-truncated-property-values";
+export { escapeControlCharsInStrings } from "./escape-control-chars-in-strings";
+export { fixMissingQuotesAroundPropertyValues } from "./fix-missing-quotes-around-property-values";
+export { fixCorruptedTextInDescriptions } from "./fix-corrupted-text-in-descriptions";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 
