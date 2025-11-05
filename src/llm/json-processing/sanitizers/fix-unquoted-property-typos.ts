@@ -67,7 +67,8 @@ export const fixUnquotedPropertyTypos: Sanitizer = (jsonString: string): Sanitiz
       publMethods: "publicMethods", // "publ" instead of "public"
       publicMeth: "publicMethods",
       publicMeths: "publicMethods",
-      // publicConstants typos
+      // publicConstants typos (including leading underscore)
+      _publicConstants: "publicConstants", // leading underscore typo
       publConstants: "publicConstants",
       publicConst: "publicConstants",
       publicConsts: "publicConstants",

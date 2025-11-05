@@ -44,6 +44,31 @@ extraReferences": [
       expect(() => JSON.parse(`{${result.content}}`)).not.toThrow();
     });
 
+    it("should fix the exact error pattern from GLAccountsApiResource log - leading underscore typo", () => {
+      // This reproduces the exact error from response-error-2025-11-04T14-37-21-931Z.log
+      // where "_publicConstants": appears with missing opening quote and leading underscore typo
+      const input = `  "externalReferences": [
+    "org.springframework.stereotype.Component"
+  ],
+_publicConstants": [],
+  "publicMethods": [
+    {
+      "name": "retrieveNewAccountDetails"
+    }
+  ]`;
+
+      const result = fixUnquotedPropertyTypos(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"publicConstants":');
+      expect(result.content).not.toContain('_publicConstants":');
+      expect(result.content).not.toContain('"_publicConstants":');
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("_publicConstants"))).toBe(true);
+      // Verify the result can be parsed as JSON
+      expect(() => JSON.parse(`{${result.content}}`)).not.toThrow();
+    });
+
     it("should fix internReferences typo", () => {
       const input = `    },
 internReferences": [
