@@ -14,9 +14,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  *
  * The sanitizer identifies common corrupted text patterns and removes them.
  */
-export const fixCorruptedTextInDescriptions: Sanitizer = (
-  jsonString: string,
-): SanitizerResult => {
+export const fixCorruptedTextInDescriptions: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
     let sanitized = jsonString;
     let hasChanges = false;
@@ -73,9 +71,7 @@ export const fixCorruptedTextInDescriptions: Sanitizer = (
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.FIXED_CORRUPTED_TEXT_IN_DESCRIPTIONS
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.FIXED_CORRUPTED_TEXT_IN_DESCRIPTIONS : undefined,
       diagnostics: hasChanges ? diagnostics : undefined,
     };
   } catch (error) {
@@ -89,4 +85,3 @@ export const fixCorruptedTextInDescriptions: Sanitizer = (
     };
   }
 };
-

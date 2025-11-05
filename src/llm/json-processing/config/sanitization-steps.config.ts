@@ -46,8 +46,7 @@ export const SANITIZATION_STEP = Object.freeze({
     "Fixed binary corruption patterns (e.g., <y_bin_XXX> markers and stray text before braces)",
   FIXED_TRUNCATED_PROPERTY_VALUES: "Fixed truncated property values (missing colon and value)",
   ESCAPED_CONTROL_CHARS_IN_STRINGS: "Escaped control characters in string values",
-  FIXED_MISSING_QUOTES_AROUND_PROPERTY_VALUES:
-    "Fixed missing quotes around property values",
+  FIXED_MISSING_QUOTES_AROUND_PROPERTY_VALUES: "Fixed missing quotes around property values",
   FIXED_CORRUPTED_TEXT_IN_DESCRIPTIONS: "Fixed corrupted text patterns in string values",
 } as const);
 

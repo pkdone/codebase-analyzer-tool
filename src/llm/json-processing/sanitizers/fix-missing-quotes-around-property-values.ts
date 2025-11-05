@@ -26,7 +26,8 @@ export const fixMissingQuotesAroundPropertyValues: Sanitizer = (
     // Pattern: Fix missing opening quote after colon
     // Matches: "propertyName":value" or "propertyName":value,
     // where value is an identifier (not already quoted and not a number/boolean/null)
-    const missingOpeningQuotePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)":\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"([,}])/g;
+    const missingOpeningQuotePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)":\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"([,}])/g;
 
     sanitized = sanitized.replace(
       missingOpeningQuotePattern,
@@ -96,9 +97,7 @@ export const fixMissingQuotesAroundPropertyValues: Sanitizer = (
     };
   } catch (error) {
     // If sanitization fails, return the original string
-    console.warn(
-      `fixMissingQuotesAroundPropertyValues sanitizer failed: ${String(error)}`,
-    );
+    console.warn(`fixMissingQuotesAroundPropertyValues sanitizer failed: ${String(error)}`);
     return {
       content: jsonString,
       changed: false,
@@ -107,4 +106,3 @@ export const fixMissingQuotesAroundPropertyValues: Sanitizer = (
     };
   }
 };
-

@@ -14,9 +14,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * The sanitizer identifies control characters within string values and
  * escapes them using JSON escape sequences.
  */
-export const escapeControlCharsInStrings: Sanitizer = (
-  jsonString: string,
-): SanitizerResult => {
+export const escapeControlCharsInStrings: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
     const sanitized = jsonString;
     let hasChanges = false;
@@ -101,9 +99,7 @@ export const escapeControlCharsInStrings: Sanitizer = (
     return {
       content: hasChanges ? result : jsonString,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.ESCAPED_CONTROL_CHARS_IN_STRINGS
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.ESCAPED_CONTROL_CHARS_IN_STRINGS : undefined,
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
@@ -117,4 +113,3 @@ export const escapeControlCharsInStrings: Sanitizer = (
     };
   }
 };
-

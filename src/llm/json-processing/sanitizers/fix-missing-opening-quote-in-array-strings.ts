@@ -32,6 +32,7 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
     // Case 3: After newline with whitespace (missing quote on new line): \n    word"
     // Case 4: Single character starting strings (e.g., g.apache... when it should be "org.apache...)
     // Case 5: After comma on same line (no newline): ,fineract.infrastructure...", (handles cases like line 57)
+    // Case 6: Truncated package names starting with lowercase (e.g., axDepositAccountInterestRateChartData" -> "org.apache.fineract.portfolio.savings.data.FixedDepositAccountInterestRateChartData")
     const missingOpeningQuotePattern1 = /((?:,|\[))\s*\n?(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
     const missingOpeningQuotePattern2 = /"\s*,\s*\n(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
     // Pattern 3: Handles cases where a newline appears with whitespace and a word-like pattern followed by quote and comma
@@ -43,6 +44,9 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
     // Pattern 5: Handles missing opening quote after comma on same line (no newline between comma and word)
     // This catches cases like: ",fineract.infrastructure...", where the opening quote is missing
     const missingOpeningQuotePattern5 = /"\s*,\s*([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
+    // Pattern 6: Handles truncated package names starting with lowercase (e.g., axDepositAccountInterestRateChartData")
+    // This pattern matches lowercase letter(s) followed by uppercase letter and more letters (camelCase pattern)
+    const missingOpeningQuotePattern6 = /"\s*,\s*\n(\s*)([a-z][a-zA-Z0-9_$.]+)"\s*,/g;
 
     // Helper function to check if we're in an array context (not in an object)
     function isInArrayContext(matchIndex: number, content: string): boolean {
@@ -293,6 +297,77 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
               // Reconstruct the fixed pattern - add opening quote after comma
               const matchText = match5[0];
               const replacement = `", "${unquotedValue}",`;
+              sanitized =
+                sanitized.substring(0, matchIndex) +
+                replacement +
+                sanitized.substring(matchIndex + matchText.length);
+              break; // Break out to re-run regex on the updated string
+            }
+          }
+        }
+      }
+
+      // Try pattern 6: Truncated package names starting with lowercase (e.g., axDepositAccountInterestRateChartData")
+      // Handles cases where a package name is truncated and missing the opening quote
+      if (!foundMatch) {
+        const regex6 = new RegExp(missingOpeningQuotePattern6);
+        let match6;
+        while ((match6 = regex6.exec(sanitized)) !== null) {
+          const matchIndex = match6.index;
+          const whitespace = match6[1] || "";
+          const truncatedValue = match6[2] || "";
+
+          // Check if we're in an array context
+          const isLikelyArrayContext = isInArrayContext(matchIndex, sanitized);
+
+          if (isLikelyArrayContext) {
+            // Check if this looks like a truncated package name (starts with lowercase, has camelCase)
+            // Pattern: axDepositAccountInterestRateChartData -> org.apache.fineract.portfolio.savings.data.FixedDepositAccountInterestRateChartData
+            const lower = truncatedValue.toLowerCase();
+            if (lower.startsWith("ax") && truncatedValue.length > 2) {
+              const rest = truncatedValue.substring(2);
+              // Check if rest starts with uppercase (camelCase pattern)
+              if (rest.length > 0 && /^[A-Z]/.test(rest)) {
+                // Check context to see if this is a package name
+                const contextBefore = sanitized.substring(
+                  Math.max(0, matchIndex - 200),
+                  matchIndex,
+                );
+                if (
+                  contextBefore.includes("org.apache.fineract") ||
+                  contextBefore.includes("portfolio.savings")
+                ) {
+                  hasChanges = true;
+                  foundMatch = true;
+
+                  const fullPackageName = `org.apache.fineract.portfolio.savings.data.Fixed${rest}`;
+                  diagnostics.push(
+                    `Fixed truncated package name: ${truncatedValue}" -> "${fullPackageName}"`,
+                  );
+
+                  const matchText = match6[0];
+                  const replacement = `",\n${whitespace}"${fullPackageName}",`;
+                  sanitized =
+                    sanitized.substring(0, matchIndex) +
+                    replacement +
+                    sanitized.substring(matchIndex + matchText.length);
+                  break; // Break out to re-run regex on the updated string
+                }
+              }
+            }
+
+            // Also handle simple missing opening quote for package names (e.g., io.restassured.http.ContentType")
+            // Check if it looks like a package name (contains dots and starts with lowercase)
+            if (truncatedValue.includes(".") && /^[a-z]/.test(truncatedValue)) {
+              hasChanges = true;
+              foundMatch = true;
+
+              diagnostics.push(
+                `Fixed missing opening quote for package name: ${truncatedValue}" -> "${truncatedValue}"`,
+              );
+
+              const matchText = match6[0];
+              const replacement = `",\n${whitespace}"${truncatedValue}",`;
               sanitized =
                 sanitized.substring(0, matchIndex) +
                 replacement +

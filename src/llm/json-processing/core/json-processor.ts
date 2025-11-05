@@ -52,6 +52,8 @@ import {
   escapeControlCharsInStrings,
   fixMissingQuotesAroundPropertyValues,
   fixCorruptedTextInDescriptions,
+  fixTruncatedValueInArrayElements,
+  fixCorruptedPropertyValuePairs,
   hasSignificantSanitizationSteps,
   type Sanitizer,
   type PostParseTransform,
@@ -161,6 +163,8 @@ export class JsonProcessor {
     fixStrayTextBetweenColonAndValue,
     fixTailEndTruncatedProperties,
     fixTruncatedPropertyValues, // Fix truncated property values (e.g., "type " -> "type": "String")
+    fixTruncatedValueInArrayElements, // Fix truncated property values in array elements missing opening brace and property name
+    fixCorruptedPropertyValuePairs, // Fix corrupted property/value pairs (e.g., "name":ICCID": "value")
     fixPropertyNameTypos,
   ] as const satisfies readonly Sanitizer[];
 

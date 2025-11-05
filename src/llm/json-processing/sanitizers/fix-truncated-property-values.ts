@@ -95,9 +95,7 @@ export const fixTruncatedPropertyValues: Sanitizer = (jsonString: string): Sanit
     return {
       content: sanitized,
       changed: hasChanges,
-      description: hasChanges
-        ? SANITIZATION_STEP.FIXED_TRUNCATED_PROPERTY_VALUES
-        : undefined,
+      description: hasChanges ? SANITIZATION_STEP.FIXED_TRUNCATED_PROPERTY_VALUES : undefined,
       diagnostics: hasChanges ? diagnostics : undefined,
     };
   } catch (error) {
@@ -151,4 +149,3 @@ function inferPropertyValue(propertyName: string, isInParametersContext = false)
   // If we can't infer, return null
   return null;
 }
-

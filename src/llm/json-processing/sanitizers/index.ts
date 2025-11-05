@@ -43,6 +43,8 @@ export { fixTruncatedPropertyValues } from "./fix-truncated-property-values";
 export { escapeControlCharsInStrings } from "./escape-control-chars-in-strings";
 export { fixMissingQuotesAroundPropertyValues } from "./fix-missing-quotes-around-property-values";
 export { fixCorruptedTextInDescriptions } from "./fix-corrupted-text-in-descriptions";
+export { fixTruncatedValueInArrayElements } from "./fix-truncated-value-in-array-elements";
+export { fixCorruptedPropertyValuePairs } from "./fix-corrupted-property-value-pairs";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 
