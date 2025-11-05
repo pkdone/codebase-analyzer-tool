@@ -67,12 +67,6 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           // Calculate the position where the property name actually starts (after whitespace)
           const propertyNameStart = numericOffset + whitespaceStr.length;
 
-          // Check if we're inside a string literal at the property name position
-          // (not at the whitespace position, which could be misleading)
-          if (isInStringAt(propertyNameStart, sanitized)) {
-            return match; // Keep as is - inside a string
-          }
-
           // Check if there's already an opening quote before the property name
           if (
             propertyNameStart > 0 &&
@@ -84,35 +78,50 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           // Additional check: verify we're at a property boundary by looking for
           // valid delimiters before the whitespace (], }, or comma with optional whitespace/newline)
           // This helps avoid false matches inside string values
+          // We check for delimiters in a larger window to catch cases after long string values
+          let isAfterPropertyBoundary = false;
           if (numericOffset > 0) {
-            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 10), numericOffset);
+            // Check in a larger window (up to 50 chars) to catch delimiters after long strings
+            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
             // If we're right after a closing delimiter (], }, or ,), we're at a property boundary
-            const isAfterPropertyBoundary = /[}\],]\s*$/.test(beforeMatch);
-            // If we're not after a boundary and not at start of string, be more cautious
-            if (!isAfterPropertyBoundary && numericOffset > 10) {
-              // Check if the context before suggests we might be in a string
-              // by counting quotes in a larger window
-              const largerContext = sanitized.substring(
-                Math.max(0, numericOffset - 200),
-                numericOffset,
-              );
-              let quoteCount = 0;
-              let escape = false;
-              for (const char of largerContext) {
-                if (escape) {
-                  escape = false;
-                  continue;
-                }
-                if (char === "\\") {
-                  escape = true;
-                } else if (char === '"') {
-                  quoteCount++;
-                }
+            // This includes cases like: "long string",\n      propertyName": where the comma might be
+            // many characters before due to the long string
+            isAfterPropertyBoundary = /[}\],]\s*$/.test(beforeMatch);
+          }
+
+          // Check if we're inside a string literal at the property name position
+          // BUT: if we're clearly after a property boundary (comma, closing brace/bracket),
+          // we should trust the boundary check over the string check, as the boundary
+          // indicates we've exited the previous string value
+          if (!isAfterPropertyBoundary && isInStringAt(propertyNameStart, sanitized)) {
+            return match; // Keep as is - inside a string and not at a clear boundary
+          }
+
+          // If we're not after a boundary and not at start of string, be more cautious
+          if (!isAfterPropertyBoundary && numericOffset > 10) {
+            // Check if the context before suggests we might be in a string
+            // by counting quotes in a larger window
+            const largerContext = sanitized.substring(
+              Math.max(0, numericOffset - 200),
+              numericOffset,
+            );
+            let quoteCount = 0;
+            let escape = false;
+            for (const char of largerContext) {
+              if (escape) {
+                escape = false;
+                continue;
               }
-              // If odd number of quotes, we might be in a string - skip if no clear boundary
-              if (quoteCount % 2 === 1 && !whitespaceStr.includes("\n")) {
-                return match;
+              if (char === "\\") {
+                escape = true;
+              } else if (char === '"') {
+                quoteCount++;
               }
+            }
+            // If odd number of quotes and we don't have a clear boundary, we might be in a string
+            // However, if whitespace includes a newline, it's likely a new property after a string
+            if (quoteCount % 2 === 1 && !whitespaceStr.includes("\n")) {
+              return match;
             }
           }
 

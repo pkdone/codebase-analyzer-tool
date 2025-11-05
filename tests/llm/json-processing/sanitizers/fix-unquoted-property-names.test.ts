@@ -386,6 +386,24 @@ extraReferences": [
       ).toBe(true);
     });
 
+    it("should fix property names with missing opening quotes after long string values", () => {
+      // This reproduces the exact error from response-error-2025-11-04T14-36-29-199Z.log
+      // where "cyclomaticComplexity": appears without opening quote after a long description string
+      const input = `      "description": "The method calls EXTERNAL_ASSET_OWNER_HELPER.retrieveJournalEntriesOfTransfer to fetch the data. It asserts that the result is not null and that the transfer ID in the response matches the requested ID. It also asserts that the total number of entries matches the expected count. It then iterates through the expected and actual journal entries, comparing the amount, entry type ID, GL account ID, transaction date, and submitted date for each one.",
+      cyclomaticComplexity": 2,
+      "linesOfCode": 9`;
+
+      const result = fixUnquotedPropertyNames(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"cyclomaticComplexity":');
+      // Check that there's no unquoted pattern (property name starting with letter/digit/underscore, then quote and colon)
+      const hasUnquotedPattern = /([^"\\s]|^)(cyclomaticComplexity)"\s*:/.test(result.content);
+      expect(hasUnquotedPattern).toBe(false);
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("cyclomaticComplexity"))).toBe(true);
+    });
+
     it("should handle property names with missing quotes after arrays with many quoted strings", () => {
       // Test case that could cause false positives in isInStringAt due to many quotes
       const input = `{
