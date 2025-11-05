@@ -3,7 +3,15 @@
  * These fragments are shared between sources and app-summaries prompts.
  */
 export const COMMON_FRAGMENTS = {
-  FORCE_JSON_FORMAT: `In your response, only include JSON and do not include any additional text explanations outside the JSON object.
+  FORCE_JSON_FORMAT: `The response MUST be valid JSON and meet the following critical JSON requiremnets:
+ - Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+ - All property names must be quoted: use "propertyName": value at ALL nesting levels
+ - All string values must be quoted: use "value" not unquoted strings
+ - No stray text: do not include any text, characters, or lines between or around JSON properties
+ - Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+ - Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable`,
+
+  FULL_FORCE_JSON_FORMAT: `In your response, only include JSON and do not include any additional text explanations outside the JSON object.
 NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
 NEVER include thought markers, thinking prefixes, or explanation text before the JSON. Do NOT write patterns like <ctrl94>thought, <thinking>, or command{ before the JSON. Start your response directly with { or [.
 CRITICAL: NEVER include code snippets, code examples, or programming language syntax in your response. Do NOT write code patterns like else{ or if{ in your planning or explanation text, as these can interfere with JSON extraction. Only include the JSON object itself, starting directly with { or [.

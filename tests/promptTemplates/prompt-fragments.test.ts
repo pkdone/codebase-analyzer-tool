@@ -21,9 +21,8 @@ describe("prompt-fragments", () => {
     it("should have FORCE_JSON_FORMAT fragment", () => {
       expect(COMMON_FRAGMENTS.FORCE_JSON_FORMAT).toBeDefined();
       expect(typeof COMMON_FRAGMENTS.FORCE_JSON_FORMAT).toBe("string");
-      expect(COMMON_FRAGMENTS.FORCE_JSON_FORMAT).toContain(
-        "ONLY provide an RFC8259 compliant JSON response",
-      );
+      expect(COMMON_FRAGMENTS.FORCE_JSON_FORMAT).toContain("The response MUST be valid JSON");
+      expect(COMMON_FRAGMENTS.FORCE_JSON_FORMAT).toContain("All property names must be quoted");
     });
   });
 
