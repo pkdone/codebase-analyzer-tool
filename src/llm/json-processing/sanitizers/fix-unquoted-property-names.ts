@@ -224,17 +224,24 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
         // Additional context check: verify we're at a property boundary
         // This helps avoid false matches in other contexts
         if (numericOffset > 0) {
-          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+          // Check a larger window to catch cases with newlines and indentation
+          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
           // Check if we're after a valid property boundary: {, }, ], ,, or newline
           // This ensures we're in an object context, not somewhere else
-          const isAfterPropertyBoundary = /[{}\],]\s*$|\n\s*$/.test(beforeMatch);
-          
+          // Updated pattern to handle newlines and whitespace after delimiters
+          const isAfterPropertyBoundary = /[{}\],](\s*\n\s*)?$|\n\s*$/.test(beforeMatch);
+
+          // Also check if we're immediately after a closing brace/bracket with optional whitespace/newline
+          // This handles cases like: }\n    name: where there's whitespace after the newline
+          const isAfterClosingDelimiter = /[}\]]\s*(\n\s*)?$/.test(beforeMatch);
+
           // If we're not at a clear boundary, be more cautious
           // Check if the character immediately before the whitespace is a valid delimiter
           const charBeforeWhitespace = numericOffset > 0 ? sanitized[numericOffset - 1] : "";
-          const isValidContext = 
-            isAfterPropertyBoundary || 
-            charBeforeWhitespace === "{" || 
+          const isValidContext =
+            isAfterPropertyBoundary ||
+            isAfterClosingDelimiter ||
+            charBeforeWhitespace === "{" ||
             charBeforeWhitespace === "," ||
             charBeforeWhitespace === "\n" ||
             numericOffset === 0;

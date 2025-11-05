@@ -27,6 +27,12 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       refere: "references",
       refer: "references",
 
+      // PublicMethods variations - handles "alues" -> "publicMethods"
+      alues: "publicMethods",
+      lues: "publicMethods",
+      ues: "publicMethods",
+      es: "publicMethods",
+
       // Integration variations
       integra: "integration",
       integrat: "integration",
@@ -351,12 +357,45 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       hasChanges = true;
     }
 
-    // Pattern 2: Fix truncated property names that are clearly incomplete
+    // Pattern 2: Fix truncated property names that are missing opening quote
+    // This matches patterns like: alues": [  (should be "publicMethods": [)
+    // The pattern matches: whitespace + truncated property name + " + : + whitespace + next token
+    const truncatedMissingOpeningQuotePattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+
+    const beforeSecondPass = sanitized;
+    sanitized = sanitized.replace(
+      truncatedMissingOpeningQuotePattern,
+      (match, whitespace, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const lowerPropertyName = propertyNameStr.toLowerCase();
+
+        // Check if there's already an opening quote before this (shouldn't match if properly quoted)
+        if (numericOffset > 0 && sanitized[numericOffset - 1] === '"') {
+          return match; // Already properly quoted, skip
+        }
+
+        // Check if this looks like a truncated property name
+        if (propertyMappings[lowerPropertyName]) {
+          const fixedName = propertyMappings[lowerPropertyName];
+          hasChanges = true;
+          diagnostics.push(
+            `Fixed truncated property name with missing opening quote: ${propertyNameStr}" -> "${fixedName}"`,
+          );
+          return `${whitespaceStr}"${fixedName}":`;
+        }
+
+        return match; // Keep as is if no mapping found
+      },
+    );
+
+    // Pattern 3: Fix truncated property names that are clearly incomplete (with quotes)
     // This matches property names that look like they were cut off
     const truncatedPropertyPattern = /(\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*(?=:|,|\})/g;
 
     // Apply property name fixes
-    const beforeSecondPass = sanitized;
+    const beforeThirdPass = sanitized;
     sanitized = sanitized.replace(truncatedPropertyPattern, (match, whitespace, propertyName) => {
       const lowerPropertyName = (propertyName as string).toLowerCase();
 
@@ -373,8 +412,8 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       return match; // Keep as is if no mapping found
     });
 
-    // Track changes from second pass
-    if (sanitized !== beforeSecondPass) {
+    // Track changes from passes
+    if (sanitized !== beforeSecondPass || sanitized !== beforeThirdPass) {
       hasChanges = true;
     }
 

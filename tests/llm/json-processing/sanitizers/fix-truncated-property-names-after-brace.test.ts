@@ -23,7 +23,9 @@ se": "This static factory method is used to augment an existing LoanProductData 
       expect(result.content).toMatch(/},\s*\{\s*"name":\s*"This static factory method/);
       expect(result.diagnostics).toBeDefined();
       expect(result.diagnostics?.length).toBeGreaterThan(0);
-      expect(result.diagnostics?.[0]).toContain('Fixed truncated property name after brace: "se" -> "name"');
+      expect(result.diagnostics?.[0]).toContain(
+        'Fixed truncated property name after brace: "se" -> "name"',
+      );
     });
 
     it("should fix truncated property name 'pu': (purpose) after closing brace", () => {
@@ -41,7 +43,9 @@ pu": "This method processes loan transactions",
 
       expect(result.changed).toBe(true);
       expect(result.content).toContain(`"purpose": "This method processes loan transactions"`);
-      expect(result.content).toMatch(/},\s*\{\s*"purpose":\s*"This method processes loan transactions/);
+      expect(result.content).toMatch(
+        /},\s*\{\s*"purpose":\s*"This method processes loan transactions/,
+      );
     });
 
     it("should fix truncated property name 'na': (name) after closing brace", () => {
@@ -364,4 +368,3 @@ se": "method2",
     });
   });
 });
-

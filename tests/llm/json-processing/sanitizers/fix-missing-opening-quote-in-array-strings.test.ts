@@ -14,7 +14,9 @@ fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException
       expect(result.changed).toBe(true);
       expect(result.description).toBe("Fixed missing opening quotes in array string values");
       // The sanitizer adds the opening quote but doesn't fix truncated values
-      expect(result.content).toContain(`"fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException"`);
+      expect(result.content).toContain(
+        `"fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException"`,
+      );
       expect(result.diagnostics).toBeDefined();
       expect(result.diagnostics?.length).toBeGreaterThan(0);
     });
@@ -60,7 +62,9 @@ fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException
 
       expect(result.changed).toBe(true);
       // The sanitizer adds the opening quote but doesn't fix truncated values
-      expect(result.content).toContain(`"fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException"`);
+      expect(result.content).toContain(
+        `"fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException"`,
+      );
     });
 
     it("should not modify valid JSON", () => {
@@ -210,4 +214,3 @@ null",
     });
   });
 });
-

@@ -45,11 +45,7 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * Validates if a position in the string is likely the start of a JSON object/array.
  * Checks that the opening delimiter is followed by valid JSON content (whitespace, quote, or bracket).
  */
-function isValidJsonStart(
-  position: number,
-  delimiter: string,
-  content: string,
-): boolean {
+function isValidJsonStart(position: number, delimiter: string, content: string): boolean {
   if (position < 0 || position >= content.length) return false;
 
   // Check if it's a code snippet (like "else{" or "if {") by looking before
@@ -159,7 +155,6 @@ export const extractLargestJsonSpan: Sanitizer = (input) => {
       continue; // Skip this candidate, try next
     }
 
-
     const endChar = startChar === "{" ? "}" : "]";
     let depth = 0;
     let inString = false;
@@ -195,14 +190,13 @@ export const extractLargestJsonSpan: Sanitizer = (input) => {
     if (endIndex !== -1) {
       const sliced = input.slice(start, endIndex + 1).trim();
       const trimmedInput = input.trim();
-      
+
       // If the extracted content is the same as the trimmed input (or very close),
       // then the input is already clean JSON - return unchanged
       if (sliced === trimmedInput || (sliced.length > trimmedInput.length * 0.95 && start < 10)) {
         return { content: input, changed: false };
       }
-      
-      
+
       // Validate that the extracted span looks like valid JSON (starts with { or [ and ends with } or ])
       // We removed the minimum size check because valid JSON can be very small (e.g., "{}" or "[1]")
       if (sliced !== trimmedInput) {
