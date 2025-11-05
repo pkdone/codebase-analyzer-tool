@@ -229,11 +229,16 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           // Check if we're after a valid property boundary: {, }, ], ,, or newline
           // This ensures we're in an object context, not somewhere else
           // Updated pattern to handle newlines and whitespace after delimiters
+          // Also check for patterns like: {\n    name: (after opening brace)
           const isAfterPropertyBoundary = /[{}\],](\s*\n\s*)?$|\n\s*$/.test(beforeMatch);
 
           // Also check if we're immediately after a closing brace/bracket with optional whitespace/newline
           // This handles cases like: }\n    name: where there's whitespace after the newline
           const isAfterClosingDelimiter = /[}\]]\s*(\n\s*)?$/.test(beforeMatch);
+
+          // Check if we're after an opening brace with newline (common after fixMissingOpeningBraces)
+          // Pattern: {\n    name: (where whitespace may include the newline)
+          const isAfterOpeningBrace = /\{\s*\n\s*$/.test(beforeMatch);
 
           // If we're not at a clear boundary, be more cautious
           // Check if the character immediately before the whitespace is a valid delimiter
@@ -241,6 +246,7 @@ export const fixUnquotedPropertyNames: Sanitizer = (jsonString: string): Sanitiz
           const isValidContext =
             isAfterPropertyBoundary ||
             isAfterClosingDelimiter ||
+            isAfterOpeningBrace ||
             charBeforeWhitespace === "{" ||
             charBeforeWhitespace === "," ||
             charBeforeWhitespace === "\n" ||

@@ -26,11 +26,15 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
 
     // Pattern: Missing opening quote in array string values
     // Matches: ,wordWithDotsAndLetters", or [wordWithDotsAndLetters", or \n    wordWithDotsAndLetters",
-    // This pattern handles two cases:
+    // This pattern handles three cases:
     // Case 1: After comma or bracket: ,word" or [word"
     // Case 2: After newline (following ", on previous line): \n    word"
+    // Case 3: After newline with whitespace (missing quote on new line): \n    word"
     const missingOpeningQuotePattern1 = /((?:,|\[))\s*\n?(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
     const missingOpeningQuotePattern2 = /"\s*,\s*\n(\s*)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
+    // Pattern 3: Handles cases where a newline appears with whitespace and a word-like pattern followed by quote and comma
+    // This catches cases like: \n    fineract.portfolio...", (missing opening quote)
+    const missingOpeningQuotePattern3 = /\n(\s+)([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
 
     // Helper function to check if we're in an array context (not in an object)
     function isInArrayContext(matchIndex: number, content: string): boolean {
@@ -157,6 +161,45 @@ export const fixMissingOpeningQuoteInArrayStrings: Sanitizer = (
               // Reconstruct the fixed pattern
               const matchText = match2[0];
               const replacement = `",\n${whitespace}"${unquotedValue}",`;
+              sanitized =
+                sanitized.substring(0, matchIndex) +
+                replacement +
+                sanitized.substring(matchIndex + matchText.length);
+              break; // Break out to re-run regex on the updated string
+            }
+          }
+        }
+      }
+
+      // Try pattern 3: after newline with whitespace (missing quote on new line)
+      if (!foundMatch) {
+        const regex3 = new RegExp(missingOpeningQuotePattern3);
+        let match3;
+        while ((match3 = regex3.exec(sanitized)) !== null) {
+          const matchIndex = match3.index;
+          const whitespace = match3[1] || "";
+          const unquotedValue = match3[2] || "";
+
+          // Check if we're in an array context
+          const isLikelyArrayContext = isInArrayContext(matchIndex, sanitized);
+
+          if (isLikelyArrayContext) {
+            // Check if this looks like it should be a string value (not a number or keyword)
+            const jsonKeywords = ["true", "false", "null", "undefined"];
+            const isKeyword = jsonKeywords.includes(unquotedValue.toLowerCase());
+
+            // Skip if it's a JSON keyword (these are valid unquoted)
+            if (!isKeyword) {
+              hasChanges = true;
+              foundMatch = true;
+
+              diagnostics.push(
+                `Fixed missing opening quote in array string: ${unquotedValue}" -> "${unquotedValue}"`,
+              );
+
+              // Reconstruct the fixed pattern
+              const matchText = match3[0];
+              const replacement = `\n${whitespace}"${unquotedValue}",`;
               sanitized =
                 sanitized.substring(0, matchIndex) +
                 replacement +
