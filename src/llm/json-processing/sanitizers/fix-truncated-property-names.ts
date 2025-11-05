@@ -26,6 +26,11 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       eferences: "references",
       refere: "references",
       refer: "references",
+      
+      // Name variations - handles truncations like "se" (from "name")
+      se: "name",
+      nam: "name",
+      na: "name",
 
       // PublicMethods variations - handles "alues" -> "publicMethods"
       alues: "publicMethods",
@@ -194,6 +199,15 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
       n: "name", // if "name" was truncated to just "n"
       m: "name", // if truncated differently
     };
+    
+    // Two-character mappings for cases where property names are truncated to 2 chars
+    const twoCharMappings: Record<string, string> = {
+      // "name" truncated to 2 chars
+      se: "name",
+      na: "name",
+      am: "name",
+      me: "name",
+    };
 
     // Pattern 1: Fix truncated property names with missing opening quote and colon
     // Matches patterns like: e": "value"  (should be "name": "value")
@@ -221,6 +235,27 @@ export const fixTruncatedPropertyNames: Sanitizer = (jsonString: string): Saniti
           hasChanges = true;
           diagnostics.push(
             `Fixed missing opening quote in truncated property: ${singleChar as string}" -> "${fixedName}"`,
+          );
+          return `${delimiter}${whitespace}"${fixedName}":`;
+        }
+
+        return match; // Keep as is if no mapping found
+      },
+    );
+    
+    // Pattern 1a: Fix truncated property names with 2 characters (e.g., "se": -> "name":)
+    const missingOpeningQuotePattern2Char = /([}\],]|^)(\n?\s*)([a-zA-Z]{2})"\s*:/gm;
+    sanitized = sanitized.replace(
+      missingOpeningQuotePattern2Char,
+      (match, delimiter, whitespace, twoChars) => {
+        const lowerTwoChars = (twoChars as string).toLowerCase();
+
+        // Check if this two-character sequence maps to a known property name
+        if (twoCharMappings[lowerTwoChars]) {
+          const fixedName = twoCharMappings[lowerTwoChars];
+          hasChanges = true;
+          diagnostics.push(
+            `Fixed missing opening quote in truncated property (2-char): ${twoChars as string}" -> "${fixedName}"`,
           );
           return `${delimiter}${whitespace}"${fixedName}":`;
         }
