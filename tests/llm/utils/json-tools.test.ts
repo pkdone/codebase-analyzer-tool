@@ -461,7 +461,9 @@ describe("json-tools", () => {
       expect(result.data).toHaveProperty("data");
 
       const data = (result.data as any).data;
-      expect(data).toBe("textwithcontrols"); // Control characters should be removed
+      // Control characters inside strings are escaped (not removed), so they remain in the parsed value
+      // The control chars are escaped as \u0001 and \u0002 in the JSON string
+      expect(data).toBe(`text${controlChar1}with${controlChar2}controls`);
     });
 
     test("should handle enhanced SQL INSERT patterns", () => {

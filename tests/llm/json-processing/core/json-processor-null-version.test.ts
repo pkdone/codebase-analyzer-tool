@@ -197,7 +197,7 @@ describe("JsonProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
-        expect(result.steps).toContain("Fixed unquoted property names");
+        expect(result.steps).toContain("Fixed property names");
         expect(result.diagnostics).toContain("Fixed unquoted property name: kind");
         expect(result.diagnostics).toContain("Fixed unquoted property name: purpose");
       }
@@ -226,8 +226,7 @@ describe("JsonProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
-        expect(result.steps).toContain("Fixed unquoted property names");
-        expect(result.steps).toContain("Fixed truncated property names");
+        expect(result.steps).toContain("Fixed property names");
         expect(result.diagnostics).toContain("Fixed unquoted property name: kind");
         expect(result.diagnostics).toContain("Fixed unquoted property name: purpose");
         expect(result.diagnostics).toContain(

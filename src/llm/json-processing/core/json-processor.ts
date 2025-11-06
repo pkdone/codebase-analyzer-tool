@@ -12,44 +12,32 @@ import { JsonProcessorResult } from "../json-processing-result.types";
 import {
   trimWhitespace,
   removeCodeFences,
-  removeControlChars,
+  normalizeEscapeSequences,
   fixCurlyQuotes,
   removeThoughtMarkers,
   removeStrayLinePrefixChars,
   extractLargestJsonSpan,
   collapseDuplicateJsonObject,
   fixMismatchedDelimiters,
-  fixMissingOpeningBraces,
-  fixConcatenatedPropertyNames,
   addMissingPropertyCommas,
   removeTrailingCommas,
   concatenationChainSanitizer,
-  overEscapedSequencesSanitizer,
-  fixInvalidEscapeSequencesSanitizer,
   completeTruncatedStructures,
-  fixTruncatedPropertyNames,
-  fixTruncatedArrayElements,
+  fixPropertyNames,
+  fixMissingArrayObjectBraces,
+  fixMissingOpeningQuoteInArrayStrings,
   fixUndefinedValues,
   fixUnescapedQuotesInStrings,
   fixStrayTextBeforePropertyNames,
-  fixStrayTextBeforeUnquotedProperties,
   fixStrayCharsAfterPropertyValues,
   removeStrayLinesBetweenStructures,
   removeTruncationMarkers,
   fixAssignmentSyntax,
-  fixUnquotedPropertyNames,
   fixUnquotedStringValues,
   fixStrayTextBetweenColonAndValue,
-  fixTailEndTruncatedProperties,
-  fixUnquotedPropertyTypos,
-  fixPropertyNameTypos,
-  fixCorruptedArrayObjectStart,
   fixBinaryCorruptionPatterns,
-  fixTruncatedPropertyNamesAfterBrace,
-  fixMissingOpeningQuoteInArrayStrings,
   fixCorruptedNumericValues,
   fixTruncatedPropertyValues,
-  escapeControlCharsInStrings,
   fixMissingQuotesAroundPropertyValues,
   fixCorruptedTextInDescriptions,
   fixTruncatedValueInArrayElements,
@@ -80,40 +68,51 @@ export class JsonProcessor {
   /**
    * Unified, ordered pipeline of sanitizers.
    *
-   * The order is critical for effective JSON repair:
+   * The order is critical for effective JSON repair. Sanitizers are organized into logical phases:
    *
-   * 1. trimWhitespace - Remove leading/trailing whitespace to simplify subsequent regex matching
-   * 2. removeCodeFences - Strip markdown code fences (```json) before attempting to find JSON span
-   * 3. removeControlChars - Remove control characters that would break JSON parsing
-   * 4. fixCurlyQuotes - Convert curly quotes (smart quotes) to regular ASCII quotes
-   * 5. removeThoughtMarkers - Remove LLM thought markers and text before JSON (like <ctrl94>thought, command{)
-   * 6. removeStrayLinePrefixChars - Remove stray characters at the start of lines within JSON
-   * 7. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
-   * 8. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
-   * 9. fixMismatchedDelimiters - Correct bracket/brace mismatches
-   * 10. addMissingPropertyCommas - Insert missing commas between object properties
-   * 11. removeTrailingCommas - Remove invalid trailing commas
-   * 12. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
-   * 13. overEscapedSequencesSanitizer - Fix over-escaped characters (e.g., \\\\\')
-   * 14. fixInvalidEscapeSequencesSanitizer - Fix invalid JSON escape sequences (e.g., \ , \x, \1-\9)
-   * 15. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
-   * 16. fixTruncatedPropertyNames - Fix truncated or malformed property names
-   * 17. fixMissingOpeningBraces - Insert missing opening braces for new objects in arrays
-   * 18. fixTruncatedPropertyNamesAfterBrace - Fix truncated property names after closing braces in arrays
-   * 19. fixMissingOpeningQuoteInArrayStrings - Fix missing opening quotes in array string values
-   * 20. fixConcatenatedPropertyNames - Fix concatenated string literals in property names
-   * 21. fixUndefinedValues - Convert undefined values to null (before fixUnquotedPropertyNames)
-   * 22. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
-   * 23. fixStrayTextBeforePropertyNames - Remove stray text directly concatenated before property names
-   * 24. fixStrayTextBeforeUnquotedProperties - Fix stray text before property names with missing opening quotes
-   * 25. fixStrayCharsAfterPropertyValues - Remove stray characters directly concatenated after property values
-   * 26. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
-   * 27. fixCorruptedArrayObjectStart - Fix corrupted array object starts (missing { and "name": with stray text)
-   * 28. fixUnquotedPropertyTypos - Fix property names with missing opening quotes that are typos (runs before fixUnquotedPropertyNames)
-   * 29. fixUnquotedPropertyNames - Add quotes around unquoted property names
-   * 30. fixUnquotedStringValues - Add quotes around unquoted string values
-   * 31. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
-   * 32. fixTailEndTruncatedProperties - Fix tail-end truncated property names with missing opening quotes
+   * Phase 1: Noise Removal (1-6)
+   *   Removes formatting artifacts and noise before structural analysis
+   *   1. trimWhitespace - Remove leading/trailing whitespace
+   *   2. removeCodeFences - Strip markdown code fences (```json)
+   *   3. normalizeEscapeSequences - Normalize escape sequences and control characters (consolidates 4 sanitizers)
+   *   4. fixCurlyQuotes - Convert curly quotes to regular ASCII quotes
+   *   5. removeThoughtMarkers - Remove LLM thought markers and text before JSON
+   *   6. removeStrayLinePrefixChars - Remove stray characters at the start of lines
+   *
+   * Phase 2: Structure Extraction & Basic Fixes (7-13)
+   *   Extracts JSON structure and fixes basic structural issues
+   *   7. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
+   *   8. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
+   *   9. fixMismatchedDelimiters - Correct bracket/brace mismatches
+   *   10. addMissingPropertyCommas - Insert missing commas between object properties
+   *   11. removeTrailingCommas - Remove invalid trailing commas
+   *   12. concatenationChainSanitizer - Fix string concatenation expressions (e.g., "BASE + '/path'")
+   *   13. completeTruncatedStructures - Close any unclosed brackets/braces from truncated responses
+   *
+   * Phase 3: Property & Structure Fixes (14-16)
+   *   Fixes property names and array object structures
+   *   14. fixPropertyNames - Fix all property name issues (consolidates 7 sanitizers: truncations, typos, unquoted, concatenated, missing quotes)
+   *   15. fixMissingArrayObjectBraces - Insert missing opening braces for new objects in arrays (consolidates 3 sanitizers)
+   *   16. fixMissingOpeningQuoteInArrayStrings - Fix missing opening quotes in array string values
+   *
+   * Phase 4: Value & Content Fixes (17-32)
+   *   Fixes property values, stray text, and content corruption
+   *   17. fixUndefinedValues - Convert undefined values to null
+   *   18. fixUnescapedQuotesInStrings - Escape unescaped quotes inside string values (HTML/code snippets)
+   *   19. fixCorruptedTextInDescriptions - Fix corrupted text patterns in string values
+   *   20. fixStrayTextBeforePropertyNames - Remove stray text before property names (handles both quoted and unquoted)
+   *   21. fixStrayCharsAfterPropertyValues - Remove stray characters after property values
+   *   22. removeStrayLinesBetweenStructures - Remove complete stray lines between JSON structures
+   *   23. fixBinaryCorruptionPatterns - Fix binary corruption patterns (e.g., <y_bin_XXX> markers)
+   *   24. removeTruncationMarkers - Remove truncation markers (e.g., ...)
+   *   25. fixAssignmentSyntax - Fix assignment syntax (:= to :)
+   *   26. fixUnquotedStringValues - Add quotes around unquoted string values
+   *   27. fixMissingQuotesAroundPropertyValues - Fix missing quotes around property values
+   *   28. fixCorruptedNumericValues - Fix corrupted numeric values like _3 -> 3
+   *   29. fixStrayTextBetweenColonAndValue - Remove stray text between colon and opening quote of value
+   *   30. fixTruncatedPropertyValues - Fix truncated property values (e.g., "type " -> "type": "String")
+   *   31. fixTruncatedValueInArrayElements - Fix truncated property values in array elements
+   *   32. fixCorruptedPropertyValuePairs - Fix corrupted property/value pairs (e.g., "name":ICCID": "value")
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -124,8 +123,7 @@ export class JsonProcessor {
   private readonly SANITIZATION_ORDERED_PIPELINE = [
     trimWhitespace,
     removeCodeFences,
-    removeControlChars,
-    escapeControlCharsInStrings, // Escape control chars in strings after removing standalone ones
+    normalizeEscapeSequences, // Normalize escape sequences and control characters (consolidates removeControlChars, escapeControlCharsInStrings, fixInvalidEscapeSequences, overEscapedSequences)
     fixCurlyQuotes,
     removeThoughtMarkers,
     removeStrayLinePrefixChars,
@@ -135,37 +133,26 @@ export class JsonProcessor {
     addMissingPropertyCommas,
     removeTrailingCommas,
     concatenationChainSanitizer,
-    overEscapedSequencesSanitizer,
-    fixInvalidEscapeSequencesSanitizer,
     completeTruncatedStructures,
-    fixTruncatedPropertyNames,
-    fixMissingOpeningBraces,
-    fixTruncatedPropertyNamesAfterBrace,
+    fixPropertyNames, // Consolidated sanitizer fixing all property name issues (truncations, typos, unquoted, concatenated, missing quotes)
+    fixMissingArrayObjectBraces, // Consolidated sanitizer fixing missing opening braces for array objects
     fixMissingOpeningQuoteInArrayStrings,
-    fixTruncatedArrayElements,
-    fixConcatenatedPropertyNames,
     fixUndefinedValues,
     fixUnescapedQuotesInStrings,
     fixCorruptedTextInDescriptions, // Fix corrupted text patterns in string values
     fixStrayTextBeforePropertyNames,
-    fixStrayTextBeforeUnquotedProperties,
     fixStrayCharsAfterPropertyValues,
     removeStrayLinesBetweenStructures,
-    fixCorruptedArrayObjectStart,
     fixBinaryCorruptionPatterns,
     removeTruncationMarkers,
     fixAssignmentSyntax,
-    fixUnquotedPropertyTypos, // Run before fixUnquotedPropertyNames to fix typos AND missing quotes together
-    fixUnquotedPropertyNames,
     fixUnquotedStringValues,
     fixMissingQuotesAroundPropertyValues, // Fix missing quotes around property values (e.g., "name":value" -> "name": "value")
     fixCorruptedNumericValues, // Fix corrupted numeric values like _3 -> 3
     fixStrayTextBetweenColonAndValue,
-    fixTailEndTruncatedProperties,
     fixTruncatedPropertyValues, // Fix truncated property values (e.g., "type " -> "type": "String")
     fixTruncatedValueInArrayElements, // Fix truncated property values in array elements missing opening brace and property name
     fixCorruptedPropertyValuePairs, // Fix corrupted property/value pairs (e.g., "name":ICCID": "value")
-    fixPropertyNameTypos,
   ] as const satisfies readonly Sanitizer[];
 
   /**

@@ -5,14 +5,16 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * Sanitizer that fixes stray text directly concatenated before property names.
  *
  * This sanitizer addresses cases where LLM responses contain stray words or text
- * directly concatenated to the opening quote of a property name, which breaks JSON parsing.
+ * directly concatenated to property names (both quoted and unquoted), which breaks JSON parsing.
  *
  * Examples of issues this sanitizer handles:
- * - `tribal"integrationPoints":` -> `"integrationPoints":`
- * - `word"propertyName":` -> `"propertyName":`
- * - `fragment"name":` -> `"name":`
+ * - `tribal"integrationPoints":` -> `"integrationPoints":` (stray text before quoted property)
+ * - `word"propertyName":` -> `"propertyName":` (stray text before quoted property)
+ * - `fragment"name":` -> `"name":` (stray text before quoted property)
  * - `e"publicMethods":` -> `"publicMethods":` (single character stray text)
  * - `extraText: "externalReferences":` -> `"externalReferences":` (stray text with colon)
+ * - `word":` -> `"propertyName":` (stray text before unquoted property, missing opening quote)
+ * - `tribulations": []` -> `"tablesAccessed": []` (stray text before unquoted property with typo correction)
  * - `করার"org.apache...":` -> `"org.apache..."` (non-ASCII/Bengali stray text before array element)
  * - `word"arrayValue",` -> `"arrayValue",` (stray text before array string values)
  *
@@ -23,9 +25,8 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  *
  * Strategy:
  * Uses regex to identify patterns where a word (not valid JSON) appears directly
- * before a quoted property name, or where stray text with a colon appears before
- * a quoted property name, and removes the stray text while preserving
- * the proper property name format.
+ * before a property name (quoted or unquoted), and removes the stray text while
+ * preserving or adding the proper property name format.
  */
 export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): SanitizerResult => {
   try {
@@ -214,7 +215,82 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
       },
     );
 
-    // Third pass: Fix stray text (including non-ASCII) before array string values
+    // Third pass: Fix stray text before unquoted property names (missing opening quote)
+    // Pattern: stray text followed by closing quote and colon (missing opening quote)
+    // Matches: word": value where word is stray text before an unquoted property name
+    // This catches patterns like: }word": [], word": "value", \nword": {
+    const strayTextBeforeUnquotedPattern = /([}\],]|\n|^)(\s*)([a-zA-Z_$]{2,})"\s*:/g;
+
+    // Known property name corrections (common typos/hallucinations)
+    const propertyNameCorrections: Record<string, string> = {
+      tribulations: "tablesAccessed",
+      // Add more corrections as needed based on observed errors
+    };
+
+    sanitized = sanitized.replace(
+      strayTextBeforeUnquotedPattern,
+      (match, delimiter, whitespace, strayText, offset, string) => {
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const offsetNum = typeof offset === "number" ? offset : undefined;
+        const stringStr = typeof string === "string" ? string : sanitized;
+
+        const isValidDelimiter =
+          delimiterStr === "" || delimiterStr === "\n" || /[}\],]/.test(delimiterStr);
+
+        const jsonKeywords = ["true", "false", "null", "undefined"];
+        const isStrayTextValid = jsonKeywords.includes(strayTextStr.toLowerCase());
+
+        // Verify we're not inside a string value
+        if (offsetNum !== undefined && stringStr) {
+          const beforeMatch = stringStr.substring(Math.max(0, offsetNum - 200), offsetNum);
+          let quoteCount = 0;
+          let escape = false;
+          for (const char of beforeMatch) {
+            if (escape) {
+              escape = false;
+              continue;
+            }
+            if (char === "\\") {
+              escape = true;
+            } else if (char === '"') {
+              quoteCount++;
+            }
+          }
+          if (quoteCount % 2 === 1) {
+            return match;
+          }
+        }
+
+        if (isValidDelimiter && !isStrayTextValid) {
+          // Check if we have a known correction for this stray text
+          const lowerStrayText = strayTextStr.toLowerCase();
+          const correctedName = propertyNameCorrections[lowerStrayText];
+
+          if (correctedName) {
+            hasChanges = true;
+            diagnostics.push(
+              `Fixed stray text "${strayTextStr}" before unquoted property, corrected to "${correctedName}"`,
+            );
+            const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
+            return `${finalDelimiter}${whitespaceStr}"${correctedName}":`;
+          }
+
+          // If no known correction, check if the stray text could be a valid property name
+          if (strayTextStr.length >= 2 && /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(strayTextStr)) {
+            hasChanges = true;
+            diagnostics.push(`Fixed missing opening quote before property name "${strayTextStr}"`);
+            const finalDelimiter = delimiterStr === "" ? "" : delimiterStr;
+            return `${finalDelimiter}${whitespaceStr}"${strayTextStr}":`;
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // Fourth pass: Fix stray text (including non-ASCII) before array string values
     // Pattern: word"stringValue", where word is stray text and stringValue is an array element
     // Example: করার"org.apache...", -> "org.apache...",
     // Example: e"org.junit.jupiter.api.extension.ExtendWith", -> "org.junit.jupiter.api.extension.ExtendWith",
@@ -390,7 +466,7 @@ export const fixStrayTextBeforePropertyNames: Sanitizer = (jsonString: string): 
       changed: hasChanges,
       description: hasChanges
         ? SANITIZATION_STEP.FIXED_STRAY_TEXT_BEFORE_PROPERTY_NAMES
-        : undefined,
+        : undefined, // Consolidated: handles both quoted and unquoted properties
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {

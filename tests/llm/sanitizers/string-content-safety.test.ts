@@ -1,6 +1,6 @@
 import { concatenationChainSanitizer } from "../../../src/llm/json-processing/sanitizers/fix-concatenation-chains";
 import { addMissingPropertyCommas } from "../../../src/llm/json-processing/sanitizers/add-missing-property-commas";
-import { overEscapedSequencesSanitizer } from "../../../src/llm/json-processing/sanitizers/fix-over-escaped-sequences";
+import { normalizeEscapeSequences } from "../../../src/llm/json-processing/sanitizers/normalize-escape-sequences";
 
 /**
  * Safety tests to ensure sanitizers don't modify valid JSON string content.
@@ -61,24 +61,24 @@ describe("Sanitizer String Content Safety", () => {
     });
   });
 
-  describe("overEscapedSequencesSanitizer", () => {
+  describe("normalizeEscapeSequences", () => {
     it("handles valid escaped quotes in strings", () => {
       const input = '{"quote": "He said \\"hello\\""}';
-      const result = overEscapedSequencesSanitizer(input);
+      const result = normalizeEscapeSequences(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves valid escape sequences", () => {
       const input = '{"path": "C:\\\\Users\\\\file.txt"}';
-      const result = overEscapedSequencesSanitizer(input);
+      const result = normalizeEscapeSequences(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves newlines and tabs", () => {
       const input = '{"text": "Line 1\\nLine 2\\tTabbed"}';
-      const result = overEscapedSequencesSanitizer(input);
+      const result = normalizeEscapeSequences(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
@@ -94,7 +94,7 @@ describe("Sanitizer String Content Safety", () => {
 
       const result1 = concatenationChainSanitizer(input);
       const result2 = addMissingPropertyCommas(result1.content);
-      const result3 = overEscapedSequencesSanitizer(result2.content);
+      const result3 = normalizeEscapeSequences(result2.content);
 
       expect(JSON.parse(result3.content)).toEqual(JSON.parse(input));
     });
@@ -108,7 +108,7 @@ describe("Sanitizer String Content Safety", () => {
 
       const result1 = concatenationChainSanitizer(input);
       const result2 = addMissingPropertyCommas(result1.content);
-      const result3 = overEscapedSequencesSanitizer(result2.content);
+      const result3 = normalizeEscapeSequences(result2.content);
 
       // Should remain unchanged through all sanitizers (no over-escaping present)
       expect(result3.content).toBe(input);

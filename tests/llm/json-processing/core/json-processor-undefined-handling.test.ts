@@ -255,7 +255,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
 
         // Verify that sanitization steps were applied
         expect(result.steps).toContain("Removed code fences");
-        expect(result.steps).toContain("Fixed unquoted property names");
+        expect(result.steps).toContain("Fixed property names");
         expect(result.steps).toContain("Fixed undefined values");
       }
     });
