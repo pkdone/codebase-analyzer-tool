@@ -29,6 +29,7 @@ export const SANITIZATION_STEP = Object.freeze({
   FIXED_ASSIGNMENT_SYNTAX: "Fixed assignment syntax (:= to :)",
   FIXED_CONCATENATED_PROPERTY_NAMES: "Fixed concatenated property names",
   REMOVED_THOUGHT_MARKERS: "Removed thought markers and text before JSON",
+  REMOVED_INVALID_PREFIXES: "Removed invalid prefixes and stray text",
   FIXED_PROPERTY_NAME_TYPOS: "Fixed property name typos (trailing underscores, double underscores)",
   FIXED_TRUNCATED_ARRAY_ELEMENTS:
     "Fixed truncated array elements (missing opening brace and property name)",
@@ -49,6 +50,8 @@ export const SANITIZATION_STEP = Object.freeze({
   FIXED_MISSING_QUOTES_AROUND_PROPERTY_VALUES: "Fixed missing quotes around property values",
   FIXED_CORRUPTED_TEXT_IN_DESCRIPTIONS: "Fixed corrupted text patterns in string values",
   NORMALIZED_ESCAPE_SEQUENCES: "Normalized escape sequences and control characters",
+  NORMALIZED_PROPERTY_ASSIGNMENT: "Normalized property assignment syntax",
+  FIXED_DANGLING_PROPERTIES: "Fixed dangling properties (added null values)",
 } as const);
 
 /**
