@@ -9,7 +9,7 @@ describe("JsonProcessingError", () => {
       const message = "Failed to parse JSON";
       const originalContent = '{"invalid": json}';
       const sanitizedContent = '{"invalid": "json"}';
-      const appliedSanitizers = ["removeCodeFences", "addMissingPropertyCommas"];
+      const appliedSanitizers = ["removeCodeFences", "fixJsonStructure"];
       const underlyingError = new SyntaxError("Unexpected token");
 
       const error = new JsonProcessingError(

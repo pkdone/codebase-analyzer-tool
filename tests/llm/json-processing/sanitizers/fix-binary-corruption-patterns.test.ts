@@ -12,7 +12,7 @@ describe("fixBinaryCorruptionPatterns", () => {
 
       expect(result.changed).toBe(true);
       expect(result.description).toBe(SANITIZATION_STEP.FIXED_BINARY_CORRUPTION_PATTERNS);
-      // The sanitizer now just removes the marker - property name fixing is handled by fixPropertyNames
+      // The sanitizer now just removes the marker - property name fixing is handled by fixPropertyAndValueSyntax
       expect(result.content).toContain('OfCode": 1');
       expect(result.content).not.toContain("<y_bin_");
       expect(result.diagnostics).toBeDefined();
@@ -30,7 +30,7 @@ describe("fixBinaryCorruptionPatterns", () => {
       const result = fixBinaryCorruptionPatterns(input);
 
       expect(result.changed).toBe(true);
-      // The sanitizer removes the marker - property name will be fixed by fixPropertyNames later
+      // The sanitizer removes the marker - property name will be fixed by fixPropertyAndValueSyntax later
       expect(result.content).toContain('OfCode": 1');
       expect(result.content).not.toContain("<y_bin_");
     });
@@ -121,7 +121,7 @@ describe("fixBinaryCorruptionPatterns", () => {
       const result = fixBinaryCorruptionPatterns(input);
 
       expect(result.changed).toBe(true);
-      // Removes binary marker - property name will be fixed by fixPropertyNames
+      // Removes binary marker - property name will be fixed by fixPropertyAndValueSyntax
       expect(result.content).toContain('OfCode": 1');
       expect(result.content).not.toContain("<y_bin_");
       // Stray text before braces is handled by removeInvalidPrefixes

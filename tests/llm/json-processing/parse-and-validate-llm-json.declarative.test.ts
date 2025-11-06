@@ -51,7 +51,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
     expect(
-      calls.some((c: string) => c.includes("Fixed") && c.includes("concatenation chain")),
+      calls.some((c: string) => c.includes("Fixed") && c.includes("property and value syntax")),
     ).toBe(true);
   });
 
@@ -65,8 +65,8 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
     // Should have applied multiple sanitizers for this complex case
     expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
-    // Should include at least code fence removal or trailing comma removal
+    // Should include at least code fence removal or JSON structure fixes
     const logMsg = calls.find((c: string) => c.includes("Applied"));
-    expect(logMsg).toMatch(/Removed code fences|Removed trailing commas/);
+    expect(logMsg).toMatch(/Removed code fences|Fixed JSON structure/);
   });
 });

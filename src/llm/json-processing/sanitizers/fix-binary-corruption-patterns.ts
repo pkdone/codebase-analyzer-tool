@@ -9,11 +9,11 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  *
  * Examples of issues this sanitizer handles:
  * - `<y_bin_305>` -> removed (binary marker)
- * - `<y_bin_XXX>OfCode":` -> `OfCode":` (removes marker, let fixPropertyNames handle the typo)
+ * - `<y_bin_XXX>OfCode":` -> `OfCode":` (removes marker, let fixPropertyAndValueSyntax handle the typo)
  *
  * Strategy:
  * Simply removes all binary corruption markers. The resulting typos (e.g., `OfCode"` instead of `linesOfCode"`)
- * will be handled by the `fixPropertyNames` sanitizer, which is more robust and maintainable.
+ * will be handled by the `fixPropertyAndValueSyntax` sanitizer, which is more robust and maintainable.
  * This approach is safer than trying to reconstruct property names heuristically.
  */
 export const fixBinaryCorruptionPatterns: Sanitizer = (jsonString: string): SanitizerResult => {
@@ -47,7 +47,7 @@ export const fixBinaryCorruptionPatterns: Sanitizer = (jsonString: string): Sani
 
     // Pattern: Remove all binary corruption markers <y_bin_XXX>
     // This is a simple, generic approach that removes the markers and lets
-    // other sanitizers (like fixPropertyNames) handle any resulting typos
+    // other sanitizers (like fixPropertyAndValueSyntax) handle any resulting typos
     const generalBinaryPattern = /<y_bin_\d+>/g;
 
     sanitized = sanitized.replace(generalBinaryPattern, (match, offset: unknown) => {

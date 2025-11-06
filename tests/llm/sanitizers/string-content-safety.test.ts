@@ -1,6 +1,6 @@
-import { concatenationChainSanitizer } from "../../../src/llm/json-processing/sanitizers/fix-concatenation-chains";
-import { addMissingPropertyCommas } from "../../../src/llm/json-processing/sanitizers/add-missing-property-commas";
-import { normalizeEscapeSequences } from "../../../src/llm/json-processing/sanitizers/normalize-escape-sequences";
+import { fixPropertyAndValueSyntax } from "../../../src/llm/json-processing/sanitizers/fix-property-and-value-syntax";
+import { fixJsonStructure } from "../../../src/llm/json-processing/sanitizers/fix-json-structure";
+import { normalizeCharacters } from "../../../src/llm/json-processing/sanitizers/normalize-characters";
 
 /**
  * Safety tests to ensure sanitizers don't modify valid JSON string content.
@@ -8,77 +8,77 @@ import { normalizeEscapeSequences } from "../../../src/llm/json-processing/sanit
  * alter content inside valid JSON strings.
  */
 describe("Sanitizer String Content Safety", () => {
-  describe("concatenationChainSanitizer", () => {
+  describe("fixPropertyAndValueSyntax (concatenation chains)", () => {
     it("preserves plus signs in string values", () => {
       const input = '{"description": "This calculates VAR_A + VAR_B"}';
-      const result = concatenationChainSanitizer(input);
+      const result = fixPropertyAndValueSyntax(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves code examples in strings", () => {
       const input = '{"example": "Use: BASE_PATH + \'/file.ts\'"}';
-      const result = concatenationChainSanitizer(input);
+      const result = fixPropertyAndValueSyntax(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves mathematical expressions in strings", () => {
       const input = '{"formula": "a + b + c = total"}';
-      const result = concatenationChainSanitizer(input);
+      const result = fixPropertyAndValueSyntax(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves concatenation patterns in documentation strings", () => {
       const input = '{"docs": "To concatenate paths, use: basePath + subDir + fileName"}';
-      const result = concatenationChainSanitizer(input);
+      const result = fixPropertyAndValueSyntax(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
   });
 
-  describe("addMissingPropertyCommas", () => {
+  describe("fixJsonStructure (includes addMissingPropertyCommas functionality)", () => {
     it("doesn't add commas inside multiline string values", () => {
       const input = '{"text": "Line 1\\nLine 2"}';
-      const result = addMissingPropertyCommas(input);
+      const result = fixJsonStructure(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("handles JSON with properly formatted properties", () => {
       const valid = '{"a": "value1",\n"b": "value2"}';
-      const result = addMissingPropertyCommas(valid);
+      const result = fixJsonStructure(valid);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(valid);
     });
 
     it("preserves quoted text that looks like properties", () => {
       const input = '{"description": "Format: \\"key\\": \\"value\\""}';
-      const result = addMissingPropertyCommas(input);
+      const result = fixJsonStructure(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
   });
 
-  describe("normalizeEscapeSequences", () => {
+  describe("normalizeCharacters", () => {
     it("handles valid escaped quotes in strings", () => {
       const input = '{"quote": "He said \\"hello\\""}';
-      const result = normalizeEscapeSequences(input);
+      const result = normalizeCharacters(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves valid escape sequences", () => {
       const input = '{"path": "C:\\\\Users\\\\file.txt"}';
-      const result = normalizeEscapeSequences(input);
+      const result = normalizeCharacters(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves newlines and tabs", () => {
       const input = '{"text": "Line 1\\nLine 2\\tTabbed"}';
-      const result = normalizeEscapeSequences(input);
+      const result = normalizeCharacters(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
@@ -92,9 +92,9 @@ describe("Sanitizer String Content Safety", () => {
         code: "return a + b + c;",
       });
 
-      const result1 = concatenationChainSanitizer(input);
-      const result2 = addMissingPropertyCommas(result1.content);
-      const result3 = normalizeEscapeSequences(result2.content);
+      const result1 = fixPropertyAndValueSyntax(input);
+      const result2 = fixJsonStructure(result1.content);
+      const result3 = normalizeCharacters(result2.content);
 
       expect(JSON.parse(result3.content)).toEqual(JSON.parse(input));
     });
@@ -106,9 +106,9 @@ describe("Sanitizer String Content Safety", () => {
         path: "C:\\\\Program Files\\\\App",
       });
 
-      const result1 = concatenationChainSanitizer(input);
-      const result2 = addMissingPropertyCommas(result1.content);
-      const result3 = normalizeEscapeSequences(result2.content);
+      const result1 = fixPropertyAndValueSyntax(input);
+      const result2 = fixJsonStructure(result1.content);
+      const result3 = normalizeCharacters(result2.content);
 
       // Should remain unchanged through all sanitizers (no over-escaping present)
       expect(result3.content).toBe(input);
@@ -118,15 +118,15 @@ describe("Sanitizer String Content Safety", () => {
   describe("Edge cases with embedded JSON-like structures", () => {
     it("preserves JSON examples in documentation", () => {
       const input = '{"doc": "Example: {\\"key\\": \\"value\\"}"}';
-      const result1 = concatenationChainSanitizer(input);
-      const result2 = addMissingPropertyCommas(result1.content);
+      const result1 = fixPropertyAndValueSyntax(input);
+      const result2 = fixJsonStructure(result1.content);
 
       expect(result2.content).toBe(input);
     });
 
     it("handles strings containing array-like patterns", () => {
       const input = '{"description": "Returns [1, 2, 3]"}';
-      const result = addMissingPropertyCommas(input);
+      const result = fixJsonStructure(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });

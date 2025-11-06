@@ -93,16 +93,18 @@ function isHexDigit(char: string): boolean {
 }
 
 /**
- * Consolidated sanitizer that normalizes escape sequences and control characters in JSON content.
+ * Consolidated sanitizer that normalizes escape sequences, control characters, and curly quotes in JSON content.
  *
- * This sanitizer combines the functionality of four separate sanitizers:
- * 1. Removes control characters outside string literals
- * 2. Escapes control characters inside string literals
- * 3. Fixes invalid escape sequences inside string literals
- * 4. Fixes over-escaped sequences inside string literals
+ * This sanitizer combines the functionality of multiple character-level sanitizers:
+ * 1. Converts curly quotes (smart quotes) to regular ASCII quotes
+ * 2. Removes control characters outside string literals
+ * 3. Escapes control characters inside string literals
+ * 4. Fixes invalid escape sequences inside string literals
+ * 5. Fixes over-escaped sequences inside string literals
  *
  * ## Purpose
  * LLMs sometimes generate JSON with various character-level issues:
+ * - Curly quotes (Unicode quotation marks) instead of ASCII quotes
  * - Control characters (invisible chars that break parsing)
  * - Invalid escape sequences (like `\ `, `\x`, `\1-\9`)
  * - Over-escaped sequences (like `\\\'` → `'`)
@@ -112,15 +114,16 @@ function isHexDigit(char: string): boolean {
  *
  * ## Implementation
  * Uses a stateful, character-by-character parser that:
+ * - First converts curly quotes to ASCII quotes (global replacement)
  * - Tracks whether we're inside a string literal
  * - Removes control chars when outside strings
  * - Escapes control chars and fixes invalid escapes when inside strings
  * - Applies over-escape fixes after the initial pass
  *
  * @param input - The raw string content to sanitize
- * @returns Sanitizer result with normalized escape sequences and control characters
+ * @returns Sanitizer result with normalized characters, escape sequences, and control characters
  */
-export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerResult => {
+export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult => {
   try {
     if (!input) {
       return { content: input, changed: false };
@@ -128,7 +131,52 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
 
     let hasChanges = false;
     const diagnostics: string[] = [];
-    let result = "";
+    let result = input;
+
+    // First pass: convert curly quotes to ASCII quotes (before character-by-character processing)
+    const leftDoubleCount = (result.match(/\u201C/g) ?? []).length;
+    const rightDoubleCount = (result.match(/\u201D/g) ?? []).length;
+    const leftSingleCount = (result.match(/\u2018/g) ?? []).length;
+    const rightSingleCount = (result.match(/\u2019/g) ?? []).length;
+
+    if (
+      leftDoubleCount > 0 ||
+      rightDoubleCount > 0 ||
+      leftSingleCount > 0 ||
+      rightSingleCount > 0
+    ) {
+      hasChanges = true;
+      // Left double quotation mark (U+201C) -> regular double quote (U+0022)
+      result = result.replace(/\u201C/g, '"');
+      // Right double quotation mark (U+201D) -> regular double quote (U+0022)
+      result = result.replace(/\u201D/g, '"');
+      // Left single quotation mark (U+2018) -> regular single quote (U+0027)
+      result = result.replace(/\u2018/g, "'");
+      // Right single quotation mark (U+2019) -> regular single quote (U+0027)
+      result = result.replace(/\u2019/g, "'");
+
+      if (leftDoubleCount > 0) {
+        diagnostics.push(
+          `Converted ${leftDoubleCount} left double curly quote${leftDoubleCount !== 1 ? "s" : ""} (") to regular quote`,
+        );
+      }
+      if (rightDoubleCount > 0) {
+        diagnostics.push(
+          `Converted ${rightDoubleCount} right double curly quote${rightDoubleCount !== 1 ? "s" : ""} (") to regular quote`,
+        );
+      }
+      if (leftSingleCount > 0) {
+        diagnostics.push(
+          `Converted ${leftSingleCount} left single curly quote${leftSingleCount !== 1 ? "s" : ""} (') to regular quote`,
+        );
+      }
+      if (rightSingleCount > 0) {
+        diagnostics.push(
+          `Converted ${rightSingleCount} right single curly quote${rightSingleCount !== 1 ? "s" : ""} (') to regular quote`,
+        );
+      }
+    }
+
     let i = 0;
 
     // Track state for string detection and escape handling
@@ -138,14 +186,15 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
     let controlCharsEscaped = 0;
     let invalidEscapesFixed = 0;
 
-    // First pass: handle control chars and escape sequences
-    while (i < input.length) {
-      const char = input[i];
+    // Second pass: handle control chars and escape sequences (character-by-character)
+    let processedResult = "";
+    while (i < result.length) {
+      const char = result[i];
       const code = char.charCodeAt(0);
 
       if (escapeNext) {
         // Previous character was a backslash, this character is escaped
-        result += char;
+        processedResult += char;
         escapeNext = false;
         i++;
         continue;
@@ -153,8 +202,8 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
 
       // Handle backslash (escape sequence start)
       if (char === "\\") {
-        if (i + 1 < input.length) {
-          const nextChar = input[i + 1];
+        if (i + 1 < result.length) {
+          const nextChar = result[i + 1];
 
           if (inString) {
             // Inside string: validate escape sequence
@@ -162,20 +211,20 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
               // Handle \uXXXX unicode escape
               let hexDigits = "";
               let j = i + 2;
-              while (j < input.length && hexDigits.length < 4 && isHexDigit(input[j])) {
-                hexDigits += input[j];
+              while (j < result.length && hexDigits.length < 4 && isHexDigit(result[j])) {
+                hexDigits += result[j];
                 j++;
               }
 
               if (hexDigits.length === 4) {
                 // Valid unicode escape - keep as is
-                result += "\\u" + hexDigits;
+                processedResult += "\\u" + hexDigits;
                 i = j;
                 continue;
               } else {
                 // Invalid: \u without 4 hex digits - escape the backslash
                 diagnostics.push(`Fixed invalid unicode escape \\u${hexDigits}`);
-                result += "\\\\u" + hexDigits;
+                processedResult += "\\\\u" + hexDigits;
                 i = j;
                 hasChanges = true;
                 invalidEscapesFixed++;
@@ -184,20 +233,20 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
             } else if (nextChar === " ") {
               // Invalid: \ (backslash-space) - remove backslash, keep space
               diagnostics.push("Fixed invalid escape sequence \\  (backslash-space)");
-              result += " ";
+              processedResult += " ";
               i += 2;
               hasChanges = true;
               invalidEscapesFixed++;
               continue;
             } else if (VALID_ESCAPE_SEQUENCES.has(nextChar)) {
               // Valid escape sequence - keep as is
-              result += "\\" + nextChar;
+              processedResult += "\\" + nextChar;
               i += 2;
               continue;
             } else {
               // Invalid escape sequence - escape the backslash (make it literal)
               diagnostics.push(`Fixed invalid escape sequence \\${nextChar}`);
-              result += "\\\\" + nextChar;
+              processedResult += "\\\\" + nextChar;
               i += 2;
               hasChanges = true;
               invalidEscapesFixed++;
@@ -207,19 +256,19 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
             // Outside string: check if this is a valid escape (shouldn't happen in valid JSON, but handle gracefully)
             // Valid JSON escape sequences outside strings are not really a thing, but we'll preserve them
             if ('"\\/bfnrtu'.includes(nextChar)) {
-              result += char;
+              processedResult += char;
               escapeNext = true;
               i++;
               continue;
             }
             // If not a valid escape, treat as literal backslash
-            result += char;
+            processedResult += char;
             i++;
             continue;
           }
         } else {
           // Backslash at end of string - treat as literal
-          result += char;
+          processedResult += char;
           i++;
           continue;
         }
@@ -230,7 +279,7 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
         // Check if this quote is escaped by counting preceding backslashes
         let backslashCount = 0;
         let j = i - 1;
-        while (j >= 0 && input[j] === "\\") {
+        while (j >= 0 && result[j] === "\\") {
           backslashCount++;
           j--;
         }
@@ -238,7 +287,7 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
         if (backslashCount % 2 === 0) {
           inString = !inString;
         }
-        result += char;
+        processedResult += char;
         i++;
         continue;
       }
@@ -250,22 +299,22 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
           // Control character
           if (code === 0x09) {
             // Tab - already valid as \t, keep as is
-            result += char;
+            processedResult += char;
           } else if (code === 0x0a) {
             // Newline - already valid as \n, keep as is
-            result += char;
+            processedResult += char;
           } else if (code === 0x0d) {
             // Carriage return - already valid as \r, keep as is
-            result += char;
+            processedResult += char;
           } else {
             // Other control characters need to be escaped
             const hex = code.toString(16).padStart(4, "0");
-            result += `\\u${hex}`;
+            processedResult += `\\u${hex}`;
             hasChanges = true;
             controlCharsEscaped++;
           }
         } else {
-          result += char;
+          processedResult += char;
         }
       } else {
         // Outside string: remove control and zero-width characters
@@ -283,14 +332,16 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           controlCharsRemoved++;
         } else {
-          result += char;
+          processedResult += char;
         }
       }
 
       i++;
     }
 
-    // Second pass: apply over-escape fixes (this affects string content)
+    result = processedResult;
+
+    // Third pass: apply over-escape fixes (this affects string content)
     const beforeOverEscape = result;
     result = repairOverEscapedStringSequences(result);
     const overEscapesFixed = result !== beforeOverEscape;
@@ -298,7 +349,7 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
       hasChanges = true;
     }
 
-    // Third pass: fix any invalid escapes that may have been created by over-escape fixes
+    // Fourth pass: fix any invalid escapes that may have been created by over-escape fixes
     // (e.g., \0 is not valid JSON, should be \u0000)
     // This is a simplified version that only handles \0 since it's the main case
     const finalResult = result;
@@ -397,7 +448,7 @@ export const normalizeEscapeSequences: Sanitizer = (input: string): SanitizerRes
     };
   } catch (error) {
     // If sanitization fails, return the original string
-    console.warn(`normalizeEscapeSequences sanitizer failed: ${String(error)}`);
+    console.warn(`normalizeCharacters sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

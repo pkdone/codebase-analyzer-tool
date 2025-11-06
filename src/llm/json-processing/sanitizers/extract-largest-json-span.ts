@@ -215,7 +215,7 @@ export const extractLargestJsonSpan: Sanitizer = (input) => {
     } else {
       // No matching closing delimiter found - input might be truncated
       // If this candidate is at the start of the input, return unchanged to let
-      // later sanitizers (like completeTruncatedStructures) handle it
+      // later sanitizers (like fixJsonStructure) handle it
       const trimmedStart = input.indexOf(input.trim());
       if (start === trimmedStart || start < 10) {
         return { content: input, changed: false };

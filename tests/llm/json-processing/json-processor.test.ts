@@ -489,9 +489,9 @@ describe("JsonProcessor", () => {
           completionOptions,
         );
         if (result.success) {
-          // Successful repair: steps should include comma insertion description
+          // Successful repair: steps should include JSON structure fix description
           const stepsJoined = result.steps.join(" | ");
-          expect(/comma/i.test(stepsJoined)).toBe(true);
+          expect(/Fixed JSON structure/i.test(stepsJoined)).toBe(true);
         } else {
           // Failure path: diagnostics propagated into JsonProcessingError if available
           expect(result.error).toBeInstanceOf(JsonProcessingError);

@@ -28,7 +28,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      // This should NOT throw - fixMismatchedDelimiters will fix the ] to }, then removeTrailingCommas will clean up
+      // This should NOT throw - fixJsonStructure will fix the ] to }, then remove trailing commas
       const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "test-resource",
@@ -142,7 +142,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
         outputFormat: LLMOutputFormat.JSON,
       };
 
-      // This should NOT throw - the fixMismatchedDelimiters sanitizer should fix it
+      // This should NOT throw - the fixJsonStructure sanitizer should fix it
       const result = jsonProcessor.parseAndValidate(
         malformedJson,
         "fineract-provider/src/main/java/org/apache/fineract/portfolio/account/domain/AccountAssociations.java",
