@@ -307,15 +307,14 @@ export class JsonProcessor {
   ):
     | { success: true; data: T }
     | { success: false; workingContent: string; lastParseError?: Error } {
-    // Attempt raw parse first (fast path)
     const fastPathResult = this._tryParseAndValidate<T>(
       originalContent,
       resourceName,
       completionOptions,
     );
-    if (fastPathResult.success) {
-      return { success: true, data: fastPathResult.data };
-    }
+
+    if (fastPathResult.success) return { success: true, data: fastPathResult.data };
+
     if (fastPathResult.errorType === JsonProcessingErrorType.VALIDATION) {
       const validationError = new JsonProcessingError(
         JsonProcessingErrorType.VALIDATION,
@@ -334,7 +333,6 @@ export class JsonProcessor {
       };
     }
 
-    // Progressive sanitization path
     let workingContent = originalContent;
     let lastParseError: Error = fastPathResult.error; // initial parse error
 
@@ -357,9 +355,9 @@ export class JsonProcessor {
         resourceName,
         completionOptions,
       );
-      if (parseResult.success) {
-        return { success: true, data: parseResult.data };
-      }
+      
+      if (parseResult.success) return { success: true, data: parseResult.data };
+
       if (parseResult.errorType === JsonProcessingErrorType.VALIDATION) {
         // Return validation error immediately
         const validationError = new JsonProcessingError(
