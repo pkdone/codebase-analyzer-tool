@@ -9,7 +9,6 @@ import { z } from "zod";
 export const CANONICAL_FILE_TYPES = [
   "java",
   "javascript",
-  "default",
   "sql",
   "xml",
   "jsp",
