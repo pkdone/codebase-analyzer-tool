@@ -12,7 +12,7 @@ const TASK_CONFIGURATIONS = new Map<symbol, TaskRunnerConfig>([
   [taskTokens.McpServerTask, { requiresMongoDB: true, requiresLLM: true }],
 
   // Tasks with specific requirements
-  [taskTokens.OneShotGenerateInsightsTask, { requiresMongoDB: false, requiresLLM: true }],
+  [taskTokens.DirectInsightsGenerationTask, { requiresMongoDB: false, requiresLLM: true }],
   [taskTokens.MongoConnectionTestTask, { requiresMongoDB: true, requiresLLM: false }],
   [taskTokens.PluggableLLMsTestTask, { requiresMongoDB: false, requiresLLM: true }],
   [taskTokens.ReportGenerationTask, { requiresMongoDB: true, requiresLLM: false }],

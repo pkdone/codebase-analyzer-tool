@@ -5,7 +5,7 @@ export const taskTokens = {
   CodebaseCaptureTask: Symbol("CodebaseCaptureTask"),
   CodebaseQueryTask: Symbol("CodebaseQueryTask"),
   InsightsGenerationTask: Symbol("InsightsGenerationTask"),
-  OneShotGenerateInsightsTask: Symbol("OneShotGenerateInsightsTask"),
+  DirectInsightsGenerationTask: Symbol("DirectInsightsGenerationTask"),
   PluggableLLMsTestTask: Symbol("PluggableLLMsTestTask"),
   MongoConnectionTestTask: Symbol("MongoConnectionTestTask"),
   McpServerTask: Symbol("McpServerTask"),

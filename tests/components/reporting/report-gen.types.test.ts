@@ -1,62 +1,62 @@
-import { isComplexity, Complexity } from "../../../src/components/reporting/report-gen.types";
+import { isComplexityLevel, Complexity } from "../../../src/components/reporting/report-gen.types";
 
 /**
  * Tests for report-gen.types, specifically testing the Set-based membership
- * testing optimization for isComplexity type guard.
+ * testing optimization for isComplexityLevel type guard.
  */
 describe("report-gen.types - Set-based membership testing", () => {
-  describe("isComplexity type guard", () => {
+  describe("isComplexityLevel type guard", () => {
     describe("valid complexity values", () => {
       it("should return true for LOW complexity", () => {
-        expect(isComplexity("LOW")).toBe(true);
+        expect(isComplexityLevel("LOW")).toBe(true);
       });
 
       it("should return true for MEDIUM complexity", () => {
-        expect(isComplexity("MEDIUM")).toBe(true);
+        expect(isComplexityLevel("MEDIUM")).toBe(true);
       });
 
       it("should return true for HIGH complexity", () => {
-        expect(isComplexity("HIGH")).toBe(true);
+        expect(isComplexityLevel("HIGH")).toBe(true);
       });
 
       it("should handle lowercase input correctly", () => {
-        expect(isComplexity("low")).toBe(true);
-        expect(isComplexity("medium")).toBe(true);
-        expect(isComplexity("high")).toBe(true);
+        expect(isComplexityLevel("low")).toBe(true);
+        expect(isComplexityLevel("medium")).toBe(true);
+        expect(isComplexityLevel("high")).toBe(true);
       });
 
       it("should handle mixed case input correctly", () => {
-        expect(isComplexity("Low")).toBe(true);
-        expect(isComplexity("MeDiUm")).toBe(true);
-        expect(isComplexity("HiGh")).toBe(true);
+        expect(isComplexityLevel("Low")).toBe(true);
+        expect(isComplexityLevel("MeDiUm")).toBe(true);
+        expect(isComplexityLevel("HiGh")).toBe(true);
       });
     });
 
     describe("invalid complexity values", () => {
       it("should return false for invalid strings", () => {
-        expect(isComplexity("INVALID")).toBe(false);
-        expect(isComplexity("EXTREME")).toBe(false);
-        expect(isComplexity("")).toBe(false);
-        expect(isComplexity("low ")).toBe(false);
-        expect(isComplexity(" LOW")).toBe(false);
+        expect(isComplexityLevel("INVALID")).toBe(false);
+        expect(isComplexityLevel("EXTREME")).toBe(false);
+        expect(isComplexityLevel("")).toBe(false);
+        expect(isComplexityLevel("low ")).toBe(false);
+        expect(isComplexityLevel(" LOW")).toBe(false);
       });
 
       it("should return false for non-string types", () => {
-        expect(isComplexity(null)).toBe(false);
-        expect(isComplexity(undefined)).toBe(false);
-        expect(isComplexity(42)).toBe(false);
-        expect(isComplexity(true)).toBe(false);
-        expect(isComplexity({})).toBe(false);
-        expect(isComplexity([])).toBe(false);
+        expect(isComplexityLevel(null)).toBe(false);
+        expect(isComplexityLevel(undefined)).toBe(false);
+        expect(isComplexityLevel(42)).toBe(false);
+        expect(isComplexityLevel(true)).toBe(false);
+        expect(isComplexityLevel({})).toBe(false);
+        expect(isComplexityLevel([])).toBe(false);
       });
 
       it("should return false for objects that stringify to valid complexity", () => {
         const obj = { toString: () => "LOW" };
-        expect(isComplexity(obj)).toBe(false);
+        expect(isComplexityLevel(obj)).toBe(false);
       });
 
       it("should return false for array containing valid complexity", () => {
-        expect(isComplexity(["LOW"])).toBe(false);
+        expect(isComplexityLevel(["LOW"])).toBe(false);
       });
     });
 
@@ -64,7 +64,7 @@ describe("report-gen.types - Set-based membership testing", () => {
       it("should narrow type to Complexity when true", () => {
         const value: unknown = "LOW";
 
-        if (isComplexity(value)) {
+        if (isComplexityLevel(value)) {
           // TypeScript should infer value as Complexity here
           const complexity: Complexity = value;
           expect(["LOW", "MEDIUM", "HIGH"]).toContain(complexity);
@@ -76,7 +76,7 @@ describe("report-gen.types - Set-based membership testing", () => {
         const validComplexities: Complexity[] = [];
 
         for (const value of values) {
-          if (isComplexity(value)) {
+          if (isComplexityLevel(value)) {
             validComplexities.push(value);
           }
         }
@@ -104,7 +104,7 @@ describe("report-gen.types - Set-based membership testing", () => {
           "Invalid",
         ];
 
-        const results = testCases.map((tc) => isComplexity(tc));
+        const results = testCases.map((tc) => isComplexityLevel(tc));
 
         expect(results).toEqual([
           true,
@@ -128,7 +128,7 @@ describe("report-gen.types - Set-based membership testing", () => {
 
         for (const input of validInputs) {
           const startTime = Date.now();
-          const result = isComplexity(input);
+          const result = isComplexityLevel(input);
           const endTime = Date.now();
 
           expect(result).toBe(true);
@@ -150,7 +150,7 @@ describe("report-gen.types - Set-based membership testing", () => {
           "HIGH",
         ];
 
-        const results = casedInputs.map((input) => isComplexity(input));
+        const results = casedInputs.map((input) => isComplexityLevel(input));
 
         // All should be true due to toUpperCase() normalization
         expect(results.every((r) => r)).toBe(true);
@@ -159,29 +159,29 @@ describe("report-gen.types - Set-based membership testing", () => {
 
     describe("edge cases", () => {
       it("should handle empty string", () => {
-        expect(isComplexity("")).toBe(false);
+        expect(isComplexityLevel("")).toBe(false);
       });
 
       it("should handle whitespace", () => {
-        expect(isComplexity(" ")).toBe(false);
-        expect(isComplexity("\n")).toBe(false);
-        expect(isComplexity("\t")).toBe(false);
+        expect(isComplexityLevel(" ")).toBe(false);
+        expect(isComplexityLevel("\n")).toBe(false);
+        expect(isComplexityLevel("\t")).toBe(false);
       });
 
       it("should handle special characters", () => {
-        expect(isComplexity("LOW!")).toBe(false);
-        expect(isComplexity("MEDIUM?")).toBe(false);
-        expect(isComplexity("HIGH#")).toBe(false);
+        expect(isComplexityLevel("LOW!")).toBe(false);
+        expect(isComplexityLevel("MEDIUM?")).toBe(false);
+        expect(isComplexityLevel("HIGH#")).toBe(false);
       });
 
       it("should handle numeric strings", () => {
-        expect(isComplexity("1")).toBe(false);
-        expect(isComplexity("123")).toBe(false);
+        expect(isComplexityLevel("1")).toBe(false);
+        expect(isComplexityLevel("123")).toBe(false);
       });
 
       it("should handle very long strings", () => {
         const longString = "LOW".repeat(1000);
-        expect(isComplexity(longString)).toBe(false);
+        expect(isComplexityLevel(longString)).toBe(false);
       });
     });
 
@@ -191,7 +191,7 @@ describe("report-gen.types - Set-based membership testing", () => {
         const testValues = ["LOW", "MEDIUM", "HIGH", "INVALID"];
 
         for (const value of testValues) {
-          const setResult = isComplexity(value);
+          const setResult = isComplexityLevel(value);
           const arrayResult =
             typeof value === "string" &&
             (COMPLEXITY_LEVELS as readonly string[]).includes(value.toUpperCase());
@@ -207,7 +207,7 @@ describe("report-gen.types - Set-based membership testing", () => {
 
         const startSet = Date.now();
         for (let i = 0; i < iterations; i++) {
-          isComplexity("HIGH");
+          isComplexityLevel("HIGH");
         }
         const endSet = Date.now();
         const setTime = endSet - startSet;
@@ -220,7 +220,7 @@ describe("report-gen.types - Set-based membership testing", () => {
     describe("integration with switch statements", () => {
       it("should work correctly in switch statement", () => {
         const testComplexity = (value: unknown): string => {
-          if (!isComplexity(value)) {
+          if (!isComplexityLevel(value)) {
             return "invalid";
           }
 
@@ -272,8 +272,8 @@ describe("report-gen.types - Set-based membership testing", () => {
 
         const normalized = dbResults.map((item) => ({
           name: item.name,
-          complexity: isComplexity(item.complexity) ? item.complexity : "LOW",
-          isValid: isComplexity(item.complexity),
+          complexity: isComplexityLevel(item.complexity) ? item.complexity : "LOW",
+          isValid: isComplexityLevel(item.complexity),
         }));
 
         expect(normalized[0].isValid).toBe(true);
@@ -295,7 +295,7 @@ describe("report-gen.types - Set-based membership testing", () => {
           "EXTREME",
         ];
 
-        const validComplexities = mixedInputs.filter(isComplexity);
+        const validComplexities = mixedInputs.filter(isComplexityLevel);
 
         expect(validComplexities).toHaveLength(4); // LOW, MEDIUM, HIGH, low
       });
@@ -304,7 +304,7 @@ describe("report-gen.types - Set-based membership testing", () => {
         const userInputs = ["low", "MEDIUM", "extreme", "high", ""];
 
         const validatedInputs = userInputs
-          .filter(isComplexity)
+          .filter(isComplexityLevel)
           .map((c) => c.toUpperCase() as Complexity);
 
         expect(validatedInputs).toEqual(["LOW", "MEDIUM", "HIGH"]);

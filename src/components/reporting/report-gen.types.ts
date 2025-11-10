@@ -14,7 +14,7 @@ export type Complexity = (typeof COMPLEXITY_LEVELS)[number];
 /**
  * Type guard to check if a value is a valid Complexity value
  */
-export function isComplexity(value: unknown): value is Complexity {
+export function isComplexityLevel(value: unknown): value is Complexity {
   return typeof value === "string" && COMPLEXITY_SET.has(value.toUpperCase() as Complexity);
 }
 

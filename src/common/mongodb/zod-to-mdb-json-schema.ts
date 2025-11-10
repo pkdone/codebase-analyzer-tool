@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ignoreOverride } from "zod-to-json-schema";
 import type { JsonSchema7Type } from "zod-to-json-schema";
 import { ObjectId, Decimal128 } from "bson";
-import { toMongoJsonSchema } from "./utils/json-schema-utils";
+import { toMongoJsonSchema } from "./utils/zod-to-mongodb-schema";
 import { isJsonObject } from "../utils/type-guards";
 
 /**

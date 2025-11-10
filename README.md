@@ -54,12 +54,12 @@ You can also [view an example of a full report generated](https://pkdone.github.
 There are various tools you need to run in a specific order (shown the next section). For each tool, you can easily debug using VS Code, by following these steps:
 
 1. Open the project in VS Code
-1. In the _Explorer_ select the "src/cli/*.ts" or "src/cli/optional/*.ts" file you want to run
+1. In the _Explorer_ select the "src/cli/*.ts" or "src/cli/tools/*.ts" file you want to run
 1. From the _Activity Bar_ (left panel), select the _Run and Debug_ view
 1. Execute the pre-configured task _Run and Debug TypeScript_
     - this will run the TypeScript compiler first, and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel). 
 
-Alternatively, you also run the compiled JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. Main tools are located in `./dist/src/cli/` and optional tools are in `./dist/src/cli/optional/`. The command to run each tool is shown the next section.
+Alternatively, you also run the compiled JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. Main tools are located in `./dist/src/cli/` and optional tools are in `./dist/src/cli/tools/`. The command to run each tool is shown the next section.
 
 
 ## How To Run Main Tasks
@@ -101,10 +101,10 @@ Alternatively, you also run the compiled JavaScript files (first compiled from T
 1. **QUERY CODEBASE**: To adhoc query the codebase (i.e., to "talk to your code", which uses MongoDB's Vector Search capability to search the database-captured metadata), place your questions in the file `input/questions.prompts` and then run the following command to execute the queries. 
 
     ```console
-    node ./dist/src/cli/optional/query-codebase.js
+    node ./dist/src/cli/tools/query-codebase.js
     ```
 
-1. **OTHER TOOLS**: Other optional tools are provided in the "src/cli/optional" subfolder which you can explore and run. These are currently undocumented and may disappear in the future. They are primarily intended for use by this project's developers or for specialized use cases.
+1. **OTHER TOOLS**: Other optional tools are provided in the "src/cli/tools" subfolder which you can explore and run. These are currently undocumented and may disappear in the future. They are primarily intended for use by this project's developers or for specialized use cases.
 
 
 ## Running The Project's Full Build Process Including Unit And Integration Tests

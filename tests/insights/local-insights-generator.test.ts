@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { LocalInsightsGenerator } from "../../src/components/insights/insights-from-raw-code-to-local-files";
+import { LocalInsightsGenerator } from "../../src/components/insights/local-insights-generator";
 import LLMRouter from "../../src/llm/core/llm-router";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({

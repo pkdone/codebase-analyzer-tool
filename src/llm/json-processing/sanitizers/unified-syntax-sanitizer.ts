@@ -271,7 +271,7 @@ const DIAGNOSTIC_TRUNCATION_LENGTH = 30;
  * @param input - The raw string content to sanitize
  * @returns Sanitizer result with property and value syntax fixes applied
  */
-export const fixPropertyAndValueSyntax: Sanitizer = (input: string): SanitizerResult => {
+export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResult => {
   try {
     if (!input) {
       return { content: input, changed: false };
@@ -916,7 +916,7 @@ export const fixPropertyAndValueSyntax: Sanitizer = (input: string): SanitizerRe
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    console.warn(`fixPropertyAndValueSyntax sanitizer failed: ${String(error)}`);
+    console.warn(`unifiedSyntaxSanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

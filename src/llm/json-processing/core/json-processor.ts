@@ -21,7 +21,7 @@ import {
   fixMismatchedDelimiters,
   completeTruncatedStructures,
   fixJsonStructure,
-  fixPropertyAndValueSyntax,
+  unifiedSyntaxSanitizer,
   fixMissingArrayObjectBraces,
   fixBinaryCorruptionPatterns,
   removeTruncationMarkers,
@@ -73,7 +73,7 @@ export class JsonProcessor {
    *
    * Phase 3: Property & Structure Fixes
    *   Fixes property names and array object structures
-   *   - fixPropertyAndValueSyntax: Unified property and value syntax fixes
+   *   - unifiedSyntaxSanitizer: Unified property and value syntax fixes
    *   - fixMissingArrayObjectBraces: Insert missing opening braces for new objects in arrays
    *
    * Phase 4: Content Fixes
@@ -101,7 +101,7 @@ export class JsonProcessor {
       fixJsonStructure,
     ],
     // Phase 3: Property & Structure Fixes
-    [fixPropertyAndValueSyntax, fixMissingArrayObjectBraces],
+    [unifiedSyntaxSanitizer, fixMissingArrayObjectBraces],
     // Phase 4: Content Fixes
     [fixBinaryCorruptionPatterns, removeTruncationMarkers],
   ] as const satisfies readonly (readonly Sanitizer[])[];

@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/repositories.tokens";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
-import { Complexity, isComplexity } from "../report-gen.types";
+import { Complexity, isComplexityLevel } from "../report-gen.types";
 import { procedureTriggerSchema } from "../../../schemas/sources.schema";
 import type { z } from "zod";
 import { logWarningMsg } from "../../../common/utils/logging";
@@ -165,7 +165,7 @@ export class DatabaseReportDataProvider {
    * Normalize and validate complexity values, providing fallback for invalid values
    */
   private normalizeComplexity(complexity: unknown, itemName: string): Complexity {
-    if (isComplexity(complexity)) return complexity;
+    if (isComplexityLevel(complexity)) return complexity;
     logWarningMsg(
       `Invalid complexity value '${String(complexity)}' found for ${itemName}. Defaulting to LOW.`,
     );

@@ -52,7 +52,7 @@ export class AppSummaryCategoriesProvider {
   /**
    * Build categorized data for all categories using pre-fetched app summary data.
    */
-  getCategorizedData(
+  getGenericCategoryData(
     appSummaryData: Pick<AppSummaryRecordWithId, ValidCategoryKey>,
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
     const results = TABLE_CATEGORY_KEYS.map((category: ValidCategoryKey) => {

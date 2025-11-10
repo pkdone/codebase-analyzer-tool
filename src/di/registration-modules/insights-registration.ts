@@ -4,7 +4,7 @@ import { insightsTokens } from "../../components/insights/insights.tokens";
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
-import { LocalInsightsGenerator } from "../../components/insights/insights-from-raw-code-to-local-files";
+import { LocalInsightsGenerator } from "../../components/insights/local-insights-generator";
 import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 import { BomAggregator } from "../../components/insights/data-aggregators/bom-aggregator";
 import { CodeQualityAggregator } from "../../components/insights/data-aggregators/code-quality-aggregator";

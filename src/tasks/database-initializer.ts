@@ -74,7 +74,7 @@ export class DatabaseInitializer {
     await this.createStandardIndexIfNotExists(this.sourcesCollection, {
       "summary.namespace": 1,
     });
-    await this.createSourcesVectorSearchIndexes(numDimensions);
+    await this.ensureSourcesVectorSearchIndexes(numDimensions);
     await this.createStandardIndexIfNotExists(this.appSummariesCollection, { projectName: 1 });
   }
 
@@ -124,7 +124,7 @@ export class DatabaseInitializer {
   /**
    * Create Atlas Vector Search indexes for sources collection.
    */
-  private async createSourcesVectorSearchIndexes(numDimensions: number): Promise<void> {
+  private async ensureSourcesVectorSearchIndexes(numDimensions: number): Promise<void> {
     let unknownErrorOccurred = false;
     const vectorSearchIndexes = databaseConfig.VECTOR_INDEX_CONFIGS.map((config) =>
       this.createProjectScopedVectorIndexDefinition(config.name, config.field, numDimensions),

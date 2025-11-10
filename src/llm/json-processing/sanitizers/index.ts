@@ -12,7 +12,7 @@ export { removeTrailingCommas } from "./remove-trailing-commas";
 export { fixMismatchedDelimiters } from "./fix-mismatched-delimiters";
 export { completeTruncatedStructures } from "./complete-truncated-structures";
 export { fixJsonStructure } from "./fix-json-structure";
-export { fixPropertyAndValueSyntax } from "./fix-property-and-value-syntax";
+export { unifiedSyntaxSanitizer } from "./unified-syntax-sanitizer";
 export { fixMissingArrayObjectBraces } from "./fix-missing-array-object-braces";
 export { removeTruncationMarkers } from "./remove-truncation-markers";
 export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns";

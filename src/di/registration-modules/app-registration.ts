@@ -30,7 +30,7 @@ import {
 import { CodebaseCaptureTask } from "../../tasks/codebase-capture.task";
 import { CodebaseQueryTask } from "../../tasks/code-query.task";
 import { InsightsGenerationTask } from "../../tasks/insights-generation.task";
-import { OneShotGenerateInsightsTask } from "../../tasks/one-shot-generate-insights.task";
+import { DirectInsightsGenerationTask } from "../../tasks/direct-insights-generation.task";
 import { MongoConnectionTestTask } from "../../tasks/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/test-pluggable-llms.task";
 import { McpServerTask } from "../../tasks/mcp-server.task";
@@ -148,7 +148,7 @@ function registerLLMDependentTasks(): void {
   container.registerSingleton(taskTokens.CodebaseQueryTask, CodebaseQueryTask);
   container.registerSingleton(taskTokens.CodebaseCaptureTask, CodebaseCaptureTask);
   container.registerSingleton(taskTokens.InsightsGenerationTask, InsightsGenerationTask);
-  container.registerSingleton(taskTokens.OneShotGenerateInsightsTask, OneShotGenerateInsightsTask);
+  container.registerSingleton(taskTokens.DirectInsightsGenerationTask, DirectInsightsGenerationTask);
   container.registerSingleton(taskTokens.PluggableLLMsTestTask, PluggableLLMsTestTask);
   console.log("LLM-dependent tasks registered with simplified singleton registrations");
 }

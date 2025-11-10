@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
-import { LocalInsightsGenerator } from "../components/insights/insights-from-raw-code-to-local-files";
+import { LocalInsightsGenerator } from "../components/insights/local-insights-generator";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
@@ -14,7 +14,7 @@ import { coreTokens } from "../di/core.tokens";
  * Task to generate inline insights.
  */
 @injectable()
-export class OneShotGenerateInsightsTask extends BaseLLMTask {
+export class DirectInsightsGenerationTask extends BaseLLMTask {
   /**
    * Constructor with dependency injection.
    */

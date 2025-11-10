@@ -1,4 +1,4 @@
-import { fixPropertyAndValueSyntax } from "../../../src/llm/json-processing/sanitizers/fix-property-and-value-syntax";
+import { unifiedSyntaxSanitizer } from "../../../src/llm/json-processing/sanitizers/unified-syntax-sanitizer";
 import { fixJsonStructure } from "../../../src/llm/json-processing/sanitizers/fix-json-structure";
 import { normalizeCharacters } from "../../../src/llm/json-processing/sanitizers/normalize-characters";
 
@@ -8,31 +8,31 @@ import { normalizeCharacters } from "../../../src/llm/json-processing/sanitizers
  * alter content inside valid JSON strings.
  */
 describe("Sanitizer String Content Safety", () => {
-  describe("fixPropertyAndValueSyntax (concatenation chains)", () => {
+  describe("unifiedSyntaxSanitizer (concatenation chains)", () => {
     it("preserves plus signs in string values", () => {
       const input = '{"description": "This calculates VAR_A + VAR_B"}';
-      const result = fixPropertyAndValueSyntax(input);
+      const result = unifiedSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves code examples in strings", () => {
       const input = '{"example": "Use: BASE_PATH + \'/file.ts\'"}';
-      const result = fixPropertyAndValueSyntax(input);
+      const result = unifiedSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves mathematical expressions in strings", () => {
       const input = '{"formula": "a + b + c = total"}';
-      const result = fixPropertyAndValueSyntax(input);
+      const result = unifiedSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves concatenation patterns in documentation strings", () => {
       const input = '{"docs": "To concatenate paths, use: basePath + subDir + fileName"}';
-      const result = fixPropertyAndValueSyntax(input);
+      const result = unifiedSyntaxSanitizer(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
@@ -92,7 +92,7 @@ describe("Sanitizer String Content Safety", () => {
         code: "return a + b + c;",
       });
 
-      const result1 = fixPropertyAndValueSyntax(input);
+      const result1 = unifiedSyntaxSanitizer(input);
       const result2 = fixJsonStructure(result1.content);
       const result3 = normalizeCharacters(result2.content);
 
@@ -106,7 +106,7 @@ describe("Sanitizer String Content Safety", () => {
         path: "C:\\\\Program Files\\\\App",
       });
 
-      const result1 = fixPropertyAndValueSyntax(input);
+      const result1 = unifiedSyntaxSanitizer(input);
       const result2 = fixJsonStructure(result1.content);
       const result3 = normalizeCharacters(result2.content);
 
@@ -118,7 +118,7 @@ describe("Sanitizer String Content Safety", () => {
   describe("Edge cases with embedded JSON-like structures", () => {
     it("preserves JSON examples in documentation", () => {
       const input = '{"doc": "Example: {\\"key\\": \\"value\\"}"}';
-      const result1 = fixPropertyAndValueSyntax(input);
+      const result1 = unifiedSyntaxSanitizer(input);
       const result2 = fixJsonStructure(result1.content);
 
       expect(result2.content).toBe(input);
