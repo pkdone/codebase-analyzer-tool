@@ -9,26 +9,6 @@ import { llmTokens } from "../../llm/core/llm.tokens";
 import { inputConfig } from "./config/input.config";
 
 /**
- * Creates a prompt for querying the codebase with a specific question.
- * This prompt instructs the LLM to act as a programmer and answer questions about provided code.
- */
-function createCodebaseQueryPrompt(question: string, codeContent: string): string {
-  return fillPrompt(
-    `Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
-
-QUESTION:
-{{question}}
-
-CODE:
-{{codeContent}}`,
-    {
-      question,
-      codeContent,
-    },
-  );
-}
-
-/**
  * Provides ability to query the codebase, using Vector Search under the covers.
  */
 @injectable()
@@ -65,7 +45,7 @@ export default class CodebaseQueryProcessor {
 
     const codeBlocksAsText = this.formatSourcesForPrompt(bestMatchFiles);
     const resourceName = `Codebase query`;
-    const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
+    const prompt = this.createCodebaseQueryPrompt(question, codeBlocksAsText);
     const response = await this.llmRouter.executeCompletion<string>(resourceName, prompt, {
       outputFormat: LLMOutputFormat.TEXT,
     });
@@ -79,6 +59,30 @@ export default class CodebaseQueryProcessor {
       );
       return "Unable to answer question because no insight was generated";
     }
+  }
+
+  /**
+   * Creates a prompt for querying the codebase with a specific question.
+   * This prompt instructs the LLM to act as a programmer and answer questions about provided code.
+   *
+   * @param question - The developer's question about the code
+   * @param codeContent - The formatted code content to use as context
+   * @returns The filled prompt string
+   */
+  private createCodebaseQueryPrompt(question: string, codeContent: string): string {
+    return fillPrompt(
+      `Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
+
+QUESTION:
+{{question}}
+
+CODE:
+{{codeContent}}`,
+      {
+        question,
+        codeContent,
+      },
+    );
   }
 
   /**

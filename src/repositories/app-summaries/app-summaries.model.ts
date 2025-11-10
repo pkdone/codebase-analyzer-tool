@@ -30,7 +30,6 @@ export type AppSummaryNameDescArray = z.infer<typeof nameDescSchema>[];
  * Type for arrays of name-description pairs used in app summaries
  */
 export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;
-
 /**
  * Generate JSON schema for application summary records
  */

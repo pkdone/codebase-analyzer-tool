@@ -3,7 +3,7 @@ import { injectable } from "tsyringe";
 import { logErrorMsgAndDetail, logWarningMsg } from "../utils/logging";
 import { redactUrl } from "../security/url-redactor";
 import { IShutdownable } from "../interfaces/shutdownable.interface";
-import { DatabaseConnectionError } from "../errors/app-error";
+import { DatabaseConnectionError } from "./mdb-errors";
 
 /**
  * A factory class for creating and managing MongoDB client connections.

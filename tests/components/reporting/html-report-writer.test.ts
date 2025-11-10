@@ -127,6 +127,10 @@ describe("HtmlReportWriter", () => {
     architectureDiagramSvg: "",
 
     // Table view models for enhanced sections
+
+    // Asset content to be embedded inline
+    inlineCss: "/* test css */",
+    jsonIconSvg: "<svg>test</svg>",
   };
 
   beforeEach(() => {
@@ -158,15 +162,8 @@ describe("HtmlReportWriter", () => {
 
       await htmlReportWriter.writeHTMLReportFile(mockPreparedData, htmlFilePath);
 
-      // Expect the template data to include inlineCss property
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(
-        expectedTemplatePath,
-        expect.objectContaining({
-          ...mockPreparedData,
-          inlineCss: expect.any(String),
-          jsonIconSvg: expect.any(String),
-        }),
-      );
+      // Expect the template data to be passed as-is (asset content should already be included)
+      expect(mockEjs.renderFile).toHaveBeenCalledWith(expectedTemplatePath, mockPreparedData);
       expect(mockWriteFile).toHaveBeenCalledWith(
         htmlFilePath,
         "<html><body>Test Report</body></html>",
@@ -243,7 +240,9 @@ describe("HtmlReportWriter", () => {
       const passedData = (mockEjs.renderFile as jest.Mock).mock.calls[0][1];
       expect(passedData).toHaveProperty("inlineCss");
       expect(typeof passedData.inlineCss).toBe("string");
-      expect(passedData.inlineCss).toContain("MongoDB Theme");
+      expect(passedData.inlineCss).toBe("/* test css */");
+      expect(passedData).toHaveProperty("jsonIconSvg");
+      expect(passedData.jsonIconSvg).toBe("<svg>test</svg>");
       expect(passedData).toHaveProperty("appStats");
       expect(passedData).toHaveProperty("categorizedData");
       expect(passedData).toHaveProperty("convertToDisplayName");
@@ -284,18 +283,15 @@ describe("HtmlReportWriter", () => {
 
   describe("edge cases", () => {
     it("should handle empty prepared data", async () => {
-      const emptyData = {} as PreparedHtmlReportData;
+      const emptyData = {
+        inlineCss: "/* css */",
+        jsonIconSvg: "<svg></svg>",
+      } as PreparedHtmlReportData;
       const htmlFilePath = "/output/empty-report.html";
 
       await htmlReportWriter.writeHTMLReportFile(emptyData, htmlFilePath);
 
-      expect(mockEjs.renderFile).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          ...emptyData,
-          inlineCss: expect.any(String),
-        }),
-      );
+      expect(mockEjs.renderFile).toHaveBeenCalledWith(expect.any(String), emptyData);
       expect(mockWriteFile).toHaveBeenCalled();
     });
 

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { MongoClient, MongoClientOptions } from "mongodb";
-import { DatabaseConnectionError } from "../../../src/common/errors/app-error";
+import { DatabaseConnectionError } from "../../../src/common/mongodb/mdb-errors";
 import { MongoDBClientFactory } from "../../../src/common/mongodb/mdb-client-factory";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../../src/common/utils/logging";
 import { redactUrl } from "../../../src/common/security/url-redactor";

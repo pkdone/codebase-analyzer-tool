@@ -1,7 +1,7 @@
 import {
   normalizeDatabaseIntegrationArray,
   fixParameterPropertyNameTypos,
-} from "../../../src/schemas/transforms/schema-transforms";
+} from "../../../src/llm/json-processing/transforms/post-parse-transforms";
 
 describe("schema-transforms", () => {
   describe("normalizeDatabaseIntegrationArray", () => {

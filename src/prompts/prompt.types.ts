@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { AppSummaryCategories } from "../schemas/app-summaries.schema";
-import {
-  CANONICAL_FILE_TYPES,
-  type CanonicalFileType,
-  canonicalFileTypeSchema,
-} from "../config/file-types.config";
+import type { CanonicalFileType } from "../config/file-types.config";
 
 /**
  * Represents a section of instructions with an optional title
@@ -35,8 +31,10 @@ export interface PromptDefinition {
   template: string;
 }
 
-// Re-export from config to maintain backward compatibility
-export { CANONICAL_FILE_TYPES, type CanonicalFileType, canonicalFileTypeSchema };
+/**
+ * Type export for canonical file types (runtime values should be imported from file-types.config.ts)
+ */
+export type { CanonicalFileType };
 
 /**
  * Explicit type for app summary categories

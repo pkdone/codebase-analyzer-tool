@@ -2,11 +2,11 @@ import { LLMGeneratedContent, LLMCompletionOptions } from "../../types/llm.types
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonValidator } from "./json-validator";
 import { convertNullToUndefined } from "../utils/convert-null-to-undefined";
-import { unwrapJsonSchemaStructure } from "../utils/generic-transforms";
 import {
+  unwrapJsonSchemaStructure,
   normalizeDatabaseIntegrationArray,
   fixParameterPropertyNameTypos,
-} from "../../../schemas/transforms/schema-transforms";
+} from "../transforms/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";
 import { JsonProcessorResult } from "../json-processing-result.types";
 import {

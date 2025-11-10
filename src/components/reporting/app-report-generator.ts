@@ -13,6 +13,8 @@ import { reportSectionsConfig } from "./report-sections.config";
 import type { ReportSection } from "./sections/report-section.interface";
 import { SECTION_NAMES } from "./reporting.constants";
 import path from "path";
+import { promises as fs } from "fs";
+import { outputConfig } from "../../config/output.config";
 
 /**
  * Class responsible for orchestrating report generation using a modular section-based architecture.
@@ -85,9 +87,26 @@ export default class AppReportGenerator {
 
     const preparedJsonData = this.prepareJsonDataFromSections(reportData, sectionDataMap);
 
+    // Read asset files for HTML report
+    const templatesDir = path.join(__dirname, outputConfig.HTML_TEMPLATES_DIR);
+    const cssPath = path.join(templatesDir, "style.css");
+    const jsonIconPath = path.join(templatesDir, "assets", "json-icon.svg");
+
+    const [cssContent, jsonIconContent] = await Promise.all([
+      fs.readFile(cssPath, "utf-8"),
+      fs.readFile(jsonIconPath, "utf-8"),
+    ]);
+
+    // Add asset content to prepared HTML data
+    const preparedHtmlDataWithAssets = {
+      ...preparedHtmlData,
+      inlineCss: cssContent,
+      jsonIconSvg: jsonIconContent,
+    };
+
     // Generate reports using prepared data
     await this.jsonWriter.writeAllJSONFiles(preparedJsonData);
-    await this.htmlWriter.writeHTMLReportFile(preparedHtmlData, htmlFilePath);
+    await this.htmlWriter.writeHTMLReportFile(preparedHtmlDataWithAssets, htmlFilePath);
   }
 
   /**

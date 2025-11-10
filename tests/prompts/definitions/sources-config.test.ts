@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
 import { PromptDefinition } from "../../../src/prompts/prompt.types";
-import { fileTypeMappingsConfig } from "../../../src/config/file-type-mappings.config";
+import { fileTypeMappingsConfig } from "../../../src/config/file-types.config";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { SourceSummaryType } from "../../../src/components/capture/file-summarizer";
 

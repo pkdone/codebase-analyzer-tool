@@ -1,11 +1,10 @@
 import {
   InstructionSection,
   PromptDefinition,
-  CANONICAL_FILE_TYPES,
   CanonicalFileType,
-  canonicalFileTypeSchema,
   AppSummaryCategoryType,
 } from "../../src/prompts/prompt.types";
+import { CANONICAL_FILE_TYPES, canonicalFileTypeSchema } from "../../src/config/file-types.config";
 import { z } from "zod";
 
 describe("Prompt Types", () => {

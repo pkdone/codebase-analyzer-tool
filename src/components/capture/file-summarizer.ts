@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
 import { Prompt } from "../../prompts/prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
-import { fileTypeMappingsConfig } from "../../config/file-type-mappings.config";
+import { fileTypeMappingsConfig } from "../../config/file-types.config";
 
 /**
  * Type for source summary

@@ -1,4 +1,4 @@
-import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
+import { fileTypeMappingsConfig } from "../../src/config/file-types.config";
 import type { CanonicalFileType } from "../../src/prompts/prompt.types";
 
 describe("file-type-mappings.config", () => {

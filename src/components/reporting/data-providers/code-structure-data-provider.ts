@@ -6,7 +6,7 @@ import type {
 } from "../../../repositories/sources/sources.model";
 import { repositoryTokens } from "../../../di/repositories.tokens";
 import { convertToHierarchical } from "../utils/dependency-tree-builder";
-import { fileTypeMappingsConfig } from "../../../config/file-type-mappings.config";
+import { fileTypeMappingsConfig } from "../../../config/file-types.config";
 
 /**
  * Data provider responsible for aggregating code structure information for reports.

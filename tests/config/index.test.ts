@@ -1,7 +1,7 @@
 import { appConfig } from "../../src/config/app.config";
 import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
-import { fileTypeMappingsConfig } from "../../src/config/file-type-mappings.config";
+import { fileTypeMappingsConfig } from "../../src/config/file-types.config";
 import { outputConfig } from "../../src/config/output.config";
 import { loggingConfig } from "../../src/config/logging.config";
 

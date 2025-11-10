@@ -16,7 +16,7 @@ jest.mock("../../../src/common/utils/logging", () => ({
 jest.unmock("../../../src/prompts/definitions/sources");
 jest.unmock("../../../src/prompts/definitions/fragments");
 
-jest.mock("../../../src/config/file-type-mappings.config", () => ({
+jest.mock("../../../src/config/file-types.config", () => ({
   fileTypeMappingsConfig: {
     FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
       ["java", "java"],

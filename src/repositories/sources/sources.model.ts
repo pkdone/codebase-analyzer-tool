@@ -168,7 +168,6 @@ export interface ProjectedCodeQualityStatistics {
   readonly averageMethodLength: number;
   readonly longMethodCount: number;
 }
-
 /**
  * Generate JSON schema for source file records
  */

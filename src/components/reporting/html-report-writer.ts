@@ -3,7 +3,6 @@ import path from "path";
 import ejs from "ejs";
 import { outputConfig } from "../../config/output.config";
 import { writeFile } from "../../common/fs/file-operations";
-import { promises as fs } from "fs";
 import type {
   AppStatistics,
   ProcsAndTriggers,
@@ -134,6 +133,10 @@ export interface PreparedHtmlReportData {
   architectureDiagramSvg: string;
 
   // Table view models for enhanced sections
+
+  // Asset content to be embedded inline
+  inlineCss: string;
+  jsonIconSvg: string;
 }
 
 /**
@@ -145,6 +148,7 @@ export class HtmlReportWriter {
   /**
    * Renders HTML report from prepared template data and writes it to file.
    * This is a pure presentation method that only handles template rendering.
+   * Asset content (CSS and SVG) should be provided in the preparedData parameter.
    */
   async writeHTMLReportFile(
     preparedData: PreparedHtmlReportData,
@@ -156,27 +160,7 @@ export class HtmlReportWriter {
       outputConfig.HTML_MAIN_TEMPLATE_FILE,
     );
 
-    // Read CSS file content to embed inline
-    const cssPath = path.join(__dirname, outputConfig.HTML_TEMPLATES_DIR, "style.css");
-    const cssContent = await fs.readFile(cssPath, "utf-8");
-
-    // Read JSON icon SVG content to embed inline
-    const jsonIconPath = path.join(
-      __dirname,
-      outputConfig.HTML_TEMPLATES_DIR,
-      "assets",
-      "json-icon.svg",
-    );
-    const jsonIconContent = await fs.readFile(jsonIconPath, "utf-8");
-
-    // Add CSS and JSON icon content to template data
-    const templateData = {
-      ...preparedData,
-      inlineCss: cssContent,
-      jsonIconSvg: jsonIconContent,
-    };
-
-    const htmlContent = await ejs.renderFile(templatePath, templateData);
+    const htmlContent = await ejs.renderFile(templatePath, preparedData);
     await writeFile(htmlFilePath, htmlContent);
 
     console.log(`View generated report in a browser: file://${path.resolve(htmlFilePath)}`);
