@@ -16,6 +16,10 @@ import {
   removeInvalidPrefixes,
   extractLargestJsonSpan,
   collapseDuplicateJsonObject,
+  addMissingCommas,
+  removeTrailingCommas,
+  fixMismatchedDelimiters,
+  completeTruncatedStructures,
   fixJsonStructure,
   fixPropertyAndValueSyntax,
   fixMissingArrayObjectBraces,
@@ -56,24 +60,27 @@ export class JsonProcessor {
    *   3. normalizeCharacters - Normalize escape sequences, control characters, and curly quotes (consolidates normalizeEscapeSequences and fixCurlyQuotes)
    *   4. removeInvalidPrefixes - Remove invalid prefixes and stray text (consolidates 5 sanitizers: thought markers, stray line prefixes, stray text before properties, stray lines, stray text before braces)
    *
-   * Phase 2: Structure Extraction & Basic Fixes (6-8)
+   * Phase 2: Structure Extraction & Basic Fixes (6-11)
    *   Extracts JSON structure and fixes basic structural issues
    *   6. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
    *   7. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
-   *   8. fixJsonStructure - Unified structural fixes (consolidates fixMismatchedDelimiters, addMissingPropertyCommas,
-   *      removeTrailingCommas, completeTruncatedStructures, fixDanglingProperties, fixMissingOpeningQuoteInArrayStrings,
-   *      fixStrayCharsAfterPropertyValues, fixCorruptedPropertyValuePairs, fixTruncatedValueInArrayElements)
+   *   8. addMissingCommas - Insert missing commas between properties on separate lines
+   *   9. removeTrailingCommas - Remove invalid trailing commas before closing delimiters
+   *   10. fixMismatchedDelimiters - Correct bracket/brace mismatches
+   *   11. completeTruncatedStructures - Close unclosed brackets/braces from truncated responses
+   *   12. fixJsonStructure - Post-processing fixes (fixDanglingProperties, fixMissingOpeningQuoteInArrayStrings,
+   *       fixStrayCharsAfterPropertyValues, fixCorruptedPropertyValuePairs, fixTruncatedValueInArrayElements)
    *
-   * Phase 3: Property & Structure Fixes (9-10)
+   * Phase 3: Property & Structure Fixes (13-14)
    *   Fixes property names and array object structures
-   *   9. fixPropertyAndValueSyntax - Unified property and value syntax fixes (consolidates concatenationChainSanitizer,
-   *      fixPropertyNames, normalizePropertyAssignment, fixUndefinedValues, fixCorruptedNumericValues, fixUnescapedQuotesInStrings)
-   *   10. fixMissingArrayObjectBraces - Insert missing opening braces for new objects in arrays (consolidates 3 sanitizers)
+   *   13. fixPropertyAndValueSyntax - Unified property and value syntax fixes (consolidates concatenationChainSanitizer,
+   *       fixPropertyNames, normalizePropertyAssignment, fixUndefinedValues, fixCorruptedNumericValues, fixUnescapedQuotesInStrings)
+   *   14. fixMissingArrayObjectBraces - Insert missing opening braces for new objects in arrays (consolidates 3 sanitizers)
    *
-   * Phase 4: Content Fixes (11-12)
+   * Phase 4: Content Fixes (15-16)
    *   Fixes content corruption and truncation markers
-   *   11. fixBinaryCorruptionPatterns - Fix binary corruption patterns (e.g., <y_bin_XXX> markers) (simplified)
-   *   12. removeTruncationMarkers - Remove truncation markers (e.g., ...)
+   *   15. fixBinaryCorruptionPatterns - Fix binary corruption patterns (e.g., <y_bin_XXX> markers) (simplified)
+   *   16. removeTruncationMarkers - Remove truncation markers (e.g., ...)
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -88,7 +95,13 @@ export class JsonProcessor {
     removeInvalidPrefixes, // Consolidated sanitizer removing invalid prefixes and stray text (consolidates removeThoughtMarkers, removeStrayLinePrefixChars, fixStrayTextBeforePropertyNames, removeStrayLinesBetweenStructures, and stray text before braces from fixBinaryCorruptionPatterns)
     extractLargestJsonSpan,
     collapseDuplicateJsonObject,
-    fixJsonStructure, // Unified structural fixes (consolidates fixMismatchedDelimiters, addMissingPropertyCommas, removeTrailingCommas, completeTruncatedStructures, fixDanglingProperties, fixMissingOpeningQuoteInArrayStrings, fixStrayCharsAfterPropertyValues, fixCorruptedPropertyValuePairs, fixTruncatedValueInArrayElements)
+    // --- Decomposed structural fixes ---
+    addMissingCommas, // Insert missing commas between properties on separate lines
+    removeTrailingCommas, // Remove invalid trailing commas before closing delimiters
+    fixMismatchedDelimiters, // Correct bracket/brace mismatches
+    completeTruncatedStructures, // Close unclosed brackets/braces from truncated responses
+    // --- End of decomposed fixes ---
+    fixJsonStructure, // Post-processing fixes (fixDanglingProperties, fixMissingOpeningQuoteInArrayStrings, fixStrayCharsAfterPropertyValues, fixCorruptedPropertyValuePairs, fixTruncatedValueInArrayElements)
     fixPropertyAndValueSyntax, // Unified property and value syntax fixes (consolidates concatenationChainSanitizer, fixPropertyNames, normalizePropertyAssignment, fixUndefinedValues, fixCorruptedNumericValues, fixUnescapedQuotesInStrings)
     fixMissingArrayObjectBraces, // Consolidated sanitizer fixing missing opening braces for array objects
     fixBinaryCorruptionPatterns, // Simplified: only removes binary markers, lets fixPropertyAndValueSyntax handle typos

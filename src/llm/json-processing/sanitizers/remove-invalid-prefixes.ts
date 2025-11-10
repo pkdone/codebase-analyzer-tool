@@ -112,44 +112,94 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
       return "";
     });
 
-    // Pattern 1c: Remove text immediately before opening braces (like "command{")
-    const nonJsonWords = new Set([
-      "command",
-      "data",
-      "result",
-      "output",
-      "json",
-      "response",
-      "object",
-      "content",
-      "payload",
-      "body",
-    ]);
+    // Pattern 1c: Remove text immediately before opening braces (like "command{" or "Here is the JSON: {")
+    // Generic pattern that matches common introductory text patterns before opening braces
+    // Matches: word (2-20 chars) optionally followed by colon, then whitespace, then opening brace
+    // This is more robust than a hardcoded word list and catches variations like "Here is the JSON: {"
+    const genericPrefixPattern = /(^|\n|\r)\s*([a-zA-Z_]{2,20})\s*[:]?\s*\{/g;
 
-    sanitized = sanitized.replace(
-      /(^|\n|\r)\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\{/g,
-      (match, prefix, word, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        const lowerWord = (word as string).toLowerCase();
+    sanitized = sanitized.replace(genericPrefixPattern, (match, prefix, word, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      const wordStr = typeof word === "string" ? word : "";
 
-        if (nonJsonWords.has(lowerWord) && !isInStringAt(numericOffset, sanitized)) {
-          hasChanges = true;
-          return `${prefix}{`;
-        }
+      // Skip if we're inside a string
+      if (isInStringAt(numericOffset, sanitized)) {
         return match;
-      },
-    );
+      }
 
+      // Skip if this looks like a valid JSON property name context
+      // (e.g., after a comma, closing brace, or at the start of an object)
+      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+      const isAfterValidDelimiter = /[}\],]\s*$/.test(beforeMatch) || numericOffset < 100;
+
+      // If it's after a valid delimiter, it might be a property name - be more conservative
+      if (isAfterValidDelimiter && wordStr.length > 3) {
+        // Only remove if it's clearly an introductory word (short, common words)
+        const lowerWord = wordStr.toLowerCase();
+        const commonIntroWords = new Set([
+          "here",
+          "this",
+          "that",
+          "the",
+          "a",
+          "an",
+          "command",
+          "data",
+          "result",
+          "output",
+          "json",
+          "response",
+          "object",
+          "content",
+          "payload",
+          "body",
+          "answer",
+          "response",
+        ]);
+        if (!commonIntroWords.has(lowerWord)) {
+          return match;
+        }
+      }
+
+      hasChanges = true;
+      diagnostics.push(`Removed introductory text "${wordStr}" before opening brace`);
+      return `${prefix}{`;
+    });
+
+    // Also handle cases with whitespace before the word (not at line start)
     sanitized = sanitized.replace(
-      /\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\{/g,
+      /\s+([a-zA-Z_]{2,20})\s*[:]?\s*\{/g,
       (match, word, offset: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
-        const lowerWord = (word as string).toLowerCase();
+        const wordStr = typeof word === "string" ? word : "";
 
-        if (nonJsonWords.has(lowerWord) && !isInStringAt(numericOffset, sanitized)) {
-          const matchIndex = sanitized.indexOf(match);
-          const beforeMatch = sanitized.substring(Math.max(0, matchIndex - 50), matchIndex);
-          if (matchIndex < 500 || /\n\s*$/.test(beforeMatch)) {
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const matchIndex = sanitized.indexOf(match);
+        const beforeMatch = sanitized.substring(Math.max(0, matchIndex - 50), matchIndex);
+        // Only remove if it's at the start or after a newline
+        if (matchIndex < 500 || /\n\s*$/.test(beforeMatch)) {
+          const lowerWord = wordStr.toLowerCase();
+          const commonIntroWords = new Set([
+            "here",
+            "this",
+            "that",
+            "the",
+            "command",
+            "data",
+            "result",
+            "output",
+            "json",
+            "response",
+            "object",
+            "content",
+            "payload",
+            "body",
+            "answer",
+          ]);
+          if (commonIntroWords.has(lowerWord)) {
             hasChanges = true;
             return " {";
           }
