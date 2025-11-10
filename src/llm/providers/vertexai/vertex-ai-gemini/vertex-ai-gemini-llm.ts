@@ -347,7 +347,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
  * Vertex AI doesn't support the `const` keyword in response schemas, which causes
  * INVALID_ARGUMENT errors when present at any nesting level (e.g., within anyOf, allOf, items, etc.).
  */
-export function sanitizeVertexAISchema(schema: unknown): unknown {
+function sanitizeVertexAISchema(schema: unknown): unknown {
   if (Array.isArray(schema)) {
     return schema.map((item) => sanitizeVertexAISchema(item));
   }
