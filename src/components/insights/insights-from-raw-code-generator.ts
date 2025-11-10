@@ -13,7 +13,7 @@ import { Prompt } from "../../prompts/prompt";
 import { InstructionSection } from "../../prompts/prompt.types";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
-import { APP_SUMMARY_TEMPLATE } from "../../prompts/prompt";
+import { APP_SUMMARY_TEMPLATE } from "../../prompts/templates";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories

@@ -1,7 +1,7 @@
 import { appSummaryConfigMap } from "../../src/prompts/definitions/app-summaries/app-summaries.config";
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
 import { AppSummaryCategoryType } from "../../src/prompts/prompt.types";
-import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/prompt";
+import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates";
 
 describe("App Summaries Config Refactoring", () => {
   describe("Configuration Structure", () => {

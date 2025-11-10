@@ -1,4 +1,4 @@
-Code Organization: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. Identify the top 10 parts of the codebase are not well-organized, and highlight which files contain multiple unrelated functions. Pay extra attention to unit tests being in wrong folders. Provide references to the specific part(s) of the code that needs these improvements with suggestions on how to improve. Include the list or relative file paths of each source file affected.
+Code Organization: Act as a senior programmer analyzing the code in a TypeScript application where the content of each file in the application's codebase is shown below in a code block. Identify the top 10 parts of the codebase are not well-organized, and highlight which files contain multiple unrelated functions. Provide references to the specific part(s) of the code that needs these improvements with suggestions on how to improve. Include the list or relative file paths of each source file affected.
 
 Do NOT inlude any of the following topics in your recommendations:
 

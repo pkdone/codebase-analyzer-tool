@@ -5,7 +5,7 @@ import {
   SOURCES_TEMPLATE,
   APP_SUMMARY_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../src/prompts/prompt";
+} from "../../src/prompts/templates";
 
 describe("Prompt Refactoring", () => {
   const testDefinition: PromptDefinition = {

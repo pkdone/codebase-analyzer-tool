@@ -1,6 +1,6 @@
 import { AppSummaryCategoryType, PromptDefinition } from "../../prompt.types";
 import { appSummaryConfigMap } from "./app-summaries.config";
-import { APP_SUMMARY_TEMPLATE } from "../../prompt";
+import { APP_SUMMARY_TEMPLATE } from "../../templates";
 
 /**
  * Data-driven mapping of app summary categories to their templates and schemas.

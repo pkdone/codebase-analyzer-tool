@@ -1,4 +1,4 @@
-import { inputConfig } from "../../src/components/querying/config/input.config";
+import { inputConfig } from "../../../../src/components/querying/config/input.config";
 
 describe("inputConfig", () => {
   describe("input file paths", () => {

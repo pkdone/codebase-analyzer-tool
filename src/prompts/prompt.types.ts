@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { AppSummaryCategories } from "../schemas/app-summaries.schema";
+import {
+  CANONICAL_FILE_TYPES,
+  type CanonicalFileType,
+  canonicalFileTypeSchema,
+} from "../config/file-types.config";
 
 /**
  * Represents a section of instructions with an optional title
@@ -30,43 +35,8 @@ export interface PromptDefinition {
   template: string;
 }
 
-/**
- * Supported file types for metadata configuration.
- * Defined as a constant tuple to enable both runtime iteration and compile-time type safety.
- * The Zod schema `canonicalFileTypeSchema` is derived from this array to keep a single source of truth.
- */
-export const CANONICAL_FILE_TYPES = [
-  "java",
-  "javascript",
-  "default",
-  "sql",
-  "xml",
-  "jsp",
-  "markdown",
-  "csharp",
-  "ruby",
-  "maven",
-  "gradle",
-  "ant",
-  "npm",
-  "python",
-  "dotnet-proj",
-  "nuget",
-  "ruby-bundler",
-  "python-pip",
-  "python-setup",
-  "python-poetry",
-  "shell-script",
-  "batch-script",
-  "jcl",
-  "default",
-] as const;
-
-/** Inferred TypeScript type for canonical file types */
-export type CanonicalFileType = (typeof CANONICAL_FILE_TYPES)[number];
-
-/** Zod enum schema for canonical file types */
-export const canonicalFileTypeSchema = z.enum(CANONICAL_FILE_TYPES);
+// Re-export from config to maintain backward compatibility
+export { CANONICAL_FILE_TYPES, type CanonicalFileType, canonicalFileTypeSchema };
 
 /**
  * Explicit type for app summary categories

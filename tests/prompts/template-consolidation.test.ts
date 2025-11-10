@@ -2,7 +2,7 @@ import {
   SOURCES_TEMPLATE,
   APP_SUMMARY_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
-} from "../../src/prompts/prompt";
+} from "../../src/prompts/templates";
 import { Prompt } from "../../src/prompts/prompt";
 import { z } from "zod";
 
@@ -40,7 +40,7 @@ describe("Template Consolidation", () => {
         "{{content}}",
       ];
 
-      placeholders.forEach((placeholder) => {
+      placeholders.forEach((placeholder: string) => {
         expect(expectedPlaceholders).toContain(placeholder);
       });
     });

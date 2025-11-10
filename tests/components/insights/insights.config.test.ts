@@ -1,6 +1,6 @@
-import { insightsTuningConfig } from "../../src/components/insights/insights.config";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../src/prompts/definitions/app-summaries";
-import { AppSummaryCategoryEnum } from "../../src/components/insights/insights.types";
+import { insightsTuningConfig } from "../../../src/components/insights/insights.config";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../src/prompts/definitions/app-summaries";
+import { AppSummaryCategoryEnum } from "../../../src/components/insights/insights.types";
 
 describe("insightsTuningConfig", () => {
   it("should have CHUNK_TOKEN_LIMIT_RATIO defined", () => {

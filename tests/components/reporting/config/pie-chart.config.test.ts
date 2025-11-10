@@ -1,4 +1,4 @@
-import { pieChartConfig } from "../../src/components/reporting/config/pie-chart.config";
+import { pieChartConfig } from "../../../../src/components/reporting/config/pie-chart.config";
 
 describe("pieChartConfig", () => {
   it("should have all required layout properties", () => {
