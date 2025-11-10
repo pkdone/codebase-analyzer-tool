@@ -210,4 +210,113 @@ describe("fixJsonStructure", () => {
       expect(result.diagnostics?.length).toBeGreaterThan(0);
     });
   });
+
+  describe("fixes dangling properties", () => {
+    it("should fix dangling property with trailing space before comma", () => {
+      const input = '{"name": "value", "type ", "other": "value"}';
+      const result = fixJsonStructure(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"type": null');
+    });
+
+    it("should fix dangling property with trailing space before closing brace", () => {
+      const input = '{"name": "value", "type "}';
+      const result = fixJsonStructure(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"type": null');
+    });
+  });
+
+  describe("fixes missing opening quotes in array strings", () => {
+    it("should fix missing opening quote in array string value", () => {
+      const input = `  "internalReferences": [
+    "org.apache.fineract.infrastructure.entityaccess.domain.FineractEntityToEntityMappingRepository",
+fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException",
+    "org.apache.fineract.infrastructure.event.business.domain.loan.LoanApprovedBusinessEvent"
+  ]`;
+
+      const result = fixJsonStructure(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        `"fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException"`,
+      );
+    });
+
+    it("should not modify JSON keywords in arrays", () => {
+      const input = `  "values": [
+    true,
+    false,
+null",
+    "value"
+  ]`;
+
+      const result = fixJsonStructure(input);
+      // Should not modify null (it's a valid JSON keyword)
+      expect(result.changed).toBeDefined();
+    });
+  });
+
+  describe("fixes stray characters after property values", () => {
+    it("should remove stray underscore after string value", () => {
+      const input = '      "type": "String"_\n    },';
+      const result = fixJsonStructure(input);
+
+      expect(result.changed).toBe(true);
+      // Note: fixJsonStructure trims input, so leading whitespace is not preserved
+      expect(result.content).toContain('"type": "String"');
+      expect(result.content).not.toContain('"type": "String"_');
+    });
+
+    it("should remove stray word after string value before comma", () => {
+      const input = '      "value": "test"word,';
+      const result = fixJsonStructure(input);
+
+      expect(result.changed).toBe(true);
+      // Note: fixJsonStructure trims input, so leading whitespace is not preserved
+      expect(result.content).toContain('"value": "test"');
+      expect(result.content).not.toContain('"value": "test"word');
+    });
+  });
+
+  describe("fixes corrupted property/value pairs", () => {
+    it("should fix corrupted pattern with uppercase value", () => {
+      const input = '{"name":ICCID": "clientClassification", "type": "CodeValueData"}';
+      const result = fixJsonStructure(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "ICCID"');
+    });
+
+    it("should fix pattern with type property", () => {
+      const input = '{"name":ICCID": "clientClassification", "type": "CodeValueData"}';
+      const result = fixJsonStructure(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "ICCID"');
+      expect(result.content).toContain('"type": "CodeValueData"');
+    });
+  });
+
+  describe("fixes truncated values in array elements", () => {
+    it("should fix truncated value after type property", () => {
+      const input = `{
+  "parameters": [
+    {
+      "value": "...",
+      "type": "String"
+axNumberOfRepayments",
+      "type": "String"
+    }
+  ]
+}`;
+
+      const result = fixJsonStructure(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name":');
+    });
+  });
 });

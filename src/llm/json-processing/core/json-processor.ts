@@ -19,13 +19,8 @@ import {
   fixJsonStructure,
   fixPropertyAndValueSyntax,
   fixMissingArrayObjectBraces,
-  fixMissingOpeningQuoteInArrayStrings,
-  fixStrayCharsAfterPropertyValues,
   fixBinaryCorruptionPatterns,
   removeTruncationMarkers,
-  fixDanglingProperties,
-  fixTruncatedValueInArrayElements,
-  fixCorruptedPropertyValuePairs,
   hasSignificantSanitizationSteps,
   type Sanitizer,
   type PostParseTransform,
@@ -65,22 +60,20 @@ export class JsonProcessor {
    *   Extracts JSON structure and fixes basic structural issues
    *   6. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
    *   7. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
-   *   8. fixJsonStructure - Unified structural fixes (consolidates fixMismatchedDelimiters, addMissingPropertyCommas, removeTrailingCommas, completeTruncatedStructures)
+   *   8. fixJsonStructure - Unified structural fixes (consolidates fixMismatchedDelimiters, addMissingPropertyCommas,
+   *      removeTrailingCommas, completeTruncatedStructures, fixDanglingProperties, fixMissingOpeningQuoteInArrayStrings,
+   *      fixStrayCharsAfterPropertyValues, fixCorruptedPropertyValuePairs, fixTruncatedValueInArrayElements)
    *
-   * Phase 3: Property & Structure Fixes (9-11)
+   * Phase 3: Property & Structure Fixes (9-10)
    *   Fixes property names and array object structures
-   *   9. fixPropertyAndValueSyntax - Unified property and value syntax fixes (consolidates concatenationChainSanitizer, fixPropertyNames, normalizePropertyAssignment, fixUndefinedValues, fixCorruptedNumericValues, fixUnescapedQuotesInStrings)
+   *   9. fixPropertyAndValueSyntax - Unified property and value syntax fixes (consolidates concatenationChainSanitizer,
+   *      fixPropertyNames, normalizePropertyAssignment, fixUndefinedValues, fixCorruptedNumericValues, fixUnescapedQuotesInStrings)
    *   10. fixMissingArrayObjectBraces - Insert missing opening braces for new objects in arrays (consolidates 3 sanitizers)
-   *   11. fixMissingOpeningQuoteInArrayStrings - Fix missing opening quotes in array string values
    *
-   * Phase 4: Value & Content Fixes (12-17)
-   *   Fixes property values, stray text, and content corruption
-   *   12. fixStrayCharsAfterPropertyValues - Remove stray characters after property values
-   *   13. fixBinaryCorruptionPatterns - Fix binary corruption patterns (e.g., <y_bin_XXX> markers) (simplified)
-   *   14. removeTruncationMarkers - Remove truncation markers (e.g., ...)
-   *   15. fixDanglingProperties - Fix dangling properties (added null values) (replaces fix-truncated-property-values)
-   *   16. fixTruncatedValueInArrayElements - Fix truncated property values in array elements missing opening brace and property name
-   *   17. fixCorruptedPropertyValuePairs - Fix corrupted property/value pairs (e.g., "name":ICCID": "value")
+   * Phase 4: Content Fixes (11-12)
+   *   Fixes content corruption and truncation markers
+   *   11. fixBinaryCorruptionPatterns - Fix binary corruption patterns (e.g., <y_bin_XXX> markers) (simplified)
+   *   12. removeTruncationMarkers - Remove truncation markers (e.g., ...)
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -95,16 +88,11 @@ export class JsonProcessor {
     removeInvalidPrefixes, // Consolidated sanitizer removing invalid prefixes and stray text (consolidates removeThoughtMarkers, removeStrayLinePrefixChars, fixStrayTextBeforePropertyNames, removeStrayLinesBetweenStructures, and stray text before braces from fixBinaryCorruptionPatterns)
     extractLargestJsonSpan,
     collapseDuplicateJsonObject,
-    fixJsonStructure, // Unified structural fixes (consolidates fixMismatchedDelimiters, addMissingPropertyCommas, removeTrailingCommas, completeTruncatedStructures)
+    fixJsonStructure, // Unified structural fixes (consolidates fixMismatchedDelimiters, addMissingPropertyCommas, removeTrailingCommas, completeTruncatedStructures, fixDanglingProperties, fixMissingOpeningQuoteInArrayStrings, fixStrayCharsAfterPropertyValues, fixCorruptedPropertyValuePairs, fixTruncatedValueInArrayElements)
     fixPropertyAndValueSyntax, // Unified property and value syntax fixes (consolidates concatenationChainSanitizer, fixPropertyNames, normalizePropertyAssignment, fixUndefinedValues, fixCorruptedNumericValues, fixUnescapedQuotesInStrings)
     fixMissingArrayObjectBraces, // Consolidated sanitizer fixing missing opening braces for array objects
-    fixMissingOpeningQuoteInArrayStrings,
-    fixStrayCharsAfterPropertyValues,
     fixBinaryCorruptionPatterns, // Simplified: only removes binary markers, lets fixPropertyAndValueSyntax handle typos
     removeTruncationMarkers,
-    fixDanglingProperties, // Fix dangling properties by adding null values (replaces fixTruncatedPropertyValues)
-    fixTruncatedValueInArrayElements, // Fix truncated property values in array elements missing opening brace and property name
-    fixCorruptedPropertyValuePairs, // Fix corrupted property/value pairs (e.g., "name":ICCID": "value")
   ] as const satisfies readonly Sanitizer[];
 
   /**
