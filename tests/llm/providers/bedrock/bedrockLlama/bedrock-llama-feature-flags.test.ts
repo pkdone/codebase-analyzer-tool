@@ -25,11 +25,13 @@ describe("Bedrock Llama Manifest Feature Flags", () => {
 
   test("CAP_MAX_GEN_LEN feature triggers max_gen_len capping", () => {
     const instance = new BedrockLlamaLLM(
+      {} as any,
       mockModelsKeysSet,
       mockModelsMetadata,
       bedrockLlamaProviderManifest.errorPatterns,
       { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
       jsonProcessor,
+      bedrockLlamaProviderManifest.modelFamily,
     ) as unknown as {
       llmFeatures?: readonly string[];
       buildCompletionRequestBody: (modelKey: string, prompt: string) => any;
@@ -47,11 +49,13 @@ describe("Bedrock Llama Manifest Feature Flags", () => {
 
   test("Removing CAP_MAX_GEN_LEN feature results in no explicit max_gen_len", () => {
     const instance = new BedrockLlamaLLM(
+      {} as any,
       mockModelsKeysSet,
       mockModelsMetadata,
       bedrockLlamaProviderManifest.errorPatterns,
       { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
       jsonProcessor,
+      bedrockLlamaProviderManifest.modelFamily,
     ) as unknown as {
       llmFeatures?: readonly string[];
       buildCompletionRequestBody: (modelKey: string, prompt: string) => any;

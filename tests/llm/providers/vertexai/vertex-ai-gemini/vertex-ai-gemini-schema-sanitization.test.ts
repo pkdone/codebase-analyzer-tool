@@ -95,12 +95,11 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
     });
 
     vertexAIGeminiLLM = new VertexAIGeminiLLM(
+      { VERTEXAI_PROJECTID: "test-project", VERTEXAI_LOCATION: "us-central1" } as any,
       mockModelsKeys,
       mockModelsMetadata,
       mockErrorPatterns,
       {
-        project: "test-project",
-        location: "us-central1",
         providerSpecificConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
@@ -109,6 +108,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         },
       },
       createMockJsonProcessor(),
+      "VertexGemini",
     );
   });
 

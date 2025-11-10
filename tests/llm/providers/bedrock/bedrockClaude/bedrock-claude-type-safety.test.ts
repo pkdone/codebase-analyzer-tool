@@ -49,6 +49,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
 
   it("should safely access anthropicBetaFlags from provider config for Claude V40", () => {
     const llm = new BedrockClaudeLLM(
+      {} as any,
       mockModelKeysSet,
       mockModelsMetadata,
       [],
@@ -65,6 +66,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         },
       },
       createMockJsonProcessor(),
+      "BedrockClaude",
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
@@ -81,6 +83,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
 
   it("should work without anthropicBetaFlags for Claude V40", () => {
     const llm = new BedrockClaudeLLM(
+      {} as any,
       mockModelKeysSet,
       mockModelsMetadata,
       [],
@@ -94,6 +97,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         },
       },
       createMockJsonProcessor(),
+      "BedrockClaude",
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
@@ -113,6 +117,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     };
 
     const llm = new BedrockClaudeLLM(
+      {} as any,
       v37KeysSet,
       mockModelsMetadata,
       [],
@@ -127,6 +132,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         },
       },
       createMockJsonProcessor(),
+      "BedrockClaude",
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
@@ -154,6 +160,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
 
   it("should properly use temperature and topK from config", () => {
     const llm = new BedrockClaudeLLM(
+      {} as any,
       mockModelKeysSet,
       mockModelsMetadata,
       [],
@@ -169,6 +176,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         },
       },
       createMockJsonProcessor(),
+      "BedrockClaude",
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody(

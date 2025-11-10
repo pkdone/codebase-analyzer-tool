@@ -6,22 +6,10 @@ import {
 } from "../../../types/llm.types";
 import BaseOpenAILLM from "../common/base-openai-llm";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
-import { AZURE_OPENAI } from "./azure-openai.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { JsonProcessor } from "../../../json-processing/core/json-processor";
-
-/**
- * Configuration object for Azure OpenAI LLM provider.
- * Encapsulates all Azure OpenAI-specific configuration parameters.
- */
-export interface AzureOpenAIConfig {
-  apiKey: string;
-  endpoint: string;
-  embeddingsDeployment: string;
-  primaryCompletionsDeployment: string;
-  secondaryCompletionsDeployment: string;
-  providerSpecificConfig?: LLMProviderSpecificConfig;
-}
+import { EnvVars } from "../../../../env/env.types";
+import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 /**
  * Class for Azure's own managed version of the OpenAI service.
@@ -35,37 +23,44 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
    * Constructor.
    */
   constructor(
+    env: EnvVars,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    config: AzureOpenAIConfig,
+    config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
+    modelFamily: string,
   ) {
-    if (!config.providerSpecificConfig) {
-      throw new Error("providerSpecificConfig is required but was not provided");
-    }
-    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig, jsonProcessor);
+    super(
+      modelsKeys,
+      modelsMetadata,
+      errorPatterns,
+      config.providerSpecificConfig,
+      jsonProcessor,
+      modelFamily,
+    );
+    const apiKey = getRequiredEnvVar(env, "AZURE_OPENAI_LLM_API_KEY");
+    const endpoint = getRequiredEnvVar(env, "AZURE_OPENAI_ENDPOINT");
+    const embeddingsDeployment = getRequiredEnvVar(env, "AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT");
+    const primaryCompletionsDeployment = getRequiredEnvVar(
+      env,
+      "AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY",
+    );
+    const secondaryCompletionsDeployment = getRequiredEnvVar(
+      env,
+      "AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY",
+    );
     this.modelToDeploymentMappings = new Map();
-    this.modelToDeploymentMappings.set(modelsKeys.embeddingsModelKey, config.embeddingsDeployment);
+    this.modelToDeploymentMappings.set(modelsKeys.embeddingsModelKey, embeddingsDeployment);
     this.modelToDeploymentMappings.set(
       modelsKeys.primaryCompletionModelKey,
-      config.primaryCompletionsDeployment,
+      primaryCompletionsDeployment,
     );
     const secondaryCompletion = modelsKeys.secondaryCompletionModelKey;
     if (secondaryCompletion)
-      this.modelToDeploymentMappings.set(
-        secondaryCompletion,
-        config.secondaryCompletionsDeployment,
-      );
+      this.modelToDeploymentMappings.set(secondaryCompletion, secondaryCompletionsDeployment);
     const apiVersion = config.providerSpecificConfig.apiVersion ?? "2025-01-01-preview";
-    this.client = new AzureOpenAI({ endpoint: config.endpoint, apiKey: config.apiKey, apiVersion });
-  }
-
-  /**
-   * Get the model family this LLM implementation belongs to.
-   */
-  getModelFamily(): string {
-    return AZURE_OPENAI;
+    this.client = new AzureOpenAI({ endpoint, apiKey, apiVersion });
   }
 
   /**

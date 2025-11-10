@@ -40,7 +40,13 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
     const opts = { ...this.defaultOptions, ...options };
 
     if (context.aggregates.length === 0 && context.entities.length === 0) {
-      return this.generateEmptyContextDiagram(opts);
+      return this.generateEmptyDiagram(
+        opts.width,
+        opts.height,
+        "No domain model elements defined",
+        opts.fontFamily,
+        opts.fontSize,
+      );
     }
 
     // Calculate dynamic width based on content
@@ -87,13 +93,6 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
     options: DomainDiagramSvgOptions = {},
   ): string[] {
     return contexts.map((context) => this.generateContextDiagramSvg(context, options));
-  }
-
-  /**
-   * Create SVG header with definitions
-   */
-  protected override createSvgHeader(width: number, height: number): string {
-    return super.createSvgHeader(width, height);
   }
 
   /**
@@ -649,18 +648,5 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
         stroke-dasharray="5,5"
         marker-end="url(#arrowhead)"
       />`;
-  }
-
-  /**
-   * Generate empty diagram for contexts with no content
-   */
-  private generateEmptyContextDiagram(options: Required<DomainDiagramSvgOptions>): string {
-    return super.generateEmptyDiagram(
-      options.width,
-      options.height,
-      "No domain model elements defined",
-      options.fontFamily,
-      options.fontSize,
-    );
   }
 }

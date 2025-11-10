@@ -104,7 +104,7 @@ describe("bedrock-test-helper", () => {
       },
       errorPatterns: [],
       providerSpecificConfig: {} as any,
-      factory: jest.fn(),
+      implementation: jest.fn() as any,
     };
 
     const mockEnv = {

@@ -24,6 +24,7 @@ import {
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
 import { JsonProcessor } from "../../../json-processing/core/json-processor";
+import { EnvVars } from "../../../../env/env.types";
 
 const TOKEN_LIMIT_ERROR_KEYWORDS = new Set([
   "too many input tokens",
@@ -87,16 +88,25 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * Constructor.
    */
   constructor(
+    _env: EnvVars,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: BedrockConfig,
     jsonProcessor: JsonProcessor,
+    modelFamily: string,
   ) {
     if (!config.providerSpecificConfig) {
       throw new Error("providerSpecificConfig is required but was not provided");
     }
-    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig, jsonProcessor);
+    super(
+      modelsKeys,
+      modelsMetadata,
+      errorPatterns,
+      config.providerSpecificConfig,
+      jsonProcessor,
+      modelFamily,
+    );
     const requestTimeoutMillis = config.providerSpecificConfig.requestTimeoutMillis;
     this.client = new BedrockRuntimeClient({
       requestHandler: { requestTimeout: requestTimeoutMillis },
@@ -173,11 +183,10 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
-   * Assemble the AWS Bedrock API parameters structure for embeddings and completions models with
-   * the prompt.
+   * Build common Bedrock API parameters structure.
+   * Extracts the common pattern of modelId, contentType, accept, and body.
    */
-  private buildEmbeddingParameters(modelKey: string, prompt: string) {
-    const bodyObj = { inputText: prompt };
+  private buildBedrockParameters(modelKey: string, bodyObj: Record<string, unknown>) {
     return {
       modelId: this.llmModelsMetadata[modelKey].urn,
       contentType: appConfig.MIME_TYPE_JSON,
@@ -186,14 +195,20 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     };
   }
 
+  /**
+   * Assemble the AWS Bedrock API parameters structure for embeddings models.
+   */
+  private buildEmbeddingParameters(modelKey: string, prompt: string) {
+    const bodyObj = { inputText: prompt };
+    return this.buildBedrockParameters(modelKey, bodyObj);
+  }
+
+  /**
+   * Assemble the AWS Bedrock API parameters structure for completions models.
+   */
   private buildCompletionParameters(modelKey: string, prompt: string) {
     const bodyObj = this.buildCompletionRequestBody(modelKey, prompt);
-    return {
-      modelId: this.llmModelsMetadata[modelKey].urn,
-      contentType: appConfig.MIME_TYPE_JSON,
-      accept: appConfig.MIME_TYPE_ANY,
-      body: JSON.stringify(bodyObj),
-    };
+    return this.buildBedrockParameters(modelKey, bodyObj);
   }
 
   private async invokeEmbeddings(modelKey: string, prompt: string) {

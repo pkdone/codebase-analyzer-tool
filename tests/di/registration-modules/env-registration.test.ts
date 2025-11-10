@@ -52,7 +52,7 @@ describe("Environment Registration Module", () => {
       minRetryDelayMillis: 1000,
       maxRetryDelayMillis: 5000,
     },
-    factory: jest.fn(),
+    implementation: jest.fn() as any,
   };
 
   const mockBaseEnvVars = {

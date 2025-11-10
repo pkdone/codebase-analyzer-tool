@@ -56,7 +56,7 @@ describe("InsightsProcessorSelector", () => {
       minRetryDelayMillis: 1000,
       maxRetryDelayMillis: 10000,
     },
-    factory: jest.fn(),
+    implementation: jest.fn() as any,
   };
 
   beforeEach(() => {

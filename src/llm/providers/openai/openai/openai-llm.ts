@@ -5,18 +5,10 @@ import {
   LLMErrorMsgRegExPattern,
 } from "../../../types/llm.types";
 import BaseOpenAILLM from "../common/base-openai-llm";
-import { OPENAI } from "./openai.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { JsonProcessor } from "../../../json-processing/core/json-processor";
-
-/**
- * Configuration object for OpenAI LLM provider.
- * Encapsulates all OpenAI-specific configuration parameters.
- */
-export interface OpenAIConfig {
-  apiKey: string;
-  providerSpecificConfig?: LLMProviderSpecificConfig;
-}
+import { EnvVars } from "../../../../env/env.types";
+import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 /**
  * Class for the public OpenAI service.
@@ -29,24 +21,24 @@ export default class OpenAILLM extends BaseOpenAILLM {
    * Constructor.
    */
   constructor(
+    env: EnvVars,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    config: OpenAIConfig,
+    config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
+    modelFamily: string,
   ) {
-    if (!config.providerSpecificConfig) {
-      throw new Error("providerSpecificConfig is required but was not provided");
-    }
-    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig, jsonProcessor);
-    this.client = new OpenAI({ apiKey: config.apiKey });
-  }
-
-  /**
-   * Get the model family this LLM implementation belongs to.
-   */
-  getModelFamily(): string {
-    return OPENAI;
+    super(
+      modelsKeys,
+      modelsMetadata,
+      errorPatterns,
+      config.providerSpecificConfig,
+      jsonProcessor,
+      modelFamily,
+    );
+    const apiKey = getRequiredEnvVar(env, "OPENAI_LLM_API_KEY");
+    this.client = new OpenAI({ apiKey });
   }
 
   /**

@@ -66,22 +66,15 @@ export interface LLMProviderManifest {
   errorPatterns: readonly LLMErrorMsgRegExPattern[];
   /** Provider-specific operational configuration */
   providerSpecificConfig: LLMProviderSpecificConfig;
-  /** Factory function to create an instance of the provider's LLMProviderImpl */
-  factory: (
-    envConfig: EnvVars,
-    modelsKeysSet: LLMModelKeysSet,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig,
-    jsonProcessor: JsonProcessor,
-  ) => LLMProvider;
-  /** Optional implementation constructor (alternative to factory) */
-  implementation?: new (
+  /** Required implementation constructor (modern approach) */
+  implementation: new (
+    env: EnvVars,
     modelsKeysSet: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
+    modelFamily: string,
   ) => LLMProvider;
 }
 

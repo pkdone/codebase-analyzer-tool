@@ -128,25 +128,27 @@ describe("Azure OpenAI Provider Tests", () => {
 
   describe("Provider implementation", () => {
     test("counts available models", () => {
-      const llm = azureOpenAIProviderManifest.factory(
+      const llm = new azureOpenAIProviderManifest.implementation(
         mockAzureOpenAIEnv,
         azureOpenAIModelKeysSet,
         azureOpenAIModelsMetadata,
         azureOpenAIProviderManifest.errorPatterns,
-        azureOpenAIProviderManifest.providerSpecificConfig,
+        { providerSpecificConfig: azureOpenAIProviderManifest.providerSpecificConfig },
         createMockJsonProcessor(),
+        azureOpenAIProviderManifest.modelFamily,
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });
 
     test("verifies model family", () => {
-      const llm = azureOpenAIProviderManifest.factory(
+      const llm = new azureOpenAIProviderManifest.implementation(
         mockAzureOpenAIEnv,
         azureOpenAIModelKeysSet,
         azureOpenAIModelsMetadata,
         azureOpenAIProviderManifest.errorPatterns,
-        azureOpenAIProviderManifest.providerSpecificConfig,
+        { providerSpecificConfig: azureOpenAIProviderManifest.providerSpecificConfig },
         createMockJsonProcessor(),
+        azureOpenAIProviderManifest.modelFamily,
       );
       expect(llm.getModelFamily()).toBe("AzureOpenAI");
     });

@@ -1,5 +1,5 @@
-import { container } from "tsyringe";
 import { insightsTokens } from "../../components/insights/insights.tokens";
+import { registerComponents } from "../registration-utils";
 
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
@@ -21,13 +21,19 @@ import { UiAggregator } from "../../components/insights/data-aggregators/ui-aggr
  * - Managing insight generation strategies based on LLM capabilities
  */
 export function registerInsightsComponents(): void {
-  container.registerSingleton(insightsTokens.BomAggregator, BomAggregator);
-  container.registerSingleton(insightsTokens.CodeQualityAggregator, CodeQualityAggregator);
-  container.registerSingleton(insightsTokens.JobAggregator, JobAggregator);
-  container.registerSingleton(insightsTokens.ModuleCouplingAggregator, ModuleCouplingAggregator);
-  container.registerSingleton(insightsTokens.UiAggregator, UiAggregator);
-
-  console.log("Insights components registered");
+  registerComponents(
+    [
+      { token: insightsTokens.BomAggregator, implementation: BomAggregator },
+      { token: insightsTokens.CodeQualityAggregator, implementation: CodeQualityAggregator },
+      { token: insightsTokens.JobAggregator, implementation: JobAggregator },
+      {
+        token: insightsTokens.ModuleCouplingAggregator,
+        implementation: ModuleCouplingAggregator,
+      },
+      { token: insightsTokens.UiAggregator, implementation: UiAggregator },
+    ],
+    "Insights components registered",
+  );
 }
 
 /**
@@ -35,12 +41,19 @@ export function registerInsightsComponents(): void {
  * These components require LLM functionality to be available.
  */
 export function registerLLMDependentInsightsComponents(): void {
-  container.registerSingleton(insightsTokens.LocalInsightsGenerator, LocalInsightsGenerator);
-  container.registerSingleton(insightsTokens.InsightsFromDBGenerator, InsightsFromDBGenerator);
-  container.registerSingleton(
-    insightsTokens.InsightsFromRawCodeGenerator,
-    InsightsFromRawCodeGenerator,
+  registerComponents(
+    [
+      { token: insightsTokens.LocalInsightsGenerator, implementation: LocalInsightsGenerator },
+      { token: insightsTokens.InsightsFromDBGenerator, implementation: InsightsFromDBGenerator },
+      {
+        token: insightsTokens.InsightsFromRawCodeGenerator,
+        implementation: InsightsFromRawCodeGenerator,
+      },
+      {
+        token: insightsTokens.InsightsProcessorSelector,
+        implementation: InsightsProcessorSelector,
+      },
+    ],
+    "LLM-dependent insights components registered",
   );
-  container.registerSingleton(insightsTokens.InsightsProcessorSelector, InsightsProcessorSelector);
-  console.log("LLM-dependent insights components registered");
 }

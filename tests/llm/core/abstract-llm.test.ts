@@ -68,16 +68,19 @@ class TestLLM extends AbstractLLM {
       maxRetryDelayMillis: 5000,
     };
 
-    super(modelsKeys, testModelsMetadata, errorPatterns, providerConfig, createMockJsonProcessor());
+    super(
+      modelsKeys,
+      testModelsMetadata,
+      errorPatterns,
+      providerConfig,
+      createMockJsonProcessor(),
+      "test",
+    );
   }
 
   // Method to set mock token usage for testing
   setMockTokenUsage(tokenUsage: LLMResponseTokensUsage) {
     this.mockTokenUsage = tokenUsage;
-  }
-
-  getModelFamily(): string {
-    return "test";
   }
 
   protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
@@ -189,15 +192,12 @@ describe("Abstract LLM Token Extraction", () => {
             errorPatterns,
             providerConfig,
             createMockJsonProcessor(),
+            "test",
           );
         }
 
         setMockTokenUsage(tokenUsage: LLMResponseTokensUsage) {
           this.mockTokenUsage = tokenUsage;
-        }
-
-        getModelFamily(): string {
-          return "test";
         }
 
         protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
@@ -254,16 +254,19 @@ class TestJSONLLM extends AbstractLLM {
       maxRetryDelayMillis: 5000,
     };
 
-    super(modelsKeys, testModelsMetadata, errorPatterns, providerConfig, createMockJsonProcessor());
+    super(
+      modelsKeys,
+      testModelsMetadata,
+      errorPatterns,
+      providerConfig,
+      createMockJsonProcessor(),
+      "test",
+    );
   }
 
   setMockResponse(content: string, isIncomplete = false) {
     this.mockResponseContent = content;
     this.mockIsIncomplete = isIncomplete;
-  }
-
-  getModelFamily(): string {
-    return "test";
   }
 
   protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {

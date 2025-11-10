@@ -132,8 +132,8 @@ export class LLMProviderManager {
       value !== null &&
       typeof value === "object" &&
       "modelFamily" in value &&
-      "factory" in value &&
-      typeof (value as Record<string, unknown>).factory === "function"
+      "implementation" in value &&
+      typeof (value as Record<string, unknown>).implementation === "function"
     );
   }
 
@@ -169,36 +169,21 @@ export class LLMProviderManager {
     const manifest = this.getInitializedManifest();
     const modelsKeysSet = this.buildModelsKeysSet(manifest);
     const modelsMetadata = this.buildModelsMetadata(manifest, env);
-    // Prefer implementation constructor if provided for more declarative manifests.
-    if (manifest.implementation) {
-      const config = { providerSpecificConfig: manifest.providerSpecificConfig };
-      const instance = new manifest.implementation(
-        modelsKeysSet,
-        modelsMetadata,
-        manifest.errorPatterns,
-        config,
-        this.jsonProcessor,
-      );
-      // Attach features if available (duck typing to avoid interface changes to all providers yet)
-      if (manifest.features && Array.isArray(manifest.features)) {
-        (instance as unknown as { llmFeatures?: readonly string[] }).llmFeatures =
-          manifest.features;
-      }
-      return instance;
-    }
-    // Fallback to legacy factory function
-    const provider = manifest.factory(
+    const config = { providerSpecificConfig: manifest.providerSpecificConfig };
+    const instance = new manifest.implementation(
       env,
       modelsKeysSet,
       modelsMetadata,
       manifest.errorPatterns,
-      manifest.providerSpecificConfig,
+      config,
       this.jsonProcessor,
+      manifest.modelFamily,
     );
+    // Attach features if available (duck typing to avoid interface changes to all providers yet)
     if (manifest.features && Array.isArray(manifest.features)) {
-      (provider as unknown as { llmFeatures?: readonly string[] }).llmFeatures = manifest.features;
+      (instance as unknown as { llmFeatures?: readonly string[] }).llmFeatures = manifest.features;
     }
-    return provider;
+    return instance;
   }
 
   /**

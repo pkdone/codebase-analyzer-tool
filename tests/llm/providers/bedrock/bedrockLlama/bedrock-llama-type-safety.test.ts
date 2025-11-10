@@ -38,6 +38,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
 
   it("should apply maxGenLenCap when CAP_MAX_GEN_LEN feature present", () => {
     const llm = new BedrockLlamaLLM(
+      {} as any,
       mockModelKeysSet,
       mockModelsMetadata,
       [],
@@ -51,6 +52,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
         },
       },
       createMockJsonProcessor(),
+      "BedrockLlama",
     );
 
     // Attach feature flags (normally done by provider manager)
@@ -88,6 +90,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
     };
 
     const llm = new BedrockLlamaLLM(
+      {} as any,
       mockModelKeysSet,
       modelsMetadataWithLowMax,
       [],
@@ -101,6 +104,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
         },
       },
       createMockJsonProcessor(),
+      "BedrockLlama",
     );
 
     // Attach feature flags so capping logic engages
@@ -147,6 +151,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
     };
 
     const llm = new BedrockLlamaLLM(
+      {} as any,
       nonLlamaKeysSet,
       nonLlamaMetadata,
       [],
@@ -160,6 +165,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
         },
       },
       createMockJsonProcessor(),
+      "BedrockLlama",
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody("SOME_OTHER_MODEL", "test prompt");

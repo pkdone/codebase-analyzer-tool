@@ -38,6 +38,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private hasLoggedJsonError = false;
   private readonly jsonProcessor: JsonProcessor;
+  private readonly modelFamily: string;
 
   /**
    * Constructor.
@@ -48,12 +49,14 @@ export default abstract class AbstractLLM implements LLMProvider {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     providerSpecificConfig: LLMProviderSpecificConfig,
     jsonProcessor: JsonProcessor,
+    modelFamily: string,
   ) {
     this.modelsKeys = modelsKeys;
     this.llmModelsMetadata = modelsMetadata;
     this.errorPatterns = errorPatterns;
     this.providerSpecificConfig = providerSpecificConfig;
     this.jsonProcessor = jsonProcessor;
+    this.modelFamily = modelFamily;
   }
 
   /**
@@ -101,6 +104,13 @@ export default abstract class AbstractLLM implements LLMProvider {
    */
   getEmbeddingModelDimensions() {
     return this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey].dimensions;
+  }
+
+  /**
+   * Get the model family for this LLM provider.
+   */
+  getModelFamily(): string {
+    return this.modelFamily;
   }
 
   /**
@@ -363,11 +373,6 @@ export default abstract class AbstractLLM implements LLMProvider {
       logErrorMsgAndDetail("Failed to write error log file:", fileError);
     }
   }
-
-  /**
-   * Get the model family for this LLM provider.
-   */
-  abstract getModelFamily(): string;
 
   /**
    * Invoke the implementation-specific LLM function.

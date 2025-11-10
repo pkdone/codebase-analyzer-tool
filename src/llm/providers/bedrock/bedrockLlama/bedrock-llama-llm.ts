@@ -1,6 +1,5 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_LLAMA_FAMILY } from "../common/bedrock-models.constants";
 import { bedrockLlamaConfig } from "./bedrock-llama.config";
 import { z } from "zod";
 import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
@@ -27,13 +26,6 @@ const LlamaCompletionResponseSchema = z.object({
  *
  */
 export default class BedrockLlamaLLM extends BaseBedrockLLM {
-  /**
-   * Get the model family this LLM implementation belongs to.
-   */
-  getModelFamily(): string {
-    return BEDROCK_LLAMA_FAMILY;
-  }
-
   /**
    * Build the request body object for Llama completions.
    */

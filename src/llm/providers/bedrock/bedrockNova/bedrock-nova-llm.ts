@@ -1,6 +1,5 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_NOVA_FAMILY } from "../common/bedrock-models.constants";
 import { z } from "zod";
 
 /**
@@ -31,13 +30,6 @@ const NovaCompletionResponseSchema = z.object({
  * Class for the AWS Bedrock Nova LLMs.
  */
 export default class BedrockNovaLLM extends BaseBedrockLLM {
-  /**
-   * Get the model family this LLM implementation belongs to.
-   */
-  getModelFamily(): string {
-    return BEDROCK_NOVA_FAMILY;
-  }
-
   /**
    * Build the request body object for Nova completions.
    */

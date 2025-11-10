@@ -57,7 +57,13 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
     const opts = { ...this.defaultOptions, ...options };
 
     if (microservices.length === 0) {
-      return this.generateEmptyArchitectureDiagram(opts);
+      return this.generateEmptyDiagram(
+        opts.width,
+        opts.height,
+        "No microservices architecture defined",
+        opts.fontFamily,
+        opts.fontSize,
+      );
     }
 
     // Calculate dimensions based on number of services
@@ -195,20 +201,5 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
   ): string[] {
     // Disable integration connections for cleaner diagram
     return [];
-  }
-
-  /**
-   * Generate empty diagram for no microservices
-   */
-  private generateEmptyArchitectureDiagram(
-    options: Required<ArchitectureDiagramSvgOptions>,
-  ): string {
-    return super.generateEmptyDiagram(
-      options.width,
-      options.height,
-      "No microservices architecture defined",
-      options.fontFamily,
-      options.fontSize,
-    );
   }
 }

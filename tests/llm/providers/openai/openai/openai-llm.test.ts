@@ -131,11 +131,13 @@ describe("OpenAI LLM Provider", () => {
       },
     };
     openAILLM = new OpenAILLM(
+      { OPENAI_LLM_API_KEY: mockApiKey } as any,
       mockModelsKeys,
       mockModelsMetadata,
       mockErrorPatterns,
-      config,
+      { providerSpecificConfig: config.providerSpecificConfig },
       createMockJsonProcessor(),
+      "OpenAI",
     );
   });
 

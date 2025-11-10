@@ -8,7 +8,6 @@ import {
   AWS_EMBEDDINGS_TITAN_V1,
   BEDROCK_LLAMA_FAMILY,
 } from "../common/bedrock-models.constants";
-import { BedrockConfig } from "../common/base-bedrock-llm";
 import {
   DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS,
   DEFAULT_BEDROCK_MAX_RETRY_ATTEMPTS,
@@ -70,18 +69,6 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS,
     maxRetryDelayMillis: DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
     maxGenLenCap: 2048,
-  },
-  // Keep factory for backward compatibility; will prefer implementation if present.
-  factory: (
-    _envConfig,
-    modelsKeysSet,
-    modelsMetadata,
-    errorPatterns,
-    providerSpecificConfig,
-    jsonProcessor,
-  ) => {
-    const config: BedrockConfig = { providerSpecificConfig };
-    return new BedrockLlamaLLM(modelsKeysSet, modelsMetadata, errorPatterns, config, jsonProcessor);
   },
   implementation: BedrockLlamaLLM,
 };

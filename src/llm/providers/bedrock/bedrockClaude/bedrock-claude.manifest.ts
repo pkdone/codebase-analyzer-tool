@@ -9,7 +9,6 @@ import {
   BEDROCK_CLAUDE_FAMILY,
 } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../llm.config";
-import { BedrockConfig } from "../common/base-bedrock-llm";
 import { DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS } from "../common/bedrock-defaults.config";
 
 // Environment variable name constants
@@ -69,23 +68,5 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     // Anthropic beta flags for specific features (e.g., extended context window)
     anthropicBetaFlags: ["context-1m-2025-08-07"] as const,
   },
-  factory: (
-    _envConfig,
-    modelsKeysSet,
-    modelsMetadata,
-    errorPatterns,
-    providerSpecificConfig,
-    jsonProcessor,
-  ) => {
-    const config: BedrockConfig = {
-      providerSpecificConfig,
-    };
-    return new BedrockClaudeLLM(
-      modelsKeysSet,
-      modelsMetadata,
-      errorPatterns,
-      config,
-      jsonProcessor,
-    );
-  },
+  implementation: BedrockClaudeLLM,
 };

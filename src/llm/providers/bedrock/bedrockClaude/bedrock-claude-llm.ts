@@ -1,6 +1,5 @@
 import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_CLAUDE_FAMILY } from "../common/bedrock-models.constants";
 import { AWS_COMPLETIONS_CLAUDE_V40, AWS_COMPLETIONS_CLAUDE_V45 } from "./bedrock-claude.manifest";
 import { z } from "zod";
 import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
@@ -33,13 +32,6 @@ const ClaudeCompletionResponseSchema = z.object({
  * Class for the AWS Bedrock [Anthropic] Claude LLMs.
  */
 export default class BedrockClaudeLLM extends BaseBedrockLLM {
-  /**
-   * Get the model family this LLM implementation belongs to.
-   */
-  getModelFamily(): string {
-    return BEDROCK_CLAUDE_FAMILY;
-  }
-
   /**
    * Build the request body object for Claude completions.
    */

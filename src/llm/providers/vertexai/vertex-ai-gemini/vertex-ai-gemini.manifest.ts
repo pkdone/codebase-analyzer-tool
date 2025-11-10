@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
-import VertexAIGeminiLLM, { VertexAIConfig } from "./vertex-ai-gemini-llm";
+import VertexAIGeminiLLM from "./vertex-ai-gemini-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { llmConfig } from "../../../llm.config";
 import { VERTEXAI_COMMON_ERROR_PATTERNS } from "./vertex-ai-error-patterns";
-import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 // Environment variable name constants
 const VERTEXAI_PROJECTID_KEY = "VERTEXAI_PROJECTID";
@@ -63,25 +62,5 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 30 * 1000,
     maxRetryDelayMillis: 200 * 1000,
   },
-  factory: (
-    envConfig,
-    modelsKeysSet,
-    modelsMetadata,
-    errorPatterns,
-    providerSpecificConfig,
-    jsonProcessor,
-  ) => {
-    const config: VertexAIConfig = {
-      project: getRequiredEnvVar(envConfig, VERTEXAI_PROJECTID_KEY),
-      location: getRequiredEnvVar(envConfig, VERTEXAI_LOCATION_KEY),
-      providerSpecificConfig,
-    };
-    return new VertexAIGeminiLLM(
-      modelsKeysSet,
-      modelsMetadata,
-      errorPatterns,
-      config,
-      jsonProcessor,
-    );
-  },
+  implementation: VertexAIGeminiLLM,
 };

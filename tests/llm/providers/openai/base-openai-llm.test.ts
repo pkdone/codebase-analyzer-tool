@@ -62,10 +62,14 @@ class TestOpenAILLM extends BaseOpenAILLM {
         maxTotalTokens: 4096,
       },
     };
-    super(modelsKeys, metadata, errorPatterns, providerConfig, createMockJsonProcessor());
-  }
-  getModelFamily(): string {
-    return "openai-test";
+    super(
+      modelsKeys,
+      metadata,
+      errorPatterns,
+      providerConfig,
+      createMockJsonProcessor(),
+      "openai-test",
+    );
   }
   protected override getClient(): OpenAI {
     return this.clientInstance;

@@ -8,7 +8,6 @@ import {
   AWS_EMBEDDINGS_TITAN_V1,
   BEDROCK_MISTRAL_FAMILY,
 } from "../common/bedrock-models.constants";
-import { BedrockConfig } from "../common/base-bedrock-llm";
 import {
   DEFAULT_BEDROCK_MAX_RETRY_ATTEMPTS,
   DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
@@ -63,23 +62,5 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS,
     maxRetryDelayMillis: DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
   },
-  factory: (
-    _envConfig,
-    modelsKeysSet,
-    modelsMetadata,
-    errorPatterns,
-    providerSpecificConfig,
-    jsonProcessor,
-  ) => {
-    const config: BedrockConfig = {
-      providerSpecificConfig,
-    };
-    return new BedrockMistralLLM(
-      modelsKeysSet,
-      modelsMetadata,
-      errorPatterns,
-      config,
-      jsonProcessor,
-    );
-  },
+  implementation: BedrockMistralLLM,
 };

@@ -1,5 +1,4 @@
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_MISTRAL_FAMILY } from "../common/bedrock-models.constants";
 import { buildStandardMessagesArray } from "../common/bedrock-request-builders";
 import { z } from "zod";
 
@@ -31,13 +30,6 @@ const MistralCompletionResponseSchema = z.object({
  *
  */
 export default class BedrockMistralLLM extends BaseBedrockLLM {
-  /**
-   * Get the model family this LLM implementation belongs to.
-   */
-  getModelFamily(): string {
-    return BEDROCK_MISTRAL_FAMILY;
-  }
-
   /**
    * Build the request body object for Mistral completions.
    */

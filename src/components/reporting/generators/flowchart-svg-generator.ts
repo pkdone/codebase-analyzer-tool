@@ -46,7 +46,13 @@ export class FlowchartSvgGenerator extends BaseSvgGenerator {
     const activities = process.keyBusinessActivities;
 
     if (activities.length === 0) {
-      return this.generateEmptyFlowchart(opts);
+      return this.generateEmptyDiagram(
+        opts.width,
+        opts.height,
+        "No business activities defined",
+        opts.fontFamily,
+        opts.fontSize,
+      );
     }
 
     // Calculate dimensions based on number of activities
@@ -68,13 +74,6 @@ export class FlowchartSvgGenerator extends BaseSvgGenerator {
     options: FlowchartSvgOptions = {},
   ): string[] {
     return processes.map((process) => this.generateFlowchartSvg(process, options));
-  }
-
-  /**
-   * Create SVG header with definitions
-   */
-  protected override createSvgHeader(width: number, height: number): string {
-    return super.createSvgHeader(width, height);
   }
 
   /**
@@ -202,18 +201,5 @@ export class FlowchartSvgGenerator extends BaseSvgGenerator {
           fill="#00684A"
         />
       </g>`;
-  }
-
-  /**
-   * Generate empty flowchart for processes with no activities
-   */
-  private generateEmptyFlowchart(options: Required<FlowchartSvgOptions>): string {
-    return super.generateEmptyDiagram(
-      options.width,
-      options.height,
-      "No business activities defined",
-      options.fontFamily,
-      options.fontSize,
-    );
   }
 }

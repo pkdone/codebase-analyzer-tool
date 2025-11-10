@@ -53,7 +53,7 @@ describe("LLMProviderManager", () => {
         maxCompletionTokens: 4096,
       },
     },
-    factory: jest.fn(),
+    implementation: jest.fn() as any,
     errorPatterns: [],
     providerSpecificConfig: {
       requestTimeoutMillis: 60000,
@@ -202,7 +202,7 @@ describe("LLMProviderManager", () => {
 
       testManager.getLLMProvider(mockEnv);
 
-      expect(mockManifest.factory).toHaveBeenCalledWith(
+      expect(mockManifest.implementation).toHaveBeenCalledWith(
         mockEnv,
         {
           embeddingsModelKey: "test-embeddings",
@@ -217,8 +217,9 @@ describe("LLMProviderManager", () => {
           }),
         }),
         mockManifest.errorPatterns,
-        mockManifest.providerSpecificConfig,
+        { providerSpecificConfig: mockManifest.providerSpecificConfig },
         expect.any(Object), // JsonProcessor
+        mockManifest.modelFamily,
       );
     });
 
@@ -249,7 +250,7 @@ describe("LLMProviderManager", () => {
 
       testManager.getLLMProvider(mockEnv);
 
-      expect(manifestWithSecondary.factory).toHaveBeenCalledWith(
+      expect(manifestWithSecondary.implementation).toHaveBeenCalledWith(
         mockEnv,
         {
           embeddingsModelKey: "test-embeddings",
@@ -262,8 +263,9 @@ describe("LLMProviderManager", () => {
           }),
         }),
         manifestWithSecondary.errorPatterns,
-        manifestWithSecondary.providerSpecificConfig,
+        { providerSpecificConfig: manifestWithSecondary.providerSpecificConfig },
         expect.any(Object), // JsonProcessor
+        manifestWithSecondary.modelFamily,
       );
     });
 
@@ -347,8 +349,8 @@ describe("LLMProviderManager", () => {
       expect(manifest.models.embeddings).toBeDefined();
       expect(manifest.models.primaryCompletion).toBeDefined();
       expect(manifest.providerSpecificConfig).toBeDefined();
-      expect(manifest.factory).toBeDefined();
-      expect(typeof manifest.factory).toBe("function");
+      expect(manifest.implementation).toBeDefined();
+      expect(typeof manifest.implementation).toBe("function");
     });
   });
 

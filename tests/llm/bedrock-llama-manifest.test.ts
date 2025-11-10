@@ -43,7 +43,7 @@ describe("bedrockLlamaProviderManifest", () => {
       expect(bedrockLlamaProviderManifest.envSchema).toBeDefined();
       expect(bedrockLlamaProviderManifest.models).toBeDefined();
       expect(bedrockLlamaProviderManifest.errorPatterns).toBeDefined();
-      expect(bedrockLlamaProviderManifest.factory).toBeDefined();
+      expect(bedrockLlamaProviderManifest.implementation).toBeDefined();
     });
   });
 });

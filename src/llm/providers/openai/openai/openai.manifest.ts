@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
-import OpenAILLM, { OpenAIConfig } from "./openai-llm";
+import OpenAILLM from "./openai-llm";
 import { LLMPurpose, LLMModelFeature } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
-import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 // Environment variable name constants
 const OPENAI_LLM_API_KEY_KEY = "OPENAI_LLM_API_KEY";
@@ -60,18 +59,5 @@ export const openAIProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 10 * 1000,
     maxRetryDelayMillis: 90 * 1000,
   },
-  factory: (
-    envConfig,
-    modelsKeysSet,
-    modelsMetadata,
-    errorPatterns,
-    providerSpecificConfig,
-    jsonProcessor,
-  ) => {
-    const config: OpenAIConfig = {
-      apiKey: getRequiredEnvVar(envConfig, OPENAI_LLM_API_KEY_KEY),
-      providerSpecificConfig,
-    };
-    return new OpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config, jsonProcessor);
-  },
+  implementation: OpenAILLM,
 };

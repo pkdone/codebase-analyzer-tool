@@ -1,5 +1,4 @@
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { BEDROCK_DEEPSEEK_FAMILY } from "../common/bedrock-models.constants";
 import { buildStandardMessagesArray } from "../common/bedrock-request-builders";
 import { z } from "zod";
 
@@ -29,16 +28,9 @@ const DeepseekCompletionResponseSchema = z.object({
 });
 
 /**
- * Class for the AWS Bedrock [Anthropic] Claude LLMs.
+ * Class for the AWS Bedrock Deepseek LLMs.
  */
 export default class BedrockDeepseekLLM extends BaseBedrockLLM {
-  /**
-   * Get the model family this LLM implementation belongs to.
-   */
-  getModelFamily(): string {
-    return BEDROCK_DEEPSEEK_FAMILY;
-  }
-
   /**
    * Build the request body object for Deepseek completions.
    */

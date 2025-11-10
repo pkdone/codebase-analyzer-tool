@@ -60,15 +60,26 @@ export class DatabaseReportDataProvider {
    */
   async buildProceduresAndTriggersSummary(projectName: string): Promise<ProcsAndTriggers> {
     const records = await this.sourcesRepository.getProjectStoredProceduresAndTriggers(projectName);
-    const allProcs = records.flatMap(
-      (record) =>
-        record.summary?.storedProcedures?.map((proc) => ({ ...proc, filepath: record.filepath })) ??
-        [],
-    );
-    const allTrigs = records.flatMap(
-      (record) =>
-        record.summary?.triggers?.map((trig) => ({ ...trig, filepath: record.filepath })) ?? [],
-    );
+    const allProcs: ProcOrTrigItem[] = [];
+    const allTrigs: ProcOrTrigItem[] = [];
+
+    // Single iteration over records to collect both procedures and triggers
+    for (const record of records) {
+      if (record.summary?.storedProcedures) {
+        allProcs.push(
+          ...record.summary.storedProcedures.map((proc) => ({
+            ...proc,
+            filepath: record.filepath,
+          })),
+        );
+      }
+      if (record.summary?.triggers) {
+        allTrigs.push(
+          ...record.summary.triggers.map((trig) => ({ ...trig, filepath: record.filepath })),
+        );
+      }
+    }
+
     const procs = this.aggregateProcsOrTriggersForReport(allProcs, STORED_PROCEDURE_TYPE);
     const trigs = this.aggregateProcsOrTriggersForReport(allTrigs, TRIGGER_TYPE);
     return { procs, trigs };

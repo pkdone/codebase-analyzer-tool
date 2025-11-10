@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { LLMProviderManifest } from "../../llm-provider.types";
-import AzureOpenAILLM, { AzureOpenAIConfig } from "./azure-openai-llm";
+import AzureOpenAILLM from "./azure-openai-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { OPENAI_COMMON_ERROR_PATTERNS } from "../common/openai-error-patterns";
 import { llmConfig } from "../../../llm.config";
-import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 // Environment variable name constants
 const AZURE_OPENAI_LLM_API_KEY = "AZURE_OPENAI_LLM_API_KEY";
@@ -70,31 +69,5 @@ export const azureOpenAIProviderManifest: LLMProviderManifest = {
     minRetryDelayMillis: 15 * 1000,
     maxRetryDelayMillis: 120 * 1000,
   },
-  factory: (
-    envConfig,
-    modelsKeysSet,
-    modelsMetadata,
-    errorPatterns,
-    providerSpecificConfig,
-    jsonProcessor,
-  ) => {
-    const config: AzureOpenAIConfig = {
-      apiKey: getRequiredEnvVar(envConfig, AZURE_OPENAI_LLM_API_KEY),
-      endpoint: getRequiredEnvVar(envConfig, AZURE_OPENAI_ENDPOINT_KEY),
-      embeddingsDeployment: getRequiredEnvVar(
-        envConfig,
-        AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT_KEY,
-      ),
-      primaryCompletionsDeployment: getRequiredEnvVar(
-        envConfig,
-        AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY_KEY,
-      ),
-      secondaryCompletionsDeployment: getRequiredEnvVar(
-        envConfig,
-        AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY_KEY,
-      ),
-      providerSpecificConfig,
-    };
-    return new AzureOpenAILLM(modelsKeysSet, modelsMetadata, errorPatterns, config, jsonProcessor);
-  },
+  implementation: AzureOpenAILLM,
 };

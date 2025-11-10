@@ -28,21 +28,12 @@ import {
   BadResponseContentLLMError,
   RejectionResponseLLMError,
 } from "../../../types/llm-errors.types";
-import { VERTEX_GEMINI } from "./vertex-ai-gemini.manifest";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { toMongoJsonSchema } from "../../../../common/mongodb/utils/zod-to-mongodb-schema";
 import { isJsonObject } from "../../../../common/utils/type-guards";
 import { JsonProcessor } from "../../../json-processing/core/json-processor";
-
-/**
- * Configuration object for VertexAI Gemini LLM provider.
- * Encapsulates all VertexAI-specific configuration parameters.
- */
-export interface VertexAIConfig {
-  project: string;
-  location: string;
-  providerSpecificConfig?: LLMProviderSpecificConfig;
-}
+import { EnvVars } from "../../../../env/env.types";
+import { getRequiredEnvVar } from "../../../../env/env-utils";
 
 // Constant for the finish reasons that are considered terminal and should be rejected
 const VERTEXAI_TERMINAL_FINISH_REASONS = [
@@ -70,28 +61,29 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    * Constructor
    */
   constructor(
+    env: EnvVars,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    config: VertexAIConfig,
+    config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
+    modelFamily: string,
   ) {
-    if (!config.providerSpecificConfig) {
-      throw new Error("providerSpecificConfig is required but was not provided");
-    }
-    super(modelsKeys, modelsMetadata, errorPatterns, config.providerSpecificConfig, jsonProcessor);
-    this.vertexAiApiClient = new VertexAI({ project: config.project, location: config.location });
+    super(
+      modelsKeys,
+      modelsMetadata,
+      errorPatterns,
+      config.providerSpecificConfig,
+      jsonProcessor,
+      modelFamily,
+    );
+    const project = getRequiredEnvVar(env, "VERTEXAI_PROJECTID");
+    const location = getRequiredEnvVar(env, "VERTEXAI_LOCATION");
+    this.vertexAiApiClient = new VertexAI({ project, location });
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
-      apiEndpoint: `${config.location}-aiplatform.googleapis.com`,
+      apiEndpoint: `${location}-aiplatform.googleapis.com`,
     });
-    this.apiEndpointPrefix = `projects/${config.project}/locations/${config.location}/publishers/google/models/`;
-  }
-
-  /**
-   * Get the model family this LLM implementation belongs to.
-   */
-  getModelFamily(): string {
-    return VERTEX_GEMINI;
+    this.apiEndpointPrefix = `projects/${project}/locations/${location}/publishers/google/models/`;
   }
 
   /**

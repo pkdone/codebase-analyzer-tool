@@ -57,11 +57,13 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
   describe("buildCompletionRequestBody", () => {
     it("should build correct request body for Claude 3.7", () => {
       const llm = new BedrockClaudeLLM(
+        {} as any,
         mockModelsKeys,
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
         createMockJsonProcessor(),
+        "BedrockClaude",
       );
 
       const testPrompt = "Analyze this code";
@@ -95,11 +97,13 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
     it("should include anthropic_beta for Claude 4.0 model", () => {
       const llm = new BedrockClaudeLLM(
+        {} as any,
         mockModelsKeys,
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
         createMockJsonProcessor(),
+        "BedrockClaude",
       );
 
       const testPrompt = "Analyze large codebase";
@@ -128,11 +132,13 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       };
 
       const llm = new BedrockClaudeLLM(
+        {} as any,
         mockModelsKeys,
         mockModelsMetadata,
         [],
         { providerSpecificConfig: minimalConfig },
         createMockJsonProcessor(),
+        "BedrockClaude",
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -145,11 +151,13 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
     it("should properly embed prompt in messages content array", () => {
       const llm = new BedrockClaudeLLM(
+        {} as any,
         mockModelsKeys,
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
         createMockJsonProcessor(),
+        "BedrockClaude",
       );
 
       const complexPrompt = "Line 1\nLine 2\nSpecial chars: <>&\"'";
@@ -166,11 +174,13 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
     it("should use correct maxCompletionTokens from model metadata", () => {
       const llm = new BedrockClaudeLLM(
+        {} as any,
         mockModelsKeys,
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
         createMockJsonProcessor(),
+        "BedrockClaude",
       );
 
       // Test with Claude 3.7 (8192 max tokens)
@@ -186,11 +196,13 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
     it("should return an object, not a string", () => {
       const llm = new BedrockClaudeLLM(
+        {} as any,
         mockModelsKeys,
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
         createMockJsonProcessor(),
+        "BedrockClaude",
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -205,11 +217,13 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
   describe("getResponseExtractionConfig", () => {
     it("should return correct extraction configuration", () => {
       const llm = new BedrockClaudeLLM(
+        {} as any,
         mockModelsKeys,
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
         createMockJsonProcessor(),
+        "BedrockClaude",
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -233,11 +247,13 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
   describe("getModelFamily", () => {
     it("should return correct model family", () => {
       const llm = new BedrockClaudeLLM(
+        {} as any,
         mockModelsKeys,
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
         createMockJsonProcessor(),
+        "BedrockClaude",
       );
 
       expect(llm.getModelFamily()).toBe("BedrockClaude");
