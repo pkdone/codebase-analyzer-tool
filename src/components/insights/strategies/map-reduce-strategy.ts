@@ -205,14 +205,13 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     });
 
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
-    const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
     const reduceConfig = {
       contentDesc: "several JSON objects",
       instructions: [{ points: [`a consolidated list of '${config.label ?? category}'`] }],
       responseSchema: config.responseSchema,
-      template: template,
+      template: REDUCE_INSIGHTS_TEMPLATE,
     };
-    const prompt = new Prompt(reduceConfig, content).render();
+    const prompt = new Prompt(reduceConfig, content).render({ categoryKey });
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

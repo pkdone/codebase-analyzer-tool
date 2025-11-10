@@ -1,110 +1,24 @@
 /**
- * Common prompt fragments used across all prompt types.
- * These fragments are shared between sources and app-summaries prompts.
- */
-export const COMMON_FRAGMENTS = {
-  FORCE_JSON_FORMAT: `The response MUST be valid JSON and meet the following critical JSON requiremnets:
- - Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
- - All property names must be quoted: use "propertyName": value at ALL nesting levels
- - All string values must be quoted: use "value" not unquoted strings
- - No stray text: do not include any text, characters, or lines between or around JSON properties
- - Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
- - Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable`,
-
-  FULL_FORCE_JSON_FORMAT: `In your response, only include JSON and do not include any additional text explanations outside the JSON object.
-NEVER ever respond with XML. NEVER use Markdown code blocks to wrap the JSON in your response.
-NEVER include thought markers, thinking prefixes, or explanation text before the JSON. Do NOT write patterns like <ctrl94>thought, <thinking>, or command{ before the JSON. Start your response directly with { or [.
-CRITICAL: NEVER include code snippets, code examples, or programming language syntax in your response. Do NOT write code patterns like else{ or if{ in your planning or explanation text, as these can interfere with JSON extraction. Only include the JSON object itself, starting directly with { or [.
-NEVER include explanatory text, file paths, or any other non-JSON content between JSON properties. Each property must immediately follow the previous property (or comma) without any intervening lines of text. For example, ❌ INCORRECT: "namespace": "...",\nsemantically-correct-legacy-content-analysis-output\n  "purpose": "..." should be ✅ CORRECT: "namespace": "...",\n  "purpose": "..."
-ONLY provide an RFC8259 compliant JSON response that strictly follows the provided JSON schema.
-CRITICAL JSON FORMAT REQUIREMENTS (MUST FOLLOW EXACTLY):
-- ALL property names MUST be enclosed in double quotes (e.g., "name": "value", NOT name: "value")
-- BOTH opening and closing quotes are REQUIRED for property names (e.g., "name": "value" is correct, NOT name": "value" or "name: "value")
-- This applies to ALL properties at ALL nesting levels, including properties that appear after closing braces or brackets (e.g., },\nintegrationPoints: [] is INCORRECT - must be },\n"integrationPoints": [])
-- Use ONLY regular ASCII double quotes (") for property names and string values - NEVER use curly quotes (smart quotes like " or ") as they break JSON parsing
-- ALL string values MUST be enclosed in double quotes
-- Use proper JSON syntax with commas separating properties
-- Do not include any unquoted property names or values
-- Ensure all brackets, braces, and quotes are properly matched
-PROPERTY NAME QUOTING RULES (APPLY TO ALL NESTED LEVELS):
-Every property name, at every nesting level, must follow this exact pattern: "propertyName": value
- ✅ CORRECT: {"name": "value", "nested": {"inner": "data"}}
- ❌ INCORRECT: {name: "value", nested: {inner: "data"}}
- ❌ INCORRECT: {name": "value", "nested": {inner": "data"}}
- ❌ INCORRECT: {"name": "value", nested: {"inner": "data"}}
-CRITICAL: PROPERTY NAMES AFTER OPENING BRACES - When starting a new object with {, the FIRST property name MUST have quotes. This is especially critical when starting new objects in arrays after closing braces. Common mistakes: ❌ INCORRECT: {name: "value", (missing quotes around "name" - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: {\n      name: "value", (missing quotes after opening brace - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: },\n    {\n      name: "value", (missing quotes after opening brace in array - CRITICAL: this breaks JSON parsing!)  ✅ CORRECT: {"name": "value", (complete with opening and closing quotes)  ✅ CORRECT: {\n      "name": "value", (complete with quotes even after opening brace)  ✅ CORRECT: },\n    {\n      "name": "value", (complete with quotes after opening brace in array)
-COMMON MISTAKES TO AVOID:
-- Unquoted property names: name: "value" → MUST be "name": "value"
-- Missing opening quote: name": "value" → MUST be "name": "value"
-- Missing opening quote with typo: extraReferences": → MUST be "externalReferences": (CRITICAL: both the opening quote AND the correct property name are required)
-- Missing opening quote with leading underscore: _publicConstants": → MUST be "publicConstants": (CRITICAL: property names should NOT have leading underscores - this is a typo. Remove the underscore and add the opening quote)
-- Missing opening quote after long strings: After a long description or string value ending with ", you MUST still include the opening quote for the next property. Example: "description": "very long text...", cyclomaticComplexity": 2 → MUST be "description": "very long text...", "cyclomaticComplexity": 2
-- Missing closing quote: "name: "value" → MUST be "name": "value"
-- Missing closing quote AND colon: "name "value" → MUST be "name": "value" (CRITICAL: property names must have BOTH closing quote AND colon before the value)
-- Stray text before property: e"name": → MUST be "name":
-- Stray text before property: word"name": → MUST be "name":
-- Incomplete quotes: cyclomaticComplexity": → MUST be "cyclomaticComplexity":
-- Property name typos: extraReferences", internReferences", publMethods", _publicConstants" → MUST use correct names: "externalReferences", "internalReferences", "publicMethods", "publicConstants" (NO leading underscores)
-CRITICAL: NO STRAY TEXT BEFORE PROPERTY NAMES - This is a common error that breaks JSON parsing. When starting a new property after closing an object or array (}, or ],), ensure you start directly with the opening quote. Common mistakes:
- ❌ INCORRECT: },\ne"publicMethods": [    (stray "e" character before property)
- ❌ INCORRECT: },\nword"propertyName": {   (stray "word" before property)
- ❌ INCORRECT: ],\nf"nextProperty": "value"  (stray "f" before property)
- ✅ CORRECT: },\n"publicMethods": [        (no stray text, starts with quote)
- ✅ CORRECT: },\n"propertyName": {         (no stray text, starts with quote)
- ✅ CORRECT: ],\n"nextProperty": "value"   (no stray text, starts with quote)
-CRITICAL: PROPERTY NAMES ON NEWLINES AFTER CLOSING BRACKETS - When a property appears on a new line after closing an array with ], or closing an object with }, you MUST include the opening quote at the start of the new line. This is especially critical after arrays with many quoted strings, as missing quotes will break JSON parsing:
-CRITICAL: ARRAY STRING VALUES MUST HAVE OPENING QUOTES - Every string value in an array MUST start with a double quote. When writing array elements, ensure each string value begins with a quote. Common mistakes: ❌ INCORRECT: fineract.infrastructure...", (missing opening quote - should be "org.apache.fineract.infrastructure...",)  ❌ INCORRECT: org.example.Class", (missing opening quote - should be "org.example.Class",)  ✅ CORRECT: "org.apache.fineract.infrastructure.entityaccess.exception.NotOfficeSpecificProductException", (complete with opening quote)
-COMPLETE ALL PROPERTY NAMES: Never truncate or abbreviate property names (e.g., use "references" not "eferences", "implementation" not "implemen"). Never truncate property names to single characters (e.g., use "name" not "e", "n", or "m"). CRITICAL: When starting a new object in an array after }, you MUST write the complete property name with BOTH opening and closing quotes. Never write truncated property names like se": "value" (where "name" was truncated to "se") or pu": "value" (where "purpose" was truncated to "pu"). Always write the complete property name: "name": "value" or "purpose": "value"
-ENSURE COMPLETE RESPONSES: Always provide complete, valid JSON that can be parsed without errors
-AVOID TRUNCATION: If you reach token limits, prioritize completing the JSON structure over adding more detail
-ARRAY STRUCTURE REQUIREMENTS: When creating arrays of objects, ensure each object has a proper opening brace { immediately after the comma or opening bracket [. Do NOT omit opening braces when starting new objects in arrays. When starting a new object in an array after closing a previous object with }, you MUST include the opening brace { immediately. Do NOT write stray characters before property names or values. CRITICAL: Even when property names are complete and correct (e.g., "name": "value",), you MUST still include the opening brace { before the property name when starting a new object in an array. Example: ✅ CORRECT: [{"name": "obj1"}, {"name": "obj2"}]  ✅ CORRECT: },\n    {\n      "mechanism": "REST" (complete structure with opening brace)  ✅ CORRECT: },\n    {\n      "name": "methodName", (complete structure with opening brace even when property name is already correct)  ❌ INCORRECT: [{"name": "obj1"}, "name": "obj2"}]  ❌ INCORRECT: },{"name": "obj2"}] (missing opening brace)  ❌ INCORRECT: }, "name": "obj2", (missing opening brace even though property name is correct - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: },obj2", (missing opening brace and property name)  ❌ INCORRECT: },calculateMethod", (missing opening brace and "name": property)  ❌ INCORRECT: },e"mechanism": (stray character "e" before property name AND missing opening brace - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: },c"withdrawal", (stray character "c" before value AND missing opening brace and "name": property - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: },\nse": "value", (truncated property name "se" instead of "name" AND missing opening brace AND missing opening quote - CRITICAL: this breaks JSON parsing! Must be },\n    {\n      "name": "value",)  ❌ INCORRECT: },\npu": "value", (truncated property name "pu" instead of "purpose" AND missing opening brace AND missing opening quote - CRITICAL: this breaks JSON parsing! Must be },\n    {\n      "purpose": "value",)
-COMPLETE PROPERTY DEFINITIONS: Every property must include both the property name AND the colon separator. Never write truncated property names followed directly by values without colons. When starting a new object in an array, you MUST include the opening brace { AND the complete property name with quotes and colon before the value. Example: ✅ CORRECT: "name": "value",  ❌ INCORRECT: e"value", or n"value", (where "name" was truncated to "e" or "n")  ❌ INCORRECT: },calculateMethod", (missing { and "name": before the method name)  ❌ INCORRECT: },c"withdrawal", (missing { and "name": before the value - CRITICAL: this pattern breaks JSON parsing!)  ✅ CORRECT: },{\n    "name": "calculateMethod", (complete structure with opening brace and property name)  ✅ CORRECT: },\n    {\n      "name": "withdrawal", (complete structure in array of objects)
-NO STRING CONCATENATION IN PROPERTY NAMES: Do NOT use string concatenation operators (+) in property names. If a property name is long, write it as a complete, single quoted string. Example: ✅ CORRECT: "cyclomaticComplexity": 1  ❌ INCORRECT: "cyclomati" + "cComplexity": 1 or "referen" + "ces": []
-COMPLETE PROPERTY QUOTING: Every property name must have BOTH opening and closing quotes, AND must be followed by a colon. Do NOT write property names with only a closing quote, and do NOT omit the colon separator. Examples:
-  ✅ CORRECT: "linesOfCode": 10  
-  ❌ INCORRECT: linesOfCode": 10 (missing opening quote)
-  ❌ INCORRECT: "linesOfCode: 10 (missing closing quote)
-AVOID BINARY CORRUPTION MARKERS: Never include binary markers, corruption patterns, or placeholder text in your JSON response. Property names must be complete and valid. Examples:
-  ❌ INCORRECT: <y_bin_305>OfCode": 10 (binary marker corrupting property name)
-  ❌ INCORRECT: so{"name": "value"} (stray text before opening brace)
-  ✅ CORRECT: "linesOfCode": 10 (complete property name)
-  ✅ CORRECT: {"name": "value"} (proper structure with opening brace)
-  ❌ INCORRECT: "linesOfCode "value" (missing closing quote AND colon - this is a critical error that breaks JSON parsing!)
-NO PROPERTY NAME TRUNCATION: NEVER truncate or abbreviate property names. Always write the complete property name with both opening and closing quotes. Do NOT write only the tail-end of a property name. Examples: ✅ CORRECT: "publicMethods": [...]  ❌ INCORRECT: alues": [...] (missing opening quote and beginning of "publicMethods" - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: nstants": [...] (missing opening quote and beginning of "publicConstants")  ❌ INCORRECT: egrationPoints": [...] (missing opening quote and beginning of "integrationPoints")  ✅ CORRECT: "publicMethods": [...], "publicConstants": [...], "integrationPoints": [...] (all complete with opening quotes)
-NO PROPERTY NAME TYPOS: Use the EXACT property names from the schema. Do NOT create variations or typos. Common mistakes: ✅ CORRECT: "externalReferences": [...]  ❌ INCORRECT: extraReferences": [...] (typo: "extra" instead of "external" AND missing opening quote - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: internReferences": [...] (typo: "intern" instead of "internal" AND missing opening quote)  ❌ INCORRECT: publMethods": [...] (typo: "publ" instead of "public" AND missing opening quote)  ✅ CORRECT: "externalReferences": [...], "internalReferences": [...], "publicMethods": [...] (exact schema property names with opening quotes)
-QUOTE ALL STRING VALUES: ALL string values must be enclosed in double quotes. This includes class names, type names, enum values, and any other string literals. Do NOT write unquoted string values after colons. Examples: ✅ CORRECT: "name": "GetChargeCalculation", "type": "String", "returnType": "CommandProcessingResult"  ❌ INCORRECT: "name":GetChargeCalculation", (missing quotes around value - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: "type":String, (unquoted value)  ❌ INCORRECT: "returnType":CommandProcessingResult (unquoted value)  ❌ INCORRECT: "name":ax": "totalCredits", (stray text between colon and value quote - CRITICAL: this breaks JSON parsing!)  ✅ CORRECT: "name": "GetChargeCalculation", "type": "String", "returnType": "CommandProcessingResult" (all values properly quoted)  ✅ CORRECT: "name": "totalCredits", (no stray text between colon and opening quote)
-VALID NUMERIC VALUES: Numeric values must be valid JSON numbers without any corruption or invalid characters. Do NOT include underscores, letters, or other non-numeric characters in numeric values. Examples: ✅ CORRECT: "linesOfCode": 3, "cyclomaticComplexity": 5  ❌ INCORRECT: "linesOfCode":_3, (corrupted with underscore - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: "value":_42, (corrupted with underscore)  ✅ CORRECT: "linesOfCode": 3, "value": 42 (clean numeric values)
-ESCAPE QUOTES IN CODE SNIPPETS: When including code snippets in string values (description, implementation fields), you MUST properly escape all quotes. If you have an escaped quote (backslash-quote) followed by another quote, you must escape the backslash too. The pattern backslash-quote-quote (without escaping the backslash) will break JSON parsing because the second quote is unescaped and ends the string prematurely. Always escape the backslash when you need a literal backslash before a quote in code snippets within string values.
-PROPERTY NAME COLON REQUIREMENT: After every property name's closing quote, you MUST include a colon (:) before the value. Never write a property name with a space followed directly by the value's opening quote. The pattern "propertyName "value" is INVALID JSON and will fail to parse. Examples:
- ✅ CORRECT: "name": "command"
- ✅ CORRECT: "description": "This is a description"
- ❌ INCORRECT: "name "command" (space and missing colon between property name and value - breaks JSON parsing!)
- ❌ INCORRECT: "description "This is a description" (same error - breaks JSON parsing!)
-USE JSON PROPERTY SEPARATOR: JSON uses a single colon : to separate property names from values, NOT assignment operators like := or =. The property separator must be exactly : with optional whitespace. Example: ✅ CORRECT: "name": "value"  ❌ INCORRECT: "name":= "value" or "name"= "value"
-NO PROPERTY NAME TYPOS: Ensure all property names match the exact schema requirements. Do NOT add trailing underscores, double underscores, or other typos to property names. Use the exact property names specified in the schema. Examples: ✅ CORRECT: "type": "String"  ❌ INCORRECT: "type_": "String" (trailing underscore) or "type__": "String" (double underscore). When writing property names, copy them exactly from the schema - do not modify or add characters. This is especially critical for parameter objects in arrays (e.g., in "parameters" arrays within "publicMethods"), where each parameter object must have exactly "name" and "type" properties - never "name_" or "type_". Example: ✅ CORRECT: {"name": "param1", "type": "String"}  ❌ INCORRECT: {"name": "param1", "type_": "String"} or {"name_": "param1", "type": "String"}
-ESCAPE QUOTES IN STRING VALUES: If you must include double quotes inside a string value (e.g., HTML attributes like type="hidden", code snippets, or quoted text), you MUST escape them with backslashes. For example: "description": "Creates <input type=\\"hidden\\"> element" NOT "description": "Creates <input type="hidden"> element"
-VALID JSON ESCAPE SEQUENCES ONLY: When including backslashes in string values, you MUST use only valid JSON escape sequences. Valid escapes are: \\" (quote), \\\\ (backslash), \\/ (slash), \\b (backspace), \\f (form feed), \\n (newline), \\r (carriage return), \\t (tab), and \\uXXXX (unicode). DO NOT use invalid escapes like \\  (backslash-space), \\x (not valid in JSON), \\1-\\9 (octal not valid), or any other invalid escape sequences. If you need to describe code syntax that uses invalid escapes, either escape the backslash itself (\\\\ ) or avoid using them.
-NO STRAY TEXT: Do NOT include any stray words, fragments, characters, or text directly before property names or array elements. Each property name must start with a double quote immediately after the preceding delimiter (comma, closing brace/bracket, or newline). This includes single characters (e.g., "e"), full words (e.g., "tribal"), AND non-ASCII characters or foreign language text (e.g., Bengali "করার", Chinese "文本", Arabic "نص"). Do NOT include unquoted text with colons before property names - this breaks JSON parsing. Examples: ✅ CORRECT: },\n  "property":  ✅ CORRECT: ],\n  "property":  ❌ INCORRECT: },\ne"property": or },\nword"property": or },\ntribal"property": ❌ INCORRECT: ],\ne"property": (stray character after closing bracket and comma - CRITICAL: this breaks JSON parsing!) ❌ INCORRECT: },\nকরার"property": (non-ASCII/Bengali text before property - this breaks JSON parsing!) ❌ INCORRECT: "item1",\nকরার"item2", (non-ASCII text before array element - this breaks JSON parsing!) ❌ INCORRECT: },\nextraText: "property": (stray text with colon before property - this breaks JSON parsing!)
-NO STRAY CHARS AFTER VALUES: Do NOT include any stray characters, words, or text directly after string property values. Each string value must end with a double quote immediately before the comma, closing brace/bracket, or newline. This includes underscores (e.g., "_"), single characters (e.g., "e"), or full words. Do NOT add stray text immediately after the quote, after a space, or on a new line after the quote. Examples: ✅ CORRECT: "type": "String",  ❌ INCORRECT: "type": "String"_ (immediate), "type": "String" word (after space), or "type": "String"\nword (on new line)
-NO STRAY LINES: Do NOT include any complete lines of text between JSON structures. After a closing bracket (]), closing brace (}), or comma, do NOT insert file paths, comments, explanations, random words, or any other text on separate lines. This applies even if the stray line has leading whitespace or indentation. Each property or structure must follow immediately after the preceding delimiter (with only whitespace/newlines for formatting). Examples: ✅ CORRECT: },\n  "nextProperty": "value"  ✅ CORRECT: ],\n  "nextProperty": "value"  ❌ INCORRECT: },\nsrc/main/java/com/example/MyClass.java\n  "nextProperty": "value"  ❌ INCORRECT: },\nThis is a comment\n  "nextProperty": "value"  ❌ INCORRECT: ],\nprocrastinate\n  "externalReferences": (random word after closing bracket and comma - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: ],\n procrastinate\n  "externalReferences": (random word with leading whitespace after closing bracket and comma - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: ],\nrandom text\n  "property": (any text on separate line between structures - CRITICAL: this breaks JSON parsing!)  ❌ INCORRECT: ],\n  random text\n  "property": (any text with indentation on separate line - CRITICAL: this breaks JSON parsing!)
-NO TRUNCATION MARKERS: Do NOT add truncation indicators like ... or (truncated) or any other markers to indicate that your response was cut off. If you reach token limits, simply end the JSON structure properly by closing all open brackets, braces, and strings. Truncation markers break JSON parsing and are not valid JSON syntax. Example: ✅ CORRECT: "item1",\n"item2"\n]  ❌ INCORRECT: "item1",\n...\n] or "item1",\n(truncated)\n]
-CRITICAL: All property names at every nesting level MUST have double quotes. Be consistent - if you quote one property, quote ALL properties. VALIDATION CHECK: Before finalizing your response, mentally verify that every property name starts and ends with double quotes. Think: "Did I quote ALL property names at ALL nesting levels?"`,
-};
-
-/**
  * Reusable prompt instruction fragments for building complex prompts.
  * These fragments can be composed to create instruction sets for different file types.
  *
  * IMPORTANT: These fragments do NOT include the "* " prefix - that is added during
  * prompt construction to maintain consistency with the existing system.
  */
-export const SOURCES_FRAGMENTS = {
+export const PROMPT_FRAGMENTS = {
   COMMON: {
     PURPOSE: "A detailed definition of its purpose",
     IMPLEMENTATION: "A detailed definition of its implementation",
     DB_IN_DOCUMENTATION:
       "Look for database schemas, queries, or data models mentioned in the documentation",
     DB_IN_FILE: "Look for database operations, queries, or connections in the file",
+    FORCE_JSON_FORMAT: `The response MUST be valid JSON and meet the following critical JSON requiremnets:
+ - Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+ - All property names must be quoted: use "propertyName": value at ALL nesting levels
+ - All string values must be quoted: use "value" not unquoted strings
+ - No stray text: do not include any text, characters, or lines between or around JSON properties
+ - Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+ - Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable`,
   },
 
   CODE_QUALITY: {
@@ -549,24 +463,22 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
  * Composable instruction sets for common patterns across file types
  */
 export const CODE_QUALITY_INSTRUCTIONS = [
-  SOURCES_FRAGMENTS.CODE_QUALITY.INTRO,
-  SOURCES_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-  SOURCES_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
-  SOURCES_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+  PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
+  PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
+  PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
+  PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
 ] as const;
 
 export const DB_INTEGRATION_INSTRUCTIONS = [
-  SOURCES_FRAGMENTS.DB_INTEGRATION.INTRO,
-  SOURCES_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+  PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
+  PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
 ] as const;
 
-export const INTEGRATION_POINTS_INSTRUCTIONS = [
-  SOURCES_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-] as const;
+export const INTEGRATION_POINTS_INSTRUCTIONS = [PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO] as const;
 
 export const SCHEDULED_JOBS_INSTRUCTIONS = [
-  SOURCES_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-  SOURCES_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+  PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+  PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
 ] as const;
 
 /**

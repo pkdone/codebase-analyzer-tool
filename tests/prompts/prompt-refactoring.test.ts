@@ -44,12 +44,11 @@ describe("Prompt Refactoring", () => {
       expect(rendered).not.toContain("CODE:");
     });
 
-    it("should handle reduce template with category key replacement", () => {
+    it("should handle reduce template with category key replacement via render parameters", () => {
       const categoryKey = "entities";
-      const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
-      const reduceDefinition = { ...testDefinition, template };
+      const reduceDefinition = { ...testDefinition, template: REDUCE_INSIGHTS_TEMPLATE };
       const prompt = new Prompt(reduceDefinition, testContent);
-      const rendered = prompt.render();
+      const rendered = prompt.render({ categoryKey });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(`'${categoryKey}'`);

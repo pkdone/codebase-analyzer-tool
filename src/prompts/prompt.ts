@@ -1,7 +1,7 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { fillPrompt } from "type-safe-prompt";
 import { z } from "zod";
-import { COMMON_FRAGMENTS } from "./definitions/fragments";
+import { PROMPT_FRAGMENTS } from "./definitions/fragments";
 import { type InstructionSection, type PromptDefinition } from "./prompt.types";
 
 /**
@@ -41,7 +41,7 @@ export class Prompt {
 
     const templateData = {
       instructions: instructionsText,
-      forceJSON: COMMON_FRAGMENTS.FORCE_JSON_FORMAT,
+      forceJSON: PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT,
       jsonSchema: JSON.stringify(zodToJsonSchema(this.schema), null, 2),
       contentDesc: this.contentDesc,
       content: this.content,
