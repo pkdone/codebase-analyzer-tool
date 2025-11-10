@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
+import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
 
 /**
  * Sanitizer that completes truncated JSON structures by adding missing closing delimiters.

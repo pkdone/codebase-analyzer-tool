@@ -1,5 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
+import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
 
 /**
  * Collapses a pattern where the exact same JSON object text has been duplicated

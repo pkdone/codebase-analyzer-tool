@@ -1,5 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP_TEMPLATE } from "../config/sanitization-steps.config";
+import { SANITIZATION_STEP_TEMPLATE } from "../constants/sanitization-steps.config";
 
 /**
  * Sanitizer that adds missing commas between object properties on separate lines.

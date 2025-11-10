@@ -1,4 +1,4 @@
-import { INSIGNIFICANT_SANITIZATION_STEPS } from "../config/sanitization-steps.config";
+import { INSIGNIFICANT_SANITIZATION_STEPS } from "../constants/sanitization-steps.config";
 
 /**
  * Determines whether a collection of sanitization steps contains any significant mutations.

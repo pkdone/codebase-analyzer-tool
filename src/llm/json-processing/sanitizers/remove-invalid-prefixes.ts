@@ -1,6 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
-import { DELIMITERS, JSON_KEYWORDS } from "../config/json-processing.config";
+import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { DELIMITERS, JSON_KEYWORDS } from "../constants/json-processing.config";
 
 /**
  * Consolidated sanitizer that removes invalid prefixes and stray text from JSON.

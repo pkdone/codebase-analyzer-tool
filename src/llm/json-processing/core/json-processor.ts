@@ -1,7 +1,7 @@
 import { LLMGeneratedContent, LLMCompletionOptions } from "../../types/llm.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonValidator } from "./json-validator";
-import { convertNullToUndefined } from "../utils/convert-null-to-undefined";
+import { convertNullToUndefined } from "../transforms/convert-null-to-undefined";
 import {
   unwrapJsonSchemaStructure,
   normalizeDatabaseIntegrationArray,
@@ -49,38 +49,37 @@ export class JsonProcessor {
   private readonly loggingEnabled: boolean;
 
   /**
-   * Unified, ordered pipeline of sanitizers.
+   * Unified, ordered pipeline of sanitizers organized into logical phases.
    *
-   * The order is critical for effective JSON repair. Sanitizers are organized into logical phases:
+   * The order is critical for effective JSON repair. Sanitizers are organized into phases
+   * that reflect the logical progression of fixing JSON issues:
    *
-   * Phase 1: Noise Removal (1-4)
+   * Phase 1: Noise Removal
    *   Removes formatting artifacts and noise before structural analysis
-   *   1. trimWhitespace - Remove leading/trailing whitespace
-   *   2. removeCodeFences - Strip markdown code fences (```json)
-   *   3. normalizeCharacters - Normalize escape sequences, control characters, and curly quotes (consolidates normalizeEscapeSequences and fixCurlyQuotes)
-   *   4. removeInvalidPrefixes - Remove invalid prefixes and stray text (consolidates 5 sanitizers: thought markers, stray line prefixes, stray text before properties, stray lines, stray text before braces)
+   *   - trimWhitespace: Remove leading/trailing whitespace
+   *   - removeCodeFences: Strip markdown code fences (```json)
+   *   - normalizeCharacters: Normalize escape sequences, control characters, and curly quotes
+   *   - removeInvalidPrefixes: Remove invalid prefixes and stray text
    *
-   * Phase 2: Structure Extraction & Basic Fixes (6-11)
+   * Phase 2: Structure Extraction & Basic Fixes
    *   Extracts JSON structure and fixes basic structural issues
-   *   6. extractLargestJsonSpan - Isolate the main JSON structure from surrounding text
-   *   7. collapseDuplicateJsonObject - Fix cases where LLMs repeat the entire JSON object
-   *   8. addMissingCommas - Insert missing commas between properties on separate lines
-   *   9. removeTrailingCommas - Remove invalid trailing commas before closing delimiters
-   *   10. fixMismatchedDelimiters - Correct bracket/brace mismatches
-   *   11. completeTruncatedStructures - Close unclosed brackets/braces from truncated responses
-   *   12. fixJsonStructure - Post-processing fixes (fixDanglingProperties, fixMissingOpeningQuoteInArrayStrings,
-   *       fixStrayCharsAfterPropertyValues, fixCorruptedPropertyValuePairs, fixTruncatedValueInArrayElements)
+   *   - extractLargestJsonSpan: Isolate the main JSON structure from surrounding text
+   *   - collapseDuplicateJsonObject: Fix cases where LLMs repeat the entire JSON object
+   *   - addMissingCommas: Insert missing commas between properties on separate lines
+   *   - removeTrailingCommas: Remove invalid trailing commas before closing delimiters
+   *   - fixMismatchedDelimiters: Correct bracket/brace mismatches
+   *   - completeTruncatedStructures: Close unclosed brackets/braces from truncated responses
+   *   - fixJsonStructure: Post-processing fixes for various structural issues
    *
-   * Phase 3: Property & Structure Fixes (13-14)
+   * Phase 3: Property & Structure Fixes
    *   Fixes property names and array object structures
-   *   13. fixPropertyAndValueSyntax - Unified property and value syntax fixes (consolidates concatenationChainSanitizer,
-   *       fixPropertyNames, normalizePropertyAssignment, fixUndefinedValues, fixCorruptedNumericValues, fixUnescapedQuotesInStrings)
-   *   14. fixMissingArrayObjectBraces - Insert missing opening braces for new objects in arrays (consolidates 3 sanitizers)
+   *   - fixPropertyAndValueSyntax: Unified property and value syntax fixes
+   *   - fixMissingArrayObjectBraces: Insert missing opening braces for new objects in arrays
    *
-   * Phase 4: Content Fixes (15-16)
+   * Phase 4: Content Fixes
    *   Fixes content corruption and truncation markers
-   *   15. fixBinaryCorruptionPatterns - Fix binary corruption patterns (e.g., <y_bin_XXX> markers) (simplified)
-   *   16. removeTruncationMarkers - Remove truncation markers (e.g., ...)
+   *   - fixBinaryCorruptionPatterns: Fix binary corruption patterns (e.g., <y_bin_XXX> markers)
+   *   - removeTruncationMarkers: Remove truncation markers (e.g., ...)
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -88,25 +87,24 @@ export class JsonProcessor {
    * Each sanitizer only runs if it makes changes. Parsing is attempted after each step,
    * so earlier sanitizers have priority in fixing issues.
    */
-  private readonly SANITIZATION_ORDERED_PIPELINE = [
-    trimWhitespace,
-    removeCodeFences,
-    normalizeCharacters, // Normalize escape sequences, control characters, and curly quotes (consolidates normalizeEscapeSequences and fixCurlyQuotes)
-    removeInvalidPrefixes, // Consolidated sanitizer removing invalid prefixes and stray text (consolidates removeThoughtMarkers, removeStrayLinePrefixChars, fixStrayTextBeforePropertyNames, removeStrayLinesBetweenStructures, and stray text before braces from fixBinaryCorruptionPatterns)
-    extractLargestJsonSpan,
-    collapseDuplicateJsonObject,
-    // --- Decomposed structural fixes ---
-    addMissingCommas, // Insert missing commas between properties on separate lines
-    removeTrailingCommas, // Remove invalid trailing commas before closing delimiters
-    fixMismatchedDelimiters, // Correct bracket/brace mismatches
-    completeTruncatedStructures, // Close unclosed brackets/braces from truncated responses
-    // --- End of decomposed fixes ---
-    fixJsonStructure, // Post-processing fixes (fixDanglingProperties, fixMissingOpeningQuoteInArrayStrings, fixStrayCharsAfterPropertyValues, fixCorruptedPropertyValuePairs, fixTruncatedValueInArrayElements)
-    fixPropertyAndValueSyntax, // Unified property and value syntax fixes (consolidates concatenationChainSanitizer, fixPropertyNames, normalizePropertyAssignment, fixUndefinedValues, fixCorruptedNumericValues, fixUnescapedQuotesInStrings)
-    fixMissingArrayObjectBraces, // Consolidated sanitizer fixing missing opening braces for array objects
-    fixBinaryCorruptionPatterns, // Simplified: only removes binary markers, lets fixPropertyAndValueSyntax handle typos
-    removeTruncationMarkers,
-  ] as const satisfies readonly Sanitizer[];
+  private readonly SANITIZATION_PIPELINE_PHASES = [
+    // Phase 1: Noise Removal
+    [trimWhitespace, removeCodeFences, normalizeCharacters, removeInvalidPrefixes],
+    // Phase 2: Structure Extraction & Basic Fixes
+    [
+      extractLargestJsonSpan,
+      collapseDuplicateJsonObject,
+      addMissingCommas,
+      removeTrailingCommas,
+      fixMismatchedDelimiters,
+      completeTruncatedStructures,
+      fixJsonStructure,
+    ],
+    // Phase 3: Property & Structure Fixes
+    [fixPropertyAndValueSyntax, fixMissingArrayObjectBraces],
+    // Phase 4: Content Fixes
+    [fixBinaryCorruptionPatterns, removeTruncationMarkers],
+  ] as const satisfies readonly (readonly Sanitizer[])[];
 
   /**
    * Post-parse transformations applied after successful JSON.parse but before validation.
@@ -289,47 +287,50 @@ export class JsonProcessor {
     let workingContent = originalContent;
     let lastParseError: Error = fastPathResult.error; // initial parse error
 
-    for (const sanitizer of this.SANITIZATION_ORDERED_PIPELINE) {
-      const { newContent, changed } = this._applySanitizer(
-        sanitizer,
-        workingContent,
-        appliedSteps,
-        allDiagnostics,
-      );
-      if (!changed) continue;
-
-      workingContent = newContent;
-      if (sanitizer.name) {
-        onSanitizerApplied(sanitizer.name);
-      }
-
-      const parseResult = this._tryParseAndValidate<T>(
-        workingContent,
-        resourceName,
-        completionOptions,
-      );
-
-      if (parseResult.success) return { success: true, data: parseResult.data };
-
-      if (parseResult.errorType === JsonProcessingErrorType.VALIDATION) {
-        // Return validation error immediately
-        const validationError = new JsonProcessingError(
-          JsonProcessingErrorType.VALIDATION,
-          `LLM response for resource '${resourceName}' parsed successfully but failed schema validation`,
-          originalContent,
+    // Iterate through phases, then through sanitizers within each phase
+    for (const phase of this.SANITIZATION_PIPELINE_PHASES) {
+      for (const sanitizer of phase) {
+        const { newContent, changed } = this._applySanitizer(
+          sanitizer,
           workingContent,
           appliedSteps,
-          parseResult.error,
-          sanitizer.name,
-          undefined,
+          allDiagnostics,
         );
-        return {
-          success: false,
+        if (!changed) continue;
+
+        workingContent = newContent;
+        if (sanitizer.name) {
+          onSanitizerApplied(sanitizer.name);
+        }
+
+        const parseResult = this._tryParseAndValidate<T>(
           workingContent,
-          lastParseError: validationError,
-        };
+          resourceName,
+          completionOptions,
+        );
+
+        if (parseResult.success) return { success: true, data: parseResult.data };
+
+        if (parseResult.errorType === JsonProcessingErrorType.VALIDATION) {
+          // Return validation error immediately
+          const validationError = new JsonProcessingError(
+            JsonProcessingErrorType.VALIDATION,
+            `LLM response for resource '${resourceName}' parsed successfully but failed schema validation`,
+            originalContent,
+            workingContent,
+            appliedSteps,
+            parseResult.error,
+            sanitizer.name,
+            undefined,
+          );
+          return {
+            success: false,
+            workingContent,
+            lastParseError: validationError,
+          };
+        }
+        lastParseError = parseResult.error;
       }
-      lastParseError = parseResult.error;
     }
 
     return { success: false, workingContent, lastParseError };

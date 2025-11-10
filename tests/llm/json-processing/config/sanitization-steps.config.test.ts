@@ -2,7 +2,7 @@ import {
   SANITIZATION_STEP,
   SANITIZATION_STEP_TEMPLATE,
   INSIGNIFICANT_SANITIZATION_STEPS,
-} from "../../../../src/llm/json-processing/config/sanitization-steps.config";
+} from "../../../../src/llm/json-processing/constants/sanitization-steps.config";
 
 describe("sanitization-steps.config", () => {
   describe("SANITIZATION_STEP", () => {

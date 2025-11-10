@@ -1,5 +1,5 @@
 import { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
+import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
 
 /**
  * Trims leading and trailing whitespace from JSON content.

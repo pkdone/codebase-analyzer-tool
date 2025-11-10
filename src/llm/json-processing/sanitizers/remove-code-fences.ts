@@ -1,5 +1,7 @@
 import { Sanitizer } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
+import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { CODE_FENCE_MARKERS } from "../constants/json-processing.config";
+import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
 
 /**
  * Removes markdown code fences from LLM-generated content.
@@ -33,13 +35,10 @@ import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
  * @returns Sanitizer result with fences removed if found, or original if unchanged
  */
 export const removeCodeFences: Sanitizer = (input) => {
-  if (!input.includes("```")) return { content: input, changed: false };
-
-  // Regexes to match code fences for json, javascript, typescript, and generic
-  const FENCE_REGEXES = [/```json\s*/gi, /```javascript\s*/gi, /```ts\s*/gi, /```/g] as const;
+  if (!input.includes(CODE_FENCE_MARKERS.GENERIC)) return { content: input, changed: false };
 
   let updated = input;
-  for (const r of FENCE_REGEXES) {
+  for (const r of CODE_FENCE_REGEXES) {
     updated = updated.replaceAll(r, "");
   }
   if (updated !== input) {

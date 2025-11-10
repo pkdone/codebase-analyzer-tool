@@ -4,7 +4,7 @@ import {
   concatenationConfig,
   processingConfig,
   sanitizationConfig,
-} from "../../../../src/llm/json-processing/config/json-processing.config";
+} from "../../../../src/llm/json-processing/constants/json-processing.config";
 
 describe("json-processing.config", () => {
   describe("DELIMITERS", () => {

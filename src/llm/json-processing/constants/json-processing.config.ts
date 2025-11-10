@@ -31,6 +31,29 @@ export type DelimiterKey = keyof typeof DELIMITERS;
 export const JSON_KEYWORDS = Object.freeze(["true", "false", "null"] as const);
 
 /**
+ * Code fence markers used by LLMs to wrap JSON responses.
+ * These constants centralize the magic strings used for detecting and removing code fences.
+ */
+export const CODE_FENCE_MARKERS = Object.freeze({
+  /**
+   * Generic code fence marker (three backticks)
+   */
+  GENERIC: "```",
+  /**
+   * JSON code fence marker
+   */
+  JSON: "```json",
+  /**
+   * JavaScript code fence marker
+   */
+  JAVASCRIPT: "```javascript",
+  /**
+   * TypeScript code fence marker
+   */
+  TYPESCRIPT: "```ts",
+} as const);
+
+/**
  * Configuration for concatenation chain sanitization.
  * Controls how JavaScript/Java-style string concatenation is handled.
  */
@@ -97,3 +120,4 @@ export const sanitizationConfig = Object.freeze({
   concatenation: concatenationConfig,
   processing: processingConfig,
 });
+

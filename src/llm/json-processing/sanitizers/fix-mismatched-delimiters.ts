@@ -1,6 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP_TEMPLATE } from "../config/sanitization-steps.config";
-import { DELIMITERS } from "../config/json-processing.config";
+import { SANITIZATION_STEP_TEMPLATE } from "../constants/sanitization-steps.config";
+import { DELIMITERS } from "../constants/json-processing.config";
 
 /**
  * Sanitizer that fixes mismatched delimiters (brackets and braces).

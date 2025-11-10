@@ -1,5 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../config/sanitization-steps.config";
+import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { BINARY_CORRUPTION_REGEX } from "../constants/regex.constants";
 
 /**
  * Sanitizer that fixes binary corruption patterns in LLM responses.
@@ -48,9 +49,7 @@ export const fixBinaryCorruptionPatterns: Sanitizer = (jsonString: string): Sani
     // Pattern: Remove all binary corruption markers <y_bin_XXX>
     // This is a simple, generic approach that removes the markers and lets
     // other sanitizers (like fixPropertyAndValueSyntax) handle any resulting typos
-    const generalBinaryPattern = /<y_bin_\d+>/g;
-
-    sanitized = sanitized.replace(generalBinaryPattern, (match, offset: unknown) => {
+    sanitized = sanitized.replace(BINARY_CORRUPTION_REGEX, (match, offset: unknown) => {
       const numericOffset = typeof offset === "number" ? offset : 0;
 
       // Check if we're inside a string literal - if so, don't modify

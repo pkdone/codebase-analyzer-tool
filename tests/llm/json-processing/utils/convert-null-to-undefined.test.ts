@@ -1,4 +1,4 @@
-import { convertNullToUndefined } from "../../../../src/llm/json-processing/utils/convert-null-to-undefined";
+import { convertNullToUndefined } from "../../../../src/llm/json-processing/transforms/convert-null-to-undefined";
 
 describe("convertNullToUndefined", () => {
   describe("primitive values", () => {

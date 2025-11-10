@@ -1,5 +1,5 @@
 import { normalizeCharacters } from "../../../../src/llm/json-processing/sanitizers/normalize-characters";
-import { SANITIZATION_STEP } from "../../../../src/llm/json-processing/config/sanitization-steps.config";
+import { SANITIZATION_STEP } from "../../../../src/llm/json-processing/constants/sanitization-steps.config";
 
 describe("normalizeCharacters", () => {
   describe("converts curly quotes to ASCII quotes", () => {

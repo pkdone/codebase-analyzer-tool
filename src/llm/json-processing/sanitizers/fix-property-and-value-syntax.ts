@@ -1,5 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { DELIMITERS } from "../config/json-processing.config";
+import { DELIMITERS } from "../constants/json-processing.config";
+import { CONCATENATION_REGEXES } from "../constants/regex.constants";
 
 /**
  * Helper to determine if a position is inside a string literal.
@@ -235,14 +236,8 @@ const PROPERTY_TYPO_CORRECTIONS: Record<string, string> = {
 const DIAGNOSTIC_TRUNCATION_LENGTH = 30;
 
 /**
- * Regex patterns for concatenation chain sanitization
+ * Regex patterns for concatenation chain sanitization are now imported from constants
  */
-const IDENTIFIER_ONLY_CHAIN =
-  /(:\s*)([A-Za-z_][\w.()]*(?:\s*\+\s*[A-Za-z_][\w.()]*)+)(?=\s*[,}\n])/g;
-const IDENTIFIER_THEN_LITERAL = /(:\s*)(?:[A-Za-z_][\w.()]*\s*\+\s*)+"([^"\n]*)"/g;
-const LITERAL_THEN_IDENTIFIER =
-  /(:\s*)"([^"\n]*)"\s*(?:\+\s*"[^"\n]*"\s*)*\+\s*[A-Za-z_][\w.()]*[^,}\n]*/g;
-const CONSECUTIVE_LITERALS = /(:\s*)"[^"\n]*"(?:\s*\+\s*"[^"\n]*")+/g;
 
 /**
  * Unified sanitizer that fixes property names, property assignment syntax, and value syntax issues.
@@ -291,7 +286,7 @@ export const fixPropertyAndValueSyntax: Sanitizer = (input: string): SanitizerRe
       let concatenationChanges = 0;
 
       // Step 1: Replace identifier-only chains with empty string
-      sanitized = sanitized.replace(IDENTIFIER_ONLY_CHAIN, (_match, prefix) => {
+      sanitized = sanitized.replace(CONCATENATION_REGEXES.IDENTIFIER_ONLY_CHAIN, (_match, prefix) => {
         diagnostics.push("Replaced identifier-only chain with empty string");
         concatenationChanges++;
         return `${prefix}""`;
@@ -299,7 +294,7 @@ export const fixPropertyAndValueSyntax: Sanitizer = (input: string): SanitizerRe
 
       // Step 2: Keep only literal when identifiers precede it
       sanitized = sanitized.replace(
-        IDENTIFIER_THEN_LITERAL,
+        CONCATENATION_REGEXES.IDENTIFIER_THEN_LITERAL,
         (_match: string, prefix: string, literal: string) => {
           diagnostics.push(
             `Kept literal "${literal.substring(0, DIAGNOSTIC_TRUNCATION_LENGTH)}${literal.length > DIAGNOSTIC_TRUNCATION_LENGTH ? "..." : ""}" from identifier chain`,
@@ -311,7 +306,7 @@ export const fixPropertyAndValueSyntax: Sanitizer = (input: string): SanitizerRe
 
       // Step 3: Keep only literal when identifiers follow it
       sanitized = sanitized.replace(
-        LITERAL_THEN_IDENTIFIER,
+        CONCATENATION_REGEXES.LITERAL_THEN_IDENTIFIER,
         (_match: string, prefix: string, literal: string) => {
           diagnostics.push(
             `Removed trailing identifiers after literal "${literal.substring(0, DIAGNOSTIC_TRUNCATION_LENGTH)}${literal.length > DIAGNOSTIC_TRUNCATION_LENGTH ? "..." : ""}"`,
@@ -322,7 +317,7 @@ export const fixPropertyAndValueSyntax: Sanitizer = (input: string): SanitizerRe
       );
 
       // Step 4: Merge consecutive string literals
-      sanitized = sanitized.replace(CONSECUTIVE_LITERALS, (match: string, prefix: string) => {
+      sanitized = sanitized.replace(CONCATENATION_REGEXES.CONSECUTIVE_LITERALS, (match: string, prefix: string) => {
         const literalMatches = match.match(/"[^"\n]*"/g);
         if (!literalMatches || literalMatches.length < 2) {
           return match;
