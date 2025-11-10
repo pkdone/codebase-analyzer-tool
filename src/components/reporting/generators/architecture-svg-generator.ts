@@ -1,4 +1,5 @@
 import { injectable } from "tsyringe";
+import { BaseSvgGenerator } from "./base-svg-generator";
 import type { IntegrationPointInfo } from "../report-gen.types";
 
 export interface Microservice {
@@ -35,7 +36,7 @@ export interface ArchitectureDiagramSvgOptions {
  * Creates component-style diagrams showing microservices and their integration points.
  */
 @injectable()
-export class ArchitectureSvgGenerator {
+export class ArchitectureSvgGenerator extends BaseSvgGenerator {
   private readonly defaultOptions: Required<ArchitectureDiagramSvgOptions> = {
     width: 1100,
     height: 900,
@@ -76,6 +77,13 @@ export class ArchitectureSvgGenerator {
     );
 
     return svgContent;
+  }
+
+  /**
+   * Create SVG header with definitions
+   */
+  protected override createSvgHeader(width: number, height: number): string {
+    return super.createSvgHeader(width, height, "#00ED64");
   }
 
   /**
@@ -190,80 +198,17 @@ export class ArchitectureSvgGenerator {
   }
 
   /**
-   * Create SVG header with definitions
-   */
-  private createSvgHeader(width: number, height: number): string {
-    return `
-      <svg
-        width="${width}"
-        height="${height}"
-        viewBox="0 0 ${width} ${height}"
-        xmlns="http://www.w3.org/2000/svg"
-        style="background-color: #f8f9fa; border-radius: 8px;"
-      >
-        <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="7"
-            refX="9"
-            refY="3.5"
-            orient="auto"
-          >
-            <polygon
-              points="0 0, 10 3.5, 0 7"
-              fill="#00ED64"
-            />
-          </marker>
-        </defs>`;
-  }
-
-  /**
    * Generate empty diagram for no microservices
    */
   private generateEmptyArchitectureDiagram(
     options: Required<ArchitectureDiagramSvgOptions>,
   ): string {
-    const centerX = options.width / 2;
-    const centerY = options.height / 2;
-
-    return `
-      <svg
-        width="${options.width}"
-        height="${options.height}"
-        viewBox="0 0 ${options.width} ${options.height}"
-        xmlns="http://www.w3.org/2000/svg"
-        style="background-color: #f8f9fa; border-radius: 8px;"
-      >
-        <text
-          x="${centerX}"
-          y="${centerY}"
-          text-anchor="middle"
-          font-family="${options.fontFamily}"
-          font-size="${options.fontSize}"
-          fill="#8b95a1"
-        >
-          No microservices architecture defined
-        </text>
-      </svg>`;
-  }
-
-  /**
-   * Escape XML special characters
-   */
-  private escapeXml(text: string): string {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
-  /**
-   * Sanitize text for use as HTML ID
-   */
-  private sanitizeId(text: string): string {
-    return text.replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase();
+    return super.generateEmptyDiagram(
+      options.width,
+      options.height,
+      "No microservices architecture defined",
+      options.fontFamily,
+      options.fontSize,
+    );
   }
 }

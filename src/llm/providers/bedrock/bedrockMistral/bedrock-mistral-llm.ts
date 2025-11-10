@@ -1,6 +1,6 @@
-import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { BEDROCK_MISTRAL_FAMILY } from "../common/bedrock-models.constants";
+import { buildStandardMessagesArray } from "../common/bedrock-request-builders";
 import { z } from "zod";
 
 /**
@@ -43,17 +43,7 @@ export default class BedrockMistralLLM extends BaseBedrockLLM {
    */
   protected buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
-    return {
-      messages: [
-        {
-          role: llmConfig.LLM_ROLE_USER,
-          content: prompt,
-        },
-      ],
-      temperature: llmConfig.DEFAULT_ZERO_TEMP,
-      top_p: llmConfig.DEFAULT_TOP_P_LOWEST,
-      max_tokens: this.llmModelsMetadata[modelKey].maxCompletionTokens,
-    };
+    return buildStandardMessagesArray(prompt, modelKey, this.llmModelsMetadata);
   }
 
   /**

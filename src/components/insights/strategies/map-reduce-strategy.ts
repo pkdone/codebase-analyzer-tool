@@ -5,7 +5,6 @@ import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import { logWarningMsg } from "../../../common/utils/logging";
-import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { Prompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../llm/core/llm.tokens";
 import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
@@ -13,6 +12,7 @@ import { llmProviderConfig } from "../../../llm/llm.config";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import { REDUCE_INSIGHTS_TEMPLATE } from "../../../prompts/templates";
+import { executeInsightCompletion } from "./insight-completion-helper";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -153,30 +153,13 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     category: AppSummaryCategoryEnum,
     summaryChunk: string[],
   ): Promise<PartialAppSummaryRecord | null> {
-    const config = summaryCategoriesConfig[category];
-    const codeContent = joinArrayWithSeparators(summaryChunk);
     const partialAnalysisNote =
       "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ";
-    const prompt = new Prompt(config, codeContent).render({
-      partialAnalysisNote,
-    });
 
-    try {
-      return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
-        `${category}-chunk`,
-        prompt,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.responseSchema,
-          hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-        },
-      );
-    } catch (error: unknown) {
-      logWarningMsg(
-        `Failed to generate partial insights for ${config.label ?? category} chunk: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-      return null;
-    }
+    return executeInsightCompletion(this.llmRouter, category, summaryChunk, {
+      partialAnalysisNote,
+      taskCategory: `${category}-chunk`,
+    });
   }
 
   /**

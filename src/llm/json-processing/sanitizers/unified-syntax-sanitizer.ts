@@ -286,11 +286,14 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       let concatenationChanges = 0;
 
       // Step 1: Replace identifier-only chains with empty string
-      sanitized = sanitized.replace(CONCATENATION_REGEXES.IDENTIFIER_ONLY_CHAIN, (_match, prefix) => {
-        diagnostics.push("Replaced identifier-only chain with empty string");
-        concatenationChanges++;
-        return `${prefix}""`;
-      });
+      sanitized = sanitized.replace(
+        CONCATENATION_REGEXES.IDENTIFIER_ONLY_CHAIN,
+        (_match, prefix) => {
+          diagnostics.push("Replaced identifier-only chain with empty string");
+          concatenationChanges++;
+          return `${prefix}""`;
+        },
+      );
 
       // Step 2: Keep only literal when identifiers precede it
       sanitized = sanitized.replace(
@@ -317,16 +320,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       );
 
       // Step 4: Merge consecutive string literals
-      sanitized = sanitized.replace(CONCATENATION_REGEXES.CONSECUTIVE_LITERALS, (match: string, prefix: string) => {
-        const literalMatches = match.match(/"[^"\n]*"/g);
-        if (!literalMatches || literalMatches.length < 2) {
-          return match;
-        }
-        const merged = literalMatches.map((lit) => lit.slice(1, -1)).join("");
-        diagnostics.push(`Merged ${literalMatches.length} consecutive string literals`);
-        concatenationChanges++;
-        return `${prefix}"${merged}"`;
-      });
+      sanitized = sanitized.replace(
+        CONCATENATION_REGEXES.CONSECUTIVE_LITERALS,
+        (match: string, prefix: string) => {
+          const literalMatches = match.match(/"[^"\n]*"/g);
+          if (!literalMatches || literalMatches.length < 2) {
+            return match;
+          }
+          const merged = literalMatches.map((lit) => lit.slice(1, -1)).join("");
+          diagnostics.push(`Merged ${literalMatches.length} consecutive string literals`);
+          concatenationChanges++;
+          return `${prefix}"${merged}"`;
+        },
+      );
 
       if (concatenationChanges > 0) {
         hasChanges = true;

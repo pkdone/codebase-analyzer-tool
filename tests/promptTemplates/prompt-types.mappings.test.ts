@@ -20,9 +20,9 @@ describe("prompt.types individual exports", () => {
       expect(CANONICAL_FILE_TYPES).toContain("python");
     });
 
-    it("should contain duplicate 'default' entries as intended", () => {
+    it("should contain exactly one 'default' entry", () => {
       const defaultCount = CANONICAL_FILE_TYPES.filter((type: string) => type === "default").length;
-      expect(defaultCount).toBe(2);
+      expect(defaultCount).toBe(1);
     });
   });
 

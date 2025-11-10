@@ -148,7 +148,10 @@ function registerLLMDependentTasks(): void {
   container.registerSingleton(taskTokens.CodebaseQueryTask, CodebaseQueryTask);
   container.registerSingleton(taskTokens.CodebaseCaptureTask, CodebaseCaptureTask);
   container.registerSingleton(taskTokens.InsightsGenerationTask, InsightsGenerationTask);
-  container.registerSingleton(taskTokens.DirectInsightsGenerationTask, DirectInsightsGenerationTask);
+  container.registerSingleton(
+    taskTokens.DirectInsightsGenerationTask,
+    DirectInsightsGenerationTask,
+  );
   container.registerSingleton(taskTokens.PluggableLLMsTestTask, PluggableLLMsTestTask);
   console.log("LLM-dependent tasks registered with simplified singleton registrations");
 }

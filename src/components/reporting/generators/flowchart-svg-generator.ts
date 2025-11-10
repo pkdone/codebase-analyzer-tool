@@ -1,4 +1,5 @@
 import { injectable } from "tsyringe";
+import { BaseSvgGenerator } from "./base-svg-generator";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -26,7 +27,7 @@ export interface FlowchartSvgOptions {
  * Creates sequential flow diagrams showing key business activities as connected nodes.
  */
 @injectable()
-export class FlowchartSvgGenerator {
+export class FlowchartSvgGenerator extends BaseSvgGenerator {
   private readonly defaultOptions: Required<FlowchartSvgOptions> = {
     width: 800,
     height: 400,
@@ -67,6 +68,13 @@ export class FlowchartSvgGenerator {
     options: FlowchartSvgOptions = {},
   ): string[] {
     return processes.map((process) => this.generateFlowchartSvg(process, options));
+  }
+
+  /**
+   * Create SVG header with definitions
+   */
+  protected override createSvgHeader(width: number, height: number): string {
+    return super.createSvgHeader(width, height);
   }
 
   /**
@@ -197,109 +205,15 @@ export class FlowchartSvgGenerator {
   }
 
   /**
-   * Create SVG header with definitions
-   */
-  private createSvgHeader(width: number, height: number): string {
-    return `
-      <svg
-        width="${width}"
-        height="${height}"
-        viewBox="0 0 ${width} ${height}"
-        xmlns="http://www.w3.org/2000/svg"
-        style="background-color: #f8f9fa; border-radius: 8px;"
-      >
-        <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="7"
-            refX="9"
-            refY="3.5"
-            orient="auto"
-          >
-            <polygon
-              points="0 0, 10 3.5, 0 7"
-              fill="#00684A"
-            />
-          </marker>
-        </defs>`;
-  }
-
-  /**
    * Generate empty flowchart for processes with no activities
    */
   private generateEmptyFlowchart(options: Required<FlowchartSvgOptions>): string {
-    const centerX = options.width / 2;
-    const centerY = options.height / 2;
-
-    return `
-      <svg
-        width="${options.width}"
-        height="${options.height}"
-        viewBox="0 0 ${options.width} ${options.height}"
-        xmlns="http://www.w3.org/2000/svg"
-        style="background-color: #f8f9fa; border-radius: 8px;"
-      >
-        <text
-          x="${centerX}"
-          y="${centerY}"
-          text-anchor="middle"
-          font-family="${options.fontFamily}"
-          font-size="${options.fontSize}"
-          fill="#8b95a1"
-        >
-          No business activities defined
-        </text>
-      </svg>`;
-  }
-
-  /**
-   * Wrap text to fit within specified width
-   */
-  private wrapText(text: string, maxWidth: number, fontSize: number): string[] {
-    // Rough estimation: each character is about 0.6 * fontSize wide
-    const charWidth = fontSize * 0.6;
-    const maxCharsPerLine = Math.floor(maxWidth / charWidth);
-
-    if (text.length <= maxCharsPerLine) {
-      return [text];
-    }
-
-    const words = text.split(" ");
-    const lines: string[] = [];
-    let currentLine = "";
-
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      if (testLine.length <= maxCharsPerLine) {
-        currentLine = testLine;
-      } else {
-        if (currentLine) {
-          lines.push(currentLine);
-          currentLine = word;
-        } else {
-          // Word is too long, force it onto its own line
-          lines.push(word);
-        }
-      }
-    }
-
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-
-    return lines.slice(0, 3); // Limit to 3 lines max
-  }
-
-  /**
-   * Escape XML special characters
-   */
-  private escapeXml(text: string): string {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+    return super.generateEmptyDiagram(
+      options.width,
+      options.height,
+      "No business activities defined",
+      options.fontFamily,
+      options.fontSize,
+    );
   }
 }

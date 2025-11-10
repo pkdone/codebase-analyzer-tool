@@ -1,4 +1,5 @@
 import { injectable } from "tsyringe";
+import { BaseSvgGenerator } from "./base-svg-generator";
 import type {
   DomainBoundedContext,
   DomainAggregate,
@@ -19,7 +20,7 @@ export interface DomainDiagramSvgOptions {
  * Creates graph-style diagrams showing bounded contexts with their aggregates, entities, and repositories.
  */
 @injectable()
-export class DomainModelSvgGenerator {
+export class DomainModelSvgGenerator extends BaseSvgGenerator {
   private readonly defaultOptions: Required<DomainDiagramSvgOptions> = {
     width: 1600, // Further increased width to prevent side clipping
     height: 600,
@@ -86,6 +87,13 @@ export class DomainModelSvgGenerator {
     options: DomainDiagramSvgOptions = {},
   ): string[] {
     return contexts.map((context) => this.generateContextDiagramSvg(context, options));
+  }
+
+  /**
+   * Create SVG header with definitions
+   */
+  protected override createSvgHeader(width: number, height: number): string {
+    return super.createSvgHeader(width, height);
   }
 
   /**
@@ -644,116 +652,15 @@ export class DomainModelSvgGenerator {
   }
 
   /**
-   * Create SVG header with definitions
-   */
-  private createSvgHeader(width: number, height: number): string {
-    return `
-      <svg
-        width="${width}"
-        height="${height}"
-        viewBox="0 0 ${width} ${height}"
-        xmlns="http://www.w3.org/2000/svg"
-        style="background-color: #f8f9fa; border-radius: 8px;"
-      >
-        <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="7"
-            refX="9"
-            refY="3.5"
-            orient="auto"
-          >
-            <polygon
-              points="0 0, 10 3.5, 0 7"
-              fill="#00684A"
-            />
-          </marker>
-        </defs>`;
-  }
-
-  /**
    * Generate empty diagram for contexts with no content
    */
   private generateEmptyContextDiagram(options: Required<DomainDiagramSvgOptions>): string {
-    const centerX = options.width / 2;
-    const centerY = options.height / 2;
-
-    return `
-      <svg
-        width="${options.width}"
-        height="${options.height}"
-        viewBox="0 0 ${options.width} ${options.height}"
-        xmlns="http://www.w3.org/2000/svg"
-        style="background-color: #f8f9fa; border-radius: 8px;"
-      >
-        <text
-          x="${centerX}"
-          y="${centerY}"
-          text-anchor="middle"
-          font-family="${options.fontFamily}"
-          font-size="${options.fontSize}"
-          fill="#8b95a1"
-        >
-          No domain model elements defined
-        </text>
-      </svg>`;
-  }
-
-  /**
-   * Wrap text to fit within node width
-   */
-  private wrapText(text: string, maxWidth: number, fontSize: number): string[] {
-    // Rough estimation: each character is about 0.6 * fontSize wide
-    const charWidth = fontSize * 0.6;
-    const maxCharsPerLine = Math.floor(maxWidth / charWidth);
-
-    if (text.length <= maxCharsPerLine) {
-      return [text];
-    }
-
-    const words = text.split(" ");
-    const lines: string[] = [];
-    let currentLine = "";
-
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      if (testLine.length <= maxCharsPerLine) {
-        currentLine = testLine;
-      } else {
-        if (currentLine) {
-          lines.push(currentLine);
-          currentLine = word;
-        } else {
-          // Word is too long, force it onto its own line
-          lines.push(word);
-        }
-      }
-    }
-
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-
-    return lines.slice(0, 3); // Limit to 3 lines max
-  }
-
-  /**
-   * Escape XML special characters
-   */
-  private escapeXml(text: string): string {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
-  /**
-   * Sanitize text for use as HTML ID
-   */
-  private sanitizeId(text: string): string {
-    return text.replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase();
+    return super.generateEmptyDiagram(
+      options.width,
+      options.height,
+      "No domain model elements defined",
+      options.fontFamily,
+      options.fontSize,
+    );
   }
 }

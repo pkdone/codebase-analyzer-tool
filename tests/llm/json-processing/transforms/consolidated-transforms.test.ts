@@ -83,12 +83,8 @@ describe("Consolidated Post-Parse Transforms", () => {
         ],
       };
       const result = normalizeDatabaseIntegrationArray(input);
-      expect((result as Record<string, unknown>).databaseIntegration).toHaveProperty(
-        "mechanism",
-      );
-      expect((result as Record<string, unknown>).databaseIntegration).toHaveProperty(
-        "description",
-      );
+      expect((result as Record<string, unknown>).databaseIntegration).toHaveProperty("mechanism");
+      expect((result as Record<string, unknown>).databaseIntegration).toHaveProperty("description");
     });
 
     it("should return unchanged if not an array", () => {
@@ -130,4 +126,3 @@ describe("Consolidated Post-Parse Transforms", () => {
     });
   });
 });
-

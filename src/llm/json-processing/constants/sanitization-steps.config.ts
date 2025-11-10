@@ -107,4 +107,3 @@ export const INSIGNIFICANT_SANITIZATION_STEPS: ReadonlySet<string> = insignifica
  * Type helper for sanitization step descriptions
  */
 export type SanitizationStepDescription = string;
-

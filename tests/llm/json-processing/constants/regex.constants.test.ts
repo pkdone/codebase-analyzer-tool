@@ -8,31 +8,31 @@ import { CODE_FENCE_MARKERS } from "../../../../src/llm/json-processing/constant
 describe("regex.constants", () => {
   describe("CODE_FENCE_REGEXES", () => {
     it("should match JSON code fences", () => {
-      const testString = "```json\n{ \"key\": \"value\" }\n```";
+      const testString = '```json\n{ "key": "value" }\n```';
       const matches = CODE_FENCE_REGEXES[0].test(testString);
       expect(matches).toBe(true);
     });
 
     it("should match JavaScript code fences", () => {
-      const testString = "```javascript\n{ \"key\": \"value\" }\n```";
+      const testString = '```javascript\n{ "key": "value" }\n```';
       const matches = CODE_FENCE_REGEXES[1].test(testString);
       expect(matches).toBe(true);
     });
 
     it("should match TypeScript code fences", () => {
-      const testString = "```ts\n{ \"key\": \"value\" }\n```";
+      const testString = '```ts\n{ "key": "value" }\n```';
       const matches = CODE_FENCE_REGEXES[2].test(testString);
       expect(matches).toBe(true);
     });
 
     it("should match generic code fences", () => {
-      const testString = "```\n{ \"key\": \"value\" }\n```";
+      const testString = '```\n{ "key": "value" }\n```';
       const matches = CODE_FENCE_REGEXES[3].test(testString);
       expect(matches).toBe(true);
     });
 
     it("should remove all code fence types when applied in sequence", () => {
-      let testString = "```json\n{ \"key\": \"value\" }\n```";
+      let testString = '```json\n{ "key": "value" }\n```';
       for (const regex of CODE_FENCE_REGEXES) {
         testString = testString.replace(regex, "");
       }
@@ -89,4 +89,3 @@ describe("regex.constants", () => {
     });
   });
 });
-
