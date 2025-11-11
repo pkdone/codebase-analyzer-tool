@@ -16,6 +16,7 @@ export { unifiedSyntaxSanitizer } from "./unified-syntax-sanitizer";
 export { fixMissingArrayObjectBraces } from "./fix-missing-array-object-braces";
 export { removeTruncationMarkers } from "./remove-truncation-markers";
 export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns";
+export { fixAdvancedJsonErrors } from "./fix-advanced-json-errors";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 
