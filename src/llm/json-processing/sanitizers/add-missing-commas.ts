@@ -26,6 +26,10 @@ export const addMissingCommas: Sanitizer = (input: string): SanitizerResult => {
   // Note: For digits, we match the last digit of a number (lookbehind ensures it's part of a number)
   const missingCommaPattern = /(["}\]\]]|\d)\s*\n(\s*")([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
 
+  // Pattern for missing commas in arrays: array element followed by newline and another array element
+  // Matches: "value1"\n  "value2" or {"key": "value"}\n  {"key2": "value2"}
+  const missingCommaInArrayPattern = /(["}\]\]])\s*\n(\s*)(["{])/g;
+
   let sanitized = trimmed;
   let commaCount = 0;
   const diagnostics: string[] = [];
@@ -94,6 +98,88 @@ export const addMissingCommas: Sanitizer = (input: string): SanitizerResult => {
       commaCount++;
       // quote2WithWhitespaceStr already includes the opening quote, so we just add the property name and colon
       return `${terminatorStr},\n${quote2WithWhitespaceStr}${propertyNameStr}":`;
+    },
+  );
+
+  // Handle missing commas in arrays
+  sanitized = sanitized.replace(
+    missingCommaInArrayPattern,
+    (match, terminator, whitespace, nextElement, offset) => {
+      const offsetNum = typeof offset === "number" ? offset : 0;
+      const terminatorStr = typeof terminator === "string" ? terminator : "";
+      const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+      const nextElementStr = typeof nextElement === "string" ? nextElement : "";
+
+      // Check if we're in an array context (not in a string)
+      let inString = false;
+      let escaped = false;
+      for (let i = 0; i < offsetNum; i++) {
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (sanitized[i] === "\\") {
+          escaped = true;
+        } else if (sanitized[i] === '"') {
+          inString = !inString;
+        }
+      }
+
+      if (inString) {
+        return match;
+      }
+
+      // Check if we're actually in an array (have opening bracket before)
+      const beforeMatch = sanitized.substring(Math.max(0, offsetNum - 500), offsetNum);
+      let bracketDepth = 0;
+      let braceDepth = 0;
+      let inStringCheck = false;
+      let escapeCheck = false;
+      let foundArray = false;
+
+      for (let i = beforeMatch.length - 1; i >= 0; i--) {
+        const char = beforeMatch[i];
+        if (escapeCheck) {
+          escapeCheck = false;
+          continue;
+        }
+        if (char === "\\") {
+          escapeCheck = true;
+          continue;
+        }
+        if (char === '"') {
+          inStringCheck = !inStringCheck;
+          continue;
+        }
+        if (!inStringCheck) {
+          if (char === "]") {
+            bracketDepth++;
+          } else if (char === "[") {
+            bracketDepth--;
+            if (bracketDepth >= 0 && braceDepth <= 0) {
+              foundArray = true;
+              break;
+            }
+          } else if (char === "}") {
+            braceDepth++;
+          } else if (char === "{") {
+            braceDepth--;
+          }
+        }
+      }
+
+      if (!foundArray) {
+        return match;
+      }
+
+      // Check if there's already a comma before the newline
+      const beforeNewline = sanitized.substring(Math.max(0, offsetNum - 10), offsetNum);
+      if (beforeNewline.trim().endsWith(",")) {
+        return match;
+      }
+
+      commaCount++;
+      return `${terminatorStr},\n${whitespaceStr}${nextElementStr}`;
     },
   );
 

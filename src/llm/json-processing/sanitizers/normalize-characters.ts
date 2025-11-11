@@ -313,6 +313,11 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
             hasChanges = true;
             controlCharsEscaped++;
           }
+        } else if (code === 0x7f) {
+          // DEL character (0x7F) - also needs escaping in JSON strings
+          processedResult += "\\u007f";
+          hasChanges = true;
+          controlCharsEscaped++;
         } else {
           processedResult += char;
         }

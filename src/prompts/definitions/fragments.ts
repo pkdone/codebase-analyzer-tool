@@ -20,7 +20,10 @@ export const PROMPT_FRAGMENTS = {
  - Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
  - Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
  - Use only exact property names from the schema - do not add extra properties or characters before property names
- - ASCII only: use only ASCII characters in string values`,
+ - ASCII only: use only ASCII characters in string values
+ - No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+ - Proper commas: ensure commas separate all array elements and object properties
+ - Escape control characters: any control characters in string values must be properly escaped as \\uXXXX`,
   },
 
   CODE_QUALITY: {

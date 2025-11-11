@@ -650,6 +650,152 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 17: Remove truncated/explanatory text =====
+    // Pattern: `},\nso many methods... I will stop here for brevity.\n  {` -> `},\n  {`
+    // Also handles: `[]\n    },\nso many me"` -> `[]\n    },\n`
+    const truncatedTextPattern =
+      /([}\]])\s*,\s*\n\s*([a-z\s]{5,100}?)(?:\.\.\.|I will|stop here|for brevity|so many|methods|I'll|truncated)[^"]*\n\s*([{"])/gi;
+    sanitized = sanitized.replace(
+      truncatedTextPattern,
+      (match, delimiter, strayText, nextToken, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+
+        // Check if it's clearly explanatory/truncated text
+        const isTruncatedText =
+          /(so many|I will|stop here|for brevity|methods|I'll|truncated|\.\.\.)/i.test(strayTextStr) &&
+          !strayTextStr.includes('"') &&
+          !strayTextStr.includes("{") &&
+          !strayTextStr.includes("}") &&
+          !strayTextStr.includes("[") &&
+          !strayTextStr.includes("]");
+
+        if (isTruncatedText) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed truncated/explanatory text: "${strayTextStr.substring(0, 50)}..."`,
+            );
+          }
+          return `${delimiterStr},\n    ${nextTokenStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 17b: Handle truncated text at end of arrays/objects
+    // Pattern: `[]\n    },\nso many me"` -> `[]\n    },\n`
+    const truncatedTextAtEndPattern =
+      /([}\]])\s*,\s*\n\s*([a-z\s]{5,50}?)(?:\.\.\.|I will|stop here|for brevity|so many|methods|I'll|truncated)[^"]*"([^"]*)"\s*,/gi;
+    sanitized = sanitized.replace(
+      truncatedTextAtEndPattern,
+      (match, delimiter, strayText, stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+
+        const isTruncatedText =
+          /(so many|I will|stop here|for brevity|methods|I'll|truncated|\.\.\.)/i.test(strayTextStr);
+
+        if (isTruncatedText) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed truncated text and preserved string value: "${stringValueStr}"`,
+            );
+          }
+          return `${delimiterStr},\n    "${stringValueStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 18: Remove stray text/hostnames before property names =====
+    // Pattern: `hp-probook-650-g8-notebook-pc"purpose":` -> `"purpose":`
+    // Also handles: `tribulations"integrationPoints":` -> `"integrationPoints":`
+    const hostnameBeforePropertyPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z0-9\-_.]{10,100})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      hostnameBeforePropertyPattern,
+      (match, delimiter, whitespace, hostname, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if it looks like a hostname or stray text (contains hyphens, dots, or is very long)
+        const hostnameStr = typeof hostname === "string" ? hostname : "";
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const looksLikeHostname =
+          /^[a-zA-Z0-9\-_.]+$/.test(hostnameStr) &&
+          (hostnameStr.includes("-") || hostnameStr.includes(".") || hostnameStr.length > 15);
+
+        if (looksLikeHostname) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed hostname/stray text "${hostnameStr.substring(0, 30)}..." before property: "${propertyNameStr}"`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 19: Fix malformed property with backtick and colon =====
+    // Pattern: `"name":`:toBe":` -> `"name": "toBe",`
+    // Also handles: `"name":`:toBe": "value"` -> `"name": "toBe",`
+    const malformedPropertyBacktickPattern =
+      /"([^"]+)"\s*:\s*`:([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      malformedPropertyBacktickPattern,
+      (match, propertyName, insertedWord, actualValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const insertedWordStr = typeof insertedWord === "string" ? insertedWord : "";
+        const actualValueStr = typeof actualValue === "string" ? actualValue : "";
+
+        // Check if this looks like a malformed property
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed malformed property with backtick: "${propertyNameStr}":\`${insertedWordStr}": "${actualValueStr}" -> "${propertyNameStr}": "${insertedWordStr}",`,
+            );
+          }
+          // The actualValue appears to be orphaned, so we just fix the immediate issue
+          return `"${propertyNameStr}": "${insertedWordStr}",`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 
