@@ -445,7 +445,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
           if (numericOffset > 0) {
             const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
-            const isAfterPropertyBoundary = /[}\],][\s\n]*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
+            const isAfterPropertyBoundary =
+              /[}\],][\s\n]*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
 
             if (!isAfterPropertyBoundary && numericOffset > 20) {
               const largerContext = sanitized.substring(
