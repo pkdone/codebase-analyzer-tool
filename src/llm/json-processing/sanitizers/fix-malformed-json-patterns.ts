@@ -926,6 +926,252 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 22: Fix missing comma and quote for unquoted strings at end of array lines =====
+    // Pattern: `"org.apache.poi.ss.usermodel.Workbook",\norg.junit.jupiter.api.Assertions"` ->
+    //          `"org.apache.poi.ss.usermodel.Workbook",\n    "org.junit.jupiter.api.Assertions",`
+    // This handles cases where a string in an array is missing both the comma before it and the opening quote
+    const missingCommaAndQuotePattern =
+      /("([^"]+)"\s*,?\s*\n\s*)([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,?\s*(\n|])/g;
+    sanitized = sanitized.replace(
+      missingCommaAndQuotePattern,
+      (match, prefix, _prevValue, stringValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inString = false;
+        let escape = false;
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          if (char === "\\") {
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          if (!inString) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                // We're in an array context
+                hasChanges = true;
+                const prefixStr = typeof prefix === "string" ? prefix : "";
+                const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+                const terminatorStr = typeof terminator === "string" ? terminator : "";
+                // Ensure there's a comma after the previous value if missing
+                const prefixWithComma = prefixStr.trim().endsWith(",")
+                  ? prefixStr
+                  : prefixStr.replace(/"\s*$/, '",');
+                if (diagnostics.length < 10) {
+                  diagnostics.push(
+                    `Fixed missing comma and quote: ${stringValueStr}" -> "${stringValueStr}",`,
+                  );
+                }
+                return `${prefixWithComma}\n    "${stringValueStr}",${terminatorStr}`;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 23: Fix typos in package names (tribur -> org, missing org.apache. prefix) =====
+    // Pattern: `tribur.apache.fineract...` -> `"org.apache.fineract...`
+    // Pattern: `fineract.portfolio.meeting...` -> `"org.apache.fineract.portfolio.meeting...`
+    // Also handles missing opening quotes: `tribur.apache.fineract...",` -> `"org.apache.fineract...",`
+    const typoPackagePattern =
+      /([}\],]|\n|^)(\s*)(tribur|orgf|orgah)\.apache\.([a-zA-Z0-9_.]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      typoPackagePattern,
+      (match, delimiter, whitespace, typo, packagePath, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const packagePathStr = typeof packagePath === "string" ? packagePath : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed typo in package name: ${typo}.apache.${packagePathStr} -> org.apache.${packagePathStr}`,
+          );
+        }
+        return `${delimiterStr}${whitespaceStr}"org.apache.${packagePathStr}",`;
+      },
+    );
+
+    // Pattern: Missing org.apache. prefix (fineract.portfolio... -> org.apache.fineract.portfolio...)
+    // Also handles missing opening quotes: `fineract.portfolio.meeting...",` -> `"org.apache.fineract.portfolio.meeting...",`
+    const missingOrgApachePrefixPattern = /([}\],]|\n|^)(\s*)(fineract\.[a-zA-Z0-9_.]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      missingOrgApachePrefixPattern,
+      (match, delimiter, whitespace, packagePath, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const packagePathStr = typeof packagePath === "string" ? packagePath : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing org.apache. prefix: ${packagePathStr} -> org.apache.${packagePathStr}`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"org.apache.${packagePathStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 24: Fix accented characters in package names =====
+    // Pattern: `orgá.apache.fineract...` -> `org.apache.fineract...`
+    const accentedCharPattern = /"org([áàâäéèêëíìîïóòôöúùûüñç])\.apache\.([a-zA-Z0-9_.]+)"/g;
+    sanitized = sanitized.replace(
+      accentedCharPattern,
+      (match, accentedChar, packagePath, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const packagePathStr = typeof packagePath === "string" ? packagePath : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed accented character in package name: org${accentedChar}.apache.${packagePathStr} -> org.apache.${packagePathStr}`,
+          );
+        }
+        return `"org.apache.${packagePathStr}"`;
+      },
+    );
+
+    // ===== Pattern 25: Fix stray single characters at start of lines in arrays =====
+    // Pattern: `e    "org.apache.fineract...",` -> `    "org.apache.fineract...",`
+    const strayCharAtLineStartPattern = /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z0-9_.]+)")/g;
+    sanitized = sanitized.replace(
+      strayCharAtLineStartPattern,
+      (match, delimiter, whitespace, strayChar, quotedString, _stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray && /^[a-z]$/.test(strayChar as string)) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const quotedStringStr = typeof quotedString === "string" ? quotedString : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray character '${strayChar as string}' before array element: ${strayChar as string} ${quotedStringStr}`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}${quotedStringStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 26: Fix truncated responses ending with ...] =====
+    // Pattern: `...]` at end -> remove and close properly
+    const truncatedEndPattern = /\.\.\.\s*\]\s*$/;
+    sanitized = sanitized.replace(truncatedEndPattern, () => {
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push("Removed truncated ending ...]");
+      }
+      // Find the last proper closing bracket/brace before the truncation
+      const beforeTruncation = sanitized.substring(0, sanitized.length - 4); // Remove "...]"
+      const lastBracket = beforeTruncation.lastIndexOf("]");
+      const lastBrace = beforeTruncation.lastIndexOf("}");
+      // Find the last opening bracket/brace to determine what needs to be closed
+      const lastOpenBracket = beforeTruncation.lastIndexOf("[");
+      const lastOpenBrace = beforeTruncation.lastIndexOf("{");
+
+      // If we have an unclosed bracket or brace, close it
+      if (lastOpenBracket > lastBracket) {
+        return "]";
+      } else if (lastOpenBrace > lastBrace) {
+        return "}";
+      }
+      // Otherwise, just remove the truncation marker
+      return "";
+    });
+
+    // ===== Pattern 27: Fix malformed property values =====
+    // Pattern: `"name":a": "value"` -> `"name": "a",` or `"name": "value"` (depending on context)
+    const malformedPropertyValuePattern =
+      /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      malformedPropertyValuePattern,
+      (match, propertyName, _insertedWord, actualValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const actualValueStr = typeof actualValue === "string" ? actualValue : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed malformed property value: "${propertyNameStr}":...": "${actualValueStr}" -> "${propertyNameStr}": "${actualValueStr}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${actualValueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 
