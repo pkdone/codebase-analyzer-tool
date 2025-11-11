@@ -242,7 +242,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
     });
 
     it("should provide sanitized content in error for debugging", () => {
-      const malformed = "```json\n{broken}\n```";
+      // Use a more complex malformed JSON that can't be easily fixed
+      const malformed = "```json\n{broken: value without quotes}\n```";
       const result = jsonProcessor.parseAndValidate(malformed, "test-resource", completionOptions);
 
       expect(result.success).toBe(false);

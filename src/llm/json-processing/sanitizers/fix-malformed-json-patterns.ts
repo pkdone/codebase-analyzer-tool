@@ -425,6 +425,231 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 10: Fix malformed property name with mixed colon/quote =====
+    // Pattern: `"name":toBe": "apiRequestBodyAsJson"` -> `"name": "apiRequestBodyAsJson"`
+    // This handles cases where a short word got inserted between the colon and the quote
+    const malformedPropertyColonQuotePattern = /"([^"]+)"\s*:\s*([a-z]{2,10})"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      malformedPropertyColonQuotePattern,
+      (match, propertyName, insertedWord, actualValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const insertedWordStr = typeof insertedWord === "string" ? insertedWord : "";
+        const actualValueStr = typeof actualValue === "string" ? actualValue : "";
+
+        // Check if this looks like a malformed property where a word got inserted
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
+
+        // If we're in a property context, remove the inserted word
+        // This handles cases like "name":toBe": "value" -> "name": "value"
+        if (isPropertyContext) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed malformed property: "${propertyNameStr}":${insertedWordStr}": "${actualValueStr}" -> "${propertyNameStr}": "${actualValueStr}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${actualValueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 11: Remove stray single characters before property names =====
+    // Pattern: `t      "name":` -> `      "name":`
+    const strayCharBeforePropertyPattern =
+      /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
+    sanitized = sanitized.replace(
+      strayCharBeforePropertyPattern,
+      (
+        match,
+        delimiter,
+        whitespace,
+        strayChar,
+        propertyWithQuote,
+        _propertyName,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context (after delimiter, newline, or start)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyWithQuoteStr =
+            typeof propertyWithQuote === "string" ? propertyWithQuote : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed stray character '${strayChar}' before property`);
+          }
+          return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 12: Remove stray text before string values in arrays =====
+    // Pattern: `thank"lombok.RequiredArgsConstructor",` -> `"lombok.RequiredArgsConstructor",`
+    const strayTextBeforeStringPattern = /([}\],]|\n|^)(\s*)([a-z]{2,10})"([^"]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      strayTextBeforeStringPattern,
+      (match, delimiter, whitespace, strayText, stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray = /\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray text '${strayText}' before array element: "${stringValueStr.substring(0, 30)}..."`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 13: Fix malformed objects with unquoted properties =====
+    // Pattern: `{hoge}` -> `{}` (remove invalid object)
+    const malformedObjectPattern = /([}\],]|\n|^)(\s*){([a-zA-Z_$][a-zA-Z0-9_$]*)}\s*([,}\]]|$)/g;
+    sanitized = sanitized.replace(
+      malformedObjectPattern,
+      (match, delimiter, whitespace, invalidProp, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed malformed object: {${invalidProp}}`);
+          }
+          return `${delimiterStr}${whitespaceStr}{}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 14: Remove stray text after closing braces =====
+    // Pattern: `},ce` -> `},`
+    const strayTextAfterBracePattern = /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g;
+    sanitized = sanitized.replace(
+      strayTextAfterBracePattern,
+      (match, delimiter, strayText, nextToken, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if it's clearly stray text (not JSON keywords)
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const jsonKeywords = ["true", "false", "null", "undefined"];
+        if (!jsonKeywords.includes(strayTextStr.toLowerCase())) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed stray text '${strayTextStr}' after ${delimiterStr}`);
+          }
+          return `${delimiterStr},${nextTokenStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 15: Remove stray text before property names =====
+    // Pattern: ` tribulations":` -> `"integrationPoints":` (or remove if invalid)
+    const strayTextBeforePropertyNamePattern =
+      /([}\],]|\n|^)(\s*)([a-z\s]{1,20})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      strayTextBeforePropertyNamePattern,
+      (match, delimiter, whitespace, strayText, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const strayTextStr = typeof strayText === "string" ? strayText : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray text '${strayTextStr.trim()}' before property: "${propertyNameStr}"`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 16: Remove invalid property-like structures =====
+    // Pattern: `extra_text="  * `DatatableExportTargetParameter`..."` -> remove entire line
+    const invalidPropertyPattern = /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+)\s*=\s*"[^"]*"\s*,?\s*\n/g;
+    sanitized = sanitized.replace(
+      invalidPropertyPattern,
+      (match, delimiter, whitespace, invalidProp, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed invalid property-like structure: ${invalidProp}=...`);
+        }
+        return `${delimiterStr}${whitespaceStr}`;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 
