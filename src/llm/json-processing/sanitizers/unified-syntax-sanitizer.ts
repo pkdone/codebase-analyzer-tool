@@ -427,6 +427,54 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       );
     }
 
+    // Pass 2b: Fix very short property names with missing opening quotes (e.g., `e": "retrieveOne",` -> `"name": "retrieveOne",`)
+    // This handles cases where only a fragment of the property name is present
+    const veryShortPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z])"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      veryShortPropertyNamePattern,
+      (match, delimiter, whitespace, shortName, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isAfterPropertyBoundary =
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /[}\],]\s*\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isAfterPropertyBoundary) {
+          const shortNameStr = typeof shortName === "string" ? shortName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const lowerShortName = shortNameStr.toLowerCase();
+
+          // Try to map the short name to a full property name
+          let fixedName = PROPERTY_NAME_MAPPINGS[lowerShortName];
+          if (!fixedName && lowerShortName === "e") {
+            // Common case: "e" is often a truncation of "name"
+            fixedName = "name";
+          } else if (!fixedName) {
+            // If we can't map it, keep the original
+            return match;
+          }
+
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed truncated property name with missing opening quote: ${shortNameStr}" -> "${fixedName}"`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${fixedName}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
     // Pass 3: Fix property names with missing closing quote and colon
     let previousPass3 = "";
     while (previousPass3 !== sanitized) {
@@ -814,6 +862,47 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         const whitespaceAfterColon = whitespaceMatch ? whitespaceMatch[0] : " ";
 
         return `"${propertyNameStr}":${whitespaceAfterColon}"${unquotedValueStr}"`;
+      },
+    );
+
+    // Fix 4b: Fix missing opening quotes in property values (pattern: `"name":value",` -> `"name": "value",`)
+    // This handles cases where the value is missing the opening quote but has a closing quote
+    const missingOpeningQuoteInValuePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_.]+)"\s*([,}])/g;
+    sanitized = sanitized.replace(
+      missingOpeningQuoteInValuePattern,
+      (match, propertyName, valueWithoutQuote, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const valueStr = typeof valueWithoutQuote === "string" ? valueWithoutQuote : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const jsonKeywords = ["true", "false", "null"];
+        if (jsonKeywords.includes(valueStr.toLowerCase())) {
+          return match;
+        }
+
+        // Check if it's a number
+        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(valueStr)) {
+          return match;
+        }
+
+        hasChanges = true;
+        diagnostics.push(
+          `Fixed missing opening quote in property value: "${propertyNameStr}":${valueStr}" -> "${propertyNameStr}": "${valueStr}"${terminatorStr}`,
+        );
+
+        const colonIndex = match.indexOf(":");
+        const afterColon = match.substring(colonIndex + 1);
+        const whitespaceRegex = /^\s*/;
+        const whitespaceMatch = whitespaceRegex.exec(afterColon);
+        const whitespaceAfterColon = whitespaceMatch ? whitespaceMatch[0] : " ";
+
+        return `"${propertyNameStr}":${whitespaceAfterColon}"${valueStr}"${terminatorStr}`;
       },
     );
 

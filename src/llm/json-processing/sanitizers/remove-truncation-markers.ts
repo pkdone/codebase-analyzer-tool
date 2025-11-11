@@ -2,6 +2,32 @@ import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
 
 /**
+ * Helper to determine if a position is inside a string literal.
+ * This prevents us from modifying property names that appear as values.
+ */
+function isInStringAt(position: number, content: string): boolean {
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < position; i++) {
+    const char = content[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+    } else if (char === '"') {
+      inString = !inString;
+    }
+  }
+
+  return inString;
+}
+
+/**
  * Sanitizer that removes truncation markers (like `...`) that LLMs sometimes add
  * when their responses are cut off. These markers are not valid JSON and break parsing.
  *
@@ -195,6 +221,123 @@ export const removeTruncationMarkers: Sanitizer = (jsonString: string): Sanitize
           return `${beforeStr}\n${ws3}${delimiterStr}`;
         }
         return `\n${ws3}${delimiterStr}`;
+      },
+    );
+
+    // Pattern 4: Handle truncation markers with explanatory text (e.g., `secho "I have truncated..."`)
+    // Matches: text followed by truncation explanation before closing delimiters or property names
+    const explanatoryTruncationPattern =
+      /([}\]])\s*,\s*\n\s*([a-z]{1,10})\s*"([^"]*truncat[^"]*)"\s*\n\s*([}\]])/gi;
+    sanitized = sanitized.replace(
+      explanatoryTruncationPattern,
+      (match, delimiter, _strayText, explanation, nextDelimiter, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const nextDelimiterStr = typeof nextDelimiter === "string" ? nextDelimiter : "";
+        const explanationStr = typeof explanation === "string" ? explanation : "";
+
+        if (/truncat/i.test(explanationStr)) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed explanatory truncation text: "${explanationStr.substring(0, 50)}..."`,
+            );
+          }
+          return `${delimiterStr},\n    ${nextDelimiterStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 5: Handle _TRUNCATED_ markers
+    // Matches: `_TRUNCATED_` or `_truncated_` anywhere in the JSON
+    const underscoreTruncatedPattern = /([}\],]|\n|^)(\s*)_TRUNCATED_(\s*)([}\],]|\n|$)/gi;
+    sanitized = sanitized.replace(
+      underscoreTruncatedPattern,
+      (match, before, _whitespace, _marker, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const beforeStr = typeof before === "string" ? before : "";
+        const afterStr = typeof after === "string" ? after : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed _TRUNCATED_ marker");
+        }
+
+        // If there's a comma before, keep it; otherwise just return the delimiters
+        if (beforeStr.includes(",")) {
+          return `${beforeStr}\n${afterStr}`;
+        }
+        return `${beforeStr}${afterStr}`;
+      },
+    );
+
+    // Pattern 6: Handle truncation text in arrays (e.g., `secho "I have truncated the response..."`)
+    // This pattern handles cases where truncation text appears as an array element
+    const truncationTextInArrayPattern = /([[\s,]\s*)([a-z]{1,10})\s*"([^"]*truncat[^"]*)"\s*,/gi;
+    sanitized = sanitized.replace(
+      truncationTextInArrayPattern,
+      (match, prefix, _strayText, truncationText, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inString = false;
+        let escape = false;
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          if (char === "\\") {
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          if (!inString) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                // We're in an array context, remove this truncation text
+                hasChanges = true;
+                const prefixStr = typeof prefix === "string" ? prefix : "";
+                const truncationTextStr = typeof truncationText === "string" ? truncationText : "";
+                if (diagnostics.length < 10) {
+                  diagnostics.push(
+                    `Removed truncation text from array: "${truncationTextStr.substring(0, 50)}..."`,
+                  );
+                }
+                // Remove the element entirely (including the comma)
+                return prefixStr;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        return match;
       },
     );
 

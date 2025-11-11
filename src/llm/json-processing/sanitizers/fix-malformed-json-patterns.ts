@@ -669,7 +669,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         // Check if it's clearly explanatory/truncated text
         const isTruncatedText =
-          /(so many|I will|stop here|for brevity|methods|I'll|truncated|\.\.\.)/i.test(strayTextStr) &&
+          /(so many|I will|stop here|for brevity|methods|I'll|truncated|\.\.\.)/i.test(
+            strayTextStr,
+          ) &&
           !strayTextStr.includes('"') &&
           !strayTextStr.includes("{") &&
           !strayTextStr.includes("}") &&
@@ -707,7 +709,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const stringValueStr = typeof stringValue === "string" ? stringValue : "";
 
         const isTruncatedText =
-          /(so many|I will|stop here|for brevity|methods|I'll|truncated|\.\.\.)/i.test(strayTextStr);
+          /(so many|I will|stop here|for brevity|methods|I'll|truncated|\.\.\.)/i.test(
+            strayTextStr,
+          );
 
         if (isTruncatedText) {
           hasChanges = true;
@@ -790,6 +794,132 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           }
           // The actualValue appears to be orphaned, so we just fix the immediate issue
           return `"${propertyNameStr}": "${insertedWordStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 20: Fix missing opening quotes in string array elements =====
+    // Pattern: `import lombok.RequiredArgsConstructor",` -> `"import lombok.RequiredArgsConstructor",`
+    // Also handles: `fineract.infrastructure.event...",` -> `"fineract.infrastructure.event...",`
+    // This pattern detects strings in arrays that are missing the opening quote
+    const missingOpeningQuoteInArrayPattern =
+      /([[\s,]\s*)([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,/g;
+    sanitized = sanitized.replace(
+      missingOpeningQuoteInArrayPattern,
+      (match, prefix, stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inString = false;
+        let escape = false;
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          if (char === "\\") {
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          if (!inString) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                // We're in an array context
+                hasChanges = true;
+                const prefixStr = typeof prefix === "string" ? prefix : "";
+                const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+                if (diagnostics.length < 10) {
+                  diagnostics.push(
+                    `Fixed missing opening quote in array element: ${stringValueStr}" -> "${stringValueStr}"`,
+                  );
+                }
+                return `${prefixStr}"${stringValueStr}",`;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 21: Fix missing opening quotes with stray text before string in arrays =====
+    // Pattern: `cv"org.apache.fineract...",` -> `"org.apache.fineract...",`
+    // This handles cases where there's stray text (like "cv", "import", etc.) before a string missing its opening quote
+    const strayTextBeforeMissingQuotePattern =
+      /([[\s,]\s*)([a-z]{1,10})"([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,/g;
+    sanitized = sanitized.replace(
+      strayTextBeforeMissingQuotePattern,
+      (match, prefix, strayText, stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inString = false;
+        let escape = false;
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          if (char === "\\") {
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          if (!inString) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                // We're in an array context
+                hasChanges = true;
+                const prefixStr = typeof prefix === "string" ? prefix : "";
+                const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+                const strayTextStr = typeof strayText === "string" ? strayText : "";
+                if (diagnostics.length < 10) {
+                  diagnostics.push(
+                    `Removed stray text '${strayTextStr}' and fixed missing opening quote: ${strayTextStr}"${stringValueStr}" -> "${stringValueStr}"`,
+                  );
+                }
+                return `${prefixStr}"${stringValueStr}",`;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
         }
 
         return match;
