@@ -17,6 +17,7 @@ export { fixMissingArrayObjectBraces } from "./fix-missing-array-object-braces";
 export { removeTruncationMarkers } from "./remove-truncation-markers";
 export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns";
 export { fixAdvancedJsonErrors } from "./fix-advanced-json-errors";
+export { fixMalformedJsonPatterns } from "./fix-malformed-json-patterns";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types";
 

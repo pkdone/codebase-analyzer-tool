@@ -26,6 +26,7 @@ import {
   fixBinaryCorruptionPatterns,
   removeTruncationMarkers,
   fixAdvancedJsonErrors,
+  fixMalformedJsonPatterns,
   hasSignificantSanitizationSteps,
   type Sanitizer,
   type PostParseTransform,
@@ -102,6 +103,7 @@ export class JsonProcessor {
       completeTruncatedStructures,
       fixJsonStructure,
       fixAdvancedJsonErrors,
+      fixMalformedJsonPatterns,
     ],
     // Phase 3: Property & Structure Fixes
     [unifiedSyntaxSanitizer, fixMissingArrayObjectBraces],
