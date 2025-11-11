@@ -112,7 +112,7 @@ describe("unifiedSyntaxSanitizer", () => {
       const result = unifiedSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
-      expect(result.content).toBe('{"publicMethods": []}');
+      expect(result.content).toBe('{"codeSmells": []}');
     });
   });
 

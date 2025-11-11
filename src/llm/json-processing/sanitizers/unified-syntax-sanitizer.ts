@@ -37,13 +37,13 @@ const PROPERTY_NAME_MAPPINGS: Record<string, string> = {
   eferences: "references",
   refere: "references",
   refer: "references",
-  se: "name",
+  se: "purpose",
   nam: "name",
   na: "name",
-  alues: "publicMethods",
-  lues: "publicMethods",
-  ues: "publicMethods",
-  es: "publicMethods",
+  alues: "codeSmells",
+  lues: "codeSmells",
+  ues: "codeSmells",
+  es: "codeSmells",
   integra: "integration",
   integrat: "integration",
   implemen: "implementation",
@@ -204,7 +204,7 @@ const PROPERTY_NAME_MAPPINGS: Record<string, string> = {
 
 /**
  * Known property name typo corrections for quoted properties.
- * These handle trailing underscores and double underscores.
+ * These handle trailing underscores, double underscores, and common typos.
  */
 const PROPERTY_TYPO_CORRECTIONS: Record<string, string> = {
   type_: "type",
@@ -215,6 +215,8 @@ const PROPERTY_TYPO_CORRECTIONS: Record<string, string> = {
   parameters_: "parameters",
   returnType_: "returnType",
   cyclomaticComplexity_: "cyclomaticComplexity",
+  cyclometicComplexity: "cyclomaticComplexity",
+  cyclometicComplexity_: "cyclomaticComplexity",
   linesOfCode_: "linesOfCode",
   codeSmells_: "codeSmells",
   implementation_: "implementation",
@@ -443,7 +445,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
           if (numericOffset > 0) {
             const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
-            const isAfterPropertyBoundary = /[}\],][\s\n]*$/.test(beforeMatch);
+            const isAfterPropertyBoundary = /[}\],][\s\n]*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
 
             if (!isAfterPropertyBoundary && numericOffset > 20) {
               const largerContext = sanitized.substring(
@@ -471,7 +473,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
           hasChanges = true;
           diagnostics.push(
-            `Fixed property name with missing closing quote and colon: "${propertyNameStr} " -> "${propertyNameStr}":`,
+            `Fixed property name with missing colon: "${propertyNameStr} " -> "${propertyNameStr}": "${valueStr}"`,
           );
           return `"${propertyNameStr}": "${valueStr}"`;
         },
