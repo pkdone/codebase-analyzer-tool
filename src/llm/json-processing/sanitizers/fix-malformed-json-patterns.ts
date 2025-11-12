@@ -1724,6 +1724,175 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 13: Remove asterisk before property names =====
+    // Pattern: `* "purpose":` -> `"purpose":`
+    // This handles markdown list item markers that shouldn't be in JSON
+    const asteriskBeforePropertyPattern =
+      /([}\],]|\n|^)(\s*)\*\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
+    sanitized = sanitized.replace(
+      asteriskBeforePropertyPattern,
+      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /^\s*$/.test(beforeMatch) ||
+          numericOffset < 200 ||
+          /,\s*\n\s*$/.test(beforeMatch);
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyWithQuoteStr =
+            typeof propertyWithQuote === "string" ? propertyWithQuote : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push("Removed asterisk before property name");
+          }
+          return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 14: Remove stray dashes after commas/array delimiters =====
+    // Pattern: `],-` -> `],` or `,-` -> `,`
+    const strayDashPattern = /([}\],])\s*-\s*([,}\]]|\n|$)/g;
+    sanitized = sanitized.replace(strayDashPattern, (match, delimiter, after, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+      const isValidContext =
+        /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+
+      if (isValidContext) {
+        hasChanges = true;
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const afterStr = typeof after === "string" ? after : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed stray dash after delimiter");
+        }
+        return `${delimiterStr}${afterStr}`;
+      }
+
+      return match;
+    });
+
+    // ===== Pattern 15: Fix missing colons after property names =====
+    // Pattern: `"type" "JsonCommand"` -> `"type": "JsonCommand"`
+    const missingColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      missingColonPattern,
+      (match, propertyName, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this looks like a property name followed by a value (not two array elements)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /:\s*{\s*$/.test(beforeMatch);
+
+        // Make sure we're not in an array context (where two quoted strings would be array elements)
+        let isInArrayContext = false;
+        if (!isPropertyContext) {
+          let bracketDepth = 0;
+          let braceDepth = 0;
+          let inString = false;
+          let escape = false;
+          for (let i = beforeMatch.length - 1; i >= 0; i--) {
+            const char = beforeMatch[i];
+            if (escape) {
+              escape = false;
+              continue;
+            }
+            if (char === "\\") {
+              escape = true;
+              continue;
+            }
+            if (char === '"') {
+              inString = !inString;
+              continue;
+            }
+            if (!inString) {
+              if (char === "]") {
+                bracketDepth++;
+              } else if (char === "[") {
+                bracketDepth--;
+                if (bracketDepth >= 0 && braceDepth <= 0) {
+                  isInArrayContext = true;
+                  break;
+                }
+              } else if (char === "}") {
+                braceDepth++;
+              } else if (char === "{") {
+                braceDepth--;
+              }
+            }
+          }
+        }
+
+        if (isPropertyContext && !isInArrayContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing colon: "${propertyNameStr}" "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 16: Fix typos in property names like "name":a": =====
+    // Pattern: `"name":a": "command"` -> `"name": "command"`
+    const typoInPropertyNamePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-z])"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      typoInPropertyNamePattern,
+      (match, propertyName, typoChar, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /:\s*{\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed typo in property name: "${propertyNameStr}":${typoChar}": "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 
