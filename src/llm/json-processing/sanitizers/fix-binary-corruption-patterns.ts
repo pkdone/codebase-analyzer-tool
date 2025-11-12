@@ -49,12 +49,25 @@ export const fixBinaryCorruptionPatterns: Sanitizer = (jsonString: string): Sani
     // Pattern: Remove all binary corruption markers <y_bin_XXX>
     // This is a simple, generic approach that removes the markers and lets
     // other sanitizers (like unifiedSyntaxSanitizer) handle any resulting typos
+    // Also handles cases where the marker appears before opening braces: `<y_bin_305>{` -> `{`
     sanitized = sanitized.replace(BINARY_CORRUPTION_REGEX, (match, offset: unknown) => {
       const numericOffset = typeof offset === "number" ? offset : 0;
 
       // Check if we're inside a string literal - if so, don't modify
       if (isInStringAt(numericOffset, sanitized)) {
         return match;
+      }
+
+      // Check if there's an opening brace immediately after the marker
+      const afterMarker = sanitized.substring(
+        numericOffset + match.length,
+        numericOffset + match.length + 1,
+      );
+      if (afterMarker === "{") {
+        // The marker is before an opening brace, just remove the marker
+        hasChanges = true;
+        diagnostics.push(`Removed binary corruption marker before opening brace: ${match}`);
+        return "";
       }
 
       // Remove the marker - let other sanitizers handle any resulting issues

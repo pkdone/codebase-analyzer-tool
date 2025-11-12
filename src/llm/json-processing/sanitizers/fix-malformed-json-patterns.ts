@@ -464,6 +464,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
     // ===== Pattern 11: Remove stray single characters before property names =====
     // Pattern: `t      "name":` -> `      "name":`
+    // Also handles: `t      "mechanism":` in arrays
     const strayCharBeforePropertyPattern =
       /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
@@ -483,11 +484,53 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         }
 
         // Check if we're in a valid context (after delimiter, newline, or start)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /^\s*$/.test(beforeMatch) ||
+          numericOffset < 100 ||
+          /,\s*\n\s*$/.test(beforeMatch);
 
-        if (isValidContext) {
+        // Also check if we're in an array context (after a comma in an array)
+        let isInArrayContext = false;
+        if (!isValidContext) {
+          let bracketDepth = 0;
+          let braceDepth = 0;
+          let inString = false;
+          let escape = false;
+          for (let i = beforeMatch.length - 1; i >= 0; i--) {
+            const char = beforeMatch[i];
+            if (escape) {
+              escape = false;
+              continue;
+            }
+            if (char === "\\") {
+              escape = true;
+              continue;
+            }
+            if (char === '"') {
+              inString = !inString;
+              continue;
+            }
+            if (!inString) {
+              if (char === "]") {
+                bracketDepth++;
+              } else if (char === "[") {
+                bracketDepth--;
+                if (bracketDepth >= 0 && braceDepth <= 0) {
+                  isInArrayContext = true;
+                  break;
+                }
+              } else if (char === "}") {
+                braceDepth++;
+              } else if (char === "{") {
+                braceDepth--;
+              }
+            }
+          }
+        }
+
+        if (isValidContext || isInArrayContext) {
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
@@ -568,9 +611,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
     // ===== Pattern 14: Remove stray text after closing braces =====
     // Pattern: `},ce` -> `},`
-    const strayTextAfterBracePattern = /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g;
+    const strayTextAfterBraceCommaPattern = /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g;
     sanitized = sanitized.replace(
-      strayTextAfterBracePattern,
+      strayTextAfterBraceCommaPattern,
       (match, delimiter, strayText, nextToken, offset: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
         if (isInStringAt(numericOffset, sanitized)) {
@@ -804,6 +847,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // Pattern: `import lombok.RequiredArgsConstructor",` -> `"import lombok.RequiredArgsConstructor",`
     // Also handles: `fineract.infrastructure.event...",` -> `"fineract.infrastructure.event...",`
     // This pattern detects strings in arrays that are missing the opening quote
+    // Improved to handle more cases including package names with dots
     const missingOpeningQuoteInArrayPattern =
       /([[\s,]\s*)([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,/g;
     sanitized = sanitized.replace(
@@ -820,6 +864,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         let braceDepth = 0;
         let inString = false;
         let escape = false;
+        let foundArrayContext = false;
         for (let i = beforeMatch.length - 1; i >= 0; i--) {
           const char = beforeMatch[i];
           if (escape) {
@@ -841,15 +886,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
               bracketDepth--;
               if (bracketDepth >= 0 && braceDepth <= 0) {
                 // We're in an array context
-                hasChanges = true;
-                const prefixStr = typeof prefix === "string" ? prefix : "";
-                const stringValueStr = typeof stringValue === "string" ? stringValue : "";
-                if (diagnostics.length < 10) {
-                  diagnostics.push(
-                    `Fixed missing opening quote in array element: ${stringValueStr}" -> "${stringValueStr}"`,
-                  );
-                }
-                return `${prefixStr}"${stringValueStr}",`;
+                foundArrayContext = true;
+                break;
               }
             } else if (char === "}") {
               braceDepth++;
@@ -857,6 +895,22 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
               braceDepth--;
             }
           }
+        }
+
+        // Also check if we're after a comma and newline (common in arrays)
+        const isAfterCommaNewline = /,\s*\n\s*$/.test(beforeMatch);
+        const isAfterArrayElement = /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (foundArrayContext || isAfterCommaNewline || isAfterArrayElement) {
+          hasChanges = true;
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing opening quote in array element: ${stringValueStr}" -> "${stringValueStr}"`,
+            );
+          }
+          return `${prefixStr}"${stringValueStr}",`;
         }
 
         return match;
@@ -1166,6 +1220,91 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             );
           }
           return `"${propertyNameStr}": "${actualValueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 28: Remove placeholder text like _INSERT_DATABASE_INTEGRATION_ =====
+    // Pattern: `_INSERT_DATABASE_INTEGRATION_` -> remove (placeholder that wasn't replaced)
+    const placeholderPattern = /([}\],]|\n|^)(\s*)_[A-Z_]+_(\s*)([}\],]|\n|$)/g;
+    sanitized = sanitized.replace(
+      placeholderPattern,
+      (match, before, _whitespace, placeholder, _whitespaceAfter, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const beforeStr = typeof before === "string" ? before : "";
+        const afterStr = typeof after === "string" ? after : "";
+        const placeholderStr = typeof placeholder === "string" ? placeholder : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed placeholder text: ${placeholderStr}`);
+        }
+
+        // If there's a comma before, keep it; otherwise just return the delimiters
+        if (beforeStr.includes(",")) {
+          return `${beforeStr}\n${afterStr}`;
+        }
+        return `${beforeStr}${afterStr}`;
+      },
+    );
+
+    // ===== Pattern 29: Remove Python-style triple quotes =====
+    // Pattern: `extra_text="""` or `"""` -> remove (Python-style string delimiters, not JSON)
+    const pythonTripleQuotesPattern = /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+\s*=\s*)?"(""|""")/g;
+    sanitized = sanitized.replace(
+      pythonTripleQuotesPattern,
+      (match, delimiter, whitespace, _extraText, _quotes, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed Python-style triple quotes");
+        }
+        return `${delimiterStr}${whitespaceStr}`;
+      },
+    );
+
+    // Also handle triple quotes at the end of the JSON
+    sanitized = sanitized.replace(/"(""|""")\s*$/g, () => {
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push("Removed Python-style triple quotes at end");
+      }
+      return "";
+    });
+
+    // ===== Pattern 30: Remove stray text after closing brace =====
+    // Pattern: `}tribal-council-assistant-v1-final-answer` -> `}`
+    // Also handles: `}\nstray-text` -> `}`
+    const strayTextAfterBracePattern = /([}])\s*([a-zA-Z0-9\-_]{5,100})(\s*)$/g;
+    sanitized = sanitized.replace(
+      strayTextAfterBracePattern,
+      (match, brace, strayText, _whitespace, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this is at the end of the JSON (last closing brace)
+        const afterMatch = sanitized.substring(numericOffset + match.length);
+        if (afterMatch.trim().length === 0) {
+          hasChanges = true;
+          const braceStr = typeof brace === "string" ? brace : "";
+          const strayTextStr = typeof strayText === "string" ? strayText : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed stray text after closing brace: ${strayTextStr}`);
+          }
+          return braceStr;
         }
 
         return match;
