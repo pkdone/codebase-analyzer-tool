@@ -1893,6 +1893,307 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 43: Fix stray text "stop" before string values in arrays =====
+    // Pattern: `stop"org.apache.commons.lang3.BooleanUtils",` -> `"org.apache.commons.lang3.BooleanUtils",`
+    const stopBeforeStringPattern = /([}\],]|\n|^)(\s*)stop"([^"]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      stopBeforeStringPattern,
+      (match, delimiter, whitespace, stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed 'stop' before array element: "${stringValueStr.substring(0, 30)}..."`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 44: Fix stray characters at end of string values =====
+    // Pattern: `"GroupGeneralData>"` -> `"GroupGeneralData"`
+    // Also handles: `"value>"`, `"value]"`, `"value}"` etc.
+    const strayCharAtEndOfStringPattern = /"([^"]+)([>\]}])(\s*[,}\]]|\s*\n)/g;
+    sanitized = sanitized.replace(
+      strayCharAtEndOfStringPattern,
+      (match, stringValue, strayChar, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context (property value or array element)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValueContext =
+          /:\s*$/.test(beforeMatch) || /,\s*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
+
+        if (isValueContext) {
+          hasChanges = true;
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray character '${strayChar}' at end of string value: "${stringValueStr}"`,
+            );
+          }
+          return `"${stringValueStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 45: Fix stray single characters on their own lines =====
+    // Pattern: `    g\n    {` -> `    {`
+    // Also handles: `    g\n    "property":`
+    const strayCharOnOwnLinePattern = /([}\],]|\n|^)(\s+)([a-z])\s*\n\s*([{"])/g;
+    sanitized = sanitized.replace(
+      strayCharOnOwnLinePattern,
+      (match, delimiter, whitespace, strayChar, nextToken, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /^\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch);
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed stray character '${strayChar}' on its own line`);
+          }
+          return `${delimiterStr}${whitespaceStr}${nextTokenStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 46: Fix missing opening quotes and commas before strings =====
+    // Pattern: `Src/main/java/...",` -> `"Src/main/java/...",`
+    // Also handles: `namespace": "org.apache..."` -> `"namespace": "org.apache..."`
+    const missingQuoteAndCommaBeforeStringPattern =
+      /([}\],]|\n|^)(\s*)([A-Z][a-zA-Z0-9_./]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      missingQuoteAndCommaBeforeStringPattern,
+      (match, delimiter, whitespace, stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing opening quote before array element: ${stringValueStr}" -> "${stringValueStr}"`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 47: Fix malformed property names with spaces/extra chars =====
+    // Pattern: `"name A": "uriInfo"` -> `"name": "uriInfo"`
+    // Also handles: `"name A":`, `"property B":`
+    const malformedPropertyNameWithSpacePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+[A-Z]"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      malformedPropertyNameWithSpacePattern,
+      (match, propertyName, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed malformed property name with space: "${propertyNameStr} A": -> "${propertyNameStr}":`,
+            );
+          }
+          return `"${propertyNameStr}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 48: Fix non-ASCII characters in string values =====
+    // Pattern: `"org.apache.fineract.interoperation একজন.data.InteropQuoteRequestData"` ->
+    //          `"org.apache.fineract.interoperation.data.InteropQuoteRequestData"`
+    // This removes non-ASCII characters that appear in package names or other identifiers
+    // eslint-disable-next-line no-control-regex
+    const nonAsciiInStringValuePattern = /"([^"]*)([^\x00-\x7F]+)([^"]*)"/g;
+    sanitized = sanitized.replace(
+      nonAsciiInStringValuePattern,
+      (match, before, _nonAscii, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this looks like a package name or identifier (contains dots)
+        const beforeStr = typeof before === "string" ? before : "";
+        const afterStr = typeof after === "string" ? after : "";
+        const looksLikeIdentifier = beforeStr.includes(".") || afterStr.includes(".");
+
+        if (looksLikeIdentifier) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed non-ASCII characters from identifier: "${beforeStr}...${afterStr}"`,
+            );
+          }
+          return `"${beforeStr}${afterStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 49: Fix malformed property structures =====
+    // Pattern: `{"name": a": "groupId"` -> `{"name": "groupId"`
+    // Also handles: `{"name": a": "String"` -> `{"name": "String"`
+    const malformedPropertyStructurePattern = /"([^"]+)"\s*:\s*([a-z])"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      malformedPropertyStructurePattern,
+      (match, propertyName, strayChar, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed malformed property structure: "${propertyNameStr}": ${strayChar}": "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 50: Fix stray text after array elements =====
+    // Pattern: `"org.apache.fineract...",\nwhich_is_implemented_by_this_class",` ->
+    //          `"org.apache.fineract...",`
+    const strayTextAfterArrayElementPattern = /"([^"]+)"\s*,\s*\n\s*([a-z_]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      strayTextAfterArrayElementPattern,
+      (match, value, strayText, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        // Check if stray text looks like explanatory text (contains underscores, is not a valid identifier)
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const looksLikeExplanatoryText =
+          strayTextStr.includes("_") && !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(strayTextStr);
+
+        if (isInArray && looksLikeExplanatoryText) {
+          hasChanges = true;
+          const valueStr = typeof value === "string" ? value : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray explanatory text after array element: "${valueStr}" + "${strayTextStr}"`,
+            );
+          }
+          return `"${valueStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 51: Fix explanatory text breaking JSON structure =====
+    // Pattern: `},\nthere are more methods, but the response is getting too long. I will stop here.\n    {` ->
+    //          `},\n    {`
+    const explanatoryTextBreakingJsonPattern =
+      /([}\]])\s*,\s*\n\s*(there are|but the response|getting too long|I will stop|I'll stop|for brevity)[^}]*\n\s*([{"])/gi;
+    sanitized = sanitized.replace(
+      explanatoryTextBreakingJsonPattern,
+      (match, delimiter, _explanatoryStart, nextToken, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed explanatory text breaking JSON structure");
+        }
+        return `${delimiterStr},\n    ${nextTokenStr}`;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 
