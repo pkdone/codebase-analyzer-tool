@@ -1530,6 +1530,200 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 37: Fix markdown list markers before property names =====
+    // Pattern: `* "purpose":` -> `"purpose":`
+    const markdownListMarkerPattern = /([}\],]|\n|^)(\s*)\*\s*("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
+    sanitized = sanitized.replace(
+      markdownListMarkerPattern,
+      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyWithQuoteStr =
+            typeof propertyWithQuote === "string" ? propertyWithQuote : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push("Removed markdown list marker (*) before property");
+          }
+          return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 38: Fix typo "orgain" -> "org" in package names =====
+    // Pattern: `"orgain.apache.fineract...` -> `"org.apache.fineract...`
+    const orgainTypoPattern = /"orgain\.apache\.([a-zA-Z0-9_.]+)"/g;
+    sanitized = sanitized.replace(orgainTypoPattern, (match, packagePath, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      hasChanges = true;
+      const packagePathStr = typeof packagePath === "string" ? packagePath : "";
+      if (diagnostics.length < 10) {
+        diagnostics.push(
+          `Fixed typo in package name: orgain.apache.${packagePathStr} -> org.apache.${packagePathStr}`,
+        );
+      }
+      return `"org.apache.${packagePathStr}"`;
+    });
+
+    // ===== Pattern 39: Remove minus signs before array elements =====
+    // Pattern: `-"org.apache.fineract...",` -> `"org.apache.fineract...",`
+    const minusSignBeforeArrayElementPattern = /([}\],]|\n|^)(\s*)-\s*("([^"]+)"\s*,)/g;
+    sanitized = sanitized.replace(
+      minusSignBeforeArrayElementPattern,
+      (match, delimiter, whitespace, quotedElement, _elementValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const quotedElementStr = typeof quotedElement === "string" ? quotedElement : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push("Removed minus sign before array element");
+          }
+          return `${delimiterStr}${whitespaceStr}${quotedElementStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 40: Fix missing quotes on property names (codeSmells: -> "codeSmells":) =====
+    // Pattern: `codeSmells: [` -> `"codeSmells": [`
+    const missingQuotesOnPropertyPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\[|{)/g;
+    sanitized = sanitized.replace(
+      missingQuotesOnPropertyPattern,
+      (match, delimiter, whitespace, propertyName, valueStart, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStartStr = typeof valueStart === "string" ? valueStart : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing quotes on property: ${propertyNameStr}: -> "${propertyNameStr}":`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${propertyNameStr}": ${valueStartStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 41: Fix malformed property with extra colon/quote =====
+    // Pattern: `"name":g": "value"` -> `"name": "value"`
+    // Also handles: `"name":toBe": "value"` -> `"name": "toBe",` (if toBe looks like a value)
+    const malformedPropertyExtraColonPattern = /"([^"]+)"\s*:\s*([a-z]{1,10})"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      malformedPropertyExtraColonPattern,
+      (match, propertyName, insertedWord, actualValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const actualValueStr = typeof actualValue === "string" ? actualValue : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed malformed property: "${propertyNameStr}":${insertedWord}": "${actualValueStr}" -> "${propertyNameStr}": "${actualValueStr}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${actualValueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 42: Remove truncated/explanatory text after final closing brace =====
+    // Pattern: `}\nthere are more methods, but the response is too long. I will stop here.` -> `}`
+    const truncatedTextAfterFinalBracePattern =
+      /(})\s*\n\s*([a-z\s]{10,200}?)(?:\.\.\.|I will|stop here|for brevity|so many|methods|I'll|truncated|there are|but the response)[^}]*$/i;
+    sanitized = sanitized.replace(
+      truncatedTextAfterFinalBracePattern,
+      (match, closingBrace, strayText, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this is at the end of the JSON (last closing brace)
+        const afterMatch = sanitized.substring(numericOffset + match.length);
+        if (afterMatch.trim().length === 0) {
+          const strayTextStr = typeof strayText === "string" ? strayText : "";
+          const isTruncatedText =
+            /(so many|I will|stop here|for brevity|methods|I'll|truncated|there are|but the response|\.\.\.)/i.test(
+              strayTextStr,
+            ) &&
+            !strayTextStr.includes('"') &&
+            !strayTextStr.includes("{") &&
+            !strayTextStr.includes("}") &&
+            !strayTextStr.includes("[") &&
+            !strayTextStr.includes("]");
+
+          if (isTruncatedText) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Removed truncated/explanatory text after final closing brace: "${strayTextStr.substring(0, 50)}..."`,
+              );
+            }
+            const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "}";
+            return closingBraceStr;
+          }
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 

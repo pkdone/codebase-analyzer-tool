@@ -298,6 +298,106 @@ export const fixAdvancedJsonErrors: Sanitizer = (input: string): SanitizerResult
       },
     );
 
+    // ===== Pattern 7: Remove stray text in arrays (e.g., "from ...", "because it ...") =====
+    // Pattern: `"value",\nfrom "org.apache..."` -> `"value",\n    "org.apache...",`
+    // Also handles: `"value",\nbecause it is a private..."org.apache..."` -> `"value",\n    "org.apache...",`
+    const strayTextInArrayPattern =
+      /"([^"]+)"\s*,\s*\n\s*(from|because|since|as|when|where|while|if|although|though)\s+[^"]{10,200}?"([^"]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      strayTextInArrayPattern,
+      (match, value1, _strayPrefix, value2, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const value1Str = typeof value1 === "string" ? value1 : "";
+          const value2Str = typeof value2 === "string" ? value2 : "";
+          diagnostics.push(`Removed stray text in array between "${value1Str}" and "${value2Str}"`);
+          return `"${value1Str}",\n    "${value2Str}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 7b: Handle stray text at end of array elements
+    // Pattern: `"value",\nfrom "org.apache..."` -> `"value",\n    "org.apache..."` (when it's the last element)
+    const strayTextAtEndOfArrayElementPattern =
+      /"([^"]+)"\s*,\s*\n\s*(from|because|since|as|when|where|while|if|although|though)\s+[^"]{10,200}?"([^"]+)"\s*(\n\s*[}\],])/g;
+    sanitized = sanitized.replace(
+      strayTextAtEndOfArrayElementPattern,
+      (match, value1, _strayPrefix, value2, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const value1Str = typeof value1 === "string" ? value1 : "";
+          const value2Str = typeof value2 === "string" ? value2 : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          diagnostics.push(
+            `Removed stray text in array and preserved both values: "${value1Str}" and "${value2Str}"`,
+          );
+          return `"${value1Str}",\n    "${value2Str}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 7c: Handle stray text that ends with a quote but isn't a valid array element
+    // Pattern: `"value",\nbecause it is a private inner class and not a public method.",\n    "nextValue",`
+    // This handles cases where the stray text ends with a quote and comma, but isn't a valid JSON string
+    const strayTextWithQuotePattern =
+      /"([^"]+)"\s*,\s*\n\s*(from|because|since|as|when|where|while|if|although|though)\s+[^"]{10,200}?"\s*,\s*\n\s*"([^"]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      strayTextWithQuotePattern,
+      (match, value1, _strayPrefix, value2, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const value1Str = typeof value1 === "string" ? value1 : "";
+          const value2Str = typeof value2 === "string" ? value2 : "";
+          diagnostics.push(
+            `Removed stray text with quote in array between "${value1Str}" and "${value2Str}"`,
+          );
+          return `"${value1Str}",\n    "${value2Str}",`;
+        }
+
+        return match;
+      },
+    );
+
     // Pattern 6b: "type": "Long"\n    "is nullable" -> "type": "Long",
     const textAfterValuePattern2 =
       /"([^"]+)"\s*:\s*"([^"]+)"\s*\n\s*"([^"]+)"\s*,\s*\n\s*"([^"]+)"\s*:/g;
