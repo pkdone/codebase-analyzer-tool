@@ -2598,6 +2598,145 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 60: Fix malformed property syntax like `{- "name"` =====
+    // Pattern: `{- "name":` -> `{ "name":`
+    // This handles cases where there's a missing quote before the opening brace
+    const malformedPropertyStartPattern = /\{-\s*"([^"]+)"\s*:/g;
+    sanitized = sanitized.replace(
+      malformedPropertyStartPattern,
+      (match, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed malformed property start: {- "${propertyNameStr}" -> { "${propertyNameStr}"`,
+          );
+        }
+        return `{ "${propertyNameStr}":`;
+      },
+    );
+
+    // ===== Pattern 61: Fix missing quotes on property names with string values like `name: "value"` =====
+    // Pattern: `name: "value"` -> `"name": "value"`
+    // This handles cases where both quotes are missing around the property name and the value is a string
+    // Note: Pattern 40 already handles missing quotes when followed by [ or {
+    const missingQuotesOnPropertyWithStringPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      missingQuotesOnPropertyWithStringPattern,
+      (match, delimiter, whitespace, propertyName, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+
+          // Skip if it's a JSON keyword
+          const jsonKeywords = ["true", "false", "null", "undefined"];
+          if (!jsonKeywords.includes(propertyNameStr.toLowerCase())) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed missing quotes on property: ${propertyNameStr}: "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+              );
+            }
+            return `${delimiterStr}${whitespaceStr}"${propertyNameStr}": "${valueStr}"`;
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 62: Fix truncated text patterns with markers like `cyclomaticComplexity: 1,_OF_CODE` =====
+    // Pattern: `property: value,_OF_CODE` -> `property: value,`
+    // This handles cases where text is truncated with patterns like `_OF_CODE`, `_CODE`, etc.
+    // Note: Pattern 17 already handles general truncated text like "so many methods..."
+    const truncatedTextMarkerPattern = /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([^,}]+),(_[A-Z_]+)/g;
+    sanitized = sanitized.replace(
+      truncatedTextMarkerPattern,
+      (match, propertyName, value, truncationMarker, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const truncationMarkerStr = typeof truncationMarker === "string" ? truncationMarker : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed truncation marker: ${propertyNameStr}: ${valueStr},${truncationMarkerStr} -> ${propertyNameStr}: ${valueStr},`,
+            );
+          }
+          return `${propertyNameStr}: ${valueStr},`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 64: Fix string arrays instead of actual arrays =====
+    // Pattern: `"parameters": "[]"` -> `"parameters": []`
+    // This handles cases where an array is represented as a string instead of an actual array
+    const stringArrayPattern = /"([^"]+)"\s*:\s*"(\[\])"/g;
+    sanitized = sanitized.replace(
+      stringArrayPattern,
+      (match, propertyName, _arrayString, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed string array to actual array: "${propertyNameStr}": "[]" -> "${propertyNameStr}": []`,
+            );
+          }
+          return `"${propertyNameStr}": []`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 

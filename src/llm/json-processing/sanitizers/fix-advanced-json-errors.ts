@@ -229,6 +229,82 @@ export const fixAdvancedJsonErrors: Sanitizer = (input: string): SanitizerResult
       },
     );
 
+    // ===== Pattern 4b: Remove text appearing after JSON structure ends =====
+    // Pattern: }\n    so many methods... I will stop here.
+    // This handles cases where text appears after the final closing brace
+    // Also handles: },\n    so many me
+    const textAfterJsonEndPattern = /(}\s*)\n\s*([a-z][a-z\s]{5,200}?)(\.|\.\.\.|!|\?)?\s*$/i;
+    sanitized = sanitized.replace(
+      textAfterJsonEndPattern,
+      (match, closingBrace, strayText, _punctuation, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
+
+        // Check if it looks like descriptive text (contains common words like "so many", "I will", "stop", etc.)
+        const looksLikeDescriptiveText =
+          /\b(so\s+many|I\s+will|stop|here|methods|continue|proceed|skip|ignore)\b/i.test(
+            strayTextStr,
+          ) &&
+          !strayTextStr.includes('"') &&
+          !strayTextStr.includes("{") &&
+          !strayTextStr.includes("}") &&
+          !strayTextStr.includes("[") &&
+          !strayTextStr.includes("]");
+
+        if (looksLikeDescriptiveText) {
+          hasChanges = true;
+          const displayText =
+            strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
+          diagnostics.push(`Removed text after JSON structure: "${displayText}"`);
+          return closingBraceStr;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 4c: Remove text appearing after JSON structure in the middle (like "so many me" after a closing brace)
+    // Pattern: },\n    so many me
+    const textAfterJsonMiddlePattern = /(}\s*)\s*,\s*\n\s*([a-z][a-z\s]{2,50}?)(?=\s*[}\]]|$)/i;
+    sanitized = sanitized.replace(
+      textAfterJsonMiddlePattern,
+      (match, closingBrace, strayText, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
+
+        // Check if it looks like descriptive text
+        const looksLikeDescriptiveText =
+          /\b(so\s+many|I\s+will|stop|here|methods|continue|proceed|skip|ignore)\b/i.test(
+            strayTextStr,
+          ) &&
+          !strayTextStr.includes('"') &&
+          !strayTextStr.includes("{") &&
+          !strayTextStr.includes("}") &&
+          !strayTextStr.includes("[") &&
+          !strayTextStr.includes("]");
+
+        if (looksLikeDescriptiveText) {
+          hasChanges = true;
+          const displayText =
+            strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
+          diagnostics.push(`Removed text after JSON structure: "${displayText}"`);
+          return closingBraceStr;
+        }
+
+        return match;
+      },
+    );
+
     // ===== Pattern 5: Fix missing quotes after colons =====
     // Pattern: "name":isInterestTransfer": "boolean" -> "name": "isInterestTransfer",
     // The structure is: propertyName:unquotedValue": "nextPropertyValue"
