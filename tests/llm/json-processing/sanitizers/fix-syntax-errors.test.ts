@@ -51,6 +51,40 @@ describe("fixSyntaxErrors", () => {
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("_TRUNCATED_");
     });
+
+    it("should remove continuation text like 'to be continued...'", () => {
+      const input = `{
+    "name": "test",
+    "value": 123
+  },
+to be continued...
+  {
+    "name": "test2"
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("to be continued");
+      expect(result.content).not.toContain("continued");
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should remove continuation text like 'to be conti...'", () => {
+      const input = `{
+    "name": "test"
+  },
+to be conti...
+  {
+    "name": "test2"
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("to be conti");
+      expect(result.diagnostics).toBeDefined();
+    });
   });
 
   describe("concatenation chains", () => {
@@ -95,6 +129,51 @@ describe("fixSyntaxErrors", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"references": []}');
+    });
+
+    it("should fix missing opening quote after closing brace", () => {
+      const input = `{
+    "name": "test"
+  }
+connectionInfo": "n/a"
+}`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"connectionInfo"');
+      // The pattern should fix the missing quote, but the resulting structure may need further processing
+      // by other sanitizers (like fix-structural-errors) to be valid JSON
+      // Check that connectionInfo": is not present without a quote before it (not part of "connectionInfo":)
+      expect(result.content).not.toMatch(/[^"]connectionInfo":/);
+    });
+
+    it("should fix missing opening quote after closing bracket", () => {
+      const input = `[
+    "item1"
+  ]
+cyclomaticComplexity": 4
+}`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"cyclomaticComplexity"');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should fix missing colon after property name", () => {
+      const input = `{
+    "name "appTableId",
+    "type": "Long"
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "appTableId"');
+      expect(result.content).not.toContain('"name "appTableId"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
     });
 
     it("should merge concatenated string literals in property names", () => {
@@ -169,6 +248,22 @@ e "externalReferences": []
       expect(result.changed).toBe(true);
       expect(result.content).toContain('"externalReferences"');
       expect(result.content).not.toContain('e "externalReferences"');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should remove stray characters immediately before quotes (like 'ar'org.apa')", () => {
+      const input = `{
+    "externalReferences": [
+ar"org.apache.poi.ss.usermodel.Cell",
+      "org.apache.poi.ss.usermodel.Row"
+    ]
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.apache.poi.ss.usermodel.Cell"');
+      expect(result.content).not.toContain('ar"org.apache');
       expect(result.diagnostics).toBeDefined();
     });
 
@@ -262,6 +357,23 @@ e "externalReferences": []
         '"org.apache.fineract.portfolio.loanaccount.data.LoanChargePaidByData"',
       );
       expect(result.content).not.toContain('"org.apachefineract');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should fix non-ASCII character 'orgá.apache' to 'org.apache'", () => {
+      const input = `{
+    "internalReferences": [
+      "orgá.apache.fineract.portfolio.savings.domain.SavingsAccount"
+    ]
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.savings.domain.SavingsAccount"',
+      );
+      expect(result.content).not.toContain('"orgá.apache');
       expect(result.diagnostics).toBeDefined();
     });
   });

@@ -406,6 +406,38 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
       },
     );
 
+    // Pattern 5: Remove continuation/truncation text like "to be continued..." or "to be conti..."
+    // Match patterns like: `},\nto be continued...\n  {` or `]\ncontinued...\n[`
+    // Use a more flexible pattern that handles various whitespace scenarios
+    // Note: We match } or ] first, then optional whitespace and comma, then continuation text, then { or } or ]
+    const continuationTextPattern =
+      /([}\]])[,]?\s*\n\s*(to\s+be\s+(continued?\.?\.?\.?|conti\.?\.?\.?)|continued?\.?\.?\.?|\.\.\.\s*(to\s+be\s+)?continued?)\s*\n\s*([}\],]|\{)/gi;
+    sanitized = sanitized.replace(
+      continuationTextPattern,
+      (match, beforeDelim, _continuationText, _nested1, _nested2, afterDelim, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const beforeDelimStr = typeof beforeDelim === "string" ? beforeDelim : "";
+        // The after delimiter is the last group (after nested groups)
+        const afterDelimStr = typeof afterDelim === "string" ? afterDelim : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed continuation/truncation text");
+        }
+
+        // Check if there was a comma in the original match
+        const hadComma = match.includes(",");
+        // Return delimiters with comma preserved if it was there
+        if (hadComma) {
+          return `${beforeDelimStr},\n${afterDelimStr}`;
+        }
+        return `${beforeDelimStr}\n${afterDelimStr}`;
+      },
+    );
+
     // ===== Block 1: Fix concatenation chains =====
     if (sanitized.includes("+") && sanitized.includes('"')) {
       let concatenationChanges = 0;
@@ -496,16 +528,22 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
     let previousPass2 = "";
     while (previousPass2 !== sanitized) {
       previousPass2 = sanitized;
-      const missingOpeningQuotePattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)"\s*:/g;
+      // Enhanced pattern to catch more cases, including those at start of line or after newlines
+      // Also catch cases like `}connectionInfo":` (missing quote after closing brace)
+      // Also catch cases at start of object like `{eferences":`
+      // Pattern: delimiter (} ] , \n ^ {) followed by optional whitespace, then property name without opening quote
+      const missingOpeningQuotePattern = /([}\],]|\n|^|\{)(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)"\s*:/g;
       sanitized = sanitized.replace(
         missingOpeningQuotePattern,
-        (match, whitespace, propertyName, offset: unknown) => {
+        (match, delimiter, whitespace, propertyName, offset: unknown) => {
           const numericOffset = typeof offset === "number" ? offset : 0;
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const lowerPropertyName = propertyNameStr.toLowerCase();
-          const propertyNameStart = numericOffset + whitespaceStr.length;
+          const delimiterStr = delimiter ? String(delimiter) : "";
+          const propertyNameStart = numericOffset + delimiterStr.length + whitespaceStr.length;
 
+          // Skip if already has opening quote
           if (
             propertyNameStart > 0 &&
             sanitized[propertyNameStart - 1] === DELIMITERS.DOUBLE_QUOTE
@@ -513,8 +551,17 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
             return match;
           }
 
+          // Determine if we're after a property boundary
           let isAfterPropertyBoundary = false;
-          if (numericOffset > 0) {
+          if (
+            delimiterStr === "}" ||
+            delimiterStr === "]" ||
+            delimiterStr === "\n" ||
+            delimiterStr === "^" ||
+            delimiterStr === "{"
+          ) {
+            isAfterPropertyBoundary = true;
+          } else if (numericOffset > 0) {
             const beforeMatch = sanitized.substring(
               Math.max(0, numericOffset - 200),
               numericOffset,
@@ -523,10 +570,12 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
               /[}\],]\s*$/.test(beforeMatch) || /[}\],]\s*\n\s*$/.test(beforeMatch);
           }
 
+          // Skip if inside a string
           if (!isAfterPropertyBoundary && isInStringAt(propertyNameStart, sanitized)) {
             return match;
           }
 
+          // Map property name if needed
           let fixedName =
             PROPERTY_NAME_MAPPINGS[propertyNameStr] || PROPERTY_NAME_MAPPINGS[lowerPropertyName];
           if (!fixedName) {
@@ -542,17 +591,36 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
           }
 
           hasChanges = true;
-          diagnostics.push(
-            `Fixed property name with missing opening quote: ${propertyNameStr}" -> "${fixedName}"`,
-          );
-          return `${whitespaceStr}"${fixedName}":`;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed property name with missing opening quote: ${propertyNameStr}" -> "${fixedName}"`,
+            );
+          }
+          // If delimiter is opening brace, don't add comma
+          if (delimiterStr === "{") {
+            return `${delimiterStr}${whitespaceStr}"${fixedName}":`;
+          }
+          // If delimiter is closing brace/bracket, check if we need a comma
+          // Only add comma if there's whitespace/newline after the delimiter (not immediately adjacent)
+          if ((delimiterStr === "}" || delimiterStr === "]") && whitespaceStr.length > 0) {
+            // Check if there's already a comma in the context before
+            const beforeContext = sanitized.substring(
+              Math.max(0, numericOffset - 10),
+              numericOffset,
+            );
+            if (!beforeContext.includes(",")) {
+              return `${delimiterStr},${whitespaceStr}"${fixedName}":`;
+            }
+          }
+          return `${delimiterStr}${whitespaceStr}"${fixedName}":`;
         },
       );
     }
 
     // Pass 2a: Fix stray characters before strings in arrays/objects
-    // Pattern: `t    "org.apache...` or `e "externalReferences"` -> `"org.apache...` or `"externalReferences"`
+    // Pattern: `t    "org.apache...` or `e "externalReferences"` or `ar"org.apa` -> `"org.apache...` or `"externalReferences"` or `"org.apa`
     // Match single characters (not multi-character words) followed by whitespace and a quote
+    // Also match characters immediately before quotes (like `ar"org.apa`)
     // Require either 2+ spaces OR being after a newline/comma/brace to avoid false positives
     const strayCharBeforeStringPattern = /([}\],]|\n|^)(\s*)([a-z0-9])(\s+)(")/gi;
     sanitized = sanitized.replace(
@@ -598,6 +666,74 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
           const strayCharStr = typeof strayChar === "string" ? strayChar : "";
           if (diagnostics.length < 10) {
             diagnostics.push(`Removed stray character '${strayCharStr}' before string`);
+          }
+          return `${delimiterStr}${whitespaceStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pass 2a-2: Fix stray characters immediately before quotes (no whitespace, like `ar"org.apa`)
+    const strayCharImmediateBeforeQuotePattern = /([}\],]|\n|^|\[|,)(\s*)([a-z]{1,3})(")/gi;
+    sanitized = sanitized.replace(
+      strayCharImmediateBeforeQuotePattern,
+      (match, delimiter, whitespace, strayChars, _quote, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check context - only remove if it looks like stray text before a string value
+        // Skip the colon check if we're in an array context (delimiter is [), as arrays don't have colons
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        if (delimiterStr !== "[") {
+          const contextBefore = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+          const hasColonBefore = /:\s*[^:]*$/.test(contextBefore);
+          if (hasColonBefore) {
+            return match;
+          }
+        }
+
+        // Check if we're after a property boundary or in array context
+        // If delimiter is [, \n, ,, or ^, we're definitely in a valid context
+        let isAfterPropertyBoundary =
+          delimiterStr === "[" ||
+          delimiterStr === "," ||
+          delimiterStr === "\n" ||
+          delimiterStr === "^" ||
+          delimiterStr === "}" ||
+          delimiterStr === "]";
+
+        // Also check context before if delimiter is not one of the above
+        if (!isAfterPropertyBoundary && numericOffset > 0) {
+          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+          isAfterPropertyBoundary =
+            /[}\],]\s*$/.test(beforeMatch) ||
+            /[}\],]\s*\n\s*$/.test(beforeMatch) ||
+            /\[\s*$/.test(beforeMatch) ||
+            /\[\s*\n\s*$/.test(beforeMatch) ||
+            numericOffset < 200;
+        }
+
+        // Check what comes after the quote - if it looks like a string value, remove the stray chars
+        // The match includes the quote, so we check what comes after the match
+        const afterMatch = sanitized.substring(
+          numericOffset + match.length,
+          numericOffset + match.length + 30,
+        );
+        // Check if it looks like a string value (starts with letters/org.apache pattern)
+        const looksLikeStringValue =
+          /^[a-zA-Z]/.test(afterMatch) || afterMatch.startsWith("org.apache");
+
+        if (isAfterPropertyBoundary && looksLikeStringValue) {
+          hasChanges = true;
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const strayCharsStr = typeof strayChars === "string" ? strayChars : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray characters '${strayCharsStr}' immediately before quote`,
+            );
           }
           return `${delimiterStr}${whitespaceStr}"`;
         }
@@ -747,6 +883,7 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
     let previousPass3 = "";
     while (previousPass3 !== sanitized) {
       previousPass3 = sanitized;
+      // Enhanced pattern to catch cases like "name "appTableId" -> "name": "appTableId"
       const missingClosingQuoteAndColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s+"([^"]+)"/g;
       sanitized = sanitized.replace(
         missingClosingQuoteAndColonPattern,
@@ -789,9 +926,11 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
           }
 
           hasChanges = true;
-          diagnostics.push(
-            `Fixed property name with missing colon: "${propertyNameStr} " -> "${propertyNameStr}": "${valueStr}"`,
-          );
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed property name with missing colon: "${propertyNameStr} " -> "${propertyNameStr}": "${valueStr}"`,
+            );
+          }
           return `"${propertyNameStr}": "${valueStr}"`;
         },
       );
@@ -1469,7 +1608,7 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
     // Pattern 4: Fix truncated strings (missing beginning)
     // Pattern: `axperience.Table"` -> `jakarta.persistence.Table"` (if we can detect it's truncated)
     // This is tricky - we'll detect strings that start with lowercase and look incomplete
-    const truncatedStringPattern = /"([a-z][a-zA-Z0-9_.]*)"\s*([,}\]]|$)/g;
+    const truncatedStringPattern = /"([^"]*)"\s*([,}\]]|$)/g;
     sanitized = sanitized.replace(
       truncatedStringPattern,
       (match, truncatedValue, terminator, offset: unknown) => {
@@ -1512,6 +1651,25 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
           const fixed = truncatedValueStr.replace(/org\.apachefineract/g, "org.apache.fineract");
           if (diagnostics.length < 10) {
             diagnostics.push(`Fixed missing dot in string: "${truncatedValueStr}" -> "${fixed}"`);
+          }
+          return `"${fixed}"${terminatorStr}`;
+        }
+
+        // Special case: "orgá.apache" -> "org.apache" (non-ASCII character)
+        // Check for any non-ASCII characters in org.apache patterns
+        // Match org followed by any non-ASCII character followed by .apache or just org followed by non-ASCII
+        // eslint-disable-next-line no-control-regex
+        if (
+          /org[^\u0000-\u007F]\.apache/.test(truncatedValueStr) ||
+          /^org[^\u0000-\u007F]/.test(truncatedValueStr)
+        ) {
+          hasChanges = true;
+          // eslint-disable-next-line no-control-regex
+          const fixed = truncatedValueStr.replace(/org([^\u0000-\u007F])/g, "org");
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed non-ASCII character in string: "${truncatedValueStr}" -> "${fixed}"`,
+            );
           }
           return `"${fixed}"${terminatorStr}`;
         }
