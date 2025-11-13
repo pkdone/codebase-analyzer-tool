@@ -1,6 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { DELIMITERS } from "../constants/json-processing.config";
-import { CONCATENATION_REGEXES } from "../constants/regex.constants";
+import { CONCATENATION_REGEXES, BINARY_CORRUPTION_REGEX } from "../constants/regex.constants";
 
 /**
  * Helper to determine if a position is inside a string literal.
@@ -242,38 +242,49 @@ const DIAGNOSTIC_TRUNCATION_LENGTH = 30;
  */
 
 /**
- * Unified sanitizer that fixes property names, property assignment syntax, and value syntax issues.
+ * Consolidated sanitizer that fixes syntax errors within structurally sound JSON.
  *
- * This sanitizer combines the functionality of six separate sanitizers:
- * 1. fixPropertyNames: Fixes all property name issues (truncations, typos, unquoted, concatenated, missing quotes)
- * 2. normalizePropertyAssignment: Normalizes property assignment syntax (:= to :, stray text, unquoted values, missing quotes)
- * 3. fixUndefinedValues: Converts undefined values to null
- * 4. fixCorruptedNumericValues: Fixes corrupted numeric values like _3 -> 3
- * 5. concatenationChainSanitizer: Fixes string concatenation expressions (e.g., "BASE + '/path'")
- * 6. fixUnescapedQuotesInStrings: Escapes unescaped quotes inside string values
+ * This sanitizer combines the functionality of:
+ * 1. unified-syntax-sanitizer: Property names, assignment syntax, undefined values, concatenation
+ * 2. fix-advanced-json-errors: Duplicate entries, truncated properties, stray text
+ * 3. fix-malformed-json-patterns: Various malformed patterns
+ * 4. fix-json-structure: Post-processing fixes (dangling properties, missing quotes in arrays, stray chars, corrupted pairs)
+ * 5. fix-binary-corruption-patterns: Binary corruption markers (e.g., <y_bin_XXX>)
+ * 6. remove-truncation-markers: Remove truncation markers (e.g., ...)
  *
  * ## Purpose
- * LLMs sometimes generate JSON with various property and value syntax issues:
- * - Property name issues: truncations, typos, unquoted, concatenated, missing quotes
- * - Assignment syntax: `:=` instead of `:`, stray text between colon and value
- * - Invalid literals: `undefined` values, corrupted numeric values
- * - Concatenation chains: JavaScript-style string concatenation
- * - Unescaped quotes: Quotes inside string values that break parsing
+ * LLMs sometimes generate JSON with syntax errors within structurally sound JSON:
+ * - Unquoted keys and strings
+ * - Single quotes instead of double quotes
+ * - String concatenation expressions
+ * - Invalid literals (undefined)
+ * - Property name typos and truncations
+ * - Duplicate/corrupted entries
+ * - Stray text
+ * - Dangling properties
+ * - Missing quotes in arrays
+ * - Corrupted property/value pairs
+ * - Binary corruption markers
+ * - Truncation markers
  *
  * This sanitizer handles all these issues in a single, efficient pass.
  *
  * ## Implementation
  * Applies fixes in logical order:
- * 1. Concatenation chains (fixes string concatenation expressions)
- * 2. Property names (fixes all property name issues)
- * 3. Invalid literals (undefined and corrupted numeric values)
- * 4. Property assignment (normalizes assignment syntax)
- * 5. Unescaped quotes (escapes quotes in string values)
+ * 1. Binary corruption (remove markers first)
+ * 2. Truncation markers (remove early)
+ * 3. Concatenation chains (fixes string concatenation expressions)
+ * 4. Property names (fixes all property name issues)
+ * 5. Invalid literals (undefined and corrupted numeric values)
+ * 6. Property assignment (normalizes assignment syntax)
+ * 7. Unescaped quotes (escapes quotes in string values)
+ * 8. Advanced errors (duplicate entries, stray text)
+ * 9. JSON structure fixes (dangling properties, missing quotes, corrupted pairs)
  *
  * @param input - The raw string content to sanitize
- * @returns Sanitizer result with property and value syntax fixes applied
+ * @returns Sanitizer result with syntax errors fixed
  */
-export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResult => {
+export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
   try {
     if (!input) {
       return { content: input, changed: false };
@@ -282,6 +293,118 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
     let sanitized = input;
     let hasChanges = false;
     const diagnostics: string[] = [];
+
+    // ===== Block 0: Remove binary corruption markers =====
+    sanitized = sanitized.replace(BINARY_CORRUPTION_REGEX, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+
+      // Check if we're inside a string literal - if so, don't modify
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      // Check if there's an opening brace immediately after the marker
+      const afterMarker = sanitized.substring(
+        numericOffset + match.length,
+        numericOffset + match.length + 1,
+      );
+      if (afterMarker === "{") {
+        // The marker is before an opening brace, just remove the marker
+        hasChanges = true;
+        diagnostics.push(`Removed binary corruption marker before opening brace: ${match}`);
+        return "";
+      }
+
+      // Remove the marker - let other sanitizers handle any resulting issues
+      hasChanges = true;
+      diagnostics.push(`Removed binary corruption marker: ${match}`);
+      return "";
+    });
+
+    // ===== Block 0b: Remove truncation markers =====
+    // Pattern 1: Remove standalone truncation marker lines
+    const truncationMarkerPattern =
+      /(,\s*)?\n(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\)|\.\.\.\s*\(truncated\)|truncated|\.\.\.\s*truncated)(\s*)\n/g;
+
+    sanitized = sanitized.replace(
+      truncationMarkerPattern,
+      (_match, optionalComma, _whitespaceBefore, marker) => {
+        const markerStr = typeof marker === "string" ? marker : "";
+        hasChanges = true;
+        diagnostics.push(`Removed truncation marker: "${markerStr.trim()}"`);
+        if (optionalComma) {
+          return ",\n\n";
+        }
+        return "\n\n";
+      },
+    );
+
+    // Pattern 2: Handle incomplete strings before closing delimiters
+    const incompleteStringPattern =
+      /"([^"]*?)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
+
+    sanitized = sanitized.replace(
+      incompleteStringPattern,
+      (_match, stringContent, _marker, _whitespace1, whitespace2, delimiter) => {
+        const contentStr = typeof stringContent === "string" ? stringContent : "";
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const ws2 = typeof whitespace2 === "string" ? whitespace2 : "";
+
+        hasChanges = true;
+        diagnostics.push(
+          `Fixed incomplete string before ${delimiterStr === "]" ? "array" : "object"} closure`,
+        );
+
+        return `"${contentStr}"${delimiterStr === "]" ? "," : ""}${ws2}${delimiterStr}`;
+      },
+    );
+
+    // Pattern 3: Handle truncation markers right before closing delimiters
+    const truncationBeforeDelimiterPattern =
+      /("\s*,\s*|\n)(\s*)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
+
+    sanitized = sanitized.replace(
+      truncationBeforeDelimiterPattern,
+      (_match, beforeMarker, _whitespace1, _marker, _whitespace2, whitespace3, delimiter) => {
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const ws3 = typeof whitespace3 === "string" ? whitespace3 : "";
+        const beforeStr = typeof beforeMarker === "string" ? beforeMarker : "";
+
+        hasChanges = true;
+        diagnostics.push(
+          `Removed truncation marker before ${delimiterStr === "]" ? "array" : "object"} closure`,
+        );
+
+        if (beforeStr.includes(",")) {
+          return `${beforeStr}\n${ws3}${delimiterStr}`;
+        }
+        return `\n${ws3}${delimiterStr}`;
+      },
+    );
+
+    // Pattern 4: Handle _TRUNCATED_ markers
+    const underscoreTruncatedPattern = /([}\],]|\n|^)(\s*)_TRUNCATED_(\s*)([}\],]|\n|$)/gi;
+    sanitized = sanitized.replace(
+      underscoreTruncatedPattern,
+      (match, before, _whitespace, _marker, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const beforeStr = typeof before === "string" ? before : "";
+        const afterStr = typeof after === "string" ? after : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed _TRUNCATED_ marker");
+        }
+
+        if (beforeStr.includes(",")) {
+          return `${beforeStr}\n${afterStr}`;
+        }
+        return `${beforeStr}${afterStr}`;
+      },
+    );
 
     // ===== Block 1: Fix concatenation chains =====
     if (sanitized.includes("+") && sanitized.includes('"')) {
@@ -1000,6 +1123,209 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       },
     );
 
+    // ===== Block 8: Fix advanced errors (duplicate entries, stray text) =====
+    // Pattern 1: Remove duplicate/corrupted array entries
+    const duplicateEntryPattern1 = /"([^"]+)"\s*,\s*\n\s*([a-z]+)\.[^"]*"\s*,/g;
+    sanitized = sanitized.replace(
+      duplicateEntryPattern1,
+      (match, validEntry, prefix, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isInArrayContext = /[[,]\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
+        const corruptionMarkers = ["extra", "duplicate", "repeat", "copy"];
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+
+        if (isInArrayContext && corruptionMarkers.includes(prefixStr.toLowerCase())) {
+          hasChanges = true;
+          const validEntryStr = typeof validEntry === "string" ? validEntry : "";
+          diagnostics.push(
+            `Removed duplicate/corrupted array entry starting with "${prefixStr}" after "${validEntryStr}"`,
+          );
+          return `"${validEntryStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 2: Remove stray text like "so many" between structures
+    const strayTextPattern = /([}\]])\s*,\s*\n\s*([a-z\s]{2,50})\n\s*([{"])/g;
+    sanitized = sanitized.replace(
+      strayTextPattern,
+      (match, delimiter, strayText, nextToken, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const nextTokenStr = typeof nextToken === "string" ? nextToken : "";
+
+        const isStrayText =
+          !strayTextStr.includes('"') &&
+          !strayTextStr.includes("{") &&
+          !strayTextStr.includes("}") &&
+          !strayTextStr.includes("[") &&
+          !strayTextStr.includes("]") &&
+          !/^\s*(true|false|null|undefined)\s*$/.test(strayTextStr);
+
+        if (isStrayText) {
+          hasChanges = true;
+          diagnostics.push(`Removed stray text: "${strayTextStr.trim()}"`);
+          return `${delimiterStr},\n    ${nextTokenStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Block 9: Fix JSON structure issues =====
+    // Pattern 1: Fix dangling properties
+    const danglingPropertyPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"(?=[,}\n])/g;
+    sanitized = sanitized.replace(danglingPropertyPattern, (match, propertyName, offset) => {
+      const offsetNum = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(offsetNum, sanitized)) {
+        return match;
+      }
+
+      const afterMatch = sanitized.substring(
+        offsetNum + match.length,
+        Math.min(offsetNum + match.length + 10, sanitized.length),
+      );
+
+      if (afterMatch.trim().startsWith(":")) {
+        return match;
+      }
+
+      if (/^\s*[":]/.test(afterMatch)) {
+        return match;
+      }
+
+      const delimiterMatch = /^\s*([,}\n])/.exec(afterMatch);
+      const delimiter = delimiterMatch ? delimiterMatch[1] : "";
+
+      if (delimiter) {
+        const beforeDelimiter = afterMatch.substring(0, afterMatch.indexOf(delimiter));
+        if (beforeDelimiter.includes(":")) {
+          return match;
+        }
+      }
+
+      hasChanges = true;
+      diagnostics.push(`Fixed dangling property: "${propertyName} " -> "${propertyName}": null`);
+
+      if (delimiter === "\n") {
+        return `"${propertyName}": null,`;
+      }
+      if (delimiter === ",") {
+        return `"${propertyName}": null,`;
+      }
+      return `"${propertyName}": null`;
+    });
+
+    // Pattern 2: Fix missing opening quotes in array strings
+    // Pattern: ["item1", item2", "item3"] -> ["item1", "item2", "item3"]
+    const missingOpeningQuotePattern1 = /([,[])\s*([a-zA-Z_$][a-zA-Z0-9_$.]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      missingOpeningQuotePattern1,
+      (match, delimiter, unquotedValue, offset) => {
+        const offsetNum = typeof offset === "number" ? offset : 0;
+        // Check if we're in an array context by looking for opening bracket before
+        const beforeMatch = sanitized.substring(Math.max(0, offsetNum - 500), offsetNum);
+        const hasOpeningBracket = beforeMatch.includes("[");
+        const hasOpeningBrace = beforeMatch.includes("{");
+
+        // Only fix if we're likely in an array (have [ before, or delimiter is [)
+        if (!hasOpeningBracket && delimiter !== "[") {
+          // Check if we're after a closing brace (might be in object, not array)
+          if (hasOpeningBrace && /}\s*$/.test(beforeMatch.trim())) {
+            return match;
+          }
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
+
+        const jsonKeywords = ["true", "false", "null", "undefined"];
+        if (jsonKeywords.includes(unquotedValueStr.toLowerCase())) {
+          return match;
+        }
+
+        hasChanges = true;
+        diagnostics.push(
+          `Fixed missing opening quote in array string: ${unquotedValueStr}" -> "${unquotedValueStr}"`,
+        );
+        return `${delimiterStr} "${unquotedValueStr}",`;
+      },
+    );
+
+    // Pattern 3: Fix stray characters after property values
+    const strayCharsAfterValuePattern =
+      /("(?:[^"\\]|\\.)*")(?:\s+)?([a-zA-Z_$0-9]+)(?=\s*[,}\]]|\s*\n)/g;
+    sanitized = sanitized.replace(
+      strayCharsAfterValuePattern,
+      (match, quotedValue, strayChars, offset) => {
+        const offsetNum = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(offsetNum, sanitized)) {
+          return match;
+        }
+
+        const quotedValueStr = typeof quotedValue === "string" ? quotedValue : "";
+        const strayCharsStr = typeof strayChars === "string" ? strayChars : "";
+
+        const afterMatchStart = offsetNum + match.length;
+        const afterMatch = sanitized.substring(afterMatchStart, afterMatchStart + 20);
+        const isValidAfterContext = /^\s*[,}\]]|^\s*\n/.test(afterMatch);
+
+        if (isValidAfterContext && strayCharsStr.length > 0) {
+          hasChanges = true;
+          diagnostics.push(
+            `Removed stray characters "${strayCharsStr}" after value ${quotedValueStr}`,
+          );
+          return quotedValueStr;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 4: Fix corrupted property/value pairs
+    // Pattern: "name":ICCID": "value" -> "name": "ICCID", "ICCID": "value"
+    // Also handle: "name":"ICCID": "value" (if quote was already added by another pattern)
+    const corruptedPattern1 =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"?([A-Za-z_$][a-zA-Z0-9_]*)"?\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      corruptedPattern1,
+      (match, propertyName, corruptedValue, nextPropertyValue, offset) => {
+        const offsetNum = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(offsetNum, sanitized)) {
+          return match;
+        }
+
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const corruptedValueStr = typeof corruptedValue === "string" ? corruptedValue : "";
+        const nextPropertyValueStr = typeof nextPropertyValue === "string" ? nextPropertyValue : "";
+
+        // Only fix if it looks like a corrupted pattern (value followed by quote-colon-quote)
+        // The corrupted value should be an identifier (starts with letter/underscore, all caps or mixed case)
+        if (corruptedValueStr.length > 0 && /^[A-Za-z_]/.test(corruptedValueStr)) {
+          hasChanges = true;
+          diagnostics.push(
+            `Fixed corrupted property/value pair: "${propertyNameStr}":${corruptedValueStr}" -> "${propertyNameStr}": "${corruptedValueStr}", "${corruptedValueStr}": "${nextPropertyValueStr}"`,
+          );
+          // Fix: "name": "ICCID", "ICCID": "value"
+          return `"${propertyNameStr}": "${corruptedValueStr}", "${corruptedValueStr}": "${nextPropertyValueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 
@@ -1010,11 +1336,11 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
     return {
       content: sanitized,
       changed: true,
-      description: "Fixed property and value syntax",
+      description: "Fixed syntax errors (quotes, properties, content)",
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    console.warn(`unifiedSyntaxSanitizer failed: ${String(error)}`);
+    console.warn(`fixSyntaxErrors sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

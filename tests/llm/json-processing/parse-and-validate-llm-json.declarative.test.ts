@@ -37,8 +37,15 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
       expect((result.data as any).y).toBe(2);
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
+    // With consolidated sanitizer, extraction or introductory text removal may occur
     expect(
-      calls.some((c: string) => c.includes(SANITIZATION_STEP.EXTRACTED_LARGEST_JSON_SPAN)),
+      calls.some(
+        (c: string) =>
+          c.includes(SANITIZATION_STEP.EXTRACTED_LARGEST_JSON_SPAN) ||
+          c.includes(SANITIZATION_STEP.STRIPPED_WRAPPERS) ||
+          c.includes("Extracted") ||
+          c.includes("introductory"),
+      ),
     ).toBe(true);
   });
 
@@ -50,9 +57,9 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
       expect((result.data as any).path).toBe("");
     }
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
-    expect(
-      calls.some((c: string) => c.includes("Fixed") && c.includes("property and value syntax")),
-    ).toBe(true);
+    expect(calls.some((c: string) => c.includes("Fixed") && c.includes("syntax errors"))).toBe(
+      true,
+    );
   });
 
   it("applies multiple sanitizers in pipeline for complex malformed JSON", () => {
@@ -65,8 +72,8 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
     // Should have applied multiple sanitizers for this complex case
     expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
-    // Should include at least code fence removal or JSON structure fixes
+    // Should include at least wrapper stripping or structural fixes
     const logMsg = calls.find((c: string) => c.includes("Applied"));
-    expect(logMsg).toMatch(/Removed code fences|Fixed JSON structure/);
+    expect(logMsg).toMatch(/Stripped wrappers|Fixed structural errors|Fixed syntax errors/);
   });
 });

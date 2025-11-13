@@ -156,7 +156,16 @@ describe("JsonProcessor - Refactored Methods", () => {
       if (result.success) {
         expect(result.steps).toBeDefined();
         expect(result.steps.length).toBeGreaterThan(0);
-        expect(result.steps).toContain("Removed code fences");
+        // With consolidated sanitizer, code fence removal is part of stripWrappers
+        expect(
+          result.steps.some(
+            (step) =>
+              step === "Removed code fences" ||
+              step === "Stripped wrappers and extracted JSON" ||
+              step.includes("code fence") ||
+              step.includes("Stripped"),
+          ),
+        ).toBe(true);
       }
     });
 

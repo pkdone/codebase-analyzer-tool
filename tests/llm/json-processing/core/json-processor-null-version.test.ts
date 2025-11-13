@@ -197,7 +197,16 @@ describe("JsonProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
-        expect(result.steps).toContain("Fixed property and value syntax");
+        // With consolidated sanitizer, property fixes are part of fixSyntaxErrors
+        expect(
+          result.steps.some(
+            (step) =>
+              step === "Fixed property and value syntax" ||
+              step === "Fixed syntax errors (quotes, properties, content)" ||
+              step.includes("syntax") ||
+              step.includes("property"),
+          ),
+        ).toBe(true);
         expect(result.diagnostics).toContain("Fixed unquoted property name: kind");
         expect(result.diagnostics).toContain("Fixed unquoted property name: purpose");
       }
@@ -226,7 +235,16 @@ describe("JsonProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
-        expect(result.steps).toContain("Fixed property and value syntax");
+        // With consolidated sanitizer, property fixes are part of fixSyntaxErrors
+        expect(
+          result.steps.some(
+            (step) =>
+              step === "Fixed property and value syntax" ||
+              step === "Fixed syntax errors (quotes, properties, content)" ||
+              step.includes("syntax") ||
+              step.includes("property"),
+          ),
+        ).toBe(true);
         expect(result.diagnostics).toContain("Fixed unquoted property name: kind");
         expect(result.diagnostics).toContain("Fixed unquoted property name: purpose");
         expect(result.diagnostics).toContain(

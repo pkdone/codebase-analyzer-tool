@@ -1,5 +1,4 @@
-import { unifiedSyntaxSanitizer } from "../../../src/llm/json-processing/sanitizers/unified-syntax-sanitizer";
-import { fixJsonStructure } from "../../../src/llm/json-processing/sanitizers/fix-json-structure";
+import { fixSyntaxErrors } from "../../../src/llm/json-processing/sanitizers/fix-syntax-errors";
 import { normalizeCharacters } from "../../../src/llm/json-processing/sanitizers/normalize-characters";
 
 /**
@@ -8,54 +7,54 @@ import { normalizeCharacters } from "../../../src/llm/json-processing/sanitizers
  * alter content inside valid JSON strings.
  */
 describe("Sanitizer String Content Safety", () => {
-  describe("unifiedSyntaxSanitizer (concatenation chains)", () => {
+  describe("fixSyntaxErrors (concatenation chains)", () => {
     it("preserves plus signs in string values", () => {
       const input = '{"description": "This calculates VAR_A + VAR_B"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = fixSyntaxErrors(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves code examples in strings", () => {
       const input = '{"example": "Use: BASE_PATH + \'/file.ts\'"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = fixSyntaxErrors(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves mathematical expressions in strings", () => {
       const input = '{"formula": "a + b + c = total"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = fixSyntaxErrors(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("preserves concatenation patterns in documentation strings", () => {
       const input = '{"docs": "To concatenate paths, use: basePath + subDir + fileName"}';
-      const result = unifiedSyntaxSanitizer(input);
+      const result = fixSyntaxErrors(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
   });
 
-  describe("fixJsonStructure (includes addMissingPropertyCommas functionality)", () => {
+  describe("fixSyntaxErrors (includes structural fixes)", () => {
     it("doesn't add commas inside multiline string values", () => {
       const input = '{"text": "Line 1\\nLine 2"}';
-      const result = fixJsonStructure(input);
+      const result = fixSyntaxErrors(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
 
     it("handles JSON with properly formatted properties", () => {
       const valid = '{"a": "value1",\n"b": "value2"}';
-      const result = fixJsonStructure(valid);
+      const result = fixSyntaxErrors(valid);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(valid);
     });
 
     it("preserves quoted text that looks like properties", () => {
       const input = '{"description": "Format: \\"key\\": \\"value\\""}';
-      const result = fixJsonStructure(input);
+      const result = fixSyntaxErrors(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });
@@ -92,11 +91,10 @@ describe("Sanitizer String Content Safety", () => {
         code: "return a + b + c;",
       });
 
-      const result1 = unifiedSyntaxSanitizer(input);
-      const result2 = fixJsonStructure(result1.content);
-      const result3 = normalizeCharacters(result2.content);
+      const result1 = fixSyntaxErrors(input);
+      const result2 = normalizeCharacters(result1.content);
 
-      expect(JSON.parse(result3.content)).toEqual(JSON.parse(input));
+      expect(JSON.parse(result2.content)).toEqual(JSON.parse(input));
     });
 
     it("preserves embedded code with special characters", () => {
@@ -106,27 +104,25 @@ describe("Sanitizer String Content Safety", () => {
         path: "C:\\\\Program Files\\\\App",
       });
 
-      const result1 = unifiedSyntaxSanitizer(input);
-      const result2 = fixJsonStructure(result1.content);
-      const result3 = normalizeCharacters(result2.content);
+      const result1 = fixSyntaxErrors(input);
+      const result2 = normalizeCharacters(result1.content);
 
       // Should remain unchanged through all sanitizers (no over-escaping present)
-      expect(result3.content).toBe(input);
+      expect(result2.content).toBe(input);
     });
   });
 
   describe("Edge cases with embedded JSON-like structures", () => {
     it("preserves JSON examples in documentation", () => {
       const input = '{"doc": "Example: {\\"key\\": \\"value\\"}"}';
-      const result1 = unifiedSyntaxSanitizer(input);
-      const result2 = fixJsonStructure(result1.content);
+      const result = fixSyntaxErrors(input);
 
-      expect(result2.content).toBe(input);
+      expect(result.content).toBe(input);
     });
 
     it("handles strings containing array-like patterns", () => {
       const input = '{"description": "Returns [1, 2, 3]"}';
-      const result = fixJsonStructure(input);
+      const result = fixSyntaxErrors(input);
       expect(result.changed).toBe(false);
       expect(result.content).toBe(input);
     });

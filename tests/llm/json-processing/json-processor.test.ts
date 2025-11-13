@@ -473,7 +473,7 @@ describe("JsonProcessor", () => {
         );
         expect(result.success).toBe(true);
         if (result.success) {
-          // New behavior: fast path parse does not record a trimWhitespace step; steps may be empty
+          // New behavior: fast path parse does not record sanitization steps; steps may be empty
           expect(Array.isArray(result.steps)).toBe(true);
           expect(result.steps.length).toBe(0);
         }
@@ -489,10 +489,12 @@ describe("JsonProcessor", () => {
           completionOptions,
         );
         if (result.success) {
-          // Successful repair: steps should include missing comma fix (now handled by addMissingCommas)
+          // Successful repair: steps should include missing comma fix (now handled by fixStructuralErrors)
           const stepsJoined = result.steps.join(" | ");
           expect(
-            /missing comma/i.test(stepsJoined) || /Fixed JSON structure/i.test(stepsJoined),
+            /missing comma/i.test(stepsJoined) ||
+              /Fixed.*structural/i.test(stepsJoined) ||
+              /Fixed.*syntax/i.test(stepsJoined),
           ).toBe(true);
         } else {
           // Failure path: diagnostics propagated into JsonProcessingError if available

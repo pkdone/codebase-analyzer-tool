@@ -52,6 +52,9 @@ export const SANITIZATION_STEP = Object.freeze({
   NORMALIZED_ESCAPE_SEQUENCES: "Normalized escape sequences, control characters, and curly quotes",
   NORMALIZED_PROPERTY_ASSIGNMENT: "Normalized property assignment syntax",
   FIXED_DANGLING_PROPERTIES: "Fixed dangling properties (added null values)",
+  STRIPPED_WRAPPERS: "Stripped wrappers and extracted JSON",
+  FIXED_STRUCTURAL_ERRORS: "Fixed structural errors (commas, delimiters, truncation)",
+  FIXED_SYNTAX_ERRORS: "Fixed syntax errors (quotes, properties, content)",
 } as const);
 
 /**
