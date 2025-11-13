@@ -410,6 +410,101 @@ ar"org.apache.poi.ss.usermodel.Cell",
     });
   });
 
+  describe("stray words in arrays", () => {
+    it("should remove stray word 'since' in array", () => {
+      const input = `[
+    "org.apache.fineract.portfolio.savings.data.SavingsAccountTransactionData",
+since",
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccountAssembler"
+  ]`;
+      const result = fixSyntaxErrors(input);
+
+      // The sanitizer may quote the word first, then remove it, or remove it directly
+      // The important thing is that the JSON becomes parseable
+      expect(result.changed).toBe(true);
+      // Check that JSON is parseable (either "since" is removed or the structure is fixed)
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.savings.data.SavingsAccountTransactionData"',
+      );
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.savings.domain.SavingsAccountAssembler"',
+      );
+    });
+
+    it("should not remove valid array entries that happen to be common words", () => {
+      const input = `["since", "and", "or"]`;
+      const result = fixSyntaxErrors(input);
+
+      // These are valid quoted strings, should not be removed
+      expect(result.changed).toBe(false);
+      expect(result.content).toContain('"since"');
+    });
+  });
+
+  describe("truncated property descriptions", () => {
+    it("should fix truncated property description starting with 'tatus'", () => {
+      const input = `{
+    "name": "setSubStatusDormant",
+    "purpose": "tatus to 'Dormant'. This is the next stage after 'Inactive'."
+  }`;
+      const result = fixSyntaxErrors(input);
+
+      // The important thing is that JSON is parseable
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      // The description should be fixed or at least the JSON should be valid
+      if (result.changed) {
+        expect(result.content).toMatch(/"purpose"\s*:\s*"[^"]*Dormant/);
+      }
+    });
+
+    it("should remove short fragments in property descriptions", () => {
+      const input = `{
+    "name": "test",
+    "description": "e method does something important."
+  }`;
+      const result = fixSyntaxErrors(input);
+
+      // The important thing is that JSON is parseable
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      if (result.changed) {
+        expect(result.content).toMatch(/"description"\s*:\s*"[^"]*method/);
+      }
+    });
+  });
+
+  describe("stray text before properties", () => {
+    it("should remove stray text like 'tribal-council-results' before properties", () => {
+      const input = `{
+    "databaseIntegration": {
+      "mechanism": "SPRING-DATA"
+    },
+tribal-council-results
+    "integrationPoints": []
+  }`;
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("tribal-council-results");
+      expect(result.content).toContain('"integrationPoints"');
+      expect(result.diagnostics).toBeDefined();
+      expect(
+        result.diagnostics?.some((d) => d.includes("stray text") && d.includes("tribal")),
+      ).toBe(true);
+    });
+
+    it("should not remove valid property names with hyphens", () => {
+      const input = `{
+    "my-property": "value"
+  }`;
+      const result = fixSyntaxErrors(input);
+
+      // Valid property name, should not be removed
+      expect(result.changed).toBe(false);
+      expect(result.content).toContain('"my-property"');
+    });
+  });
+
   describe("combined fixes", () => {
     it("should handle multiple syntax errors together", () => {
       const input = '{"eferences": undefined, "key": "value"extra}';

@@ -315,21 +315,26 @@ export const fixStructuralErrors: Sanitizer = (input: string): SanitizerResult =
             if (char !== expectedCloser) {
               // Mismatched delimiter - track for correction
               // Special case: We see ] but expected }, AND there's a [ on the stack
+              // This means we need to close the object first, then the array
               if (
                 char === DELIMITERS.CLOSE_BRACKET &&
                 expectedCloser === DELIMITERS.CLOSE_BRACE &&
                 delimiterStack.length >= 1 &&
                 delimiterStack[delimiterStack.length - 1].opener === DELIMITERS.OPEN_BRACKET
               ) {
+                // We need to close the object with }, then close the array with ]
+                // Check if there's more content after this delimiter that suggests we need both
                 const nextChar = peekNextNonWhitespace(i);
-                if (nextChar === DELIMITERS.DOUBLE_QUOTE) {
+                // Only insert both if next char is comma (indicating more properties/elements)
+                // or quote (indicating a property name follows)
+                if (nextChar === "," || nextChar === DELIMITERS.DOUBLE_QUOTE) {
                   delimiterCorrections.push({
                     index: result.length,
                     wrongChar: char,
                     correctChar: DELIMITERS.CLOSE_BRACE,
                     insertAfter: DELIMITERS.CLOSE_BRACKET,
                   });
-                  delimiterStack.pop(); // Pop the array opener
+                  delimiterStack.pop(); // Pop the array opener since we'll close it
                 } else {
                   delimiterCorrections.push({
                     index: result.length,

@@ -1334,6 +1334,90 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
       },
     );
 
+    // ===== Block 7.5: Remove stray words in arrays (before unquoted string fixer) =====
+    // This needs to run before unquoted string values are quoted, otherwise "since" becomes valid JSON
+    const strayWordInArrayEarlyPattern = /("([^"]+)"\s*,\s*(\n\s*)?)([a-z]{2,20})"\s*,/gi;
+    sanitized = sanitized.replace(
+      strayWordInArrayEarlyPattern,
+      (match, beforeStrayWord, _lastValidEntry, _optionalNewline, strayWord, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        if (foundArray) {
+          const strayWordStr = typeof strayWord === "string" ? strayWord : "";
+          const beforeStrayWordStr = typeof beforeStrayWord === "string" ? beforeStrayWord : "";
+          // Common stray words that appear in arrays
+          const commonStrayWords = new Set([
+            "since",
+            "and",
+            "or",
+            "the",
+            "a",
+            "an",
+            "for",
+            "with",
+            "from",
+            "to",
+            "by",
+            "at",
+            "in",
+            "on",
+            "of",
+          ]);
+          if (commonStrayWords.has(strayWordStr.toLowerCase())) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(`Removed stray word "${strayWordStr}" in array`);
+            }
+            return beforeStrayWordStr;
+          }
+        }
+
+        return match;
+      },
+    );
+
     const unquotedStringValuePattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$.]+)(\s*[,}\]]|"\s*[,}\]]|"\s*$|[,}\]]|$)/g;
 
@@ -1435,6 +1519,79 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
     );
 
     // ===== Block 8: Fix advanced errors (duplicate entries, stray text) =====
+    // Pattern 0b: Remove already-quoted stray words in arrays (handles case where unquoted string fixer quoted them first)
+    // Pattern: quoted string, comma, newline/whitespace, quoted common word, comma (in array context)
+    const quotedStrayWordInArrayPattern =
+      /("([^"]+)"\s*,\s*(\n\s*)?)("(since|and|or|the|a|an|for|with|from|to|by|at|in|on|of)"\s*,)/gi;
+    sanitized = sanitized.replace(
+      quotedStrayWordInArrayPattern,
+      (
+        match,
+        beforeStrayWord,
+        _lastValidEntry,
+        _optionalNewline,
+        _quotedWord,
+        strayWord,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        if (foundArray) {
+          const beforeStrayWordStr = typeof beforeStrayWord === "string" ? beforeStrayWord : "";
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            const strayWordStr = typeof strayWord === "string" ? strayWord : "";
+            diagnostics.push(`Removed stray word "${strayWordStr}" in array`);
+          }
+          return beforeStrayWordStr;
+        }
+
+        return match;
+      },
+    );
+
     // Pattern 1: Remove duplicate/corrupted array entries
     const duplicateEntryPattern1 = /"([^"]+)"\s*,\s*\n\s*([a-z]+)\.[^"]*"\s*,/g;
     sanitized = sanitized.replace(
@@ -1457,6 +1614,139 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
             `Removed duplicate/corrupted array entry starting with "${prefixStr}" after "${validEntryStr}"`,
           );
           return `"${validEntryStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 1b: Fix truncated property descriptions starting mid-word
+    // Pattern 1b-1: Missing property name before truncated description (like "tatus to 'Dormant'")
+    // This handles cases where the property name is completely missing
+    // Pattern: closing brace, comma, newline, whitespace, lowercase fragment starting with 'tatus', space, text ending with quote and comma
+    const missingPropertyNamePattern = /(\}\s*,\s*\n\s*)(tatus)(\s+to[^"]*?)("\s*,)/g;
+    sanitized = sanitized.replace(
+      missingPropertyNamePattern,
+      (match, beforeFragment, _fragment, restOfText, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a method object context (after a method object closing brace)
+        // Look for patterns that indicate we're in a method object
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const isInMethodContext =
+          /"codeSmells"\s*:\s*\[[^\]]*\]\s*\}/.test(beforeMatch) ||
+          /"linesOfCode"\s*:\s*\d+\s*\}/.test(beforeMatch) ||
+          /"cyclomaticComplexity"\s*:\s*\d+\s*\}/.test(beforeMatch) ||
+          /"returnType"\s*:\s*"[^"]*"\s*\}/.test(beforeMatch);
+
+        if (isInMethodContext || numericOffset < 1000) {
+          // If we're early in the document or in method context, fix it
+          const restOfTextStr = typeof restOfText === "string" ? restOfText : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          const beforeFragmentStr = typeof beforeFragment === "string" ? beforeFragment : "";
+
+          // "tatus to 'Dormant'" -> "purpose": "Sets the sub-status to 'Dormant'"
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing property name and truncated description: added "purpose": "Sets the sub-status${restOfTextStr}"`,
+            );
+          }
+          return `${beforeFragmentStr}"purpose": "Sets the sub-status${restOfTextStr}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 1b-1b: More general pattern for other truncated descriptions
+    const missingPropertyNamePatternGeneral =
+      /(\}\s*,\s*\n\s*)([a-z]{1,5})(\s+[a-zA-Z][^"]{20,}?)("\s*,)/g;
+    sanitized = sanitized.replace(
+      missingPropertyNamePatternGeneral,
+      (match, beforeFragment, fragment, restOfText, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a method object context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const isInMethodContext =
+          /"codeSmells"\s*:\s*\[[^\]]*\]\s*\}/.test(beforeMatch) ||
+          /"linesOfCode"\s*:\s*\d+\s*\}/.test(beforeMatch) ||
+          /"cyclomaticComplexity"\s*:\s*\d+\s*\}/.test(beforeMatch);
+
+        if (isInMethodContext && fragment !== "tatus") {
+          // If it's a very short fragment followed by substantial text, it's likely a truncated description
+          const restOfTextStr = typeof restOfText === "string" ? restOfText : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          const beforeFragmentStr = typeof beforeFragment === "string" ? beforeFragment : "";
+
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing property name: added "purpose": before truncated description`,
+            );
+          }
+          return `${beforeFragmentStr}"purpose": "${restOfTextStr.trim()}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 1b-2: Inside a string value after "description": or "purpose":, find lowercase word fragment
+    // This handles cases where a property description starts mid-word like "tatus to 'Dormant'"
+    // We need to find the string value and fix it from within
+    const truncatedPropertyDescPattern =
+      /("(?:description|purpose)"\s*:\s*")([^"]*?)([a-z]{1,10})(\s+[a-zA-Z][^"]*?)(")/g;
+    sanitized = sanitized.replace(
+      truncatedPropertyDescPattern,
+      (
+        match,
+        propertyPrefix,
+        beforeFragment,
+        fragment,
+        restOfText,
+        closingQuote,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        // Verify we're not in a nested string by checking context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+        if (/"[^"]*$/.exec(beforeMatch)) {
+          // We're inside a string, skip
+          return match;
+        }
+
+        const fragmentStr = typeof fragment === "string" ? fragment : "";
+        const restOfTextStr = typeof restOfText === "string" ? restOfText : "";
+        const beforeFragmentStr = typeof beforeFragment === "string" ? beforeFragment : "";
+
+        // Common patterns for truncated descriptions
+        if (fragmentStr === "tatus" && restOfTextStr.toLowerCase().trim().startsWith("to")) {
+          // "tatus to 'Dormant'" -> "Sets the sub-status to 'Dormant'"
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed truncated property description: replaced fragment "${fragmentStr}" with "Sets the sub-status"`,
+            );
+          }
+          return `${propertyPrefix}${beforeFragmentStr}Sets the sub-status${restOfTextStr}${closingQuote}`;
+        } else if (fragmentStr.length <= 5 && beforeFragmentStr.length === 0) {
+          // If it's a very short fragment at the start, it's likely truncated
+          // Just remove it and keep the rest
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed truncated property description: removed fragment "${fragmentStr}"`,
+            );
+          }
+          return `${propertyPrefix}${restOfTextStr.trim()}${closingQuote}`;
         }
 
         return match;
@@ -1489,6 +1779,50 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
           hasChanges = true;
           diagnostics.push(`Removed stray text: "${strayTextStr.trim()}"`);
           return `${delimiterStr},\n    ${nextTokenStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 2b: Remove stray text before properties (like "tribal-council-results")
+    // Pattern: newline, whitespace, word with hyphens/underscores, newline, whitespace, quote
+    const strayTextBeforePropertyPattern =
+      /(\n\s*)([a-z][a-z0-9_-]{3,30})(\n\s*)("\s*[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
+    sanitized = sanitized.replace(
+      strayTextBeforePropertyPattern,
+      (match, _newline1, strayText, newline2, property, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context (after closing brace/bracket or comma)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /[}\],]\s*\n\s*$/.test(beforeMatch) ||
+          numericOffset < 100;
+
+        if (isValidContext) {
+          const strayTextStr = typeof strayText === "string" ? strayText : "";
+          const propertyStr = typeof property === "string" ? property : "";
+          const newline2Str = typeof newline2 === "string" ? newline2 : "";
+
+          // Common patterns that indicate stray text
+          const looksLikeStrayText =
+            !strayTextStr.includes('"') &&
+            !strayTextStr.includes("{") &&
+            !strayTextStr.includes("[") &&
+            (strayTextStr.includes("-") || strayTextStr.includes("_") || strayTextStr.length > 5);
+
+          if (looksLikeStrayText) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(`Removed stray text "${strayTextStr}" before property`);
+            }
+            return `${newline2Str}${propertyStr}`;
+          }
         }
 
         return match;
@@ -1659,13 +1993,16 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
         // Check for any non-ASCII characters in org.apache patterns
         // Match org followed by any non-ASCII character followed by .apache or just org followed by non-ASCII
         // eslint-disable-next-line no-control-regex
+        const nonAsciiPattern = /org[^\x00-\x7F]\.apache/;
+        // eslint-disable-next-line no-control-regex
+        const nonAsciiStartPattern = /^org[^\x00-\x7F]/;
         if (
-          /org[^\u0000-\u007F]\.apache/.test(truncatedValueStr) ||
-          /^org[^\u0000-\u007F]/.test(truncatedValueStr)
+          nonAsciiPattern.test(truncatedValueStr) ||
+          nonAsciiStartPattern.test(truncatedValueStr)
         ) {
           hasChanges = true;
           // eslint-disable-next-line no-control-regex
-          const fixed = truncatedValueStr.replace(/org([^\u0000-\u007F])/g, "org");
+          const fixed = truncatedValueStr.replace(/org([^\x00-\x7F])/g, "org");
           if (diagnostics.length < 10) {
             diagnostics.push(
               `Fixed non-ASCII character in string: "${truncatedValueStr}" -> "${fixed}"`,

@@ -218,5 +218,31 @@ there are m`;
       expect(result.content.trim()).toMatch(/^\{[\s\S]*"name": "Test"[\s\S]*\}$/);
       expect(result.content).not.toContain("there are m");
     });
+
+    it("should remove trailing content after valid JSON closing brace", () => {
+      const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+} some additional text that should be removed`;
+
+      const result = stripWrappers(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).toContain("}");
+      expect(result.content).not.toContain("some additional text");
+      // The important thing is that trailing content is removed or JSON is parseable
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not remove content that looks like more JSON", () => {
+      const input = `{"key": "value"} {"another": "object"}`;
+
+      const result = stripWrappers(input);
+
+      // Should extract the first JSON object, not treat the second as trailing text
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"key": "value"');
+    });
   });
 });

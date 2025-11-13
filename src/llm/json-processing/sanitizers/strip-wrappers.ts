@@ -456,6 +456,48 @@ export const stripWrappers: Sanitizer = (input: string): SanitizerResult => {
       hasChanges = true;
     }
 
+    // Step 6: Remove any trailing content after valid JSON closing brace
+    // This handles cases where there's content after the JSON ends
+    // Pattern: closing brace followed by whitespace and any non-whitespace content
+    const trailingContentPattern = /(\})\s+([^\s}].*?)(\s*)$/s;
+    const trailingContentMatch = trailingContentPattern.exec(sanitized);
+    if (trailingContentMatch?.index !== undefined) {
+      const trailingContent = trailingContentMatch[2] || "";
+      // Only remove if it looks like explanatory text (not JSON structure)
+      // Check if it doesn't start with { or [ (which would be more JSON)
+      if (
+        !trailingContent.trim().startsWith("{") &&
+        !trailingContent.trim().startsWith("[") &&
+        trailingContent.length > 0
+      ) {
+        // Verify we're not inside a string by checking quote balance
+        const beforeMatch = sanitized.substring(0, trailingContentMatch.index + 1);
+        let quoteCount = 0;
+        let escaped = false;
+        for (const char of beforeMatch) {
+          if (escaped) {
+            escaped = false;
+            continue;
+          }
+          if (char === "\\") {
+            escaped = true;
+          } else if (char === '"') {
+            quoteCount++;
+          }
+        }
+        // If we have balanced quotes (even number), we're outside strings
+        if (quoteCount % 2 === 0) {
+          sanitized = sanitized.substring(0, trailingContentMatch.index + 1);
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed trailing content after JSON: "${trailingContent.substring(0, 30)}..."`,
+            );
+          }
+        }
+      }
+    }
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 
