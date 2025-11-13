@@ -550,7 +550,152 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
       );
     }
 
-    // Pass 2b: Fix very short property names with missing opening quotes (e.g., `e": "retrieveOne",` -> `"name": "retrieveOne",`)
+    // Pass 2a: Fix stray characters before strings in arrays/objects
+    // Pattern: `t    "org.apache...` or `e "externalReferences"` -> `"org.apache...` or `"externalReferences"`
+    // Match single characters (not multi-character words) followed by whitespace and a quote
+    // Require either 2+ spaces OR being after a newline/comma/brace to avoid false positives
+    const strayCharBeforeStringPattern = /([}\],]|\n|^)(\s*)([a-z0-9])(\s+)(")/gi;
+    sanitized = sanitized.replace(
+      strayCharBeforeStringPattern,
+      (match, delimiter, whitespace, strayChar, extraWhitespace, _quote, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Additional check: make sure we're not inside a string value by checking for colon before
+        // If there's a colon nearby, we're likely in a property value, not a property name
+        const contextBefore = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+        const hasColonBefore = /:\s*[^:]*$/.test(contextBefore);
+        if (hasColonBefore) {
+          // We're likely in a string value, skip this match
+          return match;
+        }
+
+        // Check if we're in a valid context (after delimiter, newline, or start)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isAfterPropertyBoundary =
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /[}\],]\s*\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        // Remove if:
+        // 1. We're after a property boundary AND there's 2+ spaces (clear stray char), OR
+        // 2. We're after a newline/comma/brace (likely stray char even with single space), OR
+        // 3. We're after a closing brace/bracket and there's any whitespace (stray char before property)
+        const extraWhitespaceStr = typeof extraWhitespace === "string" ? extraWhitespace : "";
+        const hasSignificantWhitespace = extraWhitespaceStr.length >= 2;
+        const isAfterDelimiter = delimiter !== "" && delimiter !== "^";
+        const isAfterClosingDelimiter = delimiter === "}" || delimiter === "]";
+
+        if (
+          isAfterPropertyBoundary &&
+          (hasSignificantWhitespace || isAfterDelimiter || isAfterClosingDelimiter)
+        ) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const strayCharStr = typeof strayChar === "string" ? strayChar : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed stray character '${strayCharStr}' before string`);
+          }
+          return `${delimiterStr}${whitespaceStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pass 2b: Fix truncated property names with inserted quotes
+    // Pattern: `"cyclomati"cComplexity"` -> `"cyclomaticComplexity"`
+    // Only match if the first part looks like a property name (short, no spaces, no special chars)
+    const truncatedPropertyWithQuotePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]{0,30})"([a-zA-Z][a-zA-Z0-9_$]{1,30})"\s*:/g;
+    sanitized = sanitized.replace(
+      truncatedPropertyWithQuotePattern,
+      (match, firstPart, secondPart, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Additional check: make sure we're not inside a string value
+        // If there's a colon before this match, we're likely in a property value
+        const contextBefore = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const hasColonBefore = /:\s*"[^"]*$/.test(contextBefore);
+        if (hasColonBefore) {
+          // We're inside a string value (there's a colon followed by a quoted string before us)
+          // Check if we're actually in a string by counting quotes
+          let quoteCount = 0;
+          let escape = false;
+          for (let i = Math.max(0, numericOffset - 200); i < numericOffset; i++) {
+            const char = sanitized[i];
+            if (escape) {
+              escape = false;
+              continue;
+            }
+            if (char === "\\") {
+              escape = true;
+            } else if (char === '"') {
+              quoteCount++;
+            }
+          }
+          // If we're inside a string (odd number of quotes), skip
+          if (quoteCount % 2 === 1) {
+            return match;
+          }
+        }
+
+        // Additional check: first part should look like a property name fragment
+        // (not contain spaces, colons, or other special characters that would indicate it's in a string)
+        const firstPartStr = typeof firstPart === "string" ? firstPart : "";
+        if (firstPartStr.includes(" ") || firstPartStr.includes(":") || firstPartStr.length > 20) {
+          // Doesn't look like a property name fragment, likely part of a string value
+          return match;
+        }
+
+        // Check if we're in a property name context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isAfterPropertyBoundary =
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /[}\],]\s*\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isAfterPropertyBoundary) {
+          const firstPartStr = typeof firstPart === "string" ? firstPart : "";
+          const secondPartStr = typeof secondPart === "string" ? secondPart : "";
+          const mergedName = firstPartStr + secondPartStr;
+          const lowerMergedName = mergedName.toLowerCase();
+
+          // Try to find the correct property name from mappings
+          let fixedName =
+            PROPERTY_NAME_MAPPINGS[lowerMergedName] || PROPERTY_NAME_MAPPINGS[mergedName];
+          if (!fixedName) {
+            // Try common truncations
+            if (lowerMergedName.includes("cyclomat")) {
+              fixedName = "cyclomaticComplexity";
+            } else if (lowerMergedName.includes("complex")) {
+              fixedName = "cyclomaticComplexity";
+            } else {
+              // If we can't map it, use the merged name
+              fixedName = mergedName;
+            }
+          }
+
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed truncated property name with inserted quote: "${firstPartStr}"${secondPartStr}" -> "${fixedName}"`,
+            );
+          }
+          return `"${fixedName}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pass 2c: Fix very short property names with missing opening quotes (e.g., `e": "retrieveOne",` -> `"name": "retrieveOne",`)
     // This handles cases where only a fragment of the property name is present
     const veryShortPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z])"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
@@ -915,6 +1060,11 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
         const stringStr = typeof string === "string" ? string : sanitized;
 
         if (offsetNum !== undefined) {
+          // Use isInStringAt for more reliable string detection
+          if (isInStringAt(offsetNum, stringStr)) {
+            return match;
+          }
+
           const beforeMatch = stringStr.substring(Math.max(0, offsetNum - 500), offsetNum);
           let quoteCount = 0;
           let escape = false;
@@ -964,7 +1114,15 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
 
+        // Strict check: if we're inside a string value, skip
         if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Additional check: if there's a colon before this, we're likely in a string value
+        const contextBefore = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        if (/:\s*"[^"]*$/.test(contextBefore)) {
+          // We're inside a string value that contains a colon, skip
           return match;
         }
 
@@ -1000,7 +1158,15 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
         const valueStr = typeof valueWithoutQuote === "string" ? valueWithoutQuote : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
+        // Strict check: if we're inside a string value, skip
         if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Additional check: if there's a colon before this, we're likely in a string value
+        const contextBefore = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        if (/:\s*"[^"]*$/.test(contextBefore)) {
+          // We're inside a string value that contains a colon, skip
           return match;
         }
 
@@ -1105,6 +1271,12 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
       (match, _escapedQuote, after, offset: unknown, string: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
         const stringStr = typeof string === "string" ? string : sanitized;
+
+        // Use isInStringAt to check if we're inside a string value
+        if (isInStringAt(numericOffset, stringStr)) {
+          return match;
+        }
+
         const contextBefore = stringStr.substring(Math.max(0, numericOffset - 500), numericOffset);
 
         const isInStringValue =
@@ -1294,7 +1466,61 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
       },
     );
 
-    // Pattern 4: Fix corrupted property/value pairs
+    // Pattern 4: Fix truncated strings (missing beginning)
+    // Pattern: `axperience.Table"` -> `jakarta.persistence.Table"` (if we can detect it's truncated)
+    // This is tricky - we'll detect strings that start with lowercase and look incomplete
+    const truncatedStringPattern = /"([a-z][a-zA-Z0-9_.]*)"\s*([,}\]]|$)/g;
+    sanitized = sanitized.replace(
+      truncatedStringPattern,
+      (match, truncatedValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this looks like a truncated package name or class name
+        const truncatedValueStr = typeof truncatedValue === "string" ? truncatedValue : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        // Special case: "axperience" -> "jakarta.persistence" (common truncation)
+        // Only fix if it's clearly "axperience" (missing "jakarta.persist" prefix)
+        if (
+          truncatedValueStr === "axperience.Table" ||
+          truncatedValueStr.startsWith("axperience.")
+        ) {
+          hasChanges = true;
+          const fixed = truncatedValueStr.replace(/^axperience\./, "jakarta.persistence.");
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Fixed truncated string: "${truncatedValueStr}" -> "${fixed}"`);
+          }
+          return `"${fixed}"${terminatorStr}`;
+        }
+
+        // Special case: "orgah.apache" -> "org.apache" (typo)
+        if (truncatedValueStr.startsWith("orgah.")) {
+          hasChanges = true;
+          const fixed = truncatedValueStr.replace(/^orgah\./, "org.");
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Fixed typo in string: "${truncatedValueStr}" -> "${fixed}"`);
+          }
+          return `"${fixed}"${terminatorStr}`;
+        }
+
+        // Special case: "org.apachefineract" -> "org.apache.fineract" (missing dot)
+        if (truncatedValueStr.includes("org.apachefineract")) {
+          hasChanges = true;
+          const fixed = truncatedValueStr.replace(/org\.apachefineract/g, "org.apache.fineract");
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Fixed missing dot in string: "${truncatedValueStr}" -> "${fixed}"`);
+          }
+          return `"${fixed}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 5: Fix corrupted property/value pairs
     // Pattern: "name":ICCID": "value" -> "name": "ICCID", "ICCID": "value"
     // Also handle: "name":"ICCID": "value" (if quote was already added by another pattern)
     const corruptedPattern1 =

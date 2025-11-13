@@ -139,6 +139,133 @@ describe("fixSyntaxErrors", () => {
     });
   });
 
+  describe("stray characters before strings", () => {
+    it("should remove stray character 't' before string in array", () => {
+      const input = `[
+    "org.apache.fineract.portfolio.savings.SavingsCompoundingInterestPeriodType",
+t    "org.apache.fineract.portfolio.savings.SavingsInterestCalculationDaysInYearType"
+  ]`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.savings.SavingsInterestCalculationDaysInYearType"',
+      );
+      expect(result.content).not.toContain('t    "org.apache');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should remove stray character 'e' before string in object", () => {
+      const input = `{
+    "internalReferences": [
+      "org.apache.fineract.infrastructure.creditbureau.data.CreditBureauData"
+    ],
+e "externalReferences": []
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"externalReferences"');
+      expect(result.content).not.toContain('e "externalReferences"');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should not remove characters that are part of valid JSON", () => {
+      const input = `{
+    "name": "test",
+    "value": 123
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+  });
+
+  describe("truncated property names with inserted quotes", () => {
+    it("should fix property name with quote inserted in middle", () => {
+      const input = `{
+    "cyclomati"cComplexity": 1,
+    "linesOfCode": 2
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"cyclomaticComplexity"');
+      expect(result.content).not.toContain('"cyclomati"cComplexity"');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should handle other truncated property names", () => {
+      const input = `{
+    "descript"ion": "test"
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"description"');
+      expect(result.diagnostics).toBeDefined();
+    });
+  });
+
+  describe("truncated strings", () => {
+    it("should fix truncated string starting with 'axperience'", () => {
+      const input = `{
+    "externalReferences": [
+      "jakarta.persistence.Column",
+      "axperience.Table",
+      "jakarta.persistence.UniqueConstraint"
+    ]
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"jakarta.persistence.Table"');
+      expect(result.content).not.toContain('"axperience.Table"');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should fix typo 'orgah.apache' to 'org.apache'", () => {
+      const input = `{
+    "internalReferences": [
+      "orgah.apache.fineract.infrastructure.core.serialization.FromJsonHelper"
+    ]
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.infrastructure.core.serialization.FromJsonHelper"',
+      );
+      expect(result.content).not.toContain('"orgah.apache');
+      expect(result.diagnostics).toBeDefined();
+    });
+
+    it("should fix missing dot in 'org.apachefineract'", () => {
+      const input = `{
+    "internalReferences": [
+      "org.apachefineract.portfolio.loanaccount.data.LoanChargePaidByData"
+    ]
+  }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.loanaccount.data.LoanChargePaidByData"',
+      );
+      expect(result.content).not.toContain('"org.apachefineract');
+      expect(result.diagnostics).toBeDefined();
+    });
+  });
+
   describe("stray characters", () => {
     it("should remove stray characters after property values", () => {
       const input = '{"key": "value"extra}';

@@ -178,4 +178,45 @@ describe("stripWrappers", () => {
       expect(result.content).toBe("");
     });
   });
+
+  describe("trailing text removal", () => {
+    it("should remove trailing explanatory text after JSON closing brace", () => {
+      const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}
+there are too many methods to list in this response.`;
+
+      const result = stripWrappers(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).toContain("}");
+      expect(result.content).not.toContain("there are too many methods");
+      expect(result.diagnostics).toBeDefined();
+      expect(result.diagnostics?.some((d) => d.includes("trailing text"))).toBe(true);
+    });
+
+    it("should not remove valid JSON content after closing brace", () => {
+      const input = `{"key": "value"}`;
+
+      const result = stripWrappers(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should handle trailing text with newlines", () => {
+      const input = `{
+  "name": "Test"
+}
+there are m`;
+
+      const result = stripWrappers(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content.trim()).toMatch(/^\{[\s\S]*"name": "Test"[\s\S]*\}$/);
+      expect(result.content).not.toContain("there are m");
+    });
+  });
 });

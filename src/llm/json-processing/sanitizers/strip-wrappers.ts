@@ -211,6 +211,25 @@ export const stripWrappers: Sanitizer = (input: string): SanitizerResult => {
       diagnostics.push("Collapsed duplicated identical JSON object");
     }
 
+    // Step 4a: Check for trailing text before extraction (so we can detect it)
+    let hadTrailingText = false;
+    let trailingTextContent = "";
+    const trailingTextCheckPattern = /(\})\s+([a-z][^}]{10,})(\s*)$/im;
+    const trailingTextCheck = trailingTextCheckPattern.exec(sanitized);
+    if (trailingTextCheck?.index !== undefined) {
+      const trimmedTrailing = trailingTextCheck[2].trim();
+      const isExplanatoryText =
+        !trimmedTrailing.includes('"') &&
+        !trimmedTrailing.includes("{") &&
+        !trimmedTrailing.includes("[") &&
+        trimmedTrailing.length > 10 &&
+        /^[a-z\s.,!?]+$/i.test(trimmedTrailing);
+      if (isExplanatoryText) {
+        hadTrailingText = true;
+        trailingTextContent = trimmedTrailing;
+      }
+    }
+
     // Step 4: Extract largest JSON span
     // Find all potential JSON starts (both { and [)
     const candidates: { position: number; char: string }[] = [];
@@ -332,7 +351,21 @@ export const stripWrappers: Sanitizer = (input: string): SanitizerResult => {
     if (extractedSpan) {
       sanitized = extractedSpan;
       hasChanges = true;
+      // Always log extraction, and also log trailing text removal if it occurred
       diagnostics.push("Extracted largest JSON span");
+      if (hadTrailingText) {
+        diagnostics.push(`Removed trailing text: "${trailingTextContent.substring(0, 30)}..."`);
+      }
+    } else if (hadTrailingText) {
+      // If no extraction happened but we detected trailing text, remove it now
+      const trailingTextPattern = /(\})\s+([a-z][^}]{10,})(\s*)$/im;
+      const trailingTextMatch = trailingTextPattern.exec(sanitized);
+      if (trailingTextMatch?.index !== undefined) {
+        const matchIndex = trailingTextMatch.index;
+        sanitized = sanitized.substring(0, matchIndex + 1);
+        hasChanges = true;
+        diagnostics.push(`Removed trailing text: "${trailingTextContent.substring(0, 30)}..."`);
+      }
     }
 
     // Step 5: Remove common prefixes (final cleanup)
