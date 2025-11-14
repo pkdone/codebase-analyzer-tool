@@ -543,6 +543,38 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
       }
     }
 
+    // ===== Block 1.5: Remove asterisks before property names =====
+    // Pattern: `* "propertyName":` -> `"propertyName":`
+    const asteriskBeforePropertyPattern = /(\s*)\*\s*"([^"]+)"\s*:/g;
+    sanitized = sanitized.replace(
+      asteriskBeforePropertyPattern,
+      (match, whitespace, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isAfterPropertyBoundary =
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /[}\],]\s*\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isAfterPropertyBoundary) {
+          hasChanges = true;
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed asterisk before property name: * "${propertyNameStr}"`);
+          }
+          return `${whitespaceStr}"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
     // ===== Block 2: Fix property names =====
     // Pass 1: Fix concatenated property names
     const concatenatedPattern = /"([^"]+)"\s*\+\s*"([^"]+)"(\s*\+\s*"[^"]+")*\s*:/g;
@@ -673,6 +705,69 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
         },
       );
     }
+
+    // Pass 2a-0: Fix missing opening quotes in arrays (like `from": "lombok...`)
+    // Pattern: `from": "value",` -> `"from": "value",`
+    // Also handles: `,\nfrom": "value",` or `,\n  from": "value",`
+    const missingOpeningQuoteInArrayPattern = /([[\s*,]|\n|^)(\s*)([a-z]{2,20})"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      missingOpeningQuoteInArrayPattern,
+      (match, delimiter, whitespace, propertyName, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const inArrayContext = isInArrayContext(numericOffset, sanitized);
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+
+        // Check if delimiter is [ or comma (with optional whitespace/newline)
+        const isAfterArrayDelimiter =
+          delimiterStr === "[" || delimiterStr === "," || delimiterStr === "\n";
+
+        if (!inArrayContext && !isAfterArrayDelimiter) {
+          return match;
+        }
+
+        // Check if this looks like a property name (not a value)
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const valueStr = typeof value === "string" ? value : "";
+        const commonPropertyNames = new Set([
+          "from",
+          "name",
+          "type",
+          "value",
+          "description",
+          "purpose",
+        ]);
+
+        // If it's a common property name or we're in an array context, fix it
+        if (
+          inArrayContext ||
+          isAfterArrayDelimiter ||
+          commonPropertyNames.has(propertyNameStr.toLowerCase())
+        ) {
+          hasChanges = true;
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          // Preserve the delimiter, but if it's just whitespace, use comma if we're in an array
+          let preservedDelimiter = delimiterStr;
+          if (delimiterStr === "\n" && inArrayContext) {
+            preservedDelimiter = ",\n";
+          } else if (delimiterStr.trim() === "" && inArrayContext) {
+            preservedDelimiter = ",";
+          }
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing opening quote in array: ${propertyNameStr}": -> "${propertyNameStr}":`,
+            );
+          }
+          return `${preservedDelimiter}${whitespaceStr}"${propertyNameStr}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
 
     // Pass 2a: Fix stray characters before strings in arrays/objects
     // Pattern: `t    "org.apache...` or `e "externalReferences"` or `ar"org.apa` -> `"org.apache...` or `"externalReferences"` or `"org.apa`
@@ -1235,6 +1330,105 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
       },
     );
 
+    // Fix invalid numeric values like _METHOD_6, _code, or single letters
+    // Pattern: `"propertyName": _METHOD_6,` or `"propertyName": a,` -> `"propertyName": 0,`
+    const invalidNumericValuePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*_([A-Z_][A-Z0-9_]*)(\s*[,}\]]|,|$)/g;
+    sanitized = sanitized.replace(
+      invalidNumericValuePattern,
+      (match, propertyName, invalidValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this property typically expects a number (linesOfCode, cyclomaticComplexity, etc.)
+        const numericProperties = [
+          "linesOfCode",
+          "cyclomaticComplexity",
+          "totalMethods",
+          "averageComplexity",
+          "maxComplexity",
+          "averageMethodLength",
+        ];
+        const lowerPropertyName = propertyNameStr.toLowerCase();
+        const isNumericProperty = numericProperties.some((prop) =>
+          lowerPropertyName.includes(prop.toLowerCase()),
+        );
+
+        if (isNumericProperty) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed invalid numeric value: "${propertyNameStr}":_${invalidValue} -> "${propertyNameStr}": 0`,
+            );
+          }
+
+          const colonIndex = match.indexOf(":");
+          const afterColon = match.substring(colonIndex + 1);
+          const whitespaceRegex = /^\s*/;
+          const whitespaceMatch = whitespaceRegex.exec(afterColon);
+          const whitespaceAfterColon = whitespaceMatch ? whitespaceMatch[0] : " ";
+
+          return `"${propertyNameStr}":${whitespaceAfterColon}0${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Fix single letter values that should be numbers (e.g., `"linesOfCode": a,`)
+    const singleLetterNumericPattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-z])(\s*[,}\]]|,|$)/g;
+    sanitized = sanitized.replace(
+      singleLetterNumericPattern,
+      (match, propertyName, singleLetter, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this property typically expects a number
+        const numericProperties = [
+          "linesOfCode",
+          "cyclomaticComplexity",
+          "totalMethods",
+          "averageComplexity",
+          "maxComplexity",
+          "averageMethodLength",
+        ];
+        const lowerPropertyName = propertyNameStr.toLowerCase();
+        const isNumericProperty = numericProperties.some((prop) =>
+          lowerPropertyName.includes(prop.toLowerCase()),
+        );
+
+        if (isNumericProperty) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed single letter numeric value: "${propertyNameStr}":${singleLetter} -> "${propertyNameStr}": 0`,
+            );
+          }
+
+          const colonIndex = match.indexOf(":");
+          const afterColon = match.substring(colonIndex + 1);
+          const whitespaceRegex = /^\s*/;
+          const whitespaceMatch = whitespaceRegex.exec(afterColon);
+          const whitespaceAfterColon = whitespaceMatch ? whitespaceMatch[0] : " ";
+
+          return `"${propertyNameStr}":${whitespaceAfterColon}0${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // ===== Block 4: Normalize property assignment syntax =====
     // Fix 1: Replace `:=` with `:`
     const assignmentPattern = /("([^"]+)")\s*:=\s*(\s*)/g;
@@ -1430,8 +1624,54 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
 
     // Fix 4b: Fix missing opening quotes in property values (pattern: `"name":value",` -> `"name": "value",`)
     // This handles cases where the value is missing the opening quote but has a closing quote
+    // Also handles truncated values like `"name": repaymentT"` -> `"name": "repaymentT"`
     const missingOpeningQuoteInValuePattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_.]+)"\s*([,}])/g;
+
+    // Fix 4c: Fix truncated property values (pattern: `"name": repaymentT"` -> `"name": "repaymentT"`)
+    const truncatedPropertyValuePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_.]{1,30})"\s*([,}])/g;
+    sanitized = sanitized.replace(
+      truncatedPropertyValuePattern,
+      (match, propertyName, truncatedValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this looks like a truncated value (ends with a capital letter or short)
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const truncatedValueStr = typeof truncatedValue === "string" ? truncatedValue : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        // If the value ends with a capital letter and is short, it's likely truncated
+        // But we should be careful not to break valid values
+        const looksTruncated =
+          /[A-Z]$/.test(truncatedValueStr) &&
+          truncatedValueStr.length < 20 &&
+          !truncatedValueStr.includes(".") &&
+          !truncatedValueStr.includes("_");
+
+        if (looksTruncated) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed truncated property value: "${propertyNameStr}": ${truncatedValueStr}" -> "${propertyNameStr}": "${truncatedValueStr}"`,
+            );
+          }
+
+          const colonIndex = match.indexOf(":");
+          const afterColon = match.substring(colonIndex + 1);
+          const whitespaceRegex = /^\s*/;
+          const whitespaceMatch = whitespaceRegex.exec(afterColon);
+          const whitespaceAfterColon = whitespaceMatch ? whitespaceMatch[0] : " ";
+
+          return `"${propertyNameStr}":${whitespaceAfterColon}"${truncatedValueStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
     sanitized = sanitized.replace(
       missingOpeningQuoteInValuePattern,
       (match, propertyName, valueWithoutQuote, terminator, offset: unknown) => {
@@ -1479,7 +1719,101 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
 
     // ===== Block 7.5: Remove stray words in arrays (before unquoted string fixer) =====
     // This needs to run before unquoted string values are quoted, otherwise "since" becomes valid JSON
+    // Also handle cases like `"java.lang.reflect.Type",\nbecause "java.math.BigDecimal",`
     const strayWordInArrayEarlyPattern = /("([^"]+)"\s*,\s*(\n\s*)?)([a-z]{2,20})"\s*,/gi;
+    const strayWordBetweenArrayElementsPattern =
+      /("([^"]+)"\s*,\s*(\n\s*))([a-z]{2,20})(\s*"([^"]+)")/gi;
+    sanitized = sanitized.replace(
+      strayWordBetweenArrayElementsPattern,
+      (
+        match,
+        beforeStrayWord,
+        _lastValidEntry,
+        _optionalNewline,
+        strayWord,
+        afterStrayWord,
+        _nextEntry,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        if (foundArray) {
+          const strayWordStr = typeof strayWord === "string" ? strayWord : "";
+          const beforeStrayWordStr = typeof beforeStrayWord === "string" ? beforeStrayWord : "";
+          const afterStrayWordStr = typeof afterStrayWord === "string" ? afterStrayWord : "";
+          // Common stray words that appear in arrays
+          const commonStrayWords = new Set([
+            "since",
+            "and",
+            "or",
+            "the",
+            "a",
+            "an",
+            "for",
+            "with",
+            "from",
+            "to",
+            "by",
+            "at",
+            "in",
+            "on",
+            "of",
+            "because",
+          ]);
+          if (commonStrayWords.has(strayWordStr.toLowerCase())) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(`Removed stray word "${strayWordStr}" between array elements`);
+            }
+            return `${beforeStrayWordStr}${afterStrayWordStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
     sanitized = sanitized.replace(
       strayWordInArrayEarlyPattern,
       (match, beforeStrayWord, _lastValidEntry, _optionalNewline, strayWord, offset: unknown) => {
@@ -1547,6 +1881,7 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
             "in",
             "on",
             "of",
+            "because",
           ]);
           if (commonStrayWords.has(strayWordStr.toLowerCase())) {
             hasChanges = true;
@@ -1898,6 +2233,51 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
 
     // Pattern 2: Remove stray text like "so many" between structures
     const strayTextPattern = /([}\]])\s*,\s*\n\s*([a-z\s]{2,50})\n\s*([{"])/g;
+
+    // Pattern 2c: Remove stray text after closing brackets (like "there are too many public methods to list. I will stop here.")
+    // Pattern: `}\n  "text after closing bracket"`
+    const strayTextAfterClosingBracketPattern = /(\})\s*\n\s*([a-z][^}]{10,})(\s*)$/im;
+    sanitized = sanitized.replace(
+      strayTextAfterClosingBracketPattern,
+      (match, closingBrace, strayText, _trailingWhitespace, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this is at the end of the document (or very close to it)
+        const afterMatch = sanitized.substring(numericOffset + match.length);
+        if (afterMatch.trim().length > 10) {
+          // There's more content after, might not be trailing text
+          return match;
+        }
+
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const trimmedStray = strayTextStr.trim();
+
+        // Check if it looks like explanatory text (no JSON structure, just words)
+        const isExplanatoryText =
+          !trimmedStray.includes('"') &&
+          !trimmedStray.includes("{") &&
+          !trimmedStray.includes("[") &&
+          !trimmedStray.includes("}") &&
+          !trimmedStray.includes("]") &&
+          trimmedStray.length > 10 &&
+          /^[a-z\s.,!?]+$/i.test(trimmedStray);
+
+        if (isExplanatoryText) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray text after closing bracket: "${trimmedStray.substring(0, 30)}..."`,
+            );
+          }
+          return closingBrace as string;
+        }
+
+        return match;
+      },
+    );
     sanitized = sanitized.replace(
       strayTextPattern,
       (match, delimiter, strayText, nextToken, offset: unknown) => {
@@ -2189,6 +2569,36 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
         return match;
       },
     );
+
+    // ===== Block 10: Final cleanup - Remove stray text after closing brackets =====
+    // This runs at the very end to catch any remaining trailing text
+    // Pattern: `}\n  there are too many...` -> `}`
+    const finalTrailingTextPattern = /(\})\s*\n\s*([a-z][^}]{10,})(\s*)$/im;
+    const finalTrailingMatch = finalTrailingTextPattern.exec(sanitized);
+    if (finalTrailingMatch?.index !== undefined) {
+      const matchIndex = finalTrailingMatch.index;
+      const strayText = (finalTrailingMatch[2] || "").trim();
+
+      // Check if it looks like explanatory text
+      const isExplanatoryText =
+        !strayText.includes('"') &&
+        !strayText.includes("{") &&
+        !strayText.includes("[") &&
+        !strayText.includes("}") &&
+        !strayText.includes("]") &&
+        strayText.length > 10 &&
+        /^[a-z\s.,!?]+$/i.test(strayText);
+
+      if (isExplanatoryText) {
+        sanitized = sanitized.substring(0, matchIndex + 1);
+        hasChanges = true;
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Removed trailing text after closing bracket: "${strayText.substring(0, 30)}..."`,
+          );
+        }
+      }
+    }
 
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
