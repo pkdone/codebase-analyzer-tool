@@ -6,18 +6,45 @@ import {
 import { DELIMITERS } from "../constants/json-processing.config";
 
 /**
+ * Helper to determine if a position is inside a string literal.
+ */
+function isInStringAt(position: number, content: string): boolean {
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < position; i++) {
+    const char = content[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+    } else if (char === '"') {
+      inString = !inString;
+    }
+  }
+
+  return inString;
+}
+
+/**
  * Helper to check if we're in an array context by scanning backwards.
+ * Returns true if we're inside an array (i.e., there's an unclosed [ before this position).
+ * The logic: scan backwards and find the most recent unclosed [ bracket.
+ * We're in an array if we find a [ that hasn't been closed by a matching ].
  */
 function isInArrayContext(matchIndex: number, content: string): boolean {
   const beforeMatch = content.substring(Math.max(0, matchIndex - 500), matchIndex);
 
-  let openBraces = 0;
   let openBrackets = 0;
   let inString = false;
   let escapeNext = false;
-  let foundOpeningBracket = false;
+  let mostRecentArrayStart = -1;
 
-  // Scan backwards to find context
+  // Scan backwards to find the most recent unclosed array
   for (let i = beforeMatch.length - 1; i >= 0; i--) {
     const char = beforeMatch[i];
     if (escapeNext) {
@@ -33,23 +60,26 @@ function isInArrayContext(matchIndex: number, content: string): boolean {
       continue;
     }
     if (!inString) {
-      if (char === "{") {
-        openBraces++;
-        if (openBraces === 0 && openBrackets > 0 && foundOpeningBracket) {
-          break;
-        }
-      } else if (char === "}") {
-        openBraces--;
-      } else if (char === "[") {
+      if (char === "[") {
         openBrackets++;
-        foundOpeningBracket = true;
+        // If we find an opening bracket and we have more open brackets than closed ones,
+        // this is the array we're in (or one of the arrays we're in)
+        if (openBrackets > 0) {
+          mostRecentArrayStart = i;
+        }
       } else if (char === "]") {
         openBrackets--;
+        // If we close a bracket and we're back to 0 open brackets,
+        // we've exited all arrays
+        if (openBrackets === 0) {
+          return false;
+        }
       }
     }
   }
 
-  return foundOpeningBracket && openBrackets > 0;
+  // We're in an array if we found an opening bracket that hasn't been closed
+  return mostRecentArrayStart >= 0 && openBrackets > 0;
 }
 
 /**
@@ -98,7 +128,40 @@ export const fixStructuralErrors: Sanitizer = (input: string): SanitizerResult =
       diagnostics.push(SANITIZATION_STEP.REMOVED_TRAILING_COMMAS);
     }
 
-    // Step 2: Fix missing commas between properties
+    // Step 2: Fix missing closing brackets in arrays before property names
+    // Pattern: Match closing brace of array element followed by comma and newline, then a property name
+    // This handles cases like `},\n      "returnType":` where the array bracket ] is missing
+    // The pattern looks for: },\n      "propertyName": which suggests we're still in an array but a property appears
+    // We need to close the array with ] before the property, so: },\n      "property" -> }],\n      "property"
+    const missingArrayBracketAfterElementPattern =
+      /(\}\s*)(,\s*\n\s*)(")([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      missingArrayBracketAfterElementPattern,
+      (match, closingBrace, commaAndNewline, quote, propName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        // Check if we're in a string
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        // Check if we're in an array context - if so, we need to close the array before the property
+        const inArray = isInArrayContext(numericOffset, sanitized);
+        if (inArray) {
+          // We're in an array and a property name appears - this means the array should be closed
+          // Pattern: },\n      "property" -> }],\n      "property"
+          hasChanges = true;
+          const propNameStr = typeof propName === "string" ? propName : "";
+          const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
+          const commaAndNewlineStr = typeof commaAndNewline === "string" ? commaAndNewline : "";
+          diagnostics.push(
+            `Added missing closing bracket ] for array before property "${propNameStr}"`,
+          );
+          return `${closingBraceStr}]${commaAndNewlineStr}${quote}${propNameStr}":`;
+        }
+        return match;
+      },
+    );
+
+    // Step 2b: Fix missing commas between properties
     // Pattern: Match a value terminator (quote, closing brace, bracket, or digit) followed by newline and whitespace,
     // then a quoted property name. This indicates a missing comma between properties on separate lines.
     const missingCommaPattern = /(["}\]\]]|\d)\s*\n(\s*")([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;

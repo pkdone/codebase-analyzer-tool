@@ -458,16 +458,21 @@ export const stripWrappers: Sanitizer = (input: string): SanitizerResult => {
 
     // Step 6: Remove any trailing content after valid JSON closing brace
     // This handles cases where there's content after the JSON ends
-    // Pattern: closing brace followed by whitespace and any non-whitespace content
+    // Only remove content after the ROOT closing brace (the very last } in the JSON)
+    // Pattern: closing brace at the end of the string, followed by whitespace and any content
     const trailingContentPattern = /(\})\s+([^\s}].*?)(\s*)$/s;
     const trailingContentMatch = trailingContentPattern.exec(sanitized);
     if (trailingContentMatch?.index !== undefined) {
       const trailingContent = trailingContentMatch[2] || "";
       // Only remove if it looks like explanatory text (not JSON structure)
-      // Check if it doesn't start with { or [ (which would be more JSON)
+      // Check if it doesn't start with {, [, ", ], or , (which would be more JSON)
+      const trimmedTrailing = trailingContent.trim();
       if (
-        !trailingContent.trim().startsWith("{") &&
-        !trailingContent.trim().startsWith("[") &&
+        !trimmedTrailing.startsWith("{") &&
+        !trimmedTrailing.startsWith("[") &&
+        !trimmedTrailing.startsWith('"') &&
+        !trimmedTrailing.startsWith("]") &&
+        !trimmedTrailing.startsWith(",") &&
         trailingContent.length > 0
       ) {
         // Verify we're not inside a string by checking quote balance
@@ -486,7 +491,17 @@ export const stripWrappers: Sanitizer = (input: string): SanitizerResult => {
           }
         }
         // If we have balanced quotes (even number), we're outside strings
-        if (quoteCount % 2 === 0) {
+        // Also verify this is the root closing brace by checking brace balance
+        let braceCount = 0;
+        for (const char of beforeMatch) {
+          if (char === "{") {
+            braceCount++;
+          } else if (char === "}") {
+            braceCount--;
+          }
+        }
+        // Only remove if this is the root closing brace (braceCount should be 0 after the last })
+        if (quoteCount % 2 === 0 && braceCount === 0) {
           sanitized = sanitized.substring(0, trailingContentMatch.index + 1);
           hasChanges = true;
           if (diagnostics.length < 10) {

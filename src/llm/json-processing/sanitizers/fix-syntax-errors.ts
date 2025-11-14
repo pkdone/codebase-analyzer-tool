@@ -29,6 +29,53 @@ function isInStringAt(position: number, content: string): boolean {
 }
 
 /**
+ * Helper to check if we're in an array context by scanning backwards.
+ */
+function isInArrayContext(matchIndex: number, content: string): boolean {
+  const beforeMatch = content.substring(Math.max(0, matchIndex - 500), matchIndex);
+
+  let openBraces = 0;
+  let openBrackets = 0;
+  let inString = false;
+  let escapeNext = false;
+  let foundOpeningBracket = false;
+
+  // Scan backwards to find context
+  for (let i = beforeMatch.length - 1; i >= 0; i--) {
+    const char = beforeMatch[i];
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+    if (char === "\\") {
+      escapeNext = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === "{") {
+        openBraces++;
+        if (openBraces === 0 && openBrackets > 0 && foundOpeningBracket) {
+          break;
+        }
+      } else if (char === "}") {
+        openBraces--;
+      } else if (char === "[") {
+        openBrackets++;
+        foundOpeningBracket = true;
+      } else if (char === "]") {
+        openBrackets--;
+      }
+    }
+  }
+
+  return foundOpeningBracket && openBrackets > 0;
+}
+
+/**
  * Consolidated property name mappings combining all typo and truncation patterns.
  * This merges mappings from multiple property name fix sanitizers.
  */
@@ -531,7 +578,9 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
       // Enhanced pattern to catch more cases, including those at start of line or after newlines
       // Also catch cases like `}connectionInfo":` (missing quote after closing brace)
       // Also catch cases at start of object like `{eferences":`
+      // Also catch cases like `cyclomaticComplexity":` (missing quote after comma/newline)
       // Pattern: delimiter (} ] , \n ^ {) followed by optional whitespace, then property name without opening quote
+      // Also match after comma+newline or just newline with whitespace
       const missingOpeningQuotePattern = /([}\],]|\n|^|\{)(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)"\s*:/g;
       sanitized = sanitized.replace(
         missingOpeningQuotePattern,
@@ -568,6 +617,14 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
             );
             isAfterPropertyBoundary =
               /[}\],]\s*$/.test(beforeMatch) || /[}\],]\s*\n\s*$/.test(beforeMatch);
+          }
+
+          // Additional check: if we're after a comma and newline, we're definitely at a property boundary
+          if (!isAfterPropertyBoundary && numericOffset > 0) {
+            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 10), numericOffset);
+            if (/,\s*\n\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch)) {
+              isAfterPropertyBoundary = true;
+            }
           }
 
           // Skip if inside a string
@@ -675,10 +732,11 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
     );
 
     // Pass 2a-2: Fix stray characters immediately before quotes (no whitespace, like `ar"org.apa`)
-    const strayCharImmediateBeforeQuotePattern = /([}\],]|\n|^|\[|,)(\s*)([a-z]{1,3})(")/gi;
+    // Also handle cases like `,\ne    "org.apache...` where stray char is after newline
+    const strayCharImmediateBeforeQuotePattern = /([}\],]|\n|^|\[|,)(\s*)([a-z]{1,3})(\s*)(")/gi;
     sanitized = sanitized.replace(
       strayCharImmediateBeforeQuotePattern,
-      (match, delimiter, whitespace, strayChars, _quote, offset: unknown) => {
+      (match, delimiter, whitespace, strayChars, whitespaceAfter, _quote, offset: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
         if (isInStringAt(numericOffset, sanitized)) {
           return match;
@@ -720,22 +778,107 @@ export const fixSyntaxErrors: Sanitizer = (input: string): SanitizerResult => {
         // The match includes the quote, so we check what comes after the match
         const afterMatch = sanitized.substring(
           numericOffset + match.length,
-          numericOffset + match.length + 30,
+          numericOffset + match.length + 50,
         );
         // Check if it looks like a string value (starts with letters/org.apache pattern)
+        // Also check for common patterns like package names, class names, etc.
         const looksLikeStringValue =
-          /^[a-zA-Z]/.test(afterMatch) || afterMatch.startsWith("org.apache");
+          /^[a-zA-Z]/.test(afterMatch) ||
+          afterMatch.startsWith("org.apache") ||
+          afterMatch.startsWith("com.") ||
+          afterMatch.startsWith("java.") ||
+          /^"[a-zA-Z]/.test(afterMatch);
+
+        // Additional check: if we're in an array context (after comma or newline in array), be more lenient
+        const inArrayContext = isInArrayContext(numericOffset, sanitized);
+        // Also check if delimiter is comma and we're likely in an array (comma before newline suggests array)
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const likelyInArray = delimiterStr === "," && whitespaceStr.includes("\n");
+        // In array context, be more lenient - if we have a stray char before a quote, remove it
+        // This handles cases like `,\ne    "org.apache...` where stray 'e' appears after comma+newline
+        if (inArrayContext || likelyInArray) {
+          // Check if afterMatch looks like a string value (starts with letter or common package patterns)
+          // Also accept if afterMatch is empty (we'll check the content after the quote)
+          const looksLikeString =
+            afterMatch.length === 0 ||
+            /^[a-zA-Z]/.test(afterMatch) ||
+            afterMatch.startsWith("org.") ||
+            afterMatch.startsWith("com.") ||
+            afterMatch.startsWith("java.");
+          // For single-letter stray chars in array context, be very lenient
+          const strayCharsStr = typeof strayChars === "string" ? strayChars : "";
+          if (looksLikeString || strayCharsStr.length === 1) {
+            hasChanges = true;
+            const whitespaceAfterStr = typeof whitespaceAfter === "string" ? whitespaceAfter : "";
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Removed stray characters '${strayCharsStr}' immediately before quote in array`,
+              );
+            }
+            return `${delimiterStr}${whitespaceStr}${whitespaceAfterStr}"`;
+          }
+        }
 
         if (isAfterPropertyBoundary && looksLikeStringValue) {
           hasChanges = true;
-          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const whitespaceAfterStr = typeof whitespaceAfter === "string" ? whitespaceAfter : "";
           const strayCharsStr = typeof strayChars === "string" ? strayChars : "";
           if (diagnostics.length < 10) {
             diagnostics.push(
               `Removed stray characters '${strayCharsStr}' immediately before quote`,
             );
           }
-          return `${delimiterStr}${whitespaceStr}"`;
+          return `${delimiterStr}${whitespaceStr}${whitespaceAfterStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pass 2a-3: Fix stray single letters at start of line in array contexts
+    // Handles cases like: `,\ne    "org.springframework..."` where 'e' is at start of line
+    // This is a more specific pattern for array elements that start with a stray letter
+    const strayLetterAtLineStartInArrayPattern = /(,\s*\n\s*)([a-z])(\s+)(")/gi;
+    sanitized = sanitized.replace(
+      strayLetterAtLineStartInArrayPattern,
+      (match, beforeStray, strayLetter, whitespaceAfter, _quote, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Verify we're in an array context
+        const inArrayContext = isInArrayContext(numericOffset, sanitized);
+        if (!inArrayContext) {
+          // Also check if we're likely in an array by looking at context before
+          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+          const hasArrayContext = /\[\s*$/.test(beforeMatch) || /\[\s*\n\s*$/.test(beforeMatch);
+          if (!hasArrayContext) {
+            return match;
+          }
+        }
+
+        // Check what comes after the quote to ensure it's a valid string value
+        const afterMatch = sanitized.substring(
+          numericOffset + match.length,
+          numericOffset + match.length + 50,
+        );
+        const looksLikeStringValue =
+          /^[a-zA-Z]/.test(afterMatch) ||
+          afterMatch.startsWith("org.") ||
+          afterMatch.startsWith("com.") ||
+          afterMatch.startsWith("java.") ||
+          afterMatch.startsWith("org.springframework");
+
+        if (looksLikeStringValue || inArrayContext) {
+          hasChanges = true;
+          const beforeStrayStr = typeof beforeStray === "string" ? beforeStray : "";
+          const strayLetterStr = typeof strayLetter === "string" ? strayLetter : "";
+          const whitespaceAfterStr = typeof whitespaceAfter === "string" ? whitespaceAfter : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed stray letter '${strayLetterStr}' at start of line in array`);
+          }
+          return `${beforeStrayStr}${whitespaceAfterStr}"`;
         }
 
         return match;

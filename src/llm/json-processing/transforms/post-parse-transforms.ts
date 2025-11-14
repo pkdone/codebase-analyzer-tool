@@ -249,3 +249,76 @@ export function fixParameterPropertyNameTypos(parsed: unknown): unknown {
 
   return result;
 }
+
+/**
+ * Adds default values for missing required fields in publicMethods arrays.
+ *
+ * This post-parse transform addresses cases where LLM responses have truncated or incomplete
+ * method definitions in the publicMethods array, missing required fields like `returnType` and `description`.
+ * This happens when JSON is truncated during generation, and the structural error fixer closes
+ * the structures but doesn't add the missing required fields.
+ *
+ * Transformation:
+ * - Recursively processes all objects in the parsed structure
+ * - When finding publicMethods arrays, ensures each method has required fields:
+ *   - returnType: defaults to "void" if missing
+ *   - description: defaults to "No description provided." if missing
+ * - Preserves all existing fields and values
+ */
+export function addMissingRequiredFieldsInPublicMethods(parsed: unknown): unknown {
+  if (typeof parsed !== "object" || parsed === null) {
+    return parsed;
+  }
+
+  // Handle arrays
+  if (Array.isArray(parsed)) {
+    return parsed.map((item) => addMissingRequiredFieldsInPublicMethods(item));
+  }
+
+  // Handle plain objects
+  const obj = parsed as Record<string, unknown>;
+  const result: Record<string, unknown> = { ...obj };
+
+  // Check if this object has a publicMethods array
+  if ("publicMethods" in obj && Array.isArray(obj.publicMethods)) {
+    const methods = obj.publicMethods as unknown[];
+    result.publicMethods = methods.map((method) => {
+      if (typeof method !== "object" || method === null || Array.isArray(method)) {
+        return method;
+      }
+
+      const methodObj = method as Record<string, unknown>;
+      const fixedMethod: Record<string, unknown> = { ...methodObj };
+
+      // Add default returnType if missing
+      if (!("returnType" in fixedMethod) || fixedMethod.returnType === undefined) {
+        fixedMethod.returnType = "void";
+      }
+
+      // Add default description if missing
+      if (!("description" in fixedMethod) || fixedMethod.description === undefined) {
+        fixedMethod.description = "No description provided.";
+      }
+
+      // Recursively process nested structures (e.g., parameters array)
+      return addMissingRequiredFieldsInPublicMethods(fixedMethod);
+    });
+  }
+
+  // Recursively process all other properties
+  for (const [key, value] of Object.entries(result)) {
+    if (key !== "publicMethods") {
+      result[key] = addMissingRequiredFieldsInPublicMethods(value);
+    }
+  }
+
+  // Handle symbol keys (preserve them as-is)
+  const symbols = Object.getOwnPropertySymbols(obj);
+  for (const sym of symbols) {
+    const symObj = obj as Record<symbol, unknown>;
+    const resultSym = result as Record<symbol, unknown>;
+    resultSym[sym] = addMissingRequiredFieldsInPublicMethods(symObj[sym]);
+  }
+
+  return result;
+}

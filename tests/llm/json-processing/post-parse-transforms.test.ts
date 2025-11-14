@@ -661,4 +661,91 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
       }
     });
   });
+
+  describe("addMissingRequiredFieldsInPublicMethods transform", () => {
+    it("adds default returnType and description for missing fields in publicMethods", () => {
+      const input = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "method1",
+            purpose: "Test purpose",
+            // Missing returnType and description
+          },
+          {
+            name: "method2",
+            purpose: "Test purpose 2",
+            returnType: "String",
+            // Missing description
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(input, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data;
+        const methods = (data as { publicMethods: Record<string, unknown>[] }).publicMethods;
+        expect(methods[0].returnType).toBe("void");
+        expect(methods[0].description).toBe("No description provided.");
+        expect(methods[1].returnType).toBe("String");
+        expect(methods[1].description).toBe("No description provided.");
+      }
+    });
+
+    it("preserves existing returnType and description values", () => {
+      const input = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "method1",
+            purpose: "Test purpose",
+            returnType: "int",
+            description: "Existing description",
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(input, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data;
+        const methods = (data as { publicMethods: Record<string, unknown>[] }).publicMethods;
+        expect(methods[0].returnType).toBe("int");
+        expect(methods[0].description).toBe("Existing description");
+      }
+    });
+
+    it("handles nested structures correctly", () => {
+      const input = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "method1",
+            purpose: "Test purpose",
+            parameters: [
+              {
+                name: "param1",
+                type: "String",
+              },
+            ],
+            // Missing returnType and description
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(input, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data;
+        const methods = (data as { publicMethods: Record<string, unknown>[] }).publicMethods;
+        expect(methods[0].returnType).toBe("void");
+        expect(methods[0].description).toBe("No description provided.");
+        expect(Array.isArray(methods[0].parameters)).toBe(true);
+      }
+    });
+  });
 });

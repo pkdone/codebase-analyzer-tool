@@ -218,6 +218,42 @@ cyclomaticComplexity": 4
     });
   });
 
+  describe("stray single letters before array elements", () => {
+    it("should remove stray 'e' character before array element", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.portfolio.interestratechart.service.InterestRateChartReadPlatformService",
+e    "org.apache.fineract.portfolio.paymenttype.service.PaymentTypeReadPlatformService",
+    "org.apache.fineract.portfolio.savings.DepositAccountType"
+  ]
+}`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('e    "org.apache.fineract.portfolio.paymenttype');
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.paymenttype.service.PaymentTypeReadPlatformService"',
+      );
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove stray single letters before array elements in various contexts", () => {
+      const input = `{
+  "externalReferences": [
+    "com.google.gson.JsonArray",
+e    "org.springframework.stereotype.Service"
+  ]
+}`;
+
+      const result = fixSyntaxErrors(input);
+
+      // The main goal is to make JSON parseable - if it parses, the fix worked
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      expect(result.content).toContain('"org.springframework.stereotype.Service"');
+    });
+  });
+
   describe("stray characters before strings", () => {
     it("should remove stray character 't' before string in array", () => {
       const input = `[
@@ -470,6 +506,43 @@ since",
       if (result.changed) {
         expect(result.content).toMatch(/"description"\s*:\s*"[^"]*method/);
       }
+    });
+  });
+
+  describe("missing opening quotes in property names", () => {
+    it("should fix missing opening quote in property name after comma and newline", () => {
+      const input = `{
+      "description": "This static factory method is designed to build a DTO for the account pre-closure process.",
+      cyclomaticComplexity": 1,
+      "linesOfCode": 58
+    }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"cyclomaticComplexity": 1');
+      // Check that the broken version (without opening quote before cyclomaticComplexity) is not present
+      // The pattern should NOT match: whitespace/newline followed by cyclomaticComplexity" (no quote before)
+      const brokenPattern = /(^|\s)cyclomaticComplexity":/;
+      expect(brokenPattern.test(result.content)).toBe(false);
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix missing opening quote in property name after newline", () => {
+      const input = `{
+      "returnType": "RecurringDepositAccountData",
+      description": "This static factory method creates a new instance."
+    }`;
+
+      const result = fixSyntaxErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"description":');
+      // Check that the broken version (without opening quote before description) is not present
+      // The pattern should NOT match: whitespace/newline followed by description" (no quote before)
+      const brokenPattern = /(^|\s)description":/;
+      expect(brokenPattern.test(result.content)).toBe(false);
+      expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
 
