@@ -21,6 +21,23 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return { content: input, changed: false };
     }
 
+    // Quick check: if the input is valid JSON and doesn't contain obvious errors, don't modify it
+    // This prevents unnecessary modifications to valid JSON while still allowing fixes for typos
+    try {
+      JSON.parse(input);
+      // Check if there are obvious errors that need fixing (typos, missing dots, etc.)
+      const hasObviousErrors = /orgfineract|orgahce|jakarta\.ws-rs|orgf\.apache|orgah\.apache/.test(
+        input,
+      );
+      if (!hasObviousErrors) {
+        // Valid JSON with no obvious errors, return as-is
+        return { content: input, changed: false };
+      }
+      // Valid JSON but has errors, proceed with sanitization
+    } catch {
+      // Not valid JSON, proceed with sanitization
+    }
+
     let sanitized = input;
     let hasChanges = false;
     const diagnostics: string[] = [];
@@ -73,6 +90,22 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         diagnostics.push(`Fixed typo in package reference: org${typo}.apache -> org.apache`);
       }
       return '"org.apache.';
+    });
+
+    // Pattern: More complex typos like orgahce.fineract -> org.apache.fineract
+    const complexTypoPattern = /"orgahce\.fineract\./g;
+    sanitized = sanitized.replace(complexTypoPattern, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push(
+          "Fixed typo in package reference: orgahce.fineract -> org.apache.fineract",
+        );
+      }
+      return '"org.apache.fineract.';
     });
 
     // Pattern: Corrupted entries like _MODULE",
@@ -848,11 +881,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // Also handles: `fineract.infrastructure.event...",` -> `"fineract.infrastructure.event...",`
     // This pattern detects strings in arrays that are missing the opening quote
     // Improved to handle more cases including package names with dots
+    // Updated to handle newlines before unquoted strings
+    // Pattern requires newline to avoid matching single-line valid JSON
     const missingOpeningQuoteInArrayPattern =
-      /([[\s,]\s*)([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,/g;
+      /((\s*\n|,\s*\n|\[\s*\n)(\s*))([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,/g;
     sanitized = sanitized.replace(
       missingOpeningQuoteInArrayPattern,
-      (match, prefix, stringValue, offset: unknown) => {
+      (match, fullPrefix, _newlinePart, whitespace, stringValue, offset: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
         if (isInStringAt(numericOffset, sanitized)) {
           return match;
@@ -860,6 +895,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         // Check if we're in an array context
         const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+
+        // Check if we're after a comma and newline (common in arrays)
+        // This is the most reliable indicator - arrays in JSON are often formatted with newlines
+        const isAfterCommaNewline = /,\s*\n/.test(beforeMatch);
+        const isAfterArrayElement = /"\s*,\s*\n/.test(beforeMatch);
+        const isAfterOpeningBracket = /\[\s*\n/.test(beforeMatch);
+
+        // Check bracket depth for array context
         let bracketDepth = 0;
         let braceDepth = 0;
         let inString = false;
@@ -885,7 +928,6 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             } else if (char === "[") {
               bracketDepth--;
               if (bracketDepth >= 0 && braceDepth <= 0) {
-                // We're in an array context
                 foundArrayContext = true;
                 break;
               }
@@ -897,20 +939,69 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           }
         }
 
-        // Also check if we're after a comma and newline (common in arrays)
-        const isAfterCommaNewline = /,\s*\n\s*$/.test(beforeMatch);
-        const isAfterArrayElement = /"\s*,\s*\n\s*$/.test(beforeMatch);
+        // Only apply the fix if we're in an array context
+        // The pattern already requires a newline, so we can be more lenient with context checking
+        // Also verify we're not matching already-quoted strings (check if there's a quote immediately before the string value)
+        // The pattern matches unquoted strings, so check the character right before the string value starts
+        const stringValueStart =
+          numericOffset +
+          (typeof fullPrefix === "string" ? fullPrefix.length : 0) +
+          (typeof whitespace === "string" ? whitespace.length : 0);
+        const charBeforeString = sanitized.charAt(stringValueStart - 1);
+        const isAlreadyQuoted = charBeforeString === '"';
 
-        if (foundArrayContext || isAfterCommaNewline || isAfterArrayElement) {
+        if (
+          !isAlreadyQuoted &&
+          (foundArrayContext || isAfterCommaNewline || isAfterArrayElement || isAfterOpeningBracket)
+        ) {
           hasChanges = true;
-          const prefixStr = typeof prefix === "string" ? prefix : "";
-          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
-          if (diagnostics.length < 10) {
-            diagnostics.push(
-              `Fixed missing opening quote in array element: ${stringValueStr}" -> "${stringValueStr}"`,
+          const prefixStr = typeof fullPrefix === "string" ? fullPrefix : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          let stringValueStr = typeof stringValue === "string" ? stringValue : "";
+
+          // If it starts with "fineract." and doesn't have "org.apache." prefix, add it
+          if (
+            stringValueStr.startsWith("fineract.") &&
+            !stringValueStr.startsWith("org.apache.fineract.")
+          ) {
+            stringValueStr = `org.apache.${stringValueStr}`;
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed missing opening quote and org.apache prefix in array: ${stringValue}" -> "org.apache.${stringValue}"`,
+              );
+            }
+          } else if (stringValueStr.startsWith("to.")) {
+            // For "to.loan.transaction..." patterns, try to reconstruct from context
+            const beforeContext = sanitized.substring(
+              Math.max(0, numericOffset - 1000),
+              numericOffset,
             );
+            const previousPackageRegex =
+              /"org\.apache\.fineract\.infrastructure\.event\.business\.domain\.loan\.transaction\.([^"]+)"/;
+            const previousPackageMatch = previousPackageRegex.exec(beforeContext);
+            if (previousPackageMatch) {
+              const className = stringValueStr.replace(/^to\.loan\.transaction\./, "");
+              stringValueStr = `org.apache.fineract.infrastructure.event.business.domain.loan.transaction.${className}`;
+              if (diagnostics.length < 10) {
+                diagnostics.push(
+                  `Fixed missing opening quote and reconstructed package name: to.${className} -> org.apache.fineract.infrastructure.event.business.domain.loan.transaction.${className}`,
+                );
+              }
+            } else {
+              if (diagnostics.length < 10) {
+                diagnostics.push(
+                  `Fixed missing opening quote in array: ${stringValueStr}" -> "${stringValueStr}"`,
+                );
+              }
+            }
+          } else {
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed missing opening quote in array element: ${stringValueStr}" -> "${stringValueStr}"`,
+              );
+            }
           }
-          return `${prefixStr}"${stringValueStr}",`;
+          return `${prefixStr}${whitespaceStr}"${stringValueStr}",`;
         }
 
         return match;
@@ -2731,6 +2822,521 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             );
           }
           return `"${propertyNameStr}": []`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 66: Fix malformed property names with extra characters =====
+    // Pattern: `"name":sem":` -> `"name":`
+    // Pattern: `"name":sem": "value"` -> `"name": "value"`
+    // This handles cases where property names have extra characters like ":sem": inserted
+    const malformedPropertyNamePattern = /"([^"]+)":([a-z]{1,5})":\s*("?[^"]*"?)/g;
+    sanitized = sanitized.replace(
+      malformedPropertyNamePattern,
+      (match, propertyName, extraText, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const extraTextStr = typeof extraText === "string" ? extraText : "";
+          const valueStr = typeof value === "string" ? value : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed malformed property name: "${propertyNameStr}":${extraTextStr}": -> "${propertyNameStr}":`,
+            );
+          }
+          return `"${propertyNameStr}": ${valueStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 67: Fix stray text patterns =====
+    // Pattern: `{.json` -> `{`
+    const strayJsonPattern = /\{\.json(\s*\n|\s*$)/g;
+    sanitized = sanitized.replace(strayJsonPattern, (match, newlineOrSpace, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push("Fixed {.json -> {");
+      }
+      // Preserve the whitespace/newline after {.json
+      const newlineOrSpaceStr = typeof newlineOrSpace === "string" ? newlineOrSpace : "";
+      return `{${newlineOrSpaceStr}`;
+    });
+
+    // Pattern: `trib` -> remove (stray text)
+    // Pattern: `cmethod` -> remove (stray text)
+    // Pattern: `e"publicConstants"` -> remove (stray text)
+    // Pattern: `tribal-council-leader-thought` -> remove (stray text)
+    const strayTextPattern =
+      /([}\],]|\n|^)(\s*)(trib|cmethod|e"publicConstants"|tribal-council-leader-thought)(\s*)([}\],]|\n|$)/g;
+    sanitized = sanitized.replace(
+      strayTextPattern,
+      (match, before, _whitespace, strayText, _whitespaceAfter, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        hasChanges = true;
+        const beforeStr = typeof before === "string" ? before : "";
+        const afterStr = typeof after === "string" ? after : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed stray text '${strayTextStr}'`);
+        }
+        return `${beforeStr}${afterStr}`;
+      },
+    );
+
+    // Pattern: `_ADDITIONAL_PROPERTIES` -> remove (stray text)
+    const underscoreStrayPattern = /([}\],]|\n|^)(\s*)(_[A-Z_]+)(\s*)([}\],]|\n|$)/g;
+    sanitized = sanitized.replace(
+      underscoreStrayPattern,
+      (match, before, _whitespace, strayText, _whitespaceAfter, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        hasChanges = true;
+        const beforeStr = typeof before === "string" ? before : "";
+        const afterStr = typeof after === "string" ? after : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed stray text '${strayTextStr}'`);
+        }
+        return `${beforeStr}${afterStr}`;
+      },
+    );
+
+    // Pattern: `returnType": "void",_` -> `returnType": "void",`
+    const trailingUnderscorePattern = /("([^"]+)":\s*"([^"]+)",)\s*_(\s*[}\],]|\s*\n)/g;
+    sanitized = sanitized.replace(
+      trailingUnderscorePattern,
+      (match, propertyValue, _propertyName, _value, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        hasChanges = true;
+        const propertyValueStr = typeof propertyValue === "string" ? propertyValue : "";
+        const afterStr = typeof after === "string" ? after : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed trailing underscore after property value");
+        }
+        return `${propertyValueStr}${afterStr}`;
+      },
+    );
+
+    // ===== Pattern 67.5: Remove trailing commas =====
+    // Pattern: `"key": "value",}` -> `"key": "value"}`
+    // Pattern: `"item",]` -> `"item"]`
+    // This handles trailing commas before closing braces or brackets (invalid in strict JSON)
+    const trailingCommaPattern = /,\s*([}\]])/g;
+    sanitized = sanitized.replace(
+      trailingCommaPattern,
+      (match, closingDelimiter, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        hasChanges = true;
+        const closingDelimiterStr = typeof closingDelimiter === "string" ? closingDelimiter : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed trailing comma before ${closingDelimiterStr}`);
+        }
+        return closingDelimiterStr;
+      },
+    );
+
+    // ===== Pattern 68: Fix missing opening quote before property values =====
+    // Pattern: `post": "jakarta.ws.rs.POST"` -> `"post": "jakarta.ws.rs.POST"`
+    // Also handles: `"post": "jakarta.ws.rs.POST"` in arrays -> `"jakarta.ws.rs.POST"` (just the value)
+    // This handles cases where property names are missing the opening quote
+    // Also handles cases in arrays where property-like structures appear (even if quote was already added)
+    const missingOpeningQuoteBeforePropertyPattern =
+      /([}\],]|\n|^)(\s*)("?)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
+
+    sanitized = sanitized.replace(
+      missingOpeningQuoteBeforePropertyPattern,
+      (match, delimiter, whitespace, optionalQuote, propertyName, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context (object) or array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const hasQuote = optionalQuote === '"';
+
+        // Check bracket/brace depth to determine if we're in an array or object
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inString = false;
+        let escape = false;
+        let lastOpeningBracket = -1;
+        let lastOpeningBrace = -1;
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          if (char === "\\") {
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          if (!inString) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth < 0 && lastOpeningBracket === -1) {
+                lastOpeningBracket = i;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+              if (braceDepth < 0 && lastOpeningBrace === -1) {
+                lastOpeningBrace = i;
+              }
+            }
+          }
+        }
+
+        // We're in an array if:
+        // 1. We found an opening bracket and it's more recent than any opening brace
+        // 2. OR we're after a quoted string with comma (array element pattern)
+        const isInArray =
+          (lastOpeningBracket > lastOpeningBrace && bracketDepth < 0) || // In array, not object
+          (/"\s*$/.test(beforeMatch) && delimiterStr === "," && bracketDepth < braceDepth); // After array element
+
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          isInArray; // Also match in arrays
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+
+          // If we're in an array, convert to just the value (arrays can't have key-value pairs)
+          if (isInArray) {
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed property in array context: "${propertyNameStr}": "${valueStr}" -> "${valueStr}"`,
+              );
+            }
+            return `${delimiterStr}${whitespaceStr}"${valueStr}"`;
+          }
+
+          // In object context, ensure the property name has a quote
+          if (!hasQuote) {
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed missing opening quote before property: ${propertyNameStr}": -> "${propertyNameStr}":`,
+              );
+            }
+            return `${delimiterStr}${whitespaceStr}"${propertyNameStr}": "${valueStr}"`;
+          }
+
+          // Quote already present, just return as-is
+          return match;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 69: Fix duplicate import statements embedded in JSON =====
+    // Pattern: Remove duplicate Java import statements that appear in JSON
+    // This handles cases where the LLM includes actual Java code in the JSON response
+    // Match package statement followed by one or more import statements
+    const duplicateImportPattern = /(package\s+[a-zA-Z0-9_.]+;\s*\n(?:\s*import\s+[^;]+;\s*\n)+)/g;
+    sanitized = sanitized.replace(duplicateImportPattern, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      // Check if this is inside a string value (shouldn't be removed if it's part of a string)
+      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+      const afterMatch = sanitized.substring(
+        numericOffset + match.length,
+        numericOffset + match.length + 100,
+      );
+
+      // If it's between quotes, it's part of a string value, don't remove
+      if (/"[^"]*$/.test(beforeMatch) && /^[^"]*"/.test(afterMatch)) {
+        return match;
+      }
+
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push("Removed duplicate import statements embedded in JSON");
+      }
+      return "";
+    });
+
+    // ===== Pattern 70: Fix missing dots in package names (orgfineract -> org.apache.fineract) =====
+    // Pattern: `orgfineract` -> `org.apache.fineract`
+    // This handles cases where "org.apache" is merged into "orgfineract"
+    const missingDotInOrgFineractPattern = /"orgfineract\.([a-zA-Z0-9_.]+)"/g;
+    sanitized = sanitized.replace(
+      missingDotInOrgFineractPattern,
+      (match, packagePath, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const packagePathStr = typeof packagePath === "string" ? packagePath : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed missing dots in package: orgfineract.${packagePathStr} -> org.apache.fineract.${packagePathStr}`,
+          );
+        }
+        return `"org.apache.fineract.${packagePathStr}"`;
+      },
+    );
+
+    // ===== Pattern 71: Fix stray text like "trib" at end of property =====
+    // Pattern: `"externalReferences": [\n...],\ntrib` -> `"externalReferences": [\n...],`
+    const strayTextAtEndPattern = /([}\],])\s*\n\s*(trib[a-z-]*)(\s*)([}\],]|\n|$)/g;
+    sanitized = sanitized.replace(
+      strayTextAtEndPattern,
+      (match, delimiter, strayText, _whitespace, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const afterStr = typeof after === "string" ? after : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed stray text '${strayText}' after ${delimiterStr}`);
+        }
+        return `${delimiterStr}\n${afterStr}`;
+      },
+    );
+
+    // ===== Pattern 72: Fix missing opening quote for strings starting with "to." =====
+    // Pattern: `to.loan.transaction...",` -> `"to.loan.transaction...",`
+    // This is a specific case for package-like strings missing quotes
+    const missingQuoteToPattern = /([}\],]|\n|^)(\s*)(to\.[a-zA-Z0-9_.]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      missingQuoteToPattern,
+      (match, delimiter, whitespace, unquotedValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inString = false;
+        let escape = false;
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          if (char === "\\") {
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          if (!inString) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                hasChanges = true;
+                const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+                const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+                const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
+                if (diagnostics.length < 10) {
+                  diagnostics.push(
+                    `Fixed missing opening quote: ${unquotedValueStr}" -> "${unquotedValueStr}"`,
+                  );
+                }
+                return `${delimiterStr}${whitespaceStr}"${unquotedValueStr}",`;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 73: Fix hyphens instead of dots in package names =====
+    // Pattern: `jakarta.ws-rs.Path` -> `jakarta.ws.rs.Path`
+    // This handles cases where hyphens are used instead of dots in package names
+    const hyphenInPackagePattern = /"([a-zA-Z0-9_.]+)-([a-zA-Z0-9_]+)\.([a-zA-Z0-9_.]+)"/g;
+    sanitized = sanitized.replace(
+      hyphenInPackagePattern,
+      (match, before, hyphenated, after, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Only fix if it looks like a package name (before has a dot, indicating it's a package)
+        const beforeStr = typeof before === "string" ? before : "";
+        const afterStr = typeof after === "string" ? after : "";
+        // Check if before has a dot (package-like) OR if after has a dot (also package-like)
+        if (beforeStr.includes(".") || afterStr.includes(".")) {
+          hasChanges = true;
+          const hyphenatedStr = typeof hyphenated === "string" ? hyphenated : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed hyphen in package name: ${beforeStr}-${hyphenatedStr}.${afterStr} -> ${beforeStr}.${hyphenatedStr}.${afterStr}`,
+            );
+          }
+          return `"${beforeStr}.${hyphenatedStr}.${afterStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 74: Fix missing opening quote before property name =====
+    // Pattern: `- "externalReferences"` -> `"externalReferences"`
+    // Pattern: `name":` -> `"name":`
+    // Pattern: `se":` -> `"purpose":` (common truncation of "purpose")
+    // This handles cases where property names are missing the opening quote
+    // First handle the case where there's a dash and quote before the property name
+    const dashQuotePropertyPattern = /([}\],]|\n|^)(\s*)-\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      dashQuotePropertyPattern,
+      (match, delimiter, whitespace, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        // The delimiter might be part of the match, so check context before the delimiter
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const delimiterRegex = /[}\],]/;
+        const contextStart = delimiterRegex.test(delimiterStr)
+          ? Math.max(0, numericOffset - delimiterStr.length - 300)
+          : Math.max(0, numericOffset - 200);
+        const beforeMatch = sanitized.substring(contextStart, numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*$/.test(beforeMatch); // Also match after closing bracket
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed dash and quote before property: - "${propertyNameStr}": -> "${propertyNameStr}":`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // Then handle the case where the property name is missing the opening quote
+    // Also handles cases where the quote is already present (from Pattern 68) but we need to fix truncations
+    const missingQuoteBeforePropertyNamePattern =
+      /([}\],]|\n|^)(\s*)("?)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      missingQuoteBeforePropertyNamePattern,
+      (match, delimiter, whitespace, optionalQuote, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        // Check for property context: after { or , (with optional whitespace/newline)
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /[{,]\s*\n\s*$/.test(beforeMatch) || // Also match after { or , with newline
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          let propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const hasQuote = optionalQuote === '"';
+
+          // Fix common truncations (regardless of whether quote is present)
+          if (propertyNameStr === "se") {
+            // "se" is likely a truncation of "purpose"
+            propertyNameStr = "purpose";
+            if (diagnostics.length < 10) {
+              diagnostics.push('Fixed truncated property name: "se": -> "purpose":');
+            }
+            return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+          }
+
+          // If quote is missing, add it
+          if (!hasQuote) {
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed missing opening quote before property: ${propertyNameStr}": -> "${propertyNameStr}":`,
+              );
+            }
+            return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+          }
+
+          // Quote already present and no truncation to fix, return as-is
+          return match;
         }
 
         return match;
