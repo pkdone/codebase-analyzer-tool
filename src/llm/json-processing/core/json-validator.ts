@@ -1,5 +1,5 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
-import { JsonValidatorResult } from "../json-processing-result.types";
+import { JsonValidatorResult } from "../types/json-processing-result.types";
 import { JsonProcessingLogger } from "./json-processing-logger";
 import { z } from "zod";
 

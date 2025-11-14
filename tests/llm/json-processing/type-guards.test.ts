@@ -7,7 +7,7 @@ import {
   isNull,
   isJsonPrimitive,
   isJsonValue,
-} from "../../../src/llm/json-processing/utils/type-guards";
+} from "../../../src/llm/json-processing/types/type-guards";
 
 describe("Type Guards", () => {
   describe("isJsonObject", () => {

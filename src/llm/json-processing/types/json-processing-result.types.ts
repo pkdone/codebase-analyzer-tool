@@ -1,4 +1,4 @@
-import { JsonProcessingError } from "./types/json-processing.errors";
+import { JsonProcessingError } from "./json-processing.errors";
 import { z } from "zod";
 
 /**

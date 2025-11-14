@@ -9,7 +9,7 @@ import {
   addMissingRequiredFieldsInPublicMethods,
 } from "../transforms/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";
-import { JsonProcessorResult } from "../json-processing-result.types";
+import { JsonProcessorResult } from "../types/json-processing-result.types";
 import {
   normalizeCharacters,
   stripWrappers,
