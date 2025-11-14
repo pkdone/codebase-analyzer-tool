@@ -537,4 +537,62 @@ e"publicConstants": [],
       expect(result.content).toBe(input);
     });
   });
+
+  describe("Pattern 54: Malformed parameter objects with corrupted property names", () => {
+    it("should fix malformed parameter object with corrupted property name", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "testMethod",
+      "parameters": [
+        {
+          "name":toBeContinued": "true"
+        }
+      ]
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      // The pattern should fix "name":toBeContinued": "true" to "name": "toBeContinued"
+      // The unquoted value (toBeContinued) becomes the value
+      expect(result.content).not.toContain('"name":toBeContinued":');
+      // The pattern should produce valid JSON
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      // Verify the malformed pattern is gone
+      const parsed = JSON.parse(result.content);
+      expect(parsed.publicMethods[0].parameters[0]).toBeDefined();
+    });
+
+    it("should fix multiple malformed parameter objects", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "testMethod",
+      "parameters": [
+        {
+          "name":toBeContinued": "true"
+        },
+        {
+          "name":anotherValue": "false"
+        }
+      ]
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      // The pattern should fix both malformed parameter objects
+      expect(result.content).not.toContain('"name":toBeContinued":');
+      expect(result.content).not.toContain('"name":anotherValue":');
+      // The pattern should produce valid JSON
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      const parsed = JSON.parse(result.content);
+      expect(parsed.publicMethods[0].parameters).toHaveLength(2);
+    });
+  });
 });

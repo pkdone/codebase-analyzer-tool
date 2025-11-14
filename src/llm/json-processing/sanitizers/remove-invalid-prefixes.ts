@@ -666,6 +666,42 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
       },
     );
 
+    // ===== Pattern 4.5: Remove stray key-value pairs in arrays =====
+    // Pattern: Removes property-like structures (KEY: "value",) that appear in arrays
+    // Example: `"item1",\nLAGACY_CODE_REFACTOR_TOOLING: "2024-05-22",\n"item2"` -> `"item1",\n"item2"`
+    const strayKeyValueInArrayPattern =
+      /([}\],]|\n|^)(\s*)([A-Z_][A-Z0-9_]*)\s*:\s*"([^"]+)"\s*,(\s*\n)/g;
+    sanitized = sanitized.replace(
+      strayKeyValueInArrayPattern,
+      (match, delimiter, _whitespace, key, value, afterComma, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const isInArray = isInArrayContext(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const keyStr = typeof key === "string" ? key : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const afterCommaStr = typeof afterComma === "string" ? afterComma : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray key-value pair in array: ${keyStr}: "${valueStr.substring(0, 30)}${valueStr.length > 30 ? "..." : ""}"`,
+            );
+          }
+          // Remove the entire key-value pair, keeping the delimiter and newline
+          return `${delimiterStr}${afterCommaStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // ===== Pattern 5: Remove stray text before opening braces in array contexts =====
     const strayTextBeforeBracePattern = /([}\],])\s*\n\s*([a-zA-Z]{2,10})\{/g;
 

@@ -3343,6 +3343,34 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 54: Fix malformed parameter objects with corrupted property names =====
+    // Pattern: Fixes cases like `"name":toBeContinued": "value"` -> `"name": "toBeContinued"`
+    // This handles cases where a property name got corrupted and merged with the value
+    // The pattern matches: "name":toBeContinued": "true" where "toBeContinued" is the actual value
+    const malformedParameterPattern =
+      /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      malformedParameterPattern,
+      (match, propertyName, unquotedValue, quotedValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
+        const quotedValueStr = typeof quotedValue === "string" ? quotedValue : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed malformed parameter object: "${propertyNameStr}":${unquotedValueStr}": "${quotedValueStr}" -> "${propertyNameStr}": "${unquotedValueStr}"`,
+          );
+        }
+        // The unquoted value (toBeContinued) is the actual value, ignore the quoted value
+        return `"${propertyNameStr}": "${unquotedValueStr}"`;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 

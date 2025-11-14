@@ -254,12 +254,14 @@ export const removeTruncationMarkers: Sanitizer = (jsonString: string): Sanitize
       },
     );
 
-    // Pattern 5: Handle _TRUNCATED_ markers
-    // Matches: `_TRUNCATED_` or `_truncated_` anywhere in the JSON
-    const underscoreTruncatedPattern = /([}\],]|\n|^)(\s*)_TRUNCATED_(\s*)([}\],]|\n|$)/gi;
+    // Pattern 5: Handle _TRUNCATED_ markers and similar truncation markers
+    // Matches: `_TRUNCATED_`, `_INPUT_TOKEN_COUNT_`, `_DOC_GENERATION_TRUNCATED_`, etc.
+    // These markers can appear at the end of JSON or in the middle
+    const underscoreTruncatedPattern =
+      /([}\],]|\n|^)(\s*)(_TRUNCATED_|_INPUT_TOKEN_COUNT_|_DOC_GENERATION_TRUNCATED_)(\s*)([}\],]|\n|$)/gi;
     sanitized = sanitized.replace(
       underscoreTruncatedPattern,
-      (match, before, _whitespace, _marker, after, offset: unknown) => {
+      (match, before, _whitespace, marker, _whitespace2, after, offset: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
         if (isInStringAt(numericOffset, sanitized)) {
           return match;
@@ -268,8 +270,9 @@ export const removeTruncationMarkers: Sanitizer = (jsonString: string): Sanitize
         hasChanges = true;
         const beforeStr = typeof before === "string" ? before : "";
         const afterStr = typeof after === "string" ? after : "";
+        const markerStr = typeof marker === "string" ? marker : "";
         if (diagnostics.length < 10) {
-          diagnostics.push("Removed _TRUNCATED_ marker");
+          diagnostics.push(`Removed truncation marker: ${markerStr}`);
         }
 
         // If there's a comma before, keep it; otherwise just return the delimiters

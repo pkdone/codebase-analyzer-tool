@@ -203,6 +203,71 @@ describe("removeTruncationMarkers", () => {
     });
   });
 
+  describe("additional truncation markers", () => {
+    it("should remove _INPUT_TOKEN_COUNT_ marker", () => {
+      const input = `{
+  "name": "Test",
+  "kind": "CLASS"
+_INPUT_TOKEN_COUNT_
+}`;
+
+      const result = removeTruncationMarkers(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_INPUT_TOKEN_COUNT_");
+      expect(result.content).toContain('"name": "Test"');
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).toContain("}");
+    });
+
+    it("should remove _DOC_GENERATION_TRUNCATED_ marker", () => {
+      const input = `{
+  "name": "Test",
+  "kind": "CLASS"
+_DOC_GENERATION_TRUNCATED_
+}`;
+
+      const result = removeTruncationMarkers(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_DOC_GENERATION_TRUNCATED_");
+      expect(result.content).toContain('"name": "Test"');
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).toContain("}");
+    });
+
+    it("should remove _INPUT_TOKEN_COUNT_ marker at end of array", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.infrastructure.accountnumberformat.api.AccountNumberFormatsApiResourceSwagger.PostAccountNumberFormatsResponse"
+_INPUT_TOKEN_COUNT_
+  ]
+}`;
+
+      const result = removeTruncationMarkers(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_INPUT_TOKEN_COUNT_");
+      expect(result.content).toContain("PostAccountNumberFormatsResponse");
+      expect(result.content).toContain("]");
+    });
+
+    it("should remove _DOC_GENERATION_TRUNCATED_ marker in middle of JSON", () => {
+      const input = `{
+  "name": "Test",
+_DOC_GENERATION_TRUNCATED_
+  "kind": "CLASS"
+}`;
+
+      const result = removeTruncationMarkers(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_DOC_GENERATION_TRUNCATED_");
+      expect(result.content).toContain('"name": "Test"');
+      expect(result.content).toContain('"kind": "CLASS"');
+    });
+  });
+
   describe("error handling", () => {
     it("should handle regex errors gracefully", () => {
       // Mock a replace that throws an error
