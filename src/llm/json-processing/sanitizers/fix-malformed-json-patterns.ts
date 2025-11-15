@@ -26,9 +26,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     try {
       JSON.parse(input);
       // Check if there are obvious errors that need fixing (typos, missing dots, etc.)
-      const hasObviousErrors = /orgfineract|orgahce|jakarta\.ws-rs|orgf\.apache|orgah\.apache/.test(
-        input,
-      );
+      const hasObviousErrors =
+        /orgfineract|orgahce|jakarta\.ws-rs|orgf\.apache|orgah\.apache|orgapache\.|io_swagger|org_|com_|"[^"]+\s+[a-zA-Z]+\s*":/.test(
+          input,
+        );
       if (!hasObviousErrors) {
         // Valid JSON with no obvious errors, return as-is
         return { content: input, changed: false };
@@ -3501,6 +3502,223 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             );
           }
           return `"${fixedName}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 75: Remove asterisks before property names (enhanced) =====
+    // Pattern: `* "purpose":` -> `"purpose":`
+    // Handles cases where LLM adds asterisks before property names
+    // This is an enhanced version that handles cases Pattern 13 might miss (single space after asterisk)
+    const asteriskBeforePropertyPattern75 = /(\n\s*)\*\s("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
+    sanitized = sanitized.replace(
+      asteriskBeforePropertyPattern75,
+      (match, prefix, propertyWithQuote, _propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context (after a comma, closing brace, or newline)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+          const propertyWithQuoteStr =
+            typeof propertyWithQuote === "string" ? propertyWithQuote : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed asterisk before property: * ${propertyWithQuoteStr}`);
+          }
+          return `${prefixStr}${propertyWithQuoteStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 76: Fix missing opening quote on property values (enhanced) =====
+    // Pattern: `"type":JsonCommand"` -> `"type": "JsonCommand"`
+    // Pattern: `"name":gsimId"` -> `"name": "gsimId"`
+    const missingQuoteOnValuePattern76 = /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      missingQuoteOnValuePattern76,
+      (match, propertyName, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const valueStr = typeof value === "string" ? value : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed missing opening quote on value: "${propertyNameStr}":${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+          );
+        }
+        return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
+      },
+    );
+
+    // ===== Pattern 77: Enhance missing dot pattern for orgapache.fineract =====
+    // Pattern: `"orgapache.fineract` -> `"org.apache.fineract`
+    // Extends Pattern 1 to handle cases where the dot is completely missing
+    // Package names are always in quoted strings, so we can apply this directly
+    const missingDotPattern77 = /"orgapache\.([a-z]+)\./g;
+    sanitized = sanitized.replace(missingDotPattern77, (_match, rest) => {
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push(`Fixed missing dot: orgapache.${rest} -> org.apache.${rest}`);
+      }
+      return `"org.apache.${rest}.`;
+    });
+
+    // ===== Pattern 78: Fix corrupted property assignments =====
+    // Pattern: `"name":alue": "LocalDate"` -> `"name": "transferDate", "type": "LocalDate"`
+    // This is a more specific case where a property name got corrupted
+    const corruptedAssignmentPattern78 = /"([^"]+)"\s*:\s*([a-zA-Z]+)"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      corruptedAssignmentPattern78,
+      (match, propertyName, corruptedPart, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if corruptedPart looks like it could be part of a property name
+        // Common patterns: "alue" (from "value"), "ame" (from "name"), etc.
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const corruptedPartStr = typeof corruptedPart === "string" ? corruptedPart : "";
+        const valueStr = typeof value === "string" ? value : "";
+
+        // If corruptedPart is "alue" and propertyName is "name", it's likely "name":alue": "value"
+        // We should fix it to "name": "value" (assuming the corrupted part is just noise)
+        if (corruptedPartStr.length <= 5 && /^[a-z]+$/.test(corruptedPartStr)) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed corrupted property assignment: "${propertyNameStr}":${corruptedPartStr}": "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 79: Fix typos in property names =====
+    // Pattern: `"type savory":` -> `"type":`
+    // Handles cases where extra words are added to property names
+    const typoInPropertyNamePattern79 = /"([^"]+)\s+([a-zA-Z]+)"\s*:\s*"/g;
+    sanitized = sanitized.replace(
+      typoInPropertyNamePattern79,
+      (match, propertyPart, extraWord, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        // Property names are not inside string values, so we should NOT be in a string
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Common property names that might have typos
+        const validPropertyNames = [
+          "name",
+          "type",
+          "purpose",
+          "description",
+          "parameters",
+          "returntype",
+          "cyclomaticcomplexity",
+          "linesofcode",
+        ];
+
+        const propertyPartStr = typeof propertyPart === "string" ? propertyPart : "";
+        const extraWordStr = typeof extraWord === "string" ? extraWord : "";
+        const lowerPropertyPart = propertyPartStr.toLowerCase();
+
+        // Check if propertyPart is a valid property name
+        if (validPropertyNames.includes(lowerPropertyPart)) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed typo in property name: "${propertyPartStr} ${extraWordStr}" -> "${propertyPartStr}"`,
+            );
+          }
+          return `"${propertyPartStr}": "`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 80: Convert underscores to dots in package names =====
+    // Pattern: `"io_swagger.v3"` -> `"io.swagger.v3"`
+    // Handles cases where underscores are used instead of dots in package names
+    // Package names are always in quoted strings, so we can apply this directly
+    const underscoreToDotPattern80 = /"([a-zA-Z_$][a-zA-Z0-9_$]*)_([a-zA-Z0-9_$.]+)"/g;
+    sanitized = sanitized.replace(underscoreToDotPattern80, (match, prefix, rest) => {
+      // Only apply if it looks like a package name (contains dots or common package prefixes)
+      const prefixStr = typeof prefix === "string" ? prefix : "";
+      const restStr = typeof rest === "string" ? rest : "";
+      const fullMatch = `${prefixStr}_${restStr}`;
+
+      // Check if it's likely a package name (contains dots or common prefixes)
+      // If rest contains dots, it's definitely a package name
+      // Also check if prefix is a common package prefix
+      const isPackageName =
+        restStr.includes(".") ||
+        /^(io|org|com|jakarta|javax|java|net)$/.test(prefixStr) ||
+        (prefixStr === "io" && restStr.startsWith("swagger"));
+
+      if (isPackageName) {
+        hasChanges = true;
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed underscore to dot in package name: "${fullMatch}" -> "${prefixStr}.${restStr}"`,
+          );
+        }
+        return `"${prefixStr}.${restStr}"`;
+      }
+
+      return match;
+    });
+
+    // ===== Pattern 81: Remove stray text/comments from JSON (enhanced) =====
+    // Pattern: `there are more methods, but I will stop here` -> remove
+    // Removes stray text that appears between JSON elements
+    const strayTextPattern81 =
+      /([}\],])\s*\n\s*([a-z][a-z\s,]+(?:but|and|or|the|a|an|is|are|was|were|will|would|should|could|can|may|might|this|that|these|those|here|there)[a-z\s,]*?)\s*\n\s*([{[]|")/gi;
+    sanitized = sanitized.replace(
+      strayTextPattern81,
+      (match, delimiter, strayText, nextChar, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context (after delimiter)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isAfterDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
+
+        if (isAfterDelimiter) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const nextCharStr = typeof nextChar === "string" ? nextChar : "";
+          const strayTextStr = typeof strayText === "string" ? strayText : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed stray text: "${strayTextStr.trim()}"`);
+          }
+          return `${delimiterStr}\n${nextCharStr}`;
         }
 
         return match;

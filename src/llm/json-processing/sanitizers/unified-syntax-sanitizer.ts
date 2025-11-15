@@ -477,6 +477,74 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       },
     );
 
+    // Pass 2c: Fix completely unquoted property names (e.g., `name:`, `purpose:`, `parameters:`)
+    // This handles cases where property names have no quotes at all
+    const unquotedPropertyNamePattern =
+      /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([^",\n{[\]]+?)(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      unquotedPropertyNamePattern,
+      (match, prefix, propertyName, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value.trim() : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+
+          // Check if propertyName is a known property name
+          const lowerPropertyName = propertyNameStr.toLowerCase();
+          const knownProperties = [
+            "name",
+            "purpose",
+            "description",
+            "parameters",
+            "returntype",
+            "cyclomaticcomplexity",
+            "linesofcode",
+            "codesmells",
+            "type",
+            "value",
+          ];
+
+          if (knownProperties.includes(lowerPropertyName)) {
+            hasChanges = true;
+            // Determine if value needs quotes (if it's not a number, boolean, null, or already quoted)
+            let quotedValue = valueStr;
+            if (
+              !/^(true|false|null|\d+)$/.test(valueStr) &&
+              !valueStr.startsWith('"') &&
+              !valueStr.startsWith("[") &&
+              !valueStr.startsWith("{")
+            ) {
+              quotedValue = `"${valueStr}"`;
+            }
+
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed unquoted property name: ${propertyNameStr}: ${valueStr} -> "${propertyNameStr}": ${quotedValue}`,
+              );
+            }
+            return `${prefixStr}"${propertyNameStr}": ${quotedValue}${terminatorStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
+
     // Pass 3: Fix property names with missing closing quote and colon
     let previousPass3 = "";
     while (previousPass3 !== sanitized) {
