@@ -194,6 +194,30 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // Pattern: Fix corrupted property names: `"name":g": "value"` -> `"name": "value"`
+    const corruptedPropertyNamePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])\s*":\s*"([^"]+)"(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      corruptedPropertyNamePattern,
+      (match, propertyName, extraChar, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const valueStr = typeof value === "string" ? value : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed corrupted property name: "${propertyNameStr}":${extraChar}": -> "${propertyNameStr}":`,
+          );
+        }
+        return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
+      },
+    );
+
     // ===== Pattern 3: Fix corrupted property values =====
     // Pattern: `"linesOfCode":_CODE`4,` -> `"linesOfCode": 4,`
     const corruptedValuePattern = /"([^"]+)"\s*:\s*_CODE`(\d+)(\s*[,}])/g;
@@ -1879,7 +1903,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
     // ===== Pattern 15: Fix missing colons after property names =====
     // Pattern: `"type" "JsonCommand"` -> `"type": "JsonCommand"`
+    // Also handles: `"name "command",` -> `"name": "command",` (space before closing quote)
     const missingColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+"([^"]+)"/g;
+    // Also handle space before closing quote: `"name "value"` -> `"name": "value"`
+    const missingColonWithSpacePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"([^"]+)"(\s*[,}])/g;
     sanitized = sanitized.replace(
       missingColonPattern,
       (match, propertyName, value, offset: unknown) => {
@@ -1944,6 +1971,39 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             );
           }
           return `"${propertyNameStr}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // Also handle missing colon with space before closing quote: `"name "value"` -> `"name": "value"`
+    sanitized = sanitized.replace(
+      missingColonWithSpacePattern,
+      (match, propertyName, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this looks like a property name followed by a value
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /:\s*{\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing colon: "${propertyNameStr} "value" -> "${propertyNameStr}": "value"`,
+            );
+          }
+          return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
         }
 
         return match;

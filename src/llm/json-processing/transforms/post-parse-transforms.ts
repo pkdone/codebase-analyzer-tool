@@ -316,3 +316,71 @@ export function fixMissingRequiredFields(parsed: unknown): unknown {
 
   return result as unknown;
 }
+
+/**
+ * Fixes parameters field type in publicMethods objects.
+ *
+ * This post-parse transform addresses cases where LLM responses contain a string
+ * for the `parameters` field instead of an array. The schema expects `parameters`
+ * to be an array of parameter objects, but LLMs sometimes return a descriptive
+ * string like "59 parameters including id, accountNo, status, etc."
+ *
+ * Transformation:
+ * - Recursively processes all objects in the parsed structure
+ * - When finding publicMethods arrays, checks each method's parameters field
+ * - If parameters is a string, converts it to an empty array (since we can't reliably parse the description)
+ * - If parameters is already an array, leaves it unchanged
+ */
+export function fixParametersFieldType(parsed: unknown): unknown {
+  if (typeof parsed !== "object" || parsed === null) {
+    return parsed;
+  }
+
+  // Handle arrays
+  if (Array.isArray(parsed)) {
+    return parsed.map((item) => fixParametersFieldType(item));
+  }
+
+  // Handle plain objects
+  const obj = parsed as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+
+  // Process each property
+  for (const [key, value] of Object.entries(obj)) {
+    let processedValue = value;
+
+    // If this is the publicMethods array, fix parameters fields
+    if (key === "publicMethods" && Array.isArray(value)) {
+      processedValue = value.map((method: unknown) => {
+        if (typeof method === "object" && method !== null && !Array.isArray(method)) {
+          const methodObj = method as Record<string, unknown>;
+          const fixedMethod: Record<string, unknown> = { ...methodObj };
+
+          // If parameters is a string, convert to empty array
+          if ("parameters" in fixedMethod && typeof fixedMethod.parameters === "string") {
+            fixedMethod.parameters = [];
+          }
+
+          // Recursively process nested structures
+          return fixParametersFieldType(fixedMethod);
+        }
+        return method;
+      });
+    } else {
+      // Recursively process nested objects and arrays
+      processedValue = fixParametersFieldType(value);
+    }
+
+    result[key] = processedValue;
+  }
+
+  // Handle symbol keys (preserve them as-is)
+  const symbols = Object.getOwnPropertySymbols(obj);
+  for (const sym of symbols) {
+    const symObj = obj as Record<symbol, unknown>;
+    const resultSym = result as Record<symbol, unknown>;
+    resultSym[sym] = fixParametersFieldType(symObj[sym]);
+  }
+
+  return result as unknown;
+}

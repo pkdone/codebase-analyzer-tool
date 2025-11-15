@@ -739,4 +739,83 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
       }
     });
   });
+
+  describe("fixParametersFieldType transform", () => {
+    it("should convert string parameters field to empty array", () => {
+      const response = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "basicLoanDetails",
+            parameters:
+              "59 parameters including id, accountNo, status, externalId, clientId, clientAccountNo, etc.",
+            returnType: "LoanAccountData",
+          },
+          {
+            name: "associationsAndTemplate",
+            parameters:
+              "30 parameters including acc, repaymentSchedule, transactions, charges, collateral, guarantors, etc.",
+            returnType: "LoanAccountData",
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as any;
+        expect(Array.isArray(data.publicMethods[0].parameters)).toBe(true);
+        expect(data.publicMethods[0].parameters).toEqual([]);
+        expect(Array.isArray(data.publicMethods[1].parameters)).toBe(true);
+        expect(data.publicMethods[1].parameters).toEqual([]);
+      }
+    });
+
+    it("should leave array parameters unchanged", () => {
+      const response = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod",
+            parameters: [
+              { name: "param1", type: "String" },
+              { name: "param2", type: "Number" },
+            ],
+            returnType: "void",
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as any;
+        expect(Array.isArray(data.publicMethods[0].parameters)).toBe(true);
+        expect(data.publicMethods[0].parameters).toHaveLength(2);
+        expect(data.publicMethods[0].parameters[0].name).toBe("param1");
+      }
+    });
+
+    it("should handle methods without parameters field", () => {
+      const response = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod",
+            returnType: "void",
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as any;
+        expect("parameters" in data.publicMethods[0]).toBe(false);
+      }
+    });
+  });
 });

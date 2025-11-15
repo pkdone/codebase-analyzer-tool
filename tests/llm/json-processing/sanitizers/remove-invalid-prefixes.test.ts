@@ -117,5 +117,100 @@ ANOTHER_STRAY_KEY: "some-value",
       expect(result.content).toContain('"images/validation/OIG4.9HS_X.8.jpeg"');
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
+
+    it("should remove lowercase stray key-value pairs in arrays", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.portfolio.calendar.domain.Calendar",
+    "org.apache.fineract.portfolio.calendar.domain.CalendarFrequencyType",
+    "org.apache.fineract.portfolio.calendar.domain.CalendarWeekDaysType",
+extra_schema_fields_to_ignore: "['NthDayNameEnum', 'DayNameEnum']",
+    "org.apache.fineract.portfolio.common.domain.NthDayType"
+  ]
+}`;
+
+      const result = removeInvalidPrefixes(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_schema_fields_to_ignore");
+      expect(result.content).toContain('"org.apache.fineract.portfolio.calendar.domain.Calendar"');
+      expect(result.content).toContain('"org.apache.fineract.portfolio.common.domain.NthDayType"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Single character prefixes before properties", () => {
+    it("should remove single character prefix before property", () => {
+      const input = `{
+  "externalReferences": [
+    "io.restassured.builder.RequestSpecBuilder",
+a   "jakarta.persistence.Table",
+    "jakarta.persistence.Transient"
+  ]
+}`;
+
+      const result = removeInvalidPrefixes(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"jakarta.persistence.Table"');
+      expect(result.content).not.toContain('a   "jakarta.persistence.Table"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle single character with multiple spaces", () => {
+      const input = `{
+  "properties": {
+s     "name": "value"
+  }
+}`;
+
+      const result = removeInvalidPrefixes(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "value"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Trailing stray text after closing brace", () => {
+    it("should remove trailing stray text like cURL:", () => {
+      const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}cURL:`;
+
+      const result = removeInvalidPrefixes(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).not.toContain("cURL:");
+      expect(result.content.trim().endsWith("}")).toBe(true);
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle trailing text with colon", () => {
+      const input = `{
+  "name": "TestClass"
+}someText:`;
+
+      const result = removeInvalidPrefixes(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content.trim().endsWith("}")).toBe(true);
+      expect(result.content).not.toContain("someText:");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not remove text that's part of valid JSON", () => {
+      const input = `{
+  "description": "This is valid text with cURL: mentioned"
+}`;
+
+      const result = removeInvalidPrefixes(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toContain("cURL:");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
   });
 });

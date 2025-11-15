@@ -231,10 +231,13 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
       .join("");
     const pattern = `^(\\w+)([ \\t]{2,})([${escapedDelimiters}]|\\d|${keywords})`;
     const strayPrefixPattern = new RegExp(pattern);
+    // Also handle single character prefixes with at least 2 spaces before quotes
+    const singleCharPrefixPattern = /^([a-zA-Z])([ \t]{2,})"/;
 
     for (const [lineIndex, line] of lines.entries()) {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (!inString) {
+        // First try the general pattern
         const match = strayPrefixPattern.exec(line);
         if (match) {
           const [, prefix, whitespace, token] = match;
@@ -245,6 +248,21 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
             const base = `Line ${lineIndex + 1}: removed prefix '${prefix}' before '${token}'`;
             const abbreviated = line.length > 60 ? `${base} ...` : base;
             diagnostics.push(abbreviated);
+          }
+          scanStringState(newLine);
+          continue;
+        }
+        // Then try single character pattern
+        const singleCharMatch = singleCharPrefixPattern.exec(line);
+        if (singleCharMatch) {
+          const [, prefix, whitespace] = singleCharMatch;
+          const newLine = whitespace + '"' + line.slice(singleCharMatch[0].length);
+          outputLines.push(newLine);
+          fixedCount++;
+          if (diagnostics.length < 3) {
+            diagnostics.push(
+              `Line ${lineIndex + 1}: removed single character prefix '${prefix}' before property`,
+            );
           }
           scanStringState(newLine);
           continue;
@@ -704,8 +722,9 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
     // ===== Pattern 4.5: Remove stray key-value pairs in arrays =====
     // Pattern: Removes property-like structures (KEY: "value",) that appear in arrays
     // Example: `"item1",\nLAGACY_CODE_REFACTOR_TOOLING: "2024-05-22",\n"item2"` -> `"item1",\n"item2"`
+    // Also handles lowercase keys like `extra_schema_fields_to_ignore: "value",`
     const strayKeyValueInArrayPattern =
-      /([}\],]|\n|^)(\s*)([A-Z_][A-Z0-9_]*)\s*:\s*"([^"]+)"\s*,(\s*\n)/g;
+      /([}\],]|\n|^)(\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:\s*"([^"]+)"\s*,(\s*\n)/g;
     sanitized = sanitized.replace(
       strayKeyValueInArrayPattern,
       (match, delimiter, _whitespace, key, value, afterComma, offset: unknown) => {
@@ -766,6 +785,35 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
         return match;
       },
     );
+
+    // ===== Pattern 6: Remove trailing stray text after closing brace =====
+    // Pattern: Remove text after the final closing brace: `}cURL:` or `}\ncURL:` -> `}`
+    // This handles cases where LLMs add explanatory text or commands after the JSON
+    const trailingStrayTextPattern = /(}\s*)(\n?)([a-zA-Z_][a-zA-Z0-9_]*:?\s*)$/;
+    const trailingMatch = trailingStrayTextPattern.exec(sanitized);
+    if (trailingMatch) {
+      const [, closingBrace, newline, strayText] = trailingMatch;
+      // Find where the closing brace starts in the match
+      const braceStartInMatch = trailingMatch[0].indexOf("}");
+      const braceIndex = trailingMatch.index + braceStartInMatch;
+
+      // Check that there's only whitespace/newlines between the brace and the stray text
+      const afterBrace = sanitized.substring(
+        braceIndex + 1,
+        trailingMatch.index + braceStartInMatch + closingBrace.length,
+      );
+      const betweenBraceAndText = afterBrace + newline;
+
+      // If there's only whitespace/newlines, remove the stray text
+      if (/^[\s\n]*$/.test(betweenBraceAndText)) {
+        sanitized = sanitized.substring(0, braceIndex + 1);
+        hasChanges = true;
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed trailing stray text: "${strayTextStr}"`);
+        }
+      }
+    }
 
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== jsonString;

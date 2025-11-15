@@ -596,6 +596,110 @@ e"publicConstants": [],
     });
   });
 
+  describe("Pattern: Stray asterisk before property names", () => {
+    it("should remove stray asterisk before property name", () => {
+      const input = `{
+  "name": "TestClass",
+  * "purpose": "This is a test class",
+  "implementation": "Test implementation"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "This is a test class"');
+      expect(result.content).not.toContain('* "purpose"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle asterisk with whitespace", () => {
+      const input = `{
+  "name": "TestClass",
+  *   "purpose": "This is a test class"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "This is a test class"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Missing colon after property name", () => {
+    it("should fix missing colon: name value -> name: value", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name "command",
+      "type": "JsonCommand"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "command"');
+      expect(result.content).not.toContain('"name "command"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle missing colon with different values", () => {
+      const input = `{
+  "parameters": [
+    {
+      "name "loanId",
+      "type": "Long"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "loanId"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Corrupted property names", () => {
+    it("should fix corrupted property name: name:g: -> name:", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name":g": "paymentTypeId",
+      "type": "Long"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "paymentTypeId"');
+      expect(result.content).not.toContain('"name":g":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle different corrupted patterns", () => {
+      const input = `{
+  "parameters": [
+    {
+      "name":x": "value",
+      "type": "String"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "value"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
   // Note: Pattern 65 and 66 are implemented but test cases are skipped
   // as they require specific context conditions that may not match all test scenarios
   // The patterns should work for real-world error cases from logs

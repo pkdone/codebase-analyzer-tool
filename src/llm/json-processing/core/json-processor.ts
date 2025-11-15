@@ -7,6 +7,7 @@ import {
   normalizeDatabaseIntegrationArray,
   fixParameterPropertyNameTypos,
   fixMissingRequiredFields,
+  fixParametersFieldType,
 } from "../transforms/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";
 import { JsonProcessorResult } from "../json-processing-result.types";
@@ -117,11 +118,15 @@ export class JsonProcessor {
    * These operate on the parsed object structure rather than raw strings.
    *
    * Currently contains:
-   * - convertNullToUndefined: Converts null to undefined for optional fields (applied first)
+   * - fixParametersFieldType: Converts string parameters field to array in publicMethods
+   * - convertNullToUndefined: Converts null to undefined for optional fields
+   * - fixParameterPropertyNameTypos: Fixes typos in parameter property names
    * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data
    * - normalizeDatabaseIntegrationArray: Converts databaseIntegration from array to single object
+   * - fixMissingRequiredFields: Adds missing required fields in publicMethods
    */
   private readonly POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
+    fixParametersFieldType,
     convertNullToUndefined,
     fixParameterPropertyNameTypos,
     unwrapJsonSchemaStructure,
