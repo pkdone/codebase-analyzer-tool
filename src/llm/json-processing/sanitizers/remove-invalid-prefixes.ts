@@ -482,6 +482,7 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
     );
 
     // Pattern 3d: Stray text before array string values
+    // Also handles image/file references like `images/validation/OIG4.9HS_X.8.jpeg`
     const strayTextBeforeArrayValuePattern =
       /(?:([}\],])\s*\n|([}\],])|(\n)|(^))(\s*)([^\s"{}[\],]{1,})"([^"]+)"\s*,/g;
 
@@ -565,6 +566,40 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
             finalDelimiter = "";
           }
           return `${finalDelimiter}${whitespaceStr}"${stringValueStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 3e: Remove file paths and image references before array string values
+    // Pattern: `images/validation/OIG4.9HS_X.8.jpeg    "java.util.List",` -> `"java.util.List",`
+    const filePathBeforeArrayValuePattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z0-9_./-]+\.(jpeg|jpg|png|gif|svg|pdf|txt|md|json|yaml|yml|xml|html|css|js|ts|py|java|go|rs|cpp|c|h|hpp))\s+"([^"]+)"\s*,/g;
+    sanitized = sanitized.replace(
+      filePathBeforeArrayValuePattern,
+      (match, delimiter, whitespace, filePath, _extension, stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const isInArray = isInArrayContext(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          const filePathStr = typeof filePath === "string" ? filePath : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed file path "${filePathStr}" before array element "${stringValueStr.substring(0, 50)}${stringValueStr.length > 50 ? "..." : ""}"`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
         }
 
         return match;

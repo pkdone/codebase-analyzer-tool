@@ -214,6 +214,8 @@ const PROPERTY_TYPO_CORRECTIONS: Record<string, string> = {
   description_: "description",
   parameters_: "parameters",
   returnType_: "returnType",
+  "return a": "returnType",
+  "return ": "returnType",
   cyclomaticComplexity_: "cyclomaticComplexity",
   cyclometicComplexity: "cyclomaticComplexity",
   cyclometicComplexity_: "cyclomaticComplexity",

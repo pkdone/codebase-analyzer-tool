@@ -257,6 +257,7 @@ export const removeTruncationMarkers: Sanitizer = (jsonString: string): Sanitize
     // Pattern 5: Handle _TRUNCATED_ markers and similar truncation markers
     // Matches: `_TRUNCATED_`, `_INPUT_TOKEN_COUNT_`, `_DOC_GENERATION_TRUNCATED_`, etc.
     // These markers can appear at the end of JSON or in the middle
+    // Also handles cases like: `"parameters": [],\n_TRUNCATED_\n}`
     const underscoreTruncatedPattern =
       /([}\],]|\n|^)(\s*)(_TRUNCATED_|_INPUT_TOKEN_COUNT_|_DOC_GENERATION_TRUNCATED_)(\s*)([}\],]|\n|$)/gi;
     sanitized = sanitized.replace(
@@ -280,6 +281,45 @@ export const removeTruncationMarkers: Sanitizer = (jsonString: string): Sanitize
           return `${beforeStr}\n${afterStr}`;
         }
         return `${beforeStr}${afterStr}`;
+      },
+    );
+
+    // Pattern 5b: Handle _TRUNCATED_ markers that appear after property values
+    // Matches: `"parameters": [],\n_TRUNCATED_\n}` or `"parameters": []\n_TRUNCATED_\n}`
+    // Also handles: `],\n_TRUNCATED_\n}` (with comma after delimiter)
+    const truncatedAfterPropertyPattern =
+      /([}\],]|")(\s*,?\s*)\n(\s*)(_TRUNCATED_|_INPUT_TOKEN_COUNT_|_DOC_GENERATION_TRUNCATED_)(\s*)\n(\s*)([}])/gi;
+    sanitized = sanitized.replace(
+      truncatedAfterPropertyPattern,
+      (
+        match,
+        before,
+        _commaAndWhitespace,
+        _whitespace1,
+        marker,
+        _whitespace2,
+        whitespace3,
+        closingBrace,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const beforeStr = typeof before === "string" ? before : "";
+        const markerStr = typeof marker === "string" ? marker : "";
+        const ws3 = typeof whitespace3 === "string" ? whitespace3 : "";
+        const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed truncation marker ${markerStr} before closing brace`);
+        }
+
+        // Return the property value, newline, and closing brace
+        // Remove trailing comma if present (JSON doesn't allow trailing commas before closing brace)
+        // The commaAndWhitespace group contains the comma and whitespace, which we remove completely
+        return `${beforeStr}\n${ws3}${closingBraceStr}`;
       },
     );
 

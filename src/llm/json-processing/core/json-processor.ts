@@ -6,6 +6,7 @@ import {
   unwrapJsonSchemaStructure,
   normalizeDatabaseIntegrationArray,
   fixParameterPropertyNameTypos,
+  fixMissingRequiredFields,
 } from "../transforms/post-parse-transforms";
 import { JsonProcessingLogger } from "./json-processing-logger";
 import { JsonProcessorResult } from "../json-processing-result.types";
@@ -125,6 +126,7 @@ export class JsonProcessor {
     fixParameterPropertyNameTypos,
     unwrapJsonSchemaStructure,
     normalizeDatabaseIntegrationArray,
+    fixMissingRequiredFields,
   ] as const;
 
   /**

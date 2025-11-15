@@ -3371,6 +3371,82 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 65: Fix missing quotes on property names followed by numeric or boolean values =====
+    // Pattern: `linesOfCode: 14,` -> `"linesOfCode": 14,`
+    // Also handles: `cyclomaticComplexity: 1,` -> `"cyclomaticComplexity": 1,`
+    const missingQuotesOnPropertyWithNumericPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\d+|true|false|null)(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      missingQuotesOnPropertyWithNumericPattern,
+      (match, delimiter, whitespace, propertyName, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing quotes on property: ${propertyNameStr}: ${valueStr} -> "${propertyNameStr}": ${valueStr}`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${propertyNameStr}": ${valueStr}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 66: Fix duplicated property names like cyclcyclomaticComplexity =====
+    // Pattern: `cyclcyclomaticComplexity` -> `cyclomaticComplexity`
+    // Also handles: `returnreturnType` -> `returnType`, `namename` -> `name`
+    const duplicatedPropertyNamePattern = /"([a-zA-Z_$]+)\1([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      duplicatedPropertyNamePattern,
+      (match, duplicatedPrefix, rest, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          const duplicatedPrefixStr = typeof duplicatedPrefix === "string" ? duplicatedPrefix : "";
+          const restStr = typeof rest === "string" ? rest : "";
+          const fixedName = `${duplicatedPrefixStr}${restStr}`;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed duplicated property name: "${duplicatedPrefixStr}${duplicatedPrefixStr}${restStr}" -> "${fixedName}"`,
+            );
+          }
+          return `"${fixedName}":`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 

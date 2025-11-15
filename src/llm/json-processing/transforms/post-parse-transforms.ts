@@ -249,3 +249,70 @@ export function fixParameterPropertyNameTypos(parsed: unknown): unknown {
 
   return result;
 }
+
+/**
+ * Fixes missing required fields in publicMethods objects.
+ *
+ * This post-parse transform addresses cases where LLM responses are missing required fields
+ * in publicMethods objects, specifically `returnType` which is required by the schema.
+ * When a field is missing (undefined), this transform attempts to infer a default value
+ * or provides a sensible default.
+ *
+ * Transformation:
+ * - Recursively processes all objects in the parsed structure
+ * - When finding publicMethods arrays, ensures each method has required fields
+ * - For missing returnType, defaults to "void" (common for methods without explicit return)
+ */
+export function fixMissingRequiredFields(parsed: unknown): unknown {
+  if (typeof parsed !== "object" || parsed === null) {
+    return parsed;
+  }
+
+  // Handle arrays
+  if (Array.isArray(parsed)) {
+    return parsed.map((item) => fixMissingRequiredFields(item));
+  }
+
+  // Handle plain objects
+  const obj = parsed as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+
+  // Process each property
+  for (const [key, value] of Object.entries(obj)) {
+    let processedValue = value;
+
+    // If this is the publicMethods array, ensure each method has required fields
+    if (key === "publicMethods" && Array.isArray(value)) {
+      processedValue = value.map((method: unknown) => {
+        if (typeof method === "object" && method !== null && !Array.isArray(method)) {
+          const methodObj = method as Record<string, unknown>;
+          const fixedMethod: Record<string, unknown> = { ...methodObj };
+
+          // If returnType is missing or undefined, provide a default
+          if (!("returnType" in fixedMethod) || fixedMethod.returnType === undefined) {
+            // Default to "void" for methods without explicit return type
+            fixedMethod.returnType = "void";
+          }
+
+          return fixedMethod as unknown;
+        }
+        return method;
+      });
+    } else {
+      // Recursively process nested objects and arrays
+      processedValue = fixMissingRequiredFields(value);
+    }
+
+    result[key] = processedValue;
+  }
+
+  // Handle symbol keys (preserve them as-is)
+  const symbols = Object.getOwnPropertySymbols(obj);
+  for (const sym of symbols) {
+    const symObj = obj as Record<symbol, unknown>;
+    const resultSym = result as Record<symbol, unknown>;
+    resultSym[sym] = fixMissingRequiredFields(symObj[sym]);
+  }
+
+  return result as unknown;
+}

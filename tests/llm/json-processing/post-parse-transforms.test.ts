@@ -661,4 +661,82 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
       }
     });
   });
+
+  describe("fixMissingRequiredFields transform", () => {
+    it("should add missing returnType field to publicMethods", () => {
+      const response = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod1",
+            parameters: [],
+            // returnType is missing
+          },
+          {
+            name: "testMethod2",
+            parameters: [],
+            returnType: "string",
+          },
+          {
+            name: "testMethod3",
+            parameters: [],
+            returnType: undefined,
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as any;
+        expect(data.publicMethods[0].returnType).toBe("void");
+        expect(data.publicMethods[1].returnType).toBe("string");
+        expect(data.publicMethods[2].returnType).toBe("void");
+      }
+    });
+
+    it("should not modify methods that already have returnType", () => {
+      const response = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod",
+            parameters: [],
+            returnType: "number",
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as any;
+        expect(data.publicMethods[0].returnType).toBe("number");
+      }
+    });
+
+    it("should handle nested structures correctly", () => {
+      const response = JSON.stringify({
+        name: "TestClass",
+        nested: {
+          publicMethods: [
+            {
+              name: "nestedMethod",
+              parameters: [],
+              // returnType is missing
+            },
+          ],
+        },
+      });
+
+      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect((result.data as any).nested.publicMethods[0].returnType).toBe("void");
+      }
+    });
+  });
 });
