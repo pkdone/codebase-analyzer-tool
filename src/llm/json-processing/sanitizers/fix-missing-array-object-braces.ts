@@ -347,6 +347,89 @@ export const fixMissingArrayObjectBraces: Sanitizer = (input: string): Sanitizer
       }
     }
 
+    // Pattern 7: Remove stray text after array closing bracket
+    // Matches: `]\n    org.apache...` or `]org.apache...` where text appears after array close
+    const strayTextAfterArrayPattern = /(\])\s*\n?(\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*[,}\]]|$)/g;
+    sanitized = sanitized.replace(
+      strayTextAfterArrayPattern,
+      (match, closingBracket, _whitespace, strayText, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const closingBracketStr = typeof closingBracket === "string" ? closingBracket : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        // Check if we're in a string
+        let inString = false;
+        let escaped = false;
+        for (let i = 0; i < numericOffset; i++) {
+          if (escaped) {
+            escaped = false;
+            continue;
+          }
+          if (sanitized[i] === "\\") {
+            escaped = true;
+          } else if (sanitized[i] === '"') {
+            inString = !inString;
+          }
+        }
+
+        if (inString) {
+          return match;
+        }
+
+        // Check if we're actually after an array closing bracket
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArrayClose = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "[") {
+              bracketDepth++;
+              if (bracketDepth > 0 && braceDepth <= 0) {
+                foundArrayClose = true;
+                break;
+              }
+            } else if (char === "]") {
+              bracketDepth--;
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        // Also check if the closing bracket is immediately before this position
+        if (foundArrayClose || (numericOffset > 0 && sanitized[numericOffset - 1] === "]")) {
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(`Removed stray text after array: ${strayTextStr}" after ]`);
+          }
+          // Remove the stray text, keep the closing bracket and terminator
+          return `${closingBracketStr}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 

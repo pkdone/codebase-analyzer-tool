@@ -714,6 +714,137 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       },
     );
 
+    // ===== Block 2.5: Fix missing quotes around array string elements =====
+    // Pattern: Missing opening quote before string in array (e.g., `org.apache\"...` -> `"org.apache\"...`)
+    // This handles cases where array elements are missing opening quotes
+    const missingQuoteInArrayPattern = /(\[|,\s*)(\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
+    sanitized = sanitized.replace(
+      missingQuoteInArrayPattern,
+      (match, prefix, whitespace, unquotedValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        if (foundArray || prefixStr === "[") {
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Fixed missing opening quote in array element: ${unquotedValueStr}" -> "${unquotedValueStr}"`,
+            );
+          }
+          return `${prefixStr}${whitespaceStr}"${unquotedValueStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Block 2.6: Fix unquoted property names followed by array/object =====
+    // Pattern: `parameters: [` or `parameters: {` -> `"parameters": [` or `"parameters": {`
+    const unquotedPropertyBeforeStructurePattern =
+      /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([[{])/g;
+    sanitized = sanitized.replace(
+      unquotedPropertyBeforeStructurePattern,
+      (match, prefix, propertyName, structureStart, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const structureStartStr = typeof structureStart === "string" ? structureStart : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const lowerPropertyName = propertyNameStr.toLowerCase();
+          const knownProperties = [
+            "name",
+            "purpose",
+            "description",
+            "parameters",
+            "returntype",
+            "cyclomaticcomplexity",
+            "linesofcode",
+            "codesmells",
+            "type",
+            "value",
+            "internalreferences",
+            "externalreferences",
+            "publicconstants",
+            "publicmethods",
+            "integrationpoints",
+            "databaseintegration",
+            "codequalitymetrics",
+          ];
+
+          if (knownProperties.includes(lowerPropertyName)) {
+            hasChanges = true;
+            if (diagnostics.length < 20) {
+              diagnostics.push(
+                `Fixed unquoted property name before structure: ${propertyNameStr}: -> "${propertyNameStr}":`,
+              );
+            }
+            return `${prefixStr}"${propertyNameStr}": ${structureStartStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
+
     // ===== Block 3: Fix invalid literals (undefined and corrupted numeric values) =====
     // Fix undefined values
     const undefinedValuePattern = /(:\s*)undefined(\s*)([,}])/g;

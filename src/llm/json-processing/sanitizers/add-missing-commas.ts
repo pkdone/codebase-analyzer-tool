@@ -30,6 +30,9 @@ export const addMissingCommas: Sanitizer = (input: string): SanitizerResult => {
   // Matches: "value1"\n  "value2" or {"key": "value"}\n  {"key2": "value2"}
   const missingCommaInArrayPattern = /(["}\]\]])\s*\n(\s*)(["{])/g;
 
+  // Pattern for missing commas between quoted strings in arrays (handles both same-line and newline cases)
+  const missingCommaBetweenQuotedStringsPattern = /"([^"]+)"\s*\n?(\s*)"([^"]+)"(\s*,|\s*\])/g;
+
   let sanitized = trimmed;
   let commaCount = 0;
   const diagnostics: string[] = [];
@@ -101,7 +104,82 @@ export const addMissingCommas: Sanitizer = (input: string): SanitizerResult => {
     },
   );
 
-  // Handle missing commas in arrays
+  // Handle missing commas between quoted strings in arrays first (more specific)
+  sanitized = sanitized.replace(
+    missingCommaBetweenQuotedStringsPattern,
+    (match, value1, whitespace, value2, terminator, offset) => {
+      const offsetNum = typeof offset === "number" ? offset : 0;
+      const value1Str = typeof value1 === "string" ? value1 : "";
+      const value2Str = typeof value2 === "string" ? value2 : "";
+      const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+      const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+      // Check if we're in a string
+      let inString = false;
+      let escaped = false;
+      for (let i = 0; i < offsetNum; i++) {
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (sanitized[i] === "\\") {
+          escaped = true;
+        } else if (sanitized[i] === '"') {
+          inString = !inString;
+        }
+      }
+
+      if (inString) {
+        return match;
+      }
+
+      // Check if we're in an array context by looking for an opening bracket before the match
+      // We use a simpler approach: look backwards for [ and ensure we're not inside a string
+      const beforeMatch = sanitized.substring(Math.max(0, offsetNum - 500), offsetNum);
+      let inStringCheck = false;
+      let escapeCheck = false;
+      let foundArray = false;
+
+      // Look backwards for an opening bracket that's not inside a string
+      for (let i = beforeMatch.length - 1; i >= 0; i--) {
+        const char = beforeMatch[i];
+        if (escapeCheck) {
+          escapeCheck = false;
+          continue;
+        }
+        if (char === "\\") {
+          escapeCheck = true;
+          continue;
+        }
+        if (char === '"') {
+          inStringCheck = !inStringCheck;
+          continue;
+        }
+        if (!inStringCheck && char === "[") {
+          foundArray = true;
+          break;
+        }
+      }
+
+      if (foundArray) {
+        // Check if there's already a comma before the first quote
+        const beforeFirstQuote = sanitized.substring(Math.max(0, offsetNum - 10), offsetNum);
+        const trimmedBefore = beforeFirstQuote.trim();
+        // Don't add comma if there's already one
+        if (!trimmedBefore.endsWith(",")) {
+          commaCount++;
+          const newline = whitespaceStr ? "\n" : "";
+          // Add space after comma for same-line case, preserve whitespace for newline case
+          const spaceAfterComma = whitespaceStr ? "" : " ";
+          return `"${value1Str}",${spaceAfterComma}${newline}${whitespaceStr}"${value2Str}"${terminatorStr}`;
+        }
+      }
+
+      return match;
+    },
+  );
+
+  // Handle missing commas in arrays (for non-quoted elements)
   sanitized = sanitized.replace(
     missingCommaInArrayPattern,
     (match, terminator, whitespace, nextElement, offset) => {
@@ -155,11 +233,13 @@ export const addMissingCommas: Sanitizer = (input: string): SanitizerResult => {
           if (char === "]") {
             bracketDepth++;
           } else if (char === "[") {
-            bracketDepth--;
-            if (bracketDepth >= 0 && braceDepth <= 0) {
+            // When we find an opening bracket going backwards, check if we're at depth 0
+            // (meaning this is the array we're looking for)
+            if (bracketDepth === 0 && braceDepth <= 0) {
               foundArray = true;
               break;
             }
+            bracketDepth--;
           } else if (char === "}") {
             braceDepth++;
           } else if (char === "{") {

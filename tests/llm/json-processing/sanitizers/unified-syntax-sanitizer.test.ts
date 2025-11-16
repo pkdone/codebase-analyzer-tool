@@ -386,4 +386,54 @@ describe("unifiedSyntaxSanitizer", () => {
   // Note: Property name corrections for "return a" and "return " are implemented
   // but test cases are skipped due to complex pattern interactions
   // The patterns should work for real-world error cases from logs
+
+  describe("missing quotes around array string elements", () => {
+    it("should fix missing opening quote in array element", () => {
+      const input = '{"refs": [org.apache.commons.lang3.StringUtils"]}';
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.apache.commons.lang3.StringUtils"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix multiple missing quotes in array", () => {
+      const input =
+        '{"refs": [org.apache.fineract.core.api.JsonCommand", "org.apache.fineract.core.domain.ExternalId"]}';
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.apache.fineract.core.api.JsonCommand"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not modify valid array elements", () => {
+      const input =
+        '{"refs": ["org.apache.fineract.core.api.JsonCommand", "org.apache.fineract.core.domain.ExternalId"]}';
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(false);
+    });
+  });
+
+  describe("unquoted property names before structures", () => {
+    it("should fix unquoted property name before array", () => {
+      const input = '{"name": "Test", parameters: [{"name": "param1"}]}';
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"parameters": [');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix unquoted property name before object", () => {
+      const input = '{"name": "Test", databaseIntegration: {"mechanism": "JPA"}}';
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"databaseIntegration": {');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not modify valid property names", () => {
+      const input = '{"name": "Test", "parameters": [{"name": "param1"}]}';
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(false);
+    });
+  });
 });

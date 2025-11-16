@@ -63,4 +63,33 @@ describe("addMissingCommas", () => {
     const result = addMissingCommas("   ");
     expect(result.changed).toBe(false);
   });
+
+  describe("missing commas in arrays", () => {
+    it("should add missing comma between array elements on same line", () => {
+      const input = '{"refs": ["value1" "value2"]}';
+      const result = addMissingCommas(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"value1", "value2"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should add missing comma between array elements with newline", () => {
+      const input = `{
+  "refs": [
+    "value1"
+    "value2"
+  ]
+}`;
+      const result = addMissingCommas(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"value1",');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not add comma when already present in array", () => {
+      const input = '{"refs": ["value1", "value2"]}';
+      const result = addMissingCommas(input);
+      expect(result.changed).toBe(false);
+    });
+  });
 });

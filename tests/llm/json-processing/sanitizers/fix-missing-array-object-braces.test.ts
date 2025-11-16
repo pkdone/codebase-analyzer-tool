@@ -250,6 +250,37 @@ e"method2",
     });
   });
 
+  describe("stray text after arrays", () => {
+    it("should remove stray text after array closing bracket", () => {
+      const input = `{
+  "externalReferences": [
+    "java.util.List",
+    "java.util.Map"
+  ]
+org.apache.commons.lang3.StringUtils"
+}`;
+      const result = fixMissingArrayObjectBraces(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('org.apache.commons.lang3.StringUtils"');
+      expect(result.content).toContain("]\n}");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove stray text after array on same line", () => {
+      const input = `{"refs": ["value1", "value2"]org.apache.commons.lang3.StringUtils"}`;
+      const result = fixMissingArrayObjectBraces(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('org.apache.commons.lang3.StringUtils"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not remove valid array elements", () => {
+      const input = `{"refs": ["value1", "value2"]}`;
+      const result = fixMissingArrayObjectBraces(input);
+      expect(result.changed).toBe(false);
+    });
+  });
+
   describe("real-world scenarios", () => {
     it("should handle the exact error pattern from log files", () => {
       const input = `  "publicMethods": [
