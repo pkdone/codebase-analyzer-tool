@@ -1414,6 +1414,288 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       },
     );
 
+    // ===== Block 6: Fix missing colons between property names and values =====
+    // Pattern: Fix missing colon like "name" "value" -> "name": "value"
+    const missingColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+"([^"]+)"(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      missingColonPattern,
+      (match, propertyName, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+          // Check if this looks like a property name (common property names)
+          const knownProperties = [
+            "name",
+            "purpose",
+            "description",
+            "parameters",
+            "returnType",
+            "type",
+            "value",
+            "cyclomaticComplexity",
+            "linesOfCode",
+            "codeSmells",
+          ];
+          const lowerPropertyName = propertyNameStr.toLowerCase();
+          if (knownProperties.includes(lowerPropertyName) || propertyNameStr.length > 2) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed missing colon between property name and value: "${propertyNameStr}" "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+              );
+            }
+            return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Block 7: Fix missing opening quote after property name =====
+    // Pattern: Fix missing opening quote like "name "value" -> "name": "value"
+    const missingOpeningQuoteAfterPropertyPattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"([^"]+)"(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      missingOpeningQuoteAfterPropertyPattern,
+      (match, propertyName, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+          // Check if this looks like a property name
+          const knownProperties = [
+            "name",
+            "purpose",
+            "description",
+            "parameters",
+            "returnType",
+            "type",
+            "value",
+            "cyclomaticComplexity",
+            "linesOfCode",
+            "codeSmells",
+          ];
+          const lowerPropertyName = propertyNameStr.toLowerCase();
+          if (knownProperties.includes(lowerPropertyName) || propertyNameStr.length > 2) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed missing opening quote after property name: "${propertyNameStr} "value" -> "${propertyNameStr}": "value"`,
+              );
+            }
+            return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Block 8: Fix missing commas after unquoted array elements =====
+    // Pattern: Fix unquoted array elements like CRM_URL_TOKEN_KEY that need quotes and commas
+    // This handles cases where constants or identifiers appear in arrays without quotes
+    // Use a loop to handle multiple passes since the pattern might need to match in different contexts
+    let previousUnquotedArray = "";
+    while (previousUnquotedArray !== sanitized) {
+      previousUnquotedArray = sanitized;
+      // Pattern matches constants on their own line that are followed by closing bracket or comma
+      // This catches cases like: }\nCRM_URL_TOKEN_KEY\n  ]
+      const unquotedArrayElementPattern =
+        /(\n\s*)([A-Z][A-Z0-9_]{3,})(\s*\n\s*\]|\s*\]|\s*,|\s*\n)/g;
+      sanitized = sanitized.replace(
+        unquotedArrayElementPattern,
+        (match, newlinePrefix, element, terminator, offset: unknown) => {
+          const numericOffset = typeof offset === "number" ? offset : 0;
+          if (isInStringAt(numericOffset, sanitized)) {
+            return match;
+          }
+
+          // Check if we're in an array context by scanning backwards
+          // Look for an opening bracket [ before this position and verify we're still in that array
+          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+          let bracketDepth = 0;
+          let inStringCheck = false;
+          let escapeCheck = false;
+          let foundArray = false;
+
+          // Scan backwards to find the most recent opening bracket
+          for (let i = beforeMatch.length - 1; i >= 0; i--) {
+            const char = beforeMatch[i];
+            if (escapeCheck) {
+              escapeCheck = false;
+              continue;
+            }
+            if (char === "\\") {
+              escapeCheck = true;
+              continue;
+            }
+            if (char === '"') {
+              inStringCheck = !inStringCheck;
+              continue;
+            }
+            if (!inStringCheck) {
+              if (char === "]") {
+                bracketDepth++;
+              } else if (char === "[") {
+                bracketDepth--;
+                // If we found an opening bracket and haven't closed it yet, we're in an array
+                if (bracketDepth < 0) {
+                  foundArray = true;
+                  break;
+                }
+              }
+            }
+          }
+
+          const newlinePrefixStr = typeof newlinePrefix === "string" ? newlinePrefix : "";
+          const elementStr = typeof element === "string" ? element : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+          // Also check if terminator contains ] - this is a strong indicator we're in an array
+          if (terminatorStr.includes("]")) {
+            foundArray = true;
+          }
+
+          // Only process if we found an array context
+          if (foundArray) {
+            // Check if the element looks like a constant (all caps with underscores)
+            if (/^[A-Z][A-Z0-9_]+$/.test(elementStr) && elementStr.length > 3) {
+              hasChanges = true;
+              // Add quotes and ensure comma if not closing bracket
+              if (diagnostics.length < 10) {
+                diagnostics.push(`Fixed unquoted array element: ${elementStr} -> "${elementStr}"`);
+              }
+              // Handle different terminator patterns
+              // Check if we need a comma before the element (if it's not the first element)
+              const needsCommaBefore =
+                !newlinePrefixStr.trim().startsWith("[") && !beforeMatch.trim().endsWith("[");
+              const commaBefore = needsCommaBefore ? "," : "";
+
+              if (terminatorStr.trim().startsWith("]")) {
+                // Closing bracket - don't add comma after, just preserve whitespace
+                const whitespaceMatch = /^(\s*\n\s*|\s*)/.exec(terminatorStr);
+                const whitespaceBeforeBracket = whitespaceMatch?.[0] ?? "";
+                return `${commaBefore}${newlinePrefixStr}"${elementStr}"${whitespaceBeforeBracket}]`;
+              } else if (terminatorStr.trim().startsWith(",")) {
+                // Already has comma after
+                return `${commaBefore}${newlinePrefixStr}"${elementStr}"${terminatorStr}`;
+              } else {
+                // Newline or other - add comma after
+                return `${commaBefore}${newlinePrefixStr}"${elementStr}",${terminatorStr}`;
+              }
+            }
+          }
+
+          return match;
+        },
+      );
+
+      // Also handle constants that appear after commas or opening brackets
+      const unquotedArrayElementPattern2 = /(\[|,\s*)(\s*)([A-Z][A-Z0-9_]{3,})(\s*)(\]|,|\n)/g;
+      sanitized = sanitized.replace(
+        unquotedArrayElementPattern2,
+        (match, prefix, whitespace, element, whitespace2, terminator, offset: unknown) => {
+          const numericOffset = typeof offset === "number" ? offset : 0;
+          if (isInStringAt(numericOffset, sanitized)) {
+            return match;
+          }
+
+          // Check if we're in an array context
+          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+          let bracketDepth = 0;
+          let inStringCheck = false;
+          let escapeCheck = false;
+          let foundArray = false;
+
+          for (let i = beforeMatch.length - 1; i >= 0; i--) {
+            const char = beforeMatch[i];
+            if (escapeCheck) {
+              escapeCheck = false;
+              continue;
+            }
+            if (char === "\\") {
+              escapeCheck = true;
+              continue;
+            }
+            if (char === '"') {
+              inStringCheck = !inStringCheck;
+              continue;
+            }
+            if (!inStringCheck) {
+              if (char === "]") {
+                bracketDepth++;
+              } else if (char === "[") {
+                bracketDepth--;
+                if (bracketDepth >= 0) {
+                  foundArray = true;
+                  break;
+                }
+              }
+            }
+          }
+
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const elementStr = typeof element === "string" ? element : "";
+          const whitespace2Str = typeof whitespace2 === "string" ? whitespace2 : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+          // Check if we're in an array context
+          const isInArrayContext = prefixStr === "[" || prefixStr.startsWith(",");
+
+          if (isInArrayContext || foundArray) {
+            // Check if the element looks like a constant (all caps with underscores)
+            if (/^[A-Z][A-Z0-9_]+$/.test(elementStr) && elementStr.length > 3) {
+              hasChanges = true;
+              if (diagnostics.length < 10) {
+                diagnostics.push(`Fixed unquoted array element: ${elementStr} -> "${elementStr}"`);
+              }
+              // Handle different terminator patterns
+              if (terminatorStr === "]") {
+                return `${prefixStr}${whitespaceStr}"${elementStr}"${whitespace2Str}]`;
+              } else if (terminatorStr === ",") {
+                return `${prefixStr}${whitespaceStr}"${elementStr}"${whitespace2Str},`;
+              } else {
+                return `${prefixStr}${whitespaceStr}"${elementStr}",${whitespace2Str}${terminatorStr}`;
+              }
+            }
+          }
+
+          return match;
+        },
+      );
+    }
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 

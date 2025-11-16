@@ -27,7 +27,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       JSON.parse(input);
       // Check if there are obvious errors that need fixing (typos, missing dots, etc.)
       const hasObviousErrors =
-        /orgfineract|orgahce|jakarta\.ws-rs|orgf\.apache|orgah\.apache|orgapache\.|io_swagger|org_|com_|"[^"]+\s+[a-zA-Z]+\s*":/.test(
+        /orgfineract|orgahce|jakarta\.ws-rs|orgf\.apache|orgah\.apache|orgapache\.|io_swagger|org_|com_|"[^"]+\s+[a-zA-Z]+\s*":|<x_bin_\d+|[\u0080-\uFFFF]|orgaho\.apache|"\/v\d+[a-z]+\/|ax"org\.|pache"\.|_[A-Z_]+\s*=\s*"/.test(
           input,
         );
       if (!hasObviousErrors) {
@@ -4077,6 +4077,308 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         }
       }
     }
+
+    // ===== Pattern 83: Remove binary corruption markers =====
+    // Pattern: Remove binary corruption markers like <x_bin_151>publicConstants
+    // Also handle case where marker is followed by property name without quote
+    const binaryCorruptionPattern = /<x_bin_\d+>([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
+    sanitized = sanitized.replace(
+      binaryCorruptionPattern,
+      (match, propertyPart, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        hasChanges = true;
+        const propertyPartStr = typeof propertyPart === "string" ? propertyPart : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed binary corruption marker and fixed property name`);
+        }
+        // Add missing quote before property name
+        return `"${propertyPartStr}`;
+      },
+    );
+
+    // Also handle standalone markers
+    const binaryCorruptionPatternStandalone = /<x_bin_\d+>/g;
+    sanitized = sanitized.replace(binaryCorruptionPatternStandalone, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push(`Removed binary corruption marker: ${match}`);
+      }
+      return "";
+    });
+
+    // ===== Pattern 84: Fix corrupted Unicode text in package names =====
+    // Pattern: Fix Unicode corruption like रेशन in package names
+    // This removes non-ASCII characters that appear in package names
+    const unicodeCorruptionPattern = /"org\.apache\.fineract\.[^"]*[\u0080-\uFFFF]+[^"]*"/g;
+    sanitized = sanitized.replace(unicodeCorruptionPattern, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+      // Remove Unicode characters and reconstruct the package name
+      const cleaned = match.replace(/[\u0080-\uFFFF]+/g, "");
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push(`Fixed Unicode corruption in package name: ${match.substring(0, 50)}...`);
+      }
+      return cleaned;
+    });
+
+    // ===== Pattern 85: Fix missing slashes in URLs/paths =====
+    // Pattern: Fix missing slashes like /v1interoperation -> /v1/interoperation
+    const missingSlashPattern = /"(\/v\d+)([a-z]+)(\/[^"]+)"/g;
+    sanitized = sanitized.replace(
+      missingSlashPattern,
+      (match, prefix, word, rest, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        // Only fix if it looks like a path (has more slashes after)
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const wordStr = typeof word === "string" ? word : "";
+        const restStr = typeof rest === "string" ? rest : "";
+        if (restStr && restStr.length > 0) {
+          hasChanges = true;
+          const fixed = `"${prefixStr}/${wordStr}${restStr}"`;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing slash in path: ${prefixStr}${wordStr} -> ${prefixStr}/${wordStr}`,
+            );
+          }
+          return fixed;
+        }
+        return match;
+      },
+    );
+
+    // ===== Pattern 86: Fix wrong quote characters (non-ASCII quotes) =====
+    // Pattern: Fix non-ASCII quotes like ʻlinesOfCode" -> "linesOfCode"
+    // Common wrong quotes: ʻ (U+02BB), ' (U+2018), ' (U+2019), " (U+201C), " (U+201D)
+    const wrongQuotePattern = /([ʻ''""])([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      wrongQuotePattern,
+      (match, wrongQuote, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        hasChanges = true;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed wrong quote character in property name: ${wrongQuote}${propertyNameStr}" -> "${propertyNameStr}"`,
+          );
+        }
+        return `"${propertyNameStr}":`;
+      },
+    );
+
+    // ===== Pattern 87: Fix missing opening quotes in array elements =====
+    // Pattern: Fix patterns like ax"org.apache... or pache.fineract... in arrays
+    // This handles cases where part of the string is missing before the quote
+    // Match either: [a-z]+\. (like org.) or \. (like .fineract)
+    const missingOpeningQuoteInArrayPattern87 =
+      /(\[|,\s*|\n\s*)(\s*)([a-z]{1,5})"((?:[a-z]+\.|\.)[a-z]+\.[a-z]+[^"]*)"(\s*,|\s*\])/g;
+    sanitized = sanitized.replace(
+      missingOpeningQuoteInArrayPattern87,
+      (match, prefix, whitespace, prefixText, packageName, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const prefixTextStr = typeof prefixText === "string" ? prefixText : "";
+        const packageNameStr = typeof packageName === "string" ? packageName : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        // Try to reconstruct the full package name
+        // Common patterns: "ax" + "org.apache..." -> "org.apache..."
+        // "pache" + ".fineract..." -> "org.apache.fineract..."
+        let fullPackageName = packageNameStr;
+        if (prefixTextStr === "ax" && packageNameStr.startsWith("org.")) {
+          // Already correct, just remove prefix
+          fullPackageName = packageNameStr;
+        } else if (prefixTextStr === "pache" && packageNameStr.startsWith(".fineract")) {
+          fullPackageName = `org.apache${packageNameStr}`;
+        } else if (prefixTextStr.length <= 5 && packageNameStr.includes(".")) {
+          // Generic case: remove the prefix and use the package name
+          fullPackageName = packageNameStr;
+        } else {
+          // Don't modify if we can't determine the pattern
+          return match;
+        }
+
+        // Check if prefix indicates array context
+        const isInArrayContext =
+          prefixStr === "[" ||
+          prefixStr.startsWith(",") ||
+          (foundArray && prefixStr.includes("\n"));
+
+        if (isInArrayContext || foundArray || prefixStr === "[") {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing opening quote in array element: ${prefixTextStr}"${packageNameStr}" -> "${fullPackageName}"`,
+            );
+          }
+          return `${prefixStr}${whitespaceStr}"${fullPackageName}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 88: Remove invalid properties in arrays =====
+    // Pattern: Remove invalid properties like _DOC_GEN_NOTE_LIMITED_REF_LIST_ = "..." from arrays
+    const invalidPropertyInArrayPattern =
+      /(\[|,\s*|\n\s*)(\s*)(_[A-Z_]+)\s*=\s*"([^"]+)"(\s*,|\s*\])/g;
+    sanitized = sanitized.replace(
+      invalidPropertyInArrayPattern,
+      (match, prefix, _whitespace, invalidProp, _value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        // Check if prefix indicates array context
+        const isInArrayContext =
+          prefixStr === "[" ||
+          prefixStr.startsWith(",") ||
+          (foundArray && prefixStr.includes("\n"));
+
+        if (isInArrayContext || foundArray || prefixStr === "[") {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed invalid property from array: ${invalidProp}`);
+          }
+          // Remove the invalid property
+          // If terminator is ], preserve it
+          if (terminatorStr.trim().startsWith("]")) {
+            // Terminator is ] - preserve it, remove comma if present
+            const whitespaceMatch = /^(\s*\n\s*|\s*)/.exec(terminatorStr);
+            const whitespaceBeforeBracket = whitespaceMatch?.[0] ?? "";
+            return `${whitespaceBeforeBracket}]`;
+          } else if (prefixStr.trim().startsWith(",") && terminatorStr.trim().startsWith(",")) {
+            // Both sides have commas, remove element but keep one comma
+            return ",";
+          } else if (prefixStr.trim().startsWith(",")) {
+            // Only prefix has comma, keep it
+            return prefixStr.trim();
+          } else {
+            // No comma before, just remove
+            return "";
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 89: Fix typos like orgaho.apache -> org.apache =====
+    // Pattern: Fix typos in org.apache patterns
+    const orgahoTypoPattern = /"orgaho\.apache\./g;
+    sanitized = sanitized.replace(orgahoTypoPattern, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push("Fixed typo in package reference: orgaho.apache -> org.apache");
+      }
+      return '"org.apache.';
+    });
 
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;

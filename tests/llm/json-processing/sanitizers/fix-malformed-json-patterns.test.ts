@@ -1098,4 +1098,173 @@ package org.example;`;
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
+
+  describe("Pattern 83: Remove binary corruption markers", () => {
+    it("should remove binary corruption markers like <x_bin_151>", () => {
+      const input = `{
+  "name": "TestClass",
+  <x_bin_151>publicConstants": []
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<x_bin_151>");
+      expect(result.content).toContain('"publicConstants"');
+    });
+
+    it("should remove different binary corruption markers", () => {
+      const input = `{
+  "name": "TestClass",
+  <x_bin_42>publicMethods": []
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("<x_bin_42>");
+    });
+  });
+
+  describe("Pattern 84: Fix corrupted Unicode text in package names", () => {
+    it("should remove Unicode corruption from package names", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.interoperationरेशन.data.InteropQuoteRequestData"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("रेशन");
+      expect(result.content).toContain(
+        "org.apache.fineract.interoperation.data.InteropQuoteRequestData",
+      );
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 85: Fix missing slashes in URLs/paths", () => {
+    it("should fix missing slash in path like /v1interoperation", () => {
+      const input = `{
+  "integrationPoints": [
+    {
+      "path": "/v1interoperation/parties/{idType}/{idValue}"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"/v1/interoperation/parties/{idType}/{idValue}"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not fix paths without additional slashes", () => {
+      const input = `{
+  "path": "/v1interoperation"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      // Should not change if there's no additional path after
+      expect(result.content).toContain('"/v1interoperation"');
+    });
+  });
+
+  describe("Pattern 86: Fix wrong quote characters", () => {
+    it("should fix non-ASCII quotes like ʻlinesOfCode", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      ʻlinesOfCode": 3
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"linesOfCode": 3');
+      expect(result.content).not.toContain("ʻlinesOfCode");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 87: Fix missing opening quotes in array elements", () => {
+    it('should fix ax"org.apache... pattern', () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.client.models.GetLoansLoanIdTransactionsTransactionIdResponse",
+    ax"org.apache.fineract.client.models.JournalEntryTransactionItem"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.client.models.JournalEntryTransactionItem"',
+      );
+      expect(result.content).not.toContain('ax"org.apache');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it('should fix pache".fineract... pattern', () => {
+      const input = `{
+  "internalReferences": [
+    pache".fineract.portfolio.note.domain.NoteRepository"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.note.domain.NoteRepository"',
+      );
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 88: Remove invalid properties in arrays", () => {
+    it("should remove invalid properties like _DOC_GEN_NOTE_LIMITED_REF_LIST_", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.infrastructure.core.service.DateUtils",
+    _DOC_GEN_NOTE_LIMITED_REF_LIST_ = "and 40+ other internal references..."
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("_DOC_GEN_NOTE_LIMITED_REF_LIST_");
+      expect(result.content).toContain(
+        '"org.apache.fineract.infrastructure.core.service.DateUtils"',
+      );
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 89: Fix typos like orgaho.apache", () => {
+    it("should fix orgaho.apache to org.apache", () => {
+      const input = `{
+  "internalReferences": [
+    "orgaho.apache.fineract.portfolio.note.domain.NoteRepository"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.note.domain.NoteRepository"',
+      );
+      expect(result.content).not.toContain("orgaho.apache");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });

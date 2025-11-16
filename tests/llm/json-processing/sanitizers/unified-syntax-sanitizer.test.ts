@@ -590,4 +590,110 @@ describe("unifiedSyntaxSanitizer", () => {
       expect(result.changed).toBe(false);
     });
   });
+
+  describe("Block 6: Fix missing colons between property names and values", () => {
+    it('should fix missing colon like "name" "value" -> "name": "value"', () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name" "repaymentDate",
+      "type": "LocalDate"
+    }
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "repaymentDate"');
+      expect(result.content).not.toContain('"name" "repaymentDate"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix missing colon with known property names", () => {
+      const input = `{
+  "purpose" "Test purpose",
+  "description": "Test description"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "Test purpose"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Block 7: Fix missing opening quote after property name", () => {
+    it('should fix missing opening quote like "name "value" -> "name": "value"', () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name "getMeetingIntervalFromFrequency",
+      "purpose": "Test"
+    }
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "getMeetingIntervalFromFrequency"');
+      expect(result.content).not.toContain('"name "getMeetingIntervalFromFrequency"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Block 8: Fix missing commas after unquoted array elements", () => {
+    it("should fix unquoted array elements like CRM_URL_TOKEN_KEY", () => {
+      const input = `{
+  "publicConstants": [
+    {
+      "name": "DATE_FORMATTER",
+      "value": "new DateTimeFormatterBuilder().appendPattern(\\"dd MMMM yyyy\\").toFormatter()",
+      "type": "DateTimeFormatter"
+    }
+CRM_URL_TOKEN_KEY
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"CRM_URL_TOKEN_KEY"');
+      // Check that unquoted version doesn't appear as a standalone word
+      const unquotedRegex = /(^|[^"])CRM_URL_TOKEN_KEY([^"]|$)/;
+      expect(result.content).not.toMatch(unquotedRegex);
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should add quotes and comma for unquoted constants in arrays", () => {
+      const input = `{
+  "constants": [
+    CONSTANT_ONE
+    CONSTANT_TWO
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"CONSTANT_ONE"');
+      expect(result.content).toContain('"CONSTANT_TWO"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not modify short identifiers", () => {
+      const input = `{
+  "values": [
+    ABC
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      // Should not change short identifiers (length <= 3)
+      expect(result.content).toContain("ABC");
+    });
+  });
 });
