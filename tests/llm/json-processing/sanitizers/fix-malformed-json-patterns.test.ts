@@ -1,6 +1,162 @@
 import { fixMalformedJsonPatterns } from "../../../../src/llm/json-processing/sanitizers/fix-malformed-json-patterns";
 
 describe("fixMalformedJsonPatterns", () => {
+  describe("Pattern: Asterisk before property names", () => {
+    it("should remove asterisk before property name", () => {
+      const input = `{
+  "name": "TestClass",
+  * "purpose": "Test purpose"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "Test purpose"');
+      expect(result.content).not.toContain('* "purpose"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Bullet point before property names", () => {
+    it("should remove bullet point before property name", () => {
+      const input = `{
+  "name": "TestClass",
+  •  "publicConstants": []
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"publicConstants": []');
+      expect(result.content).not.toContain("•");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Corrupted property names", () => {
+    it("should fix corrupted property name with extra text", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name":aus": "testMethod"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name":');
+      expect(result.content).not.toContain('"name":aus":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Array prefix removal", () => {
+    it("should remove 'ar' prefix before quoted strings in arrays", () => {
+      const input = `{
+  "externalReferences": [
+    ar"org.apache.fineract.infrastructure.core.service.DateUtils"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.infrastructure.core.service.DateUtils"',
+      );
+      expect(result.content).not.toContain('ar"org.apache');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Missing property name with single character", () => {
+    it("should fix missing property name with single character before quote", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      y"name": "testMethod"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "testMethod"');
+      expect(result.content).not.toContain('y"name"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Missing property name before colon", () => {
+    it("should fix missing property name when colon and quote are present", () => {
+      const input = `{
+  "name": "TestClass",
+  ": "This is a JUnit 5 test class designed to verify functionality."
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "This is a JUnit 5 test class');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Stray text before property names", () => {
+    it("should remove stray text before property name", () => {
+      const input = `{
+  "name": "TestClass",
+  running on a different machine    "connectionInfo": "n/a"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"connectionInfo": "n/a"');
+      expect(result.content).not.toContain("running on a different machine");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Missing property name with fragment", () => {
+    it("should fix missing property name with underscore fragment", () => {
+      const input = `{
+  "publicConstants": [
+    {
+      _PARAM_TABLE": "table"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "PARAM_TABLE"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Missing dot in package names", () => {
+    it("should fix orgapache. to org.apache.", () => {
+      const input = `{
+  "internalReferences": [
+    "orgapache.fineract.infrastructure.core.service.DateUtils"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.infrastructure.core.service.DateUtils"',
+      );
+      expect(result.content).not.toContain("orgapache.");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
   describe("Pattern 65: Missing opening quotes in array string values", () => {
     it("should fix missing opening quote for fineract.integrationtests string", () => {
       const input = `{

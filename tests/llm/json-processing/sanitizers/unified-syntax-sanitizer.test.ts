@@ -12,6 +12,85 @@ import { unifiedSyntaxSanitizer } from "../../../../src/llm/json-processing/sani
  */
 
 describe("unifiedSyntaxSanitizer", () => {
+  describe("unquoted property names with arrays/objects", () => {
+    it("should fix unquoted property name followed by array", () => {
+      const input = `{
+  "name": "TestClass",
+  parameters: []
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"parameters": []');
+      expect(result.content).not.toContain("parameters: [");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix unquoted property name followed by object", () => {
+      const input = `{
+  "name": "TestClass",
+  codeSmells: {}
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"codeSmells": {}');
+      expect(result.content).not.toContain("codeSmells: {");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix multiple unquoted properties with arrays", () => {
+      const input = `{
+  "name": "TestClass",
+  parameters: [],
+  codeSmells: []
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"parameters": []');
+      expect(result.content).toContain('"codeSmells": []');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("enhanced unquoted property names", () => {
+    it("should fix unquoted camelCase property names", () => {
+      const input = `{
+  "name": "TestClass",
+  returnType: "String",
+  cyclomaticComplexity: 5
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"returnType": "String"');
+      expect(result.content).toContain('"cyclomaticComplexity": 5');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix unquoted property names with various values", () => {
+      const input = `{
+  "name": "TestClass",
+  purpose: "Test purpose",
+  linesOfCode: 10,
+  codeSmells: []
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "Test purpose"');
+      expect(result.content).toContain('"linesOfCode": 10');
+      expect(result.content).toContain('"codeSmells": []');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
   describe("concatenation chains", () => {
     it("should replace identifier-only chains with empty string", () => {
       const input = '{"k": partA + partB + partC}';

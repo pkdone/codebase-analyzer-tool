@@ -479,6 +479,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
     // Pass 2c: Fix completely unquoted property names (e.g., `name:`, `purpose:`, `parameters:`)
     // This handles cases where property names have no quotes at all
+    // Enhanced to handle more cases including arrays and objects as values
     const unquotedPropertyNamePattern =
       /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([^",\n{[\]]+?)(\s*[,}])/g;
     sanitized = sanitized.replace(
@@ -517,9 +518,18 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
             "codesmells",
             "type",
             "value",
+            "returnType",
+            "cyclomaticComplexity",
+            "linesOfCode",
+            "codeSmells",
           ];
 
-          if (knownProperties.includes(lowerPropertyName)) {
+          // Also check if it looks like a property name (camelCase or lowercase)
+          const looksLikePropertyName =
+            /^[a-z][a-zA-Z0-9_$]*$/.test(propertyNameStr) &&
+            (knownProperties.includes(lowerPropertyName) || lowerPropertyName.length > 2);
+
+          if (looksLikePropertyName) {
             hasChanges = true;
             // Determine if value needs quotes (if it's not a number, boolean, null, or already quoted)
             let quotedValue = valueStr;
@@ -538,6 +548,51 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
               );
             }
             return `${prefixStr}"${propertyNameStr}": ${quotedValue}${terminatorStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // Pass 2c.1: Fix unquoted property names followed by arrays or objects
+    // Pattern: `parameters: [` -> `"parameters": [`
+    // Pattern: `codeSmells: [` -> `"codeSmells": [`
+    const unquotedPropertyNameWithArrayPattern =
+      /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\[|\{)/g;
+    sanitized = sanitized.replace(
+      unquotedPropertyNameWithArrayPattern,
+      (match, prefix, propertyName, bracket, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const bracketStr = typeof bracket === "string" ? bracket : "";
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+
+          // Check if it looks like a property name
+          const looksLikePropertyName = /^[a-z][a-zA-Z0-9_$]*$/.test(propertyNameStr);
+
+          if (looksLikePropertyName) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed unquoted property name with array/object: ${propertyNameStr}: ${bracketStr} -> "${propertyNameStr}": ${bracketStr}`,
+              );
+            }
+            return `${prefixStr}"${propertyNameStr}": ${bracketStr}`;
           }
         }
 

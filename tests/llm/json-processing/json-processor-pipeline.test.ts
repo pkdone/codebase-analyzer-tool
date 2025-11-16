@@ -243,7 +243,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should provide sanitized content in error for debugging", () => {
       // Use a more complex malformed JSON that can't be easily fixed
-      const malformed = "```json\n{broken: value without quotes}\n```";
+      // Note: Our sanitizers now fix unquoted properties, so we need truly broken JSON
+      const malformed = "```json\n{broken: value without quotes, missing: }\n```";
       const result = jsonProcessor.parseAndValidate(malformed, "test-resource", completionOptions);
 
       expect(result.success).toBe(false);

@@ -79,6 +79,20 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return `"org.apache.${first}${rest}.`;
     });
 
+    // Pattern: Missing dot between org and apache (orgapache. -> org.apache.)
+    const missingDotOrgApachePattern = /"orgapache\./g;
+    sanitized = sanitized.replace(missingDotOrgApachePattern, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+      hasChanges = true;
+      if (diagnostics.length < 10) {
+        diagnostics.push("Fixed missing dot in package reference: orgapache. -> org.apache.");
+      }
+      return '"org.apache.';
+    });
+
     // Pattern: Typos (orgf.apache.fineract -> org.apache.fineract, orgah.apache.fineract -> org.apache.fineract)
     const typoPattern = /"org([fh]|ah|ʻ)\.apache\./g;
     sanitized = sanitized.replace(typoPattern, (match, typo, offset: unknown) => {
@@ -167,6 +181,90 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // Pattern: Fix missing property name with single character before quote (run early)
+    // Pattern: `y"name":` -> `"name":` or `{y"name":` -> `{"name":`
+    const singleCharBeforePropertyQuoteEarlyPattern =
+      /([{,]\s*)([a-z])"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      singleCharBeforePropertyQuoteEarlyPattern,
+      (match, prefix, extraChar, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Removed extra character '${extraChar}' before property name "${propertyNameStr}"`,
+          );
+        }
+        return `${prefixStr}"${propertyNameStr}":`;
+      },
+    );
+
+    // Pattern: Remove 'ar' prefix before quoted strings in arrays (run early)
+    // Pattern: `ar"org.apache...` -> `"org.apache...`
+    const arPrefixEarlyPattern = /([}\],]|\n|^)(\s*)ar"([^"]+)"(\s*,|\s*\])/g;
+    sanitized = sanitized.replace(
+      arPrefixEarlyPattern,
+      (match, delimiter, whitespace, stringValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed 'ar' prefix before quoted string: "${stringValueStr.substring(0, 30)}..."`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${stringValueStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern: Fix missing property name with underscore fragment after opening brace (run early)
+    // Pattern: `{_PARAM_TABLE": "table"` -> `{"name": "PARAM_TABLE"`
+    const missingPropertyNameWithBraceEarlyPattern = /\{\s*([_][A-Z_]+)"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      missingPropertyNameWithBraceEarlyPattern,
+      (match, fragment, _value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const fragmentStr = typeof fragment === "string" ? fragment : "";
+        const fixedValue = fragmentStr.substring(1); // Remove leading underscore
+
+        hasChanges = true;
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed missing property name with fragment: {${fragmentStr}" -> {"name": "${fixedValue}"`,
+          );
+        }
+        return `{"name": "${fixedValue}"`;
+      },
+    );
+
     // Pattern: `c{` (single character before opening brace)
     const extraCharBeforeBracePattern = /([}\],]|\n|^)(\s*)([a-z])\s*{/g;
     sanitized = sanitized.replace(
@@ -195,12 +293,162 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // Pattern: Remove bullet points before property names
+    // Pattern: `•  "publicConstants":` -> `"publicConstants":`
+    const bulletPointBeforePropertyPattern =
+      /([}\],]|\n|^)(\s*)•\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
+    sanitized = sanitized.replace(
+      bulletPointBeforePropertyPattern,
+      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyWithQuoteStr =
+            typeof propertyWithQuote === "string" ? propertyWithQuote : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push("Removed bullet point before property name");
+          }
+          return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern: Fix missing opening quote on property name (starts with colon and quote)
+    // Pattern: `": "This is a JUnit 5 test class...` -> `"purpose": "This is a JUnit 5 test class...`
+    const missingPropertyNameBeforeColonPattern = /(\n\s+)"\s*:\s*"([^"]{20,})"/g;
+    // Also handle case without newline: `  ": "This is...`
+    const missingPropertyNameBeforeColonPattern2 = /([{,]\s+)"\s*:\s*"([^"]{20,})"/g;
+    sanitized = sanitized.replace(
+      missingPropertyNameBeforeColonPattern2,
+      (match, prefix, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          let inferredProperty = "purpose";
+          const valueStr = typeof value === "string" ? value : "";
+          if (valueStr.length < 50) {
+            inferredProperty = "name";
+          }
+
+          hasChanges = true;
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing property name before colon: ": -> "${inferredProperty}":`,
+            );
+          }
+          return `${prefixStr}"${inferredProperty}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+    sanitized = sanitized.replace(
+      missingPropertyNameBeforeColonPattern,
+      (match, prefix, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          // Try to infer property name from context or value content
+          let inferredProperty = "purpose"; // default for long text values
+          const valueStr = typeof value === "string" ? value : "";
+          if (valueStr.length < 50) {
+            inferredProperty = "name";
+          }
+
+          hasChanges = true;
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing property name before colon: ": -> "${inferredProperty}":`,
+            );
+          }
+          return `${prefixStr}"${inferredProperty}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern: Remove stray text before property names
+    // Pattern: `running on a different machine    "connectionInfo":` -> `"connectionInfo":`
+    const strayTextBeforePropertyPattern =
+      /([}\],]|\n|^)(\s*)([a-z][a-z\s]{10,}?)\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
+    sanitized = sanitized.replace(
+      strayTextBeforePropertyPattern,
+      (
+        match,
+        delimiter,
+        whitespace,
+        strayText,
+        propertyWithQuote,
+        _propertyName,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyWithQuoteStr =
+            typeof propertyWithQuote === "string" ? propertyWithQuote : "";
+          const strayTextStr = typeof strayText === "string" ? strayText : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(`Removed stray text '${strayTextStr.trim()}' before property`);
+          }
+          return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // Pattern: Fix corrupted property names: `"name":g": "value"` -> `"name": "value"`
+    // Also handles: `"name":aus":` -> `"name":`
     const corruptedPropertyNamePattern =
-      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])\s*":\s*"([^"]+)"(\s*[,}])/g;
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z]+)\s*":(\s*[,}])/g;
     sanitized = sanitized.replace(
       corruptedPropertyNamePattern,
-      (match, propertyName, extraChar, value, terminator, offset: unknown) => {
+      (match, propertyName, extraText, terminator, offset: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
         if (isInStringAt(numericOffset, sanitized)) {
           return match;
@@ -208,14 +456,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
         hasChanges = true;
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-        const valueStr = typeof value === "string" ? value : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
         if (diagnostics.length < 10) {
           diagnostics.push(
-            `Fixed corrupted property name: "${propertyNameStr}":${extraChar}": -> "${propertyNameStr}":`,
+            `Fixed corrupted property name: "${propertyNameStr}":${extraText}": -> "${propertyNameStr}":`,
           );
         }
-        return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
+        return `"${propertyNameStr}":${terminatorStr}`;
       },
     );
 
@@ -1371,6 +1618,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
     // ===== Pattern 29: Remove Python-style triple quotes =====
     // Pattern: `extra_text="""` or `"""` -> remove (Python-style string delimiters, not JSON)
+    // Note: asteriskBeforePropertyPattern is already defined earlier, so we skip duplicate declaration
     const pythonTripleQuotesPattern = /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+\s*=\s*)?"(""|""")/g;
     sanitized = sanitized.replace(
       pythonTripleQuotesPattern,
@@ -2430,7 +2678,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
     // Pattern 53b: Handle stray text before already-quoted strings
     // Pattern: `semver "lombok...",` -> `"lombok...",`
-    const strayTextBeforeQuotedStringPattern = /([}\],]|\n|^)(\s*)(semver|body\.)\s+"([^"]+)"\s*,/g;
+    // Note: 'ar' prefix is handled earlier in the pipeline
+    const strayTextBeforeQuotedStringPattern = /([}\],]|\n|^)(\s*)(semver\s+|body\.)"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextBeforeQuotedStringPattern,
       (match, delimiter, whitespace, strayPrefix, stringValue, offset: unknown) => {
@@ -2466,7 +2715,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // ===== Pattern 54: Fix missing property names =====
     // Pattern: `ce": "REST"` -> `"mechanism": "REST"`
     // Also handles: `ce": "String"` -> `"type": "String"` (context-dependent)
-    const missingPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,3})"\s*:\s*"([^"]+)"/g;
+    // Also handles: `{_PARAM_TABLE":` -> `{"name": "PARAM_TABLE":`
+    const missingPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,3}|_[A-Z_]+)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       missingPropertyNamePattern,
       (match, delimiter, whitespace, fragment, value, offset: unknown) => {
@@ -2489,7 +2739,20 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           // Try to infer the property name from context
           // Look at nearby properties to guess what this should be
           let inferredProperty = "name"; // default
-          if (valueStr === "REST" || valueStr === "HTTP" || valueStr === "SOAP") {
+          if (fragmentStr.startsWith("_") && fragmentStr.length > 1) {
+            // Handle cases like `_PARAM_TABLE"` -> `"name": "API_PARAM_TABLE"`
+            inferredProperty = "name";
+            const fixedValue = fragmentStr.substring(1); // Remove leading underscore
+            hasChanges = true;
+            const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+            const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed missing property name with fragment: ${fragmentStr}" -> "${inferredProperty}": "${fixedValue}"`,
+              );
+            }
+            return `${delimiterStr}${whitespaceStr}"${inferredProperty}": "${fixedValue}"`;
+          } else if (valueStr === "REST" || valueStr === "HTTP" || valueStr === "SOAP") {
             inferredProperty = "mechanism";
           } else if (
             valueStr === "String" ||
