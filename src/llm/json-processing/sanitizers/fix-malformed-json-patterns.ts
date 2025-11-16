@@ -3725,6 +3725,96 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 81.5: Fix missing colon after property name =====
+    // Pattern: `"parameters []"` or `"parameters {}"` -> `"parameters": []` or `"parameters": {}`
+    // Also handles with comma: `"parameters [],"` -> `"parameters": [],`
+    const missingColonAfterPropertyPattern815 = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+(\[|\{)/g;
+    sanitized = sanitized.replace(
+      missingColonAfterPropertyPattern815,
+      (match, propertyName, bracket, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const bracketStr = typeof bracket === "string" ? bracket : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing colon after property name: "${propertyNameStr}" ${bracketStr} -> "${propertyNameStr}": ${bracketStr}`,
+            );
+          }
+          return `"${propertyNameStr}": ${bracketStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 82: Remove Java code after JSON closing brace =====
+    // Pattern: Remove Java code (package, import, class definitions) that appears after the JSON closing brace
+    // This handles cases where LLMs include source code after the JSON response
+    const javaCodeAfterJsonPattern =
+      /(}\s*)(\n\s*)(package\s+|import\s+|public\s+(class|interface|enum|record|@interface)|private\s+(class|interface|enum|record)|protected\s+(class|interface|enum|record)|@[A-Z][a-zA-Z]*\s*$)/m;
+    const javaCodeMatch = javaCodeAfterJsonPattern.exec(sanitized);
+    if (javaCodeMatch) {
+      const matchIndex = javaCodeMatch.index;
+      const closingBraceIndex = matchIndex + javaCodeMatch[1].length - 1;
+
+      // Verify that this is the last closing brace (main JSON object)
+      // Count braces to ensure we're at the root level
+      let braceDepth = 0;
+      let inString = false;
+      let escape = false;
+      let lastRootClosingBrace = -1;
+
+      for (let i = 0; i < sanitized.length; i++) {
+        const char = sanitized[i];
+        if (escape) {
+          escape = false;
+          continue;
+        }
+        if (char === "\\") {
+          escape = true;
+          continue;
+        }
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (!inString) {
+          if (char === "{") {
+            braceDepth++;
+          } else if (char === "}") {
+            braceDepth--;
+            if (braceDepth === 0) {
+              lastRootClosingBrace = i;
+            }
+          }
+        }
+      }
+
+      // If the match is after the last root closing brace, remove everything after it
+      if (lastRootClosingBrace >= 0 && closingBraceIndex >= lastRootClosingBrace) {
+        sanitized = sanitized.substring(0, lastRootClosingBrace + 1);
+        hasChanges = true;
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed Java code after JSON closing brace");
+        }
+      }
+    }
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 

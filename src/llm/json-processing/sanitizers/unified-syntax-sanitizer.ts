@@ -784,6 +784,164 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       },
     );
 
+    // ===== Block 2.5b: Fix words before quoted strings in arrays =====
+    // Pattern: `from "org.apache..."` or `stop"org.springframework..."` -> `"org.apache..."` or `"org.springframework..."`
+    // This handles cases where a word prefix appears before a quoted string in an array
+    // Handles both with space (`from "org...`) and without space (`stop"org...`)
+    // Note: \s* matches zero or more spaces, so it handles both cases
+    const wordBeforeQuotedStringInArrayPattern =
+      /(\[|,\s*)(\s*)([a-zA-Z]+)\s*"([^"]+)"(\s*,|\s*\])/g;
+    // Also handle case where word is directly concatenated to quote (no space): `stop"org...`
+    const wordDirectlyBeforeQuotePattern = /(\[|,\s*)(\s*)([a-zA-Z]+)"([^"]+)"(\s*,|\s*\])/g;
+    sanitized = sanitized.replace(
+      wordBeforeQuotedStringInArrayPattern,
+      (match, prefix, whitespace, prefixWord, quotedValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const prefixWordStr = typeof prefixWord === "string" ? prefixWord : "";
+        const quotedValueStr = typeof quotedValue === "string" ? quotedValue : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        // Common prefix words that should be removed (like "from", "stop", etc.)
+        const prefixWordsToRemove = ["from", "stop", "package", "import"];
+        const lowerPrefixWord = prefixWordStr.toLowerCase();
+
+        // Check if we're in an array: prefix is "[" or starts with ",", or we found an array by scanning backwards
+        const isInArray = prefixStr === "[" || prefixStr.startsWith(",") || foundArray;
+
+        if (isInArray && prefixWordsToRemove.includes(lowerPrefixWord)) {
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Removed prefix word '${prefixWordStr}' before quoted string in array: ${prefixWordStr} "${quotedValueStr}" -> "${quotedValueStr}"`,
+            );
+          }
+          return `${prefixStr}${whitespaceStr}"${quotedValueStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Also handle case where word is directly concatenated to quote (no space): `stop"org...`
+    sanitized = sanitized.replace(
+      wordDirectlyBeforeQuotePattern,
+      (match, prefix, whitespace, prefixWord, quotedValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const prefixWordStr = typeof prefixWord === "string" ? prefixWord : "";
+        const quotedValueStr = typeof quotedValue === "string" ? quotedValue : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        // Common prefix words that should be removed (like "from", "stop", etc.)
+        const prefixWordsToRemove = ["from", "stop", "package", "import"];
+        const lowerPrefixWord = prefixWordStr.toLowerCase();
+
+        // Check if we're in an array: prefix is "[" or starts with ",", or we found an array by scanning backwards
+        const isInArray = prefixStr === "[" || prefixStr.startsWith(",") || foundArray;
+
+        if (isInArray && prefixWordsToRemove.includes(lowerPrefixWord)) {
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Removed prefix word '${prefixWordStr}' directly before quoted string in array: ${prefixWordStr}"${quotedValueStr}" -> "${quotedValueStr}"`,
+            );
+          }
+          return `${prefixStr}${whitespaceStr}"${quotedValueStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // ===== Block 2.6: Fix unquoted property names followed by array/object =====
     // Pattern: `parameters: [` or `parameters: {` -> `"parameters": [` or `"parameters": {`
     const unquotedPropertyBeforeStructurePattern =

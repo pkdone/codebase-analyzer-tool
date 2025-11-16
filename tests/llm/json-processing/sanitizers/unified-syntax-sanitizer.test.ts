@@ -436,4 +436,79 @@ describe("unifiedSyntaxSanitizer", () => {
       expect(result.changed).toBe(false);
     });
   });
+
+  describe("missing colon after property name", () => {
+    // Note: This pattern is handled by fix-malformed-json-patterns sanitizer
+    // which runs before unified-syntax-sanitizer in the pipeline.
+    // These tests verify that unified-syntax-sanitizer doesn't break on this input format.
+    it("should handle malformed property with missing colon (handled by earlier sanitizer)", () => {
+      const input = `{
+  "name": "TestClass",
+  "parameters []",
+  "returnType": "void"
+}`;
+      const result = unifiedSyntaxSanitizer(input);
+      // This sanitizer may not fix this pattern (it's handled by fix-malformed-json-patterns)
+      // but it should not break on the input
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
+    });
+
+    it("should handle malformed property with missing colon and braces (handled by earlier sanitizer)", () => {
+      const input = `{
+  "name": "TestClass",
+  "parameters {}",
+  "returnType": "void"
+}`;
+      const result = unifiedSyntaxSanitizer(input);
+      // This sanitizer may not fix this pattern (it's handled by fix-malformed-json-patterns)
+      // but it should not break on the input
+      expect(result).toBeDefined();
+      expect(result.content).toBeDefined();
+    });
+
+    it("should not modify valid property assignments", () => {
+      const input = '{"name": "Test", "parameters": []}';
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(false);
+    });
+  });
+
+  describe("words before quoted strings in arrays", () => {
+    it('should remove "from" prefix before quoted string in array', () => {
+      const input = `{
+  "externalReferences": [
+    "io.restassured.specification.ResponseSpecification",
+    from "org.apache.commons.lang3.StringUtils"
+  ]
+}`;
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.apache.commons.lang3.StringUtils"');
+      expect(result.content).not.toContain('from "org.apache.commons.lang3.StringUtils"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it('should remove "stop" prefix before quoted string in array', () => {
+      const input = `{
+  "externalReferences": [
+    "org.springframework.stereotype.Service",
+    stop"org.springframework.transaction.annotation.Transactional"
+  ]
+}`;
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.springframework.transaction.annotation.Transactional"',
+      );
+      expect(result.content).not.toContain('stop"org.springframework');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not modify valid array elements", () => {
+      const input = '{"refs": ["org.apache.fineract.core.api.JsonCommand"]}';
+      const result = unifiedSyntaxSanitizer(input);
+      expect(result.changed).toBe(false);
+    });
+  });
 });

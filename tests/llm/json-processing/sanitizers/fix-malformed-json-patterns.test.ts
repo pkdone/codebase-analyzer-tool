@@ -856,4 +856,90 @@ there are more methods, but I will stop here
       // This test is mainly to ensure the pattern doesn't cause errors
     });
   });
+
+  describe("Pattern 82: Remove Java code after JSON closing brace", () => {
+    it("should remove Java package declaration after JSON", () => {
+      const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}
+package org.apache.fineract.portfolio.account.service;
+
+import java.math.BigDecimal;`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "TestClass"');
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).not.toContain("package");
+      expect(result.content).not.toContain("import");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove Java import statements after JSON", () => {
+      const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}
+import java.math.BigDecimal;
+import java.sql.ResultSet;`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "TestClass"');
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).not.toContain("import");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove Java class definition after JSON", () => {
+      const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}
+public class AccountTransfersReadPlatformServiceImpl {`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "TestClass"');
+      expect(result.content).toContain('"kind": "CLASS"');
+      expect(result.content).not.toContain("public class");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not remove Java keywords inside JSON strings", () => {
+      const input = `{
+  "description": "This class uses package and import statements",
+  "codeExample": "package org.example;\\nimport java.util.List;"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toContain("package");
+      expect(result.content).toContain("import");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle nested JSON objects correctly", () => {
+      const input = `{
+  "name": "TestClass",
+  "methods": [
+    {
+      "name": "testMethod"
+    }
+  ]
+}
+package org.example;`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("package");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });
