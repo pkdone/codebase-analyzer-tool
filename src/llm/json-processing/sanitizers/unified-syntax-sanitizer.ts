@@ -431,7 +431,14 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
     // Pass 2b: Fix very short property names with missing opening quotes (e.g., `e": "retrieveOne",` -> `"name": "retrieveOne",`)
     // This handles cases where only a fragment of the property name is present
-    const veryShortPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z])"\s*:\s*"([^"]+)"/g;
+    // Enhanced to handle 2-character truncations like `se":` -> `"name":`
+    // Pattern matches: delimiter (}, ], comma, newline, or start) + whitespace + 1-2 char lowercase + " + : + " + value + "
+    // Also handles cases where truncated property appears directly after closing brace/comma without delimiter
+    const veryShortPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,2})"\s*:\s*"([^"]+)"/g;
+    // Pattern for truncated property names without delimiter (e.g., `},se":` or `,se":` or `},\nse":`)
+    // Handles both with and without newlines between delimiter and truncated property
+    const truncatedPropertyWithoutDelimiterPattern =
+      /([},])(\s*\n?\s*)([a-z]{1,2})"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       veryShortPropertyNamePattern,
       (match, delimiter, whitespace, shortName, value, offset: unknown) => {
@@ -441,10 +448,12 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         }
 
         // Check if we're in a valid property context
+        // Enhanced to handle cases where delimiter is on previous line (comma + newline)
         const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
         const isAfterPropertyBoundary =
           /[}\],]\s*$/.test(beforeMatch) ||
           /[}\],]\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
           numericOffset < 200;
 
         if (isAfterPropertyBoundary) {
@@ -453,11 +462,43 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
           const lowerShortName = shortNameStr.toLowerCase();
 
           // Try to map the short name to a full property name
-          let fixedName = PROPERTY_NAME_MAPPINGS[lowerShortName];
-          if (!fixedName && lowerShortName === "e") {
-            // Common case: "e" is often a truncation of "name"
+          // Override PROPERTY_NAME_MAPPINGS for "se" - in truncated property context, it's "name" not "purpose"
+          let fixedName: string | undefined;
+          if (lowerShortName === "se") {
+            // "se" is likely a truncation of "name" (na-me -> se) when it appears as a truncated property
+            // Override the PROPERTY_NAME_MAPPINGS which maps "se" to "purpose"
             fixedName = "name";
-          } else if (!fixedName) {
+          } else {
+            fixedName = PROPERTY_NAME_MAPPINGS[lowerShortName];
+          }
+
+          // Handle common truncations if not found in mappings
+          if (!fixedName) {
+            // Single character mappings
+            if (lowerShortName === "e") {
+              fixedName = "name";
+            } else if (lowerShortName === "n") {
+              fixedName = "name";
+            } else if (lowerShortName === "m") {
+              fixedName = "name";
+            }
+            // Two character mappings
+            else if (lowerShortName === "me") {
+              fixedName = "name";
+            } else if (lowerShortName === "na") {
+              fixedName = "name";
+            } else if (lowerShortName === "pu") {
+              fixedName = "purpose";
+            } else if (lowerShortName === "de") {
+              fixedName = "description";
+            } else if (lowerShortName === "ty") {
+              fixedName = "type";
+            } else if (lowerShortName === "va") {
+              fixedName = "value";
+            }
+          }
+
+          if (!fixedName) {
             // If we can't map it, keep the original
             return match;
           }
@@ -471,6 +512,161 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
             );
           }
           return `${delimiterStr}${whitespaceStr}"${fixedName}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pass 2b.1: Also handle cases where there's no explicit delimiter but we're on a new line after a property
+    // Pattern: newline + whitespace + 1-2 char + " + : + " + value + "
+    // This handles cases like: },\n      se": "value"
+    const veryShortPropertyNameNewlinePattern = /(\n\s+)([a-z]{1,2})"\s*:\s*"([^"]+)"/g;
+    sanitized = sanitized.replace(
+      veryShortPropertyNameNewlinePattern,
+      (match, newlineWhitespace, shortName, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        // If we're on a new line with indentation and have a short property name pattern, we're likely in an object
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        // More lenient - just check if we're after some JSON structure (comma, brace, bracket, or newline)
+        const isAfterPropertyValue =
+          /"\s*[,}]\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          /{\s*\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isAfterPropertyValue) {
+          const shortNameStr = typeof shortName === "string" ? shortName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const lowerShortName = shortNameStr.toLowerCase();
+
+          // Try to map the short name to a full property name
+          let fixedName = PROPERTY_NAME_MAPPINGS[lowerShortName];
+
+          // Handle common truncations (same logic as above)
+          if (!fixedName) {
+            if (lowerShortName === "e") {
+              fixedName = "name";
+            } else if (lowerShortName === "n") {
+              fixedName = "name";
+            } else if (lowerShortName === "m") {
+              fixedName = "name";
+            } else if (lowerShortName === "se") {
+              // "se" could be truncation of "name" or "purpose"
+              // Check context - if it's followed by a description-like text, it's likely "purpose"
+              // Otherwise, default to "name"
+              if (valueStr.length > 50 && valueStr.toLowerCase().includes("method")) {
+                fixedName = "purpose";
+              } else {
+                fixedName = "name";
+              }
+            } else if (lowerShortName === "me") {
+              fixedName = "name";
+            } else if (lowerShortName === "na") {
+              fixedName = "name";
+            } else if (lowerShortName === "pu") {
+              fixedName = "purpose";
+            } else if (lowerShortName === "de") {
+              fixedName = "description";
+            } else if (lowerShortName === "ty") {
+              fixedName = "type";
+            } else if (lowerShortName === "va") {
+              fixedName = "value";
+            }
+          }
+
+          if (!fixedName) {
+            return match;
+          }
+
+          hasChanges = true;
+          const newlineWhitespaceStr =
+            typeof newlineWhitespace === "string" ? newlineWhitespace : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed truncated property name with missing opening quote (newline): ${shortNameStr}" -> "${fixedName}"`,
+            );
+          }
+          return `${newlineWhitespaceStr}"${fixedName}": "${valueStr}"`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pass 2b.1: Fix truncated property names without delimiter (e.g., `},se":` or `},\nse":` -> `}, "name":`)
+    sanitized = sanitized.replace(
+      truncatedPropertyWithoutDelimiterPattern,
+      (match, delimiter, whitespace, shortName, value, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isAfterPropertyBoundary =
+          /[}\],]\s*$/.test(beforeMatch) ||
+          /[}\],]\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isAfterPropertyBoundary) {
+          const shortNameStr = typeof shortName === "string" ? shortName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const lowerShortName = shortNameStr.toLowerCase();
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+
+          // Try to map the short name to a full property name
+          // Override PROPERTY_NAME_MAPPINGS for specific truncation cases
+          // "se" in this context (truncated property without delimiter) is likely "name" not "purpose"
+          let fixedName: string | undefined;
+          if (lowerShortName === "se") {
+            // "se" is likely a truncation of "name" (na-me -> se) when it appears as a truncated property
+            // Override the PROPERTY_NAME_MAPPINGS which maps "se" to "purpose"
+            fixedName = "name";
+          } else {
+            fixedName = PROPERTY_NAME_MAPPINGS[lowerShortName];
+          }
+
+          // Handle common truncations if not found in mappings
+          if (!fixedName) {
+            if (lowerShortName === "e" || lowerShortName === "n" || lowerShortName === "m") {
+              fixedName = "name";
+            } else if (lowerShortName === "me") {
+              fixedName = "name";
+            } else if (lowerShortName === "na") {
+              fixedName = "name";
+            } else if (lowerShortName === "pu") {
+              fixedName = "purpose";
+            } else if (lowerShortName === "de") {
+              fixedName = "description";
+            } else if (lowerShortName === "ty") {
+              fixedName = "type";
+            } else if (lowerShortName === "va") {
+              fixedName = "value";
+            }
+          }
+
+          if (fixedName) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed truncated property name without delimiter: ${delimiterStr}${whitespaceStr}${shortNameStr}" -> ${delimiterStr}${whitespaceStr}"${fixedName}"`,
+              );
+            }
+            return `${delimiterStr}${whitespaceStr}"${fixedName}": "${valueStr}"`;
+          }
         }
 
         return match;
@@ -568,7 +764,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
           return match;
         }
 
-        // Check if we're in a valid property context
+        // Check if we're in a valid property context (including nested objects in arrays)
         const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
@@ -593,6 +789,73 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
               );
             }
             return `${prefixStr}"${propertyNameStr}": ${bracketStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // Pass 2c.2: Fix unquoted property names followed by quoted string values
+    // Pattern: `name: "Savings Account Transactions"` -> `"name": "Savings Account Transactions"`
+    // This handles nested objects in arrays (like integrationPoints)
+    const unquotedPropertyNameWithQuotedValuePattern =
+      /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([^"]+)"(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      unquotedPropertyNameWithQuotedValuePattern,
+      (match, prefix, propertyName, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context (including nested objects in arrays)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+
+          // Check if it looks like a property name
+          const lowerPropertyName = propertyNameStr.toLowerCase();
+          const knownProperties = [
+            "name",
+            "purpose",
+            "description",
+            "parameters",
+            "returntype",
+            "cyclomaticcomplexity",
+            "linesofcode",
+            "codesmells",
+            "type",
+            "value",
+            "mechanism",
+            "path",
+            "method",
+            "direction",
+            "requestbody",
+            "responsebody",
+          ];
+          const looksLikePropertyName =
+            /^[a-z][a-zA-Z0-9_$]*$/.test(propertyNameStr) &&
+            (knownProperties.includes(lowerPropertyName) || lowerPropertyName.length > 2);
+
+          if (looksLikePropertyName) {
+            hasChanges = true;
+            if (diagnostics.length < 20) {
+              diagnostics.push(
+                `Fixed unquoted property name with quoted value: ${propertyNameStr}: "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+              );
+            }
+            return `${prefixStr}"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
           }
         }
 
@@ -772,6 +1035,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
     // ===== Block 2.5: Fix missing quotes around array string elements =====
     // Pattern: Missing opening quote before string in array (e.g., `org.apache\"...` -> `"org.apache\"...`)
     // This handles cases where array elements are missing opening quotes
+    // Enhanced to handle cases like `extractions.loanproduct...` (missing opening quote)
     const missingQuoteInArrayPattern = /(\[|,\s*)(\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       missingQuoteInArrayPattern,
@@ -826,13 +1090,124 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         }
 
         if (foundArray || prefixStr === "[") {
+          // Fix common truncations in package names (e.g., `extractions.loanproduct` -> `org.apache.fineract.portfolio.loanproduct`)
+          let fixedValue = unquotedValueStr;
+          if (unquotedValueStr.startsWith("extractions.")) {
+            fixedValue = unquotedValueStr.replace(
+              /^extractions\./,
+              "org.apache.fineract.portfolio.",
+            );
+            hasChanges = true;
+            if (diagnostics.length < 20) {
+              diagnostics.push(
+                `Fixed truncated package name in array: ${unquotedValueStr} -> ${fixedValue}`,
+              );
+            }
+          } else if (unquotedValueStr.startsWith("orgapache.")) {
+            fixedValue = unquotedValueStr.replace(/^orgapache\./, "org.apache.");
+            hasChanges = true;
+            if (diagnostics.length < 20) {
+              diagnostics.push(
+                `Fixed missing dot in package name: ${unquotedValueStr} -> ${fixedValue}`,
+              );
+            }
+          } else {
+            hasChanges = true;
+            if (diagnostics.length < 20) {
+              diagnostics.push(
+                `Fixed missing opening quote in array element: ${unquotedValueStr}" -> "${unquotedValueStr}"`,
+              );
+            }
+          }
+          return `${prefixStr}${whitespaceStr}"${fixedValue}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Block 2.5a: Fix missing opening quotes in array elements (newline-separated) =====
+    // Pattern: Handles cases like `extractions.loanproduct.data.LoanProductBorrowerCycleVariationData",`
+    // where the element is on a new line and missing the opening quote
+    const missingQuoteInArrayNewlinePattern = /(\n\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
+    sanitized = sanitized.replace(
+      missingQuoteInArrayNewlinePattern,
+      (match, newlinePrefix, unquotedValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const newlinePrefixStr = typeof newlinePrefix === "string" ? newlinePrefix : "";
+        const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context by scanning backwards
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        // Also check if the previous line ends with a comma or opening bracket
+        const prevLineEnd = beforeMatch.trimEnd();
+        const isAfterCommaOrBracket = prevLineEnd.endsWith(",") || prevLineEnd.endsWith("[");
+
+        if (foundArray || isAfterCommaOrBracket) {
+          // Fix common truncations in package names
+          let fixedValue = unquotedValueStr;
+          if (unquotedValueStr.startsWith("extractions.")) {
+            fixedValue = unquotedValueStr.replace(
+              /^extractions\./,
+              "org.apache.fineract.portfolio.",
+            );
+          } else if (unquotedValueStr.startsWith("orgapache.")) {
+            fixedValue = unquotedValueStr.replace(/^orgapache\./, "org.apache.");
+          } else if (unquotedValueStr.startsWith("orgf.")) {
+            fixedValue = unquotedValueStr.replace(/^orgf\./, "org.");
+          } else if (unquotedValueStr.startsWith("orgah.")) {
+            fixedValue = unquotedValueStr.replace(/^orgah\./, "org.");
+          }
+
           hasChanges = true;
           if (diagnostics.length < 20) {
             diagnostics.push(
-              `Fixed missing opening quote in array element: ${unquotedValueStr}" -> "${unquotedValueStr}"`,
+              `Fixed missing opening quote in array element (newline): ${unquotedValueStr}" -> "${fixedValue}"`,
             );
           }
-          return `${prefixStr}${whitespaceStr}"${unquotedValueStr}"${terminatorStr}`;
+          return `${newlinePrefixStr}"${fixedValue}"${terminatorStr}`;
         }
 
         return match;
@@ -1144,6 +1519,45 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         hasChanges = true;
         diagnostics.push(`Fixed assignment syntax: "${propNameStr}":= -> "${propNameStr}":`);
         return `${quotedPropStr}:${wsAfter}`;
+      },
+    );
+
+    // Fix 1b: Remove stray minus signs before colons (e.g., `"type":- "Long"` -> `"type": "Long"`)
+    const strayMinusBeforeColonPattern = /("([^"]+)")\s*:-\s*/g;
+    sanitized = sanitized.replace(
+      strayMinusBeforeColonPattern,
+      (match, quotedProperty, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        const quotedPropStr = typeof quotedProperty === "string" ? quotedProperty : "";
+
+        if (numericOffset > 0) {
+          const beforeMatch = sanitized.substring(0, numericOffset);
+          let quoteCount = 0;
+          let escape = false;
+          for (const char of beforeMatch) {
+            if (escape) {
+              escape = false;
+              continue;
+            }
+            if (char === "\\") {
+              escape = true;
+            } else if (char === '"') {
+              quoteCount++;
+            }
+          }
+          if (quoteCount % 2 === 1) {
+            return match;
+          }
+        }
+
+        hasChanges = true;
+        const propNameStr = typeof propertyName === "string" ? propertyName : "";
+        if (diagnostics.length < 20) {
+          diagnostics.push(
+            `Removed stray minus sign before colon: "${propNameStr}":- -> "${propNameStr}":`,
+          );
+        }
+        return `${quotedPropStr}: `;
       },
     );
 

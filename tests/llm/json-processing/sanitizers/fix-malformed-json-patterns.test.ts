@@ -1267,4 +1267,120 @@ package org.example;`;
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
+
+  describe("Pattern 88: Property name typos", () => {
+    it("should fix cyclocomplexity typo", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "testMethod",
+      "cyclocomplexity": 4,
+      "linesOfCode": 10
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"cyclomaticComplexity": 4');
+      expect(result.content).not.toContain('"cyclocomplexity"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix cyclometiccomplexity typo", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "testMethod",
+      "cyclometiccomplexity": 4
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"cyclomaticComplexity": 4');
+      expect(result.content).not.toContain('"cyclometiccomplexity"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix cyclometicComplexity typo", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "testMethod",
+      "cyclometicComplexity": 4
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"cyclomaticComplexity": 4');
+      expect(result.content).not.toContain('"cyclometicComplexity"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 89: Malformed JSON in string values", () => {
+    it("should escape unescaped quotes in description strings", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "testMethod",
+      "description": "This method uses "quotes" in the description.",
+      "parameters": []
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      // The pattern should detect and escape unescaped quotes
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('\\"quotes\\"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Duplicate property names in descriptions", () => {
+    it("should fix duplicate property name in description", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "tearDown",
+      "purpose": "purpose": "This method is executed after each test case"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "This method is executed after each test case"');
+      expect(result.content).not.toContain('"purpose": "purpose":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix duplicate property name in any property field", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "testMethod",
+      "description": "description": "This is a test method"
+    }
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"description": "This is a test method"');
+      expect(result.content).not.toContain('"description": "description":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });

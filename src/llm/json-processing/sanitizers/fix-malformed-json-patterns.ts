@@ -27,7 +27,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       JSON.parse(input);
       // Check if there are obvious errors that need fixing (typos, missing dots, etc.)
       const hasObviousErrors =
-        /orgfineract|orgahce|jakarta\.ws-rs|orgf\.apache|orgah\.apache|orgapache\.|io_swagger|org_|com_|"[^"]+\s+[a-zA-Z]+\s*":|<x_bin_\d+|[\u0080-\uFFFF]|orgaho\.apache|"\/v\d+[a-z]+\/|ax"org\.|pache"\.|_[A-Z_]+\s*=\s*"/.test(
+        /orgfineract|orgahce|jakarta\.ws-rs|orgf\.apache|orgah\.apache|orgapache\.|io_swagger|org_|com_|"[^"]+\s+[a-zA-Z]+\s*":|<x_bin_\d+|[\u0080-\uFFFF]|orgaho\.apache|"\/v\d+[a-z]+\/|ax"org\.|pache"\.|_[A-Z_]+\s*=\s*"|cyclocomplexity|cyclometiccomplexity|cyclometicComplexity/i.test(
           input,
         );
       if (!hasObviousErrors) {
@@ -4379,6 +4379,243 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       }
       return '"org.apache.';
     });
+
+    // ===== Pattern 88: Fix property name typos in quoted properties =====
+    // Pattern: Fix typos like "cyclocomplexity" -> "cyclomaticComplexity"
+    const propertyTypoPatterns: [RegExp, string][] = [
+      [/"cyclocomplexity"\s*:/gi, '"cyclomaticComplexity":'],
+      [/"cyclometiccomplexity"\s*:/gi, '"cyclomaticComplexity":'],
+      [/"cyclometicComplexity"\s*:/gi, '"cyclomaticComplexity":'],
+    ];
+
+    for (const [pattern, replacement] of propertyTypoPatterns) {
+      const beforeReplace = sanitized;
+      sanitized = sanitized.replace(pattern, (match) => {
+        // Property names are always outside strings in valid JSON, so no need to check
+        hasChanges = true;
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Fixed property name typo: ${match.trim()} -> ${replacement.trim()}`);
+        }
+        return replacement;
+      });
+      // Check if replacement actually changed anything
+      if (sanitized !== beforeReplace) {
+        hasChanges = true;
+      }
+    }
+
+    // ===== Pattern 89: Fix malformed JSON fragments in string values =====
+    // Pattern: Detect and escape unescaped quotes or fix malformed JSON-like content in descriptions
+    // This handles cases where descriptions contain JSON-like content that breaks parsing
+    // Pattern: Look for unescaped quotes in string values that might break JSON
+    // We'll be conservative and only fix obvious issues
+
+    // Fix duplicate property names in descriptions (e.g., `"purpose": "purpose": "text"` -> `"purpose": "text"`)
+    // Also handles cases like `"purpose": "purpose": "This method..."` where the property name is duplicated
+    const duplicatePropertyInDescriptionPattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"\1"\s*:\s*"([^"]*)"(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      duplicatePropertyInDescriptionPattern,
+      (match, propertyName, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext = /[{,]\s*$/.test(beforeMatch) || /\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+          // Remove the duplicate property name and keep the value
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed duplicate property name "${propertyNameStr}" in ${propertyNameStr} field`,
+            );
+          }
+          return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Fix malformed JSON in descriptions where multiple properties are concatenated
+    // Pattern: `"purpose": "purpose": "text", "parameters": [], "returnType": "void", ...`
+    // This handles cases where the entire method object is concatenated into a single string value
+    // We need to escape the inner quotes and structure to make it a valid JSON string
+    const concatenatedPropertiesInStringPattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]*)"(\s*,\s*"[^"]*"\s*:\s*[^,}]+)*(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      concatenatedPropertiesInStringPattern,
+      (
+        match,
+        propertyName,
+        firstValue,
+        _secondProperty,
+        _secondValue,
+        _additionalProps,
+        terminator,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext = /[{,]\s*$/.test(beforeMatch) || /\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const firstValueStr = typeof firstValue === "string" ? firstValue : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+          // If the first value contains the duplicate property name, remove it
+          if (firstValueStr === propertyNameStr) {
+            // This is a duplicate property name case - we already handle this above
+            return match;
+          }
+
+          // Otherwise, escape the quotes in the concatenated content to make it a valid string
+          const escapedValue = firstValueStr.replace(/"/g, '\\"');
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed malformed JSON in ${propertyNameStr} field - escaped concatenated properties`,
+            );
+          }
+          return `"${propertyNameStr}": "${escapedValue}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 89: Fix unescaped quotes in description strings
+    // Match "description": "..." and manually parse to find unescaped quotes
+    // This handles malformed JSON where quotes inside strings aren't escaped
+    const descriptionPropertyPattern = /"description"\s*:\s*"/g;
+    const replacements: { start: number; end: number; replacement: string }[] = [];
+
+    let match;
+    while ((match = descriptionPropertyPattern.exec(sanitized)) !== null) {
+      const startOffset = match.index + match[0].length;
+      if (isInStringAt(match.index, sanitized)) {
+        continue;
+      }
+
+      // Check if we're in a valid property context
+      if (match.index > 0) {
+        const beforeMatch = sanitized.substring(Math.max(0, match.index - 100), match.index);
+        const isPropertyContext = /[{,]\s*$/.test(beforeMatch) || /\n\s*$/.test(beforeMatch);
+        if (!isPropertyContext) {
+          continue;
+        }
+      }
+
+      // Manually parse the string content to find unescaped quotes
+      let content = "";
+      let i = startOffset;
+      let inEscape = false;
+      let foundClosing = false;
+      let fixed = false;
+
+      while (i < sanitized.length) {
+        const char = sanitized[i];
+        if (inEscape) {
+          content += char;
+          inEscape = false;
+          i++;
+          continue;
+        }
+        if (char === "\\") {
+          content += char;
+          inEscape = true;
+          i++;
+          continue;
+        }
+        if (char === '"') {
+          // Check if this is the closing quote (followed by , or })
+          const nextChars = sanitized.substring(i + 1).trim();
+          if (nextChars.startsWith(",") || nextChars.startsWith("}")) {
+            // This is the closing quote
+            foundClosing = true;
+            break;
+          }
+          // This is an unescaped quote inside the string - escape it
+          content += '\\"';
+          fixed = true;
+          i++; // Move past the quote
+        } else {
+          content += char;
+          i++;
+        }
+      }
+
+      if (foundClosing && fixed) {
+        const endOffset = i;
+        const afterContent = sanitized.substring(i + 1);
+        const terminatorRegex = /^(\s*[,}])/;
+        const terminatorMatch = terminatorRegex.exec(afterContent);
+        const terminator = terminatorMatch ? terminatorMatch[1] : "";
+        replacements.push({
+          start: match.index,
+          end: endOffset + 1 + (terminatorMatch ? terminatorMatch[0].length : 0),
+          replacement: `"description": "${content}"${terminator}`,
+        });
+        hasChanges = true;
+        if (diagnostics.length < 10) {
+          diagnostics.push("Fixed unescaped quotes in description string value");
+        }
+      } else if (fixed && !foundClosing) {
+        // If we fixed quotes but didn't find a closing quote, continue parsing to find it
+        // This handles cases where unescaped quotes are in the middle of the string
+        while (i < sanitized.length) {
+          const char = sanitized[i];
+          if (char === '"') {
+            const nextChars = sanitized.substring(i + 1).trim();
+            if (nextChars.startsWith(",") || nextChars.startsWith("}")) {
+              // Found the closing quote
+              const afterContent = sanitized.substring(i + 1);
+              const terminatorRegex = /^(\s*[,}])/;
+              const terminatorMatch = terminatorRegex.exec(afterContent);
+              const terminator = terminatorMatch ? terminatorMatch[1] : "";
+              replacements.push({
+                start: match.index,
+                end: i + 1 + (terminatorMatch ? terminatorMatch[0].length : 0),
+                replacement: `"description": "${content}"${terminator}`,
+              });
+              hasChanges = true;
+              if (diagnostics.length < 10) {
+                diagnostics.push("Fixed unescaped quotes in description string value");
+              }
+              break;
+            } else {
+              // Another unescaped quote - escape it
+              content += '\\"';
+              i++;
+            }
+          } else {
+            content += char;
+            i++;
+          }
+        }
+      }
+    }
+
+    // Apply replacements in reverse order to maintain indices
+    for (let j = replacements.length - 1; j >= 0; j--) {
+      const repl = replacements[j];
+      sanitized =
+        sanitized.substring(0, repl.start) + repl.replacement + sanitized.substring(repl.end);
+    }
 
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
