@@ -97,7 +97,7 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
    */
   private buildArchitectureDiagramSvg(
     microservices: Microservice[],
-    integrationPoints: IntegrationPointInfo[],
+    _integrationPoints: IntegrationPointInfo[],
     width: number,
     height: number,
     options: Required<ArchitectureDiagramSvgOptions>,
@@ -110,7 +110,6 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
 
     // Generate service nodes in grid layout
     const serviceNodes: string[] = [];
-    const servicePositions: { x: number; y: number; name: string }[] = [];
 
     microservices.forEach((service, index) => {
       const row = Math.floor(index / servicesPerRow);
@@ -119,21 +118,12 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
       const x = options.padding + col * horizontalSpacing + horizontalSpacing / 2;
       const y = options.padding + row * verticalSpacing + verticalSpacing / 2;
 
-      servicePositions.push({ x, y, name: service.name });
       serviceNodes.push(this.createServiceNode(service, x, y, options));
     });
-
-    // Generate integration connections
-    const connections = this.createIntegrationConnections(
-      servicePositions,
-      integrationPoints,
-      options,
-    );
 
     // Combine all SVG elements
     const svgElements = [
       this.createSvgHeader(width, height),
-      ...connections,
       ...serviceNodes,
       "</svg>",
     ];
@@ -191,15 +181,4 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
       </g>`;
   }
 
-  /**
-   * Create connections between services based on integration points
-   */
-  private createIntegrationConnections(
-    _servicePositions: { x: number; y: number; name: string }[],
-    _integrationPoints: IntegrationPointInfo[],
-    _options: Required<ArchitectureDiagramSvgOptions>,
-  ): string[] {
-    // Disable integration connections for cleaner diagram
-    return [];
-  }
 }
