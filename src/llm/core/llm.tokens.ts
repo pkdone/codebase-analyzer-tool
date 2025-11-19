@@ -7,7 +7,6 @@ export const llmTokens = {
   LLMStats: Symbol("LLMStats"),
   LLMStatsReporter: Symbol("LLMStatsReporter"),
   PromptAdaptationStrategy: Symbol("PromptAdaptationStrategy"),
-  LLMInfoProvider: Symbol("LLMInfoProvider"),
   RetryStrategy: Symbol("RetryStrategy"),
   FallbackStrategy: Symbol("FallbackStrategy"),
   LLMExecutionPipeline: Symbol("LLMExecutionPipeline"),
