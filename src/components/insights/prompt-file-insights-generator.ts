@@ -25,10 +25,12 @@ export interface FileRequirementPrompt {
 }
 
 /**
- * Class responsible for processing codebase insights using LLM
+ * Class responsible for processing codebase insights using prompt files.
+ * Generates insights directly from prompt files in the input/ directory,
+ * bypassing the database-driven workflow and writing output directly to files.
  */
 @injectable()
-export class LocalInsightsGenerator {
+export class PromptFileInsightsGenerator {
   /**
    * Constructor with dependency injection.
    */
@@ -136,3 +138,4 @@ export class LocalInsightsGenerator {
     }
   }
 }
+

@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
-import { LocalInsightsGenerator } from "../components/insights/local-insights-generator";
+import { PromptFileInsightsGenerator } from "../components/insights/prompt-file-insights-generator";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
@@ -21,8 +21,8 @@ export class DirectInsightsGenerationTask extends BaseLLMTask {
   constructor(
     @inject(llmTokens.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
-    @inject(insightsTokens.LocalInsightsGenerator)
-    private readonly insightsFileGenerator: LocalInsightsGenerator,
+    @inject(insightsTokens.PromptFileInsightsGenerator)
+    private readonly insightsFileGenerator: PromptFileInsightsGenerator,
     @inject(coreTokens.ProjectName) projectName: string,
   ) {
     super(llmStatsReporter, projectName);

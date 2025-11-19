@@ -36,7 +36,7 @@ describe("AppReportGenerator", () => {
     } as unknown as jest.Mocked<AppStatisticsDataProvider>;
 
     mockCategoriesDataProvider = {
-      getGenericCategoryData: jest.fn(),
+      getStandardSectionData: jest.fn(),
     } as unknown as jest.Mocked<AppSummaryCategoriesProvider>;
 
     // Create mock sections
@@ -96,7 +96,7 @@ describe("AppReportGenerator", () => {
       ];
 
       mockAppStatsDataProvider.getAppStatistics.mockResolvedValue(mockAppStats);
-      mockCategoriesDataProvider.getGenericCategoryData.mockReturnValue(mockCategorizedData);
+      mockCategoriesDataProvider.getStandardSectionData.mockReturnValue(mockCategorizedData);
 
       await generator.generateReport("test-project", "/output", "report.html");
 
@@ -129,7 +129,7 @@ describe("AppReportGenerator", () => {
       const mockCategorizedData: ReportData["categorizedData"] = [];
 
       mockAppStatsDataProvider.getAppStatistics.mockResolvedValue(mockAppStats);
-      mockCategoriesDataProvider.getGenericCategoryData.mockReturnValue(mockCategorizedData);
+      mockCategoriesDataProvider.getStandardSectionData.mockReturnValue(mockCategorizedData);
 
       await generator.generateReport("test-project", "/output", "report.html");
 

@@ -50,9 +50,10 @@ type ValidCategoryKey = (typeof TABLE_CATEGORY_KEYS)[number];
 @injectable()
 export class AppSummaryCategoriesProvider {
   /**
-   * Build categorized data for all categories using pre-fetched app summary data.
+   * Build categorized data for standard (tabular) categories using pre-fetched app summary data.
+   * Excludes categories that have custom dedicated sections in the report.
    */
-  getGenericCategoryData(
+  getStandardSectionData(
     appSummaryData: Pick<AppSummaryRecordWithId, ValidCategoryKey>,
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
     const results = TABLE_CATEGORY_KEYS.map((category: ValidCategoryKey) => {

@@ -10,7 +10,7 @@ import {
   INTEGRATION_MECHANISM_VALUES,
   SOURCE_ENTITY_KIND_VALUES,
   COMPLEXITY_VALUES,
-} from "./sources.values";
+} from "./source-schema.enums";
 import {
   normalizeEnumValue,
   normalizeEnumArray,

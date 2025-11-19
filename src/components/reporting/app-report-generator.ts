@@ -63,7 +63,7 @@ export default class AppReportGenerator {
 
     // Generate core app statistics and categorized data
     const appStats = await this.appStatsDataProvider.getAppStatistics(projectName, appSummaryData);
-    const categorizedData = this.categoriesDataProvider.getGenericCategoryData(appSummaryData);
+    const categorizedData = this.categoriesDataProvider.getStandardSectionData(appSummaryData);
 
     // Fetch data from all sections in parallel
     const sectionDataMap = new Map<string, unknown>();

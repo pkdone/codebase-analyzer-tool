@@ -4,7 +4,7 @@ import { registerComponents } from "../registration-utils";
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
-import { LocalInsightsGenerator } from "../../components/insights/local-insights-generator";
+import { PromptFileInsightsGenerator } from "../../components/insights/prompt-file-insights-generator";
 import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 import { BomAggregator } from "../../components/insights/data-aggregators/bom-aggregator";
 import { CodeQualityAggregator } from "../../components/insights/data-aggregators/code-quality-aggregator";
@@ -43,7 +43,10 @@ export function registerInsightsComponents(): void {
 export function registerLLMDependentInsightsComponents(): void {
   registerComponents(
     [
-      { token: insightsTokens.LocalInsightsGenerator, implementation: LocalInsightsGenerator },
+      {
+        token: insightsTokens.PromptFileInsightsGenerator,
+        implementation: PromptFileInsightsGenerator,
+      },
       { token: insightsTokens.InsightsFromDBGenerator, implementation: InsightsFromDBGenerator },
       {
         token: insightsTokens.InsightsFromRawCodeGenerator,

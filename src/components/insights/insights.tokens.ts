@@ -5,7 +5,7 @@
 export const insightsTokens = {
   InsightsFromDBGenerator: Symbol("InsightsFromDBGenerator"),
   InsightsFromRawCodeGenerator: Symbol("InsightsFromRawCodeGenerator"),
-  LocalInsightsGenerator: Symbol("LocalInsightsGenerator"),
+  PromptFileInsightsGenerator: Symbol("PromptFileInsightsGenerator"),
   InsightsProcessorSelector: Symbol("InsightsProcessorSelector"),
   BomAggregator: Symbol.for("BomAggregator"),
   CodeQualityAggregator: Symbol.for("CodeQualityAggregator"),

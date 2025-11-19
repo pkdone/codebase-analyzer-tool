@@ -6,7 +6,7 @@ import {
   DATABASE_MECHANISM_VALUES,
   OPERATION_TYPE_VALUES,
   INTEGRATION_MECHANISM_VALUES,
-} from "../../src/schemas/sources.values";
+} from "../../src/schemas/source-schema.enums";
 
 // Helper: pick a known valid value and an invalid one
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters

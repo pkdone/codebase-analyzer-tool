@@ -15,7 +15,7 @@ describe("DatabaseReportDataProvider", () => {
     provider = new DatabaseReportDataProvider(mockSourcesRepository);
   });
 
-  describe("aggregateProcsOrTriggersForReport - single pass optimization", () => {
+  describe("summarizeItemsByComplexity - single pass optimization", () => {
     test("should correctly aggregate empty array", async () => {
       mockSourcesRepository.getProjectStoredProceduresAndTriggers.mockResolvedValue([]);
 

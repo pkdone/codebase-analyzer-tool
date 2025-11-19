@@ -11,7 +11,7 @@ describe("AppSummaryCategoriesProvider", () => {
     categoriesDataProvider = new AppSummaryCategoriesProvider();
   });
 
-  describe("getGenericCategoryData", () => {
+  describe("getStandardSectionData", () => {
     it("should return categorized data for all valid categories excluding appDescription", () => {
       // Arrange
       const mockAppSummaryData: Partial<AppSummaryRecordWithId> = {
@@ -55,7 +55,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getGenericCategoryData(
+      const result = categoriesDataProvider.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
@@ -99,7 +99,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getGenericCategoryData(
+      const result = categoriesDataProvider.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
@@ -123,7 +123,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getGenericCategoryData(
+      const result = categoriesDataProvider.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
@@ -146,7 +146,7 @@ describe("AppSummaryCategoriesProvider", () => {
       } as unknown as AppSummaryRecordWithId;
 
       // Act
-      const result = categoriesDataProvider.getGenericCategoryData(mockAppSummaryData);
+      const result = categoriesDataProvider.getStandardSectionData(mockAppSummaryData);
 
       // Assert - All invalid data should be converted to empty arrays
       result.forEach((category) => {
@@ -167,7 +167,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getGenericCategoryData(
+      const result = categoriesDataProvider.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
@@ -198,7 +198,7 @@ describe("AppSummaryCategoriesProvider", () => {
       };
 
       // Act
-      const result = categoriesDataProvider.getGenericCategoryData(
+      const result = categoriesDataProvider.getStandardSectionData(
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 

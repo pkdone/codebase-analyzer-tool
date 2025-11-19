@@ -80,8 +80,8 @@ export class DatabaseReportDataProvider {
       }
     }
 
-    const procs = this.aggregateProcsOrTriggersForReport(allProcs, STORED_PROCEDURE_TYPE);
-    const trigs = this.aggregateProcsOrTriggersForReport(allTrigs, TRIGGER_TYPE);
+    const procs = this.summarizeItemsByComplexity(allProcs, STORED_PROCEDURE_TYPE);
+    const trigs = this.summarizeItemsByComplexity(allTrigs, TRIGGER_TYPE);
     return { procs, trigs };
   }
 
@@ -116,10 +116,11 @@ export class DatabaseReportDataProvider {
   }
 
   /**
-   * Aggregate database objects (procedures or triggers) for report generation
-   * Combines aggregation and mapping in a single pass for better performance
+   * Summarize items by their complexity level.
+   * Groups items and counts them based on their complexity property.
+   * Combines aggregation and mapping in a single pass for better performance.
    */
-  private aggregateProcsOrTriggersForReport(
+  private summarizeItemsByComplexity(
     items: ProcOrTrigItem[],
     type: typeof STORED_PROCEDURE_TYPE | typeof TRIGGER_TYPE,
   ): ProcsAndTriggers["procs"] {

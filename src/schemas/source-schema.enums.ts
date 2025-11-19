@@ -1,4 +1,5 @@
-// Shared constant value enumerations for sources.schema.
+// Shared constant value enumerations for source schema validation.
+// These are controlled vocabularies used as enumerated types in sources.schema.ts.
 
 /** Central list of valid DB integration mechanism values (kept uppercase for normalization logic) */
 export const DATABASE_MECHANISM_VALUES = [

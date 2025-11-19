@@ -27,7 +27,7 @@ import {
   fixMissingArrayObjectBraces,
   fixBinaryCorruptionPatterns,
   removeTruncationMarkers,
-  fixAdvancedJsonErrors,
+  fixHeuristicJsonErrors,
   fixMalformedJsonPatterns,
   hasSignificantSanitizationSteps,
   type Sanitizer,
@@ -74,7 +74,7 @@ export class JsonProcessor {
    *   - fixMismatchedDelimiters: Correct bracket/brace mismatches
    *   - completeTruncatedStructures: Close unclosed brackets/braces from truncated responses
    *   - fixJsonStructure: Post-processing fixes for various structural issues
-   *   - fixAdvancedJsonErrors: Fixes advanced errors like duplicate entries, truncated properties, stray text
+   *   - fixHeuristicJsonErrors: Fixes assorted malformed patterns like duplicate entries, truncated properties, stray text
    *
    * Phase 3: Property & Structure Fixes
    *   Fixes property names and array object structures
@@ -104,7 +104,7 @@ export class JsonProcessor {
       fixMismatchedDelimiters,
       completeTruncatedStructures,
       fixJsonStructure,
-      fixAdvancedJsonErrors,
+      fixHeuristicJsonErrors,
       fixMalformedJsonPatterns,
     ],
     // Phase 3: Property & Structure Fixes

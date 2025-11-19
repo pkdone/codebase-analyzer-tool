@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { sourceSummarySchema, scheduledJobSchema } from "../../src/schemas/sources.schema";
-import { SOURCE_ENTITY_KIND_VALUES } from "../../src/schemas/sources.values";
+import { SOURCE_ENTITY_KIND_VALUES } from "../../src/schemas/source-schema.enums";
 
 /**
  * Tests for source schema field names - NEW field names (after refactoring)

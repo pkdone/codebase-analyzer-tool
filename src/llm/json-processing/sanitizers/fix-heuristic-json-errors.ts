@@ -1,9 +1,9 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 
 /**
- * Advanced sanitizer that fixes complex JSON errors from LLM responses.
+ * Heuristic sanitizer that fixes assorted malformed JSON patterns from LLM responses.
  *
- * This sanitizer handles:
+ * This sanitizer handles various unrelated, highly specific regex-based fixes:
  * 1. Duplicate/corrupted array entries (e.g., "extra.persistence.Version" after "jakarta.persistence.Version")
  * 2. Truncated property names (e.g., 'se":' -> '"name":')
  * 3. Text appearing outside string values (e.g., text after closing quote that should be inside)
@@ -11,9 +11,9 @@ import { Sanitizer, SanitizerResult } from "./sanitizers-types";
  * 5. Missing quotes after colons (e.g., '"name":isInterestTransfer":' -> '"name": "isInterestTransfer"')
  *
  * @param input - The raw string content to sanitize
- * @returns Sanitizer result with advanced fixes applied
+ * @returns Sanitizer result with heuristic fixes applied
  */
-export const fixAdvancedJsonErrors: Sanitizer = (input: string): SanitizerResult => {
+export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResult => {
   try {
     if (!input) {
       return { content: input, changed: false };
@@ -516,11 +516,11 @@ export const fixAdvancedJsonErrors: Sanitizer = (input: string): SanitizerResult
     return {
       content: sanitized,
       changed: true,
-      description: "Fixed advanced JSON errors",
+      description: "Fixed heuristic JSON errors",
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    console.warn(`fixAdvancedJsonErrors sanitizer failed: ${String(error)}`);
+    console.warn(`fixHeuristicJsonErrors sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,
