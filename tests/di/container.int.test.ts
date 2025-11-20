@@ -69,11 +69,8 @@ describe("DI Container Integration Tests", () => {
         return;
       }
 
-      // Arrange
-      const config = { requiresMongoDB: true, requiresLLM: false };
-
       // Act
-      await bootstrapContainer(config);
+      await bootstrapContainer();
 
       // Assert: Should be able to resolve MongoDB-dependent task
       let resolvedTask: MongoConnectionTestTask | undefined;
@@ -94,11 +91,8 @@ describe("DI Container Integration Tests", () => {
         return;
       }
 
-      // Arrange
-      const config = { requiresMongoDB: true, requiresLLM: false };
-
       // Act
-      await bootstrapContainer(config);
+      await bootstrapContainer();
 
       // Assert: Should be able to resolve reporting task
       let resolvedTask: ReportGenerationTask | undefined;
@@ -123,10 +117,8 @@ describe("DI Container Integration Tests", () => {
       }
 
       // Arrange
-      const config = { requiresMongoDB: true, requiresLLM: false };
-
       // Act: Bootstrap container
-      await bootstrapContainer(config);
+      await bootstrapContainer();
 
       // Assert: Verify that all MongoDB-related dependencies can be resolved
       expect(() => {
@@ -196,8 +188,7 @@ describe("DI Container Integration Tests", () => {
       ensureEnvLoaded();
       process.env.CODEBASE_DIR_PATH ??= "/test/path";
 
-      const config = { requiresMongoDB: true, requiresLLM: false };
-      await bootstrapContainer(config);
+      await bootstrapContainer();
 
       try {
         // Assert: Multiple resolutions should return the same instance
@@ -232,13 +223,10 @@ describe("DI Container Integration Tests", () => {
         return;
       }
 
-      // Arrange
-      const config = { requiresMongoDB: true, requiresLLM: false };
-
       // Act: Multiple bootstrap calls
-      await bootstrapContainer(config);
-      await bootstrapContainer(config);
-      await bootstrapContainer(config);
+      await bootstrapContainer();
+      await bootstrapContainer();
+      await bootstrapContainer();
 
       // Assert: Should still work correctly
       expect(() => {
@@ -254,17 +242,15 @@ describe("DI Container Integration Tests", () => {
         return;
       }
 
-      // Arrange & Act: First bootstrap without MongoDB
-      let config = { requiresMongoDB: false, requiresLLM: false };
-      await bootstrapContainer(config);
+      // Arrange & Act: Bootstrap container
+      await bootstrapContainer();
 
       // Assert: With simplified bootstrap, all dependencies are always registered (lazy-loaded)
       // They're only instantiated when actually resolved
       expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
 
-      // Act: Bootstrap again with MongoDB
-      config = { requiresMongoDB: true, requiresLLM: false };
-      await bootstrapContainer(config);
+      // Act: Bootstrap again
+      await bootstrapContainer();
 
       // Assert: MongoDB dependencies should now be registered and resolvable
       expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
@@ -283,8 +269,7 @@ describe("DI Container Integration Tests", () => {
       }
 
       // Arrange
-      const config = { requiresMongoDB: true, requiresLLM: false };
-      await bootstrapContainer(config);
+      await bootstrapContainer();
 
       // Verify factory is registered
       expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
@@ -299,7 +284,7 @@ describe("DI Container Integration Tests", () => {
       expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
 
       // Re-bootstrap should work fine
-      await expect(bootstrapContainer(config)).resolves.not.toThrow();
+      await expect(bootstrapContainer()).resolves.not.toThrow();
 
       // Final cleanup
       const newFactory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
@@ -320,8 +305,7 @@ describe("DI Container Integration Tests", () => {
       }
 
       // Arrange
-      const config = { requiresMongoDB: true, requiresLLM: false };
-      await bootstrapContainer(config);
+      await bootstrapContainer();
 
       // Act: Resolve repositories and verify they have working methods
       const sourcesRepo = container.resolve<any>(repositoryTokens.SourcesRepository);

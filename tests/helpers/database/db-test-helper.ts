@@ -23,7 +23,7 @@ async function getVectorDimensions(): Promise<number> {
   }
 
   try {
-    const manifest = await LLMProviderManager.loadManifestForModelFamily(modelFamily);
+    const manifest = LLMProviderManager.loadManifestForModelFamily(modelFamily);
     const dimensions =
       manifest.models.embeddings.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     console.log(`Using ${dimensions} vector dimensions for model family: ${modelFamily}`);
@@ -81,7 +81,7 @@ export async function setupTestDatabase(): Promise<MongoClient> {
   process.env.CODEBASE_DIR_PATH ??= "/test/project";
 
   // Register other application dependencies needed for the initializer
-  registerAppDependencies({ requiresMongoDB: true, requiresLLM: false });
+  registerAppDependencies();
 
   // Initialize the schema in the new test database
   const databaseInitializer = container.resolve<

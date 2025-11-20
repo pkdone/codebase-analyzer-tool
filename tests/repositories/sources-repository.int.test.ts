@@ -14,7 +14,7 @@ async function getEmbeddingDimensions(): Promise<number> {
   }
 
   try {
-    const manifest = await LLMProviderManager.loadManifestForModelFamily(modelFamily);
+    const manifest = LLMProviderManager.loadManifestForModelFamily(modelFamily);
     return manifest.models.embeddings.dimensions ?? 1536; // Handle potential undefined
   } catch (error) {
     console.warn(

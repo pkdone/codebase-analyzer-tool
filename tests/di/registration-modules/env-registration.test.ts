@@ -124,9 +124,9 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
 
       expect(LLMProviderManager.loadManifestForModelFamily).toHaveBeenCalledWith("TestProvider");
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
@@ -148,7 +148,7 @@ describe("Environment Registration Module", () => {
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
       // Should not throw, but fall back to base registration
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       // LLM model family should not be registered when LLM env vars are missing
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(false);
@@ -160,7 +160,7 @@ describe("Environment Registration Module", () => {
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
       // Should not throw, but fall back to base registration
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       // LLM model family should not be registered when LLM env vars are missing
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(false);
@@ -172,10 +172,10 @@ describe("Environment Registration Module", () => {
       process.env.CODEBASE_DIR_PATH = "/test/project";
       // Missing TEST_API_KEY which is required by the mock manifest
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       // Should not throw, but fall back to base registration
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       // LLM model family should not be registered when required env vars are missing
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(false);
@@ -187,10 +187,10 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       // Should not throw, but fall back to base registration
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       // LLM model family should not be registered when LLM doesn't match
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(false);
@@ -202,10 +202,12 @@ describe("Environment Registration Module", () => {
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
       const serviceError = new Error("Failed to load manifest");
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockRejectedValue(serviceError);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockImplementation(() => {
+        throw serviceError;
+      });
 
       // Should not throw, but fall back to base registration
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       // LLM model family should not be registered when manifest loading fails
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(false);
@@ -217,10 +219,10 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "invalid-url"; // Invalid URL format
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       // Should not throw, but fall back to base registration
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       // LLM model family should not be registered when validation fails
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(false);
@@ -231,7 +233,7 @@ describe("Environment Registration Module", () => {
       const existingEnvVars = { ...mockBaseEnvVars, LLM: "TestProvider" };
       container.registerInstance(coreTokens.EnvVars, existingEnvVars);
 
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
 
       expect(LLMProviderManager.loadManifestForModelFamily).not.toHaveBeenCalled();
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
@@ -249,9 +251,9 @@ describe("Environment Registration Module", () => {
       // Pre-register LLM model family
       container.registerInstance(llmTokens.LLMModelFamily, "ExistingProvider");
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
 
       const llmModelFamily = container.resolve(llmTokens.LLMModelFamily);
       expect(llmModelFamily).toBe("ExistingProvider");
@@ -266,7 +268,7 @@ describe("Environment Registration Module", () => {
 
       container.registerInstance(coreTokens.EnvVars, envVarsWithoutLLM);
 
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
 
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(false);
     });
@@ -278,9 +280,9 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
 
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
 
@@ -297,9 +299,9 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
 
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
 
@@ -317,9 +319,9 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
 
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       expect(container.isRegistered(coreTokens.ProjectName)).toBe(true);
@@ -350,9 +352,9 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockResolvedValue(mockManifest);
+      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
-      await registerLlmEnvDependencies();
+      registerLlmEnvDependencies();
 
       // LLM model family should be registered when LLM env vars are available
       // Note: This test requires proper LLM env vars to be set up in the test

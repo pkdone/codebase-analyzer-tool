@@ -13,8 +13,6 @@ export const coreTokens = {
   LLMModelFamily: Symbol("LLMModelFamily"),
   EnvVars: Symbol("EnvVars"),
   ProjectName: Symbol("ProjectName"),
-  ShutdownService: Symbol("ShutdownService"),
-  Shutdownable: Symbol("IShutdownable"),
   FileTypeMappingsConfig: Symbol("FileTypeMappingsConfig"),
 } as const;
 

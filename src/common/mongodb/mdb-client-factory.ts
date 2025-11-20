@@ -2,7 +2,6 @@ import { MongoClient, MongoClientOptions } from "mongodb";
 import { injectable } from "tsyringe";
 import { logErrorMsgAndDetail, logWarningMsg } from "../utils/logging";
 import { redactUrl } from "../security/url-redactor";
-import { IShutdownable } from "../interfaces/shutdownable.interface";
 import { DatabaseConnectionError } from "./mdb-errors";
 
 /**
@@ -10,7 +9,7 @@ import { DatabaseConnectionError } from "./mdb-errors";
  * This replaces the singleton pattern with dependency injection.
  */
 @injectable()
-export class MongoDBClientFactory implements IShutdownable {
+export class MongoDBClientFactory {
   private readonly clients = new Map<string, MongoClient>();
 
   /**
@@ -87,7 +86,7 @@ export class MongoDBClientFactory implements IShutdownable {
   }
 
   /**
-   * Implements IShutdownable interface for graceful shutdown.
+   * Shutdown method for graceful shutdown.
    * Delegates to closeAll() to close all MongoDB connections.
    */
   async shutdown(): Promise<void> {

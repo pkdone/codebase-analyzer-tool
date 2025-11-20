@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import type { InsightsProcessorSelector } from "../components/insights/insights-processor-selector";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
-import { BaseLLMTask } from "./base-llm.task";
+import { Task } from "./task.types";
 import { llmTokens } from "../di/tokens";
 import { coreTokens } from "../di/tokens";
 import { insightsTokens } from "../di/tokens";
@@ -13,32 +13,28 @@ import { clearDirectory } from "../common/fs/directory-operations";
  * Task to generate insights.
  */
 @injectable()
-export class InsightsGenerationTask extends BaseLLMTask {
+export class InsightsGenerationTask implements Task {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
-    @inject(coreTokens.ProjectName) projectName: string,
+    @inject(llmTokens.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
+    @inject(coreTokens.ProjectName) private readonly projectName: string,
     @inject(insightsTokens.InsightsProcessorSelector)
     private readonly insightsProcessorSelector: InsightsProcessorSelector,
-  ) {
-    super(llmStatsReporter, projectName);
-  }
+  ) {}
 
   /**
-   * Get the task name for logging.
+   * Execute the task with standard LLM stats reporting wrapper.
    */
-  protected getActivityDescription(): string {
-    return "Generating insights";
-  }
-
-  /**
-   * Execute the core task logic.
-   */
-  protected async run(): Promise<void> {
+  async execute(): Promise<void> {
+    console.log(`Generating insights for project: ${this.projectName}`);
+    this.llmStatsReporter.displayLLMStatusSummary();
     await clearDirectory(outputConfig.OUTPUT_DIR);
     const selectedProcessor = await this.insightsProcessorSelector.selectInsightsProcessor();
     await selectedProcessor.generateAndStoreInsights();
+    console.log(`Finished generating insights for the project`);
+    console.log("Summary of LLM invocations outcomes:");
+    this.llmStatsReporter.displayLLMStatusDetails();
   }
 }

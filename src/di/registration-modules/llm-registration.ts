@@ -6,7 +6,6 @@ import { LLMStatsReporter } from "../../llm/core/tracking/llm-stats-reporter";
 import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
 import { JsonProcessor } from "../../llm/json-processing/core/json-processor";
 import { llmTokens } from "../tokens";
-import { coreTokens } from "../tokens";
 
 /**
  * Register LLM provider management services in the DI container.
@@ -26,10 +25,10 @@ export function registerLLMProviders(): void {
 }
 
 /**
- * Initializes and registers LLM components that require async initialization.
+ * Initializes and registers LLM components.
  * This function should be called during application bootstrap after registering dependencies.
  */
-export async function initializeAndRegisterLLMComponents(): Promise<void> {
+export function initializeAndRegisterLLMComponents(): void {
   if (container.isRegistered(llmTokens.LLMProviderManager)) {
     console.log("LLM components already registered - skipping initialization");
     return;
@@ -45,19 +44,13 @@ export async function initializeAndRegisterLLMComponents(): Promise<void> {
   const modelFamily = container.resolve<string>(llmTokens.LLMModelFamily);
   const jsonProcessor = container.resolve<JsonProcessor>(llmTokens.JsonProcessor);
   const manager = new LLMProviderManager(modelFamily, jsonProcessor);
-  await manager.initialize();
+  manager.initialize();
 
   // Register the initialized instance
   container.registerInstance(llmTokens.LLMProviderManager, manager);
-  console.log("LLMProviderManager registered with async initialization");
+  console.log("LLMProviderManager registered");
 
   // Register LLMRouter as a singleton (now that LLMProviderManager is ready)
   container.registerSingleton(llmTokens.LLMRouter, LLMRouter);
   console.log("LLMRouter registered as singleton");
-
-  // Register LLMRouter as a shutdownable component for automatic cleanup
-  container.register(coreTokens.Shutdownable, {
-    useFactory: (c) => c.resolve(llmTokens.LLMRouter),
-  });
-  console.log("LLMRouter registered as shutdownable component");
 }

@@ -1,7 +1,5 @@
 import "reflect-metadata";
 import { inject, injectable } from "tsyringe";
-import path from "path";
-import { llmProviderConfig } from "../llm.config";
 import {
   LLMProvider,
   LLMModelKeysSet as LLMModelsKeysSet,
@@ -11,10 +9,10 @@ import {
 import { EnvVars } from "../../env/env.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
-import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
-import { listDirectoryEntries } from "../../common/fs/directory-operations";
+import { logWarningMsg } from "../../common/utils/logging";
 import { JsonProcessor } from "../json-processing/core/json-processor";
 import { llmTokens } from "../../di/tokens";
+import { LLM_PROVIDER_REGISTRY } from "../providers";
 
 /**
  * Manager for discovering, loading, and instantiating LLM providers based on their manifests
@@ -40,113 +38,26 @@ export class LLMProviderManager {
   /**
    * Static method to load a manifest for a specific model family without creating a full manager
    */
-  static async loadManifestForModelFamily(modelFamily: string): Promise<LLMProviderManifest> {
-    const providersRootPath = path.join(__dirname, llmProviderConfig.PROVIDERS_FOLDER_PATH);
-    const manifest = await LLMProviderManager.findManifestRecursively(
-      providersRootPath,
-      modelFamily,
-    );
-    if (!manifest)
+  static loadManifestForModelFamily(modelFamily: string): LLMProviderManifest {
+    const manifest = LLM_PROVIDER_REGISTRY.get(modelFamily.toLowerCase());
+    if (!manifest) {
       throw new BadConfigurationLLMError(
-        `No provider manifest found for model family: ${modelFamily}`,
+        `No provider manifest found for model family: ${modelFamily}. Available families: ${Array.from(LLM_PROVIDER_REGISTRY.keys()).join(", ")}`,
       );
+    }
     return manifest;
   }
 
   /**
-   * Recursively search for a manifest matching the target model family
+   * Initialize the manager
    */
-  private static async findManifestRecursively(
-    searchPath: string,
-    targetModelFamily: string,
-  ): Promise<LLMProviderManifest | undefined> {
-    try {
-      const entries = await listDirectoryEntries(searchPath);
-
-      // First, check if current directory has a manifest file
-      const manifestFile = entries
-        .filter((file) => file.isFile())
-        .find((file) => file.name.endsWith(llmProviderConfig.MANIFEST_FILE_SUFFIX));
-
-      if (manifestFile) {
-        const manifestPath = path.join(searchPath, manifestFile.name);
-        const manifest = await LLMProviderManager.loadAndValidateManifest(
-          manifestPath,
-          targetModelFamily,
-        );
-        if (manifest) return manifest;
-      }
-
-      // Then, recursively search subdirectories
-      for (const entry of entries) {
-        if (entry.isDirectory()) {
-          const subPath = path.join(searchPath, entry.name);
-          const manifest = await LLMProviderManager.findManifestRecursively(
-            subPath,
-            targetModelFamily,
-          );
-          if (manifest) return manifest;
-        }
-      }
-    } catch (error: unknown) {
-      logErrorMsgAndDetail(`Failed to search directory ${searchPath}`, error);
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Load and validate a manifest file, returning it only if it matches the target model family
-   */
-  private static async loadAndValidateManifest(
-    manifestPath: string,
-    targetModelFamily: string,
-  ): Promise<LLMProviderManifest | undefined> {
-    try {
-      const module: unknown = await import(manifestPath);
-      if (!module || typeof module !== "object") return undefined;
-      const manifestKey = Object.keys(module).find((key) =>
-        key.endsWith(llmProviderConfig.PROVIDER_MANIFEST_EXPORT_SUFFIX),
-      );
-      if (!manifestKey || !(manifestKey in module)) return undefined;
-      const manifestValue = (module as Record<string, unknown>)[manifestKey];
-
-      if (
-        LLMProviderManager.isValidManifest(manifestValue) &&
-        manifestValue.modelFamily.toLowerCase() === targetModelFamily.toLowerCase()
-      ) {
-        return manifestValue;
-      }
-    } catch (error: unknown) {
-      logErrorMsgAndDetail(`Failed to load manifest from ${manifestPath}`, error);
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Type guard to validate if a value is a valid LLMProviderManifest
-   */
-  private static isValidManifest(value: unknown): value is LLMProviderManifest {
-    return (
-      value !== null &&
-      typeof value === "object" &&
-      "modelFamily" in value &&
-      "implementation" in value &&
-      typeof (value as Record<string, unknown>).implementation === "function"
-    );
-  }
-
-  /**
-   * Initialize the manager (async initialization)
-   */
-  async initialize(): Promise<void> {
+  initialize(): void {
     if (this.isInitialized) {
       logWarningMsg("LLMProviderManager is already initialized.");
       return;
     }
 
-    this.manifest = await LLMProviderManager.loadManifestForModelFamily(this.modelFamily);
+    this.manifest = LLMProviderManager.loadManifestForModelFamily(this.modelFamily);
     console.log(
       `LLMProviderManager: Loaded provider for model family '${this.modelFamily}': ${this.manifest.providerName}`,
     );

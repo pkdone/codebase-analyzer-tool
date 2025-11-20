@@ -23,10 +23,10 @@ export function registerBaseEnvDependencies(): void {
   registerProjectName();
 }
 
-export async function registerLlmEnvDependencies(): Promise<void> {
+export function registerLlmEnvDependencies(): void {
   if (!container.isRegistered(coreTokens.EnvVars)) {
     try {
-      const envVars = await loadEnvIncludingLLMVars();
+      const envVars = loadEnvIncludingLLMVars();
       container.registerInstance(coreTokens.EnvVars, envVars);
       console.log("LLM environment variables loaded and registered.");
       registerLlmModelFamily();
@@ -61,7 +61,7 @@ function registerLlmModelFamily(): void {
 /**
  * Load environment variables including LLM-specific ones.
  */
-async function loadEnvIncludingLLMVars(): Promise<EnvVars> {
+function loadEnvIncludingLLMVars(): EnvVars {
   try {
     dotenv.config();
     const LlmSelectorSchema = z.object({ LLM: z.string().optional() });
@@ -71,7 +71,7 @@ async function loadEnvIncludingLLMVars(): Promise<EnvVars> {
       throw new Error("LLM environment variable is not set or is empty in your .env file.");
     }
     const selectedLlmModelFamily = selectedLlmContainer.data.LLM;
-    const manifest = await LLMProviderManager.loadManifestForModelFamily(selectedLlmModelFamily);
+    const manifest = LLMProviderManager.loadManifestForModelFamily(selectedLlmModelFamily);
     const finalSchema = baseEnvVarsSchema.merge(manifest.envSchema).passthrough();
     const parsedEnv = finalSchema.parse(rawEnv);
 

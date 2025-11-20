@@ -20,7 +20,6 @@ import {
   getOverriddenCompletionCandidates,
   buildCompletionCandidates,
 } from "../utils/completions-models-retriever";
-import { IShutdownable } from "../../common/interfaces/shutdownable.interface";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -30,7 +29,7 @@ import { IShutdownable } from "../../common/interfaces/shutdownable.interface";
  * See the `README` for the LLM non-functional behaviours abstraction / protection applied.
  */
 @injectable()
-export default class LLMRouter implements IShutdownable {
+export default class LLMRouter {
   // Private fields
   private readonly llm: LLMProvider;
   private readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
@@ -80,7 +79,7 @@ export default class LLMRouter implements IShutdownable {
   }
 
   /**
-   * Implements IShutdownable interface for graceful shutdown.
+   * Shutdown method for graceful shutdown.
    * Closes the LLM provider and handles forced shutdown if needed.
    */
   async shutdown(): Promise<void> {

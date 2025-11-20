@@ -3,7 +3,6 @@ import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import { BadConfigurationLLMError } from "../../../src/llm/types/llm-errors.types";
-import * as directoryOperations from "../../../src/common/fs/directory-operations";
 import { createMockJsonProcessor } from "../../helpers/llm/json-processor-mock";
 
 // Mock dependencies
@@ -13,20 +12,12 @@ jest.mock("../../../src/llm/llm.config", () => ({
     LLM_ROLE_ASSISTANT: "assistant",
     LLM_ROLE_SYSTEM: "system",
   },
-  llmProviderConfig: {
-    PROVIDERS_FOLDER_PATH: "../providers",
-    MANIFEST_FILE_SUFFIX: ".manifest.ts",
-    PROVIDER_MANIFEST_EXPORT_SUFFIX: "Manifest",
-  },
 }));
 
-jest.mock("../../../src/common/fs/directory-operations");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
   logWarningMsg: jest.fn(),
 }));
-
-const mockDirectoryOperations = directoryOperations as jest.Mocked<typeof directoryOperations>;
 
 // Create a more comprehensive test that focuses on what we can actually test
 describe("LLMProviderManager", () => {
@@ -73,98 +64,41 @@ describe("LLMProviderManager", () => {
     mockConsoleLog.mockRestore();
   });
 
-  describe("filesystem operations", () => {
-    it("should handle filesystem errors gracefully", async () => {
-      const { logErrorMsgAndDetail: mockLogError } = jest.requireMock(
-        "../../../src/common/utils/logging",
-      );
-
-      mockDirectoryOperations.listDirectoryEntries.mockRejectedValue(
-        new Error("Permission denied"),
-      );
-
-      await expect(LLMProviderManager.loadManifestForModelFamily("testFamily")).rejects.toThrow(
+  describe("static registry operations", () => {
+    it("should throw error for unknown model family", () => {
+      expect(() => LLMProviderManager.loadManifestForModelFamily("unknownFamily")).toThrow(
         BadConfigurationLLMError,
       );
-
-      expect(mockLogError).toHaveBeenCalled();
-    });
-
-    it("should return undefined for empty directories", async () => {
-      mockDirectoryOperations.listDirectoryEntries.mockResolvedValue([]);
-
-      await expect(LLMProviderManager.loadManifestForModelFamily("testFamily")).rejects.toThrow(
-        "No provider manifest found for model family: testFamily",
+      expect(() => LLMProviderManager.loadManifestForModelFamily("unknownFamily")).toThrow(
+        /No provider manifest found for model family: unknownFamily/,
       );
     });
 
-    it("should handle directory traversal correctly", async () => {
-      // Test the directory traversal logic by simulating multiple directory levels
-      mockDirectoryOperations.listDirectoryEntries
-        .mockResolvedValueOnce([
-          {
-            name: "level1",
-            isFile: () => false,
-            isDirectory: () => true,
-            isBlockDevice: () => false,
-            isCharacterDevice: () => false,
-            isSymbolicLink: () => false,
-            isFIFO: () => false,
-            isSocket: () => false,
-          } as any,
-        ])
-        .mockResolvedValueOnce([
-          {
-            name: "level2",
-            isFile: () => false,
-            isDirectory: () => true,
-            isBlockDevice: () => false,
-            isCharacterDevice: () => false,
-            isSymbolicLink: () => false,
-            isFIFO: () => false,
-            isSocket: () => false,
-          } as any,
-        ])
-        .mockResolvedValueOnce([]); // Empty final directory
+    it("should load manifest for valid model family (case-insensitive)", () => {
+      // Test with a known provider from the registry
+      const manifest = LLMProviderManager.loadManifestForModelFamily("openai");
+      expect(manifest).toBeDefined();
+      expect(manifest.modelFamily.toLowerCase()).toBe("openai");
 
-      await expect(LLMProviderManager.loadManifestForModelFamily("testFamily")).rejects.toThrow(
-        BadConfigurationLLMError,
-      );
+      // Test case-insensitive matching
+      const manifestUpper = LLMProviderManager.loadManifestForModelFamily("OPENAI");
+      expect(manifestUpper).toBe(manifest);
 
-      expect(mockDirectoryOperations.listDirectoryEntries).toHaveBeenCalledTimes(3);
+      const manifestMixed = LLMProviderManager.loadManifestForModelFamily("OpenAI");
+      expect(manifestMixed).toBe(manifest);
     });
 
-    it("should find files in directories", async () => {
-      mockDirectoryOperations.listDirectoryEntries.mockResolvedValue([
-        {
-          name: "non-manifest.ts",
-          isFile: () => true,
-          isDirectory: () => false,
-          isBlockDevice: () => false,
-          isCharacterDevice: () => false,
-          isSymbolicLink: () => false,
-          isFIFO: () => false,
-          isSocket: () => false,
-        } as any,
-        {
-          name: "test.manifest.ts",
-          isFile: () => true,
-          isDirectory: () => false,
-          isBlockDevice: () => false,
-          isCharacterDevice: () => false,
-          isSymbolicLink: () => false,
-          isFIFO: () => false,
-          isSocket: () => false,
-        } as any,
-      ]);
-
-      // This will still fail because the dynamic import isn't mocked properly,
-      // but it tests the file discovery logic
-      await expect(LLMProviderManager.loadManifestForModelFamily("testFamily")).rejects.toThrow(
-        BadConfigurationLLMError,
-      );
-
-      expect(mockDirectoryOperations.listDirectoryEntries).toHaveBeenCalled();
+    it("should include available families in error message", () => {
+      try {
+        LLMProviderManager.loadManifestForModelFamily("unknownFamily");
+        fail("Should have thrown an error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadConfigurationLLMError);
+        const errorMessage = (error as Error).message;
+        expect(errorMessage).toContain("Available families:");
+        // Should list some known providers
+        expect(errorMessage).toMatch(/openai|azureopenai|vertexaigemini/i);
+      }
     });
   });
 

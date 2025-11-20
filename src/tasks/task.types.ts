@@ -7,13 +7,3 @@ export interface Task {
    */
   execute(): Promise<void>;
 }
-
-/**
- * Configuration for the task runner.
- */
-export interface TaskRunnerConfig {
-  /** Whether this task requires MongoDB client */
-  requiresMongoDB: boolean;
-  /** Whether this task requires LLM router */
-  requiresLLM: boolean;
-}

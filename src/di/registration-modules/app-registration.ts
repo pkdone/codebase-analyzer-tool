@@ -37,16 +37,12 @@ import { McpServerTask } from "../../tasks/mcp-server.task";
 import { ReportGenerationTask } from "../../tasks/report-generation.task";
 
 // Configuration import
-import { TaskRunnerConfig } from "../../tasks/task.types";
 import { databaseConfig } from "../../config/database.config";
 
 // LLM strategy and pipeline imports
 import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
 import { FallbackStrategy } from "../../llm/core/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
-
-// Lifecycle imports
-import { ShutdownService } from "../../lifecycle/shutdown-service";
 
 // Database component imports
 import { DatabaseInitializer } from "../../tasks/database-initializer";
@@ -55,9 +51,9 @@ import { DatabaseInitializer } from "../../tasks/database-initializer";
  * Register all application-level dependencies (repositories, components, and tasks).
  * This orchestrator function delegates to domain-specific registration modules.
  */
-export function registerAppDependencies(config: TaskRunnerConfig): void {
+export function registerAppDependencies(): void {
   registerRepositories();
-  registerComponents(config);
+  registerComponents();
   registerTasks();
 }
 
@@ -88,15 +84,11 @@ function registerRepositories(): void {
  * Always registers all components since tsyringe uses lazy-loading - components
  * are only instantiated when actually resolved.
  */
-function registerComponents(_config: TaskRunnerConfig): void {
+function registerComponents(): void {
   // Register LLM strategies and pipeline components (always register since they may be needed)
   container.registerSingleton(llmTokens.RetryStrategy, RetryStrategy);
   container.registerSingleton(llmTokens.FallbackStrategy, FallbackStrategy);
   container.registerSingleton(llmTokens.LLMExecutionPipeline, LLMExecutionPipeline);
-
-  // Register lifecycle services
-  // ShutdownService uses multi-injection to automatically collect all Shutdownable components
-  container.registerSingleton(coreTokens.ShutdownService, ShutdownService);
 
   // Register database components
   container.registerSingleton(taskTokens.DatabaseInitializer, DatabaseInitializer);

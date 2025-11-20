@@ -4,7 +4,7 @@ import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
 import { PromptFileInsightsGenerator } from "../components/insights/prompt-file-insights-generator";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
-import { BaseLLMTask } from "./base-llm.task";
+import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";
 import { llmTokens } from "../di/tokens";
 import { insightsTokens } from "../di/tokens";
@@ -14,31 +14,24 @@ import { coreTokens } from "../di/tokens";
  * Task to generate inline insights.
  */
 @injectable()
-export class DirectInsightsGenerationTask extends BaseLLMTask {
+export class DirectInsightsGenerationTask implements Task {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStatsReporter) llmStatsReporter: LLMStatsReporter,
+    @inject(llmTokens.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(insightsTokens.PromptFileInsightsGenerator)
     private readonly insightsFileGenerator: PromptFileInsightsGenerator,
-    @inject(coreTokens.ProjectName) projectName: string,
-  ) {
-    super(llmStatsReporter, projectName);
-  }
+    @inject(coreTokens.ProjectName) private readonly projectName: string,
+  ) {}
 
   /**
-   * Get the task name for logging.
+   * Execute the task with standard LLM stats reporting wrapper.
    */
-  protected getActivityDescription(): string {
-    return "Generating insights";
-  }
-
-  /**
-   * Execute the core task logic.
-   */
-  protected async run(): Promise<void> {
+  async execute(): Promise<void> {
+    console.log(`Generating insights for project: ${this.projectName}`);
+    this.llmStatsReporter.displayLLMStatusSummary();
     await clearDirectory(outputConfig.OUTPUT_DIR);
     const prompts = await this.insightsFileGenerator.loadPrompts();
     await this.insightsFileGenerator.generateInsightsToFiles(
@@ -46,6 +39,9 @@ export class DirectInsightsGenerationTask extends BaseLLMTask {
       this.env.LLM,
       prompts,
     );
+    console.log(`Finished generating insights for the project`);
+    console.log("Summary of LLM invocations outcomes:");
+    this.llmStatsReporter.displayLLMStatusDetails();
     console.log(`View generated results in the 'file://${outputConfig.OUTPUT_DIR}' folder`);
   }
 }
