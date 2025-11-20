@@ -15,7 +15,7 @@ import {
 } from "../types/llm.types";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
 import { formatError, formatErrorMessageAndDetail } from "../../common/utils/error-formatters";
-import { logWarningMsg, logErrorMsgAndDetail } from "../../common/utils/logging";
+import { logSingleLineWarning, logErrorMsgAndDetail } from "../../common/utils/logging";
 import { JsonProcessor } from "../json-processing/core/json-processor";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
@@ -364,7 +364,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       await writeFile(filepath, logContent);
 
       if (!this.hasLoggedJsonError) {
-        logWarningMsg(
+        logSingleLineWarning(
           `First of potentially numerous errors detected trying to convert an LLM response to JSON - details written to: ${filepath}`,
         );
         this.hasLoggedJsonError = true;

@@ -4,7 +4,7 @@ import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
-import { logWarningMsg } from "../../../common/utils/logging";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 import { Prompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../di/tokens";
 import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
@@ -69,7 +69,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       ).filter((result): result is PartialAppSummaryRecord => result !== null);
 
       if (partialResults.length === 0) {
-        logWarningMsg(
+        logSingleLineWarning(
           `No partial insights were generated for ${categoryLabel}. Skipping final consolidation.`,
         );
         return null;
@@ -83,13 +83,13 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       const finalSummaryData = await this.reducePartialInsights(category, partialResults);
 
       if (!finalSummaryData) {
-        logWarningMsg(`Failed to generate final consolidated summary for ${categoryLabel}.`);
+        logSingleLineWarning(`Failed to generate final consolidated summary for ${categoryLabel}.`);
         return null;
       }
 
       return finalSummaryData;
     } catch (error: unknown) {
-      logWarningMsg(
+      logSingleLineWarning(
         `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,
       );
       return null;
@@ -113,7 +113,9 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
 
       // Handle summaries that are individually too large
       if (summaryTokenCount > tokenLimitPerChunk) {
-        logWarningMsg(`A file summary is too large and will be truncated to fit token limit.`);
+        logSingleLineWarning(
+          `A file summary is too large and will be truncated to fit token limit.`,
+        );
         const truncatedLength = Math.floor(
           tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN,
         );
@@ -207,7 +209,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
         },
       );
     } catch (error: unknown) {
-      logWarningMsg(
+      logSingleLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       return null;

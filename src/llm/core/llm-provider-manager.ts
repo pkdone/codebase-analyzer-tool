@@ -9,7 +9,7 @@ import {
 import { EnvVars } from "../../env/env.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
-import { logWarningMsg } from "../../common/utils/logging";
+import { logSingleLineWarning } from "../../common/utils/logging";
 import { JsonProcessor } from "../json-processing/core/json-processor";
 import { llmTokens } from "../../di/tokens";
 import { LLM_PROVIDER_REGISTRY } from "../providers";
@@ -53,7 +53,7 @@ export class LLMProviderManager {
    */
   initialize(): void {
     if (this.isInitialized) {
-      logWarningMsg("LLMProviderManager is already initialized.");
+      logSingleLineWarning("LLMProviderManager is already initialized.");
       return;
     }
 

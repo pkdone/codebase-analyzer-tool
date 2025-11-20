@@ -1,10 +1,10 @@
 import { JsonProcessingLogger } from "../../../src/llm/json-processing/core/json-processing-logger";
 import { SANITIZATION_STEP } from "../../../src/llm/json-processing/sanitizers";
-import { logWarningMsg, logErrorMsg } from "../../../src/common/utils/logging";
+import { logSingleLineWarning, logErrorMsg } from "../../../src/common/utils/logging";
 
 // Mock the logging utilities
 jest.mock("../../../src/common/utils/logging", () => ({
-  logWarningMsg: jest.fn(),
+  logSingleLineWarning: jest.fn(),
   logErrorMsg: jest.fn(),
 }));
 
@@ -28,8 +28,8 @@ describe("JsonProcessingLogger", () => {
       const step = SANITIZATION_STEP.REMOVED_CODE_FENCES;
       logger.logSanitizationStep(step);
 
-      expect(logWarningMsg).toHaveBeenCalledTimes(1);
-      expect(logWarningMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledTimes(1);
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] JSON sanitization step: ${step}`,
       );
     });
@@ -37,14 +37,16 @@ describe("JsonProcessingLogger", () => {
     it("should handle empty step description", () => {
       logger.logSanitizationStep("");
 
-      expect(logWarningMsg).toHaveBeenCalledWith(`[${resourceName}] JSON sanitization step: `);
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
+        `[${resourceName}] JSON sanitization step: `,
+      );
     });
 
     it("should handle complex step descriptions", () => {
       const step = "Fixed 5 concatenation chains with nested identifiers";
       logger.logSanitizationStep(step);
 
-      expect(logWarningMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] JSON sanitization step: ${step}`,
       );
     });
@@ -59,8 +61,8 @@ describe("JsonProcessingLogger", () => {
       ];
       logger.logSanitizationSummary(steps);
 
-      expect(logWarningMsg).toHaveBeenCalledTimes(1);
-      expect(logWarningMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledTimes(1);
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Applied 3 sanitization step(s): ${steps.join(" -> ")}`,
       );
     });
@@ -69,7 +71,7 @@ describe("JsonProcessingLogger", () => {
       const steps = [SANITIZATION_STEP.REMOVED_CODE_FENCES];
       logger.logSanitizationSummary(steps);
 
-      expect(logWarningMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Applied 1 sanitization step(s): Removed code fences`,
       );
     });
@@ -77,14 +79,14 @@ describe("JsonProcessingLogger", () => {
     it("should not log anything for empty steps array", () => {
       logger.logSanitizationSummary([]);
 
-      expect(logWarningMsg).not.toHaveBeenCalled();
+      expect(logSingleLineWarning).not.toHaveBeenCalled();
     });
 
     it("should handle readonly array of steps", () => {
       const steps: readonly string[] = ["Step 1", "Step 2"] as const;
       logger.logSanitizationSummary(steps);
 
-      expect(logWarningMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Applied 2 sanitization step(s): Step 1 -> Step 2`,
       );
     });
@@ -93,7 +95,7 @@ describe("JsonProcessingLogger", () => {
       const steps = ["A", "B", "C", "D"];
       logger.logSanitizationSummary(steps);
 
-      expect(logWarningMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Applied 4 sanitization step(s): A -> B -> C -> D`,
       );
     });
@@ -171,12 +173,12 @@ describe("JsonProcessingLogger", () => {
       logger1.logSanitizationStep("Step A");
       logger2.logSanitizationStep("Step B");
 
-      expect(logWarningMsg).toHaveBeenCalledTimes(2);
-      expect(logWarningMsg).toHaveBeenNthCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledTimes(2);
+      expect(logSingleLineWarning).toHaveBeenNthCalledWith(
         1,
         "[Resource1] JSON sanitization step: Step A",
       );
-      expect(logWarningMsg).toHaveBeenNthCalledWith(
+      expect(logSingleLineWarning).toHaveBeenNthCalledWith(
         2,
         "[Resource2] JSON sanitization step: Step B",
       );
@@ -186,7 +188,7 @@ describe("JsonProcessingLogger", () => {
       const specialLogger = new JsonProcessingLogger("User:Profile@123");
       specialLogger.logSanitizationSummary(["test"]);
 
-      expect(logWarningMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         "[User:Profile@123] Applied 1 sanitization step(s): test",
       );
     });

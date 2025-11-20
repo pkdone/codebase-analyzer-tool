@@ -4,11 +4,11 @@ import { JsonProcessingError } from "../../../src/llm/json-processing/types/json
 
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
-  logWarningMsg: jest.fn(),
+  logSingleLineWarning: jest.fn(),
   logErrorMsgAndDetail: jest.fn(),
 }));
 
-import { logWarningMsg } from "../../../src/common/utils/logging";
+import { logSingleLineWarning } from "../../../src/common/utils/logging";
 
 describe("JsonProcessor - Unified Pipeline", () => {
   let jsonProcessor: JsonProcessor;
@@ -29,7 +29,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         expect(result.data).toEqual({ clean: "json" });
         expect(result.steps).toEqual([]);
       }
-      expect(logWarningMsg).not.toHaveBeenCalled();
+      expect(logSingleLineWarning).not.toHaveBeenCalled();
     });
 
     it("should stop pipeline as soon as parsing succeeds", () => {
@@ -56,7 +56,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         expect(result.data).toEqual({ a: 1 });
         expect(result.steps.length).toBeGreaterThan(0);
         // Should have logged the sanitization steps
-        expect(logWarningMsg).toHaveBeenCalled();
+        expect(logSingleLineWarning).toHaveBeenCalled();
       }
     });
 
@@ -262,8 +262,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = 'Some text before {"test": true} some text after';
       jsonProcessor.parseAndValidate(malformed, "logged-resource", completionOptions);
 
-      expect(logWarningMsg).toHaveBeenCalled();
-      const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
+      expect(logSingleLineWarning).toHaveBeenCalled();
+      const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
       expect(calls.some((c: string) => c.includes("logged-resource"))).toBe(true);
       expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
     });
@@ -273,22 +273,22 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = '```json\n{"test": true}\n```';
       processorWithoutLogging.parseAndValidate(malformed, "not-logged-resource", completionOptions);
 
-      expect(logWarningMsg).not.toHaveBeenCalled();
+      expect(logSingleLineWarning).not.toHaveBeenCalled();
     });
 
     it("should not log when no sanitization was needed", () => {
       const clean = '{"clean": "json"}';
       jsonProcessor.parseAndValidate(clean, "clean-resource", completionOptions);
 
-      expect(logWarningMsg).not.toHaveBeenCalled();
+      expect(logSingleLineWarning).not.toHaveBeenCalled();
     });
 
     it("should include all applied steps in log message", () => {
       const multiIssue = '```json\n{"a": 1,}\n```';
       jsonProcessor.parseAndValidate(multiIssue, "multi-resource", completionOptions);
 
-      expect(logWarningMsg).toHaveBeenCalled();
-      const calls = (logWarningMsg as jest.Mock).mock.calls.flat();
+      expect(logSingleLineWarning).toHaveBeenCalled();
+      const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
       const logMsg = calls.find((c: string) => c.includes("multi-resource"));
       expect(logMsg).toBeDefined();
       // Should contain arrow separators for multiple steps

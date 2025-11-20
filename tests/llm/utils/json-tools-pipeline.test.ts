@@ -5,12 +5,12 @@ import { JsonProcessor } from "../../../src/llm/json-processing/core/json-proces
 jest.mock("../../../src/common/utils/logging", () => {
   return {
     logErrorMsg: jest.fn(), // still mocked for unrelated error logging
-    logWarningMsg: jest.fn(),
+    logSingleLineWarning: jest.fn(),
     logErrorMsgAndDetail: jest.fn(),
   };
 });
 
-import { logWarningMsg } from "../../../src/common/utils/logging";
+import { logSingleLineWarning } from "../../../src/common/utils/logging";
 
 describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => {
   let jsonProcessor: JsonProcessor;
@@ -29,7 +29,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
       expect(result.data).toEqual({ a: 1, b: 2 });
     }
     // Should log nothing about sanitation steps (fast path returns before strategies list is created)
-    expect(logWarningMsg).not.toHaveBeenCalled();
+    expect(logSingleLineWarning).not.toHaveBeenCalled();
   });
 
   test("extraction path: JSON embedded in text triggers extraction step logging", () => {
@@ -40,7 +40,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
       expect(result.data).toEqual({ hello: "world" });
     }
     // Should log steps including 'Extracted'
-    const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
+    const calls = (logSingleLineWarning as jest.Mock).mock.calls.map((c) => c[0]);
     expect(calls.some((c) => c.includes("Extracted"))).toBe(true);
   });
 
@@ -52,7 +52,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     if (result.success) {
       expect(result.data).toEqual({ key: "value" });
     }
-    const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
+    const calls = (logSingleLineWarning as jest.Mock).mock.calls.map((c) => c[0]);
     // Should include sanitization steps in the log
     expect(calls.some((c) => c.includes("Applied"))).toBe(true);
   });
@@ -64,7 +64,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     if (result.success) {
       expect((result.data as any).path).toBe("");
     }
-    const calls = (logWarningMsg as jest.Mock).mock.calls.map((c) => c[0]);
+    const calls = (logSingleLineWarning as jest.Mock).mock.calls.map((c) => c[0]);
     expect(calls.some((c) => c.includes("pre-concat"))).toBe(true);
   });
 });

@@ -20,7 +20,7 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
 } from "../../../types/llm.types";
-import { logWarningMsg, logErrorMsgAndDetail } from "../../../../common/utils/logging";
+import { logSingleLineWarning, logErrorMsgAndDetail } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
 import AbstractLLM from "../../abstract-llm";
 import {
@@ -271,7 +271,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
         if (isVertexAICompatibleSchema(sanitizedSchema)) {
           generationConfig.responseSchema = sanitizedSchema;
         } else {
-          logWarningMsg(
+          logSingleLineWarning(
             "Generated JSON schema is not compatible with VertexAI SDK's Schema type. " +
               "Proceeding without schema enforcement to avoid runtime errors.",
           );

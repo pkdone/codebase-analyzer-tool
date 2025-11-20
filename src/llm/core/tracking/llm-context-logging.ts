@@ -1,5 +1,5 @@
 import { LLMContext } from "../../types/llm.types";
-import { logThrownError } from "../../../common/utils/logging";
+import { logThrownError, logSingleLineWarning } from "../../../common/utils/logging";
 
 /**
  * Log info/error text to the console or a redirected-to file
@@ -14,22 +14,12 @@ export function log(text: string): void {
  */
 export function logErrorWithContext(error: unknown, context: LLMContext): void {
   logThrownError(error);
-  logContext(context);
+  logSingleLineWarning("Error context", context);
 }
 
 /**
  * Log the message and the associated context keys and values.
  */
 export function logWithContext(msg: string, context: LLMContext): void {
-  log(msg);
-  logContext(context);
-}
-
-/**
- * Log the context keys and values.
- */
-function logContext(context: LLMContext): void {
-  for (const [key, value] of Object.entries(context)) {
-    log(`  * ${key}: ${value}`);
-  }
+  logSingleLineWarning(msg, context);
 }

@@ -1,4 +1,8 @@
-import { logThrownError, logErrorMsg, logWarningMsg } from "../../../src/common/utils/logging";
+import {
+  logThrownError,
+  logErrorMsg,
+  logSingleLineWarning,
+} from "../../../src/common/utils/logging";
 
 describe("logging", () => {
   let consoleErrorSpy: jest.SpyInstance;
@@ -57,12 +61,38 @@ describe("logging", () => {
     });
   });
 
-  describe("logWarningMsg", () => {
+  describe("logSingleLineWarning", () => {
     it("should log a warning message", () => {
-      logWarningMsg("Warning message");
+      logSingleLineWarning("Warning message");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       expect(consoleWarnSpy).toHaveBeenCalledWith("Warning message");
+    });
+
+    it("should replace newlines with spaces in message", () => {
+      logSingleLineWarning("Warning\nmessage\nwith\nnewlines");
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      expect(consoleWarnSpy).toHaveBeenCalledWith("Warning message with newlines");
+    });
+
+    it("should include context when provided", () => {
+      logSingleLineWarning("Warning message", { key: "value", nested: { data: "test" } });
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("Warning message");
+      expect(callArg).toContain("Context:");
+      expect(callArg).toContain('"key":"value"');
+    });
+
+    it("should replace newlines in context JSON", () => {
+      logSingleLineWarning("Warning", { multiline: "text\nwith\nnewlines" });
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).not.toContain("\n");
+      expect(callArg).toContain("text with newlines");
     });
   });
 });

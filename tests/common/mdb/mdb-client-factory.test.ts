@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { MongoClient, MongoClientOptions } from "mongodb";
 import { DatabaseConnectionError } from "../../../src/common/mongodb/mdb-errors";
 import { MongoDBClientFactory } from "../../../src/common/mongodb/mdb-client-factory";
-import { logErrorMsgAndDetail, logWarningMsg } from "../../../src/common/utils/logging";
+import { logErrorMsgAndDetail, logSingleLineWarning } from "../../../src/common/utils/logging";
 import { redactUrl } from "../../../src/common/security/url-redactor";
 
 // Mock dependencies
@@ -14,7 +14,9 @@ const MockedMongoClient = MongoClient as jest.MockedClass<typeof MongoClient>;
 const mockLogErrorMsgAndDetail = logErrorMsgAndDetail as jest.MockedFunction<
   typeof logErrorMsgAndDetail
 >;
-const mockLogWarningMsg = logWarningMsg as jest.MockedFunction<typeof logWarningMsg>;
+const mockLogSingleLineWarning = logSingleLineWarning as jest.MockedFunction<
+  typeof logSingleLineWarning
+>;
 const mockRedactUrl = redactUrl as jest.MockedFunction<typeof redactUrl>;
 
 describe("MongoDBClientFactory", () => {
@@ -87,7 +89,7 @@ describe("MongoDBClientFactory", () => {
       // Second connection with same id
       const result = await factory.connect(id, url);
 
-      expect(mockLogWarningMsg).toHaveBeenCalledWith(
+      expect(mockLogSingleLineWarning).toHaveBeenCalledWith(
         `MongoDB client with id '${id}' is already connected.`,
       );
       expect(MockedMongoClient).toHaveBeenCalledTimes(1); // Should only be called once

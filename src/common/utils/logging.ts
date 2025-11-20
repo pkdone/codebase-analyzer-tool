@@ -22,8 +22,23 @@ export function logErrorMsg(errMsg: string): void {
 }
 
 /**
- * Log an string msg flagged as an warning.
+ * Logs a warning message to the console, ensuring it is a single line.
+ * Replaces newlines in the message and context with spaces.
+ * @param message The main warning message.
+ * @param context Optional additional data to log, will be stringified.
  */
-export function logWarningMsg(wrnMsg: string): void {
-  console.warn(wrnMsg);
+export function logSingleLineWarning(message: string, context?: unknown): void {
+  let logMessage = message.replace(/(\r\n|\n|\r)/gm, " ");
+  if (context) {
+    let contextString = JSON.stringify(context);
+    // Replace actual newlines
+    contextString = contextString.replace(/(\r\n|\n|\r)/gm, " ");
+    // Replace escaped newlines in JSON strings (\\n becomes space)
+    contextString = contextString.replace(/\\n/g, " ");
+    // Also handle other escaped whitespace
+    contextString = contextString.replace(/\\r/g, " ");
+    contextString = contextString.replace(/\\r\\n/g, " ");
+    logMessage += ` | Context: ${contextString}`;
+  }
+  console.warn(logMessage);
 }

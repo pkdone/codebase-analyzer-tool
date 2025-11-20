@@ -1,4 +1,4 @@
-import { logWarningMsg, logErrorMsg } from "../../../common/utils/logging";
+import { logSingleLineWarning, logErrorMsg } from "../../../common/utils/logging";
 
 /**
  * Centralized logger for JSON processing operations.
@@ -34,7 +34,7 @@ export class JsonProcessingLogger {
    * @param step - Description of the sanitization step applied
    */
   logSanitizationStep(step: string): void {
-    logWarningMsg(`[${this.resourceName}] JSON sanitization step: ${step}`);
+    logSingleLineWarning(`[${this.resourceName}] JSON sanitization step: ${step}`);
   }
 
   /**
@@ -46,16 +46,11 @@ export class JsonProcessingLogger {
    */
   logSanitizationSummary(steps: readonly string[], diagnostics?: readonly string[]): void {
     if (steps.length > 0) {
-      logWarningMsg(
-        `[${this.resourceName}] Applied ${steps.length} sanitization step(s): ${steps.join(" -> ")}`,
-      );
-
-      // Log detailed diagnostics if available (helpful for debugging)
+      let message = `[${this.resourceName}] Applied ${steps.length} sanitization step(s): ${steps.join(" -> ")}`;
       if (diagnostics && diagnostics.length > 0) {
-        logWarningMsg(
-          `[${this.resourceName}] Sanitization diagnostics: ${diagnostics.join(" | ")}`,
-        );
+        message += ` | Diagnostics: ${diagnostics.join(" | ")}`;
       }
+      logSingleLineWarning(message);
     }
   }
 

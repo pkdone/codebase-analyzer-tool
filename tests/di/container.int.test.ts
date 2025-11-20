@@ -320,14 +320,14 @@ describe("DI Container Integration Tests", () => {
 
       // Verify schemas can be imported directly (decoupled from repositories)
       // Using require for Jest compatibility instead of dynamic import
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      /* eslint-disable @typescript-eslint/no-require-imports */
       const {
         getJSONSchema: getSourcesJSONSchema,
       } = require("../../src/repositories/sources/sources.model");
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const {
         getJSONSchema: getAppSummariesJSONSchema,
       } = require("../../src/repositories/app-summaries/app-summaries.model");
+      /* eslint-enable @typescript-eslint/no-require-imports */
 
       const sourcesSchema = getSourcesJSONSchema();
       const summariesSchema = getAppSummariesJSONSchema();

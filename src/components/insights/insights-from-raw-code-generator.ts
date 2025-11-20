@@ -8,7 +8,7 @@ import { coreTokens } from "../../di/tokens";
 import type { ApplicationInsightsProcessor } from "./insights.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
-import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
+import { logErrorMsgAndDetail, logSingleLineWarning } from "../../common/utils/logging";
 import { Prompt } from "../../prompts/prompt";
 import { InstructionSection } from "../../prompts/prompt.types";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
@@ -101,7 +101,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       );
       return llmResponse;
     } catch (error: unknown) {
-      logWarningMsg(
+      logSingleLineWarning(
         `${error instanceof Error ? error.message : "Unknown error"} for getting summary data for all categories`,
       );
       return null;

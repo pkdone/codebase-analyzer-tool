@@ -3,7 +3,7 @@ import { createCanvas, CanvasRenderingContext2D } from "canvas";
 import path from "path";
 import { writeBinaryFile } from "../../../common/fs/file-operations";
 import type { HierarchicalJavaClassDependency } from "../../../repositories/sources/sources.model";
-import { logWarningMsg } from "../../../common/utils/logging";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 import { dependencyTreePngConfig } from "../config/dependency-tree-png.config";
 
 interface HierarchicalTreeNode {
@@ -106,7 +106,7 @@ export class DependencyTreePngGenerator {
       await writeBinaryFile(filepath, buffer);
       return filename + dependencyTreePngConfig.file.EXTENSION;
     } catch (error: unknown) {
-      logWarningMsg(`Failed to generate dependency tree for ${classpath}: ${String(error)}`);
+      logSingleLineWarning(`Failed to generate dependency tree for ${classpath}: ${String(error)}`);
       throw error; // Re-throw since we removed the fallback to simplified PNG
     }
   }

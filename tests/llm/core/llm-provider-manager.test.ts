@@ -16,7 +16,7 @@ jest.mock("../../../src/llm/llm.config", () => ({
 
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
-  logWarningMsg: jest.fn(),
+  logSingleLineWarning: jest.fn(),
 }));
 
 // Create a more comprehensive test that focuses on what we can actually test

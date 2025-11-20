@@ -1,7 +1,7 @@
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata } from "../../../prompts/definitions/app-summaries";
-import { logWarningMsg } from "../../../common/utils/logging";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { Prompt } from "../../../prompts/prompt";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
@@ -59,7 +59,7 @@ export async function executeInsightCompletion(
 
     return llmResponse;
   } catch (error: unknown) {
-    logWarningMsg(
+    logSingleLineWarning(
       `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,
     );
     return null;
