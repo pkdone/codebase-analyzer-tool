@@ -17,7 +17,7 @@ import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strateg
 import { JsonValidator } from "../json-processing/core/json-validator";
 import { log, logErrorWithContext, logWithContext } from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
-import { llmTokens } from "./llm.tokens";
+import { llmTokens } from "../../di/tokens";
 import { hasSignificantSanitizationSteps } from "../json-processing/sanitizers";
 
 /**

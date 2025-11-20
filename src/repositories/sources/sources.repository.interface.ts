@@ -91,11 +91,6 @@ export interface SourcesRepository {
   ): Promise<ProjectedTopLevelJavaClassDependencies[]>;
 
   /**
-   * Get the JSON schema for collection validation
-   */
-  getCollectionValidationSchema(): object;
-
-  /**
    * Get integration points (APIs, queues, topics, SOAP services) for a project
    */
   getProjectIntegrationPoints(projectName: string): Promise<ProjectedIntegrationPointFields[]>;

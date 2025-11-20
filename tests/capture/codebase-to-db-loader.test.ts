@@ -1,8 +1,7 @@
 import "reflect-metadata";
 import CodebaseToDBLoader from "../../src/components/capture/codebase-to-db-loader";
-import { repositoryTokens } from "../../src/di/repositories.tokens";
-import { llmTokens } from "../../src/llm/core/llm.tokens";
-import { captureTokens } from "../../src/components/capture/capture.tokens";
+import { repositoryTokens } from "../../src/di/tokens";
+import { llmTokens, captureTokens } from "../../src/di/tokens";
 import { container } from "tsyringe";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({

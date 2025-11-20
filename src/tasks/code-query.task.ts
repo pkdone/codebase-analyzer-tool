@@ -4,8 +4,8 @@ import { readAndFilterLines } from "../common/fs/file-content-utils";
 import { formatError } from "../common/utils/error-formatters";
 import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
-import { coreTokens } from "../di/core.tokens";
-import { captureTokens } from "../components/capture/capture.tokens";
+import { coreTokens } from "../di/tokens";
+import { captureTokens } from "../di/tokens";
 import { inputConfig } from "../components/querying/config/input.config";
 
 /**

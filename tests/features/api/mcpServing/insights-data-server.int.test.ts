@@ -1,7 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { coreTokens } from "../../../../src/di/core.tokens";
-import { apiTokens } from "../../../../src/components/api/api.tokens";
+import { coreTokens, apiTokens } from "../../../../src/di/tokens";
 import InsightsDataProvider from "../../../../src/components/api/mcpServing/insights-data-provider";
 import { setupTestDatabase, teardownTestDatabase } from "../../../helpers/database/db-test-helper";
 

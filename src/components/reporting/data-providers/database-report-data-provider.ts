@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../di/repositories.tokens";
+import { repositoryTokens } from "../../../di/tokens";
 import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
 import { Complexity, isComplexityLevel } from "../report-gen.types";
 import { procedureTriggerSchema } from "../../../schemas/sources.schema";

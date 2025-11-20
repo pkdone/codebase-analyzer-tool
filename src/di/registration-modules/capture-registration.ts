@@ -1,4 +1,4 @@
-import { captureTokens } from "../../components/capture/capture.tokens";
+import { captureTokens } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
 // Capture component imports

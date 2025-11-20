@@ -1,12 +1,11 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
-import { coreTokens } from "../di/core.tokens";
-import { repositoryTokens } from "../di/repositories.tokens";
+import { coreTokens } from "../di/tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/logging";
-import type { SourcesRepository } from "../repositories/sources/sources.repository.interface";
-import type { AppSummariesRepository } from "../repositories/app-summaries/app-summaries.repository.interface";
+import { getJSONSchema as getSourcesJSONSchema } from "../repositories/sources/sources.model";
+import { getJSONSchema as getAppSummariesJSONSchema } from "../repositories/app-summaries/app-summaries.model";
 import {
   VectorSearchFilter,
   createVectorSearchIndexDefinition,
@@ -36,10 +35,6 @@ export class DatabaseInitializer {
   constructor(
     @inject(coreTokens.MongoClient) private readonly mongoClient: MongoClient,
     @inject(coreTokens.DatabaseName) dbName: string,
-    @inject(repositoryTokens.SourcesRepository)
-    private readonly sourcesRepository: SourcesRepository,
-    @inject(repositoryTokens.AppSummariesRepository)
-    private readonly appSummariesRepository: AppSummariesRepository,
   ) {
     this.db = this.mongoClient.db(dbName);
     this.sourcesCollection = this.db.collection(databaseConfig.SOURCES_COLLECTION_NAME);
@@ -52,11 +47,11 @@ export class DatabaseInitializer {
   async initializeDatabaseSchema(numDimensions: number): Promise<void> {
     await this.createCollectionWithValidator(
       this.sourcesCollection.collectionName,
-      this.sourcesRepository.getCollectionValidationSchema(),
+      getSourcesJSONSchema(),
     );
     await this.createCollectionWithValidator(
       this.appSummariesCollection.collectionName,
-      this.appSummariesRepository.getCollectionValidationSchema(),
+      getAppSummariesJSONSchema(),
     );
     await this.createStandardIndexIfNotExists(this.sourcesCollection, {
       projectName: 1,

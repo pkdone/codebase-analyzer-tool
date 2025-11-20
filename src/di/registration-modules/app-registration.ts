@@ -1,8 +1,8 @@
 import { container } from "tsyringe";
-import { coreTokens } from "../core.tokens";
-import { repositoryTokens } from "../repositories.tokens";
-import { taskTokens } from "../tasks.tokens";
-import { llmTokens } from "../../llm/core/llm.tokens";
+import { coreTokens } from "../tokens";
+import { repositoryTokens } from "../tokens";
+import { taskTokens } from "../tokens";
+import { llmTokens } from "../tokens";
 
 // Repository imports
 import SourcesRepositoryImpl from "../../repositories/sources/sources.repository";
@@ -85,8 +85,10 @@ function registerRepositories(): void {
 /**
  * Register component implementations that other parts of the system depend on.
  * Delegates to domain-specific registration modules for better organization.
+ * Always registers all components since tsyringe uses lazy-loading - components
+ * are only instantiated when actually resolved.
  */
-function registerComponents(config: TaskRunnerConfig): void {
+function registerComponents(_config: TaskRunnerConfig): void {
   // Register LLM strategies and pipeline components (always register since they may be needed)
   container.registerSingleton(llmTokens.RetryStrategy, RetryStrategy);
   container.registerSingleton(llmTokens.FallbackStrategy, FallbackStrategy);
@@ -106,10 +108,9 @@ function registerComponents(config: TaskRunnerConfig): void {
   registerApiComponents();
   registerQueryingComponents();
 
-  // Register LLM-dependent components if required
-  if (config.requiresLLM) {
-    registerLLMDependentComponents();
-  }
+  // Always register LLM-dependent components - tsyringe's lazy-loading ensures
+  // they're only instantiated when actually needed
+  registerLLMDependentComponents();
 
   console.log("Internal helper components registered");
 }

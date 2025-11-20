@@ -4,8 +4,8 @@ import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";
-import { repositoryTokens } from "../../di/repositories.tokens";
-import { llmTokens } from "../../llm/core/llm.tokens";
+import { repositoryTokens } from "../../di/tokens";
+import { llmTokens } from "../../di/tokens";
 import { inputConfig } from "./config/input.config";
 
 /**

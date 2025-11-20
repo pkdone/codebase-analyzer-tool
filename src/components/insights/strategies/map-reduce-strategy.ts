@@ -6,7 +6,7 @@ import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import { logWarningMsg } from "../../../common/utils/logging";
 import { Prompt } from "../../../prompts/prompt";
-import { llmTokens } from "../../../llm/core/llm.tokens";
+import { llmTokens } from "../../../di/tokens";
 import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
 import { llmProviderConfig } from "../../../llm/llm.config";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";

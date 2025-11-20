@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../reporting.tokens";
+import { reportingTokens } from "../../../di/tokens";
 import { DatabaseReportDataProvider } from "../data-providers/database-report-data-provider";
 import { TableViewModel, type DisplayableTableRow } from "../view-models/table-view-model";
 import { reportSectionsConfig } from "../report-sections.config";

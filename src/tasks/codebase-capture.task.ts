@@ -6,10 +6,10 @@ import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
 import { DatabaseInitializer } from "./database-initializer";
 import { databaseConfig } from "../config/database.config";
-import { llmTokens } from "../llm/core/llm.tokens";
-import { taskTokens } from "../di/tasks.tokens";
-import { coreTokens } from "../di/core.tokens";
-import { captureTokens } from "../components/capture/capture.tokens";
+import { llmTokens } from "../di/tokens";
+import { taskTokens } from "../di/tokens";
+import { coreTokens } from "../di/tokens";
+import { captureTokens } from "../di/tokens";
 import { clearDirectory } from "../common/fs/directory-operations";
 import { outputConfig } from "../config/output.config";
 

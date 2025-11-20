@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, injectAll } from "tsyringe";
 import { IShutdownable } from "../common/interfaces/shutdownable.interface";
-import { coreTokens } from "../di/core.tokens";
+import { coreTokens } from "../di/tokens";
 
 /**
  * Service responsible for coordinating graceful shutdown of application components.

@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "./report-section.interface";
-import { repositoryTokens } from "../../../di/repositories.tokens";
+import { repositoryTokens } from "../../../di/tokens";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { PreparedHtmlReportData } from "../html-report-writer";
 import type { PreparedJsonData } from "../json-report-writer";

@@ -665,13 +665,4 @@ describe("SourcesRepositoryImpl", () => {
       expect(options.sort).toEqual({ "summary.namespace": 1 });
     });
   });
-
-  describe("getCollectionValidationSchema", () => {
-    it("should return the JSON schema", () => {
-      const result = repository.getCollectionValidationSchema();
-
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-    });
-  });
 });

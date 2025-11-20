@@ -10,9 +10,7 @@ import { processItemsConcurrently } from "../../common/utils/async-utils";
 import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
-import { repositoryTokens } from "../../di/repositories.tokens";
-import { llmTokens } from "../../llm/core/llm.tokens";
-import { captureTokens } from "./capture.tokens";
+import { repositoryTokens, llmTokens, captureTokens } from "../../di/tokens";
 import type { SourceSummaryType } from "./file-summarizer";
 
 /**

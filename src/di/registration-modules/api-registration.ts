@@ -1,4 +1,4 @@
-import { apiTokens } from "../../components/api/api.tokens";
+import { apiTokens } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
 // API component imports

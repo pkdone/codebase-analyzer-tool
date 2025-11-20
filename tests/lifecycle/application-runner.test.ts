@@ -4,7 +4,7 @@ import { bootstrapContainer, container } from "../../src/di/container";
 import { getTaskConfiguration } from "../../src/di/registration-modules/task-config-registration";
 import { runTask } from "../../src/lifecycle/task-executor";
 import { ShutdownService } from "../../src/lifecycle/shutdown-service";
-import { coreTokens } from "../../src/di/core.tokens";
+import { coreTokens } from "../../src/di/tokens";
 
 // Mock dependencies
 jest.mock("../../src/di/container");

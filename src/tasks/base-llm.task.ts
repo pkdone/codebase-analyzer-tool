@@ -2,8 +2,8 @@ import "reflect-metadata";
 import { inject } from "tsyringe";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { Task } from "./task.types";
-import { llmTokens } from "../llm/core/llm.tokens";
-import { coreTokens } from "../di/core.tokens";
+import { llmTokens } from "../di/tokens";
+import { coreTokens } from "../di/tokens";
 
 /**
  * Abstract base class for tasks that use LLM and require stats reporting.

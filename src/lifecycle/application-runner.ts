@@ -3,7 +3,7 @@ import { bootstrapContainer, container } from "../di/container";
 import { getTaskConfiguration } from "../di/registration-modules/task-config-registration";
 import { runTask } from "./task-executor";
 import { ShutdownService } from "./shutdown-service";
-import { coreTokens } from "../di/core.tokens";
+import { coreTokens } from "../di/tokens";
 
 /**
  * Main application entry point that orchestrates the application lifecycle:
@@ -21,6 +21,7 @@ export function bootstrapAndRunTask(taskToken: symbol): void {
 
   void (async () => {
     try {
+      // Get config for registerAppDependencies (still needed for task-specific registrations)
       const config = getTaskConfiguration(taskToken);
       await bootstrapContainer(config);
       await runTask(taskToken);

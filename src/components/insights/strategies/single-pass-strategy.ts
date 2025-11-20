@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/core/llm-router";
-import { llmTokens } from "../../../llm/core/llm.tokens";
+import { llmTokens } from "../../../di/tokens";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import { executeInsightCompletion } from "./insight-completion-helper";

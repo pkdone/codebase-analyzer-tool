@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import type LLMRouter from "../../llm/core/llm-router";
-import { llmTokens } from "../../llm/core/llm.tokens";
+import { llmTokens } from "../../di/tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
 import path from "node:path";

@@ -14,8 +14,7 @@ import { log, logWithContext } from "./tracking/llm-context-logging";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { LLMProviderManager } from "./llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
-import { llmTokens } from "./llm.tokens";
-import { coreTokens } from "../../di/core.tokens";
+import { llmTokens, coreTokens } from "../../di/tokens";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
   getOverriddenCompletionCandidates,

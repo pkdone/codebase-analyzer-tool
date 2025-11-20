@@ -1,6 +1,6 @@
 import { container } from "tsyringe";
-import { coreTokens } from "../core.tokens";
-import { llmTokens } from "../../llm/core/llm.tokens";
+import { coreTokens } from "../tokens";
+import { llmTokens } from "../tokens";
 import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import { loadBaseEnvVarsOnly } from "../../env/env";
@@ -25,12 +25,20 @@ export function registerBaseEnvDependencies(): void {
 
 export async function registerLlmEnvDependencies(): Promise<void> {
   if (!container.isRegistered(coreTokens.EnvVars)) {
-    const envVars = await loadEnvIncludingLLMVars();
-    container.registerInstance(coreTokens.EnvVars, envVars);
-    console.log("LLM environment variables loaded and registered.");
+    try {
+      const envVars = await loadEnvIncludingLLMVars();
+      container.registerInstance(coreTokens.EnvVars, envVars);
+      console.log("LLM environment variables loaded and registered.");
+      registerLlmModelFamily();
+    } catch {
+      // If LLM env vars aren't available, fall back to base env vars
+      // This allows the container to be bootstrapped even when LLM isn't configured
+      // Components will only be instantiated when actually resolved (lazy-loading)
+      registerBaseEnvDependencies();
+      console.log("LLM environment variables not available, using base environment variables.");
+    }
   }
   registerProjectName();
-  registerLlmModelFamily();
 }
 
 function registerProjectName(): void {

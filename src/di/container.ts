@@ -12,24 +12,20 @@ import { connectAndRegisterMongoClient } from "./registration-modules/mongodb-re
 import { initializeAndRegisterLLMComponents } from "./registration-modules/llm-registration";
 
 /**
- * Bootstrap the DI container based on task configuration.
- * Leverages tsyringe's built-in singleton management and isRegistered checks.
+ * Bootstrap the DI container by registering all dependencies.
+ * Since tsyringe uses lazy-loading, dependencies are only instantiated when resolved,
+ * so we can safely register everything without conditional logic.
  */
-export async function bootstrapContainer(config: TaskRunnerConfig): Promise<void> {
-  if (config.requiresLLM) {
-    await registerLlmEnvDependencies();
-    registerLLMProviders();
-    await initializeAndRegisterLLMComponents();
-  } else {
-    registerBaseEnvDependencies();
-  }
-
-  if (config.requiresMongoDB) {
-    registerMongoDBDependencies();
-    await connectAndRegisterMongoClient();
-  }
-
-  registerAppDependencies(config);
+export async function bootstrapContainer(_config: TaskRunnerConfig): Promise<void> {
+  // Always register all dependencies - tsyringe's lazy-loading ensures
+  // they're only instantiated when actually needed
+  await registerLlmEnvDependencies();
+  registerBaseEnvDependencies();
+  registerLLMProviders();
+  await initializeAndRegisterLLMComponents();
+  registerMongoDBDependencies();
+  await connectAndRegisterMongoClient();
+  registerAppDependencies(_config);
 }
 
 export { container };

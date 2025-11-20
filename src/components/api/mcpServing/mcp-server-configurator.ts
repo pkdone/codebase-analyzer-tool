@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import InsightsDataProvider from "./insights-data-provider";
 import { mcpConfig } from "./mcp.config";
-import { apiTokens } from "../api.tokens";
+import { apiTokens } from "../../../di/tokens";
 
 /**
  * Factory class for creating and configuring MCP server instances.

@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { reportingTokens } from "../../components/reporting/reporting.tokens";
+import { reportingTokens } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
 // Reporting component imports

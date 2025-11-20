@@ -2,8 +2,8 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { Task } from "./task.types";
 import type { SourcesRepository } from "../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../di/repositories.tokens";
-import { coreTokens } from "../di/core.tokens";
+import { repositoryTokens } from "../di/tokens";
+import { coreTokens } from "../di/tokens";
 
 /**
  * Task to test the MongoDB connection.

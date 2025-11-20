@@ -344,15 +344,6 @@ describe("AppSummaryRepositoryImpl", () => {
     });
   });
 
-  describe("getCollectionValidationSchema", () => {
-    it("should return the JSON schema", () => {
-      const result = repository.getCollectionValidationSchema();
-
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("object");
-    });
-  });
-
   describe("constructor", () => {
     it("should initialize with correct collection name", () => {
       const dbMock = mockMongoClient.db();

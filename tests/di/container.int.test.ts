@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { bootstrapContainer, container } from "../../src/di/container";
-import { coreTokens } from "../../src/di/core.tokens";
-import { taskTokens } from "../../src/di/tasks.tokens";
-import { repositoryTokens } from "../../src/di/repositories.tokens";
+import { coreTokens } from "../../src/di/tokens";
+import { taskTokens } from "../../src/di/tokens";
+import { repositoryTokens } from "../../src/di/tokens";
 import { MongoDBClientFactory } from "../../src/common/mongodb/mdb-client-factory";
 import { MongoConnectionTestTask } from "../../src/tasks/mdb-connection-test.task";
 import { ReportGenerationTask } from "../../src/tasks/report-generation.task";
@@ -258,8 +258,9 @@ describe("DI Container Integration Tests", () => {
       let config = { requiresMongoDB: false, requiresLLM: false };
       await bootstrapContainer(config);
 
-      // Assert: MongoDB dependencies should not be registered
-      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
+      // Assert: With simplified bootstrap, all dependencies are always registered (lazy-loaded)
+      // They're only instantiated when actually resolved
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
 
       // Act: Bootstrap again with MongoDB
       config = { requiresMongoDB: true, requiresLLM: false };
@@ -326,18 +327,26 @@ describe("DI Container Integration Tests", () => {
       const sourcesRepo = container.resolve<any>(repositoryTokens.SourcesRepository);
       const appSummariesRepo = container.resolve<any>(repositoryTokens.AppSummariesRepository);
 
-      // Assert: Repositories should have expected methods and schemas
+      // Assert: Repositories should have expected methods
       expect(sourcesRepo).toBeDefined();
-      expect(sourcesRepo.getCollectionValidationSchema).toBeInstanceOf(Function);
       expect(sourcesRepo.insertSource).toBeInstanceOf(Function);
 
       expect(appSummariesRepo).toBeDefined();
-      expect(appSummariesRepo.getCollectionValidationSchema).toBeInstanceOf(Function);
       expect(appSummariesRepo.createOrReplaceAppSummary).toBeInstanceOf(Function);
 
-      // Verify schemas are available (this tests that the implementations are properly constructed)
-      const sourcesSchema = sourcesRepo.getCollectionValidationSchema();
-      const summariesSchema = appSummariesRepo.getCollectionValidationSchema();
+      // Verify schemas can be imported directly (decoupled from repositories)
+      // Using require for Jest compatibility instead of dynamic import
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const {
+        getJSONSchema: getSourcesJSONSchema,
+      } = require("../../src/repositories/sources/sources.model");
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const {
+        getJSONSchema: getAppSummariesJSONSchema,
+      } = require("../../src/repositories/app-summaries/app-summaries.model");
+
+      const sourcesSchema = getSourcesJSONSchema();
+      const summariesSchema = getAppSummariesJSONSchema();
 
       expect(sourcesSchema).toBeDefined();
       expect(typeof sourcesSchema).toBe("object");

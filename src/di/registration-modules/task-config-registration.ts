@@ -1,4 +1,4 @@
-import { taskTokens } from "../tasks.tokens";
+import { taskTokens } from "../tokens";
 import { TaskRunnerConfig } from "../../tasks/task.types";
 
 /**

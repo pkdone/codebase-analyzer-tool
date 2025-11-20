@@ -14,7 +14,7 @@ import { LLMProviderManifest } from "../providers/llm-provider.types";
 import { logErrorMsgAndDetail, logWarningMsg } from "../../common/utils/logging";
 import { listDirectoryEntries } from "../../common/fs/directory-operations";
 import { JsonProcessor } from "../json-processing/core/json-processor";
-import { llmTokens } from "./llm.tokens";
+import { llmTokens } from "../../di/tokens";
 
 /**
  * Manager for discovering, loading, and instantiating LLM providers based on their manifests

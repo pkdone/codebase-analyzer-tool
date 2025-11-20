@@ -6,10 +6,9 @@ import {
 } from "./app-summaries.model";
 import { databaseConfig } from "../../config/database.config";
 import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error-utils";
-import { getJSONSchema } from "./app-summaries.model";
 import { BaseRepository } from "../base-repository";
 import { MongoClient } from "mongodb";
-import { coreTokens } from "../../di/core.tokens";
+import { coreTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 
 /**
@@ -82,12 +81,5 @@ export default class AppSummariesRepositoryImpl
     };
     const options = { projection };
     return await this.collection.findOne<Pick<AppSummaryRecordWithId, K>>(query, options);
-  }
-
-  /**
-   * Get the JSON schema for collection validation
-   */
-  getCollectionValidationSchema(): Record<string, unknown> {
-    return getJSONSchema();
   }
 }

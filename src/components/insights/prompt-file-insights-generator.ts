@@ -9,7 +9,7 @@ import pLimit from "p-limit";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatError } from "../../common/utils/error-formatters";
 import { inject } from "tsyringe";
-import { llmTokens } from "../../llm/core/llm.tokens";
+import { llmTokens } from "../../di/tokens";
 import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
@@ -138,4 +138,3 @@ export class PromptFileInsightsGenerator {
     }
   }
 }
-

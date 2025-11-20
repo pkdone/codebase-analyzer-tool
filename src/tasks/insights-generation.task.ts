@@ -3,9 +3,9 @@ import { injectable, inject } from "tsyringe";
 import type { InsightsProcessorSelector } from "../components/insights/insights-processor-selector";
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
-import { llmTokens } from "../llm/core/llm.tokens";
-import { coreTokens } from "../di/core.tokens";
-import { insightsTokens } from "../components/insights/insights.tokens";
+import { llmTokens } from "../di/tokens";
+import { coreTokens } from "../di/tokens";
+import { insightsTokens } from "../di/tokens";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
 

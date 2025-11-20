@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { repositoryTokens } from "../../src/di/repositories.tokens";
+import { repositoryTokens } from "../../src/di/tokens";
 import { AppSummariesRepository } from "../../src/repositories/app-summaries/app-summaries.repository.interface";
 import { MongoClient } from "mongodb";
 import {
@@ -495,9 +495,11 @@ describe("AppSummaryRepository Integration Tests", () => {
   });
 
   describe("Schema Validation", () => {
-    it("should return a valid collection validation schema", async () => {
-      // Act
-      const schema = appSummariesRepository.getCollectionValidationSchema();
+    it("should have access to schema via direct import", () => {
+      // Act - Import schema directly from model (using static import)
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { getJSONSchema } = require("../../src/repositories/app-summaries/app-summaries.model");
+      const schema = getJSONSchema();
 
       // Assert
       expect(schema).toBeDefined();

@@ -12,7 +12,6 @@ import {
   ProjectedFileTypesCountAndLines,
   ProjectedTopLevelJavaClassDependencies,
   SourceRecord,
-  getJSONSchema,
   ProjectedFileAndLineStats,
   ProjectedTopComplexMethod,
   ProjectedCodeSmellStatistic,
@@ -22,7 +21,7 @@ import { databaseConfig } from "../../config/database.config";
 import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error-utils";
 import { BaseRepository } from "../base-repository";
-import { coreTokens } from "../../di/core.tokens";
+import { coreTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 
 /**
@@ -590,13 +589,6 @@ export default class SourcesRepositoryImpl
         longMethodCount: 0,
       }
     );
-  }
-
-  /**
-   * Get the JSON schema for collection validation
-   */
-  getCollectionValidationSchema(): Record<string, unknown> {
-    return getJSONSchema();
   }
 
   /**

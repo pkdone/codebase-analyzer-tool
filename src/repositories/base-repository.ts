@@ -1,6 +1,6 @@
 import { inject } from "tsyringe";
 import { MongoClient, Collection, Document } from "mongodb";
-import { coreTokens } from "../di/core.tokens";
+import { coreTokens } from "../di/tokens";
 
 /**
  * Base repository class that provides common MongoDB setup.
@@ -25,10 +25,4 @@ export abstract class BaseRepository<T extends Document> {
     const db = mongoClient.db(dbName);
     this.collection = db.collection<T>(collectionName);
   }
-
-  /**
-   * Abstract method for getting the JSON schema for collection validation.
-   * Each repository implementation should provide its own validation schema.
-   */
-  abstract getCollectionValidationSchema(): Record<string, unknown>;
 }

@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../reporting.tokens";
-import { repositoryTokens } from "../../../di/repositories.tokens";
+import { reportingTokens } from "../../../di/tokens";
+import { repositoryTokens } from "../../../di/tokens";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { PieChartGenerator } from "../generators/pie-chart-generator";
 import { htmlReportConstants } from "../html-report.constants";

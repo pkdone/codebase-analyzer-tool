@@ -1,7 +1,7 @@
 import { inject, injectable } from "tsyringe";
-import { coreTokens } from "../../di/core.tokens";
-import { insightsTokens } from "./insights.tokens";
-import { llmTokens } from "../../llm/core/llm.tokens";
+import { coreTokens } from "../../di/tokens";
+import { insightsTokens } from "../../di/tokens";
+import { llmTokens } from "../../di/tokens";
 import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./insights-from-db-generator";

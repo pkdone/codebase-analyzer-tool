@@ -1,4 +1,4 @@
-import { insightsTokens } from "../../components/insights/insights.tokens";
+import { insightsTokens } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
 // Insights component imports

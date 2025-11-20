@@ -6,9 +6,9 @@ import { PromptFileInsightsGenerator } from "../components/insights/prompt-file-
 import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
 import { BaseLLMTask } from "./base-llm.task";
 import type { EnvVars } from "../env/env.types";
-import { llmTokens } from "../llm/core/llm.tokens";
-import { insightsTokens } from "../components/insights/insights.tokens";
-import { coreTokens } from "../di/core.tokens";
+import { llmTokens } from "../di/tokens";
+import { insightsTokens } from "../di/tokens";
+import { coreTokens } from "../di/tokens";
 
 /**
  * Task to generate inline insights.

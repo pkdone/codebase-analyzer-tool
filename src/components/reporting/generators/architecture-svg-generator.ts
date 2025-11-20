@@ -122,11 +122,7 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
     });
 
     // Combine all SVG elements
-    const svgElements = [
-      this.createSvgHeader(width, height),
-      ...serviceNodes,
-      "</svg>",
-    ];
+    const svgElements = [this.createSvgHeader(width, height), ...serviceNodes, "</svg>"];
 
     return svgElements.join("\n");
   }
@@ -180,5 +176,4 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
         ${serviceTitle}
       </g>`;
   }
-
 }

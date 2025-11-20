@@ -1,8 +1,8 @@
 import { bootstrapContainer, container } from "../../src/di/container";
 import { TaskRunnerConfig } from "../../src/tasks/task.types";
-import { coreTokens } from "../../src/di/core.tokens";
-import { taskTokens } from "../../src/di/tasks.tokens";
-import { llmTokens } from "../../src/llm/core/llm.tokens";
+import { coreTokens } from "../../src/di/tokens";
+import { taskTokens } from "../../src/di/tokens";
+import { llmTokens } from "../../src/di/tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests
 jest.mock("../../src/llm/core/llm-provider-manager");
@@ -57,7 +57,8 @@ describe("Dependency Registration", () => {
 
       // Verify that LLM and MongoDB dependencies are not registered
       expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
-      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
+      // With simplified bootstrap, MongoDB client factory is always registered (lazy-loaded)
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
     });
 
     it("should register MongoDB dependencies when required", async () => {
@@ -225,7 +226,8 @@ describe("Dependency Registration", () => {
 
       await bootstrapContainer(config1);
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
-      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
+      // With simplified bootstrap, MongoDB client factory is always registered (lazy-loaded)
+      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
 
       // Then register with MongoDB
       const config2: TaskRunnerConfig = {

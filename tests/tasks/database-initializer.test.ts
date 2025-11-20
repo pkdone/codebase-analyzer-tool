@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DatabaseInitializer } from "../../src/tasks/database-initializer";
-import { taskTokens } from "../../src/di/tasks.tokens";
+import { taskTokens } from "../../src/di/tokens";
 
 describe("DatabaseInitializer", () => {
   it("should be importable from tasks directory", () => {

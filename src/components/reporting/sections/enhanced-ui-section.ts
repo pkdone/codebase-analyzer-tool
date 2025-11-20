@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../reporting.tokens";
+import { reportingTokens } from "../../../di/tokens";
 import { DomainModelDataProvider } from "../data-providers/domain-model-data-provider";
 import { FlowchartSvgGenerator } from "../generators/flowchart-svg-generator";
 import { DomainModelSvgGenerator } from "../generators/domain-model-svg-generator";

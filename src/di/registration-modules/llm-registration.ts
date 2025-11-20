@@ -5,8 +5,8 @@ import LLMStats from "../../llm/core/tracking/llm-stats";
 import { LLMStatsReporter } from "../../llm/core/tracking/llm-stats-reporter";
 import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
 import { JsonProcessor } from "../../llm/json-processing/core/json-processor";
-import { llmTokens } from "../../llm/core/llm.tokens";
-import { coreTokens } from "../core.tokens";
+import { llmTokens } from "../tokens";
+import { coreTokens } from "../tokens";
 
 /**
  * Register LLM provider management services in the DI container.
@@ -32,6 +32,12 @@ export function registerLLMProviders(): void {
 export async function initializeAndRegisterLLMComponents(): Promise<void> {
   if (container.isRegistered(llmTokens.LLMProviderManager)) {
     console.log("LLM components already registered - skipping initialization");
+    return;
+  }
+
+  // Only initialize if LLM model family is registered (i.e., LLM env vars were available)
+  if (!container.isRegistered(llmTokens.LLMModelFamily)) {
+    console.log("LLM model family not registered, skipping LLM component initialization.");
     return;
   }
 

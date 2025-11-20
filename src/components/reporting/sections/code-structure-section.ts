@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../reporting.tokens";
+import { reportingTokens } from "../../../di/tokens";
 import { CodeStructureDataProvider } from "../data-providers/code-structure-data-provider";
 import { DependencyTreePngGenerator } from "../generators/dependency-tree-png-generator";
 import { TableViewModel } from "../view-models/table-view-model";

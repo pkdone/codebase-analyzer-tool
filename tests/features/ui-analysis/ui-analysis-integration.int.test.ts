@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { repositoryTokens } from "../../../src/di/repositories.tokens";
-import { insightsTokens } from "../../../src/components/insights/insights.tokens";
+import { repositoryTokens } from "../../../src/di/tokens";
+import { insightsTokens } from "../../../src/di/tokens";
 import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
 import { UiAggregator } from "../../../src/components/insights/data-aggregators/ui-aggregator";

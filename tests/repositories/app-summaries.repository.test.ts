@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { coreTokens } from "../../src/di/core.tokens";
-import { repositoryTokens } from "../../src/di/repositories.tokens";
+import { coreTokens } from "../../src/di/tokens";
+import { repositoryTokens } from "../../src/di/tokens";
 import AppSummariesRepositoryImpl from "../../src/repositories/app-summaries/app-summaries.repository";
 import { MongoClient } from "mongodb";
 import { AppSummariesRepository } from "../../src/repositories/app-summaries/app-summaries.repository.interface";
@@ -22,10 +22,9 @@ describe("AppSummariesRepository DI & basic methods", () => {
     expect(repo).toBeInstanceOf(AppSummariesRepositoryImpl);
   });
 
-  it("exposes collection schema", () => {
+  it("can be resolved from container", () => {
     const repo = container.resolve<AppSummariesRepository>(repositoryTokens.AppSummariesRepository);
-    const schema = repo.getCollectionValidationSchema();
-    expect(schema).toBeTruthy();
-    expect(typeof schema).toBe("object");
+    expect(repo).toBeTruthy();
+    expect(repo).toBeInstanceOf(Object);
   });
 });

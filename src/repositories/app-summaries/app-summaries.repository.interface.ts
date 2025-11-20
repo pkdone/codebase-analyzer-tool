@@ -33,9 +33,4 @@ export interface AppSummariesRepository {
     projectName: string,
     fieldNames: readonly K[],
   ): Promise<Pick<AppSummaryRecordWithId, K> | null>;
-
-  /**
-   * Get the JSON schema for collection validation
-   */
-  getCollectionValidationSchema(): object;
 }

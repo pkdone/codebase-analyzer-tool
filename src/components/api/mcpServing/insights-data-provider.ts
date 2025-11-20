@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
-import { repositoryTokens } from "../../../di/repositories.tokens";
-import { coreTokens } from "../../../di/core.tokens";
+import { repositoryTokens } from "../../../di/tokens";
+import { coreTokens } from "../../../di/tokens";
 import { AppSummaryRecordWithId } from "../../../repositories/app-summaries/app-summaries.model";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 
