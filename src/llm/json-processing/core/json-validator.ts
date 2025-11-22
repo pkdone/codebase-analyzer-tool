@@ -1,6 +1,6 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
 import { JsonValidatorResult } from "../json-processing-result.types";
-import { JsonProcessingLogger } from "./json-processing-logger";
+import { logJsonProcessingWarning } from "../../../common/utils/logging";
 import { z } from "zod";
 
 /**
@@ -29,8 +29,6 @@ export class JsonValidator {
     resourceName: string,
     logSanitizationSteps = true,
   ): JsonValidatorResult<T | LLMGeneratedContent> {
-    const logger = new JsonProcessingLogger(resourceName);
-
     if (
       content &&
       completionOptions.outputFormat === LLMOutputFormat.JSON &&
@@ -43,7 +41,11 @@ export class JsonValidator {
       } else {
         const issues = validation.error.issues;
         if (logSanitizationSteps) {
-          logger.logValidationIssues(JSON.stringify(issues));
+          logJsonProcessingWarning(
+            resourceName,
+            "Schema validation failed. Validation issues:",
+            issues,
+          );
         }
         return { success: false, issues };
       }
@@ -52,14 +54,17 @@ export class JsonValidator {
       if (validation.success) {
         return { success: true, data: content as LLMGeneratedContent };
       }
-      logger.logTextFormatValidationError();
+      logJsonProcessingWarning(
+        resourceName,
+        "Content for TEXT format is not valid LLMGeneratedContent",
+      );
       return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     } else {
       const validation = llmGeneratedContentSchema.safeParse(content);
       if (validation.success) {
         return { success: true, data: content as LLMGeneratedContent };
       }
-      logger.logContentValidationError();
+      logJsonProcessingWarning(resourceName, "Content is not valid LLMGeneratedContent");
       return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     }
   }

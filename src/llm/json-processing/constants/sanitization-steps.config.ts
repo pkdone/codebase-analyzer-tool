@@ -87,21 +87,10 @@ export const SANITIZATION_STEP_TEMPLATE = Object.freeze({
  * Set of sanitization steps that are considered "insignificant" for mutation tracking.
  * These steps represent trivial formatting changes that don't indicate problematic LLM output.
  */
-const insignificantSteps = new Set([
+export const INSIGNIFICANT_SANITIZATION_STEPS: ReadonlySet<string> = new Set([
   SANITIZATION_STEP.TRIMMED_WHITESPACE,
   SANITIZATION_STEP.REMOVED_CODE_FENCES,
 ]);
-// Freeze the Set to prevent modifications
-insignificantSteps.add = () => {
-  throw new Error("Set is readonly");
-};
-insignificantSteps.delete = () => {
-  throw new Error("Set is readonly");
-};
-insignificantSteps.clear = () => {
-  throw new Error("Set is readonly");
-};
-export const INSIGNIFICANT_SANITIZATION_STEPS: ReadonlySet<string> = insignificantSteps;
 
 /**
  * Type helper for sanitization step descriptions

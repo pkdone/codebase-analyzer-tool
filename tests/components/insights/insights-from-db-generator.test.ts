@@ -12,6 +12,7 @@ import * as logging from "../../../src/common/utils/logging";
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
   logSingleLineWarning: jest.fn(),
+  logJsonProcessingWarning: jest.fn(),
 }));
 
 describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {

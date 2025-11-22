@@ -1,5 +1,6 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 import { LLMCompletionOptions, LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { JsonProcessingErrorType } from "../../../src/llm/json-processing/types/json-processing.errors";
 
 /**
  * Tests for the JsonProcessor's post-parse transformation pipeline.
@@ -132,7 +133,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
       // Should fail to parse, transforms should not run
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.originalContent).toBe(invalidJson);
+        expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
       }
     });
 

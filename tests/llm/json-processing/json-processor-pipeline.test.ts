@@ -1,14 +1,18 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { JsonProcessingError } from "../../../src/llm/json-processing/types/json-processing.errors";
+import {
+  JsonProcessingError,
+  JsonProcessingErrorType,
+} from "../../../src/llm/json-processing/types/json-processing.errors";
 
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logSingleLineWarning: jest.fn(),
   logErrorMsgAndDetail: jest.fn(),
+  logJsonProcessingWarning: jest.fn(),
 }));
 
-import { logSingleLineWarning } from "../../../src/common/utils/logging";
+import { logJsonProcessingWarning } from "../../../src/common/utils/logging";
 
 describe("JsonProcessor - Unified Pipeline", () => {
   let jsonProcessor: JsonProcessor;
@@ -29,7 +33,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         expect(result.data).toEqual({ clean: "json" });
         expect(result.steps).toEqual([]);
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logJsonProcessingWarning).not.toHaveBeenCalled();
     });
 
     it("should stop pipeline as soon as parsing succeeds", () => {
@@ -56,7 +60,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         expect(result.data).toEqual({ a: 1 });
         expect(result.steps.length).toBeGreaterThan(0);
         // Should have logged the sanitization steps
-        expect(logSingleLineWarning).toHaveBeenCalled();
+        expect(logJsonProcessingWarning).toHaveBeenCalled();
       }
     });
 
@@ -207,7 +211,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error).toBeInstanceOf(JsonProcessingError);
-        expect(result.error.originalContent).toBe(unparseable);
+        expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
         expect(result.error.message).toContain("test-resource");
       }
     });
@@ -219,8 +223,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error).toBeInstanceOf(JsonProcessingError);
-        expect(result.error.underlyingError).toBeDefined();
-        expect(result.error.underlyingError).toBeInstanceOf(Error);
+        expect(result.error.cause).toBeDefined();
+        expect(result.error.cause).toBeInstanceOf(Error);
       }
     });
 
@@ -234,10 +238,10 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.appliedSanitizers).toBeDefined();
-        expect(Array.isArray(result.error.appliedSanitizers)).toBe(true);
-        // Should have at least tried some sanitizers
-        expect(result.error.appliedSanitizers.length).toBeGreaterThan(0);
+        expect(result.error).toBeInstanceOf(JsonProcessingError);
+        expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
+        // Error should be created even after sanitization attempts
+        expect(result.error.message).toContain("test-resource");
       }
     });
 
@@ -249,10 +253,9 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.sanitizedContent).toBeDefined();
-        expect(typeof result.error.sanitizedContent).toBe("string");
-        // Sanitized content should be different from original
-        expect(result.error.sanitizedContent).not.toBe(result.error.originalContent);
+        expect(result.error).toBeInstanceOf(JsonProcessingError);
+        expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
+        expect(result.error.message).toContain("test-resource");
       }
     });
   });
@@ -262,8 +265,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = 'Some text before {"test": true} some text after';
       jsonProcessor.parseAndValidate(malformed, "logged-resource", completionOptions);
 
-      expect(logSingleLineWarning).toHaveBeenCalled();
-      const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
+      expect(logJsonProcessingWarning).toHaveBeenCalled();
+      const calls = (logJsonProcessingWarning as jest.Mock).mock.calls.flat();
       expect(calls.some((c: string) => c.includes("logged-resource"))).toBe(true);
       expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
     });
@@ -273,22 +276,22 @@ describe("JsonProcessor - Unified Pipeline", () => {
       const malformed = '```json\n{"test": true}\n```';
       processorWithoutLogging.parseAndValidate(malformed, "not-logged-resource", completionOptions);
 
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logJsonProcessingWarning).not.toHaveBeenCalled();
     });
 
     it("should not log when no sanitization was needed", () => {
       const clean = '{"clean": "json"}';
       jsonProcessor.parseAndValidate(clean, "clean-resource", completionOptions);
 
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logJsonProcessingWarning).not.toHaveBeenCalled();
     });
 
     it("should include all applied steps in log message", () => {
       const multiIssue = '```json\n{"a": 1,}\n```';
       jsonProcessor.parseAndValidate(multiIssue, "multi-resource", completionOptions);
 
-      expect(logSingleLineWarning).toHaveBeenCalled();
-      const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
+      expect(logJsonProcessingWarning).toHaveBeenCalled();
+      const calls = (logJsonProcessingWarning as jest.Mock).mock.calls.flat();
       const logMsg = calls.find((c: string) => c.includes("multi-resource"));
       expect(logMsg).toBeDefined();
       // Should contain arrow separators for multiple steps

@@ -29,6 +29,8 @@ jest.mock("../../../src/llm/core/tracking/llm-context-logging", () => ({
   log: jest.fn(),
   logErrWithContext: jest.fn(),
   logWithContext: jest.fn(),
+  logLlmPipelineWarning: jest.fn(),
+  logErrorWithContext: jest.fn(),
 }));
 
 jest.mock("../../../src/llm/core/tracking/llm-stats", () => {

@@ -1,13 +1,14 @@
 import { JsonProcessor } from "../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../src/llm/types/llm.types";
-import { SANITIZATION_STEP } from "../../src/llm/json-processing/sanitizers";
-import { logSingleLineWarning } from "../../src/common/utils/logging";
+import { JsonProcessingErrorType } from "../../src/llm/json-processing/types/json-processing.errors";
+import { logSingleLineWarning, logJsonProcessingWarning } from "../../src/common/utils/logging";
 
 // Mock the logging module
 jest.mock("../../src/common/utils/logging", () => ({
   logSingleLineWarning: jest.fn(),
   logErrorMsg: jest.fn(),
   logInfoMsg: jest.fn(),
+  logJsonProcessingWarning: jest.fn(),
 }));
 
 describe("json-tools enhanced fast path", () => {
@@ -106,7 +107,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalled();
+      expect(logJsonProcessingWarning).toHaveBeenCalled();
     });
 
     it("falls back to progressive strategies for invalid JSON", () => {
@@ -117,7 +118,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalled();
+      expect(logJsonProcessingWarning).toHaveBeenCalled();
     });
   });
 
@@ -151,8 +152,9 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(
-        expect.stringContaining("[test-resource] Applied"),
+      expect(logJsonProcessingWarning).toHaveBeenCalledWith(
+        "test-resource",
+        expect.stringContaining("Applied"),
       );
     });
 
@@ -169,8 +171,9 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(
-        expect.stringContaining("[test-resource] Applied"),
+      expect(logJsonProcessingWarning).toHaveBeenCalledWith(
+        "test-resource",
+        expect.stringContaining("Applied"),
       );
     });
   });
@@ -185,7 +188,10 @@ describe("json-tools enhanced fast path", () => {
         expect((result.data as any).a).toBe(1);
         expect((result.data as any).b).toEqual([1, 2, 3]);
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(expect.stringContaining("Applied"));
+      expect(logJsonProcessingWarning).toHaveBeenCalledWith(
+        "test-resource",
+        expect.stringContaining("Applied"),
+      );
     });
 
     it("includes sanitization history in error message on validation failure", () => {
@@ -213,7 +219,7 @@ describe("json-tools enhanced fast path", () => {
         // The error message should indicate it was a validation failure, not a parse failure
         expect(result.error.message).toMatch(/failed schema validation/);
         // The error should include sanitization steps that were applied before validation failed
-        expect(result.error.appliedSanitizers).toContain(SANITIZATION_STEP.REMOVED_CODE_FENCES);
+        expect(result.error.type).toBe(JsonProcessingErrorType.VALIDATION);
       }
     });
   });

@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../llm/core/llm-router";
 import { fileProcessingConfig } from "../../config/file-processing.config";
-import { logErrorMsgAndDetail } from "../../common/utils/logging";
+import { logSingleLineWarning } from "../../common/utils/logging";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../di/tokens";
@@ -119,7 +119,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     );
     results.forEach((result, index) => {
       if (result.status === "rejected") {
-        logErrorMsgAndDetail(
+        logSingleLineWarning(
           `Failed to generate data for category: ${llmCategories[index]}`,
           result.reason,
         );
@@ -188,7 +188,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
-      logErrorMsgAndDetail(`Unable to generate ${categoryLabel} details into database`, error);
+      logSingleLineWarning(`Unable to generate ${categoryLabel} details into database`, error);
     }
   }
 
@@ -208,7 +208,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
         `Captured Bill of Materials: ${bomData.totalDependencies} dependencies, ${bomData.conflictCount} conflicts`,
       );
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Unable to generate Bill of Materials", error);
+      logSingleLineWarning("Unable to generate Bill of Materials", error);
     }
   }
 
@@ -231,7 +231,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
           `${qualityData.commonCodeSmells.length} smell types detected`,
       );
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Unable to generate Code Quality Summary", error);
+      logSingleLineWarning("Unable to generate Code Quality Summary", error);
     }
   }
 
@@ -252,7 +252,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
           `${jobsData.triggerTypes.length} trigger types`,
       );
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Unable to generate Scheduled Jobs Summary", error);
+      logSingleLineWarning("Unable to generate Scheduled Jobs Summary", error);
     }
   }
 
@@ -275,7 +275,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
           `${couplingData.totalCouplings} coupling relationships`,
       );
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Unable to generate Module Coupling Analysis", error);
+      logSingleLineWarning("Unable to generate Module Coupling Analysis", error);
     }
   }
 
@@ -296,7 +296,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
           `${uiData.totalScriptlets} scriptlets, ${uiData.frameworks.length} frameworks detected`,
       );
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Unable to generate UI Technology Analysis", error);
+      logSingleLineWarning("Unable to generate UI Technology Analysis", error);
     }
   }
 }

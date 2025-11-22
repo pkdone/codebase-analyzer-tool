@@ -15,7 +15,11 @@ import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
 import { JsonValidator } from "../json-processing/core/json-validator";
-import { log, logErrorWithContext, logWithContext } from "./tracking/llm-context-logging";
+import {
+  logLlmPipelineWarning,
+  logErrorWithContext,
+  logWithContext,
+} from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
 import { llmTokens } from "../../di/tokens";
 import { hasSignificantSanitizationSteps } from "../json-processing/sanitizers";
@@ -83,11 +87,11 @@ export class LLMExecutionPipeline {
         // Logging is handled within the JsonValidator, so the redundant log call is removed.
       }
 
-      log(
+      logLlmPipelineWarning(
         `Given-up on trying to fulfill the current prompt with an LLM for the following resource: '${resourceName}'`,
       );
     } catch (error: unknown) {
-      log(
+      logLlmPipelineWarning(
         `Unable to process the following resource with an LLM due to a non-recoverable error for the following resource: '${resourceName}'`,
       );
       logErrorWithContext(error, context);

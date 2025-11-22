@@ -2,6 +2,7 @@ import {
   logThrownError,
   logErrorMsg,
   logSingleLineWarning,
+  logJsonProcessingWarning,
 } from "../../../src/common/utils/logging";
 
 describe("logging", () => {
@@ -93,6 +94,61 @@ describe("logging", () => {
       const callArg = consoleWarnSpy.mock.calls[0][0];
       expect(callArg).not.toContain("\n");
       expect(callArg).toContain("text with newlines");
+    });
+
+    it("should handle Error objects in context", () => {
+      const error = new Error("Test error message");
+      logSingleLineWarning("Warning message", error);
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("Warning message");
+      expect(callArg).toContain("Context:");
+      expect(callArg).toContain("Error");
+      expect(callArg).toContain("Test error message");
+    });
+
+    it("should handle Error objects with newlines in message", () => {
+      const error = new Error("Error\nwith\nnewlines");
+      logSingleLineWarning("Warning", error);
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).not.toContain("\n");
+    });
+  });
+
+  describe("logJsonProcessingWarning", () => {
+    it("should log a warning with resource name prefix", () => {
+      logJsonProcessingWarning("Resource1", "Processing failed");
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("[Resource1]");
+      expect(callArg).toContain("Processing failed");
+    });
+
+    it("should include context when provided", () => {
+      logJsonProcessingWarning("Resource1", "Processing failed", { step: "validation" });
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("[Resource1]");
+      expect(callArg).toContain("Processing failed");
+      expect(callArg).toContain("Context:");
+      expect(callArg).toContain('"step":"validation"');
+    });
+
+    it("should handle Error objects in context", () => {
+      const error = new Error("Validation error");
+      logJsonProcessingWarning("Resource1", "Processing failed", error);
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("[Resource1]");
+      expect(callArg).toContain("Processing failed");
+      expect(callArg).toContain("Error");
+      expect(callArg).toContain("Validation error");
     });
   });
 });

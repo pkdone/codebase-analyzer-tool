@@ -123,7 +123,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
         expect(result.error).toBeInstanceOf(JsonProcessingError);
         expect(result.error.type).toBe("validation");
         expect(result.error.message).toContain("schema validation");
-        expect(result.error.appliedSanitizers.length).toBeGreaterThan(0);
+        expect(result.error.type).toBe(JsonProcessingErrorType.VALIDATION);
       }
     });
   });

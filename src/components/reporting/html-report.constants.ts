@@ -1,22 +1,26 @@
 /**
  * Constants used in HTML report generation
  */
+
+// Define base directory names once
+const DIRECTORIES = {
+  CHARTS: "charts",
+  DEPENDENCY_TREES: "dependency-trees",
+} as const;
+
 export const htmlReportConstants = {
   /**
    * Directory paths used in HTML report structure
    */
   paths: {
-    CHARTS_DIR: "charts/",
-    DEPENDENCY_TREES_DIR: "dependency-trees/",
+    CHARTS_DIR: `${DIRECTORIES.CHARTS}/`,
+    DEPENDENCY_TREES_DIR: `${DIRECTORIES.DEPENDENCY_TREES}/`,
   },
 
   /**
    * Directory names (without trailing slash)
    */
-  directories: {
-    CHARTS: "charts",
-    DEPENDENCY_TREES: "dependency-trees",
-  },
+  directories: DIRECTORIES,
 
   /**
    * Column headers for data tables

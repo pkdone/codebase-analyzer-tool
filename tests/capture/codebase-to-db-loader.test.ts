@@ -19,6 +19,8 @@ jest.mock("../../src/common/utils/text-utils", () => ({
 }));
 jest.mock("../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
+  logSingleLineWarning: jest.fn(),
+  logJsonProcessingWarning: jest.fn(),
 }));
 
 const mockRepo = {

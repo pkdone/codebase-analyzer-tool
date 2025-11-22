@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import { logErrorMsgAndDetail } from "../../common/utils/logging";
+import { logSingleLineWarning } from "../../common/utils/logging";
 import type LLMRouter from "../../llm/core/llm-router";
 import { llmTokens } from "../../di/tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
@@ -49,7 +49,7 @@ export class FileSummarizer {
       return llmResponse;
     } catch (error: unknown) {
       const errorMsg = `Failed to generate summary for '${filepath}'`;
-      logErrorMsgAndDetail(errorMsg, error);
+      logSingleLineWarning(errorMsg, error);
       throw error;
     }
   }

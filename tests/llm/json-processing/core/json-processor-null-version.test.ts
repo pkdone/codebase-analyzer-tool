@@ -161,8 +161,7 @@ describe("JsonProcessor Integration Tests", () => {
 
       if (!result.success) {
         console.log("Error details:", result.error);
-        console.log("Applied sanitizers:", result.error.appliedSanitizers);
-        console.log("Diagnostics:", result.error.diagnostics);
+        console.log("Error type:", result.error.type);
       }
 
       expect(result.success).toBe(true);

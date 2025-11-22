@@ -24,13 +24,7 @@ describe("JsonProcessingErrorType Enum", () => {
 
   describe("Type safety", () => {
     it("should be type-safe when creating errors", () => {
-      const parseError = new JsonProcessingError(
-        JsonProcessingErrorType.PARSE,
-        "Test parse error",
-        "original",
-        "sanitized",
-        [],
-      );
+      const parseError = new JsonProcessingError(JsonProcessingErrorType.PARSE, "Test parse error");
 
       expect(parseError.type).toBe(JsonProcessingErrorType.PARSE);
       expect(parseError.type).toBe("parse");
@@ -40,9 +34,6 @@ describe("JsonProcessingErrorType Enum", () => {
       const validationError = new JsonProcessingError(
         JsonProcessingErrorType.VALIDATION,
         "Test validation error",
-        "original",
-        "sanitized",
-        [],
       );
 
       expect(validationError.type).toBe(JsonProcessingErrorType.VALIDATION);
@@ -62,26 +53,14 @@ describe("JsonProcessingErrorType Enum", () => {
 
   describe("Error type checking", () => {
     it("should allow comparing error types with enum values", () => {
-      const error = new JsonProcessingError(
-        JsonProcessingErrorType.PARSE,
-        "Test",
-        "orig",
-        "san",
-        [],
-      );
+      const error = new JsonProcessingError(JsonProcessingErrorType.PARSE, "Test");
 
       expect(error.type).toBe(JsonProcessingErrorType.PARSE);
       expect(error.type).not.toBe(JsonProcessingErrorType.VALIDATION);
     });
 
     it("should work with switch statements", () => {
-      const parseError = new JsonProcessingError(
-        JsonProcessingErrorType.PARSE,
-        "Test",
-        "orig",
-        "san",
-        [],
-      );
+      const parseError = new JsonProcessingError(JsonProcessingErrorType.PARSE, "Test");
 
       let result: string;
       switch (parseError.type) {
@@ -97,20 +76,11 @@ describe("JsonProcessingErrorType Enum", () => {
     });
 
     it("should distinguish between parse and validation errors", () => {
-      const parseError = new JsonProcessingError(
-        JsonProcessingErrorType.PARSE,
-        "Parse failed",
-        "orig",
-        "san",
-        [],
-      );
+      const parseError = new JsonProcessingError(JsonProcessingErrorType.PARSE, "Parse failed");
 
       const validationError = new JsonProcessingError(
         JsonProcessingErrorType.VALIDATION,
         "Validation failed",
-        "orig",
-        "san",
-        [],
       );
 
       expect(parseError.type).not.toBe(validationError.type);

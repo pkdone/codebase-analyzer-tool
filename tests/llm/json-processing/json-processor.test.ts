@@ -112,8 +112,7 @@ describe("JsonProcessor", () => {
           expect(result.error.message).toContain("contains no JSON structure");
           expect(result.error.message).toContain("plain text rather than JSON");
           expect(result.error.message).toContain("test-resource");
-          expect(result.error.appliedSanitizers).toEqual([]);
-          expect(result.error.originalContent).toBe(plainText);
+          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
         }
       });
 
@@ -131,7 +130,7 @@ describe("JsonProcessor", () => {
           expect(result.success).toBe(false);
           if (!result.success) {
             expect(result.error.message).toContain("contains no JSON structure");
-            expect(result.error.appliedSanitizers).toEqual([]);
+            expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
           }
         }
       });
@@ -392,22 +391,21 @@ describe("JsonProcessor", () => {
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error).toBeInstanceOf(JsonProcessingError);
-          expect(result.error.originalContent).toBe(invalid);
+          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
         }
       });
 
-      it("should capture sanitized content in JsonProcessingError", () => {
+      it("should create JsonProcessingError with correct type", () => {
         const invalid = "{ this is not valid json at all }";
         const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error).toBeInstanceOf(JsonProcessingError);
-          expect(result.error.sanitizedContent).toBeDefined();
-          expect(typeof result.error.sanitizedContent).toBe("string");
+          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
         }
       });
 
-      it("should track applied sanitizers in JsonProcessingError", () => {
+      it("should create JsonProcessingError after sanitization attempts", () => {
         const withCodeFence = "```json\n{invalid json}\n```";
         const result = jsonProcessor.parseAndValidate(
           withCodeFence,
@@ -417,9 +415,7 @@ describe("JsonProcessor", () => {
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error).toBeInstanceOf(JsonProcessingError);
-          expect(Array.isArray(result.error.appliedSanitizers)).toBe(true);
-          // Should have attempted at least the extract strategy
-          expect(result.error.appliedSanitizers.length).toBeGreaterThanOrEqual(0);
+          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
         }
       });
 
@@ -448,7 +444,7 @@ describe("JsonProcessor", () => {
         if (!result.success) {
           expect(result.error).toBeInstanceOf(JsonProcessingError);
           // Should have captured some underlying error (SyntaxError from JSON.parse)
-          expect(result.error.underlyingError).toBeDefined();
+          expect(result.error.cause).toBeDefined();
         }
       });
 
@@ -497,9 +493,7 @@ describe("JsonProcessor", () => {
         } else {
           // Failure path: diagnostics propagated into JsonProcessingError if available
           expect(result.error).toBeInstanceOf(JsonProcessingError);
-          if (result.error.diagnostics) {
-            expect(result.error.diagnostics.length).toBeGreaterThan(0);
-          }
+          expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
         }
       });
     });

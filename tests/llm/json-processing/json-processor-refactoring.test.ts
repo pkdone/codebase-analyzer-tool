@@ -1,5 +1,6 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { JsonProcessingErrorType } from "../../../src/llm/json-processing/types/json-processing.errors";
 import { z } from "zod";
 
 /**
@@ -91,8 +92,7 @@ describe("JsonProcessor - Refactored Methods", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.type).toBe("parse");
-        expect(result.error.originalContent).toBe(invalidJson);
-        expect(result.error.appliedSanitizers).toBeDefined();
+        expect(result.error.type).toBe(JsonProcessingErrorType.PARSE);
       }
     });
 

@@ -11,6 +11,8 @@ jest.mock("../../../src/llm/core/llm-router");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logErrorMsgAndDetail: jest.fn(),
+  logSingleLineWarning: jest.fn(),
+  logJsonProcessingWarning: jest.fn(),
 }));
 
 jest.unmock("../../../src/prompts/definitions/sources");
@@ -92,8 +94,8 @@ jest.mock("../../../src/prompts/definitions/sources", () => ({
 // Note: We no longer mock buildPrompt as FileSummarizer now uses the Prompt class directly
 
 // LLMRouter is mocked, we'll create a mock instance directly
-const mockLogErrorMsgAndDetail = logging.logErrorMsgAndDetail as jest.MockedFunction<
-  typeof logging.logErrorMsgAndDetail
+const mockLogSingleLineWarning = logging.logSingleLineWarning as jest.MockedFunction<
+  typeof logging.logSingleLineWarning
 >;
 
 import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
@@ -348,7 +350,7 @@ CODE:
           llmError,
         );
 
-        expect(mockLogErrorMsgAndDetail).toHaveBeenCalledWith(
+        expect(mockLogSingleLineWarning).toHaveBeenCalledWith(
           `Failed to generate summary for '${filepath}'`,
           llmError,
         );

@@ -3,22 +3,21 @@ import {
   JsonProcessingErrorType,
 } from "../../../src/llm/json-processing/types/json-processing.errors";
 
-describe("JsonProcessingError lastSanitizer property", () => {
-  it("stores lastSanitizer when provided", () => {
-    const err = new JsonProcessingError(
-      JsonProcessingErrorType.PARSE,
-      "Failed",
-      "orig",
-      "san",
-      ["a", "b"],
-      new Error("parse"),
-      "finalStep",
-    );
-    expect(err.lastSanitizer).toBe("finalStep");
+describe("JsonProcessingError simplified structure", () => {
+  it("should create error with type and message", () => {
+    const err = new JsonProcessingError(JsonProcessingErrorType.PARSE, "Failed");
+    expect(err.type).toBe(JsonProcessingErrorType.PARSE);
+    expect(err.message).toBe("Failed");
   });
 
-  it("leaves lastSanitizer undefined when omitted", () => {
-    const err = new JsonProcessingError(JsonProcessingErrorType.PARSE, "Failed", "orig", "san", []);
-    expect(err.lastSanitizer).toBeUndefined();
+  it("should create error with cause", () => {
+    const underlyingError = new Error("parse");
+    const err = new JsonProcessingError(JsonProcessingErrorType.PARSE, "Failed", underlyingError);
+    expect(err.cause).toBe(underlyingError);
+  });
+
+  it("should work without cause", () => {
+    const err = new JsonProcessingError(JsonProcessingErrorType.PARSE, "Failed");
+    expect(err.cause).toBeUndefined();
   });
 });
