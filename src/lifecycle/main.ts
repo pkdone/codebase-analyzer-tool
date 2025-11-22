@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { bootstrapContainer, container } from "../di/container";
 import { Task } from "../tasks/task.types";
 import { formatDateForLogging } from "../common/utils/date-utils";
-import { coreTokens } from "../di/tokens";
+import { coreTokens, llmTokens } from "../di/tokens";
 import type { MongoDBClientFactory } from "../common/mongodb/mdb-client-factory";
 import type LLMRouter from "../llm/core/llm-router";
 
@@ -42,8 +42,8 @@ export async function runApplication(taskToken: symbol): Promise<void> {
         );
         await mongoFactory.shutdown();
       }
-      if (container.isRegistered(coreTokens.LLMRouter)) {
-        const llmRouter = container.resolve<LLMRouter>(coreTokens.LLMRouter);
+      if (container.isRegistered(llmTokens.LLMRouter)) {
+        const llmRouter = container.resolve<LLMRouter>(llmTokens.LLMRouter);
         await llmRouter.shutdown();
       }
     } catch (shutdownError: unknown) {
