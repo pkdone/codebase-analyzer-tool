@@ -6,8 +6,7 @@ import {
 } from "./app-summaries.model";
 import { databaseConfig } from "../../config/database.config";
 import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error-utils";
-import { BaseRepository } from "../base-repository";
-import { MongoClient } from "mongodb";
+import { MongoClient, Collection } from "mongodb";
 import { coreTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 
@@ -15,10 +14,9 @@ import { inject, injectable } from "tsyringe";
  * MongoDB implementation of the App Summary repository
  */
 @injectable()
-export default class AppSummariesRepositoryImpl
-  extends BaseRepository<AppSummaryRecordWithId>
-  implements AppSummariesRepository
-{
+export default class AppSummariesRepositoryImpl implements AppSummariesRepository {
+  protected readonly collection: Collection<AppSummaryRecordWithId>;
+
   /**
    * Constructor.
    */
@@ -26,7 +24,10 @@ export default class AppSummariesRepositoryImpl
     @inject(coreTokens.MongoClient) mongoClient: MongoClient,
     @inject(coreTokens.DatabaseName) dbName: string,
   ) {
-    super(mongoClient, dbName, databaseConfig.SUMMARIES_COLLECTION_NAME);
+    const db = mongoClient.db(dbName);
+    this.collection = db.collection<AppSummaryRecordWithId>(
+      databaseConfig.SUMMARIES_COLLECTION_NAME,
+    );
   }
 
   /**

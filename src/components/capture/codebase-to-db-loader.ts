@@ -1,12 +1,13 @@
 import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../llm/core/llm-router";
 import path from "path";
+import pLimit from "p-limit";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { readFile } from "../../common/fs/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../common/fs/directory-operations";
 import { getFileExtension } from "../../common/fs/path-utils";
 import { countLines } from "../../common/utils/text-utils";
-import { processItemsConcurrently } from "../../common/utils/async-utils";
+import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { FileSummarizer } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
@@ -81,20 +82,35 @@ export default class CodebaseToDBLoader {
       await this.sourcesRepository.deleteSourcesByProject(projectName);
     }
 
-    await processItemsConcurrently(
-      filepaths,
-      async (filepath) => {
-        await this.processAndStoreSourceFile(
-          filepath,
-          projectName,
-          srcDirPath,
-          skipIfAlreadyCaptured,
-          existingFiles,
-        );
-      },
-      fileProcessingConfig.MAX_CONCURRENCY,
-      "file",
+    const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
+    let successes = 0;
+    let failures = 0;
+    const tasks = filepaths.map(async (filepath) => {
+      return limit(async () => {
+        try {
+          await this.processAndStoreSourceFile(
+            filepath,
+            projectName,
+            srcDirPath,
+            skipIfAlreadyCaptured,
+            existingFiles,
+          );
+          successes++;
+        } catch (error: unknown) {
+          failures++;
+          logErrorMsgAndDetail(`Failed to process file: ${filepath}`, error);
+        }
+      });
+    });
+    await Promise.allSettled(tasks);
+
+    console.log(
+      `Processed ${filepaths.length} files. Succeeded: ${successes}, Failed: ${failures}`,
     );
+
+    if (failures > 0) {
+      console.warn(`Warning: ${failures} files failed to process. Check logs for details.`);
+    }
   }
 
   /**

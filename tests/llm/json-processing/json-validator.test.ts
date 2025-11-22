@@ -129,6 +129,83 @@ describe("json-validator", () => {
     });
   });
 
+  describe("Zod schema validation for LLMGeneratedContent", () => {
+    it("should accept string as valid LLMGeneratedContent", () => {
+      const content = "This is a string";
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = jsonValidator.validate(content, options, "test-resource");
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBe(content);
+      }
+    });
+
+    it("should accept object as valid LLMGeneratedContent", () => {
+      const content = { key: "value", nested: { data: 123 } };
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = jsonValidator.validate(content, options, "test-resource");
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(content);
+      }
+    });
+
+    it("should accept array as valid LLMGeneratedContent", () => {
+      const content = [1, 2, 3, "four", { five: 5 }];
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = jsonValidator.validate(content, options, "test-resource");
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual(content);
+      }
+    });
+
+    it("should accept null as valid LLMGeneratedContent", () => {
+      const content = null;
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = jsonValidator.validate(content, options, "test-resource");
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeNull();
+      }
+    });
+
+    it("should reject number as invalid LLMGeneratedContent", () => {
+      const content = 42;
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = jsonValidator.validate(content, options, "test-resource");
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject boolean as invalid LLMGeneratedContent", () => {
+      const content = true;
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = jsonValidator.validate(content, options, "test-resource");
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject undefined as invalid LLMGeneratedContent", () => {
+      const content = undefined;
+      const options = { outputFormat: LLMOutputFormat.TEXT };
+
+      const result = jsonValidator.validate(content, options, "test-resource");
+
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe("instance isolation", () => {
     it("should create independent instances", () => {
       const validator1 = new JsonValidator();

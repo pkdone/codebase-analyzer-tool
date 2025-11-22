@@ -17,10 +17,8 @@ jest.mock("../../src/common/fs/path-utils", () => ({
 jest.mock("../../src/common/utils/text-utils", () => ({
   countLines: jest.fn(() => 1),
 }));
-jest.mock("../../src/common/utils/async-utils", () => ({
-  processItemsConcurrently: jest.fn(async (items: string[], fn: any) => {
-    for (const item of items) await fn(item);
-  }),
+jest.mock("../../src/common/utils/logging", () => ({
+  logErrorMsgAndDetail: jest.fn(),
 }));
 
 const mockRepo = {
@@ -38,6 +36,10 @@ const mockFileSummarizer = {
 } as any;
 
 describe("CodebaseToDBLoader", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("captures codebase and stores sources", async () => {
     container.registerInstance(repositoryTokens.SourcesRepository, mockRepo);
     container.registerInstance(llmTokens.LLMRouter, mockLLMRouter);
@@ -45,5 +47,20 @@ describe("CodebaseToDBLoader", () => {
     const loader = new CodebaseToDBLoader(mockRepo, mockLLMRouter, mockFileSummarizer);
     await loader.captureCodebaseToDatabase("proj", "/root", true);
     expect(mockRepo.insertSource).toHaveBeenCalled();
+  });
+
+  it("handles errors gracefully during concurrent processing", async () => {
+    const errorRepo = {
+      ...mockRepo,
+      insertSource: jest.fn().mockRejectedValue(new Error("Database error")),
+    };
+    container.registerInstance(repositoryTokens.SourcesRepository, errorRepo);
+    container.registerInstance(llmTokens.LLMRouter, mockLLMRouter);
+    container.registerInstance(captureTokens.FileSummarizer, mockFileSummarizer);
+    const loader = new CodebaseToDBLoader(errorRepo, mockLLMRouter, mockFileSummarizer);
+
+    // Should not throw, errors should be caught and logged
+    await expect(loader.captureCodebaseToDatabase("proj", "/root", true)).resolves.not.toThrow();
+    expect(errorRepo.insertSource).toHaveBeenCalled();
   });
 });

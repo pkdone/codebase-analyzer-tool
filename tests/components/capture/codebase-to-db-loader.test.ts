@@ -404,7 +404,7 @@ describe("CodebaseToDBLoader", () => {
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
       expect(mockLogError).toHaveBeenCalledWith(
-        'Failed to process file: "/src/file1.ts"',
+        "Failed to process file: /src/file1.ts",
         processingError,
       );
     });

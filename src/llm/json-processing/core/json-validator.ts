@@ -4,6 +4,17 @@ import { JsonProcessingLogger } from "./json-processing-logger";
 import { z } from "zod";
 
 /**
+ * Zod schema for validating LLM-generated content types.
+ * LLM-generated content can be a string, object, array, or null.
+ */
+const llmGeneratedContentSchema = z.union([
+  z.string(),
+  z.record(z.unknown()),
+  z.array(z.unknown()),
+  z.null(),
+]);
+
+/**
  * JsonValidator handles validation of LLM response content against optional Zod schemas
  * and ensures content matches expected LLM-generated content types.
  */
@@ -37,28 +48,20 @@ export class JsonValidator {
         return { success: false, issues };
       }
     } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
-      if (this.isLLMGeneratedContent(content)) {
-        return { success: true, data: content };
+      const validation = llmGeneratedContentSchema.safeParse(content);
+      if (validation.success) {
+        return { success: true, data: content as LLMGeneratedContent };
       }
       logger.logTextFormatValidationError();
       return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
-    } else if (this.isLLMGeneratedContent(content)) {
-      return { success: true, data: content };
     } else {
+      const validation = llmGeneratedContentSchema.safeParse(content);
+      if (validation.success) {
+        return { success: true, data: content as LLMGeneratedContent };
+      }
       logger.logContentValidationError();
       return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     }
-  }
-
-  /**
-   * Checks if the given value is LLM-generated content.
-   */
-  private isLLMGeneratedContent(value: unknown): value is LLMGeneratedContent {
-    if (value === null) return true;
-    if (typeof value === "string") return true;
-    if (Array.isArray(value)) return true;
-    if (typeof value === "object" && !Array.isArray(value)) return true;
-    return false;
   }
 
   /**
