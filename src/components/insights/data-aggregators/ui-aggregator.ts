@@ -1,6 +1,8 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
+import type { IAggregator } from "./aggregator.interface";
+import type { AppSummaryCategoryEnum } from "../insights.types";
 
 /**
  * Type definitions for UI analysis summary
@@ -46,7 +48,7 @@ export interface UiAnalysisSummary {
  * Analyzes JSP files for scriptlets and custom tags to measure technical debt.
  */
 @injectable()
-export class UiAggregator {
+export class UiAggregator implements IAggregator {
   private readonly TOP_FILES_LIMIT = 10;
   private readonly HIGH_SCRIPTLET_THRESHOLD = 10;
 
@@ -54,6 +56,14 @@ export class UiAggregator {
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
+
+  getCategory(): AppSummaryCategoryEnum {
+    return "uiTechnologyAnalysis";
+  }
+
+  async aggregate(projectName: string): Promise<UiAnalysisSummary> {
+    return this.aggregateUiAnalysis(projectName);
+  }
 
   /**
    * Aggregates UI technology analysis for a project

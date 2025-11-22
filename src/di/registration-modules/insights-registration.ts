@@ -1,3 +1,4 @@
+import { container } from "tsyringe";
 import { insightsTokens } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
@@ -21,6 +22,7 @@ import { UiAggregator } from "../../components/insights/data-aggregators/ui-aggr
  * - Managing insight generation strategies based on LLM capabilities
  */
 export function registerInsightsComponents(): void {
+  // Register individual aggregators
   registerComponents(
     [
       { token: insightsTokens.BomAggregator, implementation: BomAggregator },
@@ -34,6 +36,23 @@ export function registerInsightsComponents(): void {
     ],
     "Insights components registered",
   );
+
+  // Register aggregators for multi-injection
+  container.register(insightsTokens.Aggregator, {
+    useToken: insightsTokens.BomAggregator,
+  });
+  container.register(insightsTokens.Aggregator, {
+    useToken: insightsTokens.CodeQualityAggregator,
+  });
+  container.register(insightsTokens.Aggregator, {
+    useToken: insightsTokens.JobAggregator,
+  });
+  container.register(insightsTokens.Aggregator, {
+    useToken: insightsTokens.ModuleCouplingAggregator,
+  });
+  container.register(insightsTokens.Aggregator, {
+    useToken: insightsTokens.UiAggregator,
+  });
 }
 
 /**

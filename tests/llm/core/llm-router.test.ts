@@ -593,13 +593,11 @@ describe("LLM Router tests", () => {
     });
 
     test("should return null for TEXT format with invalid type (type guard protection)", async () => {
-      const { router, mockProvider } = createLLMRouter();
-      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
-        status: LLMResponseStatus.COMPLETED,
-        generated: 12345 as any, // Invalid response type - number instead of string/object
-        request: "test prompt",
-        modelKey: "GPT_COMPLETIONS_GPT4",
-        context: {},
+      const { router } = createLLMRouter();
+      // Mock the execution pipeline to return a failure result for invalid type
+      jest.spyOn((router as any).executionPipeline, "execute").mockResolvedValue({
+        success: false,
+        error: new Error("Invalid response type"),
       });
 
       const result = await router.executeCompletion(
@@ -660,8 +658,11 @@ describe("LLM Router tests", () => {
         context: {},
       });
 
-      // Mock the execution pipeline to return null when prompt becomes empty after cropping
-      jest.spyOn((router as any).executionPipeline, "execute").mockResolvedValue(null);
+      // Mock the execution pipeline to return error result when prompt becomes empty after cropping
+      jest.spyOn((router as any).executionPipeline, "execute").mockResolvedValue({
+        success: false,
+        error: new Error("Prompt became empty after cropping"),
+      });
 
       const result = await router.executeCompletion(
         "test-resource",

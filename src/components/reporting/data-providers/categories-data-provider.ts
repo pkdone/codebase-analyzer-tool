@@ -1,4 +1,4 @@
-import { injectable } from "tsyringe";
+import { injectable, injectAll } from "tsyringe";
 import { z } from "zod";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
@@ -7,18 +7,8 @@ import type {
   AppSummaryNameDescArray,
   AppSummaryRecordWithId,
 } from "../../../repositories/app-summaries/app-summaries.model";
-
-/**
- * Categories that have dedicated custom sections and should not be rendered in the generic category loop
- */
-const CATEGORIES_WITH_CUSTOM_SECTIONS = [
-  "appDescription",
-  "billOfMaterials",
-  "codeQualitySummary",
-  "scheduledJobsSummary",
-  "moduleCoupling",
-  "uiTechnologyAnalysis",
-] as const;
+import type { ReportSection } from "../sections/report-section.interface";
+import { SECTION_NAMES } from "../reporting.constants";
 
 // Zod schema for validating AppSummaryNameDescArray
 const appSummaryNameDescArraySchema = z.array(nameDescSchema);
@@ -31,32 +21,30 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
   return appSummaryNameDescArraySchema.safeParse(data).success;
 }
 
-// Type representing categories that should be excluded from generic rendering
-type CategoryWithCustomSection = (typeof CATEGORIES_WITH_CUSTOM_SECTIONS)[number];
-
-// Define valid category keys for generating structured table reports, excluding categories with custom sections
-// This creates a type-safe readonly array of the valid keys
-const TABLE_CATEGORY_KEYS = AppSummaryCategories.options.filter(
-  (key): key is Exclude<AppSummaryCategoryType, CategoryWithCustomSection> =>
-    !(CATEGORIES_WITH_CUSTOM_SECTIONS as readonly string[]).includes(key),
-);
-
-// Type for the valid category keys
-type ValidCategoryKey = (typeof TABLE_CATEGORY_KEYS)[number];
-
 /**
  * Data provider responsible for aggregating app summary categorized data for reports.
  */
 @injectable()
 export class AppSummaryCategoriesProvider {
+  constructor(@injectAll("ReportSection") private readonly reportSections: ReportSection[]) {}
+
   /**
    * Build categorized data for standard (tabular) categories using pre-fetched app summary data.
    * Excludes categories that have custom dedicated sections in the report.
    */
   getStandardSectionData(
-    appSummaryData: Pick<AppSummaryRecordWithId, ValidCategoryKey>,
+    appSummaryData: Pick<AppSummaryRecordWithId, AppSummaryCategoryType>,
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
-    const results = TABLE_CATEGORY_KEYS.map((category: ValidCategoryKey) => {
+    // Get categories that have custom sections (non-standard sections)
+    const customSectionCategories = this.getCustomSectionCategories();
+
+    // Filter to only standard categories
+    const standardCategoryKeys = AppSummaryCategories.options.filter(
+      (key): key is AppSummaryCategoryType =>
+        !customSectionCategories.has(key) && key !== "appDescription",
+    );
+
+    const results = standardCategoryKeys.map((category: AppSummaryCategoryType) => {
       const config = summaryCategoriesConfig[category];
       const label = config.label ?? category;
       const fieldData = appSummaryData[category];
@@ -69,5 +57,29 @@ export class AppSummaryCategoriesProvider {
       };
     });
     return results;
+  }
+
+  /**
+   * Determines which categories have custom sections based on injected report sections.
+   * This makes the category filtering declarative rather than hardcoded.
+   */
+  private getCustomSectionCategories(): Set<string> {
+    const customCategories = new Set<string>();
+
+    for (const section of this.reportSections) {
+      if (!section.isStandardSection()) {
+        // AdvancedDataSection handles these categories with custom rendering
+        if (section.getName() === SECTION_NAMES.ADVANCED_DATA) {
+          customCategories.add("billOfMaterials");
+          customCategories.add("codeQualitySummary");
+          customCategories.add("scheduledJobsSummary");
+          customCategories.add("moduleCoupling");
+          customCategories.add("uiTechnologyAnalysis");
+        }
+        // Add other custom sections as needed
+      }
+    }
+
+    return customCategories;
   }
 }

@@ -1,6 +1,8 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
+import type { IAggregator } from "./aggregator.interface";
+import type { AppSummaryCategoryEnum } from "../insights.types";
 
 interface AggregatedJob {
   jobName: string;
@@ -17,11 +19,32 @@ interface AggregatedJob {
  * Identifies batch jobs, shell scripts, JCL, and other automated processes.
  */
 @injectable()
-export class JobAggregator {
+export class JobAggregator implements IAggregator {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
+
+  getCategory(): AppSummaryCategoryEnum {
+    return "scheduledJobsSummary";
+  }
+
+  async aggregate(projectName: string): Promise<{
+    jobs: {
+      jobName: string;
+      sourceFile: string;
+      trigger: string;
+      purpose: string;
+      inputResources?: string[];
+      outputResources?: string[];
+      dependencies?: string[];
+    }[];
+    totalJobs: number;
+    triggerTypes: string[];
+    jobFiles: string[];
+  }> {
+    return this.aggregateScheduledJobs(projectName);
+  }
 
   /**
    * Aggregates all scheduled jobs from script files for a project

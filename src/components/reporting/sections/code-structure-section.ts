@@ -29,6 +29,10 @@ export class CodeStructureSection implements ReportSection {
     return SECTION_NAMES.CODE_STRUCTURE;
   }
 
+  isStandardSection(): boolean {
+    return true; // This section uses standard rendering
+  }
+
   async getData(projectName: string): Promise<unknown> {
     return await this.codeStructureDataProvider.getTopLevelJavaClasses(projectName);
   }

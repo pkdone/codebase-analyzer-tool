@@ -21,6 +21,10 @@ export class AdvancedDataSection implements ReportSection {
     return SECTION_NAMES.ADVANCED_DATA;
   }
 
+  isStandardSection(): boolean {
+    return false; // This section has custom rendering for BOM, code quality, etc.
+  }
+
   async getData(projectName: string): Promise<unknown> {
     const [
       billOfMaterials,

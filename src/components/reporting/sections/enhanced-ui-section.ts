@@ -57,6 +57,10 @@ export class EnhancedUiSection implements ReportSection {
     return SECTION_NAMES.ENHANCED_UI;
   }
 
+  isStandardSection(): boolean {
+    return true; // This section uses standard rendering
+  }
+
   async getData(_projectName: string): Promise<unknown> {
     // This section uses categorized data that comes from baseData
     // Return empty object as the data is already in baseData

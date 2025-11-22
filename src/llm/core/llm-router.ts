@@ -145,16 +145,23 @@ export default class LLMRouter {
       this.providerRetryConfig,
       this.modelsMetadata,
     );
-    if (contentResponse === null) return null;
+
+    if (!contentResponse.success) {
+      logWithContext(`Failed to generate embeddings: ${contentResponse.error.message}`, context);
+      return null;
+    }
 
     if (
-      !(Array.isArray(contentResponse) && contentResponse.every((item) => typeof item === "number"))
+      !(
+        Array.isArray(contentResponse.data) &&
+        contentResponse.data.every((item) => typeof item === "number")
+      )
     ) {
       logWithContext("LLM response for embeddings was not an array of numbers", context);
       return null;
     }
 
-    return contentResponse;
+    return contentResponse.data;
   }
 
   /**
@@ -185,7 +192,7 @@ export default class LLMRouter {
       modelQuality: candidatesToUse[0].modelQuality,
       outputFormat: options.outputFormat,
     };
-    return await this.executionPipeline.execute<T>(
+    const result = await this.executionPipeline.execute<T>(
       resourceName,
       prompt,
       context,
@@ -195,5 +202,12 @@ export default class LLMRouter {
       candidatesToUse,
       options,
     );
+
+    if (!result.success) {
+      logWithContext(`Failed to execute completion: ${result.error.message}`, context);
+      return null;
+    }
+
+    return result.data;
   }
 }

@@ -60,6 +60,13 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     } as unknown as jest.Mocked<LLMProviderManager>;
 
     const mockBomAggregator = {
+      getCategory: jest.fn().mockReturnValue("billOfMaterials"),
+      aggregate: jest.fn().mockResolvedValue({
+        dependencies: [],
+        totalDependencies: 0,
+        conflictCount: 0,
+        buildFiles: [],
+      }),
       aggregateBillOfMaterials: jest.fn().mockResolvedValue({
         dependencies: [],
         totalDependencies: 0,
@@ -69,6 +76,19 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     } as any;
 
     const mockCodeQualityAggregator = {
+      getCategory: jest.fn().mockReturnValue("codeQualitySummary"),
+      aggregate: jest.fn().mockResolvedValue({
+        topComplexMethods: [],
+        commonCodeSmells: [],
+        overallStatistics: {
+          totalMethods: 0,
+          averageComplexity: 0,
+          highComplexityCount: 0,
+          veryHighComplexityCount: 0,
+          averageMethodLength: 0,
+          longMethodCount: 0,
+        },
+      }),
       aggregateCodeQualityMetrics: jest.fn().mockResolvedValue({
         topComplexMethods: [],
         commonCodeSmells: [],
@@ -84,6 +104,13 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     } as any;
 
     const mockJobAggregator = {
+      getCategory: jest.fn().mockReturnValue("scheduledJobsSummary"),
+      aggregate: jest.fn().mockResolvedValue({
+        jobs: [],
+        totalJobs: 0,
+        triggerTypes: [],
+        jobFiles: [],
+      }),
       aggregateScheduledJobs: jest.fn().mockResolvedValue({
         jobs: [],
         totalJobs: 0,
@@ -93,6 +120,14 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     } as any;
 
     const mockModuleCouplingAggregator = {
+      getCategory: jest.fn().mockReturnValue("moduleCoupling"),
+      aggregate: jest.fn().mockResolvedValue({
+        couplings: [],
+        totalModules: 0,
+        totalCouplings: 0,
+        highestCouplingCount: 0,
+        moduleDepth: 2,
+      }),
       aggregateModuleCoupling: jest.fn().mockResolvedValue({
         couplings: [],
         totalModules: 0,
@@ -103,6 +138,18 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     } as any;
 
     const mockUiAggregator = {
+      getCategory: jest.fn().mockReturnValue("uiTechnologyAnalysis"),
+      aggregate: jest.fn().mockResolvedValue({
+        frameworks: [],
+        totalJspFiles: 0,
+        totalScriptlets: 0,
+        totalExpressions: 0,
+        totalDeclarations: 0,
+        averageScriptletsPerFile: 0,
+        filesWithHighScriptletCount: 0,
+        customTagLibraries: [],
+        topScriptletFiles: [],
+      }),
       aggregateUiAnalysis: jest.fn().mockResolvedValue({
         frameworks: [],
         totalJspFiles: 0,
@@ -122,11 +169,13 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       mockSourcesRepository,
       "test-project",
       mockLLMProviderManager,
-      mockBomAggregator,
-      mockCodeQualityAggregator,
-      mockJobAggregator,
-      mockModuleCouplingAggregator,
-      mockUiAggregator,
+      [
+        mockBomAggregator,
+        mockCodeQualityAggregator,
+        mockJobAggregator,
+        mockModuleCouplingAggregator,
+        mockUiAggregator,
+      ],
     );
   });
 

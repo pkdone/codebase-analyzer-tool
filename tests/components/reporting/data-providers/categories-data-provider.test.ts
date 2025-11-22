@@ -8,7 +8,22 @@ describe("AppSummaryCategoriesProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    categoriesDataProvider = new AppSummaryCategoriesProvider();
+    // Mock report sections - include AdvancedDataSection with custom rendering
+    const mockSections = [
+      {
+        getName: () => "file-types",
+        isStandardSection: () => true,
+      },
+      {
+        getName: () => "database",
+        isStandardSection: () => true,
+      },
+      {
+        getName: () => "advanced-data",
+        isStandardSection: () => false, // This section has custom rendering
+      },
+    ];
+    categoriesDataProvider = new AppSummaryCategoriesProvider(mockSections as any);
   });
 
   describe("getStandardSectionData", () => {

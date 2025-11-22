@@ -1,6 +1,8 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
+import type { IAggregator } from "./aggregator.interface";
+import type { AppSummaryCategoryEnum } from "../insights.types";
 
 interface AggregatedDependency {
   name: string;
@@ -15,11 +17,31 @@ interface AggregatedDependency {
  * Detects version conflicts and provides comprehensive dependency analysis.
  */
 @injectable()
-export class BomAggregator {
+export class BomAggregator implements IAggregator {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
+
+  getCategory(): AppSummaryCategoryEnum {
+    return "billOfMaterials";
+  }
+
+  async aggregate(projectName: string): Promise<{
+    dependencies: {
+      name: string;
+      groupId?: string;
+      versions: string[];
+      hasConflict: boolean;
+      scopes?: string[];
+      locations: string[];
+    }[];
+    totalDependencies: number;
+    conflictCount: number;
+    buildFiles: string[];
+  }> {
+    return this.aggregateBillOfMaterials(projectName);
+  }
 
   /**
    * Aggregates all dependencies from build files for a project

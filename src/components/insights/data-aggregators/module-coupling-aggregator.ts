@@ -1,6 +1,8 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
+import type { IAggregator } from "./aggregator.interface";
+import type { AppSummaryCategoryEnum } from "../insights.types";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;
 
@@ -9,13 +11,21 @@ type ModuleCouplingMap = Record<string, Record<string, number>>;
  * Analyzes module dependencies to identify highly coupled and loosely coupled components.
  */
 @injectable()
-export class ModuleCouplingAggregator {
+export class ModuleCouplingAggregator implements IAggregator {
   private readonly DEFAULT_MODULE_DEPTH = 2;
 
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
+
+  getCategory(): AppSummaryCategoryEnum {
+    return "moduleCoupling";
+  }
+
+  async aggregate(projectName: string) {
+    return this.aggregateModuleCoupling(projectName);
+  }
 
   /**
    * Aggregates module coupling relationships for a project

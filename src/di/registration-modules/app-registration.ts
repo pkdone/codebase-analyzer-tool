@@ -43,6 +43,7 @@ import { databaseConfig } from "../../config/database.config";
 import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
 import { FallbackStrategy } from "../../llm/core/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
+import { JsonValidator } from "../../llm/json-processing/core/json-validator";
 
 // Database component imports
 import { DatabaseInitializer } from "../../tasks/database-initializer";
@@ -88,6 +89,7 @@ function registerComponents(): void {
   // Register LLM strategies and pipeline components (always register since they may be needed)
   container.registerSingleton(llmTokens.RetryStrategy, RetryStrategy);
   container.registerSingleton(llmTokens.FallbackStrategy, FallbackStrategy);
+  container.registerSingleton(llmTokens.JsonValidator, JsonValidator);
   container.registerSingleton(llmTokens.LLMExecutionPipeline, LLMExecutionPipeline);
 
   // Register database components

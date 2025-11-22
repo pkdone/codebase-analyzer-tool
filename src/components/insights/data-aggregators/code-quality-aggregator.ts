@@ -1,17 +1,27 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
+import type { IAggregator } from "./aggregator.interface";
+import type { AppSummaryCategoryEnum } from "../insights.types";
 
 /**
  * Aggregates code quality metrics using MongoDB aggregation pipelines.
  * All heavy lifting is done in the database for optimal performance.
  */
 @injectable()
-export class CodeQualityAggregator {
+export class CodeQualityAggregator implements IAggregator {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
+
+  getCategory(): AppSummaryCategoryEnum {
+    return "codeQualitySummary";
+  }
+
+  async aggregate(projectName: string) {
+    return this.aggregateCodeQualityMetrics(projectName);
+  }
 
   async aggregateCodeQualityMetrics(projectName: string) {
     // Execute all three aggregations in parallel

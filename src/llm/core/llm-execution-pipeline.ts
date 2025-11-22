@@ -7,14 +7,12 @@ import {
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
   LLMCandidateFunction,
-  LLMOutputFormat,
   LLMFunctionResponse,
 } from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
-import { JsonValidator } from "../json-processing/core/json-validator";
 import {
   logLlmPipelineWarning,
   logErrorWithContext,
@@ -23,6 +21,8 @@ import {
 import LLMStats from "./tracking/llm-stats";
 import { llmTokens } from "../../di/tokens";
 import { hasSignificantSanitizationSteps } from "../json-processing/sanitizers";
+import type { LLMExecutionResult } from "../types/llm-execution-result.types";
+import { LLMExecutionError } from "../types/llm-execution-result.types";
 
 /**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
@@ -31,8 +31,6 @@ import { hasSignificantSanitizationSteps } from "../json-processing/sanitizers";
  */
 @injectable()
 export class LLMExecutionPipeline {
-  private readonly jsonValidator = new JsonValidator();
-
   constructor(
     private readonly retryStrategy: RetryStrategy,
     private readonly fallbackStrategy: FallbackStrategy,
@@ -56,7 +54,7 @@ export class LLMExecutionPipeline {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions,
-  ): Promise<T | null> {
+  ): Promise<LLMExecutionResult<T>> {
     try {
       const result = await this.iterateOverLLMFunctions(
         resourceName,
@@ -73,32 +71,44 @@ export class LLMExecutionPipeline {
         if (hasSignificantSanitizationSteps(result.sanitizationSteps)) {
           this.llmStats.recordJsonMutated();
         }
-        const defaultOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.TEXT };
-        const validationResult = this.jsonValidator.validate(
-          result.generated,
-          completionOptions ?? defaultOptions,
-          resourceName,
-        );
-
-        if (validationResult.success) {
-          return validationResult.data as T;
-        }
-        // Validation failed after successful LLM response.
-        // Logging is handled within the JsonValidator, so the redundant log call is removed.
+        // result.generated has already been validated by JsonProcessor in the LLM function
+        // No need for redundant validation here
+        return {
+          success: true,
+          data: result.generated as T,
+        };
       }
 
       logLlmPipelineWarning(
         `Given-up on trying to fulfill the current prompt with an LLM for the following resource: '${resourceName}'`,
       );
+
+      this.llmStats.recordFailure();
+      return {
+        success: false,
+        error: new LLMExecutionError(
+          `Failed to fulfill prompt for resource: '${resourceName}' after exhausting all retry and fallback strategies`,
+          resourceName,
+          context as unknown as Record<string, unknown>,
+        ),
+      };
     } catch (error: unknown) {
       logLlmPipelineWarning(
         `Unable to process the following resource with an LLM due to a non-recoverable error for the following resource: '${resourceName}'`,
       );
       logErrorWithContext(error, context);
-    }
 
-    this.llmStats.recordFailure();
-    return null;
+      this.llmStats.recordFailure();
+      return {
+        success: false,
+        error: new LLMExecutionError(
+          `Non-recoverable error while processing resource: '${resourceName}'`,
+          resourceName,
+          context as unknown as Record<string, unknown>,
+          error,
+        ),
+      };
+    }
   }
 
   /**
