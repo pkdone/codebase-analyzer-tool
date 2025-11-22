@@ -1,6 +1,7 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
 import { DELIMITERS, JSON_KEYWORDS } from "../constants/json-processing.config";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 
 /**
  * Consolidated sanitizer that removes invalid prefixes and stray text from JSON.
@@ -825,7 +826,7 @@ export const removeInvalidPrefixes: Sanitizer = (jsonString: string): SanitizerR
       diagnostics: hasChanges && diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    console.warn(`removeInvalidPrefixes sanitizer failed: ${String(error)}`);
+    logSingleLineWarning(`removeInvalidPrefixes sanitizer failed: ${String(error)}`);
     return {
       content: jsonString,
       changed: false,

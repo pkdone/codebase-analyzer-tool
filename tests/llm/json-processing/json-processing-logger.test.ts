@@ -1,11 +1,10 @@
 import { JsonProcessingLogger } from "../../../src/llm/json-processing/core/json-processing-logger";
 import { SANITIZATION_STEP } from "../../../src/llm/json-processing/sanitizers";
-import { logSingleLineWarning, logErrorMsg } from "../../../src/common/utils/logging";
+import { logSingleLineWarning } from "../../../src/common/utils/logging";
 
 // Mock the logging utilities
 jest.mock("../../../src/common/utils/logging", () => ({
   logSingleLineWarning: jest.fn(),
-  logErrorMsg: jest.fn(),
 }));
 
 describe("JsonProcessingLogger", () => {
@@ -102,12 +101,12 @@ describe("JsonProcessingLogger", () => {
   });
 
   describe("logValidationIssues", () => {
-    it("should log validation issues with resource name", () => {
+    it("should log validation issues with resource name using logSingleLineWarning", () => {
       const issues = "Expected string, received number";
       logger.logValidationIssues(issues);
 
-      expect(logErrorMsg).toHaveBeenCalledTimes(1);
-      expect(logErrorMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledTimes(1);
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Schema validation failed. Validation issues: ${issues}`,
       );
     });
@@ -116,7 +115,7 @@ describe("JsonProcessingLogger", () => {
       const issues = JSON.stringify([{ path: ["name"], message: "Required" }]);
       logger.logValidationIssues(issues);
 
-      expect(logErrorMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Schema validation failed. Validation issues: ${issues}`,
       );
     });
@@ -124,29 +123,39 @@ describe("JsonProcessingLogger", () => {
     it("should handle empty issues string", () => {
       logger.logValidationIssues("");
 
-      expect(logErrorMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Schema validation failed. Validation issues: `,
       );
+    });
+
+    it("should handle issues with newlines by flattening them", () => {
+      const issues = "Error 1\nError 2\nError 3";
+      logger.logValidationIssues(issues);
+
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
+        `[${resourceName}] Schema validation failed. Validation issues: ${issues}`,
+      );
+      // logSingleLineWarning will flatten newlines internally
     });
   });
 
   describe("logTextFormatValidationError", () => {
-    it("should log text format validation error", () => {
+    it("should log text format validation error using logSingleLineWarning", () => {
       logger.logTextFormatValidationError();
 
-      expect(logErrorMsg).toHaveBeenCalledTimes(1);
-      expect(logErrorMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledTimes(1);
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Content for TEXT format is not valid LLMGeneratedContent`,
       );
     });
   });
 
   describe("logContentValidationError", () => {
-    it("should log content validation error", () => {
+    it("should log content validation error using logSingleLineWarning", () => {
       logger.logContentValidationError();
 
-      expect(logErrorMsg).toHaveBeenCalledTimes(1);
-      expect(logErrorMsg).toHaveBeenCalledWith(
+      expect(logSingleLineWarning).toHaveBeenCalledTimes(1);
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
         `[${resourceName}] Content is not valid LLMGeneratedContent`,
       );
     });

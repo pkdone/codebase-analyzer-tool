@@ -1,4 +1,5 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 
 /**
  * Helper function to check if we're in an array context by scanning backwards.
@@ -443,7 +444,7 @@ export const fixMissingArrayObjectBraces: Sanitizer = (input: string): Sanitizer
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.warn(`fixMissingArrayObjectBraces sanitizer failed: ${errorMessage}`);
+    logSingleLineWarning(`fixMissingArrayObjectBraces sanitizer failed: ${errorMessage}`);
     return {
       content: input,
       changed: false,

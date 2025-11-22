@@ -79,10 +79,8 @@ export class LLMExecutionPipeline {
         if (validationResult.success) {
           return validationResult.data as T;
         }
-        // Validation failed after successful LLM response
-        log(
-          `Validation failed for resource '${resourceName}': ${JSON.stringify(validationResult.issues)}`,
-        );
+        // Validation failed after successful LLM response.
+        // Logging is handled within the JsonValidator, so the redundant log call is removed.
       }
 
       log(

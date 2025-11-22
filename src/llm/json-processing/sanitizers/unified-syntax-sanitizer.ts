@@ -1,6 +1,7 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { DELIMITERS } from "../constants/json-processing.config";
 import { CONCATENATION_REGEXES } from "../constants/regex.constants";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 
 /**
  * Helper to determine if a position is inside a string literal.
@@ -2124,7 +2125,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    console.warn(`unifiedSyntaxSanitizer failed: ${String(error)}`);
+    logSingleLineWarning(`unifiedSyntaxSanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

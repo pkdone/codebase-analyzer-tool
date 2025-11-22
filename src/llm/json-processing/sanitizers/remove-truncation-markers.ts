@@ -1,5 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 
 /**
  * Helper to determine if a position is inside a string literal.
@@ -395,7 +396,7 @@ export const removeTruncationMarkers: Sanitizer = (jsonString: string): Sanitize
     };
   } catch (error) {
     // If sanitization fails, return the original string
-    console.warn(`removeTruncationMarkers sanitizer failed: ${String(error)}`);
+    logSingleLineWarning(`removeTruncationMarkers sanitizer failed: ${String(error)}`);
     return {
       content: jsonString,
       changed: false,
