@@ -16,4 +16,4 @@ Do NOT inlude any of the following topics in your recommendations:
  * Monolithic Dependency Injection Token File
  * Centralized DI Registration Logic
  * Make DI Token Definitions Cohesive and Modular
-  * Monolithic Dependency Injection Token File
+ * Monolithic Dependency Injection Token File
