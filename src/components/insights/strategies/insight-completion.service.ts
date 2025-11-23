@@ -22,7 +22,7 @@ export interface InsightCompletionOptions {
 
 /**
  * Execute LLM completion for insight generation with standardized error handling.
- * This helper centralizes the common pattern of creating a prompt and calling the LLM router.
+ * This service centralizes the common pattern of creating a prompt and calling the LLM router.
  *
  * @param llmRouter The LLM router instance
  * @param category The app summary category

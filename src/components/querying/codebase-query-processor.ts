@@ -6,7 +6,7 @@ import type { SourcesRepository } from "../../repositories/sources/sources.repos
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";
 import { repositoryTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
-import { inputConfig } from "./config/input.config";
+import { queryingInputConfig } from "./config/querying-input.config";
 import { CODEBASE_QUERY_TEMPLATE } from "../../prompts/templates";
 import { formatFilesAsMarkdownCodeBlocks } from "../../common/utils/markdown-formatter";
 
@@ -36,8 +36,8 @@ export default class CodebaseQueryProcessor {
     const bestMatchFiles = await this.sourcesRepository.vectorSearchProjectSourcesRawContent(
       projectName,
       queryVector,
-      inputConfig.VECTOR_SEARCH_NUM_CANDIDATES,
-      inputConfig.VECTOR_SEARCH_NUM_LIMIT,
+      queryingInputConfig.VECTOR_SEARCH_NUM_CANDIDATES,
+      queryingInputConfig.VECTOR_SEARCH_NUM_LIMIT,
     );
 
     if (bestMatchFiles.length <= 0) {

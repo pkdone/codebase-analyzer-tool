@@ -5,21 +5,11 @@
 
 const INPUT_BASE_PATH = "./input";
 
-export const inputConfig = {
+export const queryingInputConfig = {
   /**
    * Path to file containing user questions/prompts for querying
    */
   QUESTIONS_PROMPTS_FILEPATH: `${INPUT_BASE_PATH}/questions.prompts`,
-
-  /**
-   * Path to folder containing requirement prompt files
-   */
-  REQUIREMENTS_PROMPTS_FOLDERPATH: `${INPUT_BASE_PATH}/requirements`,
-
-  /**
-   * Regex pattern to match requirement prompt files
-   */
-  REQUIREMENTS_FILE_REGEX: /requirement\d+\.prompt$/i,
 
   /**
    * Number of candidates to consider in vector search.

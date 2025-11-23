@@ -12,7 +12,7 @@ import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import { REDUCE_INSIGHTS_TEMPLATE } from "../../../prompts/templates";
-import { executeInsightCompletion } from "./insight-completion-helper";
+import { executeInsightCompletion } from "./insight-completion.service";
 import { chunkTextByTokenLimit } from "../../../llm/utils/text-chunking";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI

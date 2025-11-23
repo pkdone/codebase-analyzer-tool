@@ -14,7 +14,7 @@ import LLMRouter from "../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import { formatDateForFilename } from "../../common/utils/date-utils";
-import { inputConfig } from "../querying/config/input.config";
+import { insightsInputConfig } from "./config/insights-input.config";
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -40,14 +40,14 @@ export class PromptFileInsightsGenerator {
    * Load prompts from files in the input folder
    */
   async loadPrompts(): Promise<FileRequirementPrompt[]> {
-    const inputDir = inputConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
+    const inputDir = insightsInputConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 
     try {
       await ensureDirectoryExists(inputDir);
       const files = await listDirectoryEntries(inputDir);
       const promptFiles = files.filter((file) =>
-        inputConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
+        insightsInputConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
       );
 
       for (const file of promptFiles) {
