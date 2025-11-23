@@ -138,7 +138,7 @@ describe("Template Consolidation", () => {
 
       // This should not throw an error
       expect(() => {
-        new Prompt(mockDefinition, "test content");
+        new Prompt(mockDefinition);
       }).not.toThrow();
     });
   });

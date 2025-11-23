@@ -12,20 +12,17 @@ export class Prompt {
   private readonly template: string;
   private readonly contentDesc: string;
   private readonly instructions: readonly InstructionSection[];
-  private readonly content: string;
   private readonly responseSchema: z.ZodType;
 
   /**
    * Creates a new Prompt instance.
    *
    * @param promptDefinition - The prompt definition containing all configuration including template
-   * @param content - The actual content to analyze
    */
-  constructor(promptDefinition: PromptDefinition, content: string) {
+  constructor(promptDefinition: PromptDefinition) {
     this.template = promptDefinition.template;
     this.contentDesc = promptDefinition.contentDesc;
     this.instructions = promptDefinition.instructions;
-    this.content = content;
     this.responseSchema = promptDefinition.responseSchema;
   }
 
@@ -34,22 +31,21 @@ export class Prompt {
    * This method handles all prompt formatting, including converting instruction sections to formatted text
    * and generating the JSON schema string from the response schema.
    *
-   * @param additionalParams - Optional additional parameters to merge into the template data
+   * @param data - All template variables needed to fill the template, including content
    * @returns The fully rendered prompt string
    */
-  render(additionalParams: Record<string, string | undefined> = {}): string {
+  render(data: Record<string, unknown>): string {
     const instructionsText = this.formatInstructions();
     const jsonSchemaString = JSON.stringify(zodToJsonSchema(this.responseSchema), null, 2);
 
     const templateData = {
+      ...data, // All template variables are passed in one object
       instructions: instructionsText,
       forceJSON: PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT,
       jsonSchema: jsonSchemaString,
       contentDesc: this.contentDesc,
-      content: this.content,
       // Handle partialAnalysisNote - use nullish coalescing to only default when null/undefined
-      partialAnalysisNote: additionalParams.partialAnalysisNote ?? "",
-      ...additionalParams, // Merge additional params
+      partialAnalysisNote: (data.partialAnalysisNote as string | undefined) ?? "",
     };
 
     return fillPrompt(this.template, templateData);

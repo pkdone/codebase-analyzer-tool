@@ -65,13 +65,14 @@ describe("Data-driven Prompt System", () => {
 
     it("should have consistent structure between config and generated metadata", () => {
       Object.entries(appSummaryConfigMap).forEach(([category, config]) => {
-        const metadata =
-          appSummaryPromptMetadata[category as keyof typeof appSummaryPromptMetadata];
+        const metadata = appSummaryPromptMetadata[category];
 
         expect(metadata.label).toBe(config.label);
-        expect(metadata.contentDesc).toBe(config.instruction);
+        expect(metadata.contentDesc).toBe("a set of source file summaries"); // Generic contentDesc
         expect(metadata.template).toBeDefined();
         expect(metadata.responseSchema).toBe(config.responseSchema);
+        // Instructions should be built from config.contentDesc
+        expect(metadata.instructions[0].points[0]).toBe(config.contentDesc);
       });
     });
 
@@ -115,7 +116,7 @@ describe("Data-driven Prompt System", () => {
       expect(javaMetadata.instructions.length).toBeGreaterThan(1);
 
       // Each section should have proper structure
-      javaMetadata.instructions.forEach((section) => {
+      javaMetadata.instructions.forEach((section: { points: readonly string[] }) => {
         expect(section.points).toBeDefined();
         expect(Array.isArray(section.points)).toBe(true);
         expect(section.points.length).toBeGreaterThan(0);

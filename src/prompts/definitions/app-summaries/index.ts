@@ -1,20 +1,15 @@
-import { AppSummaryCategoryType, PromptDefinition } from "../../prompt.types";
-import { appSummaryConfigMap } from "./app-summaries.config";
+import { appSummaryConfigMap, type AppSummaryConfigEntry } from "./app-summaries.config";
 import { APP_SUMMARY_TEMPLATE } from "../../templates";
+import { createPromptMetadata } from "../prompt-factory";
 
 /**
  * Data-driven mapping of app summary categories to their templates and schemas.
- * Generated from centralized configuration to eliminate redundant files.
+ * Generated from centralized configuration using the generic prompt factory.
  */
-export const appSummaryPromptMetadata = Object.fromEntries(
-  Object.entries(appSummaryConfigMap).map(([key, config]) => {
-    const definition: PromptDefinition = {
-      label: config.label,
-      contentDesc: config.instruction, // Directly use the instruction as contentDesc
-      responseSchema: config.responseSchema,
-      template: APP_SUMMARY_TEMPLATE,
-      instructions: [{ points: [config.instruction] }], // Wrap instruction in InstructionSection format
-    };
-    return [key, definition];
-  }),
-) as Record<AppSummaryCategoryType, PromptDefinition>;
+export const appSummaryPromptMetadata = createPromptMetadata<
+  keyof typeof appSummaryConfigMap,
+  AppSummaryConfigEntry
+>(appSummaryConfigMap, APP_SUMMARY_TEMPLATE, {
+  contentDescBuilder: () => "a set of source file summaries", // Generic description
+  instructionsBuilder: (config) => [{ points: [config.contentDesc] }], // Build instructions from the config's contentDesc
+});

@@ -146,8 +146,8 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       config.label ?? category,
       config.responseSchema,
     );
-    const prompt = new Prompt(reducePromptDefinition, content);
-    const renderedPrompt = prompt.render({ categoryKey });
+    const prompt = new Prompt(reducePromptDefinition);
+    const renderedPrompt = prompt.render({ categoryKey, content });
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

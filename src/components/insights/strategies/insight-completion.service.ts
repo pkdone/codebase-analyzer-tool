@@ -41,15 +41,18 @@ export async function executeInsightCompletion(
   try {
     const config = appSummaryPromptMetadata[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    const renderParams: Record<string, string> = {};
+    const renderParams: Record<string, unknown> = {
+      content: codeContent,
+    };
     if (options.partialAnalysisNote) {
       renderParams.partialAnalysisNote = options.partialAnalysisNote;
     }
-    const prompt = new Prompt(config, codeContent).render(renderParams);
+    const prompt = new Prompt(config);
+    const renderedPrompt = prompt.render(renderParams);
 
     const llmResponse = await llmRouter.executeCompletion<PartialAppSummaryRecord>(
       taskCategory,
-      prompt,
+      renderedPrompt,
       {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: config.responseSchema,

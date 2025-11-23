@@ -121,6 +121,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       responseSchema: appSummaryRecordCategoriesSchema,
       template: APP_SUMMARY_TEMPLATE,
     };
-    return new Prompt(allCategoriesConfig, codeBlocksContent).render();
+    const prompt = new Prompt(allCategoriesConfig);
+    return prompt.render({ content: codeBlocksContent });
   }
 }

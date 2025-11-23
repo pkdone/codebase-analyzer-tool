@@ -72,8 +72,8 @@ export default class CodebaseQueryProcessor {
    * @returns The filled prompt string
    */
   private createCodebaseQueryPrompt(question: string, codeContent: string): string {
-    const prompt = new Prompt(codebaseQueryPromptDefinition, codeContent);
-    return prompt.render({ question });
+    const prompt = new Prompt(codebaseQueryPromptDefinition);
+    return prompt.render({ question, content: codeContent });
   }
 
   /**

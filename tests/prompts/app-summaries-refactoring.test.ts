@@ -4,25 +4,17 @@ import { Prompt } from "../../src/prompts/prompt";
 
 describe("App Summaries Refactoring", () => {
   describe("Prompt definitions consistency", () => {
-    it("should have consistent contentDesc and instructions for all app summary categories", () => {
-      Object.entries(appSummaryPromptMetadata).forEach(([category, config]) => {
-        // Verify that contentDesc and instructions[0].points[0] are consistent
-        // This ensures the refactoring eliminated duplication
-        expect(config.contentDesc).toBeDefined();
+    it("should have generic contentDesc and specific instructions for all app summary categories", () => {
+      Object.entries(appSummaryPromptMetadata).forEach(([, config]) => {
+        // Verify that contentDesc is generic
+        expect(config.contentDesc).toBe("a set of source file summaries");
+        // Verify that instructions contain the specific instruction text
         expect(config.instructions).toBeDefined();
         expect(config.instructions.length).toBeGreaterThan(0);
         expect(config.instructions[0].points).toBeDefined();
         expect(config.instructions[0].points.length).toBeGreaterThan(0);
-
-        // For most categories, the first instruction point should match the contentDesc
-        // (some categories like billOfMaterials and potentialMicroservices have different patterns)
-        if (
-          category !== "billOfMaterials" &&
-          category !== "potentialMicroservices" &&
-          category !== "uiTechnologyAnalysis"
-        ) {
-          expect(config.instructions[0].points[0]).toContain(config.contentDesc.split(" ")[0]); // Check for common prefix
-        }
+        // Instructions should contain specific text, not the generic contentDesc
+        expect(config.instructions[0].points[0].length).toBeGreaterThan(config.contentDesc.length);
       });
     });
 
@@ -32,14 +24,12 @@ describe("App Summaries Refactoring", () => {
       const aggregatesConfig = appSummaryPromptMetadata.aggregates;
       const entitiesConfig = appSummaryPromptMetadata.entities;
 
-      // Verify that the instruction text is properly defined
-      expect(technologiesConfig.contentDesc).toContain(
-        "key external and host platform technologies",
-      );
-      expect(aggregatesConfig.contentDesc).toContain("Domain Driven Design aggregates");
-      expect(entitiesConfig.contentDesc).toContain("Domain-Driven Design entities");
+      // Verify that contentDesc is generic
+      expect(technologiesConfig.contentDesc).toBe("a set of source file summaries");
+      expect(aggregatesConfig.contentDesc).toBe("a set of source file summaries");
+      expect(entitiesConfig.contentDesc).toBe("a set of source file summaries");
 
-      // Verify instructions match the contentDesc pattern
+      // Verify instructions contain the specific instruction text
       expect(technologiesConfig.instructions[0].points[0]).toContain(
         "key external and host platform technologies",
       );
@@ -56,8 +46,11 @@ describe("App Summaries Refactoring", () => {
       const testContent = "Test file content";
       const partialAnalysisNote = "This is a partial analysis note for testing";
 
-      const prompt = new Prompt(config, testContent);
-      const renderedPrompt = prompt.render({ partialAnalysisNote });
+      const prompt = new Prompt(config);
+      const renderedPrompt = prompt.render({
+        content: testContent,
+        partialAnalysisNote,
+      });
 
       // Verify the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -72,8 +65,8 @@ describe("App Summaries Refactoring", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
 
-      const prompt = new Prompt(config, testContent);
-      const renderedPrompt = prompt.render();
+      const prompt = new Prompt(config);
+      const renderedPrompt = prompt.render({ content: testContent });
 
       // Verify the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -92,8 +85,11 @@ describe("App Summaries Refactoring", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
 
-      const prompt = new Prompt(config, testContent);
-      const renderedPrompt = prompt.render({ partialAnalysisNote: "" });
+      const prompt = new Prompt(config);
+      const renderedPrompt = prompt.render({
+        content: testContent,
+        partialAnalysisNote: "",
+      });
 
       // Verify the template structure without the note
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -125,6 +121,22 @@ describe("App Summaries Refactoring", () => {
       expect(APP_SUMMARY_TEMPLATE).toBeDefined();
       // The REDUCE_INSIGHTS_TEMPLATE should be imported and available
       // This test ensures the consolidation didn't break the reduce functionality
+    });
+
+    it("should verify prompt text structure with generic contentDesc and specific instructions", () => {
+      const config = appSummaryPromptMetadata.technologies;
+      const testContent = "Test file summaries content";
+      const prompt = new Prompt(config);
+      const renderedPrompt = prompt.render({ content: testContent });
+
+      // Verify generic contentDesc appears in template
+      expect(renderedPrompt).toContain("a set of source file summaries");
+      // Verify specific instruction text appears in template
+      expect(renderedPrompt).toContain("key external and host platform technologies");
+      // Verify content appears
+      expect(renderedPrompt).toContain(testContent);
+      // Verify no placeholder syntax remains
+      expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
   });
 });

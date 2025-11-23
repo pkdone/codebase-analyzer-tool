@@ -11,11 +11,12 @@ import { InstructionSection } from "../../prompt.types";
 /**
  * Configuration entry for a source prompt definition
  */
-interface SourceConfigEntry {
+export interface SourceConfigEntry {
   contentDesc: string;
   hasComplexSchema?: boolean; // Defaults to true when undefined
   schemaFields: string[];
   instructions: readonly InstructionSection[];
+  // responseSchema is optional - sources build schema via pick() in the factory
 }
 
 /**

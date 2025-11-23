@@ -15,8 +15,8 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
       template: REDUCE_INSIGHTS_TEMPLATE,
     };
 
-    const prompt = new Prompt(testConfig, '{"entities": []}');
-    const rendered = prompt.render({ categoryKey: "entities" });
+    const prompt = new Prompt(testConfig);
+    const rendered = prompt.render({ categoryKey: "entities", content: '{"entities": []}' });
 
     // Verify that categoryKey was replaced correctly
     expect(rendered).toContain("'entities'");
@@ -32,8 +32,8 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
     };
 
     const content = JSON.stringify({ entities: [{ name: "Test" }] }, null, 2);
-    const prompt = new Prompt(testConfig, content);
-    const rendered = prompt.render({ categoryKey: "entities" });
+    const prompt = new Prompt(testConfig);
+    const rendered = prompt.render({ categoryKey: "entities", content });
 
     // Verify the template was rendered correctly with categoryKey
     expect(rendered).toContain("'entities'");

@@ -20,13 +20,13 @@ describe("Prompt Refactoring", () => {
 
   describe("Constructor-based instantiation", () => {
     it("should create prompt instances using constructor", () => {
-      const prompt = new Prompt(testDefinition, testContent);
+      const prompt = new Prompt(testDefinition);
       expect(prompt).toBeInstanceOf(Prompt);
     });
 
     it("should render prompts correctly with constructor", () => {
-      const prompt = new Prompt(testDefinition, testContent);
-      const rendered = prompt.render();
+      const prompt = new Prompt(testDefinition);
+      const rendered = prompt.render({ content: testContent });
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
@@ -37,8 +37,8 @@ describe("Prompt Refactoring", () => {
 
     it("should handle different template types", () => {
       const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
-      const prompt = new Prompt(appSummaryDefinition, testContent);
-      const rendered = prompt.render();
+      const prompt = new Prompt(appSummaryDefinition);
+      const rendered = prompt.render({ content: testContent });
 
       expect(rendered).toContain("FILE_SUMMARIES:");
       expect(rendered).not.toContain("CODE:");
@@ -47,8 +47,8 @@ describe("Prompt Refactoring", () => {
     it("should handle reduce template with category key replacement via render parameters", () => {
       const categoryKey = "entities";
       const reduceDefinition = { ...testDefinition, template: REDUCE_INSIGHTS_TEMPLATE };
-      const prompt = new Prompt(reduceDefinition, testContent);
-      const rendered = prompt.render({ categoryKey });
+      const prompt = new Prompt(reduceDefinition);
+      const rendered = prompt.render({ categoryKey, content: testContent });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(`'${categoryKey}'`);
@@ -64,8 +64,8 @@ describe("Prompt Refactoring", () => {
           { title: "Section 2", points: ["point 3"] },
         ],
       };
-      const prompt = new Prompt(complexDefinition, testContent);
-      const rendered = prompt.render();
+      const prompt = new Prompt(complexDefinition);
+      const rendered = prompt.render({ content: testContent });
 
       expect(rendered).toContain("__Section 1__");
       expect(rendered).toContain("__Section 2__");
@@ -78,18 +78,18 @@ describe("Prompt Refactoring", () => {
     it("should handle additional parameters in render method", () => {
       // Use APP_SUMMARY_TEMPLATE which supports partialAnalysisNote
       const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
-      const prompt = new Prompt(appSummaryDefinition, testContent);
-      const additionalParams = {
+      const prompt = new Prompt(appSummaryDefinition);
+      const rendered = prompt.render({
+        content: testContent,
         partialAnalysisNote: "This is a custom note for testing",
-      };
-      const rendered = prompt.render(additionalParams);
+      });
 
-      expect(rendered).toContain(additionalParams.partialAnalysisNote);
+      expect(rendered).toContain("This is a custom note for testing");
     });
 
     it("should handle empty additional parameters", () => {
-      const prompt = new Prompt(testDefinition, testContent);
-      const rendered = prompt.render({});
+      const prompt = new Prompt(testDefinition);
+      const rendered = prompt.render({ content: testContent });
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain(testContent);
@@ -122,8 +122,8 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should not have any placeholder syntax in rendered output", () => {
-      const prompt = new Prompt(testDefinition, testContent);
-      const rendered = prompt.render();
+      const prompt = new Prompt(testDefinition);
+      const rendered = prompt.render({ content: testContent });
 
       expect(rendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
@@ -135,11 +135,11 @@ describe("Prompt Refactoring", () => {
       const sourceDefinition = { ...testDefinition, template: SOURCES_TEMPLATE };
       const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
 
-      const sourcePrompt = new Prompt(sourceDefinition, testContent);
-      const appSummaryPrompt = new Prompt(appSummaryDefinition, testContent);
+      const sourcePrompt = new Prompt(sourceDefinition);
+      const appSummaryPrompt = new Prompt(appSummaryDefinition);
 
-      const sourceRendered = sourcePrompt.render();
-      const appSummaryRendered = appSummaryPrompt.render();
+      const sourceRendered = sourcePrompt.render({ content: testContent });
+      const appSummaryRendered = appSummaryPrompt.render({ content: testContent });
 
       // Verify the structure is correct
       expect(sourceRendered).toContain("CODE:");
