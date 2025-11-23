@@ -12,8 +12,3 @@ export abstract class AppError extends Error {
     }
   }
 }
-
-/**
- * Base class for all database-related errors.
- */
-export abstract class DatabaseError extends AppError {}

@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import LLMRouter from "../../../llm/core/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
@@ -196,7 +197,8 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       responseSchema: config.responseSchema,
       template: REDUCE_INSIGHTS_TEMPLATE,
     };
-    const prompt = new Prompt(reduceConfig, content).render({ categoryKey });
+    const jsonSchemaString = JSON.stringify(zodToJsonSchema(config.responseSchema), null, 2);
+    const prompt = new Prompt(reduceConfig, content).render(jsonSchemaString, { categoryKey });
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

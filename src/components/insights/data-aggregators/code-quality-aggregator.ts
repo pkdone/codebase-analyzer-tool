@@ -20,10 +20,6 @@ export class CodeQualityAggregator implements IAggregator {
   }
 
   async aggregate(projectName: string) {
-    return this.aggregateCodeQualityMetrics(projectName);
-  }
-
-  async aggregateCodeQualityMetrics(projectName: string) {
     // Execute all three aggregations in parallel
     const [topComplexMethods, commonCodeSmells, overallStatistics] = await Promise.all([
       this.sourcesRepository.getTopComplexMethods(projectName, 10),

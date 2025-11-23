@@ -61,14 +61,10 @@ export class UiAggregator implements IAggregator {
     return "uiTechnologyAnalysis";
   }
 
-  async aggregate(projectName: string): Promise<UiAnalysisSummary> {
-    return this.aggregateUiAnalysis(projectName);
-  }
-
   /**
    * Aggregates UI technology analysis for a project
    */
-  async aggregateUiAnalysis(projectName: string): Promise<UiAnalysisSummary> {
+  async aggregate(projectName: string): Promise<UiAnalysisSummary> {
     // Fetch all source files from the project
     const sourceFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, []);
 

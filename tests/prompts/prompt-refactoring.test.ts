@@ -1,3 +1,4 @@
+import { zodToJsonSchema } from "zod-to-json-schema";
 import { Prompt } from "../../src/prompts/prompt";
 import { PromptDefinition } from "../../src/prompts/prompt.types";
 import { z } from "zod";
@@ -26,7 +27,12 @@ describe("Prompt Refactoring", () => {
 
     it("should render prompts correctly with constructor", () => {
       const prompt = new Prompt(testDefinition, testContent);
-      const rendered = prompt.render();
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(testDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
@@ -38,7 +44,12 @@ describe("Prompt Refactoring", () => {
     it("should handle different template types", () => {
       const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
       const prompt = new Prompt(appSummaryDefinition, testContent);
-      const rendered = prompt.render();
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(testDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString);
 
       expect(rendered).toContain("FILE_SUMMARIES:");
       expect(rendered).not.toContain("CODE:");
@@ -48,7 +59,12 @@ describe("Prompt Refactoring", () => {
       const categoryKey = "entities";
       const reduceDefinition = { ...testDefinition, template: REDUCE_INSIGHTS_TEMPLATE };
       const prompt = new Prompt(reduceDefinition, testContent);
-      const rendered = prompt.render({ categoryKey });
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(testDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString, { categoryKey });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(`'${categoryKey}'`);
@@ -65,7 +81,12 @@ describe("Prompt Refactoring", () => {
         ],
       };
       const prompt = new Prompt(complexDefinition, testContent);
-      const rendered = prompt.render();
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(testDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString);
 
       expect(rendered).toContain("__Section 1__");
       expect(rendered).toContain("__Section 2__");
@@ -82,14 +103,24 @@ describe("Prompt Refactoring", () => {
       const additionalParams = {
         partialAnalysisNote: "This is a custom note for testing",
       };
-      const rendered = prompt.render(additionalParams);
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(testDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString, additionalParams);
 
       expect(rendered).toContain(additionalParams.partialAnalysisNote);
     });
 
     it("should handle empty additional parameters", () => {
       const prompt = new Prompt(testDefinition, testContent);
-      const rendered = prompt.render({});
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(testDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString, {});
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain(testContent);
@@ -123,7 +154,12 @@ describe("Prompt Refactoring", () => {
 
     it("should not have any placeholder syntax in rendered output", () => {
       const prompt = new Prompt(testDefinition, testContent);
-      const rendered = prompt.render();
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(testDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString);
 
       expect(rendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
@@ -137,9 +173,14 @@ describe("Prompt Refactoring", () => {
 
       const sourcePrompt = new Prompt(sourceDefinition, testContent);
       const appSummaryPrompt = new Prompt(appSummaryDefinition, testContent);
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(testDefinition.responseSchema),
+        null,
+        2,
+      );
 
-      const sourceRendered = sourcePrompt.render();
-      const appSummaryRendered = appSummaryPrompt.render();
+      const sourceRendered = sourcePrompt.render(jsonSchemaString);
+      const appSummaryRendered = appSummaryPrompt.render(jsonSchemaString);
 
       // Verify the structure is correct
       expect(sourceRendered).toContain("CODE:");

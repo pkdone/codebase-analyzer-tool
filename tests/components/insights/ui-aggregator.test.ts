@@ -16,7 +16,7 @@ describe("UiAggregator", () => {
     aggregator = new UiAggregator(mockSourcesRepository);
   });
 
-  describe("aggregateUiAnalysis", () => {
+  describe("aggregate", () => {
     it("should aggregate JSP metrics from multiple files", async () => {
       const mockSourceFiles = [
         {
@@ -48,7 +48,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalJspFiles).toBe(2);
       expect(result.totalScriptlets).toBe(13); // 5 + 8
@@ -84,7 +84,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.frameworks).toHaveLength(1);
       expect(result.frameworks[0].name).toBe("Struts");
@@ -139,7 +139,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.customTagLibraries).toHaveLength(3);
 
@@ -198,7 +198,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.topScriptletFiles).toHaveLength(3);
       // Should be sorted by total blocks descending
@@ -249,7 +249,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       // Only file2 (11 total) and file3 (17 total) have >10 scriptlet blocks
       expect(result.filesWithHighScriptletCount).toBe(2);
@@ -258,7 +258,7 @@ describe("UiAggregator", () => {
     it("should handle empty project", async () => {
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue([]);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.frameworks).toHaveLength(0);
       expect(result.totalJspFiles).toBe(0);
@@ -289,7 +289,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.frameworks).toHaveLength(0);
       expect(result.totalJspFiles).toBe(0);
@@ -322,7 +322,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.frameworks).toHaveLength(2);
       expect(result.frameworks.find((f) => f.name === "Struts")).toBeDefined();
@@ -344,7 +344,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.frameworks).toHaveLength(1);
       expect(result.frameworks[0].name).toBe("Spring MVC");
@@ -366,7 +366,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalJspFiles).toBe(15);
       expect(result.topScriptletFiles).toHaveLength(10); // Should be limited to 10
@@ -413,7 +413,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalScriptlets).toBe(60);
       expect(result.totalJspFiles).toBe(3);
@@ -466,7 +466,7 @@ describe("UiAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateUiAnalysis("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.customTagLibraries).toHaveLength(3);
       expect(result.customTagLibraries[0].prefix).toBe("b"); // Most used (3)

@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import LLMRouter from "../../llm/core/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import { repositoryTokens } from "../../di/tokens";
@@ -121,6 +122,11 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       responseSchema: appSummaryRecordCategoriesSchema,
       template: APP_SUMMARY_TEMPLATE,
     };
-    return new Prompt(allCategoriesConfig, codeBlocksContent).render();
+    const jsonSchemaString = JSON.stringify(
+      zodToJsonSchema(appSummaryRecordCategoriesSchema),
+      null,
+      2,
+    );
+    return new Prompt(allCategoriesConfig, codeBlocksContent).render(jsonSchemaString);
   }
 }

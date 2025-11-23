@@ -1,4 +1,9 @@
-import { DatabaseError } from "../errors/app-error";
+import { AppError } from "../errors/app-error";
+
+/**
+ * Base class for all database-related errors.
+ */
+export abstract class DatabaseError extends AppError {}
 
 /**
  * Error thrown when unable to connect to the database.

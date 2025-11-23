@@ -1,6 +1,4 @@
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { fillPrompt } from "type-safe-prompt";
-import { z } from "zod";
 import { PROMPT_FRAGMENTS } from "./definitions/fragments";
 import { type InstructionSection, type PromptDefinition } from "./prompt.types";
 
@@ -12,7 +10,6 @@ export class Prompt {
   private readonly template: string;
   private readonly contentDesc: string;
   private readonly instructions: readonly InstructionSection[];
-  private readonly schema: z.ZodType;
   private readonly content: string;
 
   /**
@@ -25,7 +22,6 @@ export class Prompt {
     this.template = promptDefinition.template;
     this.contentDesc = promptDefinition.contentDesc;
     this.instructions = promptDefinition.instructions;
-    this.schema = promptDefinition.responseSchema;
     this.content = content;
   }
 
@@ -33,16 +29,20 @@ export class Prompt {
    * Renders the prompt by filling template placeholders with the provided values.
    * This method handles all prompt formatting, including converting instruction sections to formatted text.
    *
+   * @param jsonSchemaString - The JSON schema as a stringified JSON object
    * @param additionalParams - Optional additional parameters to merge into the template data
    * @returns The fully rendered prompt string
    */
-  render(additionalParams: Record<string, string | undefined> = {}): string {
+  render(
+    jsonSchemaString: string,
+    additionalParams: Record<string, string | undefined> = {},
+  ): string {
     const instructionsText = this.formatInstructions();
 
     const templateData = {
       instructions: instructionsText,
       forceJSON: PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT,
-      jsonSchema: JSON.stringify(zodToJsonSchema(this.schema), null, 2),
+      jsonSchema: jsonSchemaString,
       contentDesc: this.contentDesc,
       content: this.content,
       // Handle partialAnalysisNote - use nullish coalescing to only default when null/undefined

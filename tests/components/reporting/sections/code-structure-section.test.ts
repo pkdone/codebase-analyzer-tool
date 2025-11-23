@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { CodeStructureSection } from "../../../../src/components/reporting/sections/code-structure-section";
 import { CodeStructureDataProvider } from "../../../../src/components/reporting/data-providers/code-structure-data-provider";
-import { DependencyTreePngGenerator } from "../../../../src/components/reporting/generators/dependency-tree-png-generator";
+import { DependencyTreePngGenerator } from "../../../../src/components/reporting/generators/png/dependency-tree-png-generator";
 import type { ReportData } from "../../../../src/components/reporting/report-gen.types";
 
 describe("CodeStructureSection", () => {

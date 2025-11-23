@@ -144,7 +144,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(testStrutsConfig);
 
     // Act: Run UI analysis aggregation
-    const uiAnalysisResult = await uiAggregator.aggregateUiAnalysis(projectName);
+    const uiAnalysisResult = await uiAggregator.aggregate(projectName);
 
     // Assert: Verify the aggregated results
     expect(uiAnalysisResult.totalJspFiles).toBe(3);
@@ -211,7 +211,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(testJavaFile);
 
     // Act
-    const result = await uiAggregator.aggregateUiAnalysis(projectName);
+    const result = await uiAggregator.aggregate(projectName);
 
     // Assert: Should return empty/zero results
     expect(result.totalJspFiles).toBe(0);
@@ -263,7 +263,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(jsfConfig);
 
     // Act
-    const result = await uiAggregator.aggregateUiAnalysis(projectName);
+    const result = await uiAggregator.aggregate(projectName);
 
     // Assert
     expect(result.frameworks).toHaveLength(2);
@@ -301,7 +301,7 @@ describe("UI Technology Analysis Integration Test", () => {
     });
 
     // Act: Run aggregation and store
-    const uiData = await uiAggregator.aggregateUiAnalysis(projectName);
+    const uiData = await uiAggregator.aggregate(projectName);
     await appSummaryRepository.updateAppSummary(projectName, {
       uiTechnologyAnalysis: uiData,
     });

@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
 import { BaseSvgGenerator } from "./base-svg-generator";
-import type { IntegrationPointInfo } from "../report-gen.types";
+import type { IntegrationPointInfo } from "../../report-gen.types";
 
 export interface Microservice {
   name: string;

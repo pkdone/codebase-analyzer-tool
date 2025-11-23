@@ -16,7 +16,7 @@ describe("ModuleCouplingAggregator", () => {
     aggregator = new ModuleCouplingAggregator(mockSourcesRepository);
   });
 
-  describe("aggregateModuleCoupling", () => {
+  describe("aggregate", () => {
     it("should aggregate module coupling from source files with internal references", async () => {
       const mockSourceFiles = [
         {
@@ -41,7 +41,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 2);
+      const result = await aggregator.aggregate("test-project", 2);
 
       expect(result.totalModules).toBe(3); // src/components, src/utils, src/models
       expect(result.totalCouplings).toBe(2); // src/components -> src/utils, src/components -> src/models
@@ -70,7 +70,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalModules).toBe(0);
       expect(result.totalCouplings).toBe(0);
@@ -81,7 +81,7 @@ describe("ModuleCouplingAggregator", () => {
     it("should handle empty project", async () => {
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue([]);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalModules).toBe(0);
       expect(result.totalCouplings).toBe(0);
@@ -101,7 +101,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 2);
+      const result = await aggregator.aggregate("test-project", 2);
 
       // Should have 1 module but 0 couplings (self-reference excluded)
       expect(result.totalModules).toBe(1);
@@ -127,7 +127,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 2);
+      const result = await aggregator.aggregate("test-project", 2);
 
       // Find the coupling from src/services to src.models (dot-notation namespace)
       const coupling = result.couplings.find(
@@ -153,7 +153,7 @@ describe("ModuleCouplingAggregator", () => {
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
       // With depth 3, modules should be app/modules/user and app/modules/common
-      const result = await aggregator.aggregateModuleCoupling("test-project", 3);
+      const result = await aggregator.aggregate("test-project", 3);
 
       expect(result.moduleDepth).toBe(3);
       expect(result.totalModules).toBe(2);
@@ -175,7 +175,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 2);
+      const result = await aggregator.aggregate("test-project", 2);
 
       // Files with insufficient depth should be skipped
       expect(result.totalModules).toBe(0);
@@ -206,7 +206,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 2);
+      const result = await aggregator.aggregate("test-project", 2);
 
       // All references from src/services to src.models are aggregated together (1+3=4)
       // References to src.utils are aggregated (2)
@@ -233,7 +233,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 3);
+      const result = await aggregator.aggregate("test-project", 3);
 
       // With depth 3:
       // - filepath "com/example/services/UserService.java" -> module "com/example/services"
@@ -262,7 +262,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 2);
+      const result = await aggregator.aggregate("test-project", 2);
       expect(result.totalModules).toBe(3);
       // Should have couplings from app/services to both app/models and app/utils
       expect(result.totalCouplings).toBe(2);
@@ -280,7 +280,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 2);
+      const result = await aggregator.aggregate("test-project", 2);
 
       // Should normalize and create coupling
       expect(result.totalCouplings).toBeGreaterThan(0);
@@ -299,7 +299,7 @@ describe("ModuleCouplingAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateModuleCoupling("test-project", 2);
+      const result = await aggregator.aggregate("test-project", 2);
 
       // Should have 1 module (src/services) but 0 couplings (can't determine module for "UserModel")
       expect(result.totalModules).toBe(1);

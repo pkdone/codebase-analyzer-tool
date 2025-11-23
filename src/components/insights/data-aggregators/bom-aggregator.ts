@@ -27,26 +27,10 @@ export class BomAggregator implements IAggregator {
     return "billOfMaterials";
   }
 
-  async aggregate(projectName: string): Promise<{
-    dependencies: {
-      name: string;
-      groupId?: string;
-      versions: string[];
-      hasConflict: boolean;
-      scopes?: string[];
-      locations: string[];
-    }[];
-    totalDependencies: number;
-    conflictCount: number;
-    buildFiles: string[];
-  }> {
-    return this.aggregateBillOfMaterials(projectName);
-  }
-
   /**
    * Aggregates all dependencies from build files for a project
    */
-  async aggregateBillOfMaterials(projectName: string): Promise<{
+  async aggregate(projectName: string): Promise<{
     dependencies: {
       name: string;
       groupId?: string;

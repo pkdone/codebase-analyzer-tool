@@ -5,11 +5,11 @@ import { registerComponents } from "../registration-utils";
 // Reporting component imports
 import { HtmlReportWriter } from "../../components/reporting/html-report-writer";
 import { JsonReportWriter } from "../../components/reporting/json-report-writer";
-import { DependencyTreePngGenerator } from "../../components/reporting/generators/dependency-tree-png-generator";
-import { PieChartGenerator } from "../../components/reporting/generators/pie-chart-generator";
-import { FlowchartSvgGenerator } from "../../components/reporting/generators/flowchart-svg-generator";
-import { DomainModelSvgGenerator } from "../../components/reporting/generators/domain-model-svg-generator";
-import { ArchitectureSvgGenerator } from "../../components/reporting/generators/architecture-svg-generator";
+import { DependencyTreePngGenerator } from "../../components/reporting/generators/png/dependency-tree-png-generator";
+import { PieChartGenerator } from "../../components/reporting/generators/png/pie-chart-generator";
+import { FlowchartSvgGenerator } from "../../components/reporting/generators/svg/flowchart-svg-generator";
+import { DomainModelSvgGenerator } from "../../components/reporting/generators/svg/domain-model-svg-generator";
+import { ArchitectureSvgGenerator } from "../../components/reporting/generators/svg/architecture-svg-generator";
 import { DatabaseReportDataProvider } from "../../components/reporting/data-providers/database-report-data-provider";
 import { CodeStructureDataProvider } from "../../components/reporting/data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/data-providers/app-statistics-data-provider";

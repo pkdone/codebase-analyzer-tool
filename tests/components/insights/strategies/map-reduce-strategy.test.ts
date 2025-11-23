@@ -1,3 +1,4 @@
+import { zodToJsonSchema } from "zod-to-json-schema";
 import { REDUCE_INSIGHTS_TEMPLATE } from "../../../../src/prompts/templates";
 import { Prompt } from "../../../../src/prompts/prompt";
 import { z } from "zod";
@@ -16,7 +17,8 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
     };
 
     const prompt = new Prompt(testConfig, '{"entities": []}');
-    const rendered = prompt.render({ categoryKey: "entities" });
+    const jsonSchemaString = JSON.stringify(zodToJsonSchema(testConfig.responseSchema), null, 2);
+    const rendered = prompt.render(jsonSchemaString, { categoryKey: "entities" });
 
     // Verify that categoryKey was replaced correctly
     expect(rendered).toContain("'entities'");
@@ -33,7 +35,8 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
 
     const content = JSON.stringify({ entities: [{ name: "Test" }] }, null, 2);
     const prompt = new Prompt(testConfig, content);
-    const rendered = prompt.render({ categoryKey: "entities" });
+    const jsonSchemaString = JSON.stringify(zodToJsonSchema(testConfig.responseSchema), null, 2);
+    const rendered = prompt.render(jsonSchemaString, { categoryKey: "entities" });
 
     // Verify the template was rendered correctly with categoryKey
     expect(rendered).toContain("'entities'");

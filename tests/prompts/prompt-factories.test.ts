@@ -1,3 +1,4 @@
+import { zodToJsonSchema } from "zod-to-json-schema";
 import { Prompt } from "../../src/prompts/prompt";
 import { PromptDefinition } from "../../src/prompts/prompt.types";
 import { z } from "zod";
@@ -29,7 +30,12 @@ describe("Prompt Constructor and Templates", () => {
   describe("Prompt constructor", () => {
     it("should create a prompt with SOURCES_TEMPLATE", () => {
       const prompt = new Prompt(sourceDefinition, testContent);
-      const rendered = prompt.render();
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(sourceDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
@@ -38,7 +44,12 @@ describe("Prompt Constructor and Templates", () => {
 
     it("should create a prompt with APP_SUMMARY_TEMPLATE", () => {
       const prompt = new Prompt(appSummaryDefinition, testContent);
-      const rendered = prompt.render();
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(appSummaryDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString);
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FILE_SUMMARIES:");
@@ -48,7 +59,12 @@ describe("Prompt Constructor and Templates", () => {
     it("should handle partialAnalysisNote parameter", () => {
       const prompt = new Prompt(appSummaryDefinition, testContent);
       const partialNote = "This is a partial analysis note";
-      const rendered = prompt.render({ partialAnalysisNote: partialNote });
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(appSummaryDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString, { partialAnalysisNote: partialNote });
 
       expect(rendered).toContain(partialNote);
     });
@@ -84,7 +100,12 @@ describe("Prompt Constructor and Templates", () => {
       const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
       const reduceDefinition = { ...sourceDefinition, template };
       const prompt = new Prompt(reduceDefinition, testContent);
-      const rendered = prompt.render();
+      const jsonSchemaString = JSON.stringify(
+        zodToJsonSchema(sourceDefinition.responseSchema),
+        null,
+        2,
+      );
+      const rendered = prompt.render(jsonSchemaString);
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(`'${categoryKey}'`);

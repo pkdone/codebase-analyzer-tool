@@ -23,14 +23,10 @@ export class ModuleCouplingAggregator implements IAggregator {
     return "moduleCoupling";
   }
 
-  async aggregate(projectName: string) {
-    return this.aggregateModuleCoupling(projectName);
-  }
-
   /**
    * Aggregates module coupling relationships for a project
    */
-  async aggregateModuleCoupling(
+  async aggregate(
     projectName: string,
     moduleDepth: number = this.DEFAULT_MODULE_DEPTH,
   ): Promise<{

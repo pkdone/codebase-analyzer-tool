@@ -1,5 +1,5 @@
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { buildStandardMessagesArray } from "../common/bedrock-request-builders";
+import { buildStandardMessagesArray } from "../utils/bedrock-request-builders";
 import { z } from "zod";
 
 /**

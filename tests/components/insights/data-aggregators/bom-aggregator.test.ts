@@ -16,7 +16,7 @@ describe("BomAggregator", () => {
     aggregator = new BomAggregator(mockSourcesRepository);
   });
 
-  describe("aggregateBillOfMaterials", () => {
+  describe("aggregate", () => {
     it("should aggregate dependencies with conflicts sorted by toSorted (immutable)", async () => {
       const mockSourceFiles = [
         {
@@ -42,7 +42,7 @@ describe("BomAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateBillOfMaterials("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalDependencies).toBe(2);
       expect(result.conflictCount).toBe(2);
@@ -83,7 +83,7 @@ describe("BomAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateBillOfMaterials("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalDependencies).toBe(2);
       expect(result.conflictCount).toBe(0);
@@ -112,7 +112,7 @@ describe("BomAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateBillOfMaterials("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.buildFiles).toContain("pom.xml");
       expect(result.buildFiles).toContain("build.gradle");
@@ -131,7 +131,7 @@ describe("BomAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateBillOfMaterials("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalDependencies).toBe(0);
       expect(result.conflictCount).toBe(0);
@@ -159,7 +159,7 @@ describe("BomAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateBillOfMaterials("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       // Verify toSorted maintains immutability
       const originalArray = result.dependencies;
@@ -206,7 +206,7 @@ describe("BomAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateBillOfMaterials("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       expect(result.totalDependencies).toBe(2);
       expect(result.dependencies[0].groupId).toBe("com.example");
@@ -237,7 +237,7 @@ describe("BomAggregator", () => {
 
       mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
 
-      const result = await aggregator.aggregateBillOfMaterials("test-project");
+      const result = await aggregator.aggregate("test-project");
 
       // Verify that duplicate file paths are deduplicated
       expect(result.buildFiles).toHaveLength(2);

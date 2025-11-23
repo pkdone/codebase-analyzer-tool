@@ -3,7 +3,7 @@ import type { ReportSection } from "./report-section.interface";
 import { reportingTokens } from "../../../di/tokens";
 import { repositoryTokens } from "../../../di/tokens";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { PieChartGenerator } from "../generators/pie-chart-generator";
+import { PieChartGenerator } from "../generators/png/pie-chart-generator";
 import { htmlReportConstants } from "../html-report.constants";
 import { reportSectionsConfig } from "../report-sections.config";
 import { TableViewModel } from "../view-models/table-view-model";

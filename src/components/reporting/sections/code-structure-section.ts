@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "./report-section.interface";
 import { reportingTokens } from "../../../di/tokens";
 import { CodeStructureDataProvider } from "../data-providers/code-structure-data-provider";
-import { DependencyTreePngGenerator } from "../generators/dependency-tree-png-generator";
+import { DependencyTreePngGenerator } from "../generators/png/dependency-tree-png-generator";
 import { TableViewModel } from "../view-models/table-view-model";
 import { htmlReportConstants } from "../html-report.constants";
 import { reportSectionsConfig } from "../report-sections.config";

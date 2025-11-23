@@ -29,27 +29,10 @@ export class JobAggregator implements IAggregator {
     return "scheduledJobsSummary";
   }
 
-  async aggregate(projectName: string): Promise<{
-    jobs: {
-      jobName: string;
-      sourceFile: string;
-      trigger: string;
-      purpose: string;
-      inputResources?: string[];
-      outputResources?: string[];
-      dependencies?: string[];
-    }[];
-    totalJobs: number;
-    triggerTypes: string[];
-    jobFiles: string[];
-  }> {
-    return this.aggregateScheduledJobs(projectName);
-  }
-
   /**
    * Aggregates all scheduled jobs from script files for a project
    */
-  async aggregateScheduledJobs(projectName: string): Promise<{
+  async aggregate(projectName: string): Promise<{
     jobs: {
       jobName: string;
       sourceFile: string;
