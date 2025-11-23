@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import type LLMRouter from "../../llm/core/llm-router";
+import type LLMRouter from "../../llm/llm-router";
 import path from "path";
 import pLimit from "p-limit";
 import { fileProcessingConfig } from "../../config/file-processing.config";

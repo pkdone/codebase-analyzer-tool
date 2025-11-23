@@ -5,11 +5,11 @@ import type {
   LLMFunctionResponse,
   LLMContext,
   LLMCompletionOptions,
-} from "../../types/llm.types";
-import { LLMResponseStatus } from "../../types/llm.types";
-import type { LLMRetryConfig } from "../../providers/llm-provider.types";
+} from "../types/llm.types";
+import { LLMResponseStatus } from "../types/llm.types";
+import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import LLMStats from "../tracking/llm-stats";
-import { llmTokens } from "../../../di/tokens";
+import { llmTokens } from "../../di/tokens";
 
 /**
  * Custom error class for retryable LLM operations

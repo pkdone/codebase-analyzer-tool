@@ -2,10 +2,10 @@ import { inject, injectable } from "tsyringe";
 import { coreTokens } from "../../di/tokens";
 import { insightsTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
-import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
+import { LLMProviderManager } from "../../llm/llm-provider-manager";
 import type { EnvVars } from "../../env/env.types";
-import type InsightsFromDBGenerator from "./insights-from-db-generator";
-import type InsightsFromRawCodeGenerator from "./insights-from-raw-code-generator";
+import type InsightsFromDBGenerator from "./processors/insights-from-db-generator";
+import type InsightsFromRawCodeGenerator from "./processors/insights-from-raw-code-generator";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import { llmProviderConfig } from "../../llm/llm.config";
 

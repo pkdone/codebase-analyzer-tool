@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { FallbackStrategy } from "../../../../src/llm/core/strategies/fallback-strategy";
+import { FallbackStrategy } from "../../../../src/llm/strategies/fallback-strategy";
 import {
   LLMFunctionResponse,
   LLMContext,
@@ -10,7 +10,7 @@ import {
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 
 // Mock the logging module
-jest.mock("../../../../src/llm/core/tracking/llm-context-logging", () => ({
+jest.mock("../../../../src/llm/tracking/llm-context-logging", () => ({
   logWithContext: jest.fn(),
 }));
 

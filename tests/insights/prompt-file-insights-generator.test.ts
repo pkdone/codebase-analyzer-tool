@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { PromptFileInsightsGenerator } from "../../src/components/insights/prompt-file-insights-generator";
-import LLMRouter from "../../src/llm/core/llm-router";
+import LLMRouter from "../../src/llm/llm-router";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({
   ensureDirectoryExists: jest.fn().mockResolvedValue(undefined),
@@ -16,7 +16,7 @@ jest.mock("../../src/common/fs/file-operations", () => ({
 jest.mock("../../src/components/insights/utils/codebase-formatter", () => ({
   formatCodebaseForPrompt: jest.fn(async () => "CODEBLOCK"),
 }));
-jest.mock("../../src/llm/core/llm-router");
+jest.mock("../../src/llm/llm-router");
 
 describe("PromptFileInsightsGenerator", () => {
   it("loads prompts filtering only .prompt files", async () => {

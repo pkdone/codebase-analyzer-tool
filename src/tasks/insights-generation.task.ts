@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import type { InsightsProcessorSelector } from "../components/insights/insights-processor-selector";
-import type { LLMStatsReporter } from "../llm/core/tracking/llm-stats-reporter";
+import type { LLMStatsReporter } from "../llm/tracking/llm-stats-reporter";
 import { Task } from "./task.types";
 import { llmTokens } from "../di/tokens";
 import { coreTokens } from "../di/tokens";

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
-import { RetryStrategy } from "../../../../src/llm/core/strategies/retry-strategy";
-import LLMStats from "../../../../src/llm/core/tracking/llm-stats";
+import { RetryStrategy } from "../../../../src/llm/strategies/retry-strategy";
+import LLMStats from "../../../../src/llm/tracking/llm-stats";
 import {
   LLMFunction,
   LLMFunctionResponse,

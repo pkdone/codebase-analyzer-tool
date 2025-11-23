@@ -1,4 +1,5 @@
 import { appConfig } from "../../../config/app.config";
+import { commonConstants } from "../../../common/constants";
 
 /**
  * MCP server configuration
@@ -17,7 +18,7 @@ export const mcpConfig = {
 
   // Application constants referenced from appConfig
   APPLICATION_JSON: appConfig.MIME_TYPE_JSON,
-  UTF8_ENCODING: appConfig.UTF8_ENCODING,
+  UTF8_ENCODING: commonConstants.UTF8_ENCODING,
 
   // JSON-RPC constants
   JSONRPC_VERSION: "2.0",

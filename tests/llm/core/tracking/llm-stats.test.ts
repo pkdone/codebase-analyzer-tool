@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
-import LLMStats from "../../../../src/llm/core/tracking/llm-stats";
+import LLMStats from "../../../../src/llm/tracking/llm-stats";
 
 describe("LLMStats", () => {
   let llmStats: LLMStats;

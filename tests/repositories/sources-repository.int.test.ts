@@ -4,7 +4,7 @@ import { repositoryTokens } from "../../src/di/tokens";
 import { SourcesRepository } from "../../src/repositories/sources/sources.repository.interface";
 import { SourceRecord } from "../../src/repositories/sources/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
-import { LLMProviderManager } from "../../src/llm/core/llm-provider-manager";
+import { LLMProviderManager } from "../../src/llm/llm-provider-manager";
 
 // Helper function to get the vector dimensions from the configured LLM provider
 async function getEmbeddingDimensions(): Promise<number> {

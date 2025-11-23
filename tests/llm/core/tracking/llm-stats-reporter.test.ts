@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { LLMStatsReporter } from "../../../../src/llm/core/tracking/llm-stats-reporter";
-import LLMStats from "../../../../src/llm/core/tracking/llm-stats";
+import { LLMStatsReporter } from "../../../../src/llm/tracking/llm-stats-reporter";
+import LLMStats from "../../../../src/llm/tracking/llm-stats";
 import { llmTokens } from "../../../../src/di/tokens";
 
 describe("LLMStatsReporter", () => {

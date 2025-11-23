@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { logSingleLineWarning } from "../../common/utils/logging";
-import type LLMRouter from "../../llm/core/llm-router";
+import type LLMRouter from "../../llm/llm-router";
 import { llmTokens } from "../../di/tokens";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";

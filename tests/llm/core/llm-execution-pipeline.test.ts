@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
-import { LLMExecutionPipeline } from "../../../src/llm/core/llm-execution-pipeline";
-import LLMStats from "../../../src/llm/core/tracking/llm-stats";
-import { RetryStrategy } from "../../../src/llm/core/strategies/retry-strategy";
-import { FallbackStrategy } from "../../../src/llm/core/strategies/fallback-strategy";
-import { PromptAdaptationStrategy } from "../../../src/llm/core/strategies/prompt-adaptation-strategy";
+import { LLMExecutionPipeline } from "../../../src/llm/llm-execution-pipeline";
+import LLMStats from "../../../src/llm/tracking/llm-stats";
+import { RetryStrategy } from "../../../src/llm/strategies/retry-strategy";
+import { FallbackStrategy } from "../../../src/llm/strategies/fallback-strategy";
+import { PromptAdaptationStrategy } from "../../../src/llm/strategies/prompt-adaptation-strategy";
 import {
   LLMContext,
   LLMPurpose,

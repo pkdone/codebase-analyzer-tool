@@ -3,12 +3,11 @@ import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
 import { fileTypeMappingsConfig } from "../../src/config/file-types.config";
 import { outputConfig } from "../../src/config/output.config";
-import { loggingConfig } from "../../src/config/logging.config";
+import { loggingConfig } from "../../src/llm/tracking/logging.config";
 
 describe("individual config modules", () => {
   it("appConfig should expose expected keys", () => {
     expect(appConfig).toBeDefined();
-    expect(appConfig).toHaveProperty("UTF8_ENCODING");
     expect(appConfig).toHaveProperty("MIME_TYPE_JSON");
   });
 

@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
+import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import { createMockJsonProcessor } from "../../helpers/llm/json-processor-mock";

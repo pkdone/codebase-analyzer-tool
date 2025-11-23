@@ -1,6 +1,6 @@
 import { injectable } from "tsyringe";
-import type { LLMFunctionResponse, LLMContext } from "../../types/llm.types";
-import { LLMResponseStatus } from "../../types/llm.types";
+import type { LLMFunctionResponse, LLMContext } from "../types/llm.types";
+import { LLMResponseStatus } from "../types/llm.types";
 import { logWithContext } from "../tracking/llm-context-logging";
 
 /**

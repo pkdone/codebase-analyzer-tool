@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { llmTokens } from "../../../di/tokens";
+import { llmTokens } from "../../di/tokens";
 import type LLMStats from "./llm-stats";
 
 /**

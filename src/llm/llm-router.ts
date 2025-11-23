@@ -6,20 +6,20 @@ import {
   LLMGeneratedContent,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
-} from "../types/llm.types";
-import type { LLMProvider, LLMCandidateFunction } from "../types/llm.types";
-import { BadConfigurationLLMError } from "../types/llm-errors.types";
+} from "./types/llm.types";
+import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
+import { BadConfigurationLLMError } from "./types/llm-errors.types";
 import { log, logWithContext } from "./tracking/llm-context-logging";
 
-import type { LLMRetryConfig } from "../providers/llm-provider.types";
+import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { LLMProviderManager } from "./llm-provider-manager";
-import type { EnvVars } from "../../env/env.types";
-import { llmTokens, coreTokens } from "../../di/tokens";
+import type { EnvVars } from "../env/env.types";
+import { llmTokens, coreTokens } from "../di/tokens";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
   getOverriddenCompletionCandidates,
   buildCompletionCandidates,
-} from "../utils/completions-models-retriever";
+} from "./utils/completions-models-retriever";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -154,7 +154,7 @@ export default class LLMRouter {
     if (
       !(
         Array.isArray(contentResponse.data) &&
-        contentResponse.data.every((item) => typeof item === "number")
+        contentResponse.data.every((item: unknown) => typeof item === "number")
       )
     ) {
       logWithContext("LLM response for embeddings was not an array of numbers", context);

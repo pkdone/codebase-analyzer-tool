@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { fillPrompt } from "type-safe-prompt";
-import LLMRouter from "../../llm/core/llm-router";
+import LLMRouter from "../../llm/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";

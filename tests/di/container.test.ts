@@ -4,8 +4,8 @@ import { taskTokens } from "../../src/di/tokens";
 import { llmTokens } from "../../src/di/tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests
-jest.mock("../../src/llm/core/llm-provider-manager");
-jest.mock("../../src/llm/core/llm-router");
+jest.mock("../../src/llm/llm-provider-manager");
+jest.mock("../../src/llm/llm-router");
 jest.mock("../../src/common/mongodb/mdb-client-factory", () => {
   return {
     MongoDBClientFactory: jest.fn().mockImplementation(() => {

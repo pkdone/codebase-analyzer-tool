@@ -1,9 +1,9 @@
 import { container } from "tsyringe";
-import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
-import LLMRouter from "../../llm/core/llm-router";
-import LLMStats from "../../llm/core/tracking/llm-stats";
-import { LLMStatsReporter } from "../../llm/core/tracking/llm-stats-reporter";
-import { PromptAdaptationStrategy } from "../../llm/core/strategies/prompt-adaptation-strategy";
+import { LLMProviderManager } from "../../llm/llm-provider-manager";
+import LLMRouter from "../../llm/llm-router";
+import LLMStats from "../../llm/tracking/llm-stats";
+import { LLMStatsReporter } from "../../llm/tracking/llm-stats-reporter";
+import { PromptAdaptationStrategy } from "../../llm/strategies/prompt-adaptation-strategy";
 import { JsonProcessor } from "../../llm/json-processing/core/json-processor";
 import { llmTokens } from "../tokens";
 

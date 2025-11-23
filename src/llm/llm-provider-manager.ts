@@ -5,13 +5,13 @@ import {
   LLMModelKeysSet as LLMModelsKeysSet,
   LLMModelMetadata,
   ResolvedLLMModelMetadata,
-} from "../types/llm.types";
-import { EnvVars } from "../../env/env.types";
-import { BadConfigurationLLMError } from "../types/llm-errors.types";
-import { LLMProviderManifest } from "../providers/llm-provider.types";
-import { JsonProcessor } from "../json-processing/core/json-processor";
-import { llmTokens } from "../../di/tokens";
-import { LLM_PROVIDER_REGISTRY } from "../providers";
+} from "./types/llm.types";
+import { EnvVars } from "../env/env.types";
+import { BadConfigurationLLMError } from "./types/llm-errors.types";
+import { LLMProviderManifest } from "./providers/llm-provider.types";
+import { JsonProcessor } from "./json-processing/core/json-processor";
+import { llmTokens } from "../di/tokens";
+import { LLM_PROVIDER_REGISTRY } from "./providers";
 
 /**
  * Manager for discovering, loading, and instantiating LLM providers based on their manifests

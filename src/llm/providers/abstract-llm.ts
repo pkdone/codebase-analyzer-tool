@@ -22,7 +22,7 @@ import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
 import { writeFile } from "../../common/fs/file-operations";
 import { ensureDirectoryExists } from "../../common/fs/directory-operations";
-import { loggingConfig } from "../../config/logging.config";
+import { loggingConfig } from "../tracking/logging.config";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be

@@ -10,13 +10,13 @@ import {
 } from "../../../src/llm/types/llm.types";
 
 import { z } from "zod";
-import LLMRouter from "../../../src/llm/core/llm-router";
-import LLMStats from "../../../src/llm/core/tracking/llm-stats";
-import { PromptAdaptationStrategy } from "../../../src/llm/core/strategies/prompt-adaptation-strategy";
-import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
-import { RetryStrategy } from "../../../src/llm/core/strategies/retry-strategy";
-import { FallbackStrategy } from "../../../src/llm/core/strategies/fallback-strategy";
-import { LLMExecutionPipeline } from "../../../src/llm/core/llm-execution-pipeline";
+import LLMRouter from "../../../src/llm/llm-router";
+import LLMStats from "../../../src/llm/tracking/llm-stats";
+import { PromptAdaptationStrategy } from "../../../src/llm/strategies/prompt-adaptation-strategy";
+import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
+import { RetryStrategy } from "../../../src/llm/strategies/retry-strategy";
+import { FallbackStrategy } from "../../../src/llm/strategies/fallback-strategy";
+import { LLMExecutionPipeline } from "../../../src/llm/llm-execution-pipeline";
 import type { EnvVars } from "../../../src/env/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
@@ -25,7 +25,7 @@ import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provide
 // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
 // postProcessAsJSONIfNeededGeneratingNewResult have been moved to AbstractLLM class
 
-jest.mock("../../../src/llm/core/tracking/llm-context-logging", () => ({
+jest.mock("../../../src/llm/tracking/llm-context-logging", () => ({
   log: jest.fn(),
   logErrWithContext: jest.fn(),
   logWithContext: jest.fn(),
@@ -33,7 +33,7 @@ jest.mock("../../../src/llm/core/tracking/llm-context-logging", () => ({
   logErrorWithContext: jest.fn(),
 }));
 
-jest.mock("../../../src/llm/core/tracking/llm-stats", () => {
+jest.mock("../../../src/llm/tracking/llm-stats", () => {
   return jest.fn().mockImplementation(() => ({
     recordSuccess: jest.fn(),
     recordFailure: jest.fn(),

@@ -6,7 +6,7 @@ import { coreTokens } from "../../../src/di/tokens";
 import { taskTokens } from "../../../src/di/tokens";
 import { databaseConfig } from "../../../src/config/database.config";
 import { registerAppDependencies } from "../../../src/di/registration-modules";
-import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
+import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
 
 // Store client and dbName to be accessible in teardown
 let testMongoClient: MongoClient | null = null;

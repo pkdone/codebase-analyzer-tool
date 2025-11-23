@@ -1,4 +1,4 @@
-import { dependencyTreePngConfig } from "../../../../src/components/reporting/config/dependency-tree-png.config";
+import { dependencyTreePngConfig } from "../../../../src/components/reporting/generators/dependency-tree-png.config";
 
 describe("dependencyTreePngConfig", () => {
   it("should have all required layout properties", () => {

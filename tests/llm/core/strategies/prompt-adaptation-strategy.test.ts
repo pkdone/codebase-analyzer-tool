@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { PromptAdaptationStrategy } from "../../../../src/llm/core/strategies/prompt-adaptation-strategy";
+import { PromptAdaptationStrategy } from "../../../../src/llm/strategies/prompt-adaptation-strategy";
 import {
   LLMFunctionResponse,
   LLMResponseStatus,

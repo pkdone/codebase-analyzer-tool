@@ -7,7 +7,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { logErrorMsgAndDetail } from "../../../common/utils/logging";
 import { mcpConfig } from "./mcp.config";
-import { httpConfig } from "../../../config/http.config";
+import { httpConfig } from "./config/http.config";
 import McpServerFactory from "./mcp-server-configurator";
 import { apiTokens } from "../../../di/tokens";
 import type { IncomingMessage, ServerResponse } from "node:http";

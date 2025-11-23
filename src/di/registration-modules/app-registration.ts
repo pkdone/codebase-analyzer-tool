@@ -40,9 +40,9 @@ import { ReportGenerationTask } from "../../tasks/report-generation.task";
 import { databaseConfig } from "../../config/database.config";
 
 // LLM strategy and pipeline imports
-import { RetryStrategy } from "../../llm/core/strategies/retry-strategy";
-import { FallbackStrategy } from "../../llm/core/strategies/fallback-strategy";
-import { LLMExecutionPipeline } from "../../llm/core/llm-execution-pipeline";
+import { RetryStrategy } from "../../llm/strategies/retry-strategy";
+import { FallbackStrategy } from "../../llm/strategies/fallback-strategy";
+import { LLMExecutionPipeline } from "../../llm/llm-execution-pipeline";
 import { JsonValidator } from "../../llm/json-processing/core/json-validator";
 
 // Database component imports

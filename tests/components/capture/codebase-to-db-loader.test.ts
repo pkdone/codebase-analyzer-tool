@@ -2,7 +2,7 @@ import "reflect-metadata";
 import path from "path";
 import CodebaseToDBLoader from "../../../src/components/capture/codebase-to-db-loader";
 import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
-import LLMRouter from "../../../src/llm/core/llm-router";
+import LLMRouter from "../../../src/llm/llm-router";
 import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
 import * as fileOperations from "../../../src/common/fs/file-operations";
 import * as directoryOperations from "../../../src/common/fs/directory-operations";

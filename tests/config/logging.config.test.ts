@@ -1,4 +1,4 @@
-import { loggingConfig } from "../../src/config/logging.config";
+import { loggingConfig } from "../../src/llm/tracking/logging.config";
 
 describe("logging.config", () => {
   describe("ERROR_LOG_DIRECTORY", () => {

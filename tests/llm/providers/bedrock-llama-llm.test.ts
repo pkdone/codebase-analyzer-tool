@@ -34,24 +34,26 @@ describe("BedrockLlamaLLM", () => {
   });
 
   describe("Llama token constants", () => {
-    it("should import bedrockLlamaConfig", () => {
-      expect(fileContent).toContain('import { bedrockLlamaConfig } from "./bedrock-llama.config"');
+    it("should not import bedrockLlamaConfig", () => {
+      expect(fileContent).not.toContain(
+        'import { bedrockLlamaConfig } from "./bedrock-llama.config"',
+      );
     });
 
-    it("should use bedrockLlamaConfig constants in buildCompletionRequestBody", () => {
-      expect(fileContent).toContain("bedrockLlamaConfig.LLAMA_BEGIN_TOKEN");
-      expect(fileContent).toContain("bedrockLlamaConfig.LLAMA_HEADER_START_TOKEN");
-      expect(fileContent).toContain("bedrockLlamaConfig.LLAMA_HEADER_END_TOKEN");
-      expect(fileContent).toContain("bedrockLlamaConfig.LLAMA_EOT_TOKEN");
-      expect(fileContent).toContain("bedrockLlamaConfig.LLAMA_SYSTEM_MESSAGE");
+    it("should define local LLAMA constants in the file", () => {
+      expect(fileContent).toContain("const LLAMA_BEGIN_TOKEN");
+      expect(fileContent).toContain("const LLAMA_HEADER_START_TOKEN");
+      expect(fileContent).toContain("const LLAMA_HEADER_END_TOKEN");
+      expect(fileContent).toContain("const LLAMA_EOT_TOKEN");
+      expect(fileContent).toContain("const LLAMA_SYSTEM_MESSAGE");
     });
 
-    it("should not define local LLAMA constants in the file", () => {
-      expect(fileContent).not.toContain("const LLAMA_BEGIN_TOKEN");
-      expect(fileContent).not.toContain("const LLAMA_HEADER_START_TOKEN");
-      expect(fileContent).not.toContain("const LLAMA_HEADER_END_TOKEN");
-      expect(fileContent).not.toContain("const LLAMA_EOT_TOKEN");
-      expect(fileContent).not.toContain("const LLAMA_SYSTEM_MESSAGE");
+    it("should use local LLAMA constants in buildCompletionRequestBody", () => {
+      expect(fileContent).toContain("LLAMA_BEGIN_TOKEN");
+      expect(fileContent).toContain("LLAMA_HEADER_START_TOKEN");
+      expect(fileContent).toContain("LLAMA_HEADER_END_TOKEN");
+      expect(fileContent).toContain("LLAMA_EOT_TOKEN");
+      expect(fileContent).toContain("LLAMA_SYSTEM_MESSAGE");
     });
 
     it("should not have hardcoded template tokens in buildCompletionRequestBody", () => {
@@ -64,12 +66,12 @@ describe("BedrockLlamaLLM", () => {
       if (methodMatch) {
         const methodContent = methodMatch[0];
 
-        // Verify that the method uses bedrockLlamaConfig constants instead of hardcoded strings
-        expect(methodContent).toContain("bedrockLlamaConfig.LLAMA_BEGIN_TOKEN");
-        expect(methodContent).toContain("bedrockLlamaConfig.LLAMA_HEADER_START_TOKEN");
-        expect(methodContent).toContain("bedrockLlamaConfig.LLAMA_HEADER_END_TOKEN");
-        expect(methodContent).toContain("bedrockLlamaConfig.LLAMA_EOT_TOKEN");
-        expect(methodContent).toContain("bedrockLlamaConfig.LLAMA_SYSTEM_MESSAGE");
+        // Verify that the method uses inlined constants instead of hardcoded strings
+        expect(methodContent).toContain("LLAMA_BEGIN_TOKEN");
+        expect(methodContent).toContain("LLAMA_HEADER_START_TOKEN");
+        expect(methodContent).toContain("LLAMA_HEADER_END_TOKEN");
+        expect(methodContent).toContain("LLAMA_EOT_TOKEN");
+        expect(methodContent).toContain("LLAMA_SYSTEM_MESSAGE");
 
         // Verify that hardcoded tokens are not present in the method body
         expect(methodContent).not.toContain('"<|begin_of_text|>"');

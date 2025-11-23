@@ -10,7 +10,7 @@ import { logErrorMsgAndDetail } from "../../common/utils/logging";
 import { formatError } from "../../common/utils/error-formatters";
 import { inject } from "tsyringe";
 import { llmTokens } from "../../di/tokens";
-import LLMRouter from "../../llm/core/llm-router";
+import LLMRouter from "../../llm/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import { formatDateForFilename } from "../../common/utils/date-utils";

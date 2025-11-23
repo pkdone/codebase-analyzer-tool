@@ -1,13 +1,13 @@
 import "reflect-metadata";
 import { z } from "zod";
 import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
-import LLMRouter from "../../../src/llm/core/llm-router";
+import LLMRouter from "../../../src/llm/llm-router";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../../src/llm/types/llm-errors.types";
 import * as logging from "../../../src/common/utils/logging";
 
 // Mock dependencies
-jest.mock("../../../src/llm/core/llm-router");
+jest.mock("../../../src/llm/llm-router");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logErrorMsgAndDetail: jest.fn(),

@@ -1,5 +1,5 @@
-import { LLMContext } from "../../types/llm.types";
-import { logSingleLineWarning } from "../../../common/utils/logging";
+import { LLMContext } from "../types/llm.types";
+import { logSingleLineWarning } from "../../common/utils/logging";
 
 /**
  * Log info/error text to the console or a redirected-to file

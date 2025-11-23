@@ -1,14 +1,14 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import LLMRouter from "../../../llm/core/llm-router";
+import LLMRouter from "../../../llm/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import { logSingleLineWarning } from "../../../common/utils/logging";
 import { Prompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../di/tokens";
-import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
+import { LLMProviderManager } from "../../../llm/llm-provider-manager";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import { REDUCE_INSIGHTS_TEMPLATE } from "../../../prompts/templates";

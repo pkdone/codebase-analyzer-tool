@@ -2,7 +2,7 @@ import { container } from "tsyringe";
 import { coreTokens } from "../tokens";
 import { llmTokens } from "../tokens";
 import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
-import { LLMProviderManager } from "../../llm/core/llm-provider-manager";
+import { LLMProviderManager } from "../../llm/llm-provider-manager";
 import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { BadConfigurationLLMError } from "../../llm/types/llm-errors.types";

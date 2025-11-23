@@ -1,21 +1,21 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import LLMRouter from "../../llm/llm-router";
-import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
-import { repositoryTokens } from "../../di/tokens";
-import { llmTokens } from "../../di/tokens";
-import { coreTokens } from "../../di/tokens";
-import type { ApplicationInsightsProcessor } from "./insights.types";
-import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
-import type { EnvVars } from "../../env/env.types";
-import { logSingleLineWarning } from "../../common/utils/logging";
-import { Prompt } from "../../prompts/prompt";
-import { InstructionSection } from "../../prompts/prompt.types";
-import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
-import { APP_SUMMARY_TEMPLATE } from "../../prompts/templates";
-import { appSummaryRecordCategoriesSchema } from "./insights.types";
+import LLMRouter from "../../../llm/llm-router";
+import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
+import { repositoryTokens } from "../../../di/tokens";
+import { llmTokens } from "../../../di/tokens";
+import { coreTokens } from "../../../di/tokens";
+import type { ApplicationInsightsProcessor } from "../insights.types";
+import { formatCodebaseForPrompt } from "../utils/codebase-formatter";
+import type { EnvVars } from "../../../env/env.types";
+import { logSingleLineWarning } from "../../../common/utils/logging";
+import { Prompt } from "../../../prompts/prompt";
+import { InstructionSection } from "../../../prompts/prompt.types";
+import { LLMOutputFormat } from "../../../llm/types/llm.types";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
+import { APP_SUMMARY_TEMPLATE } from "../../../prompts/templates";
+import { appSummaryRecordCategoriesSchema } from "../insights.types";
 
 // Type for validating the LLM response for all categories
 type AppSummaryRecordCategories = Partial<z.infer<typeof appSummaryRecordCategoriesSchema>>;

@@ -8,8 +8,8 @@ import {
   LLMCompletionOptions,
   LLMCandidateFunction,
   LLMFunctionResponse,
-} from "../types/llm.types";
-import type { LLMRetryConfig } from "../providers/llm-provider.types";
+} from "./types/llm.types";
+import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
@@ -19,10 +19,10 @@ import {
   logWithContext,
 } from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
-import { llmTokens } from "../../di/tokens";
-import { hasSignificantSanitizationSteps } from "../json-processing/sanitizers";
-import type { LLMExecutionResult } from "../types/llm-execution-result.types";
-import { LLMExecutionError } from "../types/llm-execution-result.types";
+import { llmTokens } from "../di/tokens";
+import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
+import type { LLMExecutionResult } from "./types/llm-execution-result.types";
+import { LLMExecutionError } from "./types/llm-execution-result.types";
 
 /**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,

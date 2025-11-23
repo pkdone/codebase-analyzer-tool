@@ -1,4 +1,4 @@
-import { httpConfig } from "../../src/config/http.config";
+import { httpConfig } from "../../src/components/api/mcpServing/config/http.config";
 
 describe("httpConfig", () => {
   describe("HTTP protocol", () => {

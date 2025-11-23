@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { InsightsProcessorSelector } from "../../../src/components/insights/insights-processor-selector";
-import { LLMProviderManager } from "../../../src/llm/core/llm-provider-manager";
+import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
 import { EnvVars } from "../../../src/env/env.types";
-import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
-import InsightsFromRawCodeGenerator from "../../../src/components/insights/insights-from-raw-code-generator";
+import InsightsFromDBGenerator from "../../../src/components/insights/processors/insights-from-db-generator";
+import InsightsFromRawCodeGenerator from "../../../src/components/insights/processors/insights-from-raw-code-generator";
 import { formatCodebaseForPrompt } from "../../../src/components/insights/utils/codebase-formatter";
 import { llmProviderConfig } from "../../../src/llm/llm.config";
 import { z } from "zod";

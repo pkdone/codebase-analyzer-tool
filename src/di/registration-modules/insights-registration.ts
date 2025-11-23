@@ -3,8 +3,8 @@ import { insightsTokens } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
 // Insights component imports
-import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
-import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
+import InsightsFromDBGenerator from "../../components/insights/processors/insights-from-db-generator";
+import InsightsFromRawCodeGenerator from "../../components/insights/processors/insights-from-raw-code-generator";
 import { PromptFileInsightsGenerator } from "../../components/insights/prompt-file-insights-generator";
 import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 import { BomAggregator } from "../../components/insights/data-aggregators/bom-aggregator";
