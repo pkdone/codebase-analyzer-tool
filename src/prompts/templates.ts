@@ -66,4 +66,4 @@ QUESTION:
 {{question}}
 
 CODE:
-{{codeContent}}`;
+{{content}}`;

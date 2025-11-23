@@ -14,7 +14,6 @@ import {
   uiTechnologyAnalysisSchema,
 } from "../../../schemas/app-summaries.schema";
 import { APP_SUMMARY_FRAGMENTS } from "../fragments";
-import { InstructionSection } from "../../prompt.types";
 import { z } from "zod";
 
 /**
@@ -22,7 +21,7 @@ import { z } from "zod";
  */
 interface AppSummaryConfigEntry {
   label: string;
-  instructions: readonly InstructionSection[];
+  instruction: string;
   responseSchema: z.ZodType;
 }
 
@@ -38,127 +37,67 @@ interface AppSummaryConfigEntry {
 export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
   appDescription: {
     label: "Application Description",
-    instructions: [{ points: [APP_SUMMARY_FRAGMENTS.DETAILED_DESCRIPTION] }],
+    instruction: APP_SUMMARY_FRAGMENTS.DETAILED_DESCRIPTION,
     responseSchema: appDescriptionSchema,
   },
   technologies: {
     label: "Technologies",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
     responseSchema: technologiesSchema,
   },
   businessProcesses: {
     label: "Business Processes",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
     responseSchema: businessProcessesSchema,
   },
   boundedContexts: {
     label: "Bounded Contexts",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
     responseSchema: boundedContextsSchema,
   },
   aggregates: {
     label: "Aggregates",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
     responseSchema: aggregatesSchema,
   },
   entities: {
     label: "Entities",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
     responseSchema: entitiesSchema,
   },
   repositories: {
     label: "Repositories",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
     responseSchema: repositoriesSchema,
   },
   potentialMicroservices: {
     label: "Potential Microservices",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
     responseSchema: potentialMicroservicesSchema,
   },
   billOfMaterials: {
     label: "Bill of Materials",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection to identify technical debt and security risks`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_LIST} of all third-party dependencies with version conflict detection to identify technical debt and security risks`,
     responseSchema: billOfMaterialsSchema,
   },
   codeQualitySummary: {
     label: "Code Quality Summary",
-    instructions: [{ points: [APP_SUMMARY_FRAGMENTS.AGGREGATED_METRICS] }],
+    instruction: APP_SUMMARY_FRAGMENTS.AGGREGATED_METRICS,
     responseSchema: codeQualitySummarySchema,
   },
   scheduledJobsSummary: {
     label: "Scheduled Jobs",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_LIST} of batch processes, scheduled jobs, and automated scripts that perform critical business operations`,
     responseSchema: scheduledJobsSummarySchema,
   },
   moduleCoupling: {
     label: "Module Coupling",
-    instructions: [{ points: [APP_SUMMARY_FRAGMENTS.DEPENDENCY_MATRIX] }],
+    instruction: APP_SUMMARY_FRAGMENTS.DEPENDENCY_MATRIX,
     responseSchema: moduleCouplingSchema,
   },
   uiTechnologyAnalysis: {
     label: "UI Technology Analysis",
-    instructions: [
-      {
-        points: [
-          `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries to assess technical debt and plan modernization efforts`,
-        ],
-      },
-    ],
+    instruction: `${APP_SUMMARY_FRAGMENTS.COMPREHENSIVE_ANALYSIS} of UI layer technologies including legacy web frameworks, JSP scriptlet usage, and custom tag libraries to assess technical debt and plan modernization efforts`,
     responseSchema: uiTechnologyAnalysisSchema,
   },
 } as const;

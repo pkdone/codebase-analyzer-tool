@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import LLMRouter from "../../../llm/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
@@ -11,7 +10,7 @@ import { llmTokens } from "../../../di/tokens";
 import { LLMProviderManager } from "../../../llm/llm-provider-manager";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
-import { REDUCE_INSIGHTS_TEMPLATE } from "../../../prompts/templates";
+import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
 import { executeInsightCompletion } from "./insight-completion.service";
 import { chunkTextByTokenLimit } from "../../../llm/utils/text-chunking";
 
@@ -143,19 +142,17 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
     });
 
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
-    const reduceConfig = {
-      contentDesc: "several JSON objects",
-      instructions: [{ points: [`a consolidated list of '${config.label ?? category}'`] }],
-      responseSchema: config.responseSchema,
-      template: REDUCE_INSIGHTS_TEMPLATE,
-    };
-    const jsonSchemaString = JSON.stringify(zodToJsonSchema(config.responseSchema), null, 2);
-    const prompt = new Prompt(reduceConfig, content).render(jsonSchemaString, { categoryKey });
+    const reducePromptDefinition = createReduceInsightsPromptDefinition(
+      config.label ?? category,
+      config.responseSchema,
+    );
+    const prompt = new Prompt(reducePromptDefinition, content);
+    const renderedPrompt = prompt.render({ categoryKey });
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
         `${category}-reduce`,
-        prompt,
+        renderedPrompt,
         {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: config.responseSchema,

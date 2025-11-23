@@ -1,4 +1,3 @@
-import { zodToJsonSchema } from "zod-to-json-schema";
 import LLMRouter from "../../../llm/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata } from "../../../prompts/definitions/app-summaries";
@@ -42,12 +41,11 @@ export async function executeInsightCompletion(
   try {
     const config = appSummaryPromptMetadata[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
-    const jsonSchemaString = JSON.stringify(zodToJsonSchema(config.responseSchema), null, 2);
     const renderParams: Record<string, string> = {};
     if (options.partialAnalysisNote) {
       renderParams.partialAnalysisNote = options.partialAnalysisNote;
     }
-    const prompt = new Prompt(config, codeContent).render(jsonSchemaString, renderParams);
+    const prompt = new Prompt(config, codeContent).render(renderParams);
 
     const llmResponse = await llmRouter.executeCompletion<PartialAppSummaryRecord>(
       taskCategory,

@@ -1,4 +1,3 @@
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { Prompt } from "../../src/prompts/prompt";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
 import { PROMPT_FRAGMENTS } from "../../src/prompts/definitions/fragments";
@@ -87,13 +86,8 @@ public abstract class AddressEJB implements EntityBean {
     it("should render prompt correctly with Java file type metadata", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const prompt = new Prompt(javaMetadata, javaCodeSample);
-      const jsonSchemaString = JSON.stringify(
-        zodToJsonSchema(javaMetadata.responseSchema),
-        null,
-        2,
-      );
 
-      const renderedPrompt = prompt.render(jsonSchemaString);
+      const renderedPrompt = prompt.render();
 
       // Verify template structure is present
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -151,13 +145,8 @@ public abstract class AddressEJB implements EntityBean {
     it("should format instruction sections with titles correctly", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const prompt = new Prompt(javaMetadata, javaCodeSample);
-      const jsonSchemaString = JSON.stringify(
-        zodToJsonSchema(javaMetadata.responseSchema),
-        null,
-        2,
-      );
 
-      const renderedPrompt = prompt.render(jsonSchemaString);
+      const renderedPrompt = prompt.render();
 
       // Verify sections are separated by double newlines
       const basicInfoSection = `__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`;
@@ -176,13 +165,8 @@ public abstract class AddressEJB implements EntityBean {
     it("should include all template placeholders correctly", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const prompt = new Prompt(javaMetadata, javaCodeSample);
-      const jsonSchemaString = JSON.stringify(
-        zodToJsonSchema(javaMetadata.responseSchema),
-        null,
-        2,
-      );
 
-      const renderedPrompt = prompt.render(jsonSchemaString);
+      const renderedPrompt = prompt.render();
 
       // Verify no placeholder syntax remains
       expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
@@ -216,17 +200,12 @@ FILE_SUMMARIES:
       };
 
       const prompt = new Prompt(config, javaCodeSample);
-      const jsonSchemaString = JSON.stringify(
-        zodToJsonSchema(javaMetadata.responseSchema),
-        null,
-        2,
-      );
 
       const additionalParams = {
         partialAnalysisNote: "This is a custom note for testing",
       };
 
-      const renderedPrompt = prompt.render(jsonSchemaString, additionalParams);
+      const renderedPrompt = prompt.render(additionalParams);
 
       // Verify additional parameters are included
       expect(renderedPrompt).toContain(additionalParams.partialAnalysisNote);
@@ -245,24 +224,19 @@ FILE_SUMMARIES:
       };
 
       const prompt = new Prompt(config, javaCodeSample);
-      const jsonSchemaString = JSON.stringify(
-        zodToJsonSchema(javaMetadata.responseSchema),
-        null,
-        2,
-      );
 
       // Test that empty string is preserved (not replaced with default)
-      const renderedWithEmptyString = prompt.render(jsonSchemaString, { partialAnalysisNote: "" });
+      const renderedWithEmptyString = prompt.render({ partialAnalysisNote: "" });
       expect(renderedWithEmptyString).toContain("Test template");
       // Empty string should be included, not replaced
       expect(renderedWithEmptyString).toBe("Test template");
 
       // Test that undefined uses default
-      const renderedWithUndefined = prompt.render(jsonSchemaString, {});
+      const renderedWithUndefined = prompt.render({});
       expect(renderedWithUndefined).toBe("Test template");
 
       // Test that actual value is used
-      const renderedWithValue = prompt.render(jsonSchemaString, {
+      const renderedWithValue = prompt.render({
         partialAnalysisNote: "Custom note",
       });
       expect(renderedWithValue).toContain("Custom note");

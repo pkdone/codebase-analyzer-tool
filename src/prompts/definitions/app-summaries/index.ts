@@ -10,10 +10,10 @@ export const appSummaryPromptMetadata = Object.fromEntries(
   Object.entries(appSummaryConfigMap).map(([key, config]) => {
     const definition: PromptDefinition = {
       label: config.label,
-      contentDesc: config.instructions[0].points[0], // Use first instruction point as contentDesc
+      contentDesc: config.instruction, // Directly use the instruction as contentDesc
       responseSchema: config.responseSchema,
       template: APP_SUMMARY_TEMPLATE,
-      instructions: config.instructions,
+      instructions: [{ points: [config.instruction] }], // Wrap instruction in InstructionSection format
     };
     return [key, definition];
   }),

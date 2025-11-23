@@ -6,7 +6,6 @@ import {
   DB_INTEGRATION_INSTRUCTIONS,
 } from "../fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
-import { SOURCES_TEMPLATE } from "../../templates";
 import { InstructionSection } from "../../prompt.types";
 
 /**
@@ -17,7 +16,6 @@ interface SourceConfigEntry {
   hasComplexSchema?: boolean; // Defaults to true when undefined
   schemaFields: string[];
   instructions: readonly InstructionSection[];
-  template: string;
 }
 
 /**
@@ -78,7 +76,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: CODE_QUALITY_INSTRUCTIONS,
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
@@ -133,7 +130,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: CODE_QUALITY_INSTRUCTIONS,
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   csharp: {
     contentDesc: "C# code",
@@ -189,7 +185,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: CODE_QUALITY_INSTRUCTIONS,
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   python: {
     contentDesc: "Python code",
@@ -248,7 +243,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         ],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   ruby: {
     contentDesc: "Ruby code",
@@ -304,7 +298,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: CODE_QUALITY_INSTRUCTIONS,
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   sql: {
     contentDesc: "database DDL/DML/SQL code",
@@ -334,7 +327,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.SQL_SPECIFIC.DB_INTEGRATION_ANALYSIS],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   markdown: {
     contentDesc: "Markdown documentation",
@@ -349,7 +341,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [...DB_INTEGRATION_INSTRUCTIONS, PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   xml: {
     contentDesc: "XML configuration",
@@ -364,7 +355,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   jsp: {
     contentDesc: "JSP code",
@@ -397,7 +387,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.JSP_SPECIFIC.JSP_METRICS_ANALYSIS],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   maven: {
     contentDesc: "Maven POM (Project Object Model) build file",
@@ -412,7 +401,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   gradle: {
     contentDesc: "Gradle build configuration file",
@@ -427,7 +415,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.GRADLE],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   ant: {
     contentDesc: "Apache Ant build.xml file",
@@ -442,7 +429,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.ANT],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   npm: {
     contentDesc: "npm package.json or lock file",
@@ -457,7 +443,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NPM],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   "dotnet-proj": {
     contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
@@ -472,7 +457,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.DOTNET],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   nuget: {
     contentDesc: "NuGet packages.config file (legacy .NET)",
@@ -487,7 +471,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NUGET],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   "ruby-bundler": {
     contentDesc: "Ruby Gemfile or Gemfile.lock",
@@ -502,7 +485,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.RUBY_BUNDLER],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   "python-pip": {
     contentDesc: "Python requirements.txt or Pipfile",
@@ -517,7 +499,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_PIP],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   "python-setup": {
     contentDesc: "Python setup.py file",
@@ -532,7 +513,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_SETUP],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   "python-poetry": {
     contentDesc: "Python pyproject.toml (Poetry)",
@@ -547,7 +527,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_POETRY],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   "shell-script": {
     contentDesc: "Shell script (bash/sh)",
@@ -568,7 +547,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         ],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   "batch-script": {
     contentDesc: "Windows batch script (.bat/.cmd)",
@@ -590,7 +568,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         ],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   jcl: {
     contentDesc: "Mainframe JCL (Job Control Language)",
@@ -612,7 +589,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         ],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
   default: {
     contentDesc: "source files",
@@ -627,6 +603,5 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         points: [...DB_INTEGRATION_INSTRUCTIONS, PROMPT_FRAGMENTS.COMMON.DB_IN_FILE],
       },
     ],
-    template: SOURCES_TEMPLATE,
   },
 } as const;

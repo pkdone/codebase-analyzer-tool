@@ -24,7 +24,7 @@ describe("App Summaries Config", () => {
       requiredCategories.forEach((category) => {
         expect(appSummaryConfigMap[category]).toBeDefined();
         expect(appSummaryConfigMap[category].label).toBeTruthy();
-        expect(appSummaryConfigMap[category].instructions).toBeTruthy();
+        expect(appSummaryConfigMap[category].instruction).toBeTruthy();
         expect(appSummaryConfigMap[category].responseSchema).toBeDefined();
       });
     });
@@ -32,12 +32,11 @@ describe("App Summaries Config", () => {
     it("should have non-empty labels and instructions", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
         expect(config.label).toBeTruthy();
-        expect(config.instructions).toBeTruthy();
+        expect(config.instruction).toBeTruthy();
         expect(typeof config.label).toBe("string");
-        expect(Array.isArray(config.instructions)).toBe(true);
+        expect(typeof config.instruction).toBe("string");
         expect(config.label.length).toBeGreaterThan(0);
-        expect(config.instructions.length).toBeGreaterThan(0);
-        expect(config.instructions[0].points.length).toBeGreaterThan(0);
+        expect(config.instruction.length).toBeGreaterThan(0);
       });
     });
 
@@ -62,7 +61,7 @@ describe("App Summaries Config", () => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata).toBeDefined();
         expect(metadata.label).toBe(config.label);
-        expect(metadata.contentDesc).toBe(config.instructions[0].points[0]);
+        expect(metadata.contentDesc).toBe(config.instruction);
         expect(metadata.responseSchema).toBe(config.responseSchema);
       });
     });
@@ -74,7 +73,7 @@ describe("App Summaries Config", () => {
         expect(metadata.instructions).toHaveLength(1);
         expect(metadata.instructions[0].points).toBeDefined();
         expect(metadata.instructions[0].points).toHaveLength(1);
-        expect(metadata.instructions[0].points[0]).toBe(config.instructions[0].points[0]);
+        expect(metadata.instructions[0].points[0]).toBe(config.instruction);
       });
     });
 

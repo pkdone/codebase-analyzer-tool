@@ -23,7 +23,3 @@ export const queryingInputConfig = {
    */
   VECTOR_SEARCH_NUM_LIMIT: 6,
 } as const;
-
-
-
-

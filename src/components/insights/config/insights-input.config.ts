@@ -16,7 +16,3 @@ export const insightsInputConfig = {
    */
   REQUIREMENTS_FILE_REGEX: /requirement\d+\.prompt$/i,
 } as const;
-
-
-
-

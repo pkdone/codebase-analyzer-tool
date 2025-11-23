@@ -5,14 +5,11 @@ import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates";
 
 describe("App Summaries Config Refactoring", () => {
   describe("Configuration Structure", () => {
-    it("should use instructions array instead of instruction string", () => {
+    it("should use instruction string instead of instructions array", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
-        expect(config.instructions).toBeDefined();
-        expect(Array.isArray(config.instructions)).toBe(true);
-        expect(config.instructions.length).toBeGreaterThan(0);
-        expect(config.instructions[0].points).toBeDefined();
-        expect(Array.isArray(config.instructions[0].points)).toBe(true);
-        expect(config.instructions[0].points.length).toBeGreaterThan(0);
+        expect(config.instruction).toBeDefined();
+        expect(typeof config.instruction).toBe("string");
+        expect(config.instruction.length).toBeGreaterThan(0);
       });
     });
 
@@ -24,10 +21,8 @@ describe("App Summaries Config Refactoring", () => {
 
     it("should have proper instruction structure for all categories", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
-        expect(config.instructions).toHaveLength(1);
-        expect(config.instructions[0].points).toHaveLength(1);
-        expect(typeof config.instructions[0].points[0]).toBe("string");
-        expect(config.instructions[0].points[0].length).toBeGreaterThan(0);
+        expect(typeof config.instruction).toBe("string");
+        expect(config.instruction.length).toBeGreaterThan(0);
       });
     });
   });
@@ -39,10 +34,10 @@ describe("App Summaries Config Refactoring", () => {
 
         expect(metadata).toBeDefined();
         expect(metadata.label).toBe(config.label);
-        expect(metadata.contentDesc).toBe(config.instructions[0].points[0]);
+        expect(metadata.contentDesc).toBe(config.instruction);
         expect(metadata.responseSchema).toBe(config.responseSchema);
         expect(metadata.template).toBe(APP_SUMMARY_TEMPLATE);
-        expect(metadata.instructions).toBe(config.instructions);
+        expect(metadata.instructions[0].points[0]).toBe(config.instruction);
       });
     });
 
@@ -101,8 +96,8 @@ describe("App Summaries Config Refactoring", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
 
-        // The instruction content should be the same as the first point in the instructions array
-        expect(metadata.instructions[0].points[0]).toBe(config.instructions[0].points[0]);
+        // The instruction content should be the same as the instruction string
+        expect(metadata.instructions[0].points[0]).toBe(config.instruction);
       });
     });
   });
@@ -112,24 +107,20 @@ describe("App Summaries Config Refactoring", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
         // These should compile without TypeScript errors
         const label: string = config.label;
-        const instructions: readonly { points: readonly string[] }[] = config.instructions;
+        const instruction: string = config.instruction;
         const responseSchema = config.responseSchema;
 
         expect(typeof label).toBe("string");
-        expect(Array.isArray(instructions)).toBe(true);
+        expect(typeof instruction).toBe("string");
         expect(responseSchema).toBeDefined();
       });
     });
 
     it("should maintain readonly properties", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
-        // Test that the properties are readonly by checking their type
-        expect(Array.isArray(config.instructions)).toBe(true);
-        expect(Array.isArray(config.instructions[0].points)).toBe(true);
-
-        // Test that the arrays have the expected structure
-        expect(config.instructions.length).toBeGreaterThan(0);
-        expect(config.instructions[0].points.length).toBeGreaterThan(0);
+        // Test that the instruction is a string
+        expect(typeof config.instruction).toBe("string");
+        expect(config.instruction.length).toBeGreaterThan(0);
       });
     });
   });

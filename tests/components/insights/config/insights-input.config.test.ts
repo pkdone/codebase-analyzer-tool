@@ -29,7 +29,3 @@ describe("insightsInputConfig", () => {
     });
   });
 });
-
-
-
-

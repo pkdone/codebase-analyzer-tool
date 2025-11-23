@@ -1,5 +1,4 @@
 import { injectable, inject } from "tsyringe";
-import { fillPrompt } from "type-safe-prompt";
 import LLMRouter from "../../llm/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
@@ -7,7 +6,8 @@ import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/
 import { repositoryTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
 import { queryingInputConfig } from "./config/querying-input.config";
-import { CODEBASE_QUERY_TEMPLATE } from "../../prompts/templates";
+import { Prompt } from "../../prompts/prompt";
+import { codebaseQueryPromptDefinition } from "../../prompts/definitions/utility-prompts";
 import { formatFilesAsMarkdownCodeBlocks } from "../../common/utils/markdown-formatter";
 
 /**
@@ -72,10 +72,8 @@ export default class CodebaseQueryProcessor {
    * @returns The filled prompt string
    */
   private createCodebaseQueryPrompt(question: string, codeContent: string): string {
-    return fillPrompt(CODEBASE_QUERY_TEMPLATE, {
-      question,
-      codeContent,
-    });
+    const prompt = new Prompt(codebaseQueryPromptDefinition, codeContent);
+    return prompt.render({ question });
   }
 
   /**

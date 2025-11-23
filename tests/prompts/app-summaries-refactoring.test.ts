@@ -1,4 +1,3 @@
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
 import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates";
 import { Prompt } from "../../src/prompts/prompt";
@@ -58,8 +57,7 @@ describe("App Summaries Refactoring", () => {
       const partialAnalysisNote = "This is a partial analysis note for testing";
 
       const prompt = new Prompt(config, testContent);
-      const jsonSchemaString = JSON.stringify(zodToJsonSchema(config.responseSchema), null, 2);
-      const renderedPrompt = prompt.render(jsonSchemaString, { partialAnalysisNote });
+      const renderedPrompt = prompt.render({ partialAnalysisNote });
 
       // Verify the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -75,8 +73,7 @@ describe("App Summaries Refactoring", () => {
       const testContent = "Test file content";
 
       const prompt = new Prompt(config, testContent);
-      const jsonSchemaString = JSON.stringify(zodToJsonSchema(config.responseSchema), null, 2);
-      const renderedPrompt = prompt.render(jsonSchemaString);
+      const renderedPrompt = prompt.render();
 
       // Verify the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -96,8 +93,7 @@ describe("App Summaries Refactoring", () => {
       const testContent = "Test file content";
 
       const prompt = new Prompt(config, testContent);
-      const jsonSchemaString = JSON.stringify(zodToJsonSchema(config.responseSchema), null, 2);
-      const renderedPrompt = prompt.render(jsonSchemaString, { partialAnalysisNote: "" });
+      const renderedPrompt = prompt.render({ partialAnalysisNote: "" });
 
       // Verify the template structure without the note
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");

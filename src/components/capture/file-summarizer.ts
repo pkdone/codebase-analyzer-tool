@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import { logSingleLineWarning } from "../../common/utils/logging";
 import type LLMRouter from "../../llm/llm-router";
 import { llmTokens } from "../../di/tokens";
@@ -36,12 +35,7 @@ export class FileSummarizer {
       if (content.trim().length === 0) throw new Error("File is empty");
       const canonicalFileType = this.getCanonicalFileType(filepath, type);
       const promptMetadata = fileTypePromptMetadata[canonicalFileType];
-      const jsonSchemaString = JSON.stringify(
-        zodToJsonSchema(promptMetadata.responseSchema),
-        null,
-        2,
-      );
-      const prompt = new Prompt(promptMetadata, content).render(jsonSchemaString);
+      const prompt = new Prompt(promptMetadata, content).render();
       const llmResponse = await this.llmRouter.executeCompletion<SourceSummaryType>(
         filepath,
         prompt,

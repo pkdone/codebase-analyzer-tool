@@ -1,4 +1,6 @@
 import { fillPrompt } from "type-safe-prompt";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod";
 import { PROMPT_FRAGMENTS } from "./definitions/fragments";
 import { type InstructionSection, type PromptDefinition } from "./prompt.types";
 
@@ -11,6 +13,7 @@ export class Prompt {
   private readonly contentDesc: string;
   private readonly instructions: readonly InstructionSection[];
   private readonly content: string;
+  private readonly responseSchema: z.ZodType;
 
   /**
    * Creates a new Prompt instance.
@@ -23,21 +26,20 @@ export class Prompt {
     this.contentDesc = promptDefinition.contentDesc;
     this.instructions = promptDefinition.instructions;
     this.content = content;
+    this.responseSchema = promptDefinition.responseSchema;
   }
 
   /**
    * Renders the prompt by filling template placeholders with the provided values.
-   * This method handles all prompt formatting, including converting instruction sections to formatted text.
+   * This method handles all prompt formatting, including converting instruction sections to formatted text
+   * and generating the JSON schema string from the response schema.
    *
-   * @param jsonSchemaString - The JSON schema as a stringified JSON object
    * @param additionalParams - Optional additional parameters to merge into the template data
    * @returns The fully rendered prompt string
    */
-  render(
-    jsonSchemaString: string,
-    additionalParams: Record<string, string | undefined> = {},
-  ): string {
+  render(additionalParams: Record<string, string | undefined> = {}): string {
     const instructionsText = this.formatInstructions();
+    const jsonSchemaString = JSON.stringify(zodToJsonSchema(this.responseSchema), null, 2);
 
     const templateData = {
       instructions: instructionsText,
