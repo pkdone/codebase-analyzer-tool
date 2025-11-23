@@ -248,7 +248,7 @@ describe("TableViewModel", () => {
           { type: "primitive", content: "string" },
           { type: "primitive", content: "42" },
           { type: "object", content: { Key: "value" } },
-          { type: "primitive", content: "null" },
+          { type: "primitive", content: "" }, // null is converted to empty string for display
         ],
       });
     });
@@ -286,6 +286,45 @@ describe("TableViewModel", () => {
           },
         ],
       });
+    });
+
+    it("should handle Date objects in arrays by stringifying them instead of using String()", () => {
+      const testDate = new Date("2024-01-15T10:30:00Z");
+      const data = [
+        {
+          timestamps: [testDate, "2024-01-16", null],
+        },
+      ];
+      const vm = new TableViewModel(data);
+      const rows = vm.getProcessedRows();
+
+      const listContent = rows[0][0].content as ProcessedListItem[];
+      expect(listContent[0].type).toBe("primitive");
+      // Date should be stringified, not converted to "[object Object]"
+      expect(listContent[0].content).toBe(JSON.stringify(testDate));
+      expect(listContent[1].content).toBe("2024-01-16");
+      expect(listContent[2].content).toBe("");
+    });
+
+    it("should handle non-plain objects in arrays by stringifying them", () => {
+      class CustomClass {
+        constructor(public value: string) {}
+      }
+      const customInstance = new CustomClass("test");
+      const data = [
+        {
+          items: [customInstance, { plain: "object" }],
+        },
+      ];
+      const vm = new TableViewModel(data);
+      const rows = vm.getProcessedRows();
+
+      const listContent = rows[0][0].content as ProcessedListItem[];
+      // Custom class instance should be stringified, not "[object Object]"
+      expect(listContent[0].type).toBe("primitive");
+      expect(listContent[0].content).toBe(JSON.stringify(customInstance));
+      // Plain object should still be processed as object type
+      expect(listContent[1].type).toBe("object");
     });
   });
 

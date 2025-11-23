@@ -1,6 +1,10 @@
 import "reflect-metadata";
-import { BomAggregator } from "../../../../src/components/insights/data-aggregators/bom-aggregator";
+import {
+  BomAggregator,
+  type BomAggregationResult,
+} from "../../../../src/components/insights/data-aggregators/bom-aggregator";
 import { SourcesRepository } from "../../../../src/repositories/sources/sources.repository.interface";
+import type { IAggregator } from "../../../../src/components/insights/data-aggregators/aggregator.interface";
 
 describe("BomAggregator", () => {
   let aggregator: BomAggregator;
@@ -245,6 +249,35 @@ describe("BomAggregator", () => {
       expect(result.buildFiles).toContain("build.gradle");
       // Verify pom.xml appears only once despite being in the input twice
       expect(result.buildFiles.filter((f) => f === "pom.xml")).toHaveLength(1);
+    });
+
+    it("should preserve type safety with generic IAggregator interface", async () => {
+      const mockSourceFiles = [
+        {
+          filepath: "pom.xml",
+          summary: {
+            dependencies: [{ name: "lib-a", version: "1.0.0" }],
+          },
+        },
+      ];
+
+      mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
+
+      // Type check: aggregator should implement IAggregator<BomAggregationResult>
+      const aggregator: IAggregator<BomAggregationResult> = new BomAggregator(
+        mockSourcesRepository,
+      );
+
+      const result = await aggregator.aggregate("test-project");
+
+      // TypeScript should infer the correct type
+      const typedResult: BomAggregationResult = result;
+
+      // Verify type-safe access to properties
+      expect(typedResult.totalDependencies).toBe(1);
+      expect(typedResult.conflictCount).toBe(0);
+      expect(Array.isArray(typedResult.dependencies)).toBe(true);
+      expect(Array.isArray(typedResult.buildFiles)).toBe(true);
     });
   });
 });

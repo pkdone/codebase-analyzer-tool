@@ -230,9 +230,22 @@ export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow>
           content: processedKeys,
         };
       } else {
+        // Handle primitives with proper type checking before conversion
+        const content =
+          typeof item === "string"
+            ? item
+            : typeof item === "number" || typeof item === "boolean"
+              ? String(item)
+              : item === null || item === undefined
+                ? ""
+                : typeof item === "object"
+                  ? JSON.stringify(item)
+                  : typeof item === "bigint" || typeof item === "symbol"
+                    ? String(item)
+                    : JSON.stringify(item);
         return {
           type: "primitive" as const,
-          content: String(item),
+          content,
         };
       }
     });

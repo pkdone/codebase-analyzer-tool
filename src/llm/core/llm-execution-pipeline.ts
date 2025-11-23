@@ -72,7 +72,10 @@ export class LLMExecutionPipeline {
           this.llmStats.recordJsonMutated();
         }
         // result.generated has already been validated by JsonProcessor in the LLM function
-        // No need for redundant validation here
+        // against the Zod schema. The type assertion to T is safe as long as the caller
+        // ensures the generic type T matches the Zod schema used in the LLM function.
+        // If the schema and T drift out of sync, this will cause runtime errors.
+        // The caller is responsible for ensuring type alignment between the schema and T.
         return {
           success: true,
           data: result.generated as T,

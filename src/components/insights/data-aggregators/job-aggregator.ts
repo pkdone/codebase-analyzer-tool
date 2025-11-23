@@ -3,23 +3,28 @@ import type { SourcesRepository } from "../../../repositories/sources/sources.re
 import { repositoryTokens } from "../../../di/tokens";
 import type { IAggregator } from "./aggregator.interface";
 import type { AppSummaryCategoryEnum } from "../insights.types";
+import type { z } from "zod";
+import {
+  scheduledJobsSummarySchema,
+  scheduledJobSummaryItemSchema,
+} from "../../../schemas/app-summaries.schema";
 
-interface AggregatedJob {
-  jobName: string;
-  sourceFile: string;
-  trigger: string;
-  purpose: string;
-  inputResources?: string[];
-  outputResources?: string[];
-  dependencies?: string[];
-}
+/**
+ * Type for the scheduled jobs aggregation result (inferred from Zod schema)
+ */
+export type ScheduledJobsAggregationResult = z.infer<typeof scheduledJobsSummarySchema>;
+
+/**
+ * Type for a single job item (inferred from Zod schema)
+ */
+type ScheduledJobItem = z.infer<typeof scheduledJobSummaryItemSchema>;
 
 /**
  * Aggregates scheduled jobs and batch processes from script files.
  * Identifies batch jobs, shell scripts, JCL, and other automated processes.
  */
 @injectable()
-export class JobAggregator implements IAggregator {
+export class JobAggregator implements IAggregator<ScheduledJobsAggregationResult> {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
@@ -32,20 +37,7 @@ export class JobAggregator implements IAggregator {
   /**
    * Aggregates all scheduled jobs from script files for a project
    */
-  async aggregate(projectName: string): Promise<{
-    jobs: {
-      jobName: string;
-      sourceFile: string;
-      trigger: string;
-      purpose: string;
-      inputResources?: string[];
-      outputResources?: string[];
-      dependencies?: string[];
-    }[];
-    totalJobs: number;
-    triggerTypes: string[];
-    jobFiles: string[];
-  }> {
+  async aggregate(projectName: string): Promise<ScheduledJobsAggregationResult> {
     // Fetch all script files with scheduled jobs
     const scriptFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, [
       "shell-script",
@@ -53,7 +45,7 @@ export class JobAggregator implements IAggregator {
       "jcl",
     ]);
 
-    const jobsList: AggregatedJob[] = [];
+    const jobsList: ScheduledJobItem[] = [];
     const triggerTypesSet = new Set<string>();
     const jobFilePaths: string[] = [];
 

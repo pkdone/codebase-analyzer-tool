@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
+import type { JsonSchema7Type } from "zod-to-json-schema";
 import { coreTokens } from "../di/tokens";
 import { databaseConfig } from "../config/database.config";
 import { logErrorMsgAndDetail } from "../common/utils/logging";
@@ -78,7 +79,7 @@ export class DatabaseInitializer {
    */
   private async createCollectionWithValidator(
     collectionName: string,
-    jsonSchema: object,
+    jsonSchema: JsonSchema7Type,
   ): Promise<void> {
     const validationOptions = {
       validator: { $jsonSchema: jsonSchema },

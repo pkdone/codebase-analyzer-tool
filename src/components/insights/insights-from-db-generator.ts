@@ -19,6 +19,11 @@ import { SinglePassInsightStrategy } from "./strategies/single-pass-strategy";
 import { MapReduceInsightStrategy } from "./strategies/map-reduce-strategy";
 import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
 import type { IAggregator } from "./data-aggregators/aggregator.interface";
+import type { BomAggregationResult } from "./data-aggregators/bom-aggregator";
+import type { CodeQualityAggregationResult } from "./data-aggregators/code-quality-aggregator";
+import type { ScheduledJobsAggregationResult } from "./data-aggregators/job-aggregator";
+import type { ModuleCouplingAggregationResult } from "./data-aggregators/module-coupling-aggregator";
+import type { UiAnalysisSummary } from "./data-aggregators/ui-aggregator";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -181,7 +186,7 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
   /**
    * Generates and stores aggregated data for a specific aggregator
    */
-  private async generateAndStoreAggregatedData(aggregator: IAggregator): Promise<void> {
+  private async generateAndStoreAggregatedData<T>(aggregator: IAggregator<T>): Promise<void> {
     const category = aggregator.getCategory();
     const categoryLabel = summaryCategoriesConfig[category].label ?? category;
 
@@ -192,62 +197,61 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
       // Map aggregator results to the appropriate update method
       // Special handling for billOfMaterials - it stores dependencies array, not the full object
       if (category === "billOfMaterials") {
-        const bomData = aggregatedData as {
-          dependencies: unknown[];
-          totalDependencies: number;
-          conflictCount: number;
-        };
+        const bomData = aggregatedData as BomAggregationResult;
         await this.appSummariesRepository.updateAppSummary(this.projectName, {
           billOfMaterials: bomData.dependencies,
-        } as unknown as PartialAppSummaryRecord);
+        });
+      } else if (category === "codeQualitySummary") {
+        await this.appSummariesRepository.updateAppSummary(this.projectName, {
+          codeQualitySummary: aggregatedData as CodeQualityAggregationResult,
+        });
+      } else if (category === "scheduledJobsSummary") {
+        await this.appSummariesRepository.updateAppSummary(this.projectName, {
+          scheduledJobsSummary: aggregatedData as ScheduledJobsAggregationResult,
+        });
+      } else if (category === "moduleCoupling") {
+        await this.appSummariesRepository.updateAppSummary(this.projectName, {
+          moduleCoupling: aggregatedData as ModuleCouplingAggregationResult,
+        });
+      } else if (category === "uiTechnologyAnalysis") {
+        await this.appSummariesRepository.updateAppSummary(this.projectName, {
+          uiTechnologyAnalysis: aggregatedData as UiAnalysisSummary,
+        });
       } else {
+        // Fallback for any other categories (shouldn't happen with current aggregators)
         await this.appSummariesRepository.updateAppSummary(this.projectName, {
           [category]: aggregatedData,
-        } as unknown as PartialAppSummaryRecord);
+        } as PartialAppSummaryRecord);
       }
 
       // Log success with category-specific details
       if (category === "billOfMaterials") {
-        const bomData = aggregatedData as {
-          totalDependencies: number;
-          conflictCount: number;
-        };
+        const bomData = aggregatedData as BomAggregationResult;
         console.log(
           `Captured Bill of Materials: ${bomData.totalDependencies} dependencies, ${bomData.conflictCount} conflicts`,
         );
       } else if (category === "codeQualitySummary") {
-        const qualityData = aggregatedData as {
-          overallStatistics: { totalMethods: number };
-          commonCodeSmells: unknown[];
-        };
+        const qualityData = aggregatedData as CodeQualityAggregationResult;
+        const totalMethods = qualityData.overallStatistics.totalMethods;
+        const codeSmellsCount = qualityData.commonCodeSmells.length;
         console.log(
-          `Captured Code Quality Summary: ${qualityData.overallStatistics.totalMethods} methods analyzed, ` +
-            `${qualityData.commonCodeSmells.length} smell types detected`,
+          `Captured Code Quality Summary: ${totalMethods} methods analyzed, ` +
+            `${codeSmellsCount} smell types detected`,
         );
       } else if (category === "scheduledJobsSummary") {
-        const jobsData = aggregatedData as {
-          totalJobs: number;
-          triggerTypes: string[];
-        };
+        const jobsData = aggregatedData as ScheduledJobsAggregationResult;
         console.log(
           `Captured Scheduled Jobs Summary: ${jobsData.totalJobs} jobs found, ` +
             `${jobsData.triggerTypes.length} trigger types`,
         );
       } else if (category === "moduleCoupling") {
-        const couplingData = aggregatedData as {
-          totalModules: number;
-          totalCouplings: number;
-        };
+        const couplingData = aggregatedData as ModuleCouplingAggregationResult;
         console.log(
           `Captured Module Coupling: ${couplingData.totalModules} modules, ` +
             `${couplingData.totalCouplings} coupling relationships`,
         );
       } else if (category === "uiTechnologyAnalysis") {
-        const uiData = aggregatedData as {
-          totalJspFiles: number;
-          totalScriptlets: number;
-          frameworks: unknown[];
-        };
+        const uiData = aggregatedData as UiAnalysisSummary;
         console.log(
           `Captured UI Technology Analysis: ${uiData.totalJspFiles} JSP files, ` +
             `${uiData.totalScriptlets} scriptlets, ${uiData.frameworks.length} frameworks detected`,

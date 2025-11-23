@@ -3,52 +3,32 @@ import type { SourcesRepository } from "../../../repositories/sources/sources.re
 import { repositoryTokens } from "../../../di/tokens";
 import type { IAggregator } from "./aggregator.interface";
 import type { AppSummaryCategoryEnum } from "../insights.types";
+import type { z } from "zod";
+import {
+  uiTechnologyAnalysisSchema,
+  uiFrameworkItemSchema,
+  customTagLibrarySchema,
+  jspFileMetricsSchema,
+} from "../../../schemas/app-summaries.schema";
 
 /**
- * Type definitions for UI analysis summary
+ * Type for UI analysis summary (inferred from Zod schema)
  */
-export interface UiFrameworkItem {
-  [k: string]: unknown;
-  name: string;
-  version?: string;
-  configFiles: string[];
-}
+export type UiAnalysisSummary = z.infer<typeof uiTechnologyAnalysisSchema>;
 
-export interface CustomTagLibrary {
-  [k: string]: unknown;
-  prefix: string;
-  uri: string;
-  usageCount: number;
-}
-
-export interface JspFileMetrics {
-  [k: string]: unknown;
-  filePath: string;
-  scriptletCount: number;
-  expressionCount: number;
-  declarationCount: number;
-  totalScriptletBlocks: number;
-}
-
-export interface UiAnalysisSummary {
-  [k: string]: unknown;
-  frameworks: UiFrameworkItem[];
-  totalJspFiles: number;
-  totalScriptlets: number;
-  totalExpressions: number;
-  totalDeclarations: number;
-  averageScriptletsPerFile: number;
-  filesWithHighScriptletCount: number;
-  customTagLibraries: CustomTagLibrary[];
-  topScriptletFiles: JspFileMetrics[];
-}
+/**
+ * Type aliases for internal use (inferred from Zod schemas)
+ */
+type UiFrameworkItem = z.infer<typeof uiFrameworkItemSchema>;
+type CustomTagLibrary = z.infer<typeof customTagLibrarySchema>;
+type JspFileMetrics = z.infer<typeof jspFileMetricsSchema>;
 
 /**
  * Aggregates UI technology data including framework detection, JSP metrics, and tag library usage.
  * Analyzes JSP files for scriptlets and custom tags to measure technical debt.
  */
 @injectable()
-export class UiAggregator implements IAggregator {
+export class UiAggregator implements IAggregator<UiAnalysisSummary> {
   private readonly TOP_FILES_LIMIT = 10;
   private readonly HIGH_SCRIPTLET_THRESHOLD = 10;
 

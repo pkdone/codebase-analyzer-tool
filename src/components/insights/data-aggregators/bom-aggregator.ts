@@ -3,6 +3,8 @@ import type { SourcesRepository } from "../../../repositories/sources/sources.re
 import { repositoryTokens } from "../../../di/tokens";
 import type { IAggregator } from "./aggregator.interface";
 import type { AppSummaryCategoryEnum } from "../insights.types";
+import type { z } from "zod";
+import { billOfMaterialsSchema } from "../../../schemas/app-summaries.schema";
 
 interface AggregatedDependency {
   name: string;
@@ -13,11 +15,16 @@ interface AggregatedDependency {
 }
 
 /**
+ * Type for the BOM aggregation result (inferred from Zod schema)
+ */
+export type BomAggregationResult = z.infer<typeof billOfMaterialsSchema>;
+
+/**
  * Aggregates dependencies from all build files into a unified Bill of Materials.
  * Detects version conflicts and provides comprehensive dependency analysis.
  */
 @injectable()
-export class BomAggregator implements IAggregator {
+export class BomAggregator implements IAggregator<BomAggregationResult> {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
@@ -30,19 +37,7 @@ export class BomAggregator implements IAggregator {
   /**
    * Aggregates all dependencies from build files for a project
    */
-  async aggregate(projectName: string): Promise<{
-    dependencies: {
-      name: string;
-      groupId?: string;
-      versions: string[];
-      hasConflict: boolean;
-      scopes?: string[];
-      locations: string[];
-    }[];
-    totalDependencies: number;
-    conflictCount: number;
-    buildFiles: string[];
-  }> {
+  async aggregate(projectName: string): Promise<BomAggregationResult> {
     // Fetch all build files with dependencies
     const buildFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, [
       "maven",

@@ -3,15 +3,25 @@ import type { SourcesRepository } from "../../../repositories/sources/sources.re
 import { repositoryTokens } from "../../../di/tokens";
 import type { IAggregator } from "./aggregator.interface";
 import type { AppSummaryCategoryEnum } from "../insights.types";
+import type { z } from "zod";
+import { moduleCouplingSchema } from "../../../schemas/app-summaries.schema";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;
+
+/**
+ * Type for the module coupling aggregation result (inferred from Zod schema)
+ * Note: moduleDepth is added by the aggregator but not in the schema
+ */
+export type ModuleCouplingAggregationResult = z.infer<typeof moduleCouplingSchema> & {
+  moduleDepth: number;
+};
 
 /**
  * Aggregates internal references between modules to build a coupling matrix.
  * Analyzes module dependencies to identify highly coupled and loosely coupled components.
  */
 @injectable()
-export class ModuleCouplingAggregator implements IAggregator {
+export class ModuleCouplingAggregator implements IAggregator<ModuleCouplingAggregationResult> {
   private readonly DEFAULT_MODULE_DEPTH = 2;
 
   constructor(
@@ -29,17 +39,7 @@ export class ModuleCouplingAggregator implements IAggregator {
   async aggregate(
     projectName: string,
     moduleDepth: number = this.DEFAULT_MODULE_DEPTH,
-  ): Promise<{
-    couplings: {
-      fromModule: string;
-      toModule: string;
-      referenceCount: number;
-    }[];
-    totalModules: number;
-    totalCouplings: number;
-    highestCouplingCount: number;
-    moduleDepth: number;
-  }> {
+  ): Promise<ModuleCouplingAggregationResult> {
     // Fetch all source files from the project
     const sourceFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, []);
 
