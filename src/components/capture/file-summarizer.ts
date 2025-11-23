@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
 import { Prompt } from "../../prompts/prompt";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
-import { fileTypeMappingsConfig } from "../../config/file-types.config";
+import { FILE_TYPE_MAPPING_RULES } from "../../config/file-types.config";
 
 /**
  * Type for source summary
@@ -57,17 +57,23 @@ export class FileSummarizer {
 
   /**
    * Derive the canonical file type for a given path and declared extension/suffix.
-   * Encapsulates filename and extension based lookup logic.
+   * Uses the consolidated ordered list of file type mapping rules.
    */
   private getCanonicalFileType(
     filepath: string,
     type: string,
   ): keyof typeof fileTypePromptMetadata {
     const filename = path.basename(filepath).toLowerCase();
-    const byFilenameFileType =
-      fileTypeMappingsConfig.FILENAME_TO_CANONICAL_TYPE_MAPPINGS.get(filename);
-    const byExtensionFileType =
-      fileTypeMappingsConfig.FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS.get(type.toLowerCase());
-    return byFilenameFileType ?? byExtensionFileType ?? fileTypeMappingsConfig.DEFAULT_FILE_TYPE;
+    const extension = type.toLowerCase();
+
+    // Iterate through rules in order, returning the first match
+    for (const rule of FILE_TYPE_MAPPING_RULES) {
+      if (rule.test(filename, extension)) {
+        return rule.type;
+      }
+    }
+
+    // Fallback to default (should never reach here as last rule always matches)
+    return "default";
   }
 }

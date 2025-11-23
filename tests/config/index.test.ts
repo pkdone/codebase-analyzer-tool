@@ -1,7 +1,7 @@
 import { appConfig } from "../../src/config/app.config";
 import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
-import { fileTypeMappingsConfig } from "../../src/config/file-types.config";
+import { FILE_TYPE_MAPPING_RULES } from "../../src/config/file-types.config";
 import { outputConfig } from "../../src/config/output.config";
 import { loggingConfig } from "../../src/llm/tracking/logging.config";
 
@@ -23,8 +23,10 @@ describe("individual config modules", () => {
     expect(fileProcessingConfig).toHaveProperty("BINARY_FILE_EXTENSION_IGNORE_LIST");
   });
 
-  it("JAVA_FILE_TYPE constant should be defined", () => {
-    expect(fileTypeMappingsConfig.JAVA_FILE_TYPE).toBe("java");
+  it("file type mapping rules should include java type", () => {
+    const javaRule = FILE_TYPE_MAPPING_RULES.find((rule) => rule.type === "java");
+    expect(javaRule).toBeDefined();
+    expect(javaRule?.test("Test.java", "java")).toBe(true);
   });
 
   it("outputConfig should expose output directory", () => {

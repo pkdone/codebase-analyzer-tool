@@ -39,79 +39,99 @@ export type CanonicalFileType = (typeof CANONICAL_FILE_TYPES)[number];
 export const canonicalFileTypeSchema = z.enum(CANONICAL_FILE_TYPES);
 
 /**
- * File type mappings configuration with readonly maps for immutability.
+ * File type rule that defines how to match a file to a canonical type.
+ * Rules are evaluated in order, and the first matching rule determines the file type.
  */
-export const fileTypeMappingsConfig = {
+export interface FileTypeRule {
   /**
-   * Readonly map of file extensions to canonical types.
-   * Extracted from former fileTypesToCanonicalMappings for direct export.
+   * Test function that returns true if the file matches this rule.
+   * @param filename - The lowercase filename (e.g., "pom.xml", "readme.md")
+   * @param extension - The lowercase file extension without dot (e.g., "java", "js")
+   * @returns true if the file matches this rule
    */
-  FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, CanonicalFileType>([
-    ["java", "java"],
-    ["kt", "java"],
-    ["kts", "java"],
-    ["js", "javascript"],
-    ["ts", "javascript"],
-    ["javascript", "javascript"],
-    ["typescript", "javascript"],
-    ["py", "python"],
-    ["rb", "ruby"],
-    ["ruby", "ruby"],
-    ["cs", "csharp"],
-    ["csx", "csharp"],
-    ["csharp", "csharp"],
-    ["ddl", "sql"],
-    ["sql", "sql"],
-    ["xml", "xml"],
-    ["jsp", "jsp"],
-    ["markdown", "markdown"],
-    ["md", "markdown"],
-    // .NET project files
-    ["csproj", "dotnet-proj"],
-    ["vbproj", "dotnet-proj"],
-    ["fsproj", "dotnet-proj"],
-    // Batch and shell scripts
-    ["sh", "shell-script"],
-    ["bash", "shell-script"],
-    ["bat", "batch-script"],
-    ["cmd", "batch-script"],
-    ["jcl", "jcl"],
-  ]) as ReadonlyMap<string, CanonicalFileType>,
+  test: (filename: string, extension: string) => boolean;
+  /** The canonical file type to assign when this rule matches */
+  type: CanonicalFileType;
+}
 
-  /**
-   * Readonly map of filenames to canonical types.
-   */
-  FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, CanonicalFileType>([
-    ["readme", "markdown"],
-    ["license", "markdown"],
-    ["changelog", "markdown"],
-    // Java build tools
-    ["pom.xml", "maven"],
-    ["build.gradle", "gradle"],
-    ["build.gradle.kts", "gradle"],
-    ["build.xml", "ant"],
-    // JavaScript/Node.js
-    ["package.json", "npm"],
-    ["package-lock.json", "npm"],
-    ["yarn.lock", "npm"],
-    // .NET
-    ["packages.config", "nuget"],
-    // Ruby
-    ["Gemfile", "ruby-bundler"],
-    ["Gemfile.lock", "ruby-bundler"],
-    // Python
-    ["requirements.txt", "python-pip"],
-    ["setup.py", "python-setup"],
-    ["pyproject.toml", "python-poetry"],
-    ["Pipfile", "python-pip"],
-    ["Pipfile.lock", "python-pip"],
-    // Batch and shell scripts
-    ["crontab", "shell-script"],
-  ]) as ReadonlyMap<string, CanonicalFileType>,
+/**
+ * Ordered list of file type mapping rules.
+ * Rules are evaluated in order, with filename-based rules first (for specificity),
+ * followed by extension-based rules, and finally a default rule.
+ * The first matching rule determines the canonical file type.
+ */
+export const FILE_TYPE_MAPPING_RULES: readonly FileTypeRule[] = [
+  // Filename-based rules (checked first for specificity)
+  { test: (filename) => filename === "readme" || filename.startsWith("readme."), type: "markdown" },
+  {
+    test: (filename) => filename === "license" || filename.startsWith("license."),
+    type: "markdown",
+  },
+  {
+    test: (filename) => filename === "changelog" || filename.startsWith("changelog."),
+    type: "markdown",
+  },
+  { test: (filename) => filename === "pom.xml", type: "maven" },
+  { test: (filename) => filename === "build.gradle", type: "gradle" },
+  { test: (filename) => filename === "build.gradle.kts", type: "gradle" },
+  { test: (filename) => filename === "build.xml", type: "ant" },
+  { test: (filename) => filename === "package.json", type: "npm" },
+  { test: (filename) => filename === "package-lock.json", type: "npm" },
+  { test: (filename) => filename === "yarn.lock", type: "npm" },
+  { test: (filename) => filename === "packages.config", type: "nuget" },
+  {
+    test: (filename) => filename === "gemfile" || filename === "gemfile.lock",
+    type: "ruby-bundler",
+  },
+  { test: (filename) => filename === "requirements.txt", type: "python-pip" },
+  { test: (filename) => filename === "setup.py", type: "python-setup" },
+  { test: (filename) => filename === "pyproject.toml", type: "python-poetry" },
+  { test: (filename) => filename === "pipfile" || filename === "pipfile.lock", type: "python-pip" },
+  { test: (filename) => filename === "crontab", type: "shell-script" },
 
-  /** Default canonical file type constant */
-  DEFAULT_FILE_TYPE: "default" as CanonicalFileType,
+  // Extension-based rules (checked after filename rules)
+  {
+    test: (_filename, extension) =>
+      extension === "java" || extension === "kt" || extension === "kts",
+    type: "java",
+  },
+  {
+    test: (_filename, extension) =>
+      extension === "js" ||
+      extension === "ts" ||
+      extension === "javascript" ||
+      extension === "typescript",
+    type: "javascript",
+  },
+  { test: (_filename, extension) => extension === "py", type: "python" },
+  { test: (_filename, extension) => extension === "rb" || extension === "ruby", type: "ruby" },
+  {
+    test: (_filename, extension) =>
+      extension === "cs" || extension === "csx" || extension === "csharp",
+    type: "csharp",
+  },
+  { test: (_filename, extension) => extension === "ddl" || extension === "sql", type: "sql" },
+  { test: (_filename, extension) => extension === "xml", type: "xml" },
+  { test: (_filename, extension) => extension === "jsp", type: "jsp" },
+  {
+    test: (_filename, extension) => extension === "markdown" || extension === "md",
+    type: "markdown",
+  },
+  {
+    test: (_filename, extension) =>
+      extension === "csproj" || extension === "vbproj" || extension === "fsproj",
+    type: "dotnet-proj",
+  },
+  {
+    test: (_filename, extension) => extension === "sh" || extension === "bash",
+    type: "shell-script",
+  },
+  {
+    test: (_filename, extension) => extension === "bat" || extension === "cmd",
+    type: "batch-script",
+  },
+  { test: (_filename, extension) => extension === "jcl", type: "jcl" },
 
-  /** Canonical Java file type constant */
-  JAVA_FILE_TYPE: "java" as CanonicalFileType,
-} as const;
+  // Default rule (always matches, must be last)
+  { test: () => true, type: "default" },
+] as const;

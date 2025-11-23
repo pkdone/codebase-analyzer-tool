@@ -14,11 +14,10 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 /**
  * Type guard to check if an unknown value is a JSON-RPC body with an id field.
+ * Simplified inline check aligned with JSON-RPC 2.0 specification.
  */
 function isJsonRpcBody(body: unknown): body is { id: string | number | null } {
-  return (
-    typeof body === "object" && body !== null && !Array.isArray(body) && Object.hasOwn(body, "id")
-  );
+  return typeof body === "object" && body !== null && "id" in body;
 }
 
 /**

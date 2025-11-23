@@ -18,30 +18,48 @@ jest.mock("../../../src/common/utils/logging", () => ({
 jest.unmock("../../../src/prompts/definitions/sources");
 jest.unmock("../../../src/prompts/definitions/fragments");
 
-jest.mock("../../../src/config/file-types.config", () => ({
-  fileTypeMappingsConfig: {
-    FILE_EXTENSION_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
-      ["java", "java"],
-      ["js", "javascript"],
-      ["ts", "javascript"],
-      ["javascript", "javascript"],
-      ["typescript", "javascript"],
-      ["ddl", "sql"],
-      ["sql", "sql"],
-      ["xml", "xml"],
-      ["jsp", "jsp"],
-      ["markdown", "markdown"],
-      ["md", "markdown"],
-    ]),
-    FILENAME_TO_CANONICAL_TYPE_MAPPINGS: new Map<string, string>([
-      ["readme", "markdown"],
-      ["license", "markdown"],
-      ["changelog", "markdown"],
-    ]),
-    DEFAULT_FILE_TYPE: "default",
-    JAVA_FILE_TYPE: "java",
-  },
-}));
+jest.mock("../../../src/config/file-types.config", () => {
+  // Create rules that match the test expectations
+  const createRules = () => [
+    // Filename rules first
+    {
+      test: (filename: string) => filename === "readme" || filename.startsWith("readme."),
+      type: "markdown" as const,
+    },
+    {
+      test: (filename: string) => filename === "license" || filename.startsWith("license."),
+      type: "markdown" as const,
+    },
+    {
+      test: (filename: string) => filename === "changelog" || filename.startsWith("changelog."),
+      type: "markdown" as const,
+    },
+    // Extension rules
+    { test: (_filename: string, extension: string) => extension === "java", type: "java" as const },
+    {
+      test: (_filename: string, extension: string) =>
+        ["js", "ts", "javascript", "typescript"].includes(extension),
+      type: "javascript" as const,
+    },
+    {
+      test: (_filename: string, extension: string) => extension === "ddl" || extension === "sql",
+      type: "sql" as const,
+    },
+    { test: (_filename: string, extension: string) => extension === "xml", type: "xml" as const },
+    { test: (_filename: string, extension: string) => extension === "jsp", type: "jsp" as const },
+    {
+      test: (_filename: string, extension: string) =>
+        extension === "markdown" || extension === "md",
+      type: "markdown" as const,
+    },
+    // Default rule
+    { test: () => true, type: "default" as const },
+  ];
+
+  return {
+    FILE_TYPE_MAPPING_RULES: createRules(),
+  };
+});
 
 // Fix the mock to use the correct export name
 jest.mock("../../../src/prompts/definitions/sources", () => ({
