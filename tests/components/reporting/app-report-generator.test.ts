@@ -137,5 +137,49 @@ describe("AppReportGenerator", () => {
       const jsonDataCall = mockJsonWriter.writeAllJSONFiles.mock.calls[0][0];
       expect(jsonDataCall.length).toBeGreaterThan(2); // At least one from each section
     });
+
+    it("should handle partial section failures gracefully using Promise.allSettled", async () => {
+      const mockAppSummaryData = { appDescription: "Test app", projectName: "test" };
+      mockAppSummariesRepository.getProjectAppSummaryFields.mockResolvedValue(mockAppSummaryData);
+
+      const mockAppStats = {
+        projectName: "test",
+        currentDate: "2024-01-01",
+        llmProvider: "test",
+        fileCount: 100,
+        linesOfCode: 5000,
+        appDescription: "Test app",
+      };
+
+      const mockCategorizedData: ReportData["categorizedData"] = [];
+
+      mockAppStatsDataProvider.getAppStatistics.mockResolvedValue(mockAppStats);
+      mockCategoriesDataProvider.getStandardSectionData.mockReturnValue(mockCategorizedData);
+
+      // Make one section fail
+      mockSections[0].getData.mockRejectedValue(new Error("Section 1 failed"));
+      mockSections[1].getData.mockResolvedValue({ section2Data: "test" });
+
+      // Mock console.warn to verify it's called for failed sections
+      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+
+      await generator.generateReport("test-project", "/output", "report.html");
+
+      // Verify that console.warn was called for the failed section
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        "Failed to get data for a report section:",
+        expect.any(Error),
+      );
+
+      // Verify that the successful section's data is still used
+      expect(mockSections[1].prepareHtmlData).toHaveBeenCalled();
+      expect(mockSections[1].prepareJsonData).toHaveBeenCalled();
+
+      // Verify that report generation still completes
+      expect(mockHtmlWriter.writeHTMLReportFile).toHaveBeenCalled();
+      expect(mockJsonWriter.writeAllJSONFiles).toHaveBeenCalled();
+
+      consoleWarnSpy.mockRestore();
+    });
   });
 });

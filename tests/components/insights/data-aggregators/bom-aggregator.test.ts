@@ -212,5 +212,39 @@ describe("BomAggregator", () => {
       expect(result.dependencies[0].groupId).toBe("com.example");
       expect(result.dependencies[1].groupId).toBe("com.example");
     });
+
+    it("should deduplicate build file paths using Set", async () => {
+      const mockSourceFiles = [
+        {
+          filepath: "pom.xml",
+          summary: {
+            dependencies: [{ name: "lib-a", version: "1.0.0" }],
+          },
+        },
+        {
+          filepath: "pom.xml", // Duplicate filepath
+          summary: {
+            dependencies: [{ name: "lib-b", version: "2.0.0" }],
+          },
+        },
+        {
+          filepath: "build.gradle",
+          summary: {
+            dependencies: [{ name: "lib-c", version: "3.0.0" }],
+          },
+        },
+      ];
+
+      mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue(mockSourceFiles as any);
+
+      const result = await aggregator.aggregateBillOfMaterials("test-project");
+
+      // Verify that duplicate file paths are deduplicated
+      expect(result.buildFiles).toHaveLength(2);
+      expect(result.buildFiles).toContain("pom.xml");
+      expect(result.buildFiles).toContain("build.gradle");
+      // Verify pom.xml appears only once despite being in the input twice
+      expect(result.buildFiles.filter((f) => f === "pom.xml")).toHaveLength(1);
+    });
   });
 });

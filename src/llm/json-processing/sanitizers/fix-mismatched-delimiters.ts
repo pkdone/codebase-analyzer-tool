@@ -99,7 +99,7 @@ export const fixMismatchedDelimiters: Sanitizer = (input: string): SanitizerResu
               char === DELIMITERS.CLOSE_BRACKET &&
               expectedCloser === DELIMITERS.CLOSE_BRACE &&
               delimiterStack.length >= 1 &&
-              delimiterStack[delimiterStack.length - 1].opener === DELIMITERS.OPEN_BRACKET
+              delimiterStack.at(-1)?.opener === DELIMITERS.OPEN_BRACKET
             ) {
               const nextChar = peekNextNonWhitespace(i);
               if (nextChar === DELIMITERS.DOUBLE_QUOTE) {

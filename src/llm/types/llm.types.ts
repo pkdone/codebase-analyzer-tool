@@ -28,10 +28,11 @@ export interface LLMProvider {
 /**
  * Enum to define the model quality required (primary, secondary)
  */
-export enum LLMModelQuality {
-  PRIMARY = "primary",
-  SECONDARY = "secondary",
-}
+export const LLMModelQuality = {
+  PRIMARY: "primary",
+  SECONDARY: "secondary",
+} as const;
+export type LLMModelQuality = (typeof LLMModelQuality)[keyof typeof LLMModelQuality];
 
 /**
  * Types to define the status types statistics
@@ -45,10 +46,11 @@ export interface LLMModelKeysSet {
 /**
  * Enum to define the LLM task type
  */
-export enum LLMPurpose {
-  EMBEDDINGS = "embeddings",
-  COMPLETIONS = "completions",
-}
+export const LLMPurpose = {
+  EMBEDDINGS: "embeddings",
+  COMPLETIONS: "completions",
+} as const;
+export type LLMPurpose = (typeof LLMPurpose)[keyof typeof LLMPurpose];
 
 /**
  * Enum to define the desired output format for LLM responses

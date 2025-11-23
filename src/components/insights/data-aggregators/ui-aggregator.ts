@@ -82,71 +82,74 @@ export class UiAggregator implements IAggregator {
     let totalDeclarations = 0;
     let filesWithHighScriptletCount = 0;
 
-    // Analyze each source file
-    for (const file of sourceFiles) {
-      // Process UI framework detection (typically from XML files)
-      if (file.summary?.uiFramework) {
-        const framework = file.summary.uiFramework;
-        const key = `${framework.name}:${framework.version ?? "unknown"}`;
+    // Filter source files by type for clearer separation of concerns
+    const frameworkFiles = sourceFiles.filter((f) => f.summary?.uiFramework);
+    const jspFiles = sourceFiles.filter((f) => f.summary?.jspMetrics);
 
-        const existing = frameworkMap.get(key);
-        if (existing) {
-          frameworkMap.set(key, {
-            name: existing.name,
-            version: existing.version,
-            configFiles: [...existing.configFiles, framework.configFile],
-          });
-        } else {
-          frameworkMap.set(key, {
-            name: framework.name,
-            version: framework.version,
-            configFiles: [framework.configFile],
-          });
-        }
+    // Process UI framework detection (typically from XML files)
+    for (const file of frameworkFiles) {
+      const framework = file.summary?.uiFramework;
+      if (!framework) continue;
+      const key = `${framework.name}:${framework.version ?? "unknown"}`;
+
+      const existing = frameworkMap.get(key);
+      if (existing) {
+        frameworkMap.set(key, {
+          name: existing.name,
+          version: existing.version,
+          configFiles: [...existing.configFiles, framework.configFile],
+        });
+      } else {
+        frameworkMap.set(key, {
+          name: framework.name,
+          version: framework.version,
+          configFiles: [framework.configFile],
+        });
+      }
+    }
+
+    // Process JSP metrics
+    for (const file of jspFiles) {
+      const metrics = file.summary?.jspMetrics;
+      if (!metrics) continue;
+
+      totalScriptlets += metrics.scriptletCount;
+      totalExpressions += metrics.expressionCount;
+      totalDeclarations += metrics.declarationCount;
+
+      const totalBlocks =
+        metrics.scriptletCount + metrics.expressionCount + metrics.declarationCount;
+
+      if (totalBlocks > this.HIGH_SCRIPTLET_THRESHOLD) {
+        filesWithHighScriptletCount++;
       }
 
-      // Process JSP metrics
-      if (file.summary?.jspMetrics) {
-        const metrics = file.summary.jspMetrics;
+      // Track individual JSP file metrics for top files
+      jspFileMetrics.push({
+        filePath: file.filepath,
+        scriptletCount: metrics.scriptletCount,
+        expressionCount: metrics.expressionCount,
+        declarationCount: metrics.declarationCount,
+        totalScriptletBlocks: totalBlocks,
+      });
 
-        totalScriptlets += metrics.scriptletCount;
-        totalExpressions += metrics.expressionCount;
-        totalDeclarations += metrics.declarationCount;
+      // Process custom tag libraries
+      if (metrics.customTags && metrics.customTags.length > 0) {
+        for (const tag of metrics.customTags) {
+          const key = `${tag.prefix}:${tag.uri}`;
 
-        const totalBlocks =
-          metrics.scriptletCount + metrics.expressionCount + metrics.declarationCount;
-
-        if (totalBlocks > this.HIGH_SCRIPTLET_THRESHOLD) {
-          filesWithHighScriptletCount++;
-        }
-
-        // Track individual JSP file metrics for top files
-        jspFileMetrics.push({
-          filePath: file.filepath,
-          scriptletCount: metrics.scriptletCount,
-          expressionCount: metrics.expressionCount,
-          declarationCount: metrics.declarationCount,
-          totalScriptletBlocks: totalBlocks,
-        });
-
-        // Process custom tag libraries
-        if (metrics.customTags && metrics.customTags.length > 0) {
-          for (const tag of metrics.customTags) {
-            const key = `${tag.prefix}:${tag.uri}`;
-
-            const existing = tagLibraryMap.get(key);
-            if (existing) {
-              tagLibraryMap.set(key, {
-                ...existing,
-                usageCount: existing.usageCount + 1,
-              });
-            } else {
-              tagLibraryMap.set(key, {
-                prefix: tag.prefix,
-                uri: tag.uri,
-                usageCount: 1,
-              });
-            }
+          const existing = tagLibraryMap.get(key);
+          if (existing) {
+            tagLibraryMap.set(key, {
+              ...existing,
+              usageCount: existing.usageCount + 1,
+            });
+          } else {
+            tagLibraryMap.set(key, {
+              prefix: tag.prefix,
+              uri: tag.uri,
+              usageCount: 1,
+            });
           }
         }
       }

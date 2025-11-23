@@ -112,4 +112,40 @@ describe("BaseOpenAILLM refactored invokeProvider", () => {
     const callArg = spy.mock.calls[0][0] as { response_format?: { type: string } };
     expect(callArg.response_format).toEqual({ type: expect.any(String) });
   });
+
+  test("empty string response should be treated as valid (not incomplete)", async () => {
+    const fakeClient = (llm as any).getClient();
+    fakeClient.chat.completions.create = jest.fn().mockResolvedValue({
+      choices: [{ message: { content: "" }, finish_reason: "stop" }],
+      usage: { prompt_tokens: 5, completion_tokens: 0 },
+    });
+
+    const result = await (llm as any).invokeProvider(LLMPurpose.COMPLETIONS, "COMPLETE", "test");
+    expect(result.responseContent).toBe("");
+    expect(result.isIncompleteResponse).toBe(false); // Empty string is valid, not incomplete
+  });
+
+  test("null response content should be treated as incomplete", async () => {
+    const fakeClient = (llm as any).getClient();
+    fakeClient.chat.completions.create = jest.fn().mockResolvedValue({
+      choices: [{ message: { content: null }, finish_reason: "stop" }],
+      usage: { prompt_tokens: 5, completion_tokens: 0 },
+    });
+
+    const result = await (llm as any).invokeProvider(LLMPurpose.COMPLETIONS, "COMPLETE", "test");
+    expect(result.responseContent).toBeNull();
+    expect(result.isIncompleteResponse).toBe(true); // null is incomplete
+  });
+
+  test("undefined response content should be treated as incomplete", async () => {
+    const fakeClient = (llm as any).getClient();
+    fakeClient.chat.completions.create = jest.fn().mockResolvedValue({
+      choices: [{ message: {}, finish_reason: "stop" }],
+      usage: { prompt_tokens: 5, completion_tokens: 0 },
+    });
+
+    const result = await (llm as any).invokeProvider(LLMPurpose.COMPLETIONS, "COMPLETE", "test");
+    expect(result.responseContent).toBeUndefined();
+    expect(result.isIncompleteResponse).toBe(true); // undefined is incomplete
+  });
 });

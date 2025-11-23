@@ -172,7 +172,8 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
 
     // Capture finish reason
     const finishReason = llmResponse.finish_reason;
-    const isIncompleteResponse = finishReason === "length" || !responseContent;
+    // An empty string is a valid response, but null/undefined is not.
+    const isIncompleteResponse = finishReason === "length" || responseContent == null;
 
     // Capture token usage
     const promptTokens = llmResponses.usage?.prompt_tokens ?? -1;

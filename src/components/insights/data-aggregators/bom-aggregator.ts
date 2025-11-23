@@ -74,7 +74,7 @@ export class BomAggregator implements IAggregator {
     ]);
 
     const dependencyMap = new Map<string, AggregatedDependency>();
-    const buildFilePaths: string[] = [];
+    const buildFilePaths = new Set<string>();
 
     // Aggregate dependencies from all build files
     for (const file of buildFiles) {
@@ -82,7 +82,7 @@ export class BomAggregator implements IAggregator {
         continue;
       }
 
-      buildFilePaths.push(file.filepath);
+      buildFilePaths.add(file.filepath);
 
       for (const dep of file.summary.dependencies) {
         const key = this.createDependencyKey(dep.name, dep.groupId);
@@ -135,7 +135,7 @@ export class BomAggregator implements IAggregator {
       dependencies: sortedDependencies,
       totalDependencies: sortedDependencies.length,
       conflictCount,
-      buildFiles: buildFilePaths,
+      buildFiles: Array.from(buildFilePaths),
     };
   }
 

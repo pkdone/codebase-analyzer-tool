@@ -148,13 +148,13 @@ export const normalizeCharacters: Sanitizer = (input: string): SanitizerResult =
     ) {
       hasChanges = true;
       // Left double quotation mark (U+201C) -> regular double quote (U+0022)
-      result = result.replace(/\u201C/g, '"');
+      result = result.replaceAll("\u201C", '"');
       // Right double quotation mark (U+201D) -> regular double quote (U+0022)
-      result = result.replace(/\u201D/g, '"');
+      result = result.replaceAll("\u201D", '"');
       // Left single quotation mark (U+2018) -> regular single quote (U+0027)
-      result = result.replace(/\u2018/g, "'");
+      result = result.replaceAll("\u2018", "'");
       // Right single quotation mark (U+2019) -> regular single quote (U+0027)
-      result = result.replace(/\u2019/g, "'");
+      result = result.replaceAll("\u2019", "'");
 
       if (leftDoubleCount > 0) {
         diagnostics.push(

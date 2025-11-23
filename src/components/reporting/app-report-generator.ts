@@ -66,12 +66,20 @@ export default class AppReportGenerator {
 
     // Fetch data from all sections in parallel
     const sectionDataMap = new Map<string, unknown>();
-    await Promise.all(
+    const sectionDataResults = await Promise.allSettled(
       this.sections.map(async (section) => {
         const data = await section.getData(projectName);
-        sectionDataMap.set(section.getName(), data);
+        return { name: section.getName(), data };
       }),
     );
+
+    for (const result of sectionDataResults) {
+      if (result.status === "fulfilled") {
+        sectionDataMap.set(result.value.name, result.value.data);
+      } else {
+        console.warn(`Failed to get data for a report section:`, result.reason);
+      }
+    }
 
     // Build base report data from section outputs
     const reportData = this.buildReportDataFromSections(sectionDataMap, appStats, categorizedData);
