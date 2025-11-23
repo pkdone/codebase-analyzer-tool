@@ -1,3 +1,5 @@
+import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
+
 /**
  * Shared default configuration values for AWS Bedrock LLM providers
  */
@@ -25,3 +27,19 @@ export const DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS = 25 * 1000;
  * Caps the exponential backoff to avoid excessively long delays
  */
 export const DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS = 240 * 1000;
+
+/**
+ * Default provider-specific configuration for Bedrock LLM providers.
+ * This object can be spread into provider manifests to reduce boilerplate.
+ * Individual providers can override specific properties as needed.
+ * All required fields from LLMRetryConfig are included.
+ */
+export const defaultBedrockProviderConfig: Pick<
+  LLMProviderSpecificConfig,
+  "requestTimeoutMillis" | "maxRetryAttempts" | "minRetryDelayMillis" | "maxRetryDelayMillis"
+> = {
+  requestTimeoutMillis: DEFAULT_BEDROCK_REQUEST_TIMEOUT_MILLIS,
+  maxRetryAttempts: DEFAULT_BEDROCK_MAX_RETRY_ATTEMPTS,
+  minRetryDelayMillis: DEFAULT_BEDROCK_MIN_RETRY_DELAY_MILLIS,
+  maxRetryDelayMillis: DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
+} as const;

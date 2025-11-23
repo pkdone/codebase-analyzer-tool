@@ -1,5 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logSingleLineWarning } from "../../../common/utils/logging";
+import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
  * Sanitizer that fixes various malformed JSON patterns found in LLM responses.
@@ -43,25 +44,6 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     let sanitized = input;
     let hasChanges = false;
     const diagnostics: string[] = [];
-
-    // Helper to check if we're inside a string at a given position
-    const isInStringAt = (position: number, content: string): boolean => {
-      let inString = false;
-      let escaped = false;
-      for (let i = 0; i < position; i++) {
-        const char = content[i];
-        if (escaped) {
-          escaped = false;
-          continue;
-        }
-        if (char === "\\") {
-          escaped = true;
-        } else if (char === '"') {
-          inString = !inString;
-        }
-      }
-      return inString;
-    };
 
     // ===== Pattern 1: Fix malformed string references in arrays =====
     // Pattern: Missing dots (org.apachefineract -> org.apache.fineract)

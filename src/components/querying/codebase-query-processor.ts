@@ -8,6 +8,7 @@ import { repositoryTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
 import { inputConfig } from "./config/input.config";
 import { CODEBASE_QUERY_TEMPLATE } from "../../prompts/templates";
+import { formatFilesAsMarkdownCodeBlocks } from "../../common/utils/markdown-formatter";
 
 /**
  * Provides ability to query the codebase, using Vector Search under the covers.
@@ -95,8 +96,12 @@ export default class CodebaseQueryProcessor {
   private formatSourcesForPrompt(
     sourceFileMetadataList: ProjectedSourceMetataContentAndSummary[],
   ): string {
-    return sourceFileMetadataList
-      .map((fileMetadata) => `\`\`\`${fileMetadata.type}\n${fileMetadata.content}\n\`\`\`\n\n`)
-      .join("");
+    return formatFilesAsMarkdownCodeBlocks(
+      sourceFileMetadataList.map((file) => ({
+        filepath: file.filepath,
+        type: file.type,
+        content: file.content,
+      })),
+    );
   }
 }

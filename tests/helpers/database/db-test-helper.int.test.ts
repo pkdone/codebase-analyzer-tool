@@ -1,4 +1,10 @@
 import * as dbTestHelper from "./db-test-helper";
+import * as dotenv from "dotenv";
+
+// Mock dotenv module to control its behavior in tests
+jest.mock("dotenv", () => ({
+  config: jest.fn(),
+}));
 
 /**
  * Integration tests for db-test-helper module.
@@ -65,20 +71,29 @@ describe("db-test-helper", () => {
       const originalMongoUrl = process.env.MONGODB_URL;
       delete process.env.MONGODB_URL;
 
-      // The test may reject with either the expected MONGODB_URL error or a connection error
-      // depending on timing and environment state. We just verify it rejects.
-      await expect(dbTestHelper.setupTestDatabase()).rejects.toThrow();
+      // Mock dotenv to prevent it from reloading MONGODB_URL from .env file
+      // This ensures the test can properly verify the error handling
+      (dotenv.config as jest.Mock).mockReturnValue({ parsed: {}, error: undefined });
 
-      // Restore original env
-      if (originalMongoUrl) {
-        process.env.MONGODB_URL = originalMongoUrl;
+      try {
+        // The test may reject with either the expected MONGODB_URL error or a connection error
+        // depending on timing and environment state. We just verify it rejects.
+        await expect(dbTestHelper.setupTestDatabase()).rejects.toThrow();
+      } finally {
+        // Restore original env and reset mock
+        (dotenv.config as jest.Mock).mockReset();
+        if (originalMongoUrl) {
+          process.env.MONGODB_URL = originalMongoUrl;
+        }
       }
     }, 15000); // Increased timeout for MongoDB connection tests
 
     it("populateTestData should reject when called before setup", async () => {
-      // This tests the guard clause in populateTestData
-      // Note: We can't easily test this without actually setting up the database,
-      // but we verify the function exists and has the right shape
+      // Ensure test database state is cleared before testing
+      // This ensures the guard clause in populateTestData is properly tested
+      await dbTestHelper.teardownTestDatabase();
+
+      // Now test that populateTestData rejects when database is not set up
       await expect(dbTestHelper.populateTestData()).rejects.toThrow(/Test database not set up/);
     }, 10000); // Increased timeout for async operations
   });

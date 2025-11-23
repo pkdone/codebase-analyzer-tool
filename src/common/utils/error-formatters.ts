@@ -24,6 +24,7 @@ export function formatError(error: unknown): string {
 
 /**
  * Capture error message and detail as a formatted string.
+ * Uses the unified formatError function for consistent error formatting.
  */
 export function formatErrorMessageAndDetail(msg: string | null, error: unknown): string {
   const prefix = msg ? `${msg}: ` : "";

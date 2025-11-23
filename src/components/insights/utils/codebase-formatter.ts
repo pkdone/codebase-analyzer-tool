@@ -1,8 +1,11 @@
-import path from "path";
 import { fileProcessingConfig } from "../../../config/file-processing.config";
 import { findFilesRecursively } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";
 import { readFile } from "../../../common/fs/file-operations";
+import {
+  formatFilesAsMarkdownCodeBlocksWithPath,
+  type FileLike,
+} from "../../../common/utils/markdown-formatter";
 
 /**
  * Regex pattern to match trailing slash at end of string
@@ -47,16 +50,16 @@ async function mergeSourceFilesIntoMarkdownCodeblock(
   srcDirPath: string,
   ignoreList: readonly string[],
 ): Promise<string> {
-  const contentPromises = filepaths.map(async (filepath) => {
-    const relativeFilepath = path.relative(srcDirPath, filepath);
+  const filePromises = filepaths.map(async (filepath): Promise<FileLike | null> => {
     const type = getFileExtension(filepath).toLowerCase();
-    if (ignoreList.includes(type)) return ""; // Skip file if it has binary content
+    if (ignoreList.includes(type)) return null; // Skip file if it has binary content
     const content = await readFile(filepath);
-    return `\n\`\`\` ${relativeFilepath}\n${content.trim()}\n\`\`\`\n`;
+    return {
+      filepath,
+      type,
+      content: content.trim(),
+    };
   });
-  const contentParts = await Promise.all(contentPromises);
-  return contentParts
-    .filter((part) => part !== "")
-    .join("")
-    .trim();
+  const files = (await Promise.all(filePromises)).filter((file): file is FileLike => file !== null);
+  return formatFilesAsMarkdownCodeBlocksWithPath(files, srcDirPath).trim();
 }

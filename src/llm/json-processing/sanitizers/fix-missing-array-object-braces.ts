@@ -1,53 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logSingleLineWarning } from "../../../common/utils/logging";
-
-/**
- * Helper function to check if we're in an array context by scanning backwards.
- * Returns true if we're inside an array of objects.
- */
-function isInArrayContext(matchIndex: number, content: string): boolean {
-  const beforeMatch = content.substring(Math.max(0, matchIndex - 500), matchIndex);
-
-  let openBraces = 0;
-  let openBrackets = 0;
-  let inString = false;
-  let escapeNext = false;
-  let foundOpeningBracket = false;
-
-  // Scan backwards to find context
-  for (let i = beforeMatch.length - 1; i >= 0; i--) {
-    const char = beforeMatch[i];
-    if (escapeNext) {
-      escapeNext = false;
-      continue;
-    }
-    if (char === "\\") {
-      escapeNext = true;
-      continue;
-    }
-    if (char === '"') {
-      inString = !inString;
-      continue;
-    }
-    if (!inString) {
-      if (char === "{") {
-        openBraces++;
-        if (openBraces === 0 && openBrackets > 0 && foundOpeningBracket) {
-          break;
-        }
-      } else if (char === "}") {
-        openBraces--;
-      } else if (char === "[") {
-        openBrackets++;
-        foundOpeningBracket = true;
-      } else if (char === "]") {
-        openBrackets--;
-      }
-    }
-  }
-
-  return foundOpeningBracket && openBrackets > 0;
-}
+import { isInArrayContext } from "../utils/parser-context-utils";
 
 /**
  * Consolidated sanitizer that fixes missing opening braces for new objects in arrays.

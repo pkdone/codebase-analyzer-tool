@@ -54,24 +54,40 @@ export class DatabaseInitializer {
       this.appSummariesCollection.collectionName,
       getAppSummariesJSONSchema(),
     );
-    await this.createStandardIndexIfNotExists(this.sourcesCollection, {
-      projectName: 1,
-      "summary.namespace": 1,
-    });
-    await this.createStandardIndexIfNotExists(this.sourcesCollection, {
-      projectName: 1,
-      "summary.publicMethods": 1,
-    });
-    await this.createStandardIndexIfNotExists(this.sourcesCollection, {
-      projectName: 1,
-      filepath: 1,
-    });
-    // Add index to optimize graphLookup performance (albeit doesn't query on projectid too)
-    await this.createStandardIndexIfNotExists(this.sourcesCollection, {
-      "summary.namespace": 1,
-    });
+
+    // Data-driven index configuration
+    const indexConfigurations: {
+      collection: Collection;
+      spec: IndexSpecification;
+    }[] = [
+      {
+        collection: this.sourcesCollection,
+        spec: { projectName: 1, "summary.namespace": 1 },
+      },
+      {
+        collection: this.sourcesCollection,
+        spec: { projectName: 1, "summary.publicMethods": 1 },
+      },
+      {
+        collection: this.sourcesCollection,
+        spec: { projectName: 1, filepath: 1 },
+      },
+      // Add index to optimize graphLookup performance (albeit doesn't query on projectid too)
+      {
+        collection: this.sourcesCollection,
+        spec: { "summary.namespace": 1 },
+      },
+      {
+        collection: this.appSummariesCollection,
+        spec: { projectName: 1 },
+      },
+    ];
+
+    for (const config of indexConfigurations) {
+      await this.createStandardIndexIfNotExists(config.collection, config.spec);
+    }
+
     await this.ensureSourcesVectorSearchIndexes(numDimensions);
-    await this.createStandardIndexIfNotExists(this.appSummariesCollection, { projectName: 1 });
   }
 
   /**

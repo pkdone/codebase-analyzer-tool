@@ -1,5 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logSingleLineWarning } from "../../../common/utils/logging";
+import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
  * Heuristic sanitizer that fixes assorted malformed JSON patterns from LLM responses.
@@ -23,25 +24,6 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     let sanitized = input;
     let hasChanges = false;
     const diagnostics: string[] = [];
-
-    // Helper to check if we're inside a string at a given position
-    const isInStringAt = (position: number, content: string): boolean => {
-      let inString = false;
-      let escaped = false;
-      for (let i = 0; i < position; i++) {
-        const char = content[i];
-        if (escaped) {
-          escaped = false;
-          continue;
-        }
-        if (char === "\\") {
-          escaped = true;
-        } else if (char === '"') {
-          inString = !inString;
-        }
-      }
-      return inString;
-    };
 
     // ===== Pattern 1: Remove duplicate/corrupted array entries =====
     // Pattern: "valid.entry",\n    corrupted.entry", or "valid.entry",\n    extra.entry",

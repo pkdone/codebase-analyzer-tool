@@ -9,11 +9,11 @@ import { logSingleLineWarning } from "../../../common/utils/logging";
 import { Prompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../di/tokens";
 import { LLMProviderManager } from "../../../llm/core/llm-provider-manager";
-import { llmProviderConfig } from "../../../llm/llm.config";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import { REDUCE_INSIGHTS_TEMPLATE } from "../../../prompts/templates";
 import { executeInsightCompletion } from "./insight-completion-helper";
+import { chunkTextByTokenLimit } from "../../../llm/utils/text-chunking";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -51,7 +51,10 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       console.log(`  - Using map-reduce strategy for ${categoryLabel}`);
 
       // 1. Chunk the summaries into token-appropriate sizes
-      const summaryChunks = this.chunkSummaries(sourceFileSummaries);
+      const summaryChunks = chunkTextByTokenLimit(sourceFileSummaries, {
+        maxTokens: this.maxTokens,
+        chunkTokenLimitRatio: insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO,
+      });
 
       console.log(
         `  - Split summaries into ${summaryChunks.length} chunks for map-reduce processing`,
@@ -95,57 +98,6 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       );
       return null;
     }
-  }
-
-  /**
-   * Splits a list of source file summaries into chunks that fit within the LLM's token limit.
-   * Uses a conservative 70% of the max token limit to leave room for prompt instructions and response.
-   */
-  private chunkSummaries(summaries: string[]): string[][] {
-    const chunks: string[][] = [];
-    let currentChunk: string[] = [];
-    let currentTokenCount = 0;
-    const tokenLimitPerChunk = this.maxTokens * insightsTuningConfig.CHUNK_TOKEN_LIMIT_RATIO;
-
-    for (const summary of summaries) {
-      // Estimate token count using character-to-token ratio
-      let summaryToProcess = summary;
-      let summaryTokenCount = summary.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
-
-      // Handle summaries that are individually too large
-      if (summaryTokenCount > tokenLimitPerChunk) {
-        logSingleLineWarning(
-          `A file summary is too large and will be truncated to fit token limit.`,
-        );
-        const truncatedLength = Math.floor(
-          tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN,
-        );
-        summaryToProcess = summary.substring(0, truncatedLength);
-        summaryTokenCount = tokenLimitPerChunk;
-      }
-
-      // If adding this summary would exceed the limit, start a new chunk
-      if (currentTokenCount + summaryTokenCount > tokenLimitPerChunk && currentChunk.length > 0) {
-        chunks.push(currentChunk);
-        currentChunk = [];
-        currentTokenCount = 0;
-      }
-
-      currentChunk.push(summaryToProcess);
-      currentTokenCount += summaryTokenCount;
-    }
-
-    // Add the last chunk if it has any content
-    if (currentChunk.length > 0) {
-      chunks.push(currentChunk);
-    }
-
-    // Edge case: if no chunks were created but we have summaries, force a single chunk
-    if (chunks.length === 0 && summaries.length > 0) {
-      chunks.push(summaries);
-    }
-
-    return chunks;
   }
 
   /**
