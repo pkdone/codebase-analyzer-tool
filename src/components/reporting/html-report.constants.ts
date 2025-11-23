@@ -40,11 +40,4 @@ export const htmlReportConstants = {
     LINK_TEMPLATE: (href: string, text: string, target = "_blank"): string =>
       `<a href="${href}" target="${target}">${text}</a>`,
   },
-
-  /**
-   * URL protocols
-   */
-  protocols: {
-    FILE_PROTOCOL: "file://",
-  },
 } as const;
