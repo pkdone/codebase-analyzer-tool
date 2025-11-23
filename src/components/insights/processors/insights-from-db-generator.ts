@@ -11,7 +11,7 @@ import { insightsTokens } from "../../../di/tokens";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
-import type { ApplicationInsightsProcessor, PartialAppSummaryRecord } from "../insights.types";
+import type { ApplicationInsightsProcessor } from "../insights.types";
 import { AppSummaryCategoryEnum } from "../insights.types";
 import { LLMProviderManager } from "../../../llm/llm-provider-manager";
 import { IInsightGenerationStrategy } from "../strategies/insight-generation-strategy.interface";
@@ -193,36 +193,8 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     try {
       console.log(`Processing ${categoryLabel}`);
       const aggregatedData = await aggregator.aggregate(this.projectName);
-
-      // Map aggregator results to the appropriate update method
-      // Special handling for billOfMaterials - it stores dependencies array, not the full object
-      if (category === "billOfMaterials") {
-        const bomData = aggregatedData as BomAggregationResult;
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          billOfMaterials: bomData.dependencies,
-        });
-      } else if (category === "codeQualitySummary") {
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          codeQualitySummary: aggregatedData as CodeQualityAggregationResult,
-        });
-      } else if (category === "scheduledJobsSummary") {
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          scheduledJobsSummary: aggregatedData as ScheduledJobsAggregationResult,
-        });
-      } else if (category === "moduleCoupling") {
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          moduleCoupling: aggregatedData as ModuleCouplingAggregationResult,
-        });
-      } else if (category === "uiTechnologyAnalysis") {
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          uiTechnologyAnalysis: aggregatedData as UiAnalysisSummary,
-        });
-      } else {
-        // Fallback for any other categories (shouldn't happen with current aggregators)
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          [category]: aggregatedData,
-        } as PartialAppSummaryRecord);
-      }
+      const updatePayload = aggregator.getUpdatePayload(aggregatedData);
+      await this.appSummariesRepository.updateAppSummary(this.projectName, updatePayload);
 
       // Log success with category-specific details
       if (category === "billOfMaterials") {

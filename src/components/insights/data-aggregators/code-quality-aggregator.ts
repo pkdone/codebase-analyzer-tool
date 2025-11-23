@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
 import type { IAggregator } from "./aggregator.interface";
-import type { AppSummaryCategoryEnum } from "../insights.types";
+import type { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import type { z } from "zod";
 import { codeQualitySummarySchema } from "../../../schemas/app-summaries.schema";
 
@@ -38,6 +38,15 @@ export class CodeQualityAggregator implements IAggregator<CodeQualityAggregation
       topComplexMethods,
       commonCodeSmells,
       overallStatistics,
+    };
+  }
+
+  /**
+   * Get the update payload in the format needed for updateAppSummary.
+   */
+  getUpdatePayload(aggregatedData: CodeQualityAggregationResult): PartialAppSummaryRecord {
+    return {
+      codeQualitySummary: aggregatedData,
     };
   }
 }

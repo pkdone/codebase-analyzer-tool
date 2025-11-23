@@ -39,7 +39,7 @@ describe("FileTypesSection", () => {
 
       const result = await section.getData("test-project");
 
-      expect(result).toEqual(mockData);
+      expect(result).toEqual({ fileTypesData: mockData });
       expect(mockSourcesRepository.getProjectFileTypesCountAndLines).toHaveBeenCalledWith(
         "test-project",
       );

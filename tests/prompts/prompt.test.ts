@@ -1,9 +1,9 @@
-import { Prompt } from "../../src/prompts/prompt";
+import { renderPrompt } from "../../src/prompts/prompt";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
 import { PROMPT_FRAGMENTS } from "../../src/prompts/definitions/fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../src/prompts/definitions/instruction-titles";
 
-describe("Prompt", () => {
+describe("renderPrompt", () => {
   const javaCodeSample = `package com.acme.myapp.address.ejb;
 
 import javax.ejb.EntityBean;
@@ -82,12 +82,11 @@ public abstract class AddressEJB implements EntityBean {
   public void ejbLoad() { }
 }`;
 
-  describe("render()", () => {
+  describe("renderPrompt()", () => {
     it("should render prompt correctly with Java file type metadata", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(javaMetadata);
 
-      const renderedPrompt = prompt.render({ content: javaCodeSample });
+      const renderedPrompt = renderPrompt(javaMetadata, { content: javaCodeSample });
 
       // Verify template structure is present
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -144,9 +143,8 @@ public abstract class AddressEJB implements EntityBean {
 
     it("should format instruction sections with titles correctly", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(javaMetadata);
 
-      const renderedPrompt = prompt.render({ content: javaCodeSample });
+      const renderedPrompt = renderPrompt(javaMetadata, { content: javaCodeSample });
 
       // Verify sections are separated by double newlines
       const basicInfoSection = `__${INSTRUCTION_SECTION_TITLES.BASIC_INFO}__`;
@@ -164,9 +162,8 @@ public abstract class AddressEJB implements EntityBean {
 
     it("should include all template placeholders correctly", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(javaMetadata);
 
-      const renderedPrompt = prompt.render({ content: javaCodeSample });
+      const renderedPrompt = renderPrompt(javaMetadata, { content: javaCodeSample });
 
       // Verify no placeholder syntax remains
       expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
@@ -199,9 +196,7 @@ FILE_SUMMARIES:
 {{content}}`,
       };
 
-      const prompt = new Prompt(config);
-
-      const renderedPrompt = prompt.render({
+      const renderedPrompt = renderPrompt(config, {
         content: javaCodeSample,
         partialAnalysisNote: "This is a custom note for testing",
       });
@@ -222,10 +217,8 @@ FILE_SUMMARIES:
         template: `{{partialAnalysisNote}}Test template`,
       };
 
-      const prompt = new Prompt(config);
-
       // Test that empty string is preserved (not replaced with default)
-      const renderedWithEmptyString = prompt.render({
+      const renderedWithEmptyString = renderPrompt(config, {
         content: javaCodeSample,
         partialAnalysisNote: "",
       });
@@ -234,11 +227,11 @@ FILE_SUMMARIES:
       expect(renderedWithEmptyString).toBe("Test template");
 
       // Test that undefined uses default
-      const renderedWithUndefined = prompt.render({ content: javaCodeSample });
+      const renderedWithUndefined = renderPrompt(config, { content: javaCodeSample });
       expect(renderedWithUndefined).toBe("Test template");
 
       // Test that actual value is used
-      const renderedWithValue = prompt.render({
+      const renderedWithValue = renderPrompt(config, {
         content: javaCodeSample,
         partialAnalysisNote: "Custom note",
       });
@@ -247,9 +240,8 @@ FILE_SUMMARIES:
 
     it("should handle missing content gracefully", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(javaMetadata);
 
-      const renderedPrompt = prompt.render({ content: "" });
+      const renderedPrompt = renderPrompt(javaMetadata, { content: "" });
 
       // Should still render the template structure
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");
@@ -258,9 +250,8 @@ FILE_SUMMARIES:
 
     it("should handle undefined values in data object", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(javaMetadata);
 
-      const renderedPrompt = prompt.render({
+      const renderedPrompt = renderPrompt(javaMetadata, {
         content: javaCodeSample,
         someUndefinedValue: undefined,
       });
@@ -272,10 +263,9 @@ FILE_SUMMARIES:
 
     it("should require content parameter", () => {
       const javaMetadata = fileTypePromptMetadata.java;
-      const prompt = new Prompt(javaMetadata);
 
       // This should work but content will be undefined in template
-      const renderedPrompt = prompt.render({});
+      const renderedPrompt = renderPrompt(javaMetadata, {});
 
       // Template should still render, but content placeholder may be empty
       expect(renderedPrompt).toContain("Act as a senior developer analyzing the code");

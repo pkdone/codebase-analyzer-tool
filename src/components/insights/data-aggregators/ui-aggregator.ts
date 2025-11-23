@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
 import type { IAggregator } from "./aggregator.interface";
-import type { AppSummaryCategoryEnum } from "../insights.types";
+import type { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import type { z } from "zod";
 import {
   uiTechnologyAnalysisSchema,
@@ -163,6 +163,15 @@ export class UiAggregator implements IAggregator<UiAnalysisSummary> {
       filesWithHighScriptletCount,
       customTagLibraries,
       topScriptletFiles,
+    };
+  }
+
+  /**
+   * Get the update payload in the format needed for updateAppSummary.
+   */
+  getUpdatePayload(aggregatedData: UiAnalysisSummary): PartialAppSummaryRecord {
+    return {
+      uiTechnologyAnalysis: aggregatedData,
     };
   }
 }

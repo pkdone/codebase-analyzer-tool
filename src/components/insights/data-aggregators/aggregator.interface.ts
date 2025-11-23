@@ -1,4 +1,4 @@
-import type { AppSummaryCategoryEnum } from "../insights.types";
+import type { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 
 /**
  * Interface for data aggregators that process and aggregate data from the database
@@ -17,4 +17,12 @@ export interface IAggregator<T = unknown> {
    * @returns Promise resolving to the aggregated data for this category
    */
   aggregate(projectName: string): Promise<T>;
+
+  /**
+   * Get the update payload in the format needed for updateAppSummary.
+   * This method converts the aggregated data into a PartialAppSummaryRecord.
+   * @param aggregatedData The data returned by aggregate()
+   * @returns A PartialAppSummaryRecord containing the data to update
+   */
+  getUpdatePayload(aggregatedData: T): PartialAppSummaryRecord;
 }

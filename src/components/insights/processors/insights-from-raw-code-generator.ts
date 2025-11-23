@@ -9,7 +9,7 @@ import type { ApplicationInsightsProcessor } from "../insights.types";
 import { formatCodebaseForPrompt } from "../utils/codebase-formatter";
 import type { EnvVars } from "../../../env/env.types";
 import { logSingleLineWarning } from "../../../common/utils/logging";
-import { Prompt } from "../../../prompts/prompt";
+import { renderPrompt } from "../../../prompts/prompt";
 import { InstructionSection } from "../../../prompts/prompt.types";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
@@ -121,7 +121,6 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
       responseSchema: appSummaryRecordCategoriesSchema,
       template: APP_SUMMARY_TEMPLATE,
     };
-    const prompt = new Prompt(allCategoriesConfig);
-    return prompt.render({ content: codeBlocksContent });
+    return renderPrompt(allCategoriesConfig, { content: codeBlocksContent });
   }
 }

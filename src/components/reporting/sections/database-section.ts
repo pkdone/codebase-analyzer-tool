@@ -27,7 +27,7 @@ export class DatabaseSection implements ReportSection {
     return true; // This section uses standard rendering
   }
 
-  async getData(projectName: string): Promise<unknown> {
+  async getData(projectName: string): Promise<Partial<ReportData>> {
     const [integrationPoints, dbInteractions, procsAndTriggers] = await Promise.all([
       this.databaseDataProvider.getIntegrationPoints(projectName),
       this.databaseDataProvider.getDatabaseInteractions(projectName),

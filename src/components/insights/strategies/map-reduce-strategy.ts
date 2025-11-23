@@ -5,7 +5,7 @@ import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import { logSingleLineWarning } from "../../../common/utils/logging";
-import { Prompt } from "../../../prompts/prompt";
+import { renderPrompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../di/tokens";
 import { LLMProviderManager } from "../../../llm/llm-provider-manager";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
@@ -146,8 +146,7 @@ export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
       config.label ?? category,
       config.responseSchema,
     );
-    const prompt = new Prompt(reducePromptDefinition);
-    const renderedPrompt = prompt.render({ categoryKey, content });
+    const renderedPrompt = renderPrompt(reducePromptDefinition, { categoryKey, content });
 
     try {
       return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(

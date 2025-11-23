@@ -3,7 +3,7 @@ import {
   createReduceInsightsPromptDefinition,
 } from "../../src/prompts/definitions/utility-prompts";
 import { CODEBASE_QUERY_TEMPLATE, REDUCE_INSIGHTS_TEMPLATE } from "../../src/prompts/templates";
-import { Prompt } from "../../src/prompts/prompt";
+import { renderPrompt } from "../../src/prompts/prompt";
 import { z } from "zod";
 
 describe("Utility Prompts", () => {
@@ -15,11 +15,13 @@ describe("Utility Prompts", () => {
       expect(codebaseQueryPromptDefinition.responseSchema).toBeDefined();
     });
 
-    it("should render correctly with Prompt class", () => {
+    it("should render correctly with renderPrompt function", () => {
       const testContent = "const x = 1;";
       const testQuestion = "What does this code do?";
-      const prompt = new Prompt(codebaseQueryPromptDefinition);
-      const rendered = prompt.render({ question: testQuestion, content: testContent });
+      const rendered = renderPrompt(codebaseQueryPromptDefinition, {
+        question: testQuestion,
+        content: testContent,
+      });
 
       expect(rendered).toContain("Act as a senior developer");
       expect(rendered).toContain("QUESTION:");
@@ -65,8 +67,10 @@ describe("Utility Prompts", () => {
 
       const definition = createReduceInsightsPromptDefinition(categoryLabel, responseSchema);
       const testContent = '{"aggregates": [{"name": "Test"}]}';
-      const prompt = new Prompt(definition);
-      const rendered = prompt.render({ categoryKey: "aggregates", content: testContent });
+      const rendered = renderPrompt(definition, {
+        categoryKey: "aggregates",
+        content: testContent,
+      });
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FRAGMENTED_DATA:");

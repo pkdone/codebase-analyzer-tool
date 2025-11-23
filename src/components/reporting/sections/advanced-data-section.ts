@@ -25,7 +25,7 @@ export class AdvancedDataSection implements ReportSection {
     return false; // This section has custom rendering for BOM, code quality, etc.
   }
 
-  async getData(projectName: string): Promise<unknown> {
+  async getData(projectName: string): Promise<Partial<ReportData>> {
     const [
       billOfMaterials,
       codeQualitySummary,
@@ -41,11 +41,11 @@ export class AdvancedDataSection implements ReportSection {
     ]);
 
     return {
-      billOfMaterials,
-      codeQualitySummary,
-      scheduledJobsSummary,
-      moduleCoupling,
-      uiTechnologyAnalysis,
+      billOfMaterials: billOfMaterials ?? [],
+      codeQualitySummary: codeQualitySummary ?? null,
+      scheduledJobsSummary: scheduledJobsSummary ?? null,
+      moduleCoupling: moduleCoupling ?? null,
+      uiTechnologyAnalysis: uiTechnologyAnalysis ?? null,
     };
   }
 

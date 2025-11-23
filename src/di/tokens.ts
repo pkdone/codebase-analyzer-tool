@@ -52,9 +52,7 @@ export type ApiToken = keyof typeof apiTokens;
 
 // Capture module tokens
 export const captureTokens = {
-  FileSummarizer: Symbol("FileSummarizer"),
   CodebaseToDBLoader: Symbol("CodebaseToDBLoader"),
-  CodebaseQueryProcessor: Symbol("CodebaseQueryProcessor"),
 } as const;
 
 export type CaptureToken = keyof typeof captureTokens;

@@ -1,4 +1,4 @@
-import { Prompt } from "../../src/prompts/prompt";
+import { renderPrompt } from "../../src/prompts/prompt";
 import { PromptDefinition } from "../../src/prompts/prompt.types";
 import { z } from "zod";
 import {
@@ -26,19 +26,17 @@ describe("Prompt Constructor and Templates", () => {
 
   const testContent = "test file content";
 
-  describe("Prompt constructor", () => {
-    it("should create a prompt with SOURCES_TEMPLATE", () => {
-      const prompt = new Prompt(sourceDefinition);
-      const rendered = prompt.render({ content: testContent });
+  describe("renderPrompt function", () => {
+    it("should render a prompt with SOURCES_TEMPLATE", () => {
+      const rendered = renderPrompt(sourceDefinition, { content: testContent });
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("CODE:");
       expect(rendered).toContain(testContent);
     });
 
-    it("should create a prompt with APP_SUMMARY_TEMPLATE", () => {
-      const prompt = new Prompt(appSummaryDefinition);
-      const rendered = prompt.render({ content: testContent });
+    it("should render a prompt with APP_SUMMARY_TEMPLATE", () => {
+      const rendered = renderPrompt(appSummaryDefinition, { content: testContent });
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FILE_SUMMARIES:");
@@ -46,9 +44,11 @@ describe("Prompt Constructor and Templates", () => {
     });
 
     it("should handle partialAnalysisNote parameter", () => {
-      const prompt = new Prompt(appSummaryDefinition);
       const partialNote = "This is a partial analysis note";
-      const rendered = prompt.render({ content: testContent, partialAnalysisNote: partialNote });
+      const rendered = renderPrompt(appSummaryDefinition, {
+        content: testContent,
+        partialAnalysisNote: partialNote,
+      });
 
       expect(rendered).toContain(partialNote);
     });
@@ -83,8 +83,7 @@ describe("Prompt Constructor and Templates", () => {
       const categoryKey = "entities";
       const template = REDUCE_INSIGHTS_TEMPLATE.replace("{{categoryKey}}", categoryKey);
       const reduceDefinition = { ...sourceDefinition, template };
-      const prompt = new Prompt(reduceDefinition);
-      const rendered = prompt.render({ content: testContent });
+      const rendered = renderPrompt(reduceDefinition, { content: testContent });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(`'${categoryKey}'`);

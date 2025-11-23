@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import CodebaseToDBLoader from "../../src/components/capture/codebase-to-db-loader";
 import { repositoryTokens } from "../../src/di/tokens";
-import { llmTokens, captureTokens } from "../../src/di/tokens";
+import { llmTokens } from "../../src/di/tokens";
 import { container } from "tsyringe";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({
@@ -33,9 +33,9 @@ const mockRepo = {
 const mockLLMRouter = {
   generateEmbeddings: jest.fn(async () => [0.01, 0.02, 0.03]),
 } as any;
-const mockFileSummarizer = {
+jest.mock("../../src/components/capture/file-summarizer", () => ({
   summarizeFile: jest.fn(async () => ({ summary: {}, summaryVector: [], summaryError: undefined })),
-} as any;
+}));
 
 describe("CodebaseToDBLoader", () => {
   beforeEach(() => {
@@ -45,8 +45,7 @@ describe("CodebaseToDBLoader", () => {
   it("captures codebase and stores sources", async () => {
     container.registerInstance(repositoryTokens.SourcesRepository, mockRepo);
     container.registerInstance(llmTokens.LLMRouter, mockLLMRouter);
-    container.registerInstance(captureTokens.FileSummarizer, mockFileSummarizer);
-    const loader = new CodebaseToDBLoader(mockRepo, mockLLMRouter, mockFileSummarizer);
+    const loader = new CodebaseToDBLoader(mockRepo, mockLLMRouter);
     await loader.captureCodebaseToDatabase("proj", "/root", true);
     expect(mockRepo.insertSource).toHaveBeenCalled();
   });
@@ -58,8 +57,7 @@ describe("CodebaseToDBLoader", () => {
     };
     container.registerInstance(repositoryTokens.SourcesRepository, errorRepo);
     container.registerInstance(llmTokens.LLMRouter, mockLLMRouter);
-    container.registerInstance(captureTokens.FileSummarizer, mockFileSummarizer);
-    const loader = new CodebaseToDBLoader(errorRepo, mockLLMRouter, mockFileSummarizer);
+    const loader = new CodebaseToDBLoader(errorRepo, mockLLMRouter);
 
     // Should not throw, errors should be caught and logged
     await expect(loader.captureCodebaseToDatabase("proj", "/root", true)).resolves.not.toThrow();

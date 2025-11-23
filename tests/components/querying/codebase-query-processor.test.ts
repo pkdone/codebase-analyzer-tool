@@ -1,12 +1,11 @@
 import "reflect-metadata";
-import CodebaseQueryProcessor from "../../../src/components/querying/codebase-query-processor";
+import { queryCodebaseWithQuestion } from "../../../src/components/querying/codebase-query-processor";
 import type { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../src/llm/llm-router";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import type { ProjectedSourceMetataContentAndSummary } from "../../../src/repositories/sources/sources.model";
 
-describe("CodebaseQueryProcessor", () => {
-  let codebaseQueryProcessor: CodebaseQueryProcessor;
+describe("queryCodebaseWithQuestion", () => {
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
   const testProjectName = "test-project";
@@ -25,8 +24,6 @@ describe("CodebaseQueryProcessor", () => {
       generateEmbeddings: jest.fn(),
       executeCompletion: jest.fn(),
     } as unknown as jest.Mocked<LLMRouter>;
-
-    codebaseQueryProcessor = new CodebaseQueryProcessor(mockSourcesRepository, mockLLMRouter);
   });
 
   describe("queryCodebaseWithQuestion", () => {
@@ -54,7 +51,9 @@ describe("CodebaseQueryProcessor", () => {
       mockLLMRouter.executeCompletion.mockResolvedValue(mockLLMResponse);
 
       // Act
-      const result = await codebaseQueryProcessor.queryCodebaseWithQuestion(
+      const result = await queryCodebaseWithQuestion(
+        mockSourcesRepository,
+        mockLLMRouter,
         testQuestion,
         testProjectName,
       );
@@ -83,7 +82,9 @@ describe("CodebaseQueryProcessor", () => {
       mockLLMRouter.generateEmbeddings.mockResolvedValue(null);
 
       // Act
-      const result = await codebaseQueryProcessor.queryCodebaseWithQuestion(
+      const result = await queryCodebaseWithQuestion(
+        mockSourcesRepository,
+        mockLLMRouter,
         testQuestion,
         testProjectName,
       );
@@ -98,7 +99,9 @@ describe("CodebaseQueryProcessor", () => {
       mockLLMRouter.generateEmbeddings.mockResolvedValue([]);
 
       // Act
-      const result = await codebaseQueryProcessor.queryCodebaseWithQuestion(
+      const result = await queryCodebaseWithQuestion(
+        mockSourcesRepository,
+        mockLLMRouter,
         testQuestion,
         testProjectName,
       );
@@ -115,7 +118,9 @@ describe("CodebaseQueryProcessor", () => {
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue([]);
 
       // Act
-      const result = await codebaseQueryProcessor.queryCodebaseWithQuestion(
+      const result = await queryCodebaseWithQuestion(
+        mockSourcesRepository,
+        mockLLMRouter,
         testQuestion,
         testProjectName,
       );
@@ -142,7 +147,9 @@ describe("CodebaseQueryProcessor", () => {
       mockLLMRouter.executeCompletion.mockResolvedValue(null);
 
       // Act
-      const result = await codebaseQueryProcessor.queryCodebaseWithQuestion(
+      const result = await queryCodebaseWithQuestion(
+        mockSourcesRepository,
+        mockLLMRouter,
         testQuestion,
         testProjectName,
       );
@@ -169,7 +176,9 @@ describe("CodebaseQueryProcessor", () => {
       mockLLMRouter.executeCompletion.mockResolvedValue(mockLLMResponse);
 
       // Act
-      const result = await codebaseQueryProcessor.queryCodebaseWithQuestion(
+      const result = await queryCodebaseWithQuestion(
+        mockSourcesRepository,
+        mockLLMRouter,
         testQuestion,
         testProjectName,
       );
@@ -194,7 +203,12 @@ describe("CodebaseQueryProcessor", () => {
       mockLLMRouter.executeCompletion.mockResolvedValue("response");
 
       // Act
-      await codebaseQueryProcessor.queryCodebaseWithQuestion(testQuestion, testProjectName);
+      await queryCodebaseWithQuestion(
+        mockSourcesRepository,
+        mockLLMRouter,
+        testQuestion,
+        testProjectName,
+      );
 
       // Assert - Verify the constants are used correctly
       const callArgs = mockSourcesRepository.vectorSearchProjectSourcesRawContent.mock.calls[0];
@@ -219,7 +233,12 @@ describe("CodebaseQueryProcessor", () => {
       mockLLMRouter.executeCompletion.mockResolvedValue("response");
 
       // Act
-      await codebaseQueryProcessor.queryCodebaseWithQuestion(testQuestion, testProjectName);
+      await queryCodebaseWithQuestion(
+        mockSourcesRepository,
+        mockLLMRouter,
+        testQuestion,
+        testProjectName,
+      );
 
       // Assert - Verify the prompt uses the template from templates.ts
       const callArgs = mockLLMRouter.executeCompletion.mock.calls[0];

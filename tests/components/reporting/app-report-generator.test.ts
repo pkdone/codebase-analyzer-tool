@@ -158,7 +158,7 @@ describe("AppReportGenerator", () => {
 
       // Make one section fail
       mockSections[0].getData.mockRejectedValue(new Error("Section 1 failed"));
-      mockSections[1].getData.mockResolvedValue({ section2Data: "test" });
+      mockSections[1].getData.mockResolvedValue({ fileTypesData: [] });
 
       // Mock console.warn to verify it's called for failed sections
       const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();

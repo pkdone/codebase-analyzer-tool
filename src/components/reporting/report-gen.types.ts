@@ -8,14 +8,13 @@ import type { TypeOf } from "zod";
 
 // Define complexity levels as constant array for type safety
 const COMPLEXITY_LEVELS = ["LOW", "MEDIUM", "HIGH"] as const;
-const COMPLEXITY_SET = new Set(COMPLEXITY_LEVELS);
 export type Complexity = (typeof COMPLEXITY_LEVELS)[number];
 
 /**
  * Type guard to check if a value is a valid Complexity value
  */
 export function isComplexityLevel(value: unknown): value is Complexity {
-  return typeof value === "string" && COMPLEXITY_SET.has(value.toUpperCase() as Complexity);
+  return typeof value === "string" && COMPLEXITY_LEVELS.includes(value.toUpperCase() as Complexity);
 }
 
 export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;

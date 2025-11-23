@@ -33,8 +33,10 @@ export class FileTypesSection implements ReportSection {
     return true; // This section uses standard rendering
   }
 
-  async getData(projectName: string): Promise<unknown> {
-    return await this.sourcesRepository.getProjectFileTypesCountAndLines(projectName);
+  async getData(projectName: string): Promise<Partial<ReportData>> {
+    const fileTypesData =
+      await this.sourcesRepository.getProjectFileTypesCountAndLines(projectName);
+    return { fileTypesData };
   }
 
   /**

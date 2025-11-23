@@ -61,7 +61,7 @@ export class EnhancedUiSection implements ReportSection {
     return true; // This section uses standard rendering
   }
 
-  async getData(_projectName: string): Promise<unknown> {
+  async getData(_projectName: string): Promise<Partial<ReportData>> {
     // This section uses categorized data that comes from baseData
     // Return empty object as the data is already in baseData
     return Promise.resolve({});

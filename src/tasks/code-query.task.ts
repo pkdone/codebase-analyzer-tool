@@ -2,11 +2,12 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { readAndFilterLines } from "../common/fs/file-content-utils";
 import { formatError } from "../common/utils/error-formatters";
-import CodebaseQueryProcessor from "../components/querying/codebase-query-processor";
+import { queryCodebaseWithQuestion } from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
-import { coreTokens } from "../di/tokens";
-import { captureTokens } from "../di/tokens";
+import { coreTokens, repositoryTokens, llmTokens } from "../di/tokens";
 import { queryingInputConfig } from "../components/querying/config/querying-input.config";
+import type { SourcesRepository } from "../repositories/sources/sources.repository.interface";
+import type LLMRouter from "../llm/llm-router";
 
 /**
  * Task to query the codebase.
@@ -18,8 +19,9 @@ export class CodebaseQueryTask implements Task {
    */
   constructor(
     @inject(coreTokens.ProjectName) private readonly projectName: string,
-    @inject(captureTokens.CodebaseQueryProcessor)
-    private readonly codebaseQueryProcessor: CodebaseQueryProcessor,
+    @inject(repositoryTokens.SourcesRepository)
+    private readonly sourcesRepository: SourcesRepository,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
   ) {}
 
   /**
@@ -38,7 +40,7 @@ export class CodebaseQueryTask implements Task {
     );
     const questions = await readAndFilterLines(queryingInputConfig.QUESTIONS_PROMPTS_FILEPATH);
     const queryPromises = questions.map(async (question) =>
-      this.codebaseQueryProcessor.queryCodebaseWithQuestion(question, this.projectName),
+      queryCodebaseWithQuestion(this.sourcesRepository, this.llmRouter, question, this.projectName),
     );
     const results = await Promise.allSettled(queryPromises);
     results.forEach((result, index) => {

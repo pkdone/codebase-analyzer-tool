@@ -8,11 +8,10 @@ import { findFilesRecursively, sortFilesBySize } from "../../common/fs/directory
 import { getFileExtension } from "../../common/fs/path-utils";
 import { countLines } from "../../common/utils/text-utils";
 import { logSingleLineWarning } from "../../common/utils/logging";
-import { FileSummarizer } from "./file-summarizer";
+import { summarizeFile, type SourceSummaryType } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
-import { repositoryTokens, llmTokens, captureTokens } from "../../di/tokens";
-import type { SourceSummaryType } from "./file-summarizer";
+import { repositoryTokens, llmTokens } from "../../di/tokens";
 
 /**
  * Loads each source file into a class to represent it.
@@ -26,7 +25,6 @@ export default class CodebaseToDBLoader {
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(captureTokens.FileSummarizer) private readonly fileSummarizer: FileSummarizer,
   ) {}
 
   /**
@@ -177,7 +175,7 @@ export default class CodebaseToDBLoader {
     let summaryVector: number[] | undefined;
 
     try {
-      summary = await this.fileSummarizer.summarizeFile(filepath, type, content);
+      summary = await summarizeFile(this.llmRouter, filepath, type, content);
       const summaryVectorResult = await this.getContentEmbeddings(
         filepath,
         JSON.stringify(summary),

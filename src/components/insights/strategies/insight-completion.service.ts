@@ -3,7 +3,7 @@ import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata } from "../../../prompts/definitions/app-summaries";
 import { logSingleLineWarning } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
-import { Prompt } from "../../../prompts/prompt";
+import { renderPrompt } from "../../../prompts/prompt";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
@@ -47,8 +47,7 @@ export async function executeInsightCompletion(
     if (options.partialAnalysisNote) {
       renderParams.partialAnalysisNote = options.partialAnalysisNote;
     }
-    const prompt = new Prompt(config);
-    const renderedPrompt = prompt.render(renderParams);
+    const renderedPrompt = renderPrompt(config, renderParams);
 
     const llmResponse = await llmRouter.executeCompletion<PartialAppSummaryRecord>(
       taskCategory,

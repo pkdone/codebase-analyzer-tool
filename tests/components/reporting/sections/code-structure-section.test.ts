@@ -40,7 +40,7 @@ describe("CodeStructureSection", () => {
 
       const result = await section.getData("test-project");
 
-      expect(result).toEqual(mockClasses);
+      expect(result).toEqual({ topLevelJavaClasses: mockClasses });
       expect(mockCodeStructureDataProvider.getTopLevelJavaClasses).toHaveBeenCalledWith(
         "test-project",
       );

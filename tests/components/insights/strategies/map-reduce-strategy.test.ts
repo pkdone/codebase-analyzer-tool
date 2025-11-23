@@ -1,9 +1,9 @@
 import { REDUCE_INSIGHTS_TEMPLATE } from "../../../../src/prompts/templates";
-import { Prompt } from "../../../../src/prompts/prompt";
+import { renderPrompt } from "../../../../src/prompts/prompt";
 import { z } from "zod";
 
 describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
-  it("should pass categoryKey through Prompt.render() instead of using String.replace()", () => {
+  it("should pass categoryKey through renderPrompt() instead of using String.replace()", () => {
     // Verify that REDUCE_INSIGHTS_TEMPLATE contains the placeholder
     expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{categoryKey}}");
 
@@ -15,8 +15,10 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
       template: REDUCE_INSIGHTS_TEMPLATE,
     };
 
-    const prompt = new Prompt(testConfig);
-    const rendered = prompt.render({ categoryKey: "entities", content: '{"entities": []}' });
+    const rendered = renderPrompt(testConfig, {
+      categoryKey: "entities",
+      content: '{"entities": []}',
+    });
 
     // Verify that categoryKey was replaced correctly
     expect(rendered).toContain("'entities'");
@@ -32,8 +34,7 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
     };
 
     const content = JSON.stringify({ entities: [{ name: "Test" }] }, null, 2);
-    const prompt = new Prompt(testConfig);
-    const rendered = prompt.render({ categoryKey: "entities", content });
+    const rendered = renderPrompt(testConfig, { categoryKey: "entities", content });
 
     // Verify the template was rendered correctly with categoryKey
     expect(rendered).toContain("'entities'");

@@ -10,7 +10,6 @@ import { TableViewModel, type DisplayableTableRow } from "./view-models/table-vi
 import { convertToDisplayName } from "../../common/utils/text-utils";
 import { reportSectionsConfig } from "./report-sections.config";
 import type { ReportSection } from "./sections/report-section.interface";
-import { SECTION_NAMES } from "./reporting.constants";
 import path from "path";
 import { promises as fs } from "fs";
 import { outputConfig } from "../../config/output.config";
@@ -64,8 +63,7 @@ export default class AppReportGenerator {
     const appStats = await this.appStatsDataProvider.getAppStatistics(projectName, appSummaryData);
     const categorizedData = this.categoriesDataProvider.getStandardSectionData(appSummaryData);
 
-    // Fetch data from all sections in parallel
-    const sectionDataMap = new Map<string, unknown>();
+    // Fetch data from all sections in parallel and merge into ReportData
     const sectionDataResults = await Promise.allSettled(
       this.sections.map(async (section) => {
         const data = await section.getData(projectName);
@@ -73,16 +71,39 @@ export default class AppReportGenerator {
       }),
     );
 
+    // Merge all section Partial<ReportData> objects into a single ReportData object
+    const sectionDataParts: Partial<ReportData>[] = [];
+    const sectionDataMap = new Map<string, Partial<ReportData>>();
+
     for (const result of sectionDataResults) {
       if (result.status === "fulfilled") {
+        sectionDataParts.push(result.value.data);
         sectionDataMap.set(result.value.name, result.value.data);
       } else {
         console.warn(`Failed to get data for a report section:`, result.reason);
       }
     }
 
-    // Build base report data from section outputs
-    const reportData = this.buildReportDataFromSections(sectionDataMap, appStats, categorizedData);
+    // Merge all Partial<ReportData> objects with defaults
+    const mergedSectionData = Object.assign({}, ...sectionDataParts) as Partial<ReportData>;
+    const reportData: ReportData = {
+      appStats,
+      fileTypesData: [],
+      categorizedData,
+      integrationPoints: [],
+      dbInteractions: [],
+      procsAndTriggers: {
+        procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+        trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
+      },
+      topLevelJavaClasses: [],
+      billOfMaterials: [],
+      codeQualitySummary: null,
+      scheduledJobsSummary: null,
+      moduleCoupling: null,
+      uiTechnologyAnalysis: null,
+      ...mergedSectionData,
+    };
 
     // Prepare HTML and JSON data from sections
     const htmlFilePath = path.join(outputDir, outputFilename);
@@ -117,68 +138,11 @@ export default class AppReportGenerator {
   }
 
   /**
-   * Build ReportData from section outputs and base data
-   */
-  private buildReportDataFromSections(
-    sectionDataMap: Map<string, unknown>,
-    appStats: ReportData["appStats"],
-    categorizedData: ReportData["categorizedData"],
-  ): ReportData {
-    // Extract data from sections
-    const fileTypesData =
-      (sectionDataMap.get(SECTION_NAMES.FILE_TYPES) as ReportData["fileTypesData"] | undefined) ??
-      [];
-    const dbSectionData = sectionDataMap.get(SECTION_NAMES.DATABASE) as
-      | {
-          integrationPoints?: ReportData["integrationPoints"];
-          dbInteractions?: ReportData["dbInteractions"];
-          procsAndTriggers?: ReportData["procsAndTriggers"];
-        }
-      | undefined;
-    const topLevelJavaClasses =
-      (sectionDataMap.get(SECTION_NAMES.CODE_STRUCTURE) as
-        | ReportData["topLevelJavaClasses"]
-        | undefined) ?? [];
-    const advancedDataSection = sectionDataMap.get(SECTION_NAMES.ADVANCED_DATA) as
-      | {
-          billOfMaterials?: ReportData["billOfMaterials"];
-          codeQualitySummary?: ReportData["codeQualitySummary"];
-          scheduledJobsSummary?: ReportData["scheduledJobsSummary"];
-          moduleCoupling?: ReportData["moduleCoupling"];
-          uiTechnologyAnalysis?: ReportData["uiTechnologyAnalysis"];
-        }
-      | undefined;
-
-    return {
-      appStats,
-      fileTypesData,
-      categorizedData,
-      integrationPoints: dbSectionData?.integrationPoints ?? [],
-      dbInteractions: dbSectionData?.dbInteractions ?? [],
-      procsAndTriggers: dbSectionData?.procsAndTriggers ?? {
-        procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-        trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
-      },
-      topLevelJavaClasses,
-      billOfMaterials: (advancedDataSection?.billOfMaterials ??
-        []) as unknown as ReportData["billOfMaterials"],
-      codeQualitySummary: (advancedDataSection?.codeQualitySummary ??
-        null) as unknown as ReportData["codeQualitySummary"],
-      scheduledJobsSummary: (advancedDataSection?.scheduledJobsSummary ??
-        null) as unknown as ReportData["scheduledJobsSummary"],
-      moduleCoupling: (advancedDataSection?.moduleCoupling ??
-        null) as unknown as ReportData["moduleCoupling"],
-      uiTechnologyAnalysis: (advancedDataSection?.uiTechnologyAnalysis ??
-        null) as unknown as ReportData["uiTechnologyAnalysis"],
-    };
-  }
-
-  /**
    * Prepare HTML data by delegating to each section
    */
   private async prepareHtmlDataFromSections(
     reportData: ReportData,
-    sectionDataMap: Map<string, unknown>,
+    sectionDataMap: Map<string, Partial<ReportData>>,
     htmlFilePath: string,
   ): Promise<PreparedHtmlReportData> {
     const htmlDir = path.dirname(htmlFilePath);
@@ -186,8 +150,8 @@ export default class AppReportGenerator {
     // Prepare HTML data from all sections
     const sectionHtmlDataList = await Promise.all(
       this.sections.map(async (section) => {
-        const sectionData = sectionDataMap.get(section.getName());
-        return section.prepareHtmlData(reportData, sectionData ?? {}, htmlDir);
+        const sectionData = sectionDataMap.get(section.getName()) ?? {};
+        return section.prepareHtmlData(reportData, sectionData, htmlDir);
       }),
     );
 
@@ -217,7 +181,7 @@ export default class AppReportGenerator {
    */
   private prepareJsonDataFromSections(
     reportData: ReportData,
-    sectionDataMap: Map<string, unknown>,
+    sectionDataMap: Map<string, Partial<ReportData>>,
   ): PreparedJsonData[] {
     // Collect JSON data from all sections
     const allJsonData: PreparedJsonData[] = [];
@@ -252,8 +216,8 @@ export default class AppReportGenerator {
 
     // Collect JSON data from each section
     for (const section of this.sections) {
-      const sectionData = sectionDataMap.get(section.getName());
-      const sectionJsonData = section.prepareJsonData(reportData, sectionData ?? {});
+      const sectionData = sectionDataMap.get(section.getName()) ?? {};
+      const sectionJsonData = section.prepareJsonData(reportData, sectionData);
       allJsonData.push(...sectionJsonData);
     }
 

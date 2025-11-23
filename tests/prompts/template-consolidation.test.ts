@@ -3,7 +3,7 @@ import {
   APP_SUMMARY_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
 } from "../../src/prompts/templates";
-import { Prompt } from "../../src/prompts/prompt";
+import { renderPrompt } from "../../src/prompts/prompt";
 import { z } from "zod";
 
 describe("Template Consolidation", () => {
@@ -138,7 +138,7 @@ describe("Template Consolidation", () => {
 
       // This should not throw an error
       expect(() => {
-        new Prompt(mockDefinition);
+        renderPrompt(mockDefinition, { content: "test" });
       }).not.toThrow();
     });
   });

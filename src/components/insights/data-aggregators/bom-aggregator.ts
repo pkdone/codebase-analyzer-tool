@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
 import type { IAggregator } from "./aggregator.interface";
-import type { AppSummaryCategoryEnum } from "../insights.types";
+import type { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import type { z } from "zod";
 import { billOfMaterialsSchema } from "../../../schemas/app-summaries.schema";
 
@@ -115,6 +115,16 @@ export class BomAggregator implements IAggregator<BomAggregationResult> {
       totalDependencies: sortedDependencies.length,
       conflictCount,
       buildFiles: Array.from(buildFilePaths),
+    };
+  }
+
+  /**
+   * Get the update payload in the format needed for updateAppSummary.
+   * For billOfMaterials, we store only the dependencies array, not the full object.
+   */
+  getUpdatePayload(aggregatedData: BomAggregationResult): PartialAppSummaryRecord {
+    return {
+      billOfMaterials: aggregatedData.dependencies,
     };
   }
 

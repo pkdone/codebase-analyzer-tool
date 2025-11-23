@@ -2,7 +2,6 @@ import { captureTokens } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
 // Capture component imports
-import { FileSummarizer } from "../../components/capture/file-summarizer";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
 
 /**
@@ -24,10 +23,7 @@ export function registerCaptureComponents(): void {
  */
 export function registerLLMDependentCaptureComponents(): void {
   registerComponents(
-    [
-      { token: captureTokens.FileSummarizer, implementation: FileSummarizer },
-      { token: captureTokens.CodebaseToDBLoader, implementation: CodebaseToDBLoader },
-    ],
+    [{ token: captureTokens.CodebaseToDBLoader, implementation: CodebaseToDBLoader }],
     "LLM-dependent capture components registered",
   );
 }

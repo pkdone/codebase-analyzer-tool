@@ -3,7 +3,7 @@ import path from "path";
 import CodebaseToDBLoader from "../../../src/components/capture/codebase-to-db-loader";
 import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../src/llm/llm-router";
-import { FileSummarizer } from "../../../src/components/capture/file-summarizer";
+import { summarizeFile } from "../../../src/components/capture/file-summarizer";
 import * as fileOperations from "../../../src/common/fs/file-operations";
 import * as directoryOperations from "../../../src/common/fs/directory-operations";
 import * as pathUtils from "../../../src/common/fs/path-utils";
@@ -15,6 +15,9 @@ jest.mock("../../../src/common/fs/file-operations");
 jest.mock("../../../src/common/fs/directory-operations");
 jest.mock("../../../src/common/fs/path-utils");
 jest.mock("../../../src/common/utils/text-utils");
+jest.mock("../../../src/components/capture/file-summarizer", () => ({
+  summarizeFile: jest.fn(),
+}));
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
   logSingleLineWarning: jest.fn(),
@@ -46,9 +49,9 @@ describe("CodebaseToDBLoader", () => {
   let loader: CodebaseToDBLoader;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let mockFileSummarizer: jest.Mocked<FileSummarizer>;
   let mockConsoleLog: jest.SpyInstance;
   let mockConsoleWarn: jest.SpyInstance;
+  let mockSummarizeFile: jest.MockedFunction<typeof summarizeFile>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -70,18 +73,27 @@ describe("CodebaseToDBLoader", () => {
       generateEmbeddings: jest.fn().mockResolvedValue([1.0, 2.0, 3.0]),
     } as unknown as jest.Mocked<LLMRouter>;
 
-    // Mock FileSummarizer
-    mockFileSummarizer = {
-      summarizeFile: jest.fn().mockResolvedValue({
-        namespace: "TestClass",
-        purpose: "Testing component",
-      }),
-    } as unknown as jest.Mocked<FileSummarizer>;
+    // Mock summarizeFile function
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const fileSummarizerModule = require("../../../src/components/capture/file-summarizer");
+    mockSummarizeFile = fileSummarizerModule.summarizeFile as jest.MockedFunction<
+      typeof summarizeFile
+    >;
+    mockSummarizeFile.mockResolvedValue({
+      namespace: "TestClass",
+      purpose: "Testing component",
+      implementation: "Test implementation",
+      databaseIntegration: {
+        mechanism: "NONE",
+        description: "n/a",
+        codeExample: "n/a",
+      },
+    });
 
     // Default mock for sortFilesBySize - returns files in same order
     mockDirectoryOperations.sortFilesBySize.mockImplementation(async (files) => files);
 
-    loader = new CodebaseToDBLoader(mockSourcesRepository, mockLLMRouter, mockFileSummarizer);
+    loader = new CodebaseToDBLoader(mockSourcesRepository, mockLLMRouter);
   });
 
   afterEach(() => {
@@ -272,7 +284,7 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockResolvedValue("file content");
       mockTextUtils.countLines.mockReturnValue(10);
-      mockFileSummarizer.summarizeFile.mockResolvedValue(mockSummary);
+      mockSummarizeFile.mockResolvedValue(mockSummary);
       mockLLMRouter.generateEmbeddings
         .mockResolvedValueOnce([1, 2, 3]) // summary embedding
         .mockResolvedValueOnce([4, 5, 6]); // content embedding
@@ -282,7 +294,8 @@ describe("CodebaseToDBLoader", () => {
 
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
-      expect(mockFileSummarizer.summarizeFile).toHaveBeenCalledWith(
+      expect(mockSummarizeFile).toHaveBeenCalledWith(
+        mockLLMRouter,
         "file1.ts",
         "ts",
         "file content",
@@ -311,7 +324,7 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockResolvedValue("file content");
       mockTextUtils.countLines.mockReturnValue(10);
-      mockFileSummarizer.summarizeFile.mockRejectedValue(summaryError);
+      mockSummarizeFile.mockRejectedValue(summaryError);
       mockLLMRouter.generateEmbeddings.mockResolvedValue([4, 5, 6]); // content embedding
 
       mockPath.relative.mockReturnValue("file1.ts");
@@ -367,7 +380,7 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockResolvedValue("file content");
       mockTextUtils.countLines.mockReturnValue(10);
-      mockFileSummarizer.summarizeFile.mockResolvedValue(mockSummary);
+      mockSummarizeFile.mockResolvedValue(mockSummary);
       mockLLMRouter.generateEmbeddings
         .mockResolvedValueOnce([1, 2, 3]) // summary embedding success
         .mockResolvedValueOnce(null); // content embedding failure

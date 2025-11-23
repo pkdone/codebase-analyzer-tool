@@ -27,9 +27,9 @@ export interface ReportSection {
    * Fetch and process data needed for this section.
    * This method is responsible for all data fetching operations.
    * @param projectName The name of the project
-   * @returns Promise resolving to the processed data for this section
+   * @returns Promise resolving to a Partial<ReportData> containing the fields this section contributes
    */
-  getData(projectName: string): Promise<unknown>;
+  getData(projectName: string): Promise<Partial<ReportData>>;
 
   /**
    * Prepare data for HTML report output.

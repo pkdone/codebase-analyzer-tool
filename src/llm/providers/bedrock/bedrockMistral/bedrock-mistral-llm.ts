@@ -1,4 +1,5 @@
-import StandardMessagesBedrockLLM from "../common/standard-messages-bedrock-llm";
+import BaseBedrockLLM from "../common/base-bedrock-llm";
+import { buildStandardMessagesArray } from "../utils/bedrock-request-builders";
 import { z } from "zod";
 
 /**
@@ -26,9 +27,16 @@ const MistralCompletionResponseSchema = z.object({
 
 /**
  * Class for the AWS Bedrock Mistral LLMs.
- *
  */
-export default class BedrockMistralLLM extends StandardMessagesBedrockLLM {
+export default class BedrockMistralLLM extends BaseBedrockLLM {
+  /**
+   * Build the request body object for completions using the standard messages array format.
+   */
+  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
+    // Bedrock providers don't support JSON mode options
+    return buildStandardMessagesArray(prompt, modelKey, this.llmModelsMetadata);
+  }
+
   /**
    * Get the provider-specific response extraction configuration.
    */
