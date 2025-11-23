@@ -105,7 +105,6 @@ export const fileProcessingConfig = {
     "cs",
     "rs",
     "swift",
-    "kt",
     "kts",
     "scala",
     "sh",

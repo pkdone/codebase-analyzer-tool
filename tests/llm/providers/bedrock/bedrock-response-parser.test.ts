@@ -106,7 +106,7 @@ describe("bedrock-response-parser", () => {
     ).toThrow(BadResponseContentLLMError);
   });
 
-  it("safely handles undefined content using type guard", () => {
+  it("safely handles undefined content - converts to null", () => {
     const response = {
       // content field completely missing
       stop_reason: "end_turn",
@@ -126,8 +126,45 @@ describe("bedrock-response-parser", () => {
       "TestProvider",
     );
 
-    // Type guard should convert undefined to empty string
-    expect(summary.responseContent).toBe("");
+    // Should convert undefined to null (to match LLMGeneratedContent type)
+    expect(summary.responseContent).toBeNull();
+    expect(summary.isIncompleteResponse).toBe(true);
+  });
+
+  it("preserves null content values from LLM", () => {
+    // Create a schema that allows null for text field
+    const schemaWithNull = z
+      .object({
+        content: z.array(z.object({ text: z.string().nullable() })).optional(),
+        stop_reason: z.string().optional(),
+        usage: z
+          .object({ input_tokens: z.number().optional(), output_tokens: z.number().optional() })
+          .optional(),
+      })
+      .passthrough();
+
+    const response = {
+      content: [{ text: null }],
+      stop_reason: "end_turn",
+      usage: { input_tokens: 1, output_tokens: 2 },
+    };
+
+    const summary = extractGenericCompletionResponse(
+      response,
+      schemaWithNull,
+      {
+        contentPath: "content[0].text",
+        promptTokensPath: "usage.input_tokens",
+        completionTokensPath: "usage.output_tokens",
+        stopReasonPath: "stop_reason",
+        stopReasonValueForLength: "max_tokens",
+      },
+      "TestProvider",
+    );
+
+    // Should preserve null (null has different semantic meaning than empty string)
+    expect(summary.responseContent).toBeNull();
+    expect(summary.isIncompleteResponse).toBe(true);
   });
 
   it("safely handles undefined token counts using type guard", () => {

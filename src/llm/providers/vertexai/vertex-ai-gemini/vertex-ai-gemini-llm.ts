@@ -182,10 +182,14 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
 
     // Capture response content
     const embeddingsArray = this.extractEmbeddingsFromPredictions(predictions);
-    const responseContent = embeddingsArray[0];
+    const responseContentRaw = embeddingsArray[0];
+    // Convert undefined to null to match LLMGeneratedContent type
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const responseContent = responseContentRaw ?? null;
 
     // Capture finish reason
-    const isIncompleteResponse = !responseContent;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    const isIncompleteResponse = responseContent == null;
 
     // Capture token usage
     const tokenUsage = { promptTokens: -1, completionTokens: -1, maxTotalTokens: -1 }; // API doesn't provide token counts
@@ -214,8 +218,10 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     // Capture response content
     // Using extra checking because even though Vertex AI types say these should exists they may not
     // if there is a bad "finish reason"
+    // Preserve null values from LLM (null has different semantic meaning than empty string)
+    // Convert undefined to null to match LLMGeneratedContent type
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    const responseContent = llmResponse?.content?.parts?.[0]?.text ?? "";
+    const responseContent = llmResponse?.content?.parts?.[0]?.text ?? null;
 
     // Capture finish reason
     const finishReason = llmResponse.finishReason ?? FinishReason.OTHER;
@@ -224,7 +230,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
         `LLM response was not safely completed - reason given: ${finishReason}`,
         finishReason,
       );
-    const isIncompleteResponse = finishReason !== FinishReason.STOP || !responseContent;
+    const isIncompleteResponse = finishReason !== FinishReason.STOP || responseContent == null;
 
     // Capture token usage
     const promptTokens = usageMetadata?.promptTokenCount ?? -1;

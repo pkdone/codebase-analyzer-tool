@@ -2,6 +2,7 @@ import { z } from "zod";
 import { getNestedValue, getNestedValueWithFallbacks } from "../../../../common/utils/object-utils";
 import { isDefined } from "../../../../common/utils/type-guards";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+import { LLMGeneratedContent } from "../../../types/llm.types";
 import { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 
 /**
@@ -48,7 +49,10 @@ export function extractGenericCompletionResponse(
     isDefined,
   );
   const responseContentRaw = getNestedValueWithFallbacks(response, contentPaths);
-  const responseContent = typeof responseContentRaw === "string" ? responseContentRaw : "";
+  // Preserve null values from LLM (null has different semantic meaning than empty string)
+  // Convert undefined to null to match LLMGeneratedContent type (which doesn't include undefined)
+  const responseContent =
+    responseContentRaw === undefined ? null : (responseContentRaw as LLMGeneratedContent);
   const stopReasonPaths = [pathConfig.stopReasonPath, pathConfig.alternativeStopReasonPath].filter(
     isDefined,
   );
@@ -56,7 +60,8 @@ export function extractGenericCompletionResponse(
   const finishReason = typeof finishReasonRaw === "string" ? finishReasonRaw : "";
   const finishReasonLowercase = finishReason.toLowerCase();
   const isIncompleteResponse =
-    finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() || !responseContent;
+    finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
+    responseContent == null;
   const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
   const promptTokens = typeof promptTokensRaw === "number" ? promptTokensRaw : -1;
   const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);
