@@ -18,3 +18,4 @@ export const insightsInputConfig = {
 } as const;
 
 
+
