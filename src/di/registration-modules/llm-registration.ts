@@ -40,14 +40,15 @@ export function initializeAndRegisterLLMComponents(): void {
     return;
   }
 
-  // Directly instantiate, initialize, and register to avoid resolve/re-register pattern
+  // Register LLMProviderManager as a singleton with factory registration
+  // The manager initializes itself in the constructor
   const modelFamily = container.resolve<string>(llmTokens.LLMModelFamily);
-  const jsonProcessor = container.resolve<JsonProcessor>(llmTokens.JsonProcessor);
-  const manager = new LLMProviderManager(modelFamily, jsonProcessor);
-  manager.initialize();
-
-  // Register the initialized instance
-  container.registerInstance(llmTokens.LLMProviderManager, manager);
+  container.register(llmTokens.LLMProviderManager, {
+    useFactory: (c) => {
+      const jsonProcessor = c.resolve<JsonProcessor>(llmTokens.JsonProcessor);
+      return new LLMProviderManager(modelFamily, jsonProcessor);
+    },
+  });
   console.log("LLMProviderManager registered");
 
   // Register LLMRouter as a singleton (now that LLMProviderManager is ready)

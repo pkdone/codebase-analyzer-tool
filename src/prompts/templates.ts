@@ -54,3 +54,16 @@ The final JSON response must follow this JSON schema:
 
 FRAGMENTED_DATA:
 {{content}}`;
+
+/**
+ * Template for querying the codebase with a specific question.
+ * Used for RAG (Retrieval-Augmented Generation) workflows where vector search results
+ * are provided as context for answering developer questions about the codebase.
+ */
+export const CODEBASE_QUERY_TEMPLATE = `Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
+
+QUESTION:
+{{question}}
+
+CODE:
+{{codeContent}}`;

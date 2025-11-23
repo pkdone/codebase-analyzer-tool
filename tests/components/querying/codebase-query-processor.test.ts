@@ -199,7 +199,36 @@ describe("CodebaseQueryProcessor", () => {
       // Assert - Verify the constants are used correctly
       const callArgs = mockSourcesRepository.vectorSearchProjectSourcesRawContent.mock.calls[0];
       expect(callArgs[2]).toBe(150); // VECTOR_SEARCH_NUM_CANDIDATES
-      expect(callArgs[3]).toBe(6); // VECTOR_SEARCH_NUM_LIMIT
+      expect(callArgs[3]).toBe(6); // VECTOR_SEARCH_NUM_LIMIT);
+    });
+
+    it("should use CODEBASE_QUERY_TEMPLATE from templates.ts", async () => {
+      // Arrange
+      const mockVector = [0.1, 0.2, 0.3];
+      const mockSourceFiles: ProjectedSourceMetataContentAndSummary[] = [
+        {
+          projectName: testProjectName,
+          filepath: "src/test.ts",
+          type: "typescript",
+          content: "test content",
+        },
+      ];
+
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
+      mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
+      mockLLMRouter.executeCompletion.mockResolvedValue("response");
+
+      // Act
+      await codebaseQueryProcessor.queryCodebaseWithQuestion(testQuestion, testProjectName);
+
+      // Assert - Verify the prompt uses the template from templates.ts
+      const callArgs = mockLLMRouter.executeCompletion.mock.calls[0];
+      const prompt = callArgs[1];
+      expect(prompt).toContain("Act as a senior developer");
+      expect(prompt).toContain("QUESTION:");
+      expect(prompt).toContain("CODE:");
+      expect(prompt).toContain(testQuestion);
+      expect(prompt).toContain("test content");
     });
   });
 });

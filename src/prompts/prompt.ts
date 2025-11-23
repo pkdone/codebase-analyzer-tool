@@ -36,7 +36,7 @@ export class Prompt {
    * @param additionalParams - Optional additional parameters to merge into the template data
    * @returns The fully rendered prompt string
    */
-  render(additionalParams: Record<string, string> = {}): string {
+  render(additionalParams: Record<string, string | undefined> = {}): string {
     const instructionsText = this.formatInstructions();
 
     const templateData = {
@@ -45,8 +45,8 @@ export class Prompt {
       jsonSchema: JSON.stringify(zodToJsonSchema(this.schema), null, 2),
       contentDesc: this.contentDesc,
       content: this.content,
-      // Handle partialAnalysisNote - if not provided or empty, use empty string
-      partialAnalysisNote: additionalParams.partialAnalysisNote || "",
+      // Handle partialAnalysisNote - use nullish coalescing to only default when null/undefined
+      partialAnalysisNote: additionalParams.partialAnalysisNote ?? "",
       ...additionalParams, // Merge additional params
     };
 

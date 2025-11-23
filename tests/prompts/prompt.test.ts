@@ -213,5 +213,31 @@ FILE_SUMMARIES:
       // Verify no placeholder syntax remains
       expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
+
+    it("should use nullish coalescing for partialAnalysisNote (allows empty string)", () => {
+      const javaMetadata = fileTypePromptMetadata.java;
+      const config = {
+        contentDesc: "test content",
+        instructions: [{ points: ["test instruction"] }],
+        responseSchema: javaMetadata.responseSchema,
+        template: `{{partialAnalysisNote}}Test template`,
+      };
+
+      const prompt = new Prompt(config, javaCodeSample);
+
+      // Test that empty string is preserved (not replaced with default)
+      const renderedWithEmptyString = prompt.render({ partialAnalysisNote: "" });
+      expect(renderedWithEmptyString).toContain("Test template");
+      // Empty string should be included, not replaced
+      expect(renderedWithEmptyString).toBe("Test template");
+
+      // Test that undefined uses default
+      const renderedWithUndefined = prompt.render({});
+      expect(renderedWithUndefined).toBe("Test template");
+
+      // Test that actual value is used
+      const renderedWithValue = prompt.render({ partialAnalysisNote: "Custom note" });
+      expect(renderedWithValue).toContain("Custom note");
+    });
   });
 });

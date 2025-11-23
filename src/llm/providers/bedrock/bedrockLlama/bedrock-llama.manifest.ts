@@ -15,6 +15,19 @@ import {
   DEFAULT_BEDROCK_MAX_RETRY_DELAY_MILLIS,
 } from "../common/bedrock-defaults.config";
 
+/**
+ * Zod schema for Bedrock Llama provider-specific configuration.
+ * Validates that the providerSpecificConfig contains all required fields,
+ * including the maxGenLenCap property needed for the CAP_MAX_GEN_LEN feature.
+ */
+export const BedrockLlamaProviderConfigSchema = z.object({
+  requestTimeoutMillis: z.number().int().positive(),
+  maxRetryAttempts: z.number().int().nonnegative(),
+  minRetryDelayMillis: z.number().int().nonnegative(),
+  maxRetryDelayMillis: z.number().int().nonnegative(),
+  maxGenLenCap: z.number().int().positive(),
+});
+
 // Environment variable name constants
 const BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY";
 const BEDROCK_LLAMA_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_LLAMA_COMPLETIONS_MODEL_SECONDARY";

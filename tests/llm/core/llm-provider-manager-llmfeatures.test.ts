@@ -8,7 +8,8 @@ describe("LLMProviderManager - llmFeatures", () => {
   let manager: LLMProviderManager;
 
   beforeEach(() => {
-    manager = new LLMProviderManager("testFamily", createMockJsonProcessor());
+    // Use a real provider family, then override manifest for testing
+    manager = new LLMProviderManager("openai", createMockJsonProcessor());
   });
 
   it("should attach llmFeatures to provider instance when manifest has features", () => {

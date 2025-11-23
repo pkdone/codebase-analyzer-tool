@@ -1,11 +1,15 @@
 import BedrockLlamaLLM from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm";
-import { bedrockLlamaProviderManifest } from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
+import {
+  bedrockLlamaProviderManifest,
+  BedrockLlamaProviderConfigSchema,
+} from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
 import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
 import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
+import { z } from "zod";
 
 /**
  * Unit tests for BedrockLlamaLLM - Type Safety Improvements
@@ -172,5 +176,64 @@ describe("BedrockLlamaLLM - Type Safety", () => {
 
     // max_gen_len should not be set because feature flag was not assigned
     expect(requestBody.max_gen_len).toBeUndefined();
+  });
+
+  describe("Zod schema validation", () => {
+    it("should validate correct provider-specific config", () => {
+      const validConfig = {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: 2048,
+      };
+
+      expect(() => BedrockLlamaProviderConfigSchema.parse(validConfig)).not.toThrow();
+      const parsed = BedrockLlamaProviderConfigSchema.parse(validConfig);
+      expect(parsed.maxGenLenCap).toBe(2048);
+    });
+
+    it("should reject config missing maxGenLenCap", () => {
+      const invalidConfig = {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        // Missing maxGenLenCap
+      };
+
+      expect(() => BedrockLlamaProviderConfigSchema.parse(invalidConfig)).toThrow(z.ZodError);
+    });
+
+    it("should reject config with invalid maxGenLenCap type", () => {
+      const invalidConfig = {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: "not-a-number", // Invalid type
+      };
+
+      expect(() => BedrockLlamaProviderConfigSchema.parse(invalidConfig)).toThrow(z.ZodError);
+    });
+
+    it("should reject config with non-positive maxGenLenCap", () => {
+      const invalidConfig = {
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: -1, // Invalid: must be positive
+      };
+
+      expect(() => BedrockLlamaProviderConfigSchema.parse(invalidConfig)).toThrow(z.ZodError);
+    });
+
+    it("should validate manifest providerSpecificConfig matches schema", () => {
+      // Verify the manifest's providerSpecificConfig is valid according to the schema
+      expect(() =>
+        BedrockLlamaProviderConfigSchema.parse(bedrockLlamaProviderManifest.providerSpecificConfig),
+      ).not.toThrow();
+    });
   });
 });

@@ -7,6 +7,7 @@ import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/
 import { repositoryTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
 import { inputConfig } from "./config/input.config";
+import { CODEBASE_QUERY_TEMPLATE } from "../../prompts/templates";
 
 /**
  * Provides ability to query the codebase, using Vector Search under the covers.
@@ -70,19 +71,10 @@ export default class CodebaseQueryProcessor {
    * @returns The filled prompt string
    */
   private createCodebaseQueryPrompt(question: string, codeContent: string): string {
-    return fillPrompt(
-      `Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.
-
-QUESTION:
-{{question}}
-
-CODE:
-{{codeContent}}`,
-      {
-        question,
-        codeContent,
-      },
-    );
+    return fillPrompt(CODEBASE_QUERY_TEMPLATE, {
+      question,
+      codeContent,
+    });
   }
 
   /**

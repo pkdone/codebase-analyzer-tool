@@ -9,7 +9,6 @@ import {
 import { EnvVars } from "../../env/env.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { LLMProviderManifest } from "../providers/llm-provider.types";
-import { logSingleLineWarning } from "../../common/utils/logging";
 import { JsonProcessor } from "../json-processing/core/json-processor";
 import { llmTokens } from "../../di/tokens";
 import { LLM_PROVIDER_REGISTRY } from "../providers";
@@ -19,13 +18,12 @@ import { LLM_PROVIDER_REGISTRY } from "../providers";
  */
 @injectable()
 export class LLMProviderManager {
-  private manifest?: LLMProviderManifest;
+  private readonly manifest: LLMProviderManifest;
   private readonly modelFamily: string;
-  private isInitialized = false;
 
   /**
    * Constructor takes modelFamily and JsonProcessor.
-   * modelFamily is passed directly since we instantiate this manually,
+   * Initializes the manager by loading the manifest for the specified model family.
    * jsonProcessor is injected for use in provider factory calls.
    */
   constructor(
@@ -33,6 +31,10 @@ export class LLMProviderManager {
     @inject(llmTokens.JsonProcessor) private readonly jsonProcessor: JsonProcessor,
   ) {
     this.modelFamily = modelFamily;
+    this.manifest = LLMProviderManager.loadManifestForModelFamily(this.modelFamily);
+    console.log(
+      `LLMProviderManager: Loaded provider for model family '${this.modelFamily}': ${this.manifest.providerName}`,
+    );
   }
 
   /**
@@ -49,58 +51,31 @@ export class LLMProviderManager {
   }
 
   /**
-   * Initialize the manager
-   */
-  initialize(): void {
-    if (this.isInitialized) {
-      logSingleLineWarning("LLMProviderManager is already initialized.");
-      return;
-    }
-
-    this.manifest = LLMProviderManager.loadManifestForModelFamily(this.modelFamily);
-    console.log(
-      `LLMProviderManager: Loaded provider for model family '${this.modelFamily}': ${this.manifest.providerName}`,
-    );
-    this.isInitialized = true;
-  }
-
-  /**
    * Get the loaded provider manifest.
    * Note: The manifest contains functions and cannot be deep cloned with structuredClone.
    */
   getLLMManifest(): LLMProviderManifest {
-    const manifest = this.getInitializedManifest();
-    return manifest;
+    return this.manifest;
   }
 
   /**
    * Get an LLM provider instance using the loaded manifest and environment
    */
   getLLMProvider(env: EnvVars): LLMProvider {
-    const manifest = this.getInitializedManifest();
-    const modelsKeysSet = this.buildModelsKeysSet(manifest);
-    const modelsMetadata = this.buildModelsMetadata(manifest, env);
-    const config = { providerSpecificConfig: manifest.providerSpecificConfig };
-    const instance = new manifest.implementation(
+    const modelsKeysSet = this.buildModelsKeysSet(this.manifest);
+    const modelsMetadata = this.buildModelsMetadata(this.manifest, env);
+    const config = { providerSpecificConfig: this.manifest.providerSpecificConfig };
+    const instance = new this.manifest.implementation(
       env,
       modelsKeysSet,
       modelsMetadata,
-      manifest.errorPatterns,
+      this.manifest.errorPatterns,
       config,
       this.jsonProcessor,
-      manifest.modelFamily,
-      manifest.features,
+      this.manifest.modelFamily,
+      this.manifest.features,
     );
     return instance;
-  }
-
-  /**
-   * Get the initialized manifest, throwing error if not initialized
-   */
-  private getInitializedManifest(): LLMProviderManifest {
-    if (!this.isInitialized || !this.manifest)
-      throw new Error("LLMProviderManager is not initialized. Call initialize() first.");
-    return this.manifest;
   }
 
   /**

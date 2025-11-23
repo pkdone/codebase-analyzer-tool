@@ -22,7 +22,6 @@ jest.mock("../../../src/common/utils/logging", () => ({
 
 // Create a more comprehensive test that focuses on what we can actually test
 describe("LLMProviderManager", () => {
-  let manager: LLMProviderManager;
   let mockConsoleLog: jest.SpyInstance;
 
   const mockManifest: LLMProviderManifest = {
@@ -58,7 +57,6 @@ describe("LLMProviderManager", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockConsoleLog = jest.spyOn(console, "log").mockImplementation();
-    manager = new LLMProviderManager("testFamily", createMockJsonProcessor());
   });
 
   afterEach(() => {
@@ -103,36 +101,36 @@ describe("LLMProviderManager", () => {
     });
   });
 
-  describe("error handling", () => {
-    it("should throw error when getting manifest before initialization", () => {
-      expect(() => manager.getLLMManifest()).toThrow(
-        "LLMProviderManager is not initialized. Call initialize() first.",
-      );
+  describe("initialization", () => {
+    it("should initialize automatically in constructor", () => {
+      // Manager should be ready to use immediately after construction
+      // Test with a known provider from the registry
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
+      expect(() => testManager.getLLMManifest()).not.toThrow();
+      const manifest = testManager.getLLMManifest();
+      expect(manifest).toBeDefined();
+      expect(manifest.modelFamily.toLowerCase()).toBe("openai");
     });
 
-    it("should throw error when getting provider before initialization", () => {
-      const mockEnv = { TEST_MODEL: "test-urn" } as any;
-
-      expect(() => manager.getLLMProvider(mockEnv)).toThrow(
-        "LLMProviderManager is not initialized. Call initialize() first.",
-      );
+    it("should throw error for unknown model family during construction", () => {
+      expect(() => {
+        new LLMProviderManager("unknownFamily", createMockJsonProcessor());
+      }).toThrow(BadConfigurationLLMError);
     });
   });
 
   describe("model key building", () => {
-    // Since we can't easily mock the initialization, let's test the private methods indirectly
-    // by creating a manager with a pre-loaded manifest
     it("should handle models without secondary completion", () => {
-      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
+      // Use a known provider, then override with complete mock manifest
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
 
-      // Simulate initialization by setting the private properties
+      // Override manifest completely with mock for testing
       (testManager as any).manifest = mockManifest;
-      (testManager as any).isInitialized = true;
 
       // Test the environment variable validation logic
       const mockEnv = {
-        TEST_EMBEDDINGS_MODEL: "embeddings-model-urn",
-        TEST_COMPLETION_MODEL: "completion-model-urn",
+        [mockManifest.models.embeddings.urnEnvKey]: "embeddings-model-urn",
+        [mockManifest.models.primaryCompletion.urnEnvKey]: "completion-model-urn",
       } as any;
 
       testManager.getLLMProvider(mockEnv);
@@ -174,9 +172,8 @@ describe("LLMProviderManager", () => {
         },
       };
 
-      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
       (testManager as any).manifest = manifestWithSecondary;
-      (testManager as any).isInitialized = true;
 
       const mockEnv = {
         TEST_EMBEDDINGS_MODEL: "embeddings-urn",
@@ -207,9 +204,8 @@ describe("LLMProviderManager", () => {
     });
 
     it("should throw error for missing environment variables", () => {
-      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
       (testManager as any).manifest = mockManifest;
-      (testManager as any).isInitialized = true;
 
       const mockEnv = {
         TEST_EMBEDDINGS_MODEL: "embeddings-model-urn",
@@ -221,9 +217,8 @@ describe("LLMProviderManager", () => {
     });
 
     it("should throw error for empty environment variables", () => {
-      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
       (testManager as any).manifest = mockManifest;
-      (testManager as any).isInitialized = true;
 
       const mockEnv = {
         TEST_EMBEDDINGS_MODEL: "",
@@ -235,9 +230,8 @@ describe("LLMProviderManager", () => {
     });
 
     it("should throw error for non-string environment variables", () => {
-      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
       (testManager as any).manifest = mockManifest;
-      (testManager as any).isInitialized = true;
 
       const mockEnv = {
         TEST_EMBEDDINGS_MODEL: 123 as any,
@@ -250,22 +244,15 @@ describe("LLMProviderManager", () => {
   });
 
   describe("manifest retrieval", () => {
-    it("should return manifest after initialization", () => {
-      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
-      (testManager as any).manifest = mockManifest;
-      (testManager as any).isInitialized = true;
-
+    it("should return manifest immediately after construction", () => {
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
       const retrievedManifest = testManager.getLLMManifest();
       expect(retrievedManifest).toBeDefined();
-      expect(retrievedManifest.modelFamily).toBe(mockManifest.modelFamily);
-      expect(retrievedManifest.providerName).toBe(mockManifest.providerName);
+      expect(retrievedManifest.modelFamily.toLowerCase()).toBe("openai");
     });
 
     it("should return the cached manifest reference", () => {
-      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
-      (testManager as any).manifest = mockManifest;
-      (testManager as any).isInitialized = true;
-
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
       const manifest1 = testManager.getLLMManifest();
       const manifest2 = testManager.getLLMManifest();
 
@@ -276,10 +263,7 @@ describe("LLMProviderManager", () => {
     });
 
     it("should contain all expected manifest properties", () => {
-      const testManager = new LLMProviderManager("testFamily", createMockJsonProcessor());
-      (testManager as any).manifest = mockManifest;
-      (testManager as any).isInitialized = true;
-
+      const testManager = new LLMProviderManager("openai", createMockJsonProcessor());
       const manifest = testManager.getLLMManifest();
 
       expect(manifest.models).toBeDefined();

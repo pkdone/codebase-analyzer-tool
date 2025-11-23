@@ -2,14 +2,7 @@ import { llmConfig } from "../../../llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { bedrockLlamaConfig } from "./bedrock-llama.config";
 import { z } from "zod";
-import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
-
-/**
- * Type-safe configuration interface for Llama provider
- */
-interface LlamaProviderConfig extends LLMProviderSpecificConfig {
-  maxGenLenCap: number;
-}
+import { BedrockLlamaProviderConfigSchema } from "./bedrock-llama.manifest";
 
 /**
  * Zod schema for Llama completion response validation
@@ -44,7 +37,8 @@ ${bedrockLlamaConfig.LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_USER}${bedroc
     // Declarative cap based on manifest feature flag rather than brittle string checks.
     const hasCapFeature = this.llmFeatures?.includes("CAP_MAX_GEN_LEN") ?? false;
     if (hasCapFeature) {
-      const config = this.providerSpecificConfig as LlamaProviderConfig;
+      // Validate and parse provider-specific config with Zod schema for type safety
+      const config = BedrockLlamaProviderConfigSchema.parse(this.providerSpecificConfig);
       const maxGenLenCap = config.maxGenLenCap;
       const maxCompletionTokens =
         this.llmModelsMetadata[modelKey].maxCompletionTokens ?? maxGenLenCap;
