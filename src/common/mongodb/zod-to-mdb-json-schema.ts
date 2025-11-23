@@ -15,20 +15,20 @@ function sanitizeMongoUnsupportedKeywords(schema: unknown): unknown {
     return schema.map((item) => sanitizeMongoUnsupportedKeywords(item));
   }
   if (isJsonObject(schema)) {
-    // If const present, replace with enum single value array
-    if (Object.hasOwn(schema, "const")) {
-      const constVal = schema.const;
-      // Only add enum if enum not already defined to avoid overwriting
-      if (!Object.hasOwn(schema, "enum")) {
-        schema.enum = [constVal];
+    const sanitized: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(schema)) {
+      if (key === "const") {
+        // Only add enum if enum not already defined to avoid overwriting
+        if (!Object.hasOwn(sanitized, "enum")) {
+          sanitized.enum = [value];
+        }
+        // Skip adding const to sanitized object
+      } else {
+        sanitized[key] = sanitizeMongoUnsupportedKeywords(value);
       }
-      delete schema.const; // Remove unsupported keyword
     }
-    // Recurse into known container properties
-    for (const key of Object.keys(schema)) {
-      schema[key] = sanitizeMongoUnsupportedKeywords(schema[key]);
-    }
-    return schema;
+    return sanitized;
   }
   return schema;
 }

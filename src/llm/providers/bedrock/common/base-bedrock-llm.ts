@@ -95,6 +95,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     config: BedrockConfig,
     jsonProcessor: JsonProcessor,
     modelFamily: string,
+    llmFeatures?: readonly string[],
   ) {
     if (!config.providerSpecificConfig) {
       throw new Error("providerSpecificConfig is required but was not provided");
@@ -106,6 +107,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       config.providerSpecificConfig,
       jsonProcessor,
       modelFamily,
+      llmFeatures,
     );
     const requestTimeoutMillis = config.providerSpecificConfig.requestTimeoutMillis;
     this.client = new BedrockRuntimeClient({

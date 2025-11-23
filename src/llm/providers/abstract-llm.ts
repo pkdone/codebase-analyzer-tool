@@ -30,10 +30,10 @@ import { loggingConfig } from "../../config/logging.config";
  */
 export default abstract class AbstractLLM implements LLMProvider {
   // Fields
+  /** Optional feature flags propagated from manifest (if any) */
+  readonly llmFeatures?: readonly string[];
   protected readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;
-  /** Optional feature flags propagated from manifest (if any) */
-  protected llmFeatures?: readonly string[];
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private hasLoggedJsonError = false;
@@ -50,6 +50,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     providerSpecificConfig: LLMProviderSpecificConfig,
     jsonProcessor: JsonProcessor,
     modelFamily: string,
+    llmFeatures?: readonly string[],
   ) {
     this.modelsKeys = modelsKeys;
     this.llmModelsMetadata = modelsMetadata;
@@ -57,6 +58,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     this.providerSpecificConfig = providerSpecificConfig;
     this.jsonProcessor = jsonProcessor;
     this.modelFamily = modelFamily;
+    this.llmFeatures = llmFeatures;
   }
 
   /**

@@ -30,6 +30,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
     modelFamily: string,
+    llmFeatures?: readonly string[],
   ) {
     super(
       modelsKeys,
@@ -38,6 +39,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
       config.providerSpecificConfig,
       jsonProcessor,
       modelFamily,
+      llmFeatures,
     );
     const apiKey = getRequiredEnvVar(env, "AZURE_OPENAI_LLM_API_KEY");
     const endpoint = getRequiredEnvVar(env, "AZURE_OPENAI_ENDPOINT");

@@ -155,6 +155,7 @@ describe("LLMProviderManager", () => {
         { providerSpecificConfig: mockManifest.providerSpecificConfig },
         expect.any(Object), // JsonProcessor
         mockManifest.modelFamily,
+        undefined, // llmFeatures
       );
     });
 
@@ -201,6 +202,7 @@ describe("LLMProviderManager", () => {
         { providerSpecificConfig: manifestWithSecondary.providerSpecificConfig },
         expect.any(Object), // JsonProcessor
         manifestWithSecondary.modelFamily,
+        undefined, // llmFeatures
       );
     });
 

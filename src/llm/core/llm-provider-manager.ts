@@ -89,11 +89,8 @@ export class LLMProviderManager {
       config,
       this.jsonProcessor,
       manifest.modelFamily,
+      manifest.features,
     );
-    // Attach features if available (duck typing to avoid interface changes to all providers yet)
-    if (manifest.features && Array.isArray(manifest.features)) {
-      (instance as unknown as { llmFeatures?: readonly string[] }).llmFeatures = manifest.features;
-    }
     return instance;
   }
 

@@ -6,6 +6,8 @@ import { z } from "zod";
  * Interface for LLM implementation provider
  */
 export interface LLMProvider {
+  /** Optional feature flags indicating model-specific capabilities or constraints */
+  readonly llmFeatures?: readonly string[];
   generateEmbeddings: LLMFunction;
   executeCompletionPrimary: LLMFunction;
   executeCompletionSecondary: LLMFunction;

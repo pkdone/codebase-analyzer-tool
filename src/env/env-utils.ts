@@ -1,4 +1,5 @@
 import { EnvVars } from "./env.types";
+import { ConfigurationError } from "./env-errors";
 
 /**
  * Helper to retrieve a required environment variable from the already validated EnvVars object.
@@ -8,7 +9,7 @@ import { EnvVars } from "./env.types";
 export function getRequiredEnvVar(env: EnvVars, key: string): string {
   const value = env[key];
   if (typeof value === "string" && value.length > 0) return value;
-  throw new Error(
+  throw new ConfigurationError(
     `Required environment variable '${key}' is missing or not a non-empty string. Key: ${key}, Value: ${String(value)}`,
   );
 }

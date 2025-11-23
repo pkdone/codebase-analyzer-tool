@@ -75,6 +75,7 @@ export interface LLMProviderManifest {
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
     modelFamily: string,
+    llmFeatures?: readonly string[],
   ) => LLMProvider;
 }
 

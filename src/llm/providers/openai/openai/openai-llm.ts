@@ -28,6 +28,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
     modelFamily: string,
+    llmFeatures?: readonly string[],
   ) {
     super(
       modelsKeys,
@@ -36,6 +37,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
       config.providerSpecificConfig,
       jsonProcessor,
       modelFamily,
+      llmFeatures,
     );
     const apiKey = getRequiredEnvVar(env, "OPENAI_LLM_API_KEY");
     this.client = new OpenAI({ apiKey });

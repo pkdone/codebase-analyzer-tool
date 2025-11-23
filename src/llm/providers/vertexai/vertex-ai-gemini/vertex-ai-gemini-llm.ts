@@ -68,6 +68,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
     jsonProcessor: JsonProcessor,
     modelFamily: string,
+    llmFeatures?: readonly string[],
   ) {
     super(
       modelsKeys,
@@ -76,6 +77,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       config.providerSpecificConfig,
       jsonProcessor,
       modelFamily,
+      llmFeatures,
     );
     const project = getRequiredEnvVar(env, "VERTEXAI_PROJECTID");
     const location = getRequiredEnvVar(env, "VERTEXAI_LOCATION");

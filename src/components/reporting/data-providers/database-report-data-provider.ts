@@ -138,6 +138,12 @@ export class DatabaseReportDataProvider {
           case "HIGH":
             acc.high++;
             break;
+          default: {
+            // This ensures exhaustiveness. The `normalizeComplexity` function
+            // should prevent this from being hit, but it's good practice.
+            const exhaustiveCheck: never = complexity;
+            return exhaustiveCheck;
+          }
         }
         acc.list.push(this.mapItemToReportFormat(item, type));
         return acc;
