@@ -19,7 +19,7 @@ jest.mock("../../../src/components/capture/file-summarizer", () => ({
   summarizeFile: jest.fn(),
 }));
 jest.mock("../../../src/common/utils/logging", () => ({
-  logErrorMsgAndDetail: jest.fn(),
+  logError: jest.fn(),
   logSingleLineWarning: jest.fn(),
 }));
 

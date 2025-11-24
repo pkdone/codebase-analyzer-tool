@@ -13,22 +13,8 @@ function isErrorLike(value: unknown): value is Error | { message: unknown } {
 /**
  * Log an error message and the error stack to the console.
  */
-export function logErrorMsgAndDetail(msg: string | null, error: unknown): void {
+export function logError(msg: string, error: unknown): void {
   console.error(formatErrorMessageAndDetail(msg, error));
-}
-
-/**
- * Log a thrown error object and its stack to the console.
- */
-export function logThrownError(error: unknown): void {
-  logErrorMsgAndDetail(null, error);
-}
-
-/**
- * Log an string msg flagged as an error.
- */
-export function logErrorMsg(errMsg: string): void {
-  console.error(errMsg);
 }
 
 /**
@@ -40,6 +26,7 @@ export function logErrorMsg(errMsg: string): void {
  */
 export function logSingleLineWarning(message: string, context?: unknown): void {
   let logMessage = message.replace(/(\r\n|\n|\r)/gm, " ");
+
   if (context) {
     // Use formatError for Error objects and objects with message properties, JSON.stringify for others
     // This maintains backward compatibility with existing tests while using unified error formatting

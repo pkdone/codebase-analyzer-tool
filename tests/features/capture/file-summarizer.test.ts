@@ -10,7 +10,7 @@ import * as logging from "../../../src/common/utils/logging";
 jest.mock("../../../src/llm/llm-router");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
-  logErrorMsgAndDetail: jest.fn(),
+  logError: jest.fn(),
   logSingleLineWarning: jest.fn(),
 }));
 

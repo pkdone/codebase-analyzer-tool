@@ -11,8 +11,6 @@ import {
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { BadConfigurationLLMError } from "./types/llm-errors.types";
-import { log, logWithContext } from "./tracking/llm-context-logging";
-
 import type { LLMRetryConfig, LLMProviderManifest } from "./providers/llm-provider.types";
 import type { EnvVars } from "../env/env.types";
 import { llmTokens, coreTokens } from "../di/tokens";
@@ -23,6 +21,7 @@ import {
 } from "./utils/completions-models-retriever";
 import { loadManifestForModelFamily } from "./utils/manifest-loader";
 import { JsonProcessor } from "./json-processing/core/json-processor";
+import { logSingleLineWarning } from "../common/utils/logging";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -85,7 +84,7 @@ export default class LLMRouter {
       );
     }
 
-    log(`Router LLMs to be used: ${this.getModelsUsedDescription()}`);
+    console.log(`Router LLMs to be used: ${this.getModelsUsedDescription()}`);
   }
 
   /**
@@ -179,7 +178,10 @@ export default class LLMRouter {
     );
 
     if (!contentResponse.success) {
-      logWithContext(`Failed to generate embeddings: ${contentResponse.error.message}`, context);
+      logSingleLineWarning(
+        `Failed to generate embeddings: ${contentResponse.error.message}`,
+        context,
+      );
       return null;
     }
 
@@ -189,7 +191,7 @@ export default class LLMRouter {
         contentResponse.data.every((item: unknown) => typeof item === "number")
       )
     ) {
-      logWithContext("LLM response for embeddings was not an array of numbers", context);
+      logSingleLineWarning("LLM response for embeddings was not an array of numbers", context);
       return null;
     }
 
@@ -236,7 +238,7 @@ export default class LLMRouter {
     );
 
     if (!result.success) {
-      logWithContext(`Failed to execute completion: ${result.error.message}`, context);
+      logSingleLineWarning(`Failed to execute completion: ${result.error.message}`, context);
       return null;
     }
 

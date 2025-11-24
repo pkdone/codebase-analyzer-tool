@@ -1,7 +1,7 @@
 import { promises as fs, Dirent } from "fs";
 import path from "path";
 import glob from "fast-glob";
-import { logErrorMsgAndDetail } from "../utils/logging";
+import { logError } from "../utils/logging";
 
 /**
  * Get the handle of the files in a directory
@@ -23,7 +23,7 @@ export async function clearDirectory(dirPath: string): Promise<void> {
 
       const filePath = path.join(dirPath, file);
       const promise = fs.rm(filePath, { recursive: true, force: true }).catch((error: unknown) => {
-        logErrorMsgAndDetail(
+        logError(
           `When clearing directory '${dirPath}', unable to remove the item: ${filePath}`,
           error,
         );
@@ -33,16 +33,13 @@ export async function clearDirectory(dirPath: string): Promise<void> {
 
     await Promise.allSettled(removalPromises);
   } catch (error: unknown) {
-    logErrorMsgAndDetail(`Unable to read directory for clearing: ${dirPath}`, error);
+    logError(`Unable to read directory for clearing: ${dirPath}`, error);
   }
 
   try {
     await fs.mkdir(dirPath, { recursive: true });
   } catch (mkdirError: unknown) {
-    logErrorMsgAndDetail(
-      `Failed to ensure directory exists after clearing: ${dirPath}`,
-      mkdirError,
-    );
+    logError(`Failed to ensure directory exists after clearing: ${dirPath}`, mkdirError);
   }
 }
 
@@ -83,7 +80,7 @@ export async function sortFilesBySize(filepaths: string[]): Promise<string[]> {
     if (result.status === "fulfilled") {
       return { filepath, size: result.value.size };
     }
-    logErrorMsgAndDetail(`Unable to get file size for: ${filepath}`, result.reason);
+    logError(`Unable to get file size for: ${filepath}`, result.reason);
     return { filepath, size: 0 };
   });
 
@@ -98,7 +95,7 @@ export async function ensureDirectoryExists(dirPath: string): Promise<void> {
   try {
     await fs.mkdir(dirPath, { recursive: true });
   } catch (error: unknown) {
-    logErrorMsgAndDetail(`Failed to create directory: ${dirPath}`, error);
+    logError(`Failed to create directory: ${dirPath}`, error);
     throw error;
   }
 }

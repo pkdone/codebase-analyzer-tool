@@ -18,7 +18,7 @@ jest.mock("../../src/common/utils/text-utils", () => ({
   countLines: jest.fn(() => 1),
 }));
 jest.mock("../../src/common/utils/logging", () => ({
-  logErrorMsgAndDetail: jest.fn(),
+  logError: jest.fn(),
   logSingleLineWarning: jest.fn(),
 }));
 

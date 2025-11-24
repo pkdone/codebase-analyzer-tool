@@ -183,7 +183,10 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(expect.stringContaining("Applied"));
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
+        expect.stringContaining("Applied"),
+        expect.any(Object),
+      );
     });
 
     it("defaults to logging enabled when constructor parameter is omitted", () => {
@@ -199,7 +202,10 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(expect.stringContaining("Applied"));
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
+        expect.stringContaining("Applied"),
+        expect.any(Object),
+      );
     });
   });
 
@@ -217,7 +223,10 @@ describe("json-tools enhanced fast path", () => {
         expect((result.data as any).a).toBe(1);
         expect((result.data as any).b).toEqual([1, 2, 3]);
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(expect.stringContaining("Applied"));
+      expect(logSingleLineWarning).toHaveBeenCalledWith(
+        expect.stringContaining("Applied"),
+        expect.any(Object),
+      );
     });
 
     it("includes sanitization history in error message on validation failure", () => {

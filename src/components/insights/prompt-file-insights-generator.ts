@@ -6,7 +6,7 @@ import { outputConfig } from "../../config/output.config";
 import { readFile, writeFile } from "../../common/fs/file-operations";
 import { listDirectoryEntries, ensureDirectoryExists } from "../../common/fs/directory-operations";
 import pLimit from "p-limit";
-import { logErrorMsgAndDetail } from "../../common/utils/logging";
+import { logError } from "../../common/utils/logging";
 import { formatError } from "../../common/utils/error-formatters";
 import { inject } from "tsyringe";
 import { llmTokens } from "../../di/tokens";
@@ -59,7 +59,7 @@ export class PromptFileInsightsGenerator {
         });
       }
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Problem loading prompts from input folder", error);
+      logError("Problem loading prompts from input folder", error);
     }
 
     return prompts;
@@ -115,7 +115,7 @@ export class PromptFileInsightsGenerator {
           typeof executionResult === "object" ? JSON.stringify(executionResult) : executionResult;
       }
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Problem introspecting and processing source files", error);
+      logError("Problem introspecting and processing source files", error);
       response = formatError(error);
     }
 
@@ -134,7 +134,7 @@ export class PromptFileInsightsGenerator {
       await writeFile(tempFilePath, codeBlocksContent);
       console.log(`Project code has been dumped to: ${tempFilePath}`);
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Failed to dump code blocks to temp file", error);
+      logError("Failed to dump code blocks to temp file", error);
     }
   }
 }

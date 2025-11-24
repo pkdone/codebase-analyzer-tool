@@ -220,7 +220,7 @@ describe("SourcesRepositoryImpl", () => {
         repository.vectorSearchProjectSourcesRawContent("test", [1, 2, 3], 100, 10),
       ).rejects.toThrow(mongoError);
 
-      expect(mockLogging.logErrorMsgAndDetail).toHaveBeenCalledWith(
+      expect(mockLogging.logError).toHaveBeenCalledWith(
         expect.stringContaining("Problem performing Atlas Vector Search aggregation"),
         mongoError,
       );

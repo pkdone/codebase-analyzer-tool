@@ -10,8 +10,8 @@ import {
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 
 // Mock the logging module
-jest.mock("../../../../src/llm/tracking/llm-context-logging", () => ({
-  logWithContext: jest.fn(),
+jest.mock("../../../../src/common/utils/logging", () => ({
+  logSingleLineWarning: jest.fn(),
 }));
 
 describe("FallbackStrategy", () => {

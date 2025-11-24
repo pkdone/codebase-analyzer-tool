@@ -5,7 +5,7 @@ import {
 } from "../../../src/common/fs/directory-operations";
 import glob from "fast-glob";
 import { promises as fs } from "fs";
-import { logErrorMsgAndDetail } from "../../../src/common/utils/logging";
+import { logError } from "../../../src/common/utils/logging";
 
 jest.mock("fast-glob");
 jest.mock("../../../src/common/utils/logging");
@@ -193,7 +193,7 @@ describe("directory-operations", () => {
     const mockReaddir = fs.readdir as jest.MockedFunction<typeof fs.readdir>;
     const mockRm = fs.rm as jest.MockedFunction<typeof fs.rm>;
     const mockMkdir = fs.mkdir as jest.MockedFunction<typeof fs.mkdir>;
-    const mockLogError = logErrorMsgAndDetail as jest.MockedFunction<typeof logErrorMsgAndDetail>;
+    const mockLogError = logError as jest.MockedFunction<typeof logError>;
 
     beforeEach(() => {
       jest.clearAllMocks();

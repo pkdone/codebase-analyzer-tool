@@ -20,7 +20,7 @@ import {
   LLMCompletionOptions,
   LLMOutputFormat,
 } from "../../../types/llm.types";
-import { logSingleLineWarning, logErrorMsgAndDetail } from "../../../../common/utils/logging";
+import { logSingleLineWarning, logError } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
 import AbstractLLM from "../../abstract-llm";
 import {
@@ -109,7 +109,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       // Use timeout-based cleanup as the recommended workaround at the end of the program to allow
       // the process to terminate.
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Error when closing Vertex AI Gemini LLM clients", error);
+      logError("Error when closing Vertex AI Gemini LLM clients", error);
     }
   }
 

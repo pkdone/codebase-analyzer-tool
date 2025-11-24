@@ -9,7 +9,7 @@ import * as logging from "../../../src/common/utils/logging";
 
 // Mock the logging utilities
 jest.mock("../../../src/common/utils/logging", () => ({
-  logErrorMsgAndDetail: jest.fn(),
+  logError: jest.fn(),
   logSingleLineWarning: jest.fn(),
 }));
 

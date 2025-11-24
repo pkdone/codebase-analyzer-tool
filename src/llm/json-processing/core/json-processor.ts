@@ -145,6 +145,7 @@ export class JsonProcessor {
       const contentText = JSON.stringify(content);
       logSingleLineWarning(
         `LLM response is not a string. Content: ${contentText.substring(0, 100)}`,
+        context,
       );
       const error = new JsonProcessingError(
         JsonProcessingErrorType.PARSE,
@@ -158,7 +159,7 @@ export class JsonProcessor {
     if (!this.hasJsonLikeStructure(content)) {
       logSingleLineWarning(
         `Contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
-        { contentLength: content.length },
+        { ...context, contentLength: content.length },
       );
       const error = new JsonProcessingError(
         JsonProcessingErrorType.PARSE,
@@ -211,10 +212,8 @@ export class JsonProcessor {
     if (result.success) {
       if (this.loggingEnabled && hasSignificantSanitizationSteps(appliedSteps)) {
         let message = `Applied ${appliedSteps.length} sanitization step(s): ${appliedSteps.join(" -> ")}`;
-        if (allDiagnostics.length > 0) {
-          message += ` | Diagnostics: ${allDiagnostics.join(" | ")}`;
-        }
-        logSingleLineWarning(message);
+        if (allDiagnostics.length > 0) message += ` | Diagnostics: ${allDiagnostics.join(" | ")}`;
+        logSingleLineWarning(message, context);
       }
       return {
         success: true,
@@ -237,6 +236,7 @@ export class JsonProcessor {
     logSingleLineWarning(
       `Cannot parse JSON after all sanitization attempts. Applied steps: ${appliedSteps.join(" -> ")}`,
       {
+        ...context,
         originalLength: originalContent.length,
         sanitizedLength: result.workingContent.length,
         lastSanitizer,
@@ -277,11 +277,10 @@ export class JsonProcessor {
     if (fastPathResult.success) return { success: true, data: fastPathResult.data };
 
     if (fastPathResult.errorType === JsonProcessingErrorType.VALIDATION) {
-      // Log context before creating the error
-      logSingleLineWarning(
-        "Parsed successfully but failed schema validation",
-        fastPathResult.error,
-      );
+      logSingleLineWarning("Parsed successfully but failed schema validation", {
+        ...context,
+        responseContentParseError: fastPathResult.error,
+      });
       const validationError = new JsonProcessingError(
         JsonProcessingErrorType.VALIDATION,
         `LLM response for resource '${context.resource}' parsed successfully but failed schema validation`,
@@ -322,10 +321,9 @@ export class JsonProcessor {
         if (parseResult.success) return { success: true, data: parseResult.data };
 
         if (parseResult.errorType === JsonProcessingErrorType.VALIDATION) {
-          // Return validation error immediately
           logSingleLineWarning(
             `Parsed successfully but failed schema validation after sanitizer: ${sanitizer.name}`,
-            parseResult.error,
+            { ...context, responseContentParseError: parseResult.error },
           );
           const validationError = new JsonProcessingError(
             JsonProcessingErrorType.VALIDATION,

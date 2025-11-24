@@ -6,7 +6,7 @@ jest.mock("../../../src/common/utils/logging", () => {
   return {
     logErrorMsg: jest.fn(), // still mocked for unrelated error logging
     logSingleLineWarning: jest.fn(),
-    logErrorMsgAndDetail: jest.fn(),
+    logError: jest.fn(),
   };
 });
 

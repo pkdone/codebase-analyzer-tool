@@ -16,7 +16,6 @@ export function formatError(error: unknown): string {
   if (!error) return "<unknown-type>. No error message available";
   if (error instanceof Error) return `${error.constructor.name}. ${error.message}`;
   if (hasMessageProperty(error)) return `<unknown-type>. ${String(error.message)}`;
-
   // Use util.inspect for safe and detailed object serialization
   // depth: 2 limits recursion, breakLength: Infinity keeps output on single line
   return `<unknown-type>. ${inspect(error, { depth: 2, breakLength: Infinity })}`;
@@ -24,7 +23,6 @@ export function formatError(error: unknown): string {
 
 /**
  * Capture error message and detail as a formatted string.
- * Uses the unified formatError function for consistent error formatting.
  */
 export function formatErrorMessageAndDetail(msg: string | null, error: unknown): string {
   const prefix = msg ? `${msg}: ` : "";

@@ -16,7 +16,7 @@ import { appConfig } from "../../../../config/app.config";
 import { commonConstants } from "../../../../common/constants";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { formatError } from "../../../../common/utils/error-formatters";
-import { logErrorMsgAndDetail } from "../../../../common/utils/logging";
+import { logError } from "../../../../common/utils/logging";
 import AbstractLLM from "../../abstract-llm";
 import { z } from "zod";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
@@ -124,7 +124,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     try {
       this.client.destroy();
     } catch (error: unknown) {
-      logErrorMsgAndDetail("Error when calling destroy on AWSBedrock LLM", error);
+      logError("Error when calling destroy on AWSBedrock LLM", error);
     }
   }
 

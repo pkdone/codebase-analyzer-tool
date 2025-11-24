@@ -4,7 +4,7 @@ import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logSingleLineWarning: jest.fn(),
-  logErrorMsgAndDetail: jest.fn(),
+  logError: jest.fn(),
 }));
 
 import { logSingleLineWarning } from "../../../src/common/utils/logging";

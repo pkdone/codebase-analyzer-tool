@@ -13,16 +13,12 @@ import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
-import {
-  logLlmPipelineWarning,
-  logErrorWithContext,
-  logWithContext,
-} from "./tracking/llm-context-logging";
 import LLMStats from "./tracking/llm-stats";
 import { llmTokens } from "../di/tokens";
 import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
 import type { LLMExecutionResult } from "./types/llm-execution-result.types";
 import { LLMExecutionError } from "./types/llm-execution-result.types";
+import { logSingleLineWarning } from "../common/utils/logging";
 
 /**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
@@ -82,8 +78,9 @@ export class LLMExecutionPipeline {
         };
       }
 
-      logLlmPipelineWarning(
+      logSingleLineWarning(
         `Given-up on trying to fulfill the current prompt with an LLM for the following resource: '${resourceName}'`,
+        context,
       );
 
       this.llmStats.recordFailure();
@@ -96,10 +93,10 @@ export class LLMExecutionPipeline {
         ),
       };
     } catch (error: unknown) {
-      logLlmPipelineWarning(
+      logSingleLineWarning(
         `Unable to process the following resource with an LLM due to a non-recoverable error for the following resource: '${resourceName}'`,
+        { ...context, error },
       );
-      logErrorWithContext(error, context);
 
       this.llmStats.recordFailure();
       return {
@@ -146,7 +143,7 @@ export class LLMExecutionPipeline {
         this.llmStats.recordSuccess();
         return llmResponse;
       } else if (llmResponse?.status === LLMResponseStatus.ERRORED) {
-        logErrorWithContext(llmResponse.error, context);
+        logSingleLineWarning("LLM Error for resource", { ...context, error: llmResponse.error });
         break;
       }
 
@@ -168,7 +165,7 @@ export class LLMExecutionPipeline {
         this.llmStats.recordCrop();
 
         if (currentPrompt.trim() === "") {
-          logWithContext(
+          logSingleLineWarning(
             `Prompt became empty after cropping for resource '${resourceName}', terminating attempts.`,
             context,
           );

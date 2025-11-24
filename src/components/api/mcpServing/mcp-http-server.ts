@@ -5,7 +5,7 @@ import { text as consumeText } from "node:stream/consumers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
-import { logErrorMsgAndDetail } from "../../../common/utils/logging";
+import { logError } from "../../../common/utils/logging";
 import { mcpConfig } from "./mcp.config";
 import { httpConfig } from "./config/http.config";
 import McpServerFactory from "./mcp-server-configurator";
@@ -55,7 +55,7 @@ export default class McpHttpServer {
       if (url.pathname === mcpConfig.URL_PATH_MCP) {
         // Handle MCP requests asynchronously
         mcpHandler(req, res).catch((error: unknown) => {
-          logErrorMsgAndDetail("Error handling MCP request", error);
+          logError("Error handling MCP request", error);
           if (!res.headersSent) {
             this.sendJsonRpcError(
               res,
@@ -219,7 +219,7 @@ export default class McpHttpServer {
         }
 
         // Handle other errors as internal server errors
-        logErrorMsgAndDetail("Error in MCP request handler", error);
+        logError("Error in MCP request handler", error);
         if (!res.headersSent) {
           this.sendJsonRpcError(
             res,

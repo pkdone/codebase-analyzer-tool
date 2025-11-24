@@ -1,8 +1,4 @@
-import {
-  logThrownError,
-  logErrorMsg,
-  logSingleLineWarning,
-} from "../../../src/common/utils/logging";
+import { logSingleLineWarning, logError } from "../../../src/common/utils/logging";
 
 describe("logging", () => {
   let consoleErrorSpy: jest.SpyInstance;
@@ -18,46 +14,62 @@ describe("logging", () => {
     consoleWarnSpy.mockRestore();
   });
 
-  describe("logThrownError", () => {
-    it("should log an Error object with its stack trace", () => {
+  describe("logError", () => {
+    it("should log an error message with an Error object", () => {
       const error = new Error("Test error");
-      logThrownError(error);
+      logError("Operation failed", error);
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const loggedMessage = consoleErrorSpy.mock.calls[0][0];
-      expect(loggedMessage).toContain("Test error");
+      expect(loggedMessage).toContain("Operation failed");
+      expect(loggedMessage).toContain("Error. Test error");
+      expect(loggedMessage).toContain("-");
+      // Should contain stack trace (Error objects have stack traces)
+      expect(loggedMessage.length).toBeGreaterThan(50);
     });
 
-    it("should log a string error", () => {
-      logThrownError("String error");
+    it("should log an error message with a string error", () => {
+      logError("Operation failed", "String error");
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy.mock.calls[0][0]).toContain("String error");
+      const loggedMessage = consoleErrorSpy.mock.calls[0][0];
+      expect(loggedMessage).toContain("Operation failed");
+      expect(loggedMessage).toContain("String error");
     });
 
-    it("should handle unknown error types", () => {
-      logThrownError({ custom: "error object" });
+    it("should log an error message with an object error", () => {
+      logError("Operation failed", { custom: "error object" });
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const loggedMessage = consoleErrorSpy.mock.calls[0][0];
+      expect(loggedMessage).toContain("Operation failed");
     });
 
-    it("should handle null and undefined errors", () => {
-      logThrownError(null);
-      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    it("should log an error message with null error", () => {
+      logError("Operation failed", null);
 
-      consoleErrorSpy.mockClear();
-
-      logThrownError(undefined);
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const loggedMessage = consoleErrorSpy.mock.calls[0][0];
+      expect(loggedMessage).toContain("Operation failed");
+      expect(loggedMessage).toContain("No error message available");
     });
-  });
 
-  describe("logErrorMsg", () => {
-    it("should log an error message", () => {
-      logErrorMsg("Error message");
+    it("should log an error message with undefined error", () => {
+      logError("Operation failed", undefined);
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error message");
+      const loggedMessage = consoleErrorSpy.mock.calls[0][0];
+      expect(loggedMessage).toContain("Operation failed");
+      expect(loggedMessage).toContain("No error message available");
+    });
+
+    it("should require a message parameter", () => {
+      const error = new Error("Test error");
+      logError("Required message", error);
+
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+      const loggedMessage = consoleErrorSpy.mock.calls[0][0];
+      expect(loggedMessage).toContain("Required message");
     });
   });
 

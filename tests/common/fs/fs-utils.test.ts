@@ -12,7 +12,7 @@ import { readAndFilterLines } from "../../../src/common/fs/file-content-utils";
 
 // Mock the logging module to avoid actual logging during tests
 jest.mock("../../../src/common/utils/logging", () => ({
-  logErrorMsgAndDetail: jest.fn(),
+  logError: jest.fn(),
 }));
 
 describe("File System Utilities", () => {

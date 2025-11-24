@@ -26,12 +26,10 @@ import * as manifestLoader from "../../../src/llm/utils/manifest-loader";
 // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
 // postProcessAsJSONIfNeededGeneratingNewResult have been moved to AbstractLLM class
 
-jest.mock("../../../src/llm/tracking/llm-context-logging", () => ({
-  log: jest.fn(),
-  logErrWithContext: jest.fn(),
-  logWithContext: jest.fn(),
-  logLlmPipelineWarning: jest.fn(),
-  logErrorWithContext: jest.fn(),
+jest.mock("../../../src/common/utils/logging", () => ({
+  logSingleLineWarning: jest.fn(),
+  logError: jest.fn(),
+  logErrorMsg: jest.fn(),
 }));
 
 jest.mock("../../../src/llm/tracking/llm-stats", () => {
