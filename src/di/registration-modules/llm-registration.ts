@@ -1,5 +1,4 @@
 import { container } from "tsyringe";
-import { LLMProviderManager } from "../../llm/llm-provider-manager";
 import LLMRouter from "../../llm/llm-router";
 import LLMStats from "../../llm/tracking/llm-stats";
 import { LLMStatsReporter } from "../../llm/tracking/llm-stats-reporter";
@@ -10,8 +9,7 @@ import { llmTokens } from "../tokens";
 /**
  * Register LLM provider management services in the DI container.
  *
- * This module handles the registration of LLM provider management services,
- * including proper initialization of LLMProviderManager with async dependencies.
+ * This module handles the registration of LLM provider management services.
  */
 export function registerLLMProviders(): void {
   // Register LLM utility classes
@@ -29,7 +27,7 @@ export function registerLLMProviders(): void {
  * This function should be called during application bootstrap after registering dependencies.
  */
 export function initializeAndRegisterLLMComponents(): void {
-  if (container.isRegistered(llmTokens.LLMProviderManager)) {
+  if (container.isRegistered(llmTokens.LLMRouter)) {
     console.log("LLM components already registered - skipping initialization");
     return;
   }
@@ -40,18 +38,8 @@ export function initializeAndRegisterLLMComponents(): void {
     return;
   }
 
-  // Register LLMProviderManager as a singleton with factory registration
-  // The manager initializes itself in the constructor
-  const modelFamily = container.resolve<string>(llmTokens.LLMModelFamily);
-  container.register(llmTokens.LLMProviderManager, {
-    useFactory: (c) => {
-      const jsonProcessor = c.resolve<JsonProcessor>(llmTokens.JsonProcessor);
-      return new LLMProviderManager(modelFamily, jsonProcessor);
-    },
-  });
-  console.log("LLMProviderManager registered");
-
-  // Register LLMRouter as a singleton (now that LLMProviderManager is ready)
+  // Register LLMRouter as a singleton
+  // LLMRouter now directly creates the provider using modelFamily and JsonProcessor
   container.registerSingleton(llmTokens.LLMRouter, LLMRouter);
   console.log("LLMRouter registered as singleton");
 }

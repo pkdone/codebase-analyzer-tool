@@ -4,7 +4,7 @@ import { repositoryTokens } from "../../src/di/tokens";
 import { SourcesRepository } from "../../src/repositories/sources/sources.repository.interface";
 import { SourceRecord } from "../../src/repositories/sources/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
-import { LLMProviderManager } from "../../src/llm/llm-provider-manager";
+import { loadManifestForModelFamily } from "../../src/llm/utils/manifest-loader";
 
 // Helper function to get the vector dimensions from the configured LLM provider
 async function getEmbeddingDimensions(): Promise<number> {
@@ -14,7 +14,7 @@ async function getEmbeddingDimensions(): Promise<number> {
   }
 
   try {
-    const manifest = LLMProviderManager.loadManifestForModelFamily(modelFamily);
+    const manifest = loadManifestForModelFamily(modelFamily);
     return manifest.models.embeddings.dimensions ?? 1536; // Handle potential undefined
   } catch (error) {
     console.warn(

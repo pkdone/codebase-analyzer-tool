@@ -28,7 +28,7 @@ import {
 
 /**
  * Map of model family names to their provider manifests.
- * The key is the model family identifier (case-insensitive matching is handled in LLMProviderManager).
+ * The key is the model family identifier (case-insensitive matching is handled in manifest-loader).
  */
 export const LLM_PROVIDER_REGISTRY: ReadonlyMap<string, LLMProviderManifest> = new Map([
   [OPENAI.toLowerCase(), openAIProviderManifest],

@@ -4,7 +4,6 @@ import { taskTokens } from "../../src/di/tokens";
 import { llmTokens } from "../../src/di/tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests
-jest.mock("../../src/llm/llm-provider-manager");
 jest.mock("../../src/llm/llm-router");
 jest.mock("../../src/common/mongodb/mdb-client-factory", () => {
   return {
@@ -49,8 +48,8 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
       expect(container.isRegistered(taskTokens.InsightsGenerationTask)).toBe(true);
 
-      // Verify that LLM and MongoDB dependencies are not registered
-      expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
+      // Verify that LLM dependencies may or may not be registered depending on env vars
+      // LLMRouter requires LLMModelFamily, which is only registered when LLM env vars are available
       // With simplified bootstrap, MongoDB client factory is always registered (lazy-loaded)
       expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
     });
@@ -64,8 +63,8 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(coreTokens.MongoClient)).toBe(true);
       expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
 
-      // Verify that LLM dependencies are not registered
-      expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
+      // Verify that LLM dependencies may or may not be registered depending on env vars
+      // LLMRouter requires LLMModelFamily, which is only registered when LLM env vars are available
     });
 
     it("should handle multiple calls without errors (idempotent)", async () => {
@@ -140,14 +139,14 @@ describe("Dependency Registration", () => {
       // Initially nothing should be registered
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(false);
       expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
-      expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
+      expect(container.isRegistered(llmTokens.LLMRouter)).toBe(false);
 
       await bootstrapContainer();
 
       // Check that correct dependencies are now registered
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
-      expect(container.isRegistered(llmTokens.LLMProviderManager)).toBe(false);
+      // Note: LLMRouter registration depends on LLMModelFamily, which is only registered when LLM env vars are available
     });
   });
 

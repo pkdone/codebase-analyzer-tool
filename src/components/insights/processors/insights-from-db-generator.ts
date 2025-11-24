@@ -13,7 +13,6 @@ import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../pr
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import type { ApplicationInsightsProcessor } from "../insights.types";
 import { AppSummaryCategoryEnum } from "../insights.types";
-import { LLMProviderManager } from "../../../llm/llm-provider-manager";
 import { IInsightGenerationStrategy } from "../strategies/insight-generation-strategy.interface";
 import { SinglePassInsightStrategy } from "../strategies/single-pass-strategy";
 import { MapReduceInsightStrategy } from "../strategies/map-reduce-strategy";
@@ -47,17 +46,16 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
     @inject(coreTokens.ProjectName) private readonly projectName: string,
-    @inject(llmTokens.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
     @injectAll(insightsTokens.Aggregator) private readonly aggregators: IAggregator[],
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
-    const manifest = this.llmProviderManager.getLLMManifest();
+    const manifest = this.llmRouter.getLLMManifest();
     this.maxTokens = manifest.models.primaryCompletion.maxTotalTokens;
 
     // Initialize strategies
     this.singlePassStrategy = new SinglePassInsightStrategy(this.llmRouter);
-    this.mapReduceStrategy = new MapReduceInsightStrategy(this.llmRouter, this.llmProviderManager);
+    this.mapReduceStrategy = new MapReduceInsightStrategy(this.llmRouter);
   }
 
   /**

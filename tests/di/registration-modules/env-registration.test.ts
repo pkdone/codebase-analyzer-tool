@@ -7,7 +7,7 @@ import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
 } from "../../../src/di/registration-modules/env-registration";
-import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
+import { loadManifestForModelFamily } from "../../../src/llm/utils/manifest-loader";
 import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
 import { getProjectNameFromPath } from "../../../src/common/fs/path-utils";
 import { loadBaseEnvVarsOnly } from "../../../src/env/env";
@@ -15,7 +15,7 @@ import { LLMPurpose } from "../../../src/llm/types/llm.types";
 import dotenv from "dotenv";
 
 // Mock dependencies
-jest.mock("../../../src/llm/llm-provider-manager");
+jest.mock("../../../src/llm/utils/manifest-loader");
 jest.mock("../../../src/env/env");
 jest.mock("../../../src/common/fs/path-utils");
 jest.mock("dotenv");
@@ -124,11 +124,11 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       registerLlmEnvDependencies();
 
-      expect(LLMProviderManager.loadManifestForModelFamily).toHaveBeenCalledWith("TestProvider");
+      expect(loadManifestForModelFamily).toHaveBeenCalledWith("TestProvider");
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
       expect(container.isRegistered(coreTokens.ProjectName)).toBe(true);
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(true);
@@ -172,7 +172,7 @@ describe("Environment Registration Module", () => {
       process.env.CODEBASE_DIR_PATH = "/test/project";
       // Missing TEST_API_KEY which is required by the mock manifest
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       // Should not throw, but fall back to base registration
       registerLlmEnvDependencies();
@@ -187,7 +187,7 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       // Should not throw, but fall back to base registration
       registerLlmEnvDependencies();
@@ -196,13 +196,13 @@ describe("Environment Registration Module", () => {
       expect(container.isRegistered(llmTokens.LLMModelFamily)).toBe(false);
     });
 
-    it("should fall back to base registration when LLMProviderManager.loadManifestForModelFamily errors", async () => {
+    it("should fall back to base registration when loadManifestForModelFamily errors", async () => {
       process.env.LLM = "TestProvider";
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
       const serviceError = new Error("Failed to load manifest");
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockImplementation(() => {
+      (loadManifestForModelFamily as jest.Mock).mockImplementation(() => {
         throw serviceError;
       });
 
@@ -219,7 +219,7 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "invalid-url"; // Invalid URL format
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       // Should not throw, but fall back to base registration
       registerLlmEnvDependencies();
@@ -235,7 +235,7 @@ describe("Environment Registration Module", () => {
 
       registerLlmEnvDependencies();
 
-      expect(LLMProviderManager.loadManifestForModelFamily).not.toHaveBeenCalled();
+      expect(loadManifestForModelFamily).not.toHaveBeenCalled();
       expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
 
       const envVars = container.resolve(coreTokens.EnvVars);
@@ -251,7 +251,7 @@ describe("Environment Registration Module", () => {
       // Pre-register LLM model family
       container.registerInstance(llmTokens.LLMModelFamily, "ExistingProvider");
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       registerLlmEnvDependencies();
 
@@ -280,7 +280,7 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       registerLlmEnvDependencies();
 
@@ -299,7 +299,7 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       registerLlmEnvDependencies();
 
@@ -319,7 +319,7 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       registerLlmEnvDependencies();
 
@@ -352,7 +352,7 @@ describe("Environment Registration Module", () => {
       process.env.MONGODB_URL = "mongodb://localhost:27017/test";
       process.env.CODEBASE_DIR_PATH = "/test/project";
 
-      (LLMProviderManager.loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
+      (loadManifestForModelFamily as jest.Mock).mockReturnValue(mockManifest);
 
       registerLlmEnvDependencies();
 

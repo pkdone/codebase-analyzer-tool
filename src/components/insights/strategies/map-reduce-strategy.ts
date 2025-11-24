@@ -7,7 +7,6 @@ import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../pr
 import { logSingleLineWarning } from "../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../di/tokens";
-import { LLMProviderManager } from "../../../llm/llm-provider-manager";
 import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
@@ -25,12 +24,9 @@ const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
 export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
   private readonly maxTokens: number;
 
-  constructor(
-    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
-    @inject(llmTokens.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
-  ) {
+  constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {
     // Get the token limit from the manifest for chunking calculations
-    const manifest = this.llmProviderManager.getLLMManifest();
+    const manifest = this.llmRouter.getLLMManifest();
     this.maxTokens = manifest.models.primaryCompletion.maxTotalTokens;
   }
 

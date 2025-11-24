@@ -13,13 +13,14 @@ import { z } from "zod";
 import LLMRouter from "../../../src/llm/llm-router";
 import LLMStats from "../../../src/llm/tracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../../src/llm/strategies/prompt-adaptation-strategy";
-import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
 import { RetryStrategy } from "../../../src/llm/strategies/retry-strategy";
 import { FallbackStrategy } from "../../../src/llm/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../../src/llm/llm-execution-pipeline";
 import type { EnvVars } from "../../../src/env/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
+import { createMockJsonProcessor } from "../../helpers/llm/json-processor-mock";
+import * as manifestLoader from "../../../src/llm/utils/manifest-loader";
 
 // Mock the dependencies
 // Note: extractTokensAmountFromMetadataDefaultingMissingValues and
@@ -79,6 +80,18 @@ const llmModelMetadataSchema = z
   );
 
 describe("LLM Router tests", () => {
+  // Mock console.log to avoid noise in test output
+  let mockConsoleLog: ReturnType<typeof jest.spyOn>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockConsoleLog = jest.spyOn(console, "log").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    mockConsoleLog.mockRestore();
+  });
+
   // Mock model metadata for testing
   const mockEmbeddingModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_EMBEDDINGS_ADA002",
@@ -157,26 +170,52 @@ describe("LLM Router tests", () => {
     const testRetryConfig = {
       maxRetryAttempts: 2,
       minRetryDelayMillis: 10,
+      maxRetryDelayMillis: 100,
       requestTimeoutMillis: 1000,
       ...retryConfig,
     };
 
-    // Create mock LLMProviderManager
-    const mockLLMProviderManager: Partial<LLMProviderManager> = {
-      getLLMProvider: jest.fn().mockReturnValue(mockProvider) as jest.MockedFunction<
-        (env: EnvVars) => LLMProvider
-      >,
-      getLLMManifest: jest.fn().mockReturnValue({
-        modelFamily: "OpenAI",
-        providerName: "Mock OpenAI",
-        providerSpecificConfig: testRetryConfig,
-      }) as jest.MockedFunction<() => LLMProviderManifest>,
+    // Create mock manifest
+    const mockManifest: LLMProviderManifest = {
+      modelFamily: "openai",
+      providerName: "Mock OpenAI",
+      envSchema: {} as any,
+      models: {
+        embeddings: {
+          modelKey: "GPT_EMBEDDINGS_ADA002",
+          purpose: LLMPurpose.EMBEDDINGS,
+          urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
+          maxTotalTokens: 8191,
+        },
+        primaryCompletion: {
+          modelKey: "GPT_COMPLETIONS_GPT4",
+          purpose: LLMPurpose.COMPLETIONS,
+          urnEnvKey: "OPENAI_COMPLETION_MODEL",
+          maxTotalTokens: 8192,
+          maxCompletionTokens: 4096,
+        },
+        secondaryCompletion: {
+          modelKey: "GPT_COMPLETIONS_GPT35",
+          purpose: LLMPurpose.COMPLETIONS,
+          urnEnvKey: "OPENAI_SECONDARY_MODEL",
+          maxTotalTokens: 4096,
+          maxCompletionTokens: 2048,
+        },
+      },
+      implementation: jest.fn().mockImplementation(() => mockProvider) as any,
+      errorPatterns: [],
+      providerSpecificConfig: testRetryConfig,
     };
+
+    // Mock the manifest loader
+    jest.spyOn(manifestLoader, "loadManifestForModelFamily").mockReturnValue(mockManifest);
 
     // Create mock EnvVars
     const mockEnvVars: Partial<EnvVars> = {
       LLM: "openai",
-      // Add other required env vars as needed for tests
+      OPENAI_EMBEDDINGS_MODEL: "text-embedding-ada-002",
+      OPENAI_COMPLETION_MODEL: "gpt-4",
+      OPENAI_SECONDARY_MODEL: "gpt-3.5-turbo",
     };
 
     // Create real instances for dependency injection testing
@@ -184,6 +223,7 @@ describe("LLM Router tests", () => {
     const mockPromptAdaptationStrategy = new PromptAdaptationStrategy();
     const mockRetryStrategy = new RetryStrategy(mockLLMStats);
     const mockFallbackStrategy = new FallbackStrategy();
+    const mockJsonProcessor = createMockJsonProcessor();
 
     // Create execution pipeline with strategies
     const mockExecutionPipeline = new LLMExecutionPipeline(
@@ -194,11 +234,12 @@ describe("LLM Router tests", () => {
     );
 
     const router = new LLMRouter(
-      mockLLMProviderManager as LLMProviderManager,
+      "openai",
+      mockJsonProcessor,
       mockEnvVars as EnvVars,
       mockExecutionPipeline,
     );
-    return { router, mockProvider };
+    return { router, mockProvider, mockManifest };
   };
 
   describe("Constructor and basic methods", () => {
@@ -211,6 +252,16 @@ describe("LLM Router tests", () => {
 
       expect(router).toBeInstanceOf(LLMRouter);
       expect(mockProvider.getModelsMetadata).toHaveBeenCalled();
+    });
+
+    test("should return manifest via getLLMManifest()", () => {
+      const { router, mockManifest } = createLLMRouter();
+      const manifest = router.getLLMManifest();
+
+      expect(manifest).toBeDefined();
+      expect(manifest.modelFamily).toBe("openai");
+      expect(manifest.providerName).toBe("Mock OpenAI");
+      expect(manifest).toBe(mockManifest);
     });
 
     test("should return correct model family", () => {

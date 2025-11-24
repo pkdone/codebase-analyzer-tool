@@ -2,7 +2,7 @@ import { inject, injectable } from "tsyringe";
 import { coreTokens } from "../../di/tokens";
 import { insightsTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
-import { LLMProviderManager } from "../../llm/llm-provider-manager";
+import LLMRouter from "../../llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./processors/insights-from-db-generator";
 import type InsightsFromRawCodeGenerator from "./processors/insights-from-raw-code-generator";
@@ -21,7 +21,7 @@ export class InsightsProcessorSelector {
     private readonly dbGenerator: InsightsFromDBGenerator,
     @inject(insightsTokens.InsightsFromRawCodeGenerator)
     private readonly rawCodeGenerator: InsightsFromRawCodeGenerator,
-    @inject(llmTokens.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
   ) {}
 
   /**
@@ -29,7 +29,7 @@ export class InsightsProcessorSelector {
    * Uses raw code processor if the estimated tokens for the codebase are within the model's limit.
    */
   async selectInsightsProcessor(): Promise<InsightsFromDBGenerator | InsightsFromRawCodeGenerator> {
-    const manifest = this.llmProviderManager.getLLMManifest();
+    const manifest = this.llmRouter.getLLMManifest();
     const primaryCompletionTokens = manifest.models.primaryCompletion.maxTotalTokens;
     const codeBlocksContent = await formatCodebaseForPrompt(this.envVars.CODEBASE_DIR_PATH);
     const codeBlockContentTokensEstimate =

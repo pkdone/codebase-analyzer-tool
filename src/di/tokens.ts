@@ -9,7 +9,6 @@ export const coreTokens = {
   DatabaseName: Symbol("DatabaseName"),
   MongoDBClientFactory: Symbol("MongoDBClientFactory"),
   LLMRouter: Symbol("LLMRouter"),
-  LLMProviderManager: Symbol("LLMProviderManager"),
   LLMModelFamily: Symbol("LLMModelFamily"),
   EnvVars: Symbol("EnvVars"),
   ProjectName: Symbol("ProjectName"),
@@ -84,7 +83,6 @@ export const llmTokens = {
   FallbackStrategy: Symbol("FallbackStrategy"),
   LLMExecutionPipeline: Symbol("LLMExecutionPipeline"),
   LLMRouter: Symbol("LLMRouter"),
-  LLMProviderManager: Symbol("LLMProviderManager"),
   LLMModelFamily: Symbol("LLMModelFamily"),
 } as const;
 

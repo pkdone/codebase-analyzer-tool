@@ -6,7 +6,7 @@ import { coreTokens } from "../../../src/di/tokens";
 import { taskTokens } from "../../../src/di/tokens";
 import { databaseConfig } from "../../../src/config/database.config";
 import { registerAppDependencies } from "../../../src/di/registration-modules";
-import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
+import { loadManifestForModelFamily } from "../../../src/llm/utils/manifest-loader";
 
 // Store client and dbName to be accessible in teardown
 let testMongoClient: MongoClient | null = null;
@@ -23,7 +23,7 @@ async function getVectorDimensions(): Promise<number> {
   }
 
   try {
-    const manifest = LLMProviderManager.loadManifestForModelFamily(modelFamily);
+    const manifest = loadManifestForModelFamily(modelFamily);
     const dimensions =
       manifest.models.embeddings.dimensions ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     console.log(`Using ${dimensions} vector dimensions for model family: ${modelFamily}`);

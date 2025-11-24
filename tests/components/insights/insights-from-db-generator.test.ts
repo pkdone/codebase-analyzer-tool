@@ -3,7 +3,6 @@ import InsightsFromDBGenerator from "../../../src/components/insights/processors
 import { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../src/llm/llm-router";
-import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { llmProviderConfig } from "../../../src/llm/llm.config";
 import * as logging from "../../../src/common/utils/logging";
@@ -20,7 +19,6 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
   let mockAppSummaryRepository: jest.Mocked<AppSummariesRepository>;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
-  let mockLLMProviderManager: jest.Mocked<LLMProviderManager>;
   let mockConsoleLog: jest.SpyInstance;
 
   const mockManifest = {
@@ -53,11 +51,8 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     mockLLMRouter = {
       getModelsUsedDescription: jest.fn().mockReturnValue("TestLLM (GPT-4)"),
       executeCompletion: jest.fn(),
-    } as unknown as jest.Mocked<LLMRouter>;
-
-    mockLLMProviderManager = {
       getLLMManifest: jest.fn().mockReturnValue(mockManifest),
-    } as unknown as jest.Mocked<LLMProviderManager>;
+    } as unknown as jest.Mocked<LLMRouter>;
 
     const mockBomAggregator = {
       getCategory: jest.fn().mockReturnValue("billOfMaterials"),
@@ -168,7 +163,6 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       mockLLMRouter,
       mockSourcesRepository,
       "test-project",
-      mockLLMProviderManager,
       [
         mockBomAggregator,
         mockCodeQualityAggregator,
@@ -185,7 +179,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
   describe("Constructor", () => {
     it("should initialize with correct max token limit from manifest", () => {
-      expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
+      expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
       // Access private field for testing
       const maxTokens = (generator as any).maxTokens;
       expect(maxTokens).toBe(128000);

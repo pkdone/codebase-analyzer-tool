@@ -2,7 +2,7 @@ import { container } from "tsyringe";
 import { coreTokens } from "../tokens";
 import { llmTokens } from "../tokens";
 import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
-import { LLMProviderManager } from "../../llm/llm-provider-manager";
+import { loadManifestForModelFamily } from "../../llm/utils/manifest-loader";
 import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { BadConfigurationLLMError } from "../../llm/types/llm-errors.types";
@@ -71,7 +71,7 @@ function loadEnvIncludingLLMVars(): EnvVars {
       throw new Error("LLM environment variable is not set or is empty in your .env file.");
     }
     const selectedLlmModelFamily = selectedLlmContainer.data.LLM;
-    const manifest = LLMProviderManager.loadManifestForModelFamily(selectedLlmModelFamily);
+    const manifest = loadManifestForModelFamily(selectedLlmModelFamily);
     const finalSchema = baseEnvVarsSchema.merge(manifest.envSchema).passthrough();
     const parsedEnv = finalSchema.parse(rawEnv);
 

@@ -6,13 +6,14 @@ import {
   LLMGeneratedContent,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
+  LLMModelKeysSet,
+  LLMModelMetadata,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { BadConfigurationLLMError } from "./types/llm-errors.types";
 import { log, logWithContext } from "./tracking/llm-context-logging";
 
-import type { LLMRetryConfig } from "./providers/llm-provider.types";
-import { LLMProviderManager } from "./llm-provider-manager";
+import type { LLMRetryConfig, LLMProviderManifest } from "./providers/llm-provider.types";
 import type { EnvVars } from "../env/env.types";
 import { llmTokens, coreTokens } from "../di/tokens";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
@@ -20,6 +21,8 @@ import {
   getOverriddenCompletionCandidates,
   buildCompletionCandidates,
 } from "./utils/completions-models-retriever";
+import { loadManifestForModelFamily } from "./utils/manifest-loader";
+import { JsonProcessor } from "./json-processing/core/json-processor";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -35,24 +38,45 @@ export default class LLMRouter {
   private readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   private readonly completionCandidates: LLMCandidateFunction[];
   private readonly providerRetryConfig: LLMRetryConfig;
+  private readonly manifest: LLMProviderManifest;
 
   /**
    * Constructor.
    *
-   * @param llmService The LLM service for provider management
+   * @param modelFamily The LLM model family identifier
+   * @param jsonProcessor The JSON processor for LLM responses
    * @param envVars Environment variables
-   * @param llmStats The LLM statistics tracker
    * @param executionPipeline The execution pipeline for orchestrating LLM calls
    */
   constructor(
-    @inject(llmTokens.LLMProviderManager) private readonly llmProviderManager: LLMProviderManager,
+    @inject(llmTokens.LLMModelFamily) private readonly modelFamily: string,
+    @inject(llmTokens.JsonProcessor) private readonly jsonProcessor: JsonProcessor,
     @inject(coreTokens.EnvVars) private readonly envVars: EnvVars,
     private readonly executionPipeline: LLMExecutionPipeline,
   ) {
-    this.llm = this.llmProviderManager.getLLMProvider(this.envVars);
+    // Load manifest for the model family
+    this.manifest = loadManifestForModelFamily(this.modelFamily);
+    console.log(
+      `LLMRouter: Loaded provider for model family '${this.modelFamily}': ${this.manifest.providerName}`,
+    );
+
+    // Create LLM provider instance
+    const modelsKeysSet = this.buildModelsKeysSet(this.manifest);
+    const modelsMetadata = this.buildModelsMetadata(this.manifest, this.envVars);
+    const config = { providerSpecificConfig: this.manifest.providerSpecificConfig };
+    this.llm = new this.manifest.implementation(
+      this.envVars,
+      modelsKeysSet,
+      modelsMetadata,
+      this.manifest.errorPatterns,
+      config,
+      this.jsonProcessor,
+      this.manifest.modelFamily,
+      this.manifest.features,
+    );
+
     this.modelsMetadata = this.llm.getModelsMetadata();
-    const llmManifest = this.llmProviderManager.getLLMManifest();
-    this.providerRetryConfig = llmManifest.providerSpecificConfig;
+    this.providerRetryConfig = this.manifest.providerSpecificConfig;
     this.completionCandidates = buildCompletionCandidates(this.llm);
 
     if (this.completionCandidates.length === 0) {
@@ -127,6 +151,14 @@ export default class LLMRouter {
    */
   getEmbeddingModelDimensions(): number | undefined {
     return this.llm.getEmbeddingModelDimensions();
+  }
+
+  /**
+   * Get the loaded provider manifest.
+   * Note: The manifest contains functions and cannot be deep cloned with structuredClone.
+   */
+  getLLMManifest(): LLMProviderManifest {
+    return this.manifest;
   }
 
   /**
@@ -209,5 +241,46 @@ export default class LLMRouter {
     }
 
     return result.data;
+  }
+
+  /**
+   * Build LLMModelKeysSet from manifest
+   */
+  private buildModelsKeysSet(manifest: LLMProviderManifest): LLMModelKeysSet {
+    const keysSet: LLMModelKeysSet = {
+      embeddingsModelKey: manifest.models.embeddings.modelKey,
+      primaryCompletionModelKey: manifest.models.primaryCompletion.modelKey,
+    };
+    if (manifest.models.secondaryCompletion)
+      keysSet.secondaryCompletionModelKey = manifest.models.secondaryCompletion.modelKey;
+    return keysSet;
+  }
+
+  /**
+   * Build resolved model metadata from manifest and environment
+   */
+  private buildModelsMetadata(
+    manifest: LLMProviderManifest,
+    env: EnvVars,
+  ): Record<string, ResolvedLLMModelMetadata> {
+    const resolveUrn = (model: LLMModelMetadata): string => {
+      const value = env[model.urnEnvKey];
+
+      if (typeof value !== "string" || value.length === 0) {
+        throw new BadConfigurationLLMError(
+          `Required environment variable ${model.urnEnvKey} is not set, is empty, or is not a string. Found: ${String(value)}`,
+        );
+      }
+
+      return value;
+    };
+    const models = [
+      manifest.models.embeddings,
+      manifest.models.primaryCompletion,
+      ...(manifest.models.secondaryCompletion ? [manifest.models.secondaryCompletion] : []),
+    ];
+    return Object.fromEntries(
+      models.map((model) => [model.modelKey, { ...model, urn: resolveUrn(model) }]),
+    );
   }
 }

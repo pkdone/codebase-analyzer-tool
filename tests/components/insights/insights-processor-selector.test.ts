@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { InsightsProcessorSelector } from "../../../src/components/insights/insights-processor-selector";
-import { LLMProviderManager } from "../../../src/llm/llm-provider-manager";
+import LLMRouter from "../../../src/llm/llm-router";
 import { EnvVars } from "../../../src/env/env.types";
 import InsightsFromDBGenerator from "../../../src/components/insights/processors/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../../src/components/insights/processors/insights-from-raw-code-generator";
@@ -27,7 +27,7 @@ describe("InsightsProcessorSelector", () => {
   let mockEnvVars: EnvVars;
   let mockDbGenerator: jest.Mocked<InsightsFromDBGenerator>;
   let mockRawCodeGenerator: jest.Mocked<InsightsFromRawCodeGenerator>;
-  let mockLLMProviderManager: jest.Mocked<LLMProviderManager>;
+  let mockLLMRouter: jest.Mocked<LLMRouter>;
   let mockConsoleLog: jest.SpyInstance;
 
   const mockManifest: LLMProviderManifest = {
@@ -80,19 +80,17 @@ describe("InsightsProcessorSelector", () => {
       generateAndStoreInsights: jest.fn(),
     } as unknown as jest.Mocked<InsightsFromRawCodeGenerator>;
 
-    // Create mock LLMProviderManager
-    mockLLMProviderManager = {
+    // Create mock LLMRouter
+    mockLLMRouter = {
       getLLMManifest: jest.fn().mockReturnValue(mockManifest),
-      initialize: jest.fn(),
-      getLLMProvider: jest.fn(),
-    } as unknown as jest.Mocked<LLMProviderManager>;
+    } as unknown as jest.Mocked<LLMRouter>;
 
     // Create selector instance
     selector = new InsightsProcessorSelector(
       mockEnvVars,
       mockDbGenerator,
       mockRawCodeGenerator,
-      mockLLMProviderManager,
+      mockLLMRouter,
     );
   });
 
@@ -101,13 +99,13 @@ describe("InsightsProcessorSelector", () => {
   });
 
   describe("selectInsightsProcessor", () => {
-    it("should use LLMProviderManager instance instead of static method", async () => {
+    it("should use LLMRouter to get manifest", async () => {
       (formatCodebaseForPrompt as jest.Mock).mockResolvedValue("test code");
 
       await selector.selectInsightsProcessor();
 
-      expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalledTimes(1);
-      expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalledWith();
+      expect(mockLLMRouter.getLLMManifest).toHaveBeenCalledTimes(1);
+      expect(mockLLMRouter.getLLMManifest).toHaveBeenCalledWith();
     });
 
     it("should select raw code generator when codebase fits within token limit", async () => {
@@ -190,23 +188,23 @@ describe("InsightsProcessorSelector", () => {
 
       await expect(selector.selectInsightsProcessor()).rejects.toThrow("Failed to bundle codebase");
 
-      expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
+      expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
       expect(formatCodebaseForPrompt).toHaveBeenCalledWith("/test/path");
     });
 
     it("should propagate errors from getLLMManifest", async () => {
       const manifestError = new Error("Failed to get manifest");
-      mockLLMProviderManager.getLLMManifest.mockImplementation(() => {
+      mockLLMRouter.getLLMManifest.mockImplementation(() => {
         throw manifestError;
       });
 
       await expect(selector.selectInsightsProcessor()).rejects.toThrow("Failed to get manifest");
 
-      expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
+      expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
       expect(formatCodebaseForPrompt).not.toHaveBeenCalled();
     });
 
-    it("should use manifest from injected manager, not static method", async () => {
+    it("should use manifest from injected router", async () => {
       const customManifest: LLMProviderManifest = {
         ...mockManifest,
         models: {
@@ -217,7 +215,7 @@ describe("InsightsProcessorSelector", () => {
           } as any,
         },
       };
-      mockLLMProviderManager.getLLMManifest.mockReturnValue(customManifest);
+      mockLLMRouter.getLLMManifest.mockReturnValue(customManifest);
 
       const mediumCodebase = "a".repeat(6000); // 6000 chars / 4 = 1500 tokens
       (formatCodebaseForPrompt as jest.Mock).mockResolvedValue(mediumCodebase);
@@ -226,30 +224,18 @@ describe("InsightsProcessorSelector", () => {
 
       // With 2000 token limit, 1500 tokens should fit
       expect(result).toBe(mockRawCodeGenerator);
-      expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
+      expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
     });
   });
 
   describe("dependency injection", () => {
-    it("should not call static methods on LLMProviderManager", async () => {
-      const staticSpy = jest.spyOn(LLMProviderManager, "loadManifestForModelFamily");
-      (formatCodebaseForPrompt as jest.Mock).mockResolvedValue("test");
-
-      await selector.selectInsightsProcessor();
-
-      expect(staticSpy).not.toHaveBeenCalled();
-      expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
-
-      staticSpy.mockRestore();
-    });
-
     it("should use injected dependencies correctly", async () => {
       (formatCodebaseForPrompt as jest.Mock).mockResolvedValue("small");
 
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockRawCodeGenerator);
-      expect(mockLLMProviderManager.getLLMManifest).toHaveBeenCalled();
+      expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
       expect(formatCodebaseForPrompt).toHaveBeenCalledWith(mockEnvVars.CODEBASE_DIR_PATH);
     });
   });
