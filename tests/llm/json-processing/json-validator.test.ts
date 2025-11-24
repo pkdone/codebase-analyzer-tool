@@ -18,7 +18,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -34,7 +34,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -51,7 +51,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = jsonValidator.validate(content, options, "test-resource", false);
+      const result = jsonValidator.validate(content, options, false);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -69,7 +69,7 @@ describe("json-validator", () => {
       const content = "This is plain text content";
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -81,7 +81,7 @@ describe("json-validator", () => {
       const content = undefined; // Not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -90,7 +90,7 @@ describe("json-validator", () => {
       const validContent = { key: "value" }; // Valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(validContent, options, "test-resource");
+      const result = jsonValidator.validate(validContent, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -102,7 +102,7 @@ describe("json-validator", () => {
       const content = 42; // Number is not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -111,7 +111,7 @@ describe("json-validator", () => {
       const content = { name: "John", age: 30 };
       const options = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -123,7 +123,7 @@ describe("json-validator", () => {
       const content = undefined; // Not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -134,7 +134,7 @@ describe("json-validator", () => {
       const content = "This is a string";
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -146,7 +146,7 @@ describe("json-validator", () => {
       const content = { key: "value", nested: { data: 123 } };
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -158,7 +158,7 @@ describe("json-validator", () => {
       const content = [1, 2, 3, "four", { five: 5 }];
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -170,7 +170,7 @@ describe("json-validator", () => {
       const content = null;
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -182,7 +182,7 @@ describe("json-validator", () => {
       const content = 42;
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -191,7 +191,7 @@ describe("json-validator", () => {
       const content = true;
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -200,7 +200,7 @@ describe("json-validator", () => {
       const content = undefined;
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options, "test-resource");
+      const result = jsonValidator.validate(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -220,8 +220,8 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result1 = jsonValidator.validate({ value: 1 }, options, "resource1");
-      const result2 = jsonValidator.validate({ value: 2 }, options, "resource2");
+      const result1 = jsonValidator.validate({ value: 1 }, options);
+      const result2 = jsonValidator.validate({ value: 2 }, options);
 
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);

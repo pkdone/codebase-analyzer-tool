@@ -55,17 +55,3 @@ export function logSingleLineWarning(message: string, context?: unknown): void {
   }
   console.warn(logMessage);
 }
-
-/**
- * Logs a JSON processing warning with resource name prefix.
- * @param resourceName The name of the resource being processed
- * @param message The warning message
- * @param context Optional additional context to log
- */
-export function logJsonProcessingWarning(
-  resourceName: string,
-  message: string,
-  context?: unknown,
-): void {
-  logSingleLineWarning(`[${resourceName}] ${message}`, context);
-}

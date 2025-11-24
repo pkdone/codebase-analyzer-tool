@@ -1,5 +1,9 @@
 import { JsonProcessor } from "../../../../src/llm/json-processing/core/json-processor";
-import { LLMCompletionOptions, LLMOutputFormat } from "../../../../src/llm/types/llm.types";
+import {
+  LLMCompletionOptions,
+  LLMOutputFormat,
+  LLMPurpose,
+} from "../../../../src/llm/types/llm.types";
 import { bomDependencySchema } from "../../../../src/schemas/app-summaries.schema";
 import { z } from "zod";
 
@@ -46,7 +50,11 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: z.array(bomDependencySchema),
       };
 
-      const result = processor.parseAndValidate(llmResponse, "billOfMaterials", completionOptions);
+      const result = processor.parseAndValidate(
+        llmResponse,
+        { resource: "billOfMaterials", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       // Should succeed after null-to-undefined conversion
       expect(result.success).toBe(true);
@@ -126,7 +134,11 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: appSummarySchema,
       };
 
-      const result = processor.parseAndValidate(llmResponse, "all-categories", completionOptions);
+      const result = processor.parseAndValidate(
+        llmResponse,
+        { resource: "all-categories", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       // Should succeed after null-to-undefined conversion
       expect(result.success).toBe(true);
@@ -180,7 +192,11 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(llmResponse, "nested-test", completionOptions);
+      const result = processor.parseAndValidate(
+        llmResponse,
+        { resource: "nested-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -220,7 +236,7 @@ describe("JsonProcessor - Null Handling Integration", () => {
 
       const result = processor.parseAndValidate(
         problematicResponse,
-        "single-dependency",
+        { resource: "single-dependency", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
       );
 
@@ -253,7 +269,11 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(response, "multi-null-test", completionOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "multi-null-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -282,7 +302,11 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: bomDependencySchema,
       };
 
-      const result = processor.parseAndValidate(response, "no-null-test", completionOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "no-null-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -305,7 +329,11 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: bomDependencySchema,
       };
 
-      const result = processor.parseAndValidate(response, "omitted-test", completionOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "omitted-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {

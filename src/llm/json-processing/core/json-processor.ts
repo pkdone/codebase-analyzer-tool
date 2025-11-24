@@ -1,4 +1,4 @@
-import { LLMGeneratedContent, LLMCompletionOptions } from "../../types/llm.types";
+import { LLMGeneratedContent, LLMCompletionOptions, LLMContext } from "../../types/llm.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonValidator } from "./json-validator";
 import { convertNullToUndefined } from "../transforms/convert-null-to-undefined";
@@ -9,7 +9,7 @@ import {
   fixMissingRequiredFields,
   fixParametersFieldType,
 } from "../transforms/post-parse-transforms";
-import { logJsonProcessingWarning } from "../../../common/utils/logging";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 import { JsonProcessorResult } from "../json-processing-result.types";
 import {
   fixJsonStructureAndNoise,
@@ -138,18 +138,17 @@ export class JsonProcessor {
    */
   parseAndValidate<T = Record<string, unknown>>(
     content: LLMGeneratedContent,
-    resourceName: string,
+    context: LLMContext,
     completionOptions: LLMCompletionOptions,
   ): JsonProcessorResult<T> {
     if (typeof content !== "string") {
       const contentText = JSON.stringify(content);
-      logJsonProcessingWarning(
-        resourceName,
+      logSingleLineWarning(
         `LLM response is not a string. Content: ${contentText.substring(0, 100)}`,
       );
       const error = new JsonProcessingError(
         JsonProcessingErrorType.PARSE,
-        `LLM response for resource '${resourceName}' is not a string`,
+        `LLM response for resource '${context.resource}' is not a string`,
       );
       return { success: false, error };
     }
@@ -157,19 +156,18 @@ export class JsonProcessor {
     // Early detection: Check if content has any JSON-like structure at all
     // This helps provide clearer error messages for completely non-JSON responses
     if (!this.hasJsonLikeStructure(content)) {
-      logJsonProcessingWarning(
-        resourceName,
+      logSingleLineWarning(
         `Contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
         { contentLength: content.length },
       );
       const error = new JsonProcessingError(
         JsonProcessingErrorType.PARSE,
-        `LLM response for resource '${resourceName}' contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
+        `LLM response for resource '${context.resource}' contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
       );
       return { success: false, error };
     }
 
-    return this.runSanitizationPipeline<T>(content, resourceName, completionOptions);
+    return this.runSanitizationPipeline<T>(content, context, completionOptions);
   }
 
   /**
@@ -192,7 +190,7 @@ export class JsonProcessor {
    */
   private runSanitizationPipeline<T>(
     originalContent: string,
-    resourceName: string,
+    context: LLMContext,
     completionOptions: LLMCompletionOptions,
   ): JsonProcessorResult<T> {
     const appliedSteps: string[] = [];
@@ -201,7 +199,7 @@ export class JsonProcessor {
 
     const result = this.runPipelineLoop<T>(
       originalContent,
-      resourceName,
+      context,
       completionOptions,
       appliedSteps,
       allDiagnostics,
@@ -216,7 +214,7 @@ export class JsonProcessor {
         if (allDiagnostics.length > 0) {
           message += ` | Diagnostics: ${allDiagnostics.join(" | ")}`;
         }
-        logJsonProcessingWarning(resourceName, message);
+        logSingleLineWarning(message);
       }
       return {
         success: true,
@@ -236,8 +234,7 @@ export class JsonProcessor {
 
     // All sanitizers exhausted without success - return comprehensive parse error
     // Log context before creating the error
-    logJsonProcessingWarning(
-      resourceName,
+    logSingleLineWarning(
       `Cannot parse JSON after all sanitization attempts. Applied steps: ${appliedSteps.join(" -> ")}`,
       {
         originalLength: originalContent.length,
@@ -248,7 +245,7 @@ export class JsonProcessor {
     );
     const error = new JsonProcessingError(
       JsonProcessingErrorType.PARSE,
-      `LLM response for resource '${resourceName}' cannot be parsed to JSON after all sanitization attempts`,
+      `LLM response for resource '${context.resource}' cannot be parsed to JSON after all sanitization attempts`,
       result.lastParseError,
     );
     return { success: false, error };
@@ -263,7 +260,7 @@ export class JsonProcessor {
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
   private runPipelineLoop<T>(
     originalContent: string,
-    resourceName: string,
+    context: LLMContext,
     completionOptions: LLMCompletionOptions,
     appliedSteps: string[],
     allDiagnostics: string[],
@@ -273,7 +270,7 @@ export class JsonProcessor {
     | { success: false; workingContent: string; lastParseError?: Error } {
     const fastPathResult = this._tryParseAndValidate<T>(
       originalContent,
-      resourceName,
+      context,
       completionOptions,
     );
 
@@ -281,14 +278,13 @@ export class JsonProcessor {
 
     if (fastPathResult.errorType === JsonProcessingErrorType.VALIDATION) {
       // Log context before creating the error
-      logJsonProcessingWarning(
-        resourceName,
+      logSingleLineWarning(
         "Parsed successfully but failed schema validation",
         fastPathResult.error,
       );
       const validationError = new JsonProcessingError(
         JsonProcessingErrorType.VALIDATION,
-        `LLM response for resource '${resourceName}' parsed successfully but failed schema validation`,
+        `LLM response for resource '${context.resource}' parsed successfully but failed schema validation`,
         fastPathResult.error,
       );
       return {
@@ -319,7 +315,7 @@ export class JsonProcessor {
 
         const parseResult = this._tryParseAndValidate<T>(
           workingContent,
-          resourceName,
+          context,
           completionOptions,
         );
 
@@ -327,14 +323,13 @@ export class JsonProcessor {
 
         if (parseResult.errorType === JsonProcessingErrorType.VALIDATION) {
           // Return validation error immediately
-          logJsonProcessingWarning(
-            resourceName,
+          logSingleLineWarning(
             `Parsed successfully but failed schema validation after sanitizer: ${sanitizer.name}`,
             parseResult.error,
           );
           const validationError = new JsonProcessingError(
             JsonProcessingErrorType.VALIDATION,
-            `LLM response for resource '${resourceName}' parsed successfully but failed schema validation`,
+            `LLM response for resource '${context.resource}' parsed successfully but failed schema validation`,
             parseResult.error,
           );
           return {
@@ -382,7 +377,7 @@ export class JsonProcessor {
    */
   private _tryParseAndValidate<T>(
     content: string,
-    resourceName: string,
+    context: LLMContext,
     completionOptions: LLMCompletionOptions,
   ): ParseAndValidateResult<T> {
     let parsedContent: unknown;
@@ -397,7 +392,7 @@ export class JsonProcessor {
       };
     }
 
-    return this.applyTransformsAndValidate<T>(parsedContent, resourceName, completionOptions);
+    return this.applyTransformsAndValidate<T>(parsedContent, context, completionOptions);
   }
 
   /**
@@ -405,7 +400,7 @@ export class JsonProcessor {
    */
   private applyTransformsAndValidate<T>(
     parsedData: unknown,
-    resourceName: string,
+    _context: LLMContext,
     completionOptions: LLMCompletionOptions,
   ): ParseAndValidateResult<T> {
     let transformedContent = parsedData;
@@ -417,7 +412,6 @@ export class JsonProcessor {
     const validationResult = this.jsonValidator.validate<T>(
       transformedContent,
       completionOptions,
-      resourceName,
       this.loggingEnabled,
     );
 

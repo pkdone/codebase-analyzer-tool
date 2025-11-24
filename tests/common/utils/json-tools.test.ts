@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 
 // Test interfaces for generic type testing
 interface TestUser {
@@ -49,7 +49,11 @@ describe("JSON utilities", () => {
 
     test.each(validJsonTestData)("with $description", ({ input, expected }) => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = jsonProcessor.parseAndValidate(input, "content", completionOptions);
+      const result = jsonProcessor.parseAndValidate(
+        input,
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual(expected);
@@ -59,7 +63,11 @@ describe("JSON utilities", () => {
     test("returns failure result for invalid JSON", () => {
       const text = "No JSON here";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = jsonProcessor.parseAndValidate(text, "content", completionOptions);
+      const result = jsonProcessor.parseAndValidate(
+        text,
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
       expect(result.success).toBe(false);
       if (!result.success) {
         // Plain text without JSON structure now gets a clearer error message
@@ -73,7 +81,11 @@ describe("JSON utilities", () => {
       const testCases = [{ input: { key: "value" } }, { input: [1, 2, 3] }, { input: null }];
 
       testCases.forEach(({ input }) => {
-        const result = jsonProcessor.parseAndValidate(input, "content", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          input,
+          { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error.message).toMatch(/LLM response for resource/);
@@ -87,7 +99,7 @@ describe("JSON utilities", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = jsonProcessor.parseAndValidate<TestUser>(
         userJson,
-        "content",
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
       );
 
@@ -106,7 +118,7 @@ describe("JSON utilities", () => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
       const result = jsonProcessor.parseAndValidate<TestConfig>(
         configJson,
-        "content",
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
       );
 
@@ -122,7 +134,11 @@ describe("JSON utilities", () => {
     test("defaults to Record<string, unknown> when no type parameter provided", () => {
       const input = 'Text {"dynamic": "content", "count": 42} more text';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = jsonProcessor.parseAndValidate(input, "content", completionOptions); // No type parameter
+      const result = jsonProcessor.parseAndValidate(
+        input,
+        { resource: "content", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      ); // No type parameter
 
       expect(result.success).toBe(true);
       if (result.success) {

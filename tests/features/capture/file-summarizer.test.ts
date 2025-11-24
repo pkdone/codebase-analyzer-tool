@@ -12,7 +12,6 @@ jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logErrorMsgAndDetail: jest.fn(),
   logSingleLineWarning: jest.fn(),
-  logJsonProcessingWarning: jest.fn(),
 }));
 
 jest.unmock("../../../src/prompts/definitions/sources");

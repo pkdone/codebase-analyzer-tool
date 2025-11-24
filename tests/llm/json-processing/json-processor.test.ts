@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import {
   JsonProcessingError,
   JsonProcessingErrorType,
@@ -30,7 +30,11 @@ describe("JsonProcessor", () => {
     describe("basic functionality", () => {
       it("should parse valid JSON string", () => {
         const json = '{"key": "value", "number": 42}';
-        const result = jsonProcessor.parseAndValidate(json, "test-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value", number: 42 });
@@ -39,7 +43,11 @@ describe("JsonProcessor", () => {
 
       it("should parse valid JSON array", () => {
         const json = '[{"item": 1}, {"item": 2}]';
-        const result = jsonProcessor.parseAndValidate(json, "test-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual([{ item: 1 }, { item: 2 }]);
@@ -48,7 +56,11 @@ describe("JsonProcessor", () => {
 
       it("should handle JSON with whitespace", () => {
         const json = '  \n\t  {"key": "value"}  \n\t  ';
-        const result = jsonProcessor.parseAndValidate(json, "test-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value" });
@@ -57,7 +69,11 @@ describe("JsonProcessor", () => {
 
       it("should parse nested JSON objects", () => {
         const json = '{"outer": {"inner": {"deep": "value"}}}';
-        const result = jsonProcessor.parseAndValidate(json, "test-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ outer: { inner: { deep: "value" } } });
@@ -70,7 +86,7 @@ describe("JsonProcessor", () => {
         const nonString = 12345 as any;
         const result = jsonProcessor.parseAndValidate(
           nonString,
-          "test-resource",
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
         );
         expect(result.success).toBe(false);
@@ -81,7 +97,11 @@ describe("JsonProcessor", () => {
 
       it("should return JsonProcessingError for invalid JSON with no recovery", () => {
         const invalid = "not valid json at all";
-        const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          invalid,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error).toBeInstanceOf(JsonProcessingError);
@@ -90,7 +110,11 @@ describe("JsonProcessor", () => {
 
       it("should include resource name in error message", () => {
         const invalid = "not valid json";
-        const result = jsonProcessor.parseAndValidate(invalid, "my-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          invalid,
+          { resource: "my-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error.message).toMatch(/my-resource/);
@@ -101,7 +125,7 @@ describe("JsonProcessor", () => {
         const plainText = "This is not JSON at all";
         const result = jsonProcessor.parseAndValidate(
           plainText,
-          "test-resource",
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
         );
 
@@ -126,7 +150,11 @@ describe("JsonProcessor", () => {
         ];
 
         for (const input of testCases) {
-          const result = jsonProcessor.parseAndValidate(input, "test-resource", completionOptions);
+          const result = jsonProcessor.parseAndValidate(
+            input,
+            { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+            completionOptions,
+          );
           expect(result.success).toBe(false);
           if (!result.success) {
             expect(result.error.message).toContain("contains no JSON structure");
@@ -145,7 +173,11 @@ describe("JsonProcessor", () => {
         ];
 
         for (const input of testCases) {
-          const result = jsonProcessor.parseAndValidate(input, "test-resource", completionOptions);
+          const result = jsonProcessor.parseAndValidate(
+            input,
+            { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+            completionOptions,
+          );
           // These should go through the normal sanitization pipeline, not be caught by early detection
           // They may succeed or fail, but shouldn't get the "no JSON structure" error
           if (!result.success) {
@@ -158,7 +190,11 @@ describe("JsonProcessor", () => {
     describe("fast path optimization", () => {
       it("should use fast path for clean JSON", () => {
         const json = '{"simple": true}';
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ simple: true });
@@ -176,7 +212,11 @@ describe("JsonProcessor", () => {
         ];
 
         for (const { input, expected } of testCases) {
-          const result = jsonProcessor.parseAndValidate(input, "test", completionOptions);
+          const result = jsonProcessor.parseAndValidate(
+            input,
+            { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+            completionOptions,
+          );
           expect(result.success).toBe(true);
           if (result.success) {
             expect(result.data).toEqual(expected);
@@ -188,7 +228,11 @@ describe("JsonProcessor", () => {
     describe("progressive parsing strategies", () => {
       it("should extract JSON from surrounding text", () => {
         const text = 'Some text before {"key": "value"} some text after';
-        const result = jsonProcessor.parseAndValidate(text, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          text,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value" });
@@ -197,7 +241,11 @@ describe("JsonProcessor", () => {
 
       it("should handle JSON in code fences", () => {
         const fenced = '```json\n{"key": "value"}\n```';
-        const result = jsonProcessor.parseAndValidate(fenced, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          fenced,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value" });
@@ -206,7 +254,11 @@ describe("JsonProcessor", () => {
 
       it("should handle malformed JSON with trailing commas", () => {
         const malformed = '{"key": "value",}';
-        const result = jsonProcessor.parseAndValidate(malformed, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          malformed,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value" });
@@ -215,7 +267,11 @@ describe("JsonProcessor", () => {
 
       it("should fix over-escaped sequences", () => {
         const overEscaped = String.raw`{"text": "Line 1\nLine 2"}`;
-        const result = jsonProcessor.parseAndValidate(overEscaped, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          overEscaped,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect((result.data as any).text).toContain("Line");
@@ -224,7 +280,11 @@ describe("JsonProcessor", () => {
 
       it("should handle concatenated identical objects", () => {
         const duplicated = '{"a":1}{"a":1}';
-        const result = jsonProcessor.parseAndValidate(duplicated, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          duplicated,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ a: 1 });
@@ -236,7 +296,11 @@ describe("JsonProcessor", () => {
       it("should apply multiple sanitizations in pipeline", () => {
         // This JSON has multiple issues: code fence, trailing comma, whitespace
         const messy = '```json\n  {"key": "value",}  \n```';
-        const result = jsonProcessor.parseAndValidate(messy, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          messy,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value" });
@@ -251,7 +315,11 @@ describe("JsonProcessor", () => {
             {"name": "Item 2",}
           ],
         }`;
-        const result = jsonProcessor.parseAndValidate(complex, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          complex,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect((result.data as any).purpose).toBe("Test");
@@ -265,8 +333,16 @@ describe("JsonProcessor", () => {
         const json1 = '{"first": 1}';
         const json2 = '{"second": 2}';
 
-        const result1 = jsonProcessor.parseAndValidate(json1, "test1", completionOptions);
-        const result2 = jsonProcessor.parseAndValidate(json2, "test2", completionOptions);
+        const result1 = jsonProcessor.parseAndValidate(
+          json1,
+          { resource: "test1", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
+        const result2 = jsonProcessor.parseAndValidate(
+          json2,
+          { resource: "test2", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
 
         expect(result1.success).toBe(true);
         expect(result2.success).toBe(true);
@@ -280,8 +356,16 @@ describe("JsonProcessor", () => {
         const processor1 = new JsonProcessor();
         const processor2 = new JsonProcessor();
 
-        const result1 = processor1.parseAndValidate('{"a": 1}', "test", completionOptions);
-        const result2 = processor2.parseAndValidate('{"b": 2}', "test", completionOptions);
+        const result1 = processor1.parseAndValidate(
+          '{"a": 1}',
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
+        const result2 = processor2.parseAndValidate(
+          '{"b": 2}',
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
 
         expect(result1.success).toBe(true);
         expect(result2.success).toBe(true);
@@ -300,7 +384,11 @@ describe("JsonProcessor", () => {
 
       it("should support generic type parameter", () => {
         const json = '{"name": "Test", "value": 42}';
-        const result = jsonProcessor.parseAndValidate<TestType>(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate<TestType>(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data.name).toBe("Test");
@@ -310,7 +398,11 @@ describe("JsonProcessor", () => {
 
       it("should support array types", () => {
         const json = '[{"name": "A", "value": 1}, {"name": "B", "value": 2}]';
-        const result = jsonProcessor.parseAndValidate<TestType[]>(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate<TestType[]>(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toHaveLength(2);
@@ -323,13 +415,21 @@ describe("JsonProcessor", () => {
     describe("sanitization logging", () => {
       it("should not log when disabled", () => {
         const json = 'Some text {"key": "value"} after';
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
       });
 
       it("should handle logging enabled", () => {
         const json = 'Prefix {"key": "value"} suffix';
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
       });
     });
@@ -337,7 +437,11 @@ describe("JsonProcessor", () => {
     describe("edge cases", () => {
       it("should handle empty object", () => {
         const json = "{}";
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({});
@@ -346,7 +450,11 @@ describe("JsonProcessor", () => {
 
       it("should handle empty array", () => {
         const json = "[]";
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual([]);
@@ -355,7 +463,11 @@ describe("JsonProcessor", () => {
 
       it("should handle deeply nested structures", () => {
         const json = '{"a":{"b":{"c":{"d":{"e":"deep"}}}}}';
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect((result.data as any).a.b.c.d.e).toBe("deep");
@@ -364,7 +476,11 @@ describe("JsonProcessor", () => {
 
       it("should handle large arrays", () => {
         const largeArray = JSON.stringify(Array.from({ length: 1000 }, (_, i) => ({ id: i })));
-        const result = jsonProcessor.parseAndValidate(largeArray, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          largeArray,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect(Array.isArray(result.data)).toBe(true);
@@ -374,7 +490,11 @@ describe("JsonProcessor", () => {
 
       it("should handle unicode characters", () => {
         const json = '{"emoji": "😀", "chinese": "你好", "arabic": "مرحبا"}';
-        const result = jsonProcessor.parseAndValidate(json, "test", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          json,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(true);
         if (result.success) {
           expect((result.data as any).emoji).toBe("😀");
@@ -387,7 +507,11 @@ describe("JsonProcessor", () => {
     describe("JsonProcessingError context", () => {
       it("should return failure result with original content", () => {
         const invalid = "completely invalid json content here";
-        const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          invalid,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error).toBeInstanceOf(JsonProcessingError);
@@ -397,7 +521,11 @@ describe("JsonProcessor", () => {
 
       it("should create JsonProcessingError with correct type", () => {
         const invalid = "{ this is not valid json at all }";
-        const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          invalid,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error).toBeInstanceOf(JsonProcessingError);
@@ -409,7 +537,7 @@ describe("JsonProcessor", () => {
         const withCodeFence = "```json\n{invalid json}\n```";
         const result = jsonProcessor.parseAndValidate(
           withCodeFence,
-          "test-resource",
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
         );
         expect(result.success).toBe(false);
@@ -423,7 +551,7 @@ describe("JsonProcessor", () => {
         const invalid = "not valid json";
         const result = jsonProcessor.parseAndValidate(
           invalid,
-          "my-custom-resource",
+          { resource: "my-custom-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
         );
         expect(result.success).toBe(false);
@@ -437,7 +565,7 @@ describe("JsonProcessor", () => {
         const almostValid = '{"key": "value", but with extra text}';
         const result = jsonProcessor.parseAndValidate(
           almostValid,
-          "test-resource",
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
         );
         expect(result.success).toBe(false);
@@ -450,7 +578,11 @@ describe("JsonProcessor", () => {
 
       it("should preserve error name as JsonProcessingError", () => {
         const invalid = "not valid json";
-        const result = jsonProcessor.parseAndValidate(invalid, "test-resource", completionOptions);
+        const result = jsonProcessor.parseAndValidate(
+          invalid,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          completionOptions,
+        );
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error.name).toBe("JsonProcessingError");
@@ -464,7 +596,7 @@ describe("JsonProcessor", () => {
         const input = '   \n{"simple":true}';
         const result = jsonProcessor.parseAndValidate(
           input,
-          "early-stop-resource",
+          { resource: "early-stop-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
         );
         expect(result.success).toBe(true);
@@ -481,7 +613,7 @@ describe("JsonProcessor", () => {
         const processorWithLogging = new JsonProcessor(true);
         const result = processorWithLogging.parseAndValidate(
           malformed,
-          "diag-resource",
+          { resource: "diag-resource", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
         );
         if (result.success) {

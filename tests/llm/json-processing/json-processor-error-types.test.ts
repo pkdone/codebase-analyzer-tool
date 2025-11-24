@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import {
   JsonProcessingError,
   JsonProcessingErrorType,
@@ -22,9 +22,13 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
     it("should return parse error for invalid JSON syntax", () => {
       // Use invalid JSON that can't be auto-fixed (malformed structure)
       const invalidJson = '{"key": {unclosed}';
-      const result = jsonProcessor.parseAndValidate(invalidJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = jsonProcessor.parseAndValidate(
+        invalidJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -35,9 +39,13 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
     });
 
     it("should return parse error for non-string content", () => {
-      const result = jsonProcessor.parseAndValidate(123 as any, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = jsonProcessor.parseAndValidate(
+        123 as any,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -49,9 +57,13 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
 
     it("should return parse error when all sanitizers are exhausted", () => {
       const malformedJson = "definitely not json at all";
-      const result = jsonProcessor.parseAndValidate(malformedJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = jsonProcessor.parseAndValidate(
+        malformedJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -73,10 +85,14 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
         age: z.number(),
       });
 
-      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = jsonProcessor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -92,10 +108,14 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
         differentField: z.string(),
       });
 
-      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = jsonProcessor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -113,10 +133,14 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
         age: z.number(),
       });
 
-      const result = jsonProcessor.parseAndValidate(jsonWithIssues, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = jsonProcessor.parseAndValidate(
+        jsonWithIssues,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -138,10 +162,14 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
       const schema = z.object({ name: z.string() }); // Will fail validation for second case
 
       cases.forEach(({ input, expectedType }) => {
-        const result = jsonProcessor.parseAndValidate(input, "test", {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: schema,
-        });
+        const result = jsonProcessor.parseAndValidate(
+          input,
+          { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+          {
+            outputFormat: LLMOutputFormat.JSON,
+            jsonSchema: schema,
+          },
+        );
 
         if (!result.success) {
           expect(result.error.type).toBe(expectedType);
@@ -162,14 +190,22 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
     });
 
     it("should provide different debugging info for parse vs validation errors", () => {
-      const parseError = jsonProcessor.parseAndValidate("invalid", "test", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const parseError = jsonProcessor.parseAndValidate(
+        "invalid",
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
-      const validationError = jsonProcessor.parseAndValidate('{"wrong": "fields"}', "test", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: z.object({ correct: z.string() }),
-      });
+      const validationError = jsonProcessor.parseAndValidate(
+        '{"wrong": "fields"}',
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: z.object({ correct: z.string() }),
+        },
+      );
 
       expect(parseError.success).toBe(false);
       expect(validationError.success).toBe(false);
@@ -188,9 +224,13 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
   describe("successful parsing", () => {
     it("should not include error type in successful results", () => {
       const validJson = '{"name": "John"}';
-      const result = jsonProcessor.parseAndValidate(validJson, "test", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = jsonProcessor.parseAndValidate(
+        validJson,
+        { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {

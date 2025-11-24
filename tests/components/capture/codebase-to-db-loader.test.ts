@@ -21,7 +21,6 @@ jest.mock("../../../src/components/capture/file-summarizer", () => ({
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsgAndDetail: jest.fn(),
   logSingleLineWarning: jest.fn(),
-  logJsonProcessingWarning: jest.fn(),
 }));
 
 jest.mock("../../../src/config/file-processing.config", () => ({

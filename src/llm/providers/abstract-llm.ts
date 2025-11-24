@@ -305,7 +305,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       if (completionOptions.outputFormat === LLMOutputFormat.JSON) {
         const parseResult = this.jsonProcessor.parseAndValidate(
           responseContent,
-          context.resource,
+          context,
           completionOptions,
         );
 

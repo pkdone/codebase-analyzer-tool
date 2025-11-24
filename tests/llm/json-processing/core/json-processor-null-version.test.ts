@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../../src/llm/types/llm.types";
 
 describe("JsonProcessor Integration Tests", () => {
   describe("Real-world error cases", () => {
@@ -155,9 +155,13 @@ describe("JsonProcessor Integration Tests", () => {
   }
 }`;
 
-      const result = processor.parseAndValidate(problematicJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        problematicJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       if (!result.success) {
         console.log("Error details:", result.error);
@@ -189,9 +193,13 @@ describe("JsonProcessor Integration Tests", () => {
   "publicMethods": []
 }`;
 
-      const result = processor.parseAndValidate(problematicJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        problematicJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -222,9 +230,13 @@ describe("JsonProcessor Integration Tests", () => {
   "publicMethods": []
 }`;
 
-      const result = processor.parseAndValidate(problematicJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        problematicJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {

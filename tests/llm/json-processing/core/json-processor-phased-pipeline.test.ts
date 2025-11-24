@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../../src/llm/types/llm.types";
 import { z } from "zod";
 
 /**
@@ -33,10 +33,14 @@ describe("JsonProcessor - Phased Pipeline", () => {
         items: z.array(z.number()),
       });
 
-      const result = processor.parseAndValidate(malformedJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        malformedJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -59,10 +63,14 @@ describe("JsonProcessor - Phased Pipeline", () => {
         name: z.string(),
       });
 
-      const result = processor.parseAndValidate(jsonWithNoise, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        jsonWithNoise,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -81,10 +89,14 @@ describe("JsonProcessor - Phased Pipeline", () => {
         value: z.number(),
       });
 
-      const result = processor.parseAndValidate(jsonWithStructureIssues, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        jsonWithStructureIssues,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -104,10 +116,14 @@ describe("JsonProcessor - Phased Pipeline", () => {
         path: z.string(),
       });
 
-      const result = processor.parseAndValidate(jsonWithPropertyIssues, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        jsonWithPropertyIssues,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -129,10 +145,14 @@ describe("JsonProcessor - Phased Pipeline", () => {
         items: z.array(z.number()),
       });
 
-      const result = processor.parseAndValidate(jsonWithContentIssues, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        jsonWithContentIssues,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -164,10 +184,14 @@ describe("JsonProcessor - Phased Pipeline", () => {
       ];
 
       for (const testCase of testCases) {
-        const result = processor.parseAndValidate(testCase.input, "test-resource", {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: testCase.schema,
-        });
+        const result = processor.parseAndValidate(
+          testCase.input,
+          { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+          {
+            outputFormat: LLMOutputFormat.JSON,
+            jsonSchema: testCase.schema,
+          },
+        );
 
         expect(result.success).toBe(testCase.expectedSuccess);
       }

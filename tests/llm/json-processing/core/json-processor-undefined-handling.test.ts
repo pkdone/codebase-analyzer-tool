@@ -1,5 +1,9 @@
 import { JsonProcessor } from "../../../../src/llm/json-processing/core/json-processor";
-import { LLMCompletionOptions, LLMOutputFormat } from "../../../../src/llm/types/llm.types";
+import {
+  LLMCompletionOptions,
+  LLMOutputFormat,
+  LLMPurpose,
+} from "../../../../src/llm/types/llm.types";
 import { z } from "zod";
 
 describe("JsonProcessor - Undefined Value Handling Integration", () => {
@@ -28,7 +32,11 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(llmResponse, "ejb-jar.xml", completionOptions);
+      const result = processor.parseAndValidate(
+        llmResponse,
+        { resource: "ejb-jar.xml", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -75,7 +83,11 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(llmResponse, "test-component", completionOptions);
+      const result = processor.parseAndValidate(
+        llmResponse,
+        { resource: "test-component", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -106,7 +118,11 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(llmResponse, "array-test", completionOptions);
+      const result = processor.parseAndValidate(
+        llmResponse,
+        { resource: "array-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -141,7 +157,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
 
       const result = processor.parseAndValidate(
         problematicResponse,
-        "ejb-jar.xml",
+        { resource: "ejb-jar.xml", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
       );
 
@@ -175,7 +191,11 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(llmResponse, "fenced-test", completionOptions);
+      const result = processor.parseAndValidate(
+        llmResponse,
+        { resource: "fenced-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -204,7 +224,11 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(llmResponse, "unquoted-test", completionOptions);
+      const result = processor.parseAndValidate(
+        llmResponse,
+        { resource: "unquoted-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -252,7 +276,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
 
       const result = processor.parseAndValidate(
         llmResponse,
-        "multi-sanitizer-test",
+        { resource: "multi-sanitizer-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
       );
 
@@ -328,7 +352,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
 
       const result = processor.parseAndValidate(
         llmResponse,
-        "nested-undefined-test",
+        { resource: "nested-undefined-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
       );
 
@@ -369,7 +393,11 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(response, "no-undefined-test", completionOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "no-undefined-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -397,7 +425,11 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(response, "omitted-test", completionOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "omitted-test", purpose: LLMPurpose.COMPLETIONS },
+        completionOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {

@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import { z } from "zod";
 
 describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () => {
@@ -32,7 +32,10 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
     // This should now succeed because the unwrapJsonSchema sanitizer will fix it
     const result = jsonProcessor.parseAndValidate(
       llmResponse,
-      "buildSrc/src/main/resources/instructions/step13.txt.ftl",
+      {
+        resource: "buildSrc/src/main/resources/instructions/step13.txt.ftl",
+        purpose: LLMPurpose.COMPLETIONS,
+      },
       completionOptions,
     );
 
@@ -70,7 +73,11 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(llmResponse, "test-resource", completionOptions);
+    const result = jsonProcessor.parseAndValidate(
+      llmResponse,
+      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+      completionOptions,
+    );
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -100,7 +107,11 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(llmResponse, "test-resource", completionOptions);
+    const result = jsonProcessor.parseAndValidate(
+      llmResponse,
+      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+      completionOptions,
+    );
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -132,7 +143,11 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(llmResponse, "test-resource", completionOptions);
+    const result = jsonProcessor.parseAndValidate(
+      llmResponse,
+      { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+      completionOptions,
+    );
 
     expect(result.success).toBe(true);
     if (result.success) {

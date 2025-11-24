@@ -1,5 +1,9 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMCompletionOptions, LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import {
+  LLMCompletionOptions,
+  LLMOutputFormat,
+  LLMPurpose,
+} from "../../../src/llm/types/llm.types";
 import { JsonProcessingErrorType } from "../../../src/llm/json-processing/types/json-processing.errors";
 
 /**
@@ -29,7 +33,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -46,7 +54,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         version: "1.0.0",
       });
 
-      const result = processor.parseAndValidate(normalJson, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        normalJson,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -69,7 +81,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -89,7 +105,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         properties: {},
       });
 
-      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -109,7 +129,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -128,7 +152,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
     it("applies transforms only after successful parse", () => {
       const invalidJson = "{ this is not valid json";
 
-      const result = processor.parseAndValidate(invalidJson, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        invalidJson,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       // Should fail to parse, transforms should not run
       expect(result.success).toBe(false);
@@ -146,7 +174,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       // The transform should unwrap it first, then validate
       expect(result.success).toBe(true);
@@ -171,7 +203,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
 }
 \`\`\``;
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -199,7 +235,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(schemaResponse, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        schemaResponse,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -230,7 +270,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -251,7 +295,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         databaseIntegration: [],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -285,7 +333,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -314,7 +366,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         implementation: "Some code",
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -335,7 +391,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -406,7 +466,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -450,7 +514,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -482,7 +550,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -510,7 +582,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -534,7 +610,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -558,7 +638,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -596,7 +680,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -619,7 +707,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -635,7 +727,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         empty: {},
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -652,7 +748,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         nullValue: null,
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -686,7 +786,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -709,7 +813,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -732,7 +840,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -761,7 +873,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -788,7 +904,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -810,7 +930,11 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(response, "TestResource", defaultOptions);
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {

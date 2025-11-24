@@ -1,6 +1,6 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
 import { JsonValidatorResult } from "../json-processing-result.types";
-import { logJsonProcessingWarning } from "../../../common/utils/logging";
+import { logSingleLineWarning } from "../../../common/utils/logging";
 import { z } from "zod";
 
 /**
@@ -26,7 +26,6 @@ export class JsonValidator {
   validate<T>(
     content: unknown, // Accept unknown values to be safely handled by Zod validation
     completionOptions: LLMCompletionOptions,
-    resourceName: string,
     logSanitizationSteps = true,
   ): JsonValidatorResult<T | LLMGeneratedContent> {
     if (
@@ -41,11 +40,7 @@ export class JsonValidator {
       } else {
         const issues = validation.error.issues;
         if (logSanitizationSteps) {
-          logJsonProcessingWarning(
-            resourceName,
-            "Schema validation failed. Validation issues:",
-            issues,
-          );
+          logSingleLineWarning("Schema validation failed. Validation issues:", issues);
         }
         return { success: false, issues };
       }
@@ -54,17 +49,14 @@ export class JsonValidator {
       if (validation.success) {
         return { success: true, data: content as LLMGeneratedContent };
       }
-      logJsonProcessingWarning(
-        resourceName,
-        "Content for TEXT format is not valid LLMGeneratedContent",
-      );
+      logSingleLineWarning("Content for TEXT format is not valid LLMGeneratedContent");
       return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     } else {
       const validation = llmGeneratedContentSchema.safeParse(content);
       if (validation.success) {
         return { success: true, data: content as LLMGeneratedContent };
       }
-      logJsonProcessingWarning(resourceName, "Content is not valid LLMGeneratedContent");
+      logSingleLineWarning("Content is not valid LLMGeneratedContent");
       return { success: false, issues: this.createValidationIssue("Invalid LLMGeneratedContent") };
     }
   }

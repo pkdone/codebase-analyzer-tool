@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 
 /**
@@ -89,7 +89,7 @@ describe("normalizeDatabaseIntegrationArray - Integration with sourceSummarySche
     // After the fix, this should succeed
     const result = processor.parseAndValidate(
       llmResponse,
-      "dbstuff/cursor-for-loop-optimization.sql",
+      { resource: "dbstuff/cursor-for-loop-optimization.sql", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
     );
 
@@ -140,10 +140,14 @@ describe("normalizeDatabaseIntegrationArray - Integration with sourceSummarySche
       ],
     });
 
-    const result = processor.parseAndValidate(llmResponse, "test.sql", {
-      outputFormat: LLMOutputFormat.JSON,
-      jsonSchema: sourceSummarySchema,
-    });
+    const result = processor.parseAndValidate(
+      llmResponse,
+      { resource: "test.sql", purpose: LLMPurpose.COMPLETIONS },
+      {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: sourceSummarySchema,
+      },
+    );
 
     expect(result.success).toBe(true);
     if (result.success) {
@@ -160,10 +164,14 @@ describe("normalizeDatabaseIntegrationArray - Integration with sourceSummarySche
       implementation: "No database code here",
     });
 
-    const result = processor.parseAndValidate(llmResponse, "test.ts", {
-      outputFormat: LLMOutputFormat.JSON,
-      jsonSchema: sourceSummarySchema,
-    });
+    const result = processor.parseAndValidate(
+      llmResponse,
+      { resource: "test.ts", purpose: LLMPurpose.COMPLETIONS },
+      {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: sourceSummarySchema,
+      },
+    );
 
     expect(result.success).toBe(true);
     if (result.success) {

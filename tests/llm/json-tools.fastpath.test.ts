@@ -1,14 +1,13 @@
 import { JsonProcessor } from "../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../src/llm/types/llm.types";
 import { JsonProcessingErrorType } from "../../src/llm/json-processing/types/json-processing.errors";
-import { logSingleLineWarning, logJsonProcessingWarning } from "../../src/common/utils/logging";
+import { logSingleLineWarning } from "../../src/common/utils/logging";
 
 // Mock the logging module
 jest.mock("../../src/common/utils/logging", () => ({
   logSingleLineWarning: jest.fn(),
   logErrorMsg: jest.fn(),
   logInfoMsg: jest.fn(),
-  logJsonProcessingWarning: jest.fn(),
 }));
 
 describe("json-tools enhanced fast path", () => {
@@ -23,7 +22,11 @@ describe("json-tools enhanced fast path", () => {
   describe("Fast Path Performance", () => {
     it("parses valid JSON without any sanitization steps", () => {
       const validJson = `{"purpose": "Test", "value": 42}`;
-      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -35,7 +38,11 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON with leading whitespace via fast path", () => {
       const validJson = `   \n\t{"purpose": "Test", "value": 42}`;
-      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -46,7 +53,11 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON with trailing whitespace via fast path", () => {
       const validJson = `{"purpose": "Test", "value": 42}\n\t   `;
-      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -57,7 +68,11 @@ describe("json-tools enhanced fast path", () => {
 
     it("parses valid JSON array with whitespace via fast path", () => {
       const validJson = `  [1, 2, 3, 4, 5]  `;
-      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -76,7 +91,11 @@ describe("json-tools enhanced fast path", () => {
           }
         }
       }`;
-      const result = jsonProcessor.parseAndValidate(validJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -89,36 +108,48 @@ describe("json-tools enhanced fast path", () => {
   describe("Fallback to Progressive Strategies", () => {
     it("falls back to progressive strategies for JSON with code fences", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
-      const result = jsonProcessor.parseAndValidate(jsonWithFence, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        jsonWithFence,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      // Should not log since only insignificant steps (code fences) were applied
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      // Code fence removal is now considered a significant sanitization step
+      expect(logSingleLineWarning).toHaveBeenCalled();
     });
 
     it("falls back to progressive strategies for JSON with surrounding text", () => {
       const jsonWithText = 'Here is the JSON: {"value": 42} and that\'s it';
-      const result = jsonProcessor.parseAndValidate(jsonWithText, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        jsonWithText,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logJsonProcessingWarning).toHaveBeenCalled();
+      expect(logSingleLineWarning).toHaveBeenCalled();
     });
 
     it("falls back to progressive strategies for invalid JSON", () => {
       const invalidJson = `{"value": 42,}`; // trailing comma
-      const result = jsonProcessor.parseAndValidate(invalidJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        invalidJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logJsonProcessingWarning).toHaveBeenCalled();
+      expect(logSingleLineWarning).toHaveBeenCalled();
     });
   });
 
@@ -128,7 +159,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithFence = '```json\n{"value": 42}\n```';
       const result = processorWithoutLogging.parseAndValidate(
         jsonWithFence,
-        "test-resource",
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
       );
 
@@ -144,7 +175,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithText = 'Here is the data: {"value": 42} end';
       const result = processorWithLogging.parseAndValidate(
         jsonWithText,
-        "test-resource",
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
       );
 
@@ -152,10 +183,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logJsonProcessingWarning).toHaveBeenCalledWith(
-        "test-resource",
-        expect.stringContaining("Applied"),
-      );
+      expect(logSingleLineWarning).toHaveBeenCalledWith(expect.stringContaining("Applied"));
     });
 
     it("defaults to logging enabled when constructor parameter is omitted", () => {
@@ -163,7 +191,7 @@ describe("json-tools enhanced fast path", () => {
       const jsonWithText = 'Here is the data: {"value": 42} end';
       const result = processorDefaultLogging.parseAndValidate(
         jsonWithText,
-        "test-resource",
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         baseOptions,
       );
 
@@ -171,27 +199,25 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logJsonProcessingWarning).toHaveBeenCalledWith(
-        "test-resource",
-        expect.stringContaining("Applied"),
-      );
+      expect(logSingleLineWarning).toHaveBeenCalledWith(expect.stringContaining("Applied"));
     });
   });
 
   describe("Complex Sanitization Scenarios", () => {
     it("logs detailed sanitization steps for heavily malformed JSON", () => {
       const malformedJson = '```\n\u200B{"a": 1, "b": [1,2,3,],}\u200C\n```';
-      const result = jsonProcessor.parseAndValidate(malformedJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        malformedJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect((result.data as any).a).toBe(1);
         expect((result.data as any).b).toEqual([1, 2, 3]);
       }
-      expect(logJsonProcessingWarning).toHaveBeenCalledWith(
-        "test-resource",
-        expect.stringContaining("Applied"),
-      );
+      expect(logSingleLineWarning).toHaveBeenCalledWith(expect.stringContaining("Applied"));
     });
 
     it("includes sanitization history in error message on validation failure", () => {
@@ -211,7 +237,11 @@ describe("json-tools enhanced fast path", () => {
       } as any;
 
       const jsonWithFence = '```json\n{"notValue": 42}\n```';
-      const result = jsonProcessor.parseAndValidate(jsonWithFence, "test-resource", options);
+      const result = jsonProcessor.parseAndValidate(
+        jsonWithFence,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        options,
+      );
 
       // Validation failures should return a failure result immediately
       expect(result.success).toBe(false);
@@ -227,7 +257,11 @@ describe("json-tools enhanced fast path", () => {
   describe("Edge Cases", () => {
     it("handles empty object via fast path", () => {
       const emptyObject = "{}";
-      const result = jsonProcessor.parseAndValidate(emptyObject, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        emptyObject,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -238,7 +272,11 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles empty array via fast path", () => {
       const emptyArray = "[]";
-      const result = jsonProcessor.parseAndValidate(emptyArray, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        emptyArray,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -249,7 +287,11 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles JSON with unicode characters via fast path", () => {
       const unicodeJson = `{"emoji": "🚀", "text": "Hello, 世界"}`;
-      const result = jsonProcessor.parseAndValidate(unicodeJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        unicodeJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -261,7 +303,11 @@ describe("json-tools enhanced fast path", () => {
 
     it("handles JSON with escaped quotes via fast path", () => {
       const escapedJson = `{"text": "He said \\"Hello\\""}`;
-      const result = jsonProcessor.parseAndValidate(escapedJson, "test-resource", baseOptions);
+      const result = jsonProcessor.parseAndValidate(
+        escapedJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        baseOptions,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {

@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../src/llm/types/llm.types";
 
 // Tests for handling concatenated JSON objects through the public API.
 // The parsing pipeline includes sanitization that extracts the largest/first valid JSON span,
@@ -15,9 +15,13 @@ describe("json-tools concatenated objects handling", () => {
     // When multiple objects are concatenated, the parser extracts the first complete one
     const concatenated = '{"a":1}{"b":2}';
 
-    const result = jsonProcessor.parseAndValidate(concatenated, "concat-resource", {
-      outputFormat: LLMOutputFormat.JSON,
-    });
+    const result = jsonProcessor.parseAndValidate(
+      concatenated,
+      { resource: "concat-resource", purpose: LLMPurpose.COMPLETIONS },
+      {
+        outputFormat: LLMOutputFormat.JSON,
+      },
+    );
 
     // Should extract the first object
     expect(result.success).toBe(true);
@@ -32,7 +36,7 @@ describe("json-tools concatenated objects handling", () => {
 
     const result = jsonProcessor.parseAndValidate(
       malformedConcatenated,
-      "malformed-concat-resource",
+      { resource: "malformed-concat-resource", purpose: LLMPurpose.COMPLETIONS },
       { outputFormat: LLMOutputFormat.JSON },
     );
 
@@ -49,7 +53,7 @@ describe("json-tools concatenated objects handling", () => {
 
     const result = jsonProcessor.parseAndValidate(
       duplicateConcatenated,
-      "duplicate-concat-resource",
+      { resource: "duplicate-concat-resource", purpose: LLMPurpose.COMPLETIONS },
       { outputFormat: LLMOutputFormat.JSON },
     );
 
@@ -64,9 +68,13 @@ describe("json-tools concatenated objects handling", () => {
     // Parser should extract JSON even when surrounded by other text
     const textWithJson = 'Here is some data: {"value": 42} and more text';
 
-    const result = jsonProcessor.parseAndValidate(textWithJson, "text-wrapped-resource", {
-      outputFormat: LLMOutputFormat.JSON,
-    });
+    const result = jsonProcessor.parseAndValidate(
+      textWithJson,
+      { resource: "text-wrapped-resource", purpose: LLMPurpose.COMPLETIONS },
+      {
+        outputFormat: LLMOutputFormat.JSON,
+      },
+    );
 
     expect(result.success).toBe(true);
     if (result.success) {

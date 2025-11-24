@@ -1,6 +1,6 @@
 import { createMockJsonProcessor } from "./json-processor-mock";
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 
 describe("json-processor-mock", () => {
   describe("createMockJsonProcessor", () => {
@@ -31,9 +31,13 @@ describe("json-processor-mock", () => {
       const processor = createMockJsonProcessor();
       const validJson = '{"key": "value"}';
 
-      const result = processor.parseAndValidate(validJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -45,9 +49,13 @@ describe("json-processor-mock", () => {
       const processor = createMockJsonProcessor();
       const jsonWithFence = '```json\n{"key": "value"}\n```';
 
-      const result = processor.parseAndValidate(jsonWithFence, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        jsonWithFence,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -60,9 +68,13 @@ describe("json-processor-mock", () => {
       // Use invalid JSON that can't be auto-fixed (malformed structure)
       const invalidJson = '{"key": {unclosed}';
 
-      const result = processor.parseAndValidate(invalidJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        invalidJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(false);
     });

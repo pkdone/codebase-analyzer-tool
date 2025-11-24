@@ -1,5 +1,5 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import { JsonProcessingErrorType } from "../../../src/llm/json-processing/types/json-processing.errors";
 import { z } from "zod";
 
@@ -34,10 +34,14 @@ describe("JsonProcessor - Refactored Methods", () => {
         items: z.array(z.number()),
       });
 
-      const result = processor.parseAndValidate(malformedJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        malformedJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -68,10 +72,14 @@ describe("JsonProcessor - Refactored Methods", () => {
         age: z.number(),
       });
 
-      const result = processor.parseAndValidate(wrappedJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        wrappedJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -85,9 +93,13 @@ describe("JsonProcessor - Refactored Methods", () => {
     it("should provide detailed error information for parse failures", () => {
       const invalidJson = '{"key": invalid syntax}';
 
-      const result = processor.parseAndValidate(invalidJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        invalidJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -103,9 +115,13 @@ describe("JsonProcessor - Refactored Methods", () => {
         \`\`\`
       `;
 
-      const result = processor.parseAndValidate(complexInvalidJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        complexInvalidJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       // This actually succeeds after sanitization (removes code fences and fixes concatenation)
       expect(result.success).toBe(true);
@@ -124,10 +140,14 @@ describe("JsonProcessor - Refactored Methods", () => {
         value: z.number(),
       });
 
-      const result = processor.parseAndValidate(validJson, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        validJson,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -147,10 +167,14 @@ describe("JsonProcessor - Refactored Methods", () => {
         name: z.string(),
       });
 
-      const result = processor.parseAndValidate(jsonWithCodeFences, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        jsonWithCodeFences,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -184,10 +208,14 @@ describe("JsonProcessor - Refactored Methods", () => {
         extra: z.string(),
       });
 
-      const result = processor.parseAndValidate(complexMalformed, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        complexMalformed,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -212,10 +240,14 @@ describe("JsonProcessor - Refactored Methods", () => {
         name: z.string(),
       });
 
-      const result = processor.parseAndValidate(jsonSchemaFormat, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        jsonSchemaFormat,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -236,10 +268,14 @@ describe("JsonProcessor - Refactored Methods", () => {
         count: z.number().min(5),
       });
 
-      const result = processor.parseAndValidate(wrappedData, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      });
+      const result = processor.parseAndValidate(
+        wrappedData,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -252,9 +288,13 @@ describe("JsonProcessor - Refactored Methods", () => {
     it("should handle non-string content appropriately", () => {
       const nonStringContent = { some: "object" };
 
-      const result = processor.parseAndValidate(nonStringContent as any, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        nonStringContent as any,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -263,9 +303,13 @@ describe("JsonProcessor - Refactored Methods", () => {
     });
 
     it("should handle null content", () => {
-      const result = processor.parseAndValidate(null as any, "test-resource", {
-        outputFormat: LLMOutputFormat.JSON,
-      });
+      const result = processor.parseAndValidate(
+        null as any,
+        { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+      );
 
       expect(result.success).toBe(false);
     });

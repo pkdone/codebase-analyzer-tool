@@ -1,5 +1,9 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
-import { LLMCompletionOptions, LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import {
+  LLMCompletionOptions,
+  LLMOutputFormat,
+  LLMPurpose,
+} from "../../../src/llm/types/llm.types";
 
 describe("JsonProcessor lastSanitizer tracking", () => {
   const processor = new JsonProcessor(false);
@@ -7,7 +11,11 @@ describe("JsonProcessor lastSanitizer tracking", () => {
 
   it("includes lastSanitizer in error when pipeline fails", () => {
     const malformed = "NOT_JSON@@";
-    const result = processor.parseAndValidate(malformed, "TestResource", completionOptions);
+    const result = processor.parseAndValidate(
+      malformed,
+      { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+      completionOptions,
+    );
     expect(result.success).toBe(false);
     if (!result.success) {
       // lastSanitizer may or may not be set depending on whether any sanitizer changed content

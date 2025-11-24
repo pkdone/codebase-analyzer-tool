@@ -8,7 +8,6 @@ import {
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logSingleLineWarning: jest.fn(),
-  logJsonProcessingWarning: jest.fn(),
 }));
 import { logSingleLineWarning } from "../../../src/common/utils/logging";
 
