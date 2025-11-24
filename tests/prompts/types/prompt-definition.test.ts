@@ -1,10 +1,10 @@
-import { PromptDefinition, InstructionSection } from "../../../src/prompts/prompt.types";
+import { PromptDefinition } from "../../../src/prompts/prompt.types";
 import { z } from "zod";
 
 describe("PromptDefinition", () => {
   const createMockPromptDefinition = (overrides?: Partial<PromptDefinition>): PromptDefinition => ({
     contentDesc: "test content",
-    instructions: [{ points: ["instruction 1", "instruction 2"] }],
+    instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
     hasComplexSchema: false,
     template: "Test template",
@@ -15,13 +15,13 @@ describe("PromptDefinition", () => {
     it("should have required fields", () => {
       const definition: PromptDefinition = {
         contentDesc: "test",
-        instructions: [{ points: ["test"] }],
+        instructions: ["test"],
         responseSchema: z.string(),
         template: "Test template",
       };
 
       expect(definition.contentDesc).toBe("test");
-      expect(definition.instructions).toEqual([{ points: ["test"] }]);
+      expect(definition.instructions).toEqual(["test"]);
       expect(definition.responseSchema).toBeDefined();
     });
 
@@ -39,10 +39,10 @@ describe("PromptDefinition", () => {
   });
 
   describe("compatibility", () => {
-    it("should accept readonly InstructionSection arrays for instructions", () => {
+    it("should accept readonly string arrays for instructions", () => {
       const definition: PromptDefinition = {
         contentDesc: "test",
-        instructions: [{ points: ["a"] }, { points: ["b"] }, { points: ["c"] }],
+        instructions: ["a", "b", "c"],
         responseSchema: z.string(),
         template: "Test template",
       };
@@ -70,9 +70,9 @@ describe("PromptDefinition", () => {
       const sourceFileDefinition: PromptDefinition = {
         contentDesc: "JVM code",
         instructions: [
-          { points: ["Extract the class name"] },
-          { points: ["Extract the purpose"] },
-          { points: ["Extract the implementation"] },
+          "Extract the class name",
+          "Extract the purpose",
+          "Extract the implementation",
         ],
         responseSchema: z.object({
           name: z.string(),
@@ -91,7 +91,7 @@ describe("PromptDefinition", () => {
     it("should work with app summary prompting", () => {
       const appSummaryDefinition: PromptDefinition = {
         contentDesc: "source files",
-        instructions: [{ points: ["Extract entities", "Extract bounded contexts"] }],
+        instructions: ["Extract entities", "Extract bounded contexts"],
         responseSchema: z.object({
           entities: z.array(z.string()),
           boundedContexts: z.array(z.string()),
@@ -101,17 +101,16 @@ describe("PromptDefinition", () => {
       };
 
       expect(appSummaryDefinition.contentDesc).toBe("source files");
-      expect(appSummaryDefinition.instructions).toHaveLength(1);
-      expect(appSummaryDefinition.instructions[0].points).toHaveLength(2);
+      expect(appSummaryDefinition.instructions).toHaveLength(2);
+      expect(appSummaryDefinition.instructions[0]).toBe("Extract entities");
+      expect(appSummaryDefinition.instructions[1]).toBe("Extract bounded contexts");
       expect(appSummaryDefinition.hasComplexSchema).toBe(false);
     });
   });
 
   describe("immutability", () => {
-    it("should support readonly InstructionSection arrays", () => {
-      const readonlyInstructions: readonly InstructionSection[] = [
-        { points: ["instruction 1", "instruction 2"] },
-      ];
+    it("should support readonly string arrays", () => {
+      const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
       const definition: PromptDefinition = {
         contentDesc: "test",
@@ -120,7 +119,7 @@ describe("PromptDefinition", () => {
         template: "Test template",
       };
 
-      expect(definition.instructions).toEqual([{ points: ["instruction 1", "instruction 2"] }]);
+      expect(definition.instructions).toEqual(["instruction 1", "instruction 2"]);
     });
   });
 });

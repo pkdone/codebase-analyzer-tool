@@ -37,7 +37,7 @@ describe("App Summaries Config Refactoring", () => {
         expect(metadata.contentDesc).toBe("a set of source file summaries");
         expect(metadata.responseSchema).toBe(config.responseSchema);
         expect(metadata.template).toBe(APP_SUMMARY_TEMPLATE);
-        expect(metadata.instructions[0].points[0]).toBe(config.contentDesc);
+        expect(metadata.instructions[0]).toBe(config.contentDesc);
       });
     });
 
@@ -45,7 +45,7 @@ describe("App Summaries Config Refactoring", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata.contentDesc).toBe("a set of source file summaries");
-        expect(metadata.instructions[0].points[0]).toBe(config.contentDesc);
+        expect(metadata.instructions[0]).toBe(config.contentDesc);
       });
     });
 
@@ -70,7 +70,7 @@ describe("App Summaries Config Refactoring", () => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
 
         // The instruction content should be the same as the config's contentDesc
-        expect(metadata.instructions[0].points[0]).toBe(config.contentDesc);
+        expect(metadata.instructions[0]).toBe(config.contentDesc);
       });
     });
   });

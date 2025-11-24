@@ -179,7 +179,7 @@ public abstract class AddressEJB implements EntityBean {
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
         contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
+        instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
         template: `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
 
@@ -212,7 +212,7 @@ FILE_SUMMARIES:
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
         contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
+        instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
         template: `{{partialAnalysisNote}}Test template`,
       };

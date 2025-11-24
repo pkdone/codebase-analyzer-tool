@@ -72,7 +72,7 @@ describe("Data-driven Prompt System", () => {
         expect(metadata.template).toBeDefined();
         expect(metadata.responseSchema).toBe(config.responseSchema);
         // Instructions should be built from config.contentDesc
-        expect(metadata.instructions[0].points[0]).toBe(config.contentDesc);
+        expect(metadata.instructions[0]).toBe(config.contentDesc);
       });
     });
 
@@ -81,9 +81,9 @@ describe("Data-driven Prompt System", () => {
         expect(metadata.instructions).toBeDefined();
         expect(Array.isArray(metadata.instructions)).toBe(true);
         expect(metadata.instructions.length).toBe(1); // App summaries have single instruction section
-        expect(metadata.instructions[0].points).toBeDefined();
-        expect(Array.isArray(metadata.instructions[0].points)).toBe(true);
-        expect(metadata.instructions[0].points.length).toBe(1); // Single instruction point
+        expect(metadata.instructions[0]).toBeDefined();
+        expect(typeof metadata.instructions[0]).toBe("string");
+        expect(metadata.instructions[0].length).toBeGreaterThan(0); // Single instruction string
       });
     });
   });
@@ -115,25 +115,22 @@ describe("Data-driven Prompt System", () => {
       // Java should have multiple instruction sections
       expect(javaMetadata.instructions.length).toBeGreaterThan(1);
 
-      // Each section should have proper structure
-      javaMetadata.instructions.forEach((section: { points: readonly string[] }) => {
-        expect(section.points).toBeDefined();
-        expect(Array.isArray(section.points)).toBe(true);
-        expect(section.points.length).toBeGreaterThan(0);
+      // Each instruction should be a string
+      javaMetadata.instructions.forEach((instruction: string) => {
+        expect(typeof instruction).toBe("string");
+        expect(instruction.length).toBeGreaterThan(0);
       });
     });
 
     it("should include appropriate instruction sections for different file types", () => {
       // Java should have code quality instructions
       const javaInstructions = fileTypePromptMetadata.java.instructions;
-      const javaInstructionText = javaInstructions.flatMap((section) => section.points).join(" ");
+      const javaInstructionText = javaInstructions.join(" ");
       expect(javaInstructionText).toContain("Code Quality Analysis");
 
       // Markdown should not have complex code quality instructions
       const markdownInstructions = fileTypePromptMetadata.markdown.instructions;
-      const markdownInstructionText = markdownInstructions
-        .flatMap((section) => section.points)
-        .join(" ");
+      const markdownInstructionText = markdownInstructions.join(" ");
       // Markdown files are documentation and don't include code quality metrics
       expect(markdownInstructionText).not.toContain("cyclomaticComplexity");
     });

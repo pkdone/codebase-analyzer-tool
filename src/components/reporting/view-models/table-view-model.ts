@@ -37,88 +37,15 @@ export interface ProcessedListItem {
 }
 
 /**
- * Rule for classifying columns based on header patterns
- */
-interface ColumnClassificationRule {
-  /** Test function to check if the rule applies to a header */
-  test: (headerLower: string) => boolean;
-  /** CSS class to apply if the test passes */
-  class: string;
-  /** Optional description of the rule for documentation */
-  description?: string;
-}
-
-/**
  * View model for table data that pre-processes data for display
  */
 export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow> {
-  /**
-   * Declarative rules for column classification based on header names.
-   * Rules are evaluated in order, and the first matching rule determines the column class.
-   */
-  private static readonly COLUMN_CLASSIFICATION_RULES: readonly ColumnClassificationRule[] = [
-    // Numeric columns (highest priority)
-    {
-      test: (h) =>
-        h.includes("count") ||
-        h.includes("total") ||
-        h.includes("number") ||
-        h.includes("#") ||
-        h === "complexity",
-      class: "col-narrow numeric",
-      description: "Numeric data columns",
-    },
-    // Description-like columns
-    {
-      test: (h) =>
-        h.includes("description") ||
-        h.includes("details") ||
-        h === "content" ||
-        h.endsWith("content") ||
-        h.includes("summary") ||
-        h.includes("comment") ||
-        h.includes("note"),
-      class: "col-description",
-      description: "Long text or description fields",
-    },
-    // Data-rich columns that need more space
-    {
-      test: (h) =>
-        h.includes("entities") ||
-        h.includes("endpoints") ||
-        h.includes("operations") ||
-        h.includes("methods") ||
-        h.includes("attributes") ||
-        h.includes("properties") ||
-        h.includes("fields"),
-      class: "col-wide",
-      description: "Columns with complex or structured data",
-    },
-    // Small identifier columns
-    {
-      test: (h) =>
-        h.includes("type") || h.includes("category") || h.includes("status") || h.includes("level"),
-      class: "col-small",
-      description: "Short identifier or category columns",
-    },
-    // Very short column names
-    {
-      test: (h) => h.length <= 4 && !h.includes("name") && !h.includes("text"),
-      class: "col-small",
-      description: "Short column names",
-    },
-  ] as const;
-
   private readonly data: T[];
   private readonly headers: string[];
-  private readonly columnClasses: string[];
 
   constructor(data: T[]) {
     this.data = data;
     this.headers = this.data.length > 0 ? Object.keys(this.data[0]) : [];
-    this.columnClasses = this.headers.map((header, index) =>
-      this.determineColumnClass(header, index),
-    );
   }
 
   /**
@@ -129,10 +56,13 @@ export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow>
   }
 
   /**
-   * Get the column classes for each header
+   * Get the column classes for each header.
+   * Returns empty strings - CSS classes should be applied directly in templates.
+   * @deprecated This method is kept for backward compatibility but returns empty strings.
+   * CSS classes should be applied directly in EJS templates based on the specific table being rendered.
    */
   getColumnClasses(): string[] {
-    return this.columnClasses;
+    return this.headers.map(() => "");
   }
 
   /**
@@ -248,71 +178,6 @@ export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow>
           content,
         };
       }
-    });
-  }
-
-  /**
-   * Determine the CSS class for a column based on its header name and content.
-   * Uses declarative rules for a cleaner, more maintainable approach.
-   */
-  private determineColumnClass(headerName: string, columnIndex: number): string {
-    const headerLower = headerName.toLowerCase();
-
-    // Apply declarative rules in order
-    for (const rule of TableViewModel.COLUMN_CLASSIFICATION_RULES) {
-      if (rule.test(headerLower)) {
-        return rule.class;
-      }
-    }
-
-    // Check content length and complexity to determine if it's a wide column
-    const hasComplexContent = this.hasComplexContentInColumn(columnIndex);
-    if (hasComplexContent) {
-      return "col-wide";
-    }
-
-    // Default to medium
-    return "col-medium";
-  }
-
-  /**
-   * Check if a column has complex content that requires more space
-   */
-  private hasComplexContentInColumn(columnIndex: number): boolean {
-    if (this.data.length === 0 || columnIndex >= this.headers.length) {
-      return false;
-    }
-
-    const headerKey = this.headers[columnIndex];
-    const sampleSize = Math.min(3, this.data.length);
-    const sampleRows = this.data.slice(0, sampleSize);
-
-    return sampleRows.some((row) => {
-      const cellValue = row[headerKey];
-      if (!cellValue) return false;
-
-      // Check for list-type content
-      if (Array.isArray(cellValue) && cellValue.length > 1) {
-        return true;
-      }
-
-      // Check for long text content - only convert primitives to string
-      if (typeof cellValue === "string") {
-        if (cellValue.length > 100) {
-          return true;
-        }
-
-        // Check for structured content indicators
-        if (
-          cellValue.includes("•") ||
-          cellValue.includes("|") ||
-          (cellValue.includes(":") && cellValue.length > 30)
-        ) {
-          return true;
-        }
-      }
-
-      return false;
     });
   }
 }

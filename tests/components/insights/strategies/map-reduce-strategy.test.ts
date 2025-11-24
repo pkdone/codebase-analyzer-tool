@@ -10,7 +10,7 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
     // Create a test prompt to verify the render method works with categoryKey
     const testConfig = {
       contentDesc: "test",
-      instructions: [{ points: ["test"] }],
+      instructions: ["test"],
       responseSchema: z.object({ entities: z.array(z.object({ name: z.string() })) }),
       template: REDUCE_INSIGHTS_TEMPLATE,
     };
@@ -28,7 +28,7 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should use Prompt.render() with categoryKey parameter for template substitution", () => {
     const testConfig = {
       contentDesc: "several JSON objects",
-      instructions: [{ points: ["a consolidated list"] }],
+      instructions: ["a consolidated list"],
       responseSchema: z.object({ entities: z.array(z.object({ name: z.string() })) }),
       template: REDUCE_INSIGHTS_TEMPLATE,
     };

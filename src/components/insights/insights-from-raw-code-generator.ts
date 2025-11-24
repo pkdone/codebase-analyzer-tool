@@ -10,7 +10,6 @@ import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
 import { logSingleLineWarning } from "../../common/utils/logging";
 import { renderPrompt } from "../../prompts/prompt";
-import { InstructionSection } from "../../prompts/prompt.types";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
 import { APP_SUMMARY_TEMPLATE } from "../../prompts/templates";
@@ -82,13 +81,13 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
     codeBlocksContent: string,
   ): Promise<AppSummaryRecordCategories | null> {
     try {
-      const instructions: readonly InstructionSection[] = Object.values(
-        summaryCategoriesConfig,
-      ).flatMap((category) => {
-        const inst = category.instructions;
-        // All instructions are now InstructionSection[]
-        return inst;
-      });
+      const instructions: readonly string[] = Object.values(summaryCategoriesConfig).flatMap(
+        (category) => {
+          const inst = category.instructions;
+          // All instructions are now string[]
+          return inst;
+        },
+      );
       const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
       const llmResponse = await this.llmRouter.executeCompletion<AppSummaryRecordCategories>(
         "all-categories",
@@ -112,7 +111,7 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Create a prompt for the LLM to generate insights for all categories
    */
   private createInsightsAllCategoriesPrompt(
-    instructions: readonly InstructionSection[],
+    instructions: readonly string[],
     codeBlocksContent: string,
   ): string {
     const allCategoriesConfig = {

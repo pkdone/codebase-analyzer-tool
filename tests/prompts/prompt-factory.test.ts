@@ -87,13 +87,12 @@ describe("Prompt Factory", () => {
       };
 
       const result = createPromptMetadata(testConfigMap, testTemplate, {
-        instructionsBuilder: () => [{ points: ["instruction 1", "instruction 2"] }],
+        instructionsBuilder: () => ["instruction 1", "instruction 2"],
       });
 
-      expect(result.test1.instructions).toHaveLength(1);
-      expect(result.test1.instructions[0].points).toHaveLength(2);
-      expect(result.test1.instructions[0].points[0]).toBe("instruction 1");
-      expect(result.test1.instructions[0].points[1]).toBe("instruction 2");
+      expect(result.test1.instructions).toHaveLength(2);
+      expect(result.test1.instructions[0]).toBe("instruction 1");
+      expect(result.test1.instructions[1]).toBe("instruction 2");
     });
 
     it("should preserve hasComplexSchema from config", () => {
@@ -140,14 +139,12 @@ describe("Prompt Factory", () => {
           return (config.responseSchema as z.ZodObject<z.ZodRawShape>).pick({ field1: true });
         },
         contentDescBuilder: (config) => config.contentDesc ?? "default",
-        instructionsBuilder: (config) => [
-          { points: [`Instruction for ${config.label ?? "unknown"}`] },
-        ],
+        instructionsBuilder: (config) => [`Instruction for ${config.label ?? "unknown"}`],
       });
 
       expect(result.test1.label).toBe("Test 1");
       expect(result.test1.contentDesc).toBe("custom desc");
-      expect(result.test1.instructions[0].points[0]).toBe("Instruction for Test 1");
+      expect(result.test1.instructions[0]).toBe("Instruction for Test 1");
       const pickedSchema = result.test1.responseSchema as z.ZodObject<z.ZodRawShape>;
       expect(pickedSchema.shape.field1).toBeDefined();
       expect(pickedSchema.shape.field2).toBeUndefined();

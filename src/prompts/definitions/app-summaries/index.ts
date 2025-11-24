@@ -11,5 +11,5 @@ export const appSummaryPromptMetadata = createPromptMetadata<
   AppSummaryConfigEntry
 >(appSummaryConfigMap, APP_SUMMARY_TEMPLATE, {
   contentDescBuilder: () => "a set of source file summaries", // Generic description
-  instructionsBuilder: (config) => [{ points: [config.contentDesc] }], // Build instructions from the config's contentDesc
+  instructionsBuilder: (config) => [config.contentDesc], // Build instructions from the config's contentDesc
 });

@@ -156,7 +156,13 @@ describe("JsonProcessor - Refactored Methods", () => {
       if (result.success) {
         expect(result.steps).toBeDefined();
         expect(result.steps.length).toBeGreaterThan(0);
-        expect(result.steps).toContain("Removed code fences");
+        expect(
+          result.steps.some(
+            (s: string) =>
+              s.includes("Fixed JSON structure and noise") ||
+              s.includes("Removed markdown code fences"),
+          ),
+        ).toBe(true);
       }
     });
 

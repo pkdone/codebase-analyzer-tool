@@ -1,20 +1,14 @@
 /**
  * Barrel export for all JSON sanitizers.
  */
-export { trimWhitespace } from "./trim-whitespace";
-export { removeCodeFences } from "./remove-code-fences";
+// Consolidated sanitizers (primary API)
+export { fixJsonStructureAndNoise } from "./structural-sanitizer";
+export { fixJsonSyntax } from "./syntax-sanitizer";
+
+// Individual sanitizers (still available for specific use cases)
 export { normalizeCharacters } from "./normalize-characters";
-export { removeInvalidPrefixes } from "./remove-invalid-prefixes";
-export { extractLargestJsonSpan } from "./extract-largest-json-span";
-export { collapseDuplicateJsonObject } from "./collapse-duplicate-json-object";
-export { addMissingCommas } from "./add-missing-commas";
-export { removeTrailingCommas } from "./remove-trailing-commas";
-export { fixMismatchedDelimiters } from "./fix-mismatched-delimiters";
-export { completeTruncatedStructures } from "./complete-truncated-structures";
 export { fixJsonStructure } from "./fix-json-structure";
 export { unifiedSyntaxSanitizer } from "./unified-syntax-sanitizer";
-export { fixMissingArrayObjectBraces } from "./fix-missing-array-object-braces";
-export { removeTruncationMarkers } from "./remove-truncation-markers";
 export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns";
 export { fixHeuristicJsonErrors } from "./fix-heuristic-json-errors";
 export { fixMalformedJsonPatterns } from "./fix-malformed-json-patterns";

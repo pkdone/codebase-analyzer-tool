@@ -1,6 +1,5 @@
 import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { SANITIZATION_STEP } from "../../../src/llm/json-processing/sanitizers";
 
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
@@ -39,7 +38,10 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     }
     const calls = (logJsonProcessingWarning as jest.Mock).mock.calls.flat();
     expect(
-      calls.some((c: string) => c.includes(SANITIZATION_STEP.EXTRACTED_LARGEST_JSON_SPAN)),
+      calls.some(
+        (c: string) =>
+          c.includes("Fixed JSON structure and noise") || c.includes("Extracted largest JSON span"),
+      ),
     ).toBe(true);
   });
 
@@ -68,6 +70,8 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
     // Should include at least code fence removal or JSON structure fixes
     const logMsg = calls.find((c: string) => c.includes("Applied"));
-    expect(logMsg).toMatch(/Removed code fences|Fixed JSON structure/);
+    expect(logMsg).toMatch(
+      /Fixed JSON structure and noise|Removed markdown code fences|Fixed JSON structure/,
+    );
   });
 });

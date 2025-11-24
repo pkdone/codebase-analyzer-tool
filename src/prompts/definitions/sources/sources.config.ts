@@ -6,7 +6,35 @@ import {
   DB_INTEGRATION_INSTRUCTIONS,
 } from "../fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
-import { InstructionSection } from "../../prompt.types";
+
+/**
+ * Helper interface for backward compatibility during migration.
+ * @deprecated Use readonly string[] instead. Instruction sections can be formatted
+ * directly in the strings (e.g., "__TITLE__\n- Point 1").
+ */
+interface InstructionSection {
+  title?: string;
+  points: readonly string[];
+}
+
+/**
+ * Helper function to convert InstructionSection to a formatted string.
+ * This maintains backward compatibility while simplifying the prompt system.
+ */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+function formatInstructionSection(section: InstructionSection): string {
+  const title = section.title ? `__${section.title}__\n` : "";
+  const points = section.points.join("\n");
+  return `${title}${points}`;
+}
+
+/**
+ * Helper function to convert an array of InstructionSection to an array of strings.
+ */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+function formatInstructionSections(sections: readonly InstructionSection[]): readonly string[] {
+  return sections.map(formatInstructionSection);
+}
 
 /**
  * Configuration entry for a source prompt definition
@@ -15,7 +43,7 @@ export interface SourceConfigEntry {
   contentDesc: string;
   hasComplexSchema?: boolean; // Defaults to true when undefined
   schemaFields: string[];
-  instructions: readonly InstructionSection[];
+  instructions: readonly string[];
   // responseSchema is optional - sources build schema via pick() in the factory
 }
 
@@ -40,7 +68,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       "integrationPoints",
       "codeQualityMetrics",
     ],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
@@ -76,7 +104,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
         points: CODE_QUALITY_INSTRUCTIONS,
       },
-    ],
+    ]),
   },
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
@@ -94,7 +122,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       "integrationPoints",
       "codeQualityMetrics",
     ],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
@@ -130,7 +158,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
         points: CODE_QUALITY_INSTRUCTIONS,
       },
-    ],
+    ]),
   },
   csharp: {
     contentDesc: "C# code",
@@ -148,7 +176,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       "integrationPoints",
       "codeQualityMetrics",
     ],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
@@ -185,7 +213,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
         points: CODE_QUALITY_INSTRUCTIONS,
       },
-    ],
+    ]),
   },
   python: {
     contentDesc: "Python code",
@@ -203,7 +231,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       "integrationPoints",
       "codeQualityMetrics",
     ],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
@@ -243,7 +271,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PYTHON_COMPLEXITY_METRICS,
         ],
       },
-    ],
+    ]),
   },
   ruby: {
     contentDesc: "Ruby code",
@@ -261,7 +289,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       "integrationPoints",
       "codeQualityMetrics",
     ],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [
@@ -298,7 +326,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
         points: CODE_QUALITY_INSTRUCTIONS,
       },
-    ],
+    ]),
   },
   sql: {
     contentDesc: "database DDL/DML/SQL code",
@@ -310,7 +338,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       "triggers",
       "databaseIntegration",
     ],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -327,12 +355,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [PROMPT_FRAGMENTS.SQL_SPECIFIC.DB_INTEGRATION_ANALYSIS],
       },
-    ],
+    ]),
   },
   markdown: {
     contentDesc: "Markdown documentation",
     schemaFields: ["purpose", "implementation", "databaseIntegration"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -341,12 +369,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS, PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION],
       },
-    ],
+    ]),
   },
   xml: {
     contentDesc: "XML configuration",
     schemaFields: ["purpose", "implementation", "uiFramework"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -355,7 +383,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION,
         points: [PROMPT_FRAGMENTS.XML_SPECIFIC.UI_FRAMEWORK_DETECTION],
       },
-    ],
+    ]),
   },
   jsp: {
     contentDesc: "JSP code",
@@ -367,7 +395,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       "dataInputFields",
       "jspMetrics",
     ],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -387,12 +415,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
         points: [PROMPT_FRAGMENTS.JSP_SPECIFIC.JSP_METRICS_ANALYSIS],
       },
-    ],
+    ]),
   },
   maven: {
     contentDesc: "Maven POM (Project Object Model) build file",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -401,12 +429,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAVEN],
       },
-    ],
+    ]),
   },
   gradle: {
     contentDesc: "Gradle build configuration file",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -415,12 +443,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.GRADLE],
       },
-    ],
+    ]),
   },
   ant: {
     contentDesc: "Apache Ant build.xml file",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -429,12 +457,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.ANT],
       },
-    ],
+    ]),
   },
   npm: {
     contentDesc: "npm package.json or lock file",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -443,12 +471,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NPM],
       },
-    ],
+    ]),
   },
   "dotnet-proj": {
     contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -457,12 +485,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.DOTNET],
       },
-    ],
+    ]),
   },
   nuget: {
     contentDesc: "NuGet packages.config file (legacy .NET)",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -471,12 +499,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.NUGET],
       },
-    ],
+    ]),
   },
   "ruby-bundler": {
     contentDesc: "Ruby Gemfile or Gemfile.lock",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -485,12 +513,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.RUBY_BUNDLER],
       },
-    ],
+    ]),
   },
   "python-pip": {
     contentDesc: "Python requirements.txt or Pipfile",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -499,12 +527,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_PIP],
       },
-    ],
+    ]),
   },
   "python-setup": {
     contentDesc: "Python setup.py file",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -513,12 +541,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_SETUP],
       },
-    ],
+    ]),
   },
   "python-poetry": {
     contentDesc: "Python pyproject.toml (Poetry)",
     schemaFields: ["purpose", "implementation", "dependencies"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -527,12 +555,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
         points: [PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.PYTHON_POETRY],
       },
-    ],
+    ]),
   },
   "shell-script": {
     contentDesc: "Shell script (bash/sh)",
     schemaFields: ["purpose", "implementation", "scheduledJobs"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -547,12 +575,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           PROMPT_FRAGMENTS.SHELL_SCRIPT_SPECIFIC.EXTERNAL_API_CALLS,
         ],
       },
-    ],
+    ]),
   },
   "batch-script": {
     contentDesc: "Windows batch script (.bat/.cmd)",
     schemaFields: ["purpose", "implementation", "scheduledJobs"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -568,12 +596,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           PROMPT_FRAGMENTS.BATCH_SCRIPT_SPECIFIC.SERVICE_OPS,
         ],
       },
-    ],
+    ]),
   },
   jcl: {
     contentDesc: "Mainframe JCL (Job Control Language)",
     schemaFields: ["purpose", "implementation", "scheduledJobs"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -589,12 +617,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
           PROMPT_FRAGMENTS.JCL_SPECIFIC.SORT_UTILITIES,
         ],
       },
-    ],
+    ]),
   },
   default: {
     contentDesc: "source files",
     schemaFields: ["purpose", "implementation", "databaseIntegration"],
-    instructions: [
+    instructions: formatInstructionSections([
       {
         title: INSTRUCTION_SECTION_TITLES.BASIC_INFO,
         points: [PROMPT_FRAGMENTS.COMMON.PURPOSE, PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION],
@@ -603,6 +631,6 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
         title: INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
         points: [...DB_INTEGRATION_INSTRUCTIONS, PROMPT_FRAGMENTS.COMMON.DB_IN_FILE],
       },
-    ],
+    ]),
   },
 } as const;

@@ -11,10 +11,8 @@ describe("App Summaries Refactoring", () => {
         // Verify that instructions contain the specific instruction text
         expect(config.instructions).toBeDefined();
         expect(config.instructions.length).toBeGreaterThan(0);
-        expect(config.instructions[0].points).toBeDefined();
-        expect(config.instructions[0].points.length).toBeGreaterThan(0);
         // Instructions should contain specific text, not the generic contentDesc
-        expect(config.instructions[0].points[0].length).toBeGreaterThan(config.contentDesc.length);
+        expect(config.instructions[0].length).toBeGreaterThan(config.contentDesc.length);
       });
     });
 
@@ -30,13 +28,11 @@ describe("App Summaries Refactoring", () => {
       expect(entitiesConfig.contentDesc).toBe("a set of source file summaries");
 
       // Verify instructions contain the specific instruction text
-      expect(technologiesConfig.instructions[0].points[0]).toContain(
+      expect(technologiesConfig.instructions[0]).toContain(
         "key external and host platform technologies",
       );
-      expect(aggregatesConfig.instructions[0].points[0]).toContain(
-        "Domain Driven Design aggregates",
-      );
-      expect(entitiesConfig.instructions[0].points[0]).toContain("Domain-Driven Design entities");
+      expect(aggregatesConfig.instructions[0]).toContain("Domain Driven Design aggregates");
+      expect(entitiesConfig.instructions[0]).toContain("Domain-Driven Design entities");
     });
   });
 

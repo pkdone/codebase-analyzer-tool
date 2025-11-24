@@ -11,7 +11,7 @@ describe("Prompt Refactoring", () => {
   const testDefinition: PromptDefinition = {
     label: "Test",
     contentDesc: "test content",
-    instructions: [{ points: ["instruction 1", "instruction 2"] }],
+    instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
     template: SOURCES_TEMPLATE,
   };
@@ -47,13 +47,13 @@ describe("Prompt Refactoring", () => {
       expect(rendered).not.toContain("{{categoryKey}}");
     });
 
-    it("should handle complex instruction sections", () => {
+    it("should handle complex instruction sections with titles", () => {
       const complexDefinition: PromptDefinition = {
         ...testDefinition,
         instructions: [
-          { title: "Section 1", points: ["point 1", "point 2"] },
-          { points: ["point without title"] },
-          { title: "Section 2", points: ["point 3"] },
+          "__Section 1__\npoint 1\npoint 2",
+          "point without title",
+          "__Section 2__\npoint 3",
         ],
       };
       const rendered = renderPrompt(complexDefinition, { content: testContent });

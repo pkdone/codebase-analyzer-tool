@@ -40,9 +40,18 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
     if (result.success) {
       expect(result.data).toEqual({ hello: "world" });
     }
-    // Should log steps including 'Extracted'
+    // Should log steps including 'Extracted' (now in diagnostics or step description)
     const calls = (logJsonProcessingWarning as jest.Mock).mock.calls.map((c) => c[1]); // c[1] is the message
-    expect(calls.some((c) => c.includes("Extracted"))).toBe(true);
+    expect(
+      calls.some(
+        (c) =>
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          c.includes("Extracted") ||
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+          c.includes("Fixed JSON structure and noise") ||
+          c.includes("Extracted largest JSON span"),
+      ),
+    ).toBe(true);
   });
 
   test("unified sanitization pipeline: deliberately malformed then recoverable JSON", () => {

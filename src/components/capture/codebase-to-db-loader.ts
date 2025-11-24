@@ -142,18 +142,18 @@ export default class CodebaseToDBLoader {
       content,
     );
     const contentVector = await this.getContentEmbeddings(filepath, content);
-    const sourceFileRecord = this.buildSourceRecord({
+    const sourceFileRecord: SourceRecord = {
       projectName,
       filename,
       filepath,
       type,
       linesCount,
       content,
-      summary,
-      summaryError,
-      summaryVector,
-      contentVector: contentVector ?? undefined,
-    });
+      ...(summary && { summary }),
+      ...(summaryError && { summaryError }),
+      ...(summaryVector && { summaryVector }),
+      ...(contentVector && { contentVector }),
+    };
     await this.sourcesRepository.insertSource(sourceFileRecord);
   }
 
@@ -186,48 +186,6 @@ export default class CodebaseToDBLoader {
     }
 
     return { summary, summaryError, summaryVector };
-  }
-
-  /**
-   * Builds a SourceRecord from the provided parameters.
-   * Only includes optional fields (summary, vectors, errors) if they have values.
-   */
-  private buildSourceRecord(params: {
-    projectName: string;
-    filename: string;
-    filepath: string;
-    type: string;
-    linesCount: number;
-    content: string;
-    summary: SourceSummaryType | undefined;
-    summaryError: string | undefined;
-    summaryVector: number[] | undefined;
-    contentVector: number[] | undefined;
-  }): SourceRecord {
-    const {
-      projectName,
-      filename,
-      filepath,
-      type,
-      linesCount,
-      content,
-      summary,
-      summaryError,
-      summaryVector,
-      contentVector,
-    } = params;
-    return {
-      projectName,
-      filename,
-      filepath,
-      type,
-      linesCount,
-      content,
-      ...(summary && { summary }),
-      ...(summaryError && { summaryError }),
-      ...(summaryVector && { summaryVector }),
-      ...(contentVector && { contentVector }),
-    };
   }
 
   /**

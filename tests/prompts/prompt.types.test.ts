@@ -1,5 +1,4 @@
 import {
-  InstructionSection,
   PromptDefinition,
   CanonicalFileType,
   AppSummaryCategoryType,
@@ -8,42 +7,12 @@ import { CANONICAL_FILE_TYPES, canonicalFileTypeSchema } from "../../src/config/
 import { z } from "zod";
 
 describe("Prompt Types", () => {
-  describe("InstructionSection", () => {
-    it("should support sections with titles", () => {
-      const section: InstructionSection = {
-        title: "Test Section",
-        points: ["Point 1", "Point 2"],
-      };
-
-      expect(section.title).toBe("Test Section");
-      expect(section.points).toEqual(["Point 1", "Point 2"]);
-    });
-
-    it("should support sections without titles", () => {
-      const section: InstructionSection = {
-        points: ["Point 1", "Point 2"],
-      };
-
-      expect(section.title).toBeUndefined();
-      expect(section.points).toEqual(["Point 1", "Point 2"]);
-    });
-
-    it("should support readonly points arrays", () => {
-      const readonlyPoints = ["Point 1", "Point 2"] as const;
-      const section: InstructionSection = {
-        points: readonlyPoints,
-      };
-
-      expect(section.points).toEqual(["Point 1", "Point 2"]);
-    });
-  });
-
   describe("PromptDefinition", () => {
     const createMockPromptDefinition = (
       overrides?: Partial<PromptDefinition>,
     ): PromptDefinition => ({
       contentDesc: "test content",
-      instructions: [{ points: ["instruction 1", "instruction 2"] }],
+      instructions: ["instruction 1", "instruction 2"],
       responseSchema: z.string(),
       hasComplexSchema: false,
       template: "Test template",
@@ -53,13 +22,13 @@ describe("Prompt Types", () => {
     it("should have required fields", () => {
       const definition: PromptDefinition = {
         contentDesc: "test",
-        instructions: [{ points: ["test"] }],
+        instructions: ["test"],
         responseSchema: z.string(),
         template: "Test template",
       };
 
       expect(definition.contentDesc).toBe("test");
-      expect(definition.instructions).toEqual([{ points: ["test"] }]);
+      expect(definition.instructions).toEqual(["test"]);
       expect(definition.responseSchema).toBeDefined();
       expect(definition.template).toBe("Test template");
     });
@@ -74,10 +43,8 @@ describe("Prompt Types", () => {
       expect(definitionWithOptional.label).toBe("Test Label");
     });
 
-    it("should support readonly InstructionSection arrays", () => {
-      const readonlyInstructions: readonly InstructionSection[] = [
-        { points: ["instruction 1", "instruction 2"] },
-      ];
+    it("should support readonly string arrays", () => {
+      const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
       const definition: PromptDefinition = {
         contentDesc: "test",
@@ -86,7 +53,7 @@ describe("Prompt Types", () => {
         template: "Test template",
       };
 
-      expect(definition.instructions).toEqual([{ points: ["instruction 1", "instruction 2"] }]);
+      expect(definition.instructions).toEqual(["instruction 1", "instruction 2"]);
     });
   });
 

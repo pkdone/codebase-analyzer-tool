@@ -29,9 +29,7 @@ interface CreatePromptMetadataOptions<TConfig extends BaseConfigEntry> {
    * Optional function to build the instructions array from the config.
    * If not provided, must be handled by the config type itself.
    */
-  instructionsBuilder?: (
-    config: TConfig,
-  ) => readonly { title?: string; points: readonly string[] }[];
+  instructionsBuilder?: (config: TConfig) => readonly string[];
 }
 
 /**

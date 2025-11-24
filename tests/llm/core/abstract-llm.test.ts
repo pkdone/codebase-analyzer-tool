@@ -326,7 +326,14 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.sanitizationSteps).toBeDefined();
-      expect(result.sanitizationSteps).toContain(SANITIZATION_STEP.REMOVED_CODE_FENCES);
+      expect(
+        result.sanitizationSteps?.some(
+          (s: string) =>
+            s.includes("Fixed JSON structure and noise") ||
+            s.includes("Removed markdown code fences") ||
+            s === SANITIZATION_STEP.REMOVED_CODE_FENCES,
+        ),
+      ).toBe(true);
     });
 
     test("should propagate sanitization steps for JSON with trailing comma", async () => {

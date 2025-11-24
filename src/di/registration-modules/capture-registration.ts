@@ -11,19 +11,12 @@ import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
  * - File processing and summarization
  * - Codebase loading into database
  * - File handling configuration
+ *
+ * All components are registered here since tsyringe uses lazy-loading.
  */
 export function registerCaptureComponents(): void {
-  // PromptConfigFactory removed; FileSummarizer now resolves file type directly.
-  registerComponents([], "Capture components registered (no prompt factory)");
-}
-
-/**
- * Register capture components that depend on LLM services.
- * These components require LLM functionality to be available.
- */
-export function registerLLMDependentCaptureComponents(): void {
   registerComponents(
     [{ token: captureTokens.CodebaseToDBLoader, implementation: CodebaseToDBLoader }],
-    "LLM-dependent capture components registered",
+    "Capture components registered",
   );
 }

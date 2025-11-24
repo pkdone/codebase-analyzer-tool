@@ -67,7 +67,7 @@ describe("File Handler Configuration", () => {
     test("should enforce correct structure", () => {
       const testConfig: PromptDefinition = {
         contentDesc: "test content",
-        instructions: [{ points: ["test instructions"] }],
+        instructions: ["test instructions"],
         responseSchema: sourceSummarySchema,
         hasComplexSchema: false,
         template: "Test template",
@@ -86,7 +86,7 @@ describe("File Handler Configuration", () => {
       // Test that DynamicPromptConfig can work with inline schema types
       const typedConfig: PromptDefinition = {
         contentDesc: "test content",
-        instructions: [{ points: ["test instructions"] }],
+        instructions: ["test instructions"],
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
         template: "Test template",

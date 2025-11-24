@@ -12,21 +12,12 @@ import {
 import { logJsonProcessingWarning } from "../../../common/utils/logging";
 import { JsonProcessorResult } from "../json-processing-result.types";
 import {
-  trimWhitespace,
-  removeCodeFences,
+  fixJsonStructureAndNoise,
+  fixJsonSyntax,
   normalizeCharacters,
-  removeInvalidPrefixes,
-  extractLargestJsonSpan,
-  collapseDuplicateJsonObject,
-  addMissingCommas,
-  removeTrailingCommas,
-  fixMismatchedDelimiters,
-  completeTruncatedStructures,
   fixJsonStructure,
   unifiedSyntaxSanitizer,
-  fixMissingArrayObjectBraces,
   fixBinaryCorruptionPatterns,
-  removeTruncationMarkers,
   fixHeuristicJsonErrors,
   fixMalformedJsonPatterns,
   hasSignificantSanitizationSteps,
@@ -58,33 +49,39 @@ export class JsonProcessor {
    * The order is critical for effective JSON repair. Sanitizers are organized into phases
    * that reflect the logical progression of fixing JSON issues:
    *
-   * Phase 1: Noise Removal
-   *   Removes formatting artifacts and noise before structural analysis
-   *   - trimWhitespace: Remove leading/trailing whitespace
-   *   - removeCodeFences: Strip markdown code fences (```json)
+   * Phase 1: Structural & Noise Removal (Consolidated)
+   *   Removes formatting artifacts, noise, and fixes high-level structural issues
+   *   - fixJsonStructureAndNoise: Consolidated sanitizer that handles:
+   *     * Trimming whitespace
+   *     * Removing code fences
+   *     * Removing invalid prefixes
+   *     * Extracting largest JSON span
+   *     * Collapsing duplicate objects
+   *     * Removing truncation markers
+   *
+   * Phase 2: Character Normalization
+   *   Normalizes escape sequences, control characters, and curly quotes
    *   - normalizeCharacters: Normalize escape sequences, control characters, and curly quotes
-   *   - removeInvalidPrefixes: Remove invalid prefixes and stray text
    *
-   * Phase 2: Structure Extraction & Basic Fixes
-   *   Extracts JSON structure and fixes basic structural issues
-   *   - extractLargestJsonSpan: Isolate the main JSON structure from surrounding text
-   *   - collapseDuplicateJsonObject: Fix cases where LLMs repeat the entire JSON object
-   *   - addMissingCommas: Insert missing commas between properties on separate lines
-   *   - removeTrailingCommas: Remove invalid trailing commas before closing delimiters
-   *   - fixMismatchedDelimiters: Correct bracket/brace mismatches
-   *   - completeTruncatedStructures: Close unclosed brackets/braces from truncated responses
+   * Phase 3: Syntax Fixes (Consolidated)
+   *   Fixes common JSON syntax errors
+   *   - fixJsonSyntax: Consolidated sanitizer that handles:
+   *     * Adding missing commas
+   *     * Removing trailing commas
+   *     * Fixing mismatched delimiters
+   *     * Completing truncated structures
+   *     * Fixing missing array object braces
+   *
+   * Phase 4: Property & Value Fixes
+   *   Fixes property names and value syntax issues
    *   - fixJsonStructure: Post-processing fixes for various structural issues
-   *   - fixHeuristicJsonErrors: Fixes assorted malformed patterns like duplicate entries, truncated properties, stray text
-   *
-   * Phase 3: Property & Structure Fixes
-   *   Fixes property names and array object structures
    *   - unifiedSyntaxSanitizer: Unified property and value syntax fixes
-   *   - fixMissingArrayObjectBraces: Insert missing opening braces for new objects in arrays
+   *   - fixHeuristicJsonErrors: Fixes assorted malformed patterns
+   *   - fixMalformedJsonPatterns: Fixes specific malformed patterns
    *
-   * Phase 4: Content Fixes
-   *   Fixes content corruption and truncation markers
+   * Phase 5: Content Fixes
+   *   Fixes content corruption
    *   - fixBinaryCorruptionPatterns: Fix binary corruption patterns (e.g., <y_bin_XXX> markers)
-   *   - removeTruncationMarkers: Remove truncation markers (e.g., ...)
    *
    * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
    * which is more efficient than attempting to parse during sanitization.
@@ -93,24 +90,16 @@ export class JsonProcessor {
    * so earlier sanitizers have priority in fixing issues.
    */
   private readonly SANITIZATION_PIPELINE_PHASES = [
-    // Phase 1: Noise Removal
-    [trimWhitespace, removeCodeFences, normalizeCharacters, removeInvalidPrefixes],
-    // Phase 2: Structure Extraction & Basic Fixes
-    [
-      extractLargestJsonSpan,
-      collapseDuplicateJsonObject,
-      addMissingCommas,
-      removeTrailingCommas,
-      fixMismatchedDelimiters,
-      completeTruncatedStructures,
-      fixJsonStructure,
-      fixHeuristicJsonErrors,
-      fixMalformedJsonPatterns,
-    ],
-    // Phase 3: Property & Structure Fixes
-    [unifiedSyntaxSanitizer, fixMissingArrayObjectBraces],
-    // Phase 4: Content Fixes
-    [fixBinaryCorruptionPatterns, removeTruncationMarkers],
+    // Phase 1: Structural & Noise Removal (Consolidated)
+    [fixJsonStructureAndNoise],
+    // Phase 2: Character Normalization
+    [normalizeCharacters],
+    // Phase 3: Syntax Fixes (Consolidated)
+    [fixJsonSyntax],
+    // Phase 4: Property & Value Fixes
+    [fixJsonStructure, unifiedSyntaxSanitizer, fixHeuristicJsonErrors, fixMalformedJsonPatterns],
+    // Phase 5: Content Fixes
+    [fixBinaryCorruptionPatterns],
   ] as const satisfies readonly (readonly Sanitizer[])[];
 
   /**

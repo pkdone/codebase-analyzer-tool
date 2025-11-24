@@ -131,7 +131,7 @@ describe("Template Consolidation", () => {
     it("should be usable in Prompt class", () => {
       const mockDefinition = {
         contentDesc: "test content",
-        instructions: [{ points: ["test instruction"] }],
+        instructions: ["test instruction"],
         responseSchema: z.string(),
         template: SOURCES_TEMPLATE,
       };

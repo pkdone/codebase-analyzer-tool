@@ -11,7 +11,7 @@ describe("Prompt Constructor and Templates", () => {
   const sourceDefinition: PromptDefinition = {
     label: "Test",
     contentDesc: "test content",
-    instructions: [{ points: ["instruction 1"] }],
+    instructions: ["instruction 1"],
     responseSchema: z.string(),
     template: SOURCES_TEMPLATE,
   };
@@ -19,7 +19,7 @@ describe("Prompt Constructor and Templates", () => {
   const appSummaryDefinition: PromptDefinition = {
     label: "Test",
     contentDesc: "test content",
-    instructions: [{ points: ["instruction 1"] }],
+    instructions: ["instruction 1"],
     responseSchema: z.string(),
     template: APP_SUMMARY_TEMPLATE,
   };

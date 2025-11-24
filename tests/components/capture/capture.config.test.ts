@@ -1,6 +1,5 @@
 import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";
 import { sourceConfigMap } from "../../../src/prompts/definitions/sources/sources.config";
-import { InstructionSection } from "../../../src/prompts/prompt.types";
 
 describe("fileTypeMetadataConfig", () => {
   describe("supported file types", () => {
@@ -51,9 +50,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include expected instructions", () => {
       const instructions = fileTypePromptMetadata.java.instructions;
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("namespace");
       expect(instructionText).toContain("public methods");
@@ -79,9 +76,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include expected instructions", () => {
       const instructions = fileTypePromptMetadata.javascript.instructions;
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("purpose");
       expect(instructionText).toContain("implementation");
@@ -100,9 +95,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include SQL-specific instructions", () => {
       const instructions = fileTypePromptMetadata.sql.instructions;
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("stored procedure");
       expect(instructionText).toContain("triggers");
@@ -126,9 +119,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include C#-specific instructions", () => {
       const instructions = fileTypePromptMetadata.csharp.instructions;
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("Entity Framework");
       expect(instructionText).toContain("Dapper");
@@ -147,9 +138,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include Ruby-specific instructions", () => {
       const instructions = fileTypePromptMetadata.ruby.instructions;
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("ActiveRecord");
       expect(instructionText).toContain("module");
@@ -175,12 +164,11 @@ describe("fileTypeMetadataConfig", () => {
     it("should have only BASIC_INFO and REFERENCES_AND_DEPS instruction sections", () => {
       const instructions = fileTypePromptMetadata.maven.instructions;
       expect(instructions.length).toBe(2);
-      expect(instructions[0].title).toBe("Basic Information");
-      expect(instructions[1].title).toBe("References and Dependencies");
+      // Instructions now contain formatted strings with titles
+      expect(instructions[0]).toContain("Basic Information");
+      expect(instructions[1]).toContain("References and Dependencies");
 
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("dependencies");
       expect(instructionText).toContain("POM file");
@@ -201,9 +189,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should have dependency extraction instructions", () => {
       const instructions = fileTypePromptMetadata.gradle.instructions;
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("dependencies");
       expect(instructionText).toContain("Groovy DSL");
@@ -225,9 +211,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should have dependency extraction instructions for npm", () => {
       const instructions = fileTypePromptMetadata.npm.instructions;
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("dependencies");
       expect(instructionText).toContain("package name");
@@ -251,9 +235,7 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should have dependency extraction instructions for pip", () => {
       const instructions = fileTypePromptMetadata["python-pip"].instructions;
-      const instructionArray = instructions.flatMap(
-        (section: InstructionSection) => section.points,
-      );
+      const instructionArray = instructions;
       const instructionText = instructionArray.join(" ");
       expect(instructionText).toContain("dependencies");
       expect(instructionText).toContain("Pipfile");

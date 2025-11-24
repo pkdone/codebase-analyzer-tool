@@ -71,9 +71,7 @@ describe("App Summaries Config", () => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata.instructions).toBeDefined();
         expect(metadata.instructions).toHaveLength(1);
-        expect(metadata.instructions[0].points).toBeDefined();
-        expect(metadata.instructions[0].points).toHaveLength(1);
-        expect(metadata.instructions[0].points[0]).toBe(config.contentDesc);
+        expect(metadata.instructions[0]).toBe(config.contentDesc);
       });
     });
 
@@ -83,7 +81,7 @@ describe("App Summaries Config", () => {
         // contentDesc should be generic
         expect(metadata.contentDesc).toBe("a set of source file summaries");
         // instructions should contain the specific instruction from config
-        expect(metadata.instructions[0].points[0]).toBe(config.contentDesc);
+        expect(metadata.instructions[0]).toBe(config.contentDesc);
       });
     });
   });

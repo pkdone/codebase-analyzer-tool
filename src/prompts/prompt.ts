@@ -1,21 +1,15 @@
 import { fillPrompt } from "type-safe-prompt";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { PROMPT_FRAGMENTS } from "./definitions/fragments";
-import { type InstructionSection, type PromptDefinition } from "./prompt.types";
+import { type PromptDefinition } from "./prompt.types";
 
 /**
- * Formats instruction sections with optional titles, joining points with newlines.
- * Sections with titles have the title formatted with underscores, then points are listed.
- * Sections without titles list points directly.
+ * Formats instructions by joining them with newlines.
+ * Instructions are expected to be pre-formatted strings that may include
+ * section titles (e.g., "__TITLE__\n- Point 1").
  */
-function formatInstructions(instructions: readonly InstructionSection[]): string {
-  return instructions
-    .map((section) => {
-      const title = section.title ? `__${section.title}__\n` : "";
-      const points = section.points.join("\n");
-      return `${title}${points}`;
-    })
-    .join("\n\n");
+function formatInstructions(instructions: readonly string[]): string {
+  return instructions.join("\n\n");
 }
 
 /**

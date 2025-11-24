@@ -11,20 +11,11 @@ import { SourcesRepository } from "../../repositories/sources/sources.repository
 import { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 
 // Domain-specific registration functions
-import {
-  registerCaptureComponents,
-  registerLLMDependentCaptureComponents,
-} from "./capture-registration";
-import {
-  registerInsightsComponents,
-  registerLLMDependentInsightsComponents,
-} from "./insights-registration";
+import { registerCaptureComponents } from "./capture-registration";
+import { registerInsightsComponents } from "./insights-registration";
 import { registerReportingComponents } from "./reporting-registration";
 import { registerApiComponents } from "./api-registration";
-import {
-  registerQueryingComponents,
-  registerLLMDependentQueryingComponents,
-} from "./querying-registration";
+import { registerQueryingComponents } from "./querying-registration";
 
 // Task imports (these are top-level orchestrators for CLI commands)
 import { CodebaseCaptureTask } from "../../tasks/codebase-capture.task";
@@ -95,29 +86,15 @@ function registerComponents(): void {
   // Register database components
   container.registerSingleton(taskTokens.DatabaseInitializer, DatabaseInitializer);
 
-  // Register domain-specific components
+  // Register domain-specific components (including LLM-dependent ones)
+  // tsyringe's lazy-loading ensures components are only instantiated when actually needed
   registerCaptureComponents();
   registerInsightsComponents();
   registerReportingComponents();
   registerApiComponents();
   registerQueryingComponents();
 
-  // Always register LLM-dependent components - tsyringe's lazy-loading ensures
-  // they're only instantiated when actually needed
-  registerLLMDependentComponents();
-
   console.log("Internal helper components registered");
-}
-
-/**
- * Register components that depend on LLMRouter using domain-specific registrations.
- * Delegates to domain-specific modules for better organization.
- */
-function registerLLMDependentComponents(): void {
-  // Register LLM-dependent components by domain
-  registerLLMDependentCaptureComponents();
-  registerLLMDependentInsightsComponents();
-  registerLLMDependentQueryingComponents();
 }
 
 /**

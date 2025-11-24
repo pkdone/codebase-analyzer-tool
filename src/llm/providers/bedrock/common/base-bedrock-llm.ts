@@ -129,12 +129,30 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
-   * Execute the prompt against the LLM and return the relevant sumamry of the LLM's answer.
+   * Execute the prompt against the LLM and return the relevant summary of the LLM's answer.
    */
   protected async invokeProvider(taskType: LLMPurpose, modelKey: string, prompt: string) {
-    return taskType === LLMPurpose.EMBEDDINGS
-      ? this.invokeEmbeddings(modelKey, prompt)
-      : this.invokeCompletion(modelKey, prompt);
+    if (taskType === LLMPurpose.EMBEDDINGS) {
+      const parameters = this.buildEmbeddingParameters(modelKey, prompt);
+      const command = new InvokeModelCommand(parameters);
+      const rawResponse = await this.client.send(command);
+      const jsonString = new TextDecoder(commonConstants.UTF8_ENCODING).decode(rawResponse.body);
+      const llmResponse: unknown = JSON.parse(jsonString);
+      return this.extractEmbeddingModelSpecificResponse(llmResponse);
+    } else {
+      const parameters = this.buildCompletionParameters(modelKey, prompt);
+      const command = new InvokeModelCommand(parameters);
+      const rawResponse = await this.client.send(command);
+      const jsonString = new TextDecoder(commonConstants.UTF8_ENCODING).decode(rawResponse.body);
+      const llmResponse: unknown = JSON.parse(jsonString);
+      const config = this.getResponseExtractionConfig();
+      return extractGenericCompletionResponse(
+        llmResponse,
+        config.schema,
+        config.pathConfig,
+        config.providerName,
+      );
+    }
   }
 
   /**
@@ -212,30 +230,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   private buildCompletionParameters(modelKey: string, prompt: string) {
     const bodyObj = this.buildCompletionRequestBody(modelKey, prompt);
     return this.buildBedrockParameters(modelKey, bodyObj);
-  }
-
-  private async invokeEmbeddings(modelKey: string, prompt: string) {
-    const parameters = this.buildEmbeddingParameters(modelKey, prompt);
-    const command = new InvokeModelCommand(parameters);
-    const rawResponse = await this.client.send(command);
-    const jsonString = new TextDecoder(commonConstants.UTF8_ENCODING).decode(rawResponse.body);
-    const llmResponse: unknown = JSON.parse(jsonString);
-    return this.extractEmbeddingModelSpecificResponse(llmResponse);
-  }
-
-  private async invokeCompletion(modelKey: string, prompt: string) {
-    const parameters = this.buildCompletionParameters(modelKey, prompt);
-    const command = new InvokeModelCommand(parameters);
-    const rawResponse = await this.client.send(command);
-    const jsonString = new TextDecoder(commonConstants.UTF8_ENCODING).decode(rawResponse.body);
-    const llmResponse: unknown = JSON.parse(jsonString);
-    const config = this.getResponseExtractionConfig();
-    return extractGenericCompletionResponse(
-      llmResponse,
-      config.schema,
-      config.pathConfig,
-      config.providerName,
-    );
   }
 
   /**

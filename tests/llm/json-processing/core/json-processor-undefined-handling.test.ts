@@ -277,7 +277,13 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         }
 
         // Verify that sanitization steps were applied
-        expect(result.steps).toContain("Removed code fences");
+        expect(
+          result.steps.some(
+            (s: string) =>
+              s.includes("Fixed JSON structure and noise") ||
+              s.includes("Removed markdown code fences"),
+          ),
+        ).toBe(true);
         expect(result.steps).toContain("Fixed property and value syntax");
       }
     });

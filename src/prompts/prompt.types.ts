@@ -3,7 +3,8 @@ import { AppSummaryCategories } from "../schemas/app-summaries.schema";
 import type { CanonicalFileType } from "../config/file-types.config";
 
 /**
- * Represents a section of instructions with an optional title
+ * @deprecated Use readonly string[] instead. Instruction sections can be formatted
+ * directly in the strings (e.g., "__TITLE__\n- Point 1").
  */
 export interface InstructionSection {
   /** Optional title for the instruction section */
@@ -19,8 +20,9 @@ export interface InstructionSection {
 export interface PromptDefinition {
   /** Description of the content being analyzed (e.g., "JVM code", "source files") */
   contentDesc: string;
-  /** Array of instruction sections for the LLM, which will be formatted appropriately */
-  instructions: readonly InstructionSection[];
+  /** Array of instruction strings for the LLM. Instructions can include section titles
+   * formatted as "__TITLE__\n- Point 1" for better organization. */
+  instructions: readonly string[];
   /** Zod schema for validating the LLM response */
   responseSchema: z.ZodType;
   /** Whether the schema is complex and incompatible with some LLM providers */

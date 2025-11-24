@@ -11,11 +11,7 @@ export const codebaseQueryPromptDefinition: PromptDefinition = {
   label: "Codebase Query",
   contentDesc: "source code files",
   instructions: [
-    {
-      points: [
-        "Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.",
-      ],
-    },
+    "Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.",
   ],
   responseSchema: z.string(), // Text response, not JSON
   template: CODEBASE_QUERY_TEMPLATE,
@@ -36,7 +32,7 @@ export function createReduceInsightsPromptDefinition(
   return {
     label: `Reduce ${categoryLabel}`,
     contentDesc: "several JSON objects",
-    instructions: [{ points: [`a consolidated list of '${categoryLabel}'`] }],
+    instructions: [`a consolidated list of '${categoryLabel}'`],
     responseSchema,
     template: REDUCE_INSIGHTS_TEMPLATE,
   };

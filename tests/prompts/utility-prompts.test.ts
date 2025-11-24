@@ -55,8 +55,7 @@ describe("Utility Prompts", () => {
       expect(definition.template).toBe(REDUCE_INSIGHTS_TEMPLATE);
       expect(definition.responseSchema).toBe(responseSchema);
       expect(definition.instructions).toHaveLength(1);
-      expect(definition.instructions[0].points).toHaveLength(1);
-      expect(definition.instructions[0].points[0]).toContain("a consolidated list of 'Entities'");
+      expect(definition.instructions[0]).toContain("a consolidated list of 'Entities'");
     });
 
     it("should render correctly with categoryKey parameter", () => {
@@ -89,7 +88,7 @@ describe("Utility Prompts", () => {
       const labels = ["Entities", "Aggregates", "Bounded Contexts"];
       labels.forEach((label) => {
         const definition = createReduceInsightsPromptDefinition(label, z.string());
-        expect(definition.instructions[0].points[0]).toContain(`'${label}'`);
+        expect(definition.instructions[0]).toContain(`'${label}'`);
       });
     });
   });

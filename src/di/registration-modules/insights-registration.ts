@@ -20,6 +20,8 @@ import { UiAggregator } from "../../components/insights/data-aggregators/ui-aggr
  * - Generating insights from database content
  * - Generating insights from raw code
  * - Managing insight generation strategies based on LLM capabilities
+ *
+ * All components are registered here since tsyringe uses lazy-loading.
  */
 export function registerInsightsComponents(): void {
   // Register individual aggregators
@@ -33,6 +35,19 @@ export function registerInsightsComponents(): void {
         implementation: ModuleCouplingAggregator,
       },
       { token: insightsTokens.UiAggregator, implementation: UiAggregator },
+      {
+        token: insightsTokens.PromptFileInsightsGenerator,
+        implementation: PromptFileInsightsGenerator,
+      },
+      { token: insightsTokens.InsightsFromDBGenerator, implementation: InsightsFromDBGenerator },
+      {
+        token: insightsTokens.InsightsFromRawCodeGenerator,
+        implementation: InsightsFromRawCodeGenerator,
+      },
+      {
+        token: insightsTokens.InsightsProcessorSelector,
+        implementation: InsightsProcessorSelector,
+      },
     ],
     "Insights components registered",
   );
@@ -53,29 +68,4 @@ export function registerInsightsComponents(): void {
   container.register(insightsTokens.Aggregator, {
     useToken: insightsTokens.UiAggregator,
   });
-}
-
-/**
- * Register insights components that depend on LLM services.
- * These components require LLM functionality to be available.
- */
-export function registerLLMDependentInsightsComponents(): void {
-  registerComponents(
-    [
-      {
-        token: insightsTokens.PromptFileInsightsGenerator,
-        implementation: PromptFileInsightsGenerator,
-      },
-      { token: insightsTokens.InsightsFromDBGenerator, implementation: InsightsFromDBGenerator },
-      {
-        token: insightsTokens.InsightsFromRawCodeGenerator,
-        implementation: InsightsFromRawCodeGenerator,
-      },
-      {
-        token: insightsTokens.InsightsProcessorSelector,
-        implementation: InsightsProcessorSelector,
-      },
-    ],
-    "LLM-dependent insights components registered",
-  );
 }

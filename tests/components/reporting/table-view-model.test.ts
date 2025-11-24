@@ -532,133 +532,31 @@ describe("TableViewModel", () => {
     });
   });
 
-  describe("getColumnClasses - column classification", () => {
-    it("should return column classes for empty data", () => {
+  describe("getColumnClasses - simplified implementation", () => {
+    it("should return empty strings for all columns (styling moved to templates)", () => {
       const vm = new TableViewModel([]);
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       expect(vm.getColumnClasses()).toEqual([]);
     });
 
-    it("should classify numeric columns as col-narrow numeric", () => {
-      const data = [
-        { fileCount: 50, totalLines: 1000, lineNumber: 42, complexity: "LOW", itemCount: 5 },
-      ];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-narrow numeric"); // fileCount
-      expect(classes[1]).toBe("col-narrow numeric"); // totalLines
-      expect(classes[2]).toBe("col-narrow numeric"); // lineNumber
-      expect(classes[3]).toBe("col-narrow numeric"); // complexity
-      expect(classes[4]).toBe("col-narrow numeric"); // itemCount
-    });
-
-    it("should classify identifier columns as col-small", () => {
-      const data = [{ type: "TypeScript", category: "Code", status: "Active", level: "HIGH" }];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-small"); // type
-      expect(classes[1]).toBe("col-small"); // category
-      expect(classes[2]).toBe("col-small"); // status
-      expect(classes[3]).toBe("col-small"); // level
-    });
-
-    it("should classify very short columns as col-small", () => {
-      const data = [{ id: "123", age: 30, sex: "M", zip: "12345" }];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-small"); // id (2 chars, very short)
-      expect(classes[1]).toBe("col-small"); // age (3 chars, very short)
-      expect(classes[2]).toBe("col-small"); // sex (3 chars, very short)
-      expect(classes[3]).toBe("col-small"); // zip (3 chars, very short)
-    });
-
-    it("should not classify entities or endpoint as col-small despite short length", () => {
-      const data = [{ entities: ["User", "Order"], endpoint: "/api/users" }];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-wide"); // entities - special case
-      expect(classes[1]).toBe("col-medium"); // endpoint - special case, not short
-    });
-
-    it("should classify description columns as col-description", () => {
+    it("should return empty strings for all columns regardless of content", () => {
       const data = [
         {
+          fileCount: 50,
           description: "A detailed description",
-          details: "Additional details",
-          content: "Some content",
-          summary: "Brief summary",
-          comment: "User comment",
-          note: "Important note",
-        },
-      ];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-description"); // description
-      expect(classes[1]).toBe("col-description"); // details
-      expect(classes[2]).toBe("col-description"); // content
-      expect(classes[3]).toBe("col-description"); // summary
-      expect(classes[4]).toBe("col-description"); // comment
-      expect(classes[5]).toBe("col-description"); // note
-    });
-
-    it("should classify data-rich columns as col-wide", () => {
-      const data = [
-        {
           entities: ["User", "Order"],
-          endpoints: ["/api/users", "/api/orders"],
-          operations: ["CREATE", "READ", "UPDATE", "DELETE"],
-          methods: ["get", "post", "put", "delete"],
-          attributes: ["id", "name", "email"],
-          properties: ["visible", "enabled"],
-          fields: ["firstName", "lastName"],
+          type: "TypeScript",
         },
       ];
       const vm = new TableViewModel(data);
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       const classes = vm.getColumnClasses();
 
-      expect(classes[0]).toBe("col-wide"); // entities
-      expect(classes[1]).toBe("col-wide"); // endpoints
-      expect(classes[2]).toBe("col-wide"); // operations
-      expect(classes[3]).toBe("col-wide"); // methods
-      expect(classes[4]).toBe("col-wide"); // attributes
-      expect(classes[5]).toBe("col-wide"); // properties
-      expect(classes[6]).toBe("col-wide"); // fields
+      // All columns should return empty strings - CSS classes should be applied in templates
+      expect(classes).toEqual(["", "", "", ""]);
     });
 
-    it("should classify columns with complex content as col-wide", () => {
-      const data = [
-        {
-          simpleText: "short",
-          longTextValue:
-            "This is a very long text content that exceeds 100 characters and should be classified as wide column based on content length analysis",
-          listOfItems: ["item1", "item2", "item3"],
-          bulletedList: "• First point | Second point : Third point with separator",
-        },
-      ];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-medium"); // simpleText - default
-      expect(classes[1]).toBe("col-wide"); // longTextValue - > 100 chars
-      expect(classes[2]).toBe("col-wide"); // listOfItems - array with > 1 item
-      expect(classes[3]).toBe("col-wide"); // bulletedList - has structured content indicators
-    });
-
-    it("should default to col-medium for standard columns", () => {
-      const data = [{ firstName: "John", lastName: "Doe", email: "john@example.com" }];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-medium"); // firstName
-      expect(classes[1]).toBe("col-medium"); // lastName
-      expect(classes[2]).toBe("col-medium"); // email
-    });
-
-    it("should handle mixed column types correctly", () => {
+    it("should return empty strings for mixed column types", () => {
       const data = [
         {
           id: 1,
@@ -670,37 +568,11 @@ describe("TableViewModel", () => {
         },
       ];
       const vm = new TableViewModel(data);
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
       const classes = vm.getColumnClasses();
 
-      expect(classes[0]).toBe("col-small"); // id (short, 2 chars)
-      expect(classes[1]).toBe("col-small"); // type (identifier keyword)
-      expect(classes[2]).toBe("col-medium"); // username (8 chars, no special classification)
-      expect(classes[3]).toBe("col-description"); // description (description keyword)
-      expect(classes[4]).toBe("col-narrow numeric"); // count (numeric keyword)
-      expect(classes[5]).toBe("col-wide"); // tagsList (array with > 1 item detected as complex content)
-    });
-
-    it("should sample multiple rows for complex content detection", () => {
-      const data = [
-        { textMessage: "short" },
-        { textMessage: "also short" },
-        {
-          textMessage:
-            "This is a very long message in the third row that should trigger complex content detection because it exceeds one hundred characters",
-        },
-      ];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-wide"); // textMessage - has long content in sample
-    });
-
-    it("should handle null and undefined values in content analysis", () => {
-      const data = [{ value: null }, { value: undefined }, { value: "short text" }];
-      const vm = new TableViewModel(data);
-      const classes = vm.getColumnClasses();
-
-      expect(classes[0]).toBe("col-medium"); // value - defaults to medium
+      // All columns should return empty strings
+      expect(classes).toEqual(["", "", "", "", "", ""]);
     });
   });
 
