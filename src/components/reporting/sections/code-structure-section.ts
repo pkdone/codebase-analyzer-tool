@@ -6,7 +6,10 @@ import { DependencyTreePngGenerator } from "../generators/png/dependency-tree-pn
 import { TableViewModel } from "../view-models/table-view-model";
 import { htmlReportConstants } from "../html-report.constants";
 import { reportSectionsConfig } from "../report-sections.config";
-import type { HierarchicalJavaClassDependency } from "../../../repositories/sources/sources.model";
+import type {
+  HierarchicalJavaClassDependency,
+  HierarchicalTopLevelJavaClassDependencies,
+} from "../../../repositories/sources/sources.model";
 import type { PreparedHtmlReportData } from "../html-report-writer";
 import type { PreparedJsonData } from "../json-report-writer";
 import type { ReportData } from "../report-gen.types";
@@ -72,7 +75,16 @@ export class CodeStructureSection implements ReportSection {
     sectionData: unknown,
     htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    const topLevelJavaClasses = sectionData as ReportData["topLevelJavaClasses"];
+    // Handle both cases: sectionData as array (tests) or as object with topLevelJavaClasses property (production)
+    let topLevelJavaClasses: ReportData["topLevelJavaClasses"];
+    if (Array.isArray(sectionData)) {
+      topLevelJavaClasses = sectionData as HierarchicalTopLevelJavaClassDependencies[];
+    } else {
+      const sectionDataTyped = sectionData as Partial<ReportData>;
+      topLevelJavaClasses = Array.isArray(sectionDataTyped.topLevelJavaClasses)
+        ? sectionDataTyped.topLevelJavaClasses
+        : [];
+    }
 
     const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
 
@@ -111,7 +123,16 @@ export class CodeStructureSection implements ReportSection {
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
   prepareJsonData(_baseData: ReportData, sectionData: unknown): PreparedJsonData[] {
-    const topLevelJavaClasses = sectionData as ReportData["topLevelJavaClasses"];
+    // Handle both cases: sectionData as array (tests) or as object with topLevelJavaClasses property (production)
+    let topLevelJavaClasses: ReportData["topLevelJavaClasses"];
+    if (Array.isArray(sectionData)) {
+      topLevelJavaClasses = sectionData as HierarchicalTopLevelJavaClassDependencies[];
+    } else {
+      const sectionDataTyped = sectionData as Partial<ReportData>;
+      topLevelJavaClasses = Array.isArray(sectionDataTyped.topLevelJavaClasses)
+        ? sectionDataTyped.topLevelJavaClasses
+        : [];
+    }
 
     return [
       {
