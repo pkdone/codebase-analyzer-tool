@@ -19,13 +19,3 @@ export type PartialAppSummaryRecord = Partial<z.infer<typeof appSummarySchema>>;
  * Type for the enum of app summary categories
  */
 export type AppSummaryCategoryEnum = AppSummaryCategoryType;
-
-/**
- * Interface for application insights processors that analyze code and generate architectural insights.
- */
-export interface ApplicationInsightsProcessor {
-  /**
-   * Generates insights and stores them in the database.
-   */
-  generateAndStoreInsights(): Promise<void>;
-}

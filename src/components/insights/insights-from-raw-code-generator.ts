@@ -5,7 +5,7 @@ import type { AppSummariesRepository } from "../../repositories/app-summaries/ap
 import { repositoryTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
 import { coreTokens } from "../../di/tokens";
-import type { ApplicationInsightsProcessor } from "./insights.types";
+import type { IInsightsProcessor } from "./insights-processor.interface";
 import { formatCodeBlockMarkdownFromFolderCodebase } from "../../common/utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
 import { logSingleLineWarning } from "../../common/utils/logging";
@@ -26,7 +26,7 @@ const ALL_CATEGORIES_SCHEMA_IS_VERTEXAI_INCOMPATIBLE = true;
  * Class to generate insights from raw code
  */
 @injectable()
-export default class InsightsFromRawCodeGenerator implements ApplicationInsightsProcessor {
+export default class InsightsFromRawCodeGenerator implements IInsightsProcessor {
   // Private fields
   private readonly llmProviderDescription: string;
 

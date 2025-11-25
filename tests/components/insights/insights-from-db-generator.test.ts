@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import InsightsFromDBGenerator from "../../../src/components/insights/processors/insights-from-db-generator";
+import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
 import { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
 import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../src/llm/llm-router";

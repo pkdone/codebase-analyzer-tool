@@ -14,7 +14,7 @@ import LLMRouter from "../../llm/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { formatCodeBlockMarkdownFromFolderCodebase } from "../../common/utils/codebase-formatter";
 import { formatDateForFilename } from "../../common/utils/date-utils";
-import { insightsInputConfig } from "./reqs-files.config";
+import { reqsFilesConfig } from "./reqs-files.config";
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -39,10 +39,7 @@ export class RawAnalyzerDrivenByReqsFiles {
   /**
    * Process source files with prompts and write individual output files.
    */
-  async generateInsightsToFiles(
-    srcDirPath: string,
-    llmName: string,
-  ): Promise<string[]> {
+  async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<string[]> {
     const prompts = await this.loadPrompts();
     const codeBlocksContent = await formatCodeBlockMarkdownFromFolderCodebase(srcDirPath);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
@@ -97,14 +94,14 @@ export class RawAnalyzerDrivenByReqsFiles {
    * Load prompts from files in the input folder
    */
   private async loadPrompts(): Promise<FileRequirementPrompt[]> {
-    const inputDir = insightsInputConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
+    const inputDir = reqsFilesConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 
     try {
       await ensureDirectoryExists(inputDir);
       const files = await listDirectoryEntries(inputDir);
       const promptFiles = files.filter((file) =>
-        insightsInputConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
+        reqsFilesConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
       );
 
       for (const file of promptFiles) {

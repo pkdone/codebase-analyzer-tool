@@ -5,7 +5,7 @@
 
 const INPUT_BASE_PATH = "./input";
 
-export const insightsInputConfig = {
+export const reqsFilesConfig = {
   /**
    * Path to folder containing requirement prompt files
    */

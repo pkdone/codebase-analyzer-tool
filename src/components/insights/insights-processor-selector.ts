@@ -4,8 +4,8 @@ import { insightsTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
 import LLMRouter from "../../llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
-import type InsightsFromDBGenerator from "./processors/insights-from-db-generator";
-import type InsightsFromRawCodeGenerator from "./processors/insights-from-raw-code-generator";
+import type InsightsFromDBGenerator from "./insights-from-db-generator";
+import type InsightsFromRawCodeGenerator from "./insights-from-raw-code-generator";
 import { formatCodeBlockMarkdownFromFolderCodebase } from "../../common/utils/codebase-formatter";
 import { llmProviderConfig } from "../../llm/llm.config";
 

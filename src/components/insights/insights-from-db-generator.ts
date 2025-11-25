@@ -11,7 +11,7 @@ import { insightsTokens } from "../../di/tokens";
 import { insightsTuningConfig } from "./insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
-import type { ApplicationInsightsProcessor, PartialAppSummaryRecord } from "./insights.types";
+import type { IInsightsProcessor } from "./insights-processor.interface";
 import { AppSummaryCategoryEnum } from "./insights.types";
 import { ICompletionStrategy } from "./completion-strategies/completion-strategy.interface";
 import { SinglePassCompletionStrategy } from "./completion-strategies/single-pass-completion-strategy";
@@ -30,7 +30,7 @@ import type { UiAnalysisSummary } from "./data-aggregators/ui-aggregator";
  * Uses strategy pattern to select between single-pass and map-reduce approaches.
  */
 @injectable()
-export default class InsightsFromDBGenerator implements ApplicationInsightsProcessor {
+export default class InsightsFromDBGenerator implements IInsightsProcessor {
   private readonly llmProviderDescription: string;
   private readonly maxTokens: number;
   private readonly singlePassStrategy: ICompletionStrategy;
@@ -191,36 +191,8 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     try {
       console.log(`Processing ${categoryLabel}`);
       const aggregatedData = await aggregator.aggregate(this.projectName);
-
-      // Map aggregator results to the appropriate update method
-      // Special handling for billOfMaterials - it stores dependencies array, not the full object
-      if (category === "billOfMaterials") {
-        const bomData = aggregatedData as BomAggregationResult;
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          billOfMaterials: bomData.dependencies,
-        });
-      } else if (category === "codeQualitySummary") {
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          codeQualitySummary: aggregatedData as CodeQualityAggregationResult,
-        });
-      } else if (category === "scheduledJobsSummary") {
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          scheduledJobsSummary: aggregatedData as ScheduledJobsAggregationResult,
-        });
-      } else if (category === "moduleCoupling") {
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          moduleCoupling: aggregatedData as ModuleCouplingAggregationResult,
-        });
-      } else if (category === "uiTechnologyAnalysis") {
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          uiTechnologyAnalysis: aggregatedData as UiAnalysisSummary,
-        });
-      } else {
-        // Fallback for any other categories (shouldn't happen with current aggregators)
-        await this.appSummariesRepository.updateAppSummary(this.projectName, {
-          [category]: aggregatedData,
-        } as PartialAppSummaryRecord);
-      }
+      const updatePayload = aggregator.getUpdatePayload(aggregatedData);
+      await this.appSummariesRepository.updateAppSummary(this.projectName, updatePayload);
 
       // Log success with category-specific details
       if (category === "billOfMaterials") {
