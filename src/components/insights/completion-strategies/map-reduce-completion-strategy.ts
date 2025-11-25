@@ -7,10 +7,10 @@ import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../pr
 import { logSingleLineWarning } from "../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../di/tokens";
-import { IInsightGenerationStrategy } from "./insight-generation-strategy.interface";
+import { ICompletionStrategy } from "./completion-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
-import { executeInsightCompletion } from "./insight-completion.service";
+import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../llm/utils/text-chunking";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
@@ -21,7 +21,7 @@ const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
  * Splits summaries into chunks, processes each chunk (MAP), then consolidates results (REDUCE).
  */
 @injectable()
-export class MapReduceInsightStrategy implements IInsightGenerationStrategy {
+export class MapReduceCompletionStrategy implements ICompletionStrategy {
   private readonly maxTokens: number;
 
   constructor(@inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter) {

@@ -5,7 +5,7 @@ import { registerComponents } from "../registration-utils";
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/processors/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../components/insights/processors/insights-from-raw-code-generator";
-import { PromptFileInsightsGenerator } from "../../components/raw-analysis/prompt-file-insights-generator";
+import { RawAnalyzerDrivenByReqsFiles } from "../../components/raw-analysis/raw-analyzer-driven-by-reqs-files";
 import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 import { BomAggregator } from "../../components/insights/data-aggregators/bom-aggregator";
 import { CodeQualityAggregator } from "../../components/insights/data-aggregators/code-quality-aggregator";
@@ -37,7 +37,7 @@ export function registerInsightsComponents(): void {
       { token: insightsTokens.UiAggregator, implementation: UiAggregator },
       {
         token: insightsTokens.PromptFileInsightsGenerator,
-        implementation: PromptFileInsightsGenerator,
+        implementation: RawAnalyzerDrivenByReqsFiles,
       },
       { token: insightsTokens.InsightsFromDBGenerator, implementation: InsightsFromDBGenerator },
       {

@@ -13,9 +13,9 @@ import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../promp
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { ApplicationInsightsProcessor, PartialAppSummaryRecord } from "./insights.types";
 import { AppSummaryCategoryEnum } from "./insights.types";
-import { IInsightGenerationStrategy } from "./strategies/insight-generation-strategy.interface";
-import { SinglePassInsightStrategy } from "./strategies/single-pass-strategy";
-import { MapReduceInsightStrategy } from "./strategies/map-reduce-strategy";
+import { ICompletionStrategy } from "./completion-strategies/completion-strategy.interface";
+import { SinglePassCompletionStrategy } from "./completion-strategies/single-pass-completion-strategy";
+import { MapReduceCompletionStrategy } from "./completion-strategies/map-reduce-completion-strategy";
 import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
 import type { IAggregator } from "./data-aggregators/aggregator.interface";
 import type { BomAggregationResult } from "./data-aggregators/bom-aggregator";
@@ -33,8 +33,8 @@ import type { UiAnalysisSummary } from "./data-aggregators/ui-aggregator";
 export default class InsightsFromDBGenerator implements ApplicationInsightsProcessor {
   private readonly llmProviderDescription: string;
   private readonly maxTokens: number;
-  private readonly singlePassStrategy: IInsightGenerationStrategy;
-  private readonly mapReduceStrategy: IInsightGenerationStrategy;
+  private readonly singlePassStrategy: ICompletionStrategy;
+  private readonly mapReduceStrategy: ICompletionStrategy;
 
   /**
    * Creates a new InsightsFromDBGenerator with strategy-based processing.
@@ -54,8 +54,8 @@ export default class InsightsFromDBGenerator implements ApplicationInsightsProce
     this.maxTokens = manifest.models.primaryCompletion.maxTotalTokens;
 
     // Initialize strategies
-    this.singlePassStrategy = new SinglePassInsightStrategy(this.llmRouter);
-    this.mapReduceStrategy = new MapReduceInsightStrategy(this.llmRouter);
+    this.singlePassStrategy = new SinglePassCompletionStrategy(this.llmRouter);
+    this.mapReduceStrategy = new MapReduceCompletionStrategy(this.llmRouter);
   }
 
   /**

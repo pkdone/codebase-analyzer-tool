@@ -4,7 +4,7 @@ import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.typ
  * Strategy interface for generating insights from source file summaries.
  * Different implementations can handle small codebases (single-pass) vs large codebases (map-reduce).
  */
-export interface IInsightGenerationStrategy {
+export interface ICompletionStrategy {
   /**
    * Generate insights for a specific category using source file summaries.
    *

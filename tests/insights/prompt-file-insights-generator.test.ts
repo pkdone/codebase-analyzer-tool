@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { PromptFileInsightsGenerator } from "../../src/components/raw-analysis/prompt-file-insights-generator";
+import { RawAnalyzerDrivenByReqsFiles } from "../../src/components/raw-analysis/raw-analyzer-driven-by-reqs-files";
 import LLMRouter from "../../src/llm/llm-router";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({
@@ -14,16 +14,19 @@ jest.mock("../../src/common/fs/file-operations", () => ({
   writeFile: jest.fn(async () => undefined),
 }));
 jest.mock("../../src/common/utils/codebase-formatter", () => ({
-  formatCodebaseForPrompt: jest.fn(async () => "CODEBLOCK"),
+  formatCodeBlockMarkdownFromFolderCodebase: jest.fn(async () => "CODEBLOCK"),
 }));
 jest.mock("../../src/llm/llm-router");
 
 describe("PromptFileInsightsGenerator", () => {
-  it("loads prompts filtering only .prompt files", async () => {
-    const mockLlMRouter = {} as unknown as LLMRouter;
-    const gen = new PromptFileInsightsGenerator(mockLlMRouter);
-    const prompts = await gen.loadPrompts();
-    expect(prompts).toHaveLength(1);
-    expect(prompts[0].filename).toBe("requirement00");
+  it("loads prompts filtering only .prompt files and generates insights", async () => {
+    const mockExecuteCompletion = jest.fn().mockResolvedValue("LLM Response");
+    const mockLlMRouter = {
+      executeCompletion: mockExecuteCompletion,
+    } as unknown as LLMRouter;
+    const gen = new RawAnalyzerDrivenByReqsFiles(mockLlMRouter);
+    const result = await gen.generateInsightsToFiles("/test/path", "test-llm");
+    expect(result).toHaveLength(1);
+    expect(mockExecuteCompletion).toHaveBeenCalledTimes(1);
   });
 });

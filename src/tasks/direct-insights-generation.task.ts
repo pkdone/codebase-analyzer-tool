@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
-import { PromptFileInsightsGenerator } from "../components/raw-analysis/prompt-file-insights-generator";
+import { RawAnalyzerDrivenByReqsFiles } from "../components/raw-analysis/raw-analyzer-driven-by-reqs-files";
 import type { LLMStatsReporter } from "../llm/tracking/llm-stats-reporter";
 import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";
@@ -22,7 +22,7 @@ export class DirectInsightsGenerationTask implements Task {
     @inject(llmTokens.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(insightsTokens.PromptFileInsightsGenerator)
-    private readonly insightsFileGenerator: PromptFileInsightsGenerator,
+    private readonly insightsFileGenerator: RawAnalyzerDrivenByReqsFiles,
     @inject(coreTokens.ProjectName) private readonly projectName: string,
   ) {}
 
@@ -33,11 +33,9 @@ export class DirectInsightsGenerationTask implements Task {
     console.log(`Generating insights for project: ${this.projectName}`);
     this.llmStatsReporter.displayLLMStatusSummary();
     await clearDirectory(outputConfig.OUTPUT_DIR);
-    const prompts = await this.insightsFileGenerator.loadPrompts();
     await this.insightsFileGenerator.generateInsightsToFiles(
       this.env.CODEBASE_DIR_PATH,
       this.env.LLM,
-      prompts,
     );
     console.log(`Finished generating insights for the project`);
     console.log("Summary of LLM invocations outcomes:");
