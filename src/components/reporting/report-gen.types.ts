@@ -1,4 +1,5 @@
 import { procedureTriggerSchema } from "../../schemas/sources.schema";
+import { COMPLEXITY_VALUES } from "../../schemas/source-schema.enums";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
 import type {
   ProjectedFileTypesCountAndLines,
@@ -6,15 +7,14 @@ import type {
 } from "../../repositories/sources/sources.model";
 import type { TypeOf } from "zod";
 
-// Define complexity levels as constant array for type safety
-const COMPLEXITY_LEVELS = ["LOW", "MEDIUM", "HIGH"] as const;
-export type Complexity = (typeof COMPLEXITY_LEVELS)[number];
+// Complexity type derived from the al enum definition
+export type Complexity = (typeof COMPLEXITY_VALUES)[number];
 
 /**
  * Type guard to check if a value is a valid Complexity value
  */
 export function isComplexityLevel(value: unknown): value is Complexity {
-  return typeof value === "string" && COMPLEXITY_LEVELS.includes(value.toUpperCase() as Complexity);
+  return typeof value === "string" && COMPLEXITY_VALUES.includes(value.toUpperCase() as Complexity);
 }
 
 export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;

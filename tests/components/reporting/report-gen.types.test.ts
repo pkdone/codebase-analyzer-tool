@@ -187,14 +187,14 @@ describe("report-gen.types - Set-based membership testing", () => {
 
     describe("comparison with array includes pattern", () => {
       it("should behave identically to array.includes for valid values", () => {
-        const COMPLEXITY_LEVELS = ["LOW", "MEDIUM", "HIGH"] as const;
         const testValues = ["LOW", "MEDIUM", "HIGH", "INVALID"];
+        const VALID_COMPLEXITY = ["LOW", "MEDIUM", "HIGH"] as const;
 
         for (const value of testValues) {
           const setResult = isComplexityLevel(value);
           const arrayResult =
             typeof value === "string" &&
-            (COMPLEXITY_LEVELS as readonly string[]).includes(value.toUpperCase());
+            (VALID_COMPLEXITY as readonly string[]).includes(value.toUpperCase());
 
           expect(setResult).toBe(arrayResult);
         }
