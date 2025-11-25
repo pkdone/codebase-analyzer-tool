@@ -1,18 +1,48 @@
 import "reflect-metadata";
 import { AdvancedDataSection } from "../../../../src/components/reporting/sections/advanced-data-section";
-import { AppSummariesRepository } from "../../../../src/repositories/app-summaries/app-summaries.repository.interface";
+import { BomDataProvider } from "../../../../src/components/reporting/data-providers/bom-data-provider";
+import { CodeQualityDataProvider } from "../../../../src/components/reporting/data-providers/code-quality-data-provider";
+import { JobDataProvider } from "../../../../src/components/reporting/data-providers/job-data-provider";
+import { ModuleCouplingDataProvider } from "../../../../src/components/reporting/data-providers/module-coupling-data-provider";
+import { UiDataProvider } from "../../../../src/components/reporting/data-providers/ui-data-provider";
 import type { ReportData } from "../../../../src/components/reporting/report-gen.types";
 
 describe("AdvancedDataSection", () => {
   let section: AdvancedDataSection;
-  let mockAppSummariesRepository: jest.Mocked<AppSummariesRepository>;
+  let mockBomDataProvider: jest.Mocked<BomDataProvider>;
+  let mockCodeQualityDataProvider: jest.Mocked<CodeQualityDataProvider>;
+  let mockJobDataProvider: jest.Mocked<JobDataProvider>;
+  let mockModuleCouplingDataProvider: jest.Mocked<ModuleCouplingDataProvider>;
+  let mockUiDataProvider: jest.Mocked<UiDataProvider>;
 
   beforeEach(() => {
-    mockAppSummariesRepository = {
-      getProjectAppSummaryField: jest.fn(),
-    } as unknown as jest.Mocked<AppSummariesRepository>;
+    mockBomDataProvider = {
+      getBillOfMaterials: jest.fn(),
+    } as unknown as jest.Mocked<BomDataProvider>;
 
-    section = new AdvancedDataSection(mockAppSummariesRepository);
+    mockCodeQualityDataProvider = {
+      getCodeQualitySummary: jest.fn(),
+    } as unknown as jest.Mocked<CodeQualityDataProvider>;
+
+    mockJobDataProvider = {
+      getScheduledJobsSummary: jest.fn(),
+    } as unknown as jest.Mocked<JobDataProvider>;
+
+    mockModuleCouplingDataProvider = {
+      getModuleCoupling: jest.fn(),
+    } as unknown as jest.Mocked<ModuleCouplingDataProvider>;
+
+    mockUiDataProvider = {
+      getUiTechnologyAnalysis: jest.fn(),
+    } as unknown as jest.Mocked<UiDataProvider>;
+
+    section = new AdvancedDataSection(
+      mockBomDataProvider,
+      mockCodeQualityDataProvider,
+      mockJobDataProvider,
+      mockModuleCouplingDataProvider,
+      mockUiDataProvider,
+    );
   });
 
   describe("getName", () => {
@@ -23,9 +53,12 @@ describe("AdvancedDataSection", () => {
 
   describe("getData", () => {
     it("should fetch all advanced data fields", async () => {
-      const mockBillOfMaterials = [
-        { name: "lib", versions: ["1.0"], hasConflict: false, locations: [] },
-      ];
+      const mockBillOfMaterials = {
+        dependencies: [{ name: "lib", versions: ["1.0"], hasConflict: false, locations: [] }],
+        totalDependencies: 1,
+        conflictCount: 0,
+        buildFiles: [],
+      };
       const mockCodeQualitySummary = {
         topComplexMethods: [],
         commonCodeSmells: [],
@@ -63,17 +96,16 @@ describe("AdvancedDataSection", () => {
         topScriptletFiles: [],
       };
 
-      mockAppSummariesRepository.getProjectAppSummaryField
-        .mockResolvedValueOnce(mockBillOfMaterials)
-        .mockResolvedValueOnce(mockCodeQualitySummary)
-        .mockResolvedValueOnce(mockScheduledJobsSummary)
-        .mockResolvedValueOnce(mockModuleCoupling)
-        .mockResolvedValueOnce(mockUiTechnologyAnalysis);
+      mockBomDataProvider.getBillOfMaterials.mockResolvedValue(mockBillOfMaterials);
+      mockCodeQualityDataProvider.getCodeQualitySummary.mockResolvedValue(mockCodeQualitySummary);
+      mockJobDataProvider.getScheduledJobsSummary.mockResolvedValue(mockScheduledJobsSummary);
+      mockModuleCouplingDataProvider.getModuleCoupling.mockResolvedValue(mockModuleCoupling);
+      mockUiDataProvider.getUiTechnologyAnalysis.mockResolvedValue(mockUiTechnologyAnalysis);
 
       const result = await section.getData("test-project");
 
       expect(result).toEqual({
-        billOfMaterials: mockBillOfMaterials,
+        billOfMaterials: mockBillOfMaterials.dependencies,
         codeQualitySummary: mockCodeQualitySummary,
         scheduledJobsSummary: mockScheduledJobsSummary,
         moduleCoupling: mockModuleCoupling,

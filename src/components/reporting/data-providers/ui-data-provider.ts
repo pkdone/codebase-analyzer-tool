@@ -1,34 +1,26 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
-import type { IAggregator } from "./aggregator.interface";
-import type { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
-import type { z } from "zod";
-import {
-  uiTechnologyAnalysisSchema,
-  uiFrameworkItemSchema,
-  customTagLibrarySchema,
-  jspFileMetricsSchema,
-} from "../../../schemas/app-summaries.schema";
+import type { UiTechnologyAnalysis } from "../report-gen.types";
 
 /**
- * Type for UI analysis summary (inferred from Zod schema)
+ * Type for UI analysis summary
  */
-export type UiAnalysisSummary = z.infer<typeof uiTechnologyAnalysisSchema>;
+export type UiAnalysisSummary = UiTechnologyAnalysis;
 
 /**
- * Type aliases for internal use (inferred from Zod schemas)
+ * Type aliases for internal use
  */
-type UiFrameworkItem = z.infer<typeof uiFrameworkItemSchema>;
-type CustomTagLibrary = z.infer<typeof customTagLibrarySchema>;
-type JspFileMetrics = z.infer<typeof jspFileMetricsSchema>;
+type UiFrameworkItem = UiTechnologyAnalysis["frameworks"][0];
+type CustomTagLibrary = UiTechnologyAnalysis["customTagLibraries"][0];
+type JspFileMetrics = UiTechnologyAnalysis["topScriptletFiles"][0];
 
 /**
- * Aggregates UI technology data including framework detection, JSP metrics, and tag library usage.
+ * Data provider responsible for aggregating UI technology data including framework detection, JSP metrics, and tag library usage.
  * Analyzes JSP files for scriptlets and custom tags to measure technical debt.
  */
 @injectable()
-export class UiAggregator implements IAggregator<UiAnalysisSummary> {
+export class UiDataProvider {
   private readonly TOP_FILES_LIMIT = 10;
   private readonly HIGH_SCRIPTLET_THRESHOLD = 10;
 
@@ -37,14 +29,10 @@ export class UiAggregator implements IAggregator<UiAnalysisSummary> {
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 
-  getCategory(): AppSummaryCategoryEnum {
-    return "uiTechnologyAnalysis";
-  }
-
   /**
    * Aggregates UI technology analysis for a project
    */
-  async aggregate(projectName: string): Promise<UiAnalysisSummary> {
+  async getUiTechnologyAnalysis(projectName: string): Promise<UiAnalysisSummary> {
     // Fetch all source files from the project
     const sourceFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, []);
 
@@ -163,15 +151,6 @@ export class UiAggregator implements IAggregator<UiAnalysisSummary> {
       filesWithHighScriptletCount,
       customTagLibraries,
       topScriptletFiles,
-    };
-  }
-
-  /**
-   * Get the update payload in the format needed for updateAppSummary.
-   */
-  getUpdatePayload(aggregatedData: UiAnalysisSummary): PartialAppSummaryRecord {
-    return {
-      uiTechnologyAnalysis: aggregatedData,
     };
   }
 }

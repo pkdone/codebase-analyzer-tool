@@ -1,4 +1,4 @@
-import { injectable, inject, injectAll } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../llm/llm-router";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logSingleLineWarning } from "../../common/utils/logging";
@@ -7,7 +7,6 @@ import type { SourcesRepository } from "../../repositories/sources/sources.repos
 import { repositoryTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
 import { coreTokens } from "../../di/tokens";
-import { insightsTokens } from "../../di/tokens";
 import { insightsTuningConfig } from "./insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
@@ -17,12 +16,6 @@ import { ICompletionStrategy } from "./completion-strategies/completion-strategy
 import { SinglePassCompletionStrategy } from "./completion-strategies/single-pass-completion-strategy";
 import { MapReduceCompletionStrategy } from "./completion-strategies/map-reduce-completion-strategy";
 import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
-import type { IAggregator } from "./data-aggregators/aggregator.interface";
-import type { BomAggregationResult } from "./data-aggregators/bom-aggregator";
-import type { CodeQualityAggregationResult } from "./data-aggregators/code-quality-aggregator";
-import type { ScheduledJobsAggregationResult } from "./data-aggregators/job-aggregator";
-import type { ModuleCouplingAggregationResult } from "./data-aggregators/module-coupling-aggregator";
-import type { UiAnalysisSummary } from "./data-aggregators/ui-aggregator";
 
 /**
  * Generates metadata in database collections to capture application information,
@@ -46,7 +39,6 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
     @inject(coreTokens.ProjectName) private readonly projectName: string,
-    @injectAll(insightsTokens.Aggregator) private readonly aggregators: IAggregator[],
   ) {
     this.llmProviderDescription = this.llmRouter.getModelsUsedDescription();
     // Get the token limit from the manifest for chunking calculations
@@ -79,37 +71,16 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     });
     const categories: AppSummaryCategoryEnum[] = AppSummaryCategories.options;
 
-    // Process aggregator-based categories using the pluggable pattern
-    const aggregatorCategories = new Set(this.aggregators.map((a) => a.getCategory()));
-    const aggregatorResults = await Promise.allSettled(
-      this.aggregators.map(async (aggregator) => {
-        if (categories.includes(aggregator.getCategory())) {
-          await this.generateAndStoreAggregatedData(aggregator);
-        }
-      }),
-    );
-
-    // Log any failures
-    aggregatorResults.forEach((result, index) => {
-      if (result.status === "rejected") {
-        logSingleLineWarning(
-          `Failed to generate data for aggregator category: ${this.aggregators[index].getCategory()}`,
-          result.reason,
-        );
-      }
-    });
-
-    // Process remaining categories with LLM
-    const llmCategories = categories.filter((c) => !aggregatorCategories.has(c));
+    // Process all categories with LLM
     const results = await Promise.allSettled(
-      llmCategories.map(async (category) =>
+      categories.map(async (category) =>
         this.generateAndRecordDataForCategory(category, sourceFileSummaries),
       ),
     );
     results.forEach((result, index) => {
       if (result.status === "rejected") {
         logSingleLineWarning(
-          `Failed to generate data for category: ${llmCategories[index]}`,
+          `Failed to generate data for category: ${categories[index]}`,
           result.reason,
         );
       }
@@ -176,59 +147,6 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
       // Store the result
       await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
-    } catch (error: unknown) {
-      logSingleLineWarning(`Unable to generate ${categoryLabel} details into database`, error);
-    }
-  }
-
-  /**
-   * Generates and stores aggregated data for a specific aggregator
-   */
-  private async generateAndStoreAggregatedData<T>(aggregator: IAggregator<T>): Promise<void> {
-    const category = aggregator.getCategory();
-    const categoryLabel = summaryCategoriesConfig[category].label ?? category;
-
-    try {
-      console.log(`Processing ${categoryLabel}`);
-      const aggregatedData = await aggregator.aggregate(this.projectName);
-      const updatePayload = aggregator.getUpdatePayload(aggregatedData);
-      await this.appSummariesRepository.updateAppSummary(this.projectName, updatePayload);
-
-      // Log success with category-specific details
-      if (category === "billOfMaterials") {
-        const bomData = aggregatedData as BomAggregationResult;
-        console.log(
-          `Captured Bill of Materials: ${bomData.totalDependencies} dependencies, ${bomData.conflictCount} conflicts`,
-        );
-      } else if (category === "codeQualitySummary") {
-        const qualityData = aggregatedData as CodeQualityAggregationResult;
-        const totalMethods = qualityData.overallStatistics.totalMethods;
-        const codeSmellsCount = qualityData.commonCodeSmells.length;
-        console.log(
-          `Captured Code Quality Summary: ${totalMethods} methods analyzed, ` +
-            `${codeSmellsCount} smell types detected`,
-        );
-      } else if (category === "scheduledJobsSummary") {
-        const jobsData = aggregatedData as ScheduledJobsAggregationResult;
-        console.log(
-          `Captured Scheduled Jobs Summary: ${jobsData.totalJobs} jobs found, ` +
-            `${jobsData.triggerTypes.length} trigger types`,
-        );
-      } else if (category === "moduleCoupling") {
-        const couplingData = aggregatedData as ModuleCouplingAggregationResult;
-        console.log(
-          `Captured Module Coupling: ${couplingData.totalModules} modules, ` +
-            `${couplingData.totalCouplings} coupling relationships`,
-        );
-      } else if (category === "uiTechnologyAnalysis") {
-        const uiData = aggregatedData as UiAnalysisSummary;
-        console.log(
-          `Captured UI Technology Analysis: ${uiData.totalJspFiles} JSP files, ` +
-            `${uiData.totalScriptlets} scriptlets, ${uiData.frameworks.length} frameworks detected`,
-        );
-      } else {
-        console.log(`Captured ${categoryLabel} summary details into database`);
-      }
     } catch (error: unknown) {
       logSingleLineWarning(`Unable to generate ${categoryLabel} details into database`, error);
     }

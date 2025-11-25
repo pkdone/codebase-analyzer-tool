@@ -220,12 +220,9 @@ describe("AppSummaryCategoriesProvider", () => {
       // Assert - categories with custom sections should not be in results
       const categoryNames = result.map((r) => r.category);
       expect(categoryNames).not.toContain("appDescription");
-      expect(categoryNames).not.toContain("billOfMaterials");
-      expect(categoryNames).not.toContain("codeQualitySummary");
-      expect(categoryNames).not.toContain("scheduledJobsSummary");
-      expect(categoryNames).not.toContain("moduleCoupling");
-      expect(categoryNames).not.toContain("uiTechnologyAnalysis");
-      expect(result.length).toBe(allCategories.length - 6); // All categories minus appDescription, billOfMaterials, codeQualitySummary, scheduledJobsSummary, moduleCoupling, uiTechnologyAnalysis
+      // billOfMaterials, codeQualitySummary, scheduledJobsSummary, moduleCoupling, uiTechnologyAnalysis
+      // are no longer in AppSummaryCategories, so they won't appear anyway
+      expect(result.length).toBe(allCategories.length - 1); // All categories minus appDescription
     });
   });
 });

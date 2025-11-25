@@ -1,28 +1,28 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { repositoryTokens } from "../../../src/di/tokens";
-import { insightsTokens } from "../../../src/di/tokens";
+import { reportingTokens } from "../../../src/di/tokens";
 import { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
 import { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
-import { UiAggregator } from "../../../src/components/insights/data-aggregators/ui-aggregator";
+import { UiDataProvider } from "../../../src/components/reporting/data-providers/ui-data-provider";
 import { SourceRecord } from "../../../src/repositories/sources/sources.model";
 import { setupTestDatabase, teardownTestDatabase } from "../../helpers/database/db-test-helper";
 
 describe("UI Technology Analysis Integration Test", () => {
   let sourcesRepository: SourcesRepository;
   let appSummaryRepository: AppSummariesRepository;
-  let uiAggregator: UiAggregator;
+  let uiDataProvider: UiDataProvider;
   const projectName = `ui-test-project-${Date.now()}`;
 
   beforeAll(async () => {
     // Setup the temporary database
     await setupTestDatabase();
-    // Resolve repositories and aggregator from DI container
+    // Resolve repositories and data provider from DI container
     sourcesRepository = container.resolve<SourcesRepository>(repositoryTokens.SourcesRepository);
     appSummaryRepository = container.resolve<AppSummariesRepository>(
       repositoryTokens.AppSummariesRepository,
     );
-    uiAggregator = container.resolve<UiAggregator>(insightsTokens.UiAggregator);
+    uiDataProvider = container.resolve<UiDataProvider>(reportingTokens.UiDataProvider);
   }, 60000);
 
   afterAll(async () => {
@@ -144,7 +144,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(testStrutsConfig);
 
     // Act: Run UI analysis aggregation
-    const uiAnalysisResult = await uiAggregator.aggregate(projectName);
+    const uiAnalysisResult = await uiDataProvider.getUiTechnologyAnalysis(projectName);
 
     // Assert: Verify the aggregated results
     expect(uiAnalysisResult.totalJspFiles).toBe(3);
@@ -211,7 +211,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(testJavaFile);
 
     // Act
-    const result = await uiAggregator.aggregate(projectName);
+    const result = await uiDataProvider.getUiTechnologyAnalysis(projectName);
 
     // Assert: Should return empty/zero results
     expect(result.totalJspFiles).toBe(0);
@@ -263,7 +263,7 @@ describe("UI Technology Analysis Integration Test", () => {
     await sourcesRepository.insertSource(jsfConfig);
 
     // Act
-    const result = await uiAggregator.aggregate(projectName);
+    const result = await uiDataProvider.getUiTechnologyAnalysis(projectName);
 
     // Assert
     expect(result.frameworks).toHaveLength(2);
@@ -300,27 +300,15 @@ describe("UI Technology Analysis Integration Test", () => {
       llmProvider: "test-provider",
     });
 
-    // Act: Run aggregation and store
-    const uiData = await uiAggregator.aggregate(projectName);
-    await appSummaryRepository.updateAppSummary(projectName, {
-      uiTechnologyAnalysis: uiData,
-    });
+    // Act: Run data provider
+    const uiData = await uiDataProvider.getUiTechnologyAnalysis(projectName);
 
-    // Assert: Retrieve and verify
-    const storedData = await appSummaryRepository.getProjectAppSummaryField(
-      projectName,
-      "uiTechnologyAnalysis",
-    );
-
-    expect(storedData).toBeDefined();
-    expect(storedData).not.toBeNull();
-
-    if (storedData) {
-      expect(storedData.totalJspFiles).toBe(1);
-      expect(storedData.totalScriptlets).toBe(5);
-      expect(storedData.totalExpressions).toBe(3);
-      expect(storedData.topScriptletFiles).toHaveLength(1);
-      expect(storedData.topScriptletFiles[0].filePath).toBe("test.jsp");
-    }
+    // Assert: Verify data provider results
+    expect(uiData).toBeDefined();
+    expect(uiData.totalJspFiles).toBe(1);
+    expect(uiData.totalScriptlets).toBe(5);
+    expect(uiData.totalExpressions).toBe(3);
+    expect(uiData.topScriptletFiles).toHaveLength(1);
+    expect(uiData.topScriptletFiles[0].filePath).toBe("test.jsp");
   });
 });

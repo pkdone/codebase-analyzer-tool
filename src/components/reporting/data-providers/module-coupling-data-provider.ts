@@ -1,27 +1,21 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
-import type { IAggregator } from "./aggregator.interface";
-import type { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
-import type { z } from "zod";
-import { moduleCouplingSchema } from "../../../schemas/app-summaries.schema";
+import type { ModuleCoupling } from "../report-gen.types";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;
 
 /**
- * Type for the module coupling aggregation result (inferred from Zod schema)
- * Note: moduleDepth is added by the aggregator but not in the schema
+ * Type for the module coupling aggregation result
  */
-export type ModuleCouplingAggregationResult = z.infer<typeof moduleCouplingSchema> & {
-  moduleDepth: number;
-};
+export type ModuleCouplingAggregationResult = ModuleCoupling;
 
 /**
- * Aggregates internal references between modules to build a coupling matrix.
+ * Data provider responsible for aggregating internal references between modules to build a coupling matrix.
  * Analyzes module dependencies to identify highly coupled and loosely coupled components.
  */
 @injectable()
-export class ModuleCouplingAggregator implements IAggregator<ModuleCouplingAggregationResult> {
+export class ModuleCouplingDataProvider {
   private readonly DEFAULT_MODULE_DEPTH = 2;
 
   constructor(
@@ -29,14 +23,10 @@ export class ModuleCouplingAggregator implements IAggregator<ModuleCouplingAggre
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 
-  getCategory(): AppSummaryCategoryEnum {
-    return "moduleCoupling";
-  }
-
   /**
    * Aggregates module coupling relationships for a project
    */
-  async aggregate(
+  async getModuleCoupling(
     projectName: string,
     moduleDepth: number = this.DEFAULT_MODULE_DEPTH,
   ): Promise<ModuleCouplingAggregationResult> {
@@ -116,15 +106,6 @@ export class ModuleCouplingAggregator implements IAggregator<ModuleCouplingAggre
       totalCouplings: couplings.length,
       highestCouplingCount,
       moduleDepth,
-    };
-  }
-
-  /**
-   * Get the update payload in the format needed for updateAppSummary.
-   */
-  getUpdatePayload(aggregatedData: ModuleCouplingAggregationResult): PartialAppSummaryRecord {
-    return {
-      moduleCoupling: aggregatedData,
     };
   }
 

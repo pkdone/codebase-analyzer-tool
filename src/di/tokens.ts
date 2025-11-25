@@ -62,12 +62,6 @@ export const insightsTokens = {
   InsightsFromRawCodeGenerator: Symbol("InsightsFromRawCodeGenerator"),
   PromptFileInsightsGenerator: Symbol("PromptFileInsightsGenerator"),
   InsightsProcessorSelector: Symbol("InsightsProcessorSelector"),
-  Aggregator: Symbol.for("Aggregator"),
-  BomAggregator: Symbol.for("BomAggregator"),
-  CodeQualityAggregator: Symbol.for("CodeQualityAggregator"),
-  JobAggregator: Symbol.for("JobAggregator"),
-  ModuleCouplingAggregator: Symbol.for("ModuleCouplingAggregator"),
-  UiAggregator: Symbol.for("UiAggregator"),
 } as const;
 
 export type InsightsToken = keyof typeof insightsTokens;
@@ -103,6 +97,11 @@ export const reportingTokens = {
   AppSummaryCategoriesProvider: Symbol("AppSummaryCategoriesProvider"),
   DomainModelDataProvider: Symbol("DomainModelDataProvider"),
   AppReportGenerator: Symbol("AppReportGenerator"),
+  BomDataProvider: Symbol("BomDataProvider"),
+  CodeQualityDataProvider: Symbol("CodeQualityDataProvider"),
+  JobDataProvider: Symbol("JobDataProvider"),
+  ModuleCouplingDataProvider: Symbol("ModuleCouplingDataProvider"),
+  UiDataProvider: Symbol("UiDataProvider"),
 } as const;
 
 export type ReportingToken = keyof typeof reportingTokens;

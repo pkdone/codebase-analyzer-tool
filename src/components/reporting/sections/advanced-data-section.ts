@@ -1,7 +1,11 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "./report-section.interface";
-import { repositoryTokens } from "../../../di/tokens";
-import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
+import { reportingTokens } from "../../../di/tokens";
+import { BomDataProvider } from "../data-providers/bom-data-provider";
+import { CodeQualityDataProvider } from "../data-providers/code-quality-data-provider";
+import { JobDataProvider } from "../data-providers/job-data-provider";
+import { ModuleCouplingDataProvider } from "../data-providers/module-coupling-data-provider";
+import { UiDataProvider } from "../data-providers/ui-data-provider";
 import type { PreparedHtmlReportData } from "../html-report-writer";
 import type { PreparedJsonData } from "../json-report-writer";
 import type { ReportData } from "../report-gen.types";
@@ -13,8 +17,13 @@ import { SECTION_NAMES } from "../reporting.constants";
 @injectable()
 export class AdvancedDataSection implements ReportSection {
   constructor(
-    @inject(repositoryTokens.AppSummariesRepository)
-    private readonly appSummariesRepository: AppSummariesRepository,
+    @inject(reportingTokens.BomDataProvider) private readonly bomDataProvider: BomDataProvider,
+    @inject(reportingTokens.CodeQualityDataProvider)
+    private readonly codeQualityDataProvider: CodeQualityDataProvider,
+    @inject(reportingTokens.JobDataProvider) private readonly jobDataProvider: JobDataProvider,
+    @inject(reportingTokens.ModuleCouplingDataProvider)
+    private readonly moduleCouplingDataProvider: ModuleCouplingDataProvider,
+    @inject(reportingTokens.UiDataProvider) private readonly uiDataProvider: UiDataProvider,
   ) {}
 
   getName(): string {
@@ -27,25 +36,25 @@ export class AdvancedDataSection implements ReportSection {
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const [
-      billOfMaterials,
+      bomData,
       codeQualitySummary,
       scheduledJobsSummary,
       moduleCoupling,
       uiTechnologyAnalysis,
     ] = await Promise.all([
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "billOfMaterials"),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "codeQualitySummary"),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "scheduledJobsSummary"),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "moduleCoupling"),
-      this.appSummariesRepository.getProjectAppSummaryField(projectName, "uiTechnologyAnalysis"),
+      this.bomDataProvider.getBillOfMaterials(projectName),
+      this.codeQualityDataProvider.getCodeQualitySummary(projectName),
+      this.jobDataProvider.getScheduledJobsSummary(projectName),
+      this.moduleCouplingDataProvider.getModuleCoupling(projectName),
+      this.uiDataProvider.getUiTechnologyAnalysis(projectName),
     ]);
 
     return {
-      billOfMaterials: billOfMaterials ?? [],
-      codeQualitySummary: codeQualitySummary ?? null,
-      scheduledJobsSummary: scheduledJobsSummary ?? null,
-      moduleCoupling: moduleCoupling ?? null,
-      uiTechnologyAnalysis: uiTechnologyAnalysis ?? null,
+      billOfMaterials: bomData.dependencies,
+      codeQualitySummary,
+      scheduledJobsSummary,
+      moduleCoupling,
+      uiTechnologyAnalysis,
     };
   }
 

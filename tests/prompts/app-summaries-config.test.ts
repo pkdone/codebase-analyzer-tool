@@ -14,11 +14,6 @@ describe("App Summaries Config", () => {
         "entities",
         "repositories",
         "potentialMicroservices",
-        "billOfMaterials",
-        "codeQualitySummary",
-        "scheduledJobsSummary",
-        "moduleCoupling",
-        "uiTechnologyAnalysis",
       ];
 
       requiredCategories.forEach((category) => {

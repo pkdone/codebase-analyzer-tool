@@ -8,7 +8,6 @@ import type {
   AppSummaryRecordWithId,
 } from "../../../repositories/app-summaries/app-summaries.model";
 import type { ReportSection } from "../sections/report-section.interface";
-import { SECTION_NAMES } from "../reporting.constants";
 
 // Zod schema for validating AppSummaryNameDescArray
 const appSummaryNameDescArraySchema = z.array(nameDescSchema);
@@ -68,14 +67,8 @@ export class AppSummaryCategoriesProvider {
 
     for (const section of this.reportSections) {
       if (!section.isStandardSection()) {
-        // AdvancedDataSection handles these categories with custom rendering
-        if (section.getName() === SECTION_NAMES.ADVANCED_DATA) {
-          customCategories.add("billOfMaterials");
-          customCategories.add("codeQualitySummary");
-          customCategories.add("scheduledJobsSummary");
-          customCategories.add("moduleCoupling");
-          customCategories.add("uiTechnologyAnalysis");
-        }
+        // AdvancedDataSection handles custom rendering for BOM, code quality, etc.
+        // These categories are no longer in AppSummaryCategories, so they won't appear in standard sections anyway
         // Add other custom sections as needed
       }
     }

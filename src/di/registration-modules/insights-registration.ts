@@ -1,4 +1,3 @@
-import { container } from "tsyringe";
 import { insightsTokens } from "../tokens";
 import { registerComponents } from "../registration-utils";
 
@@ -7,11 +6,6 @@ import InsightsFromDBGenerator from "../../components/insights/insights-from-db-
 import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
 import { RawAnalyzerDrivenByReqsFiles } from "../../components/raw-analysis/raw-analyzer-driven-by-reqs-files";
 import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
-import { BomAggregator } from "../../components/insights/data-aggregators/bom-aggregator";
-import { CodeQualityAggregator } from "../../components/insights/data-aggregators/code-quality-aggregator";
-import { JobAggregator } from "../../components/insights/data-aggregators/job-aggregator";
-import { ModuleCouplingAggregator } from "../../components/insights/data-aggregators/module-coupling-aggregator";
-import { UiAggregator } from "../../components/insights/data-aggregators/ui-aggregator";
 
 /**
  * Register insights-related components in the DI container.
@@ -24,17 +18,8 @@ import { UiAggregator } from "../../components/insights/data-aggregators/ui-aggr
  * All components are registered here since tsyringe uses lazy-loading.
  */
 export function registerInsightsComponents(): void {
-  // Register individual aggregators
   registerComponents(
     [
-      { token: insightsTokens.BomAggregator, implementation: BomAggregator },
-      { token: insightsTokens.CodeQualityAggregator, implementation: CodeQualityAggregator },
-      { token: insightsTokens.JobAggregator, implementation: JobAggregator },
-      {
-        token: insightsTokens.ModuleCouplingAggregator,
-        implementation: ModuleCouplingAggregator,
-      },
-      { token: insightsTokens.UiAggregator, implementation: UiAggregator },
       {
         token: insightsTokens.PromptFileInsightsGenerator,
         implementation: RawAnalyzerDrivenByReqsFiles,
@@ -51,21 +36,4 @@ export function registerInsightsComponents(): void {
     ],
     "Insights components registered",
   );
-
-  // Register aggregators for multi-injection
-  container.register(insightsTokens.Aggregator, {
-    useToken: insightsTokens.BomAggregator,
-  });
-  container.register(insightsTokens.Aggregator, {
-    useToken: insightsTokens.CodeQualityAggregator,
-  });
-  container.register(insightsTokens.Aggregator, {
-    useToken: insightsTokens.JobAggregator,
-  });
-  container.register(insightsTokens.Aggregator, {
-    useToken: insightsTokens.ModuleCouplingAggregator,
-  });
-  container.register(insightsTokens.Aggregator, {
-    useToken: insightsTokens.UiAggregator,
-  });
 }

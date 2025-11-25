@@ -1,10 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
-import type { IAggregator } from "./aggregator.interface";
-import type { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
-import type { z } from "zod";
-import { billOfMaterialsSchema } from "../../../schemas/app-summaries.schema";
+import type { BomDependency } from "../report-gen.types";
 
 interface AggregatedDependency {
   name: string;
@@ -15,29 +12,30 @@ interface AggregatedDependency {
 }
 
 /**
- * Type for the BOM aggregation result (inferred from Zod schema)
+ * Type for the BOM aggregation result
  */
-export type BomAggregationResult = z.infer<typeof billOfMaterialsSchema>;
+export interface BomAggregationResult {
+  dependencies: BomDependency[];
+  totalDependencies: number;
+  conflictCount: number;
+  buildFiles: string[];
+}
 
 /**
- * Aggregates dependencies from all build files into a unified Bill of Materials.
+ * Data provider responsible for aggregating Bill of Materials from build files.
  * Detects version conflicts and provides comprehensive dependency analysis.
  */
 @injectable()
-export class BomAggregator implements IAggregator<BomAggregationResult> {
+export class BomDataProvider {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 
-  getCategory(): AppSummaryCategoryEnum {
-    return "billOfMaterials";
-  }
-
   /**
    * Aggregates all dependencies from build files for a project
    */
-  async aggregate(projectName: string): Promise<BomAggregationResult> {
+  async getBillOfMaterials(projectName: string): Promise<BomAggregationResult> {
     // Fetch all build files with dependencies
     const buildFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, [
       "maven",
@@ -115,16 +113,6 @@ export class BomAggregator implements IAggregator<BomAggregationResult> {
       totalDependencies: sortedDependencies.length,
       conflictCount,
       buildFiles: Array.from(buildFilePaths),
-    };
-  }
-
-  /**
-   * Get the update payload in the format needed for updateAppSummary.
-   * For billOfMaterials, we store only the dependencies array, not the full object.
-   */
-  getUpdatePayload(aggregatedData: BomAggregationResult): PartialAppSummaryRecord {
-    return {
-      billOfMaterials: aggregatedData.dependencies,
     };
   }
 

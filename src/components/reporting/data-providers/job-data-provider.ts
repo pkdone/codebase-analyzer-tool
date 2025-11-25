@@ -1,43 +1,33 @@
 import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
-import type { IAggregator } from "./aggregator.interface";
-import type { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
-import type { z } from "zod";
-import {
-  scheduledJobsSummarySchema,
-  scheduledJobSummaryItemSchema,
-} from "../../../schemas/app-summaries.schema";
+import type { ScheduledJobsSummary } from "../report-gen.types";
 
 /**
- * Type for the scheduled jobs aggregation result (inferred from Zod schema)
+ * Type for the scheduled jobs aggregation result
  */
-export type ScheduledJobsAggregationResult = z.infer<typeof scheduledJobsSummarySchema>;
+export type ScheduledJobsAggregationResult = ScheduledJobsSummary;
 
 /**
- * Type for a single job item (inferred from Zod schema)
+ * Type for a single job item
  */
-type ScheduledJobItem = z.infer<typeof scheduledJobSummaryItemSchema>;
+type ScheduledJobItem = ScheduledJobsSummary["jobs"][0];
 
 /**
- * Aggregates scheduled jobs and batch processes from script files.
+ * Data provider responsible for aggregating scheduled jobs and batch processes from script files.
  * Identifies batch jobs, shell scripts, JCL, and other automated processes.
  */
 @injectable()
-export class JobAggregator implements IAggregator<ScheduledJobsAggregationResult> {
+export class JobDataProvider {
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
   ) {}
 
-  getCategory(): AppSummaryCategoryEnum {
-    return "scheduledJobsSummary";
-  }
-
   /**
    * Aggregates all scheduled jobs from script files for a project
    */
-  async aggregate(projectName: string): Promise<ScheduledJobsAggregationResult> {
+  async getScheduledJobsSummary(projectName: string): Promise<ScheduledJobsAggregationResult> {
     // Fetch all script files with scheduled jobs
     const scriptFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, [
       "shell-script",
@@ -82,15 +72,6 @@ export class JobAggregator implements IAggregator<ScheduledJobsAggregationResult
       totalJobs: jobsList.length,
       triggerTypes: Array.from(triggerTypesSet).sort(),
       jobFiles: jobFilePaths,
-    };
-  }
-
-  /**
-   * Get the update payload in the format needed for updateAppSummary.
-   */
-  getUpdatePayload(aggregatedData: ScheduledJobsAggregationResult): PartialAppSummaryRecord {
-    return {
-      scheduledJobsSummary: aggregatedData,
     };
   }
 

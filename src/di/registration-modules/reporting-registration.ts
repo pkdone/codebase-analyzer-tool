@@ -15,6 +15,11 @@ import { CodeStructureDataProvider } from "../../components/reporting/data-provi
 import { AppStatisticsDataProvider } from "../../components/reporting/data-providers/app-statistics-data-provider";
 import { AppSummaryCategoriesProvider } from "../../components/reporting/data-providers/categories-data-provider";
 import { DomainModelDataProvider } from "../../components/reporting/data-providers/domain-model-data-provider";
+import { BomDataProvider } from "../../components/reporting/data-providers/bom-data-provider";
+import { CodeQualityDataProvider } from "../../components/reporting/data-providers/code-quality-data-provider";
+import { JobDataProvider } from "../../components/reporting/data-providers/job-data-provider";
+import { ModuleCouplingDataProvider } from "../../components/reporting/data-providers/module-coupling-data-provider";
+import { UiDataProvider } from "../../components/reporting/data-providers/ui-data-provider";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database-section";
@@ -68,6 +73,17 @@ export function registerReportingComponents(): void {
         implementation: DomainModelDataProvider,
       },
       { token: reportingTokens.AppReportGenerator, implementation: AppReportGenerator },
+      { token: reportingTokens.BomDataProvider, implementation: BomDataProvider },
+      {
+        token: reportingTokens.CodeQualityDataProvider,
+        implementation: CodeQualityDataProvider,
+      },
+      { token: reportingTokens.JobDataProvider, implementation: JobDataProvider },
+      {
+        token: reportingTokens.ModuleCouplingDataProvider,
+        implementation: ModuleCouplingDataProvider,
+      },
+      { token: reportingTokens.UiDataProvider, implementation: UiDataProvider },
     ],
     "Reporting components registered",
   );

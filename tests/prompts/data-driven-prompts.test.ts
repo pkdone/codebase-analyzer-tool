@@ -214,11 +214,6 @@ describe("Data-driven Prompt System", () => {
         "entities",
         "repositories",
         "potentialMicroservices",
-        "billOfMaterials",
-        "codeQualitySummary",
-        "scheduledJobsSummary",
-        "moduleCoupling",
-        "uiTechnologyAnalysis",
       ];
 
       expectedCategories.forEach((category) => {

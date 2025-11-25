@@ -4,8 +4,19 @@ import {
   LLMOutputFormat,
   LLMPurpose,
 } from "../../../../src/llm/types/llm.types";
-import { bomDependencySchema } from "../../../../src/schemas/app-summaries.schema";
 import { z } from "zod";
+
+// Define schema locally for testing (matches the structure of BomDependency)
+const bomDependencySchema = z
+  .object({
+    name: z.string(),
+    groupId: z.string().nullable().optional(),
+    versions: z.array(z.string()),
+    hasConflict: z.boolean(),
+    scopes: z.array(z.string()).optional(),
+    locations: z.array(z.string()),
+  })
+  .passthrough();
 
 describe("JsonProcessor - Null Handling Integration", () => {
   let processor: JsonProcessor;
