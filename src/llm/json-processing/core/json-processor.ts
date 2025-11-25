@@ -241,6 +241,7 @@ export class JsonProcessor {
         sanitizedLength: result.workingContent.length,
         lastSanitizer,
         diagnosticsCount: allDiagnostics.length,
+        responseContentParseError: result.lastParseError,
       },
     );
     const error = new JsonProcessingError(
