@@ -6,7 +6,7 @@ import { repositoryTokens } from "../../../di/tokens";
 import { llmTokens } from "../../../di/tokens";
 import { coreTokens } from "../../../di/tokens";
 import type { ApplicationInsightsProcessor } from "../insights.types";
-import { formatCodebaseForPrompt } from "../utils/codebase-formatter";
+import { formatCodeBlockMarkdownFromFolderCodebase } from "../../../common/utils/codebase-formatter";
 import type { EnvVars } from "../../../env/env.types";
 import { logSingleLineWarning } from "../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt";
@@ -47,7 +47,9 @@ export default class InsightsFromRawCodeGenerator implements ApplicationInsights
    * Generate insights from raw code and store in the database
    */
   async generateAndStoreInsights(): Promise<void> {
-    const codeBlocksContent = await formatCodebaseForPrompt(this.env.CODEBASE_DIR_PATH);
+    const codeBlocksContent = await formatCodeBlockMarkdownFromFolderCodebase(
+      this.env.CODEBASE_DIR_PATH,
+    );
     await this.generateDataForAllCategories(codeBlocksContent);
   }
 

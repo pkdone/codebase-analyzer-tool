@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
-import { PromptFileInsightsGenerator } from "../components/insights/prompt-file-insights-generator";
+import { PromptFileInsightsGenerator } from "../components/raw-analysis/prompt-file-insights-generator";
 import type { LLMStatsReporter } from "../llm/tracking/llm-stats-reporter";
 import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";

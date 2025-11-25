@@ -1,11 +1,8 @@
-import { fileProcessingConfig } from "../../../config/file-processing.config";
-import { findFilesRecursively } from "../../../common/fs/directory-operations";
-import { getFileExtension } from "../../../common/fs/path-utils";
-import { readFile } from "../../../common/fs/file-operations";
-import {
-  formatFilesAsMarkdownCodeBlocksWithPath,
-  type FileLike,
-} from "../../../common/utils/markdown-formatter";
+import { fileProcessingConfig } from "../../config/file-processing.config";
+import { findFilesRecursively } from "../fs/directory-operations";
+import { getFileExtension } from "../fs/path-utils";
+import { readFile } from "../fs/file-operations";
+import { formatFilesAsMarkdownCodeBlocksWithPath, type FileLike } from "./markdown-formatter";
 
 /**
  * Regex pattern to match trailing slash at end of string
@@ -13,11 +10,13 @@ import {
 const TRAILING_SLASH_PATTERN = /\/$/;
 
 /**
- * Process a codebase directory and format its contents for use in an LLM prompt
+ * Format the codebase in the given directory as markdown code blocks
  * @param codebaseDirPath - The path to the codebase directory
  * @returns Promise resolving to formatted content containing all source files as markdown code blocks
  */
-export async function formatCodebaseForPrompt(codebaseDirPath: string): Promise<string> {
+export async function formatCodeBlockMarkdownFromFolderCodebase(
+  codebaseDirPath: string,
+): Promise<string> {
   // Remove trailing slashes from the directory path
   const srcDirPath = codebaseDirPath.replace(TRAILING_SLASH_PATTERN, "");
 

@@ -12,9 +12,9 @@ import { inject } from "tsyringe";
 import { llmTokens } from "../../di/tokens";
 import LLMRouter from "../../llm/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { formatCodebaseForPrompt } from "./utils/codebase-formatter";
+import { formatCodeBlockMarkdownFromFolderCodebase } from "../../common/utils/codebase-formatter";
 import { formatDateForFilename } from "../../common/utils/date-utils";
-import { insightsInputConfig } from "./config/insights-input.config";
+import { insightsInputConfig } from "./insights-input.config";
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -73,7 +73,7 @@ export class PromptFileInsightsGenerator {
     llmName: string,
     prompts: FileRequirementPrompt[],
   ): Promise<string[]> {
-    const codeBlocksContent = await formatCodebaseForPrompt(srcDirPath);
+    const codeBlocksContent = await formatCodeBlockMarkdownFromFolderCodebase(srcDirPath);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {

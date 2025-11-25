@@ -1,4 +1,4 @@
-import { formatCodebaseForPrompt } from "../../../../src/components/insights/utils/codebase-formatter";
+import { formatCodeBlockMarkdownFromFolderCodebase } from "../../../../src/common/utils/codebase-formatter";
 import { findFilesRecursively } from "../../../../src/common/fs/directory-operations";
 import { getFileExtension } from "../../../../src/common/fs/path-utils";
 import { readFile } from "../../../../src/common/fs/file-operations";
@@ -36,7 +36,7 @@ describe("codebase-formatter", () => {
       mockGetFileExtension.mockReturnValueOnce(".ts").mockReturnValueOnce(".js");
       mockReadFile.mockResolvedValueOnce("const x = 1;").mockResolvedValueOnce("var y = 2;");
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
         codebasePath,
@@ -54,7 +54,7 @@ describe("codebase-formatter", () => {
       const codebasePath = "/test/project/";
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      await formatCodebaseForPrompt(codebasePath);
+      await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
         "/test/project",
@@ -71,7 +71,7 @@ describe("codebase-formatter", () => {
       mockGetFileExtension.mockReturnValueOnce(".png").mockReturnValueOnce(".ts");
       mockReadFile.mockResolvedValueOnce("const x = 1;"); // Only called for .ts file
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(mockReadFile).toHaveBeenCalledTimes(1);
       expect(result).not.toContain("image.png");
@@ -85,7 +85,7 @@ describe("codebase-formatter", () => {
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
       mockGetFileExtension.mockReturnValueOnce(".PNG");
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(result).not.toContain("image.PNG");
       expect(mockReadFile).not.toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe("codebase-formatter", () => {
       mockGetFileExtension.mockReturnValueOnce(".ts");
       mockReadFile.mockResolvedValueOnce("  \n\nconst x = 1;\n\n  ");
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(result).toContain("const x = 1;");
       expect(result).not.toMatch(/^\s+const x = 1;/);
@@ -114,7 +114,7 @@ describe("codebase-formatter", () => {
       mockGetFileExtension.mockReturnValueOnce(".ts");
       mockReadFile.mockResolvedValueOnce("export function helper() {}");
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(result).toContain("``` src/utils/helper.ts");
       expect(result).not.toContain("/test/project");
@@ -124,7 +124,7 @@ describe("codebase-formatter", () => {
       const codebasePath = "/test/empty-project";
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(result).toBe("");
       expect(mockReadFile).not.toHaveBeenCalled();
@@ -145,7 +145,7 @@ describe("codebase-formatter", () => {
         .mockResolvedValueOnce("content2")
         .mockResolvedValueOnce("content3");
 
-      await formatCodebaseForPrompt(codebasePath);
+      await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       // All files should be read in parallel
       expect(mockReadFile).toHaveBeenCalledTimes(3);
@@ -166,7 +166,7 @@ describe("codebase-formatter", () => {
         .mockReturnValueOnce(".pdf");
       mockReadFile.mockResolvedValueOnce("const x = 1;");
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       // Should only contain one code block
       const codeBlockCount = (result.match(/```/g) ?? []).length;
@@ -181,7 +181,7 @@ describe("codebase-formatter", () => {
       mockGetFileExtension.mockReturnValueOnce("");
       mockReadFile.mockResolvedValueOnce("all: build");
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(result).toContain("``` Makefile");
       expect(result).toContain("all: build");
@@ -195,7 +195,7 @@ describe("codebase-formatter", () => {
       mockGetFileExtension.mockReturnValueOnce(".ts");
       mockReadFile.mockResolvedValueOnce("line1\n\n\nline2");
 
-      const result = await formatCodebaseForPrompt(codebasePath);
+      const result = await formatCodeBlockMarkdownFromFolderCodebase(codebasePath);
 
       expect(result).toContain("line1\n\n\nline2");
     });

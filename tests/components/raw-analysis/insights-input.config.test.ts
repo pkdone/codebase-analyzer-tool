@@ -1,4 +1,4 @@
-import { insightsInputConfig } from "../../../../src/components/insights/config/insights-input.config";
+import { insightsInputConfig } from "../../../src/components/raw-analysis/insights-input.config";
 
 describe("insightsInputConfig", () => {
   describe("input file paths", () => {

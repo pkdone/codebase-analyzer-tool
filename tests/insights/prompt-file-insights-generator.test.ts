@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { PromptFileInsightsGenerator } from "../../src/components/insights/prompt-file-insights-generator";
+import { PromptFileInsightsGenerator } from "../../src/components/raw-analysis/prompt-file-insights-generator";
 import LLMRouter from "../../src/llm/llm-router";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({
@@ -13,7 +13,7 @@ jest.mock("../../src/common/fs/file-operations", () => ({
   readFile: jest.fn(async () => "Question?"),
   writeFile: jest.fn(async () => undefined),
 }));
-jest.mock("../../src/components/insights/utils/codebase-formatter", () => ({
+jest.mock("../../src/common/utils/codebase-formatter", () => ({
   formatCodebaseForPrompt: jest.fn(async () => "CODEBLOCK"),
 }));
 jest.mock("../../src/llm/llm-router");
