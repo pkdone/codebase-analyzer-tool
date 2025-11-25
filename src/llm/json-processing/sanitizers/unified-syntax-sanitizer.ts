@@ -1028,7 +1028,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
           propertyNameStr;
 
         hasChanges = true;
-        diagnostics.push(`Fixed unquoted property name: ${propertyNameStr} -> ${fixedName}`);
+        diagnostics.push(`Fixed unquoted property name: ${propertyNameStr} -> "${fixedName}"`);
         return `${whitespaceStr}"${fixedName}":`;
       },
     );
