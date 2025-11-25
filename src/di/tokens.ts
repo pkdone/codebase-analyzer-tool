@@ -33,21 +33,11 @@ export const taskTokens = {
   DirectInsightsGenerationTask: Symbol("DirectInsightsGenerationTask"),
   PluggableLLMsTestTask: Symbol("PluggableLLMsTestTask"),
   MongoConnectionTestTask: Symbol("MongoConnectionTestTask"),
-  McpServerTask: Symbol("McpServerTask"),
   ReportGenerationTask: Symbol("ReportGenerationTask"),
   DatabaseInitializer: Symbol("DatabaseInitializer"),
 } as const;
 
 export type TaskToken = keyof typeof taskTokens;
-
-// API/MCP module tokens
-export const apiTokens = {
-  InsightsDataProvider: Symbol("InsightsDataProvider"),
-  McpServerFactory: Symbol("McpServerFactory"),
-  McpHttpServer: Symbol("McpHttpServer"),
-} as const;
-
-export type ApiToken = keyof typeof apiTokens;
 
 // Capture module tokens
 export const captureTokens = {

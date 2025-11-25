@@ -18,7 +18,7 @@ This document outlines the inferred coding standards, architectural patterns, an
     *   **Testing:** `jest`, `ts-jest`
     *   **Linting & Formatting:** `eslint`, `@typescript-eslint/eslint-plugin`, `prettier`
     *   **Asynchronous Utilities:** `p-limit` (for concurrency control), `p-retry` (for resilient operations)
-    *   **API & Protocol:** `@modelcontextprotocol/sdk` (for MCP server implementation), `ejs` (for HTML report templating)
+    *   **Templating:** `ejs` (for HTML report templating)
 
 ## 2. Formatting and Style Conventions
 
@@ -69,7 +69,6 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   The project is a **CLI toolkit** for code analysis, built on a **Layered Architecture**. This is evident from the clear separation of concerns into `repositories` (Data Access), `components` (Business Logic/Services), `llm` (External Service Abstraction), and `cli` (Presentation/Entry Points).
     *   **Dependency Injection (DI)** is a fundamental principle, implemented with `tsyringe`. This promotes loose coupling and testability by allowing components to declare their dependencies rather than creating them.
     *   A **Manifest-Driven** approach is used for LLM providers. Each provider is defined by a manifest file (`.manifest.ts`) that declaratively specifies its configuration, models, and factory function, making the system highly pluggable and extensible.
-    *   A **Service-Oriented** aspect is present in the form of the Model Context Protocol (MCP) server, which exposes the application's insights via a defined API.
 *   **Directory Structure:**
     *   `src/`: Contains all TypeScript source code.
         *   `cli/`: Entry points for each command-line tool.
@@ -97,7 +96,6 @@ The project uses a combination of Prettier for automated formatting and ESLint f
         *   Queries consist of standard MongoDB operations and `$vectorSearch` aggregation pipelines for semantic search.
 *   **Data Fetching & API Interaction:**
     *   **LLM APIs:** All interactions with external LLM APIs are centralized and abstracted through the `LLMRouter`. Specific provider implementations in `src/llm/providers/` use the official SDKs for each service (e.g., `openai`, `@aws-sdk/client-bedrock-runtime`).
-    *   **MCP Server:** The `McpHttpServer` implements a raw Node.js `http` server to handle Server-Sent Events (SSE) for the Model Context Protocol, exposing generated insights.
 
 ## 5. Language-Specific Idioms and Best Practices (TypeScript)
 

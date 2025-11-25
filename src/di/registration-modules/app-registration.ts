@@ -14,7 +14,6 @@ import { AppSummariesRepository } from "../../repositories/app-summaries/app-sum
 import { registerCaptureComponents } from "./capture-registration";
 import { registerInsightsComponents } from "./insights-registration";
 import { registerReportingComponents } from "./reporting-registration";
-import { registerApiComponents } from "./api-registration";
 import { registerQueryingComponents } from "./querying-registration";
 
 // Task imports (these are top-level orchestrators for CLI commands)
@@ -24,7 +23,6 @@ import { InsightsGenerationTask } from "../../tasks/insights-generation.task";
 import { DirectInsightsGenerationTask } from "../../tasks/direct-insights-generation.task";
 import { MongoConnectionTestTask } from "../../tasks/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/test-pluggable-llms.task";
-import { McpServerTask } from "../../tasks/mcp-server.task";
 import { ReportGenerationTask } from "../../tasks/report-generation.task";
 
 // Configuration import
@@ -91,7 +89,6 @@ function registerComponents(): void {
   registerCaptureComponents();
   registerInsightsComponents();
   registerReportingComponents();
-  registerApiComponents();
   registerQueryingComponents();
 
   console.log("Internal helper components registered");
@@ -105,7 +102,6 @@ function registerTasks(): void {
   // Register tasks that don't depend on LLMRouter as regular singletons
   container.registerSingleton(taskTokens.ReportGenerationTask, ReportGenerationTask);
   container.registerSingleton(taskTokens.MongoConnectionTestTask, MongoConnectionTestTask);
-  container.registerSingleton(taskTokens.McpServerTask, McpServerTask);
   // Register tasks that depend on LLMRouter with simplified singleton registrations
   registerLLMDependentTasks();
   console.log("Main executable tasks registered");

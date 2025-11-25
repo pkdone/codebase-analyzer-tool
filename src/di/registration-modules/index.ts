@@ -7,7 +7,6 @@ import { registerMongoDBDependencies } from "./mongodb-registration";
 import { registerCaptureComponents } from "./capture-registration";
 import { registerInsightsComponents } from "./insights-registration";
 import { registerReportingComponents } from "./reporting-registration";
-import { registerApiComponents } from "./api-registration";
 import { registerQueryingComponents } from "./querying-registration";
 
 export {
@@ -22,6 +21,5 @@ export {
   registerCaptureComponents,
   registerInsightsComponents,
   registerReportingComponents,
-  registerApiComponents,
   registerQueryingComponents,
 };

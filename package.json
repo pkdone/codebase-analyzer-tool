@@ -33,7 +33,6 @@
     "@aws-sdk/client-bedrock-runtime": "^3.682.0",
     "@google-cloud/aiplatform": "^3.34.0",
     "@google-cloud/vertexai": "^1.9.0",
-    "@modelcontextprotocol/sdk": "^1.9.0",
     "canvas": "^3.2.0",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
