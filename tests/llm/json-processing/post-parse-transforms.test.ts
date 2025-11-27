@@ -851,6 +851,46 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         expect((result.data as any).nested.publicMethods[0].returnType).toBe("void");
       }
     });
+
+    it("should add missing description field to publicMethods", () => {
+      const response = JSON.stringify({
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod1",
+            parameters: [],
+            returnType: "void",
+            // description is missing
+          },
+          {
+            name: "testMethod2",
+            parameters: [],
+            returnType: "string",
+            description: "Existing description",
+          },
+          {
+            name: "testMethod3",
+            parameters: [],
+            returnType: "number",
+            description: undefined,
+          },
+        ],
+      });
+
+      const result = processor.parseAndValidate(
+        response,
+        { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
+        defaultOptions,
+      );
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as any;
+        expect(data.publicMethods[0].description).toBe("");
+        expect(data.publicMethods[1].description).toBe("Existing description");
+        expect(data.publicMethods[2].description).toBe("");
+      }
+    });
   });
 
   describe("fixParametersFieldType transform", () => {

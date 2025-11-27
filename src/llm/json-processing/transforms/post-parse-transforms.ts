@@ -294,6 +294,13 @@ export function fixMissingRequiredFields(parsed: unknown): unknown {
             fixedMethod.returnType = "void";
           }
 
+          // If description is missing or undefined, provide a default
+          if (!("description" in fixedMethod) || fixedMethod.description === undefined) {
+            // Default to empty string for missing descriptions
+            // The schema requires description to be a string, not undefined
+            fixedMethod.description = "";
+          }
+
           return fixedMethod as unknown;
         }
         return method;

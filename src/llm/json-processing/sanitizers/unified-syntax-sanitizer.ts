@@ -2117,6 +2117,282 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       );
     }
 
+    // ===== Block 9: Fix stray single characters before property names =====
+    // Pattern: `a  "publicConstants"` -> `"publicConstants"`
+    // Handles single character prefixes (a-z, A-Z) before quoted property names
+    const strayCharBeforePropertyPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z])\s+"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      strayCharBeforePropertyPattern,
+      (match, delimiter, whitespace, strayChar, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Removed stray character "${strayChar}" before property "${propertyNameStr}"`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Block 10: Fix stray characters before values =====
+    // Pattern 1: `"type": a"boolean"` -> `"type": "boolean"`
+    const strayCharBeforeQuotedValuePattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])"([^"]+)"(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      strayCharBeforeQuotedValuePattern,
+      (match, propertyName, strayChar, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const valueStr = typeof value === "string" ? value : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+        hasChanges = true;
+        if (diagnostics.length < 20) {
+          diagnostics.push(
+            `Removed stray character "${strayChar}" before value: "${propertyNameStr}": ${strayChar}"${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+          );
+        }
+        return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
+      },
+    );
+
+    // Pattern 2: `"plexity": a,` -> `"plexity": 1,` (assuming it's a number, but we'll just remove the 'a')
+    // Actually, this is likely `"cyclomaticComplexity": a,` where 'a' is a stray character
+    // We need to be careful - this might be a truncated property name issue
+    const strayCharBeforeCommaPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      strayCharBeforeCommaPattern,
+      (match, propertyName, strayChar, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this looks like a numeric property that should have a number value
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const lowerPropertyName = propertyNameStr.toLowerCase();
+        const numericProperties = [
+          "cyclomaticcomplexity",
+          "linesofcode",
+          "totalmethods",
+          "averagecomplexity",
+          "maxcomplexity",
+          "averagemethodlength",
+          "complexity",
+          "lines",
+          "total",
+          "average",
+          "max",
+          "min",
+        ];
+
+        if (numericProperties.includes(lowerPropertyName)) {
+          // This is likely a numeric property - we can't guess the value, so we'll set it to 0
+          // But actually, it's better to leave it and let other sanitizers handle it
+          // For now, we'll just remove the stray character and leave it as null
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Removed stray character "${strayChar}" before terminator: "${propertyNameStr}": ${strayChar}${terminatorStr} -> "${propertyNameStr}": null${terminatorStr}`,
+            );
+          }
+          return `"${propertyNameStr}": null${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Block 11: Fix package name typos =====
+    // Pattern 1: `"orgah.apache...` -> `"org.apache...`
+    // Pattern 2: `"org.apachefineract...` -> `"org.apache.fineract...`
+    // Pattern 3: `"orgfineract...` -> `"org.apache.fineract...`
+    // Pattern 4: `"org.apachefineract...` -> `"org.apache.fineract...` (missing dot)
+    const packageNameTypoPatterns = [
+      { pattern: /"orgah\./g, replacement: '"org.', description: "Fixed typo: orgah -> org" },
+      {
+        pattern: /"org\.apachefineract\./g,
+        replacement: '"org.apache.fineract.',
+        description: "Fixed missing dot: org.apachefineract -> org.apache.fineract",
+      },
+      {
+        pattern: /"orgfineract\./g,
+        replacement: '"org.apache.fineract.',
+        description: "Fixed missing package: orgfineract -> org.apache.fineract",
+      },
+      {
+        pattern: /"org\.apachefineract\./g,
+        replacement: '"org.apache.fineract.',
+        description: "Fixed missing dot: org.apachefineract -> org.apache.fineract",
+      },
+    ];
+
+    for (const { pattern, replacement, description } of packageNameTypoPatterns) {
+      if (pattern.test(sanitized)) {
+        const beforeFix = sanitized;
+        sanitized = sanitized.replace(pattern, replacement);
+        if (sanitized !== beforeFix) {
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(description);
+          }
+        }
+      }
+    }
+
+    // ===== Block 12: Remove AI-generated content warnings and stray text =====
+    // Pattern 1: Remove AI-generated content warnings
+    const aiWarningPattern =
+      /AI-generated\s+content\.\s+Review\s+and\s+use\s+carefully\.\s+Content\s+may\s+be\s+inaccurate\./gi;
+    sanitized = sanitized.replace(aiWarningPattern, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+      hasChanges = true;
+      if (diagnostics.length < 20) {
+        diagnostics.push("Removed AI-generated content warning");
+      }
+      return "";
+    });
+
+    // Pattern 2: Remove stray text like "ovo je json" or "extra_text=""""
+    // Handle extra_text="""" on its own line - match any line containing extra_text=
+    // This is more flexible and handles variations in the pattern
+    const extraTextPattern = /(\n|^)(\s*)(extra_text=[^\n]*)(\s*\n)/g;
+    sanitized = sanitized.replace(
+      extraTextPattern,
+      (match, delimiter, _whitespace, _strayText, newline, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const newlineStr = typeof newline === "string" ? newline : "";
+        hasChanges = true;
+        if (diagnostics.length < 20) {
+          diagnostics.push("Removed stray text (extra_text)");
+        }
+        // Return just the delimiter and newline, removing the extra_text line
+        return `${delimiterStr}${newlineStr}`;
+      },
+    );
+
+    const strayTextPatterns = [
+      {
+        pattern: /([}\],]|\n|^)(\s*)(ovo\s+je\s+json)(\s*\n)/gi,
+        description: "Removed stray text (ovo je json)",
+      },
+    ];
+
+    for (const { pattern, description } of strayTextPatterns) {
+      sanitized = sanitized.replace(
+        pattern,
+        (match, delimiter, _whitespace, _strayText, newline, offset: unknown) => {
+          const numericOffset = typeof offset === "number" ? offset : 0;
+          if (isInStringAt(numericOffset, sanitized)) {
+            return match;
+          }
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const newlineStr = typeof newline === "string" ? newline : "";
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(description);
+          }
+          return `${delimiterStr}${newlineStr}`;
+        },
+      );
+    }
+
+    // ===== Block 13: Fix comment markers in JSON =====
+    // Pattern: `*   "lombok...` -> `"lombok...` (removes comment-style asterisks)
+    // Also handles cases in arrays: `*   "lombok.Data",` -> `"lombok.Data",`
+    // Pattern matches: delimiter (}, ], comma, newline, or start) + optional whitespace + * + whitespace + quoted property
+    // The spaces after the asterisk are captured separately to preserve indentation
+    const commentMarkerPattern = /([}\],]|\n|^)(\s*)\*(\s+)"([a-zA-Z_$][^"]+)"(\s*[,:])/g;
+    sanitized = sanitized.replace(
+      commentMarkerPattern,
+      (
+        match,
+        delimiter,
+        whitespaceBefore,
+        whitespaceAfter,
+        propertyName,
+        terminator,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context (including arrays)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\[\s*$/.test(beforeMatch) ||
+          /\[\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceBeforeStr = typeof whitespaceBefore === "string" ? whitespaceBefore : "";
+          const whitespaceAfterStr = typeof whitespaceAfter === "string" ? whitespaceAfter : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Removed comment marker before property: * "${propertyNameStr}" -> "${propertyNameStr}"`,
+            );
+          }
+          // Use the whitespace after the asterisk (which is the indentation before the quote)
+          // If there's no whitespace after, use the whitespace before, or default to 4 spaces for arrays
+          let finalWhitespace = whitespaceAfterStr || whitespaceBeforeStr;
+          const isInArrayContext = /\[\s*$/.test(beforeMatch) || /\[\s*\n\s*$/.test(beforeMatch);
+          if (isInArrayContext && finalWhitespace === "") {
+            finalWhitespace = "    "; // Standard 4-space indentation for array elements
+          }
+          // For all contexts, preserve delimiter and whitespace
+          if (delimiterStr === "") {
+            return `${finalWhitespace}"${propertyNameStr}"${terminatorStr}`;
+          }
+          return `${delimiterStr}${finalWhitespace}"${propertyNameStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 

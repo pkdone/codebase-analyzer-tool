@@ -1004,4 +1004,180 @@ se": "This method provides read-only access to the client's mobile number.",
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
+
+  describe("stray characters before property names", () => {
+    it("should remove stray single character before property name", () => {
+      const input = `{
+  "name": "TestClass",
+a  "publicConstants": []
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"publicConstants": []');
+      expect(result.content).not.toContain('a  "publicConstants"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove stray character before property name after comma", () => {
+      const input = `{
+  "name": "TestClass",
+  "purpose": "Test",
+b  "publicMethods": []
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"publicMethods": []');
+      expect(result.content).not.toContain('b  "publicMethods"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("stray characters before values", () => {
+    it("should remove stray character before quoted value", () => {
+      const input = `{
+  "name": "TestClass",
+  "type": a"boolean"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"type": "boolean"');
+      expect(result.content).not.toContain('a"boolean"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix stray character before numeric property value", () => {
+      const input = `{
+  "name": "TestClass",
+  "cyclomaticComplexity": a,
+  "linesOfCode": 10
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"cyclomaticComplexity": null');
+      expect(result.content).not.toContain('"cyclomaticComplexity": a,');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("package name typos", () => {
+    it("should fix orgah.apache typo", () => {
+      const input = `{
+  "internalReferences": [
+    "orgah.apache.fineract.client.models.PostClientsRequest"
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.apache.fineract.client.models.PostClientsRequest"');
+      expect(result.content).not.toContain("orgah.apache");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix org.apachefineract missing dot", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apachefineract.integrationtests.common.Utils"
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.apache.fineract.integrationtests.common.Utils"');
+      expect(result.content).not.toContain("org.apachefineract");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix orgfineract missing package", () => {
+      const input = `{
+  "internalReferences": [
+    "orgfineract.portfolio.loanproduct.domain.LoanProduct"
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.loanproduct.domain.LoanProduct"',
+      );
+      expect(result.content).not.toContain("orgfineract");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("AI-generated content warnings", () => {
+    it("should remove AI-generated content warnings", () => {
+      const input = `{
+  "name": "TestClass",
+  "purpose": "Test",
+AI-generated content. Review and use carefully. Content may be inaccurate.
+  "publicMethods": []
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("AI-generated content");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("stray text removal", () => {
+    it("should remove ovo je json text", () => {
+      const input = `{
+  "name": "TestClass",
+ovo je json
+  "purpose": "Test"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("ovo je json");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove extra_text pattern", () => {
+      const input = `{
+  "name": "TestClass",
+extra_text=""""
+  "purpose": "Test"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("extra_text");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("comment markers", () => {
+    it("should remove comment-style asterisks before properties", () => {
+      const input = `{
+  "externalReferences": [
+*   "lombok.Data",
+    "lombok.NoArgsConstructor"
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"lombok.Data"');
+      expect(result.content).not.toContain('*   "lombok.Data"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });
