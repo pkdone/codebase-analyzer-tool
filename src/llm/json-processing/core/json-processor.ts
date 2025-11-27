@@ -216,7 +216,7 @@ export class JsonProcessor {
         logSingleLineWarning(message, context);
       }
       return {
-        success: true,\
+        success: true,
         data: result.data,
         steps: appliedSteps,
         diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
