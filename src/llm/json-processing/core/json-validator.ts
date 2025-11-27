@@ -39,7 +39,8 @@ export class JsonValidator {
         return { success: true, data: validation.data as T };
       } else {
         const issues = validation.error.issues;
-        if (logSanitizationSteps) logSingleLineWarning("Schema validation failed. Validation issues:", issues);
+        if (logSanitizationSteps)
+          logSingleLineWarning("Schema validation failed. Validation issues:", issues);
         return { success: false, issues };
       }
     } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
