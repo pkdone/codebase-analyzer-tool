@@ -961,4 +961,47 @@ se": "This method provides read-only access to the client's mobile number.",
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
+
+  describe("property name typo corrections", () => {
+    it("should fix nameprobably typo to name", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "createDatatableEntry",
+      "parameters": [
+        {
+          "nameprobably": "apptableId",
+          "type": "Integer"
+        }
+      ]
+    }
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "apptableId"');
+      expect(result.content).not.toContain('"nameprobably"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix namelikely typo to name", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "namelikely": "testMethod",
+      "purpose": "Test purpose"
+    }
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "testMethod"');
+      expect(result.content).not.toContain('"namelikely"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });

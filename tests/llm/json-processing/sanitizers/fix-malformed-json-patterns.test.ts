@@ -1383,4 +1383,107 @@ package org.example;`;
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
+
+  describe("Pattern: YAML-like blocks embedded in JSON", () => {
+    it("should remove semantically-similar-code-detection-results YAML block", () => {
+      const input = `{
+  "name": "PortfolioCommandSourceWritePlatformServiceImpl",
+  "kind": "CLASS",
+  "namespace": "org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformServiceImpl",
+semantically-similar-code-detection-results:
+  - score: 0.98
+    reason: "The user wants to analyze a Java file."
+  - score: 0.95
+    reason: "The model should parse the Java code."
+  "purpose": "This class is a service implementation."
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "This class is a service implementation."');
+      expect(result.content).not.toContain("semantically-similar-code-detection-results");
+      expect(result.content).not.toContain("score: 0.98");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove extra_thoughts YAML block", () => {
+      const input = `{
+  "name": "TestClass",
+extra_thoughts: I've identified all the internal classes from the org.apache.fineract package.
+  "purpose": "Test purpose"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "Test purpose"');
+      expect(result.content).not.toContain("extra_thoughts");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: extra_text= style attributes", () => {
+    it("should remove extra_text= wrapper around JSON property", () => {
+      const input = `{
+  "name": "InterestRateChartData",
+  "internalReferences": [
+    "org.apache.fineract.portfolio.interestratechart.data.InterestRateChartSlabData"
+  ],
+extra_text="  "externalReferences": [
+    "java.time.LocalDate",
+    "java.util.ArrayList"
+  ],
+  "publicConstants": []
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"externalReferences": [');
+      expect(result.content).not.toContain('extra_text="');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Stray single character before array element in internalReferences", () => {
+    it("should remove stray character t before array element", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.organisation.provisioning.exception.ProvisioningCriteriaNotFoundException",
+t    "org.apache.fineract.organisation.provisioning.serialization.ProvisioningCriteriaDefinitionJsonDeserializer",
+    "org.apache.fineract.portfolio.loanproduct.domain.LoanProduct"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.organisation.provisioning.serialization.ProvisioningCriteriaDefinitionJsonDeserializer"',
+      );
+      expect(result.content).not.toContain('t    "org.apache');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern: Stray single character before property name", () => {
+    it("should remove stray character a before publicConstants property", () => {
+      const input = `{
+  "name": "AccountNumberFormat",
+  "externalReferences": [
+    "jakarta.persistence.Column"
+  ],
+a  "publicConstants": [],
+  "publicMethods": []
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"publicConstants": []');
+      expect(result.content).not.toContain('a  "publicConstants"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });

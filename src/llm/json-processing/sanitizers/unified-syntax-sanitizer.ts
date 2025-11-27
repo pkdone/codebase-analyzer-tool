@@ -233,6 +233,12 @@ const PROPERTY_TYPO_CORRECTIONS: Record<string, string> = {
   databaseIntegration_: "databaseIntegration",
   dataInputFields_: "dataInputFields",
   codeQualityMetrics_: "codeQualityMetrics",
+  // Common LLM typos for property names
+  nameprobably: "name",
+  namelikely: "name",
+  namemaybe: "name",
+  typeprobably: "type",
+  valueprobably: "value",
 };
 
 /**

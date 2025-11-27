@@ -836,6 +836,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
     // ===== Pattern 12: Remove stray text before string values in arrays =====
     // Pattern: `thank"lombok.RequiredArgsConstructor",` -> `"lombok.RequiredArgsConstructor",`
+    // Also handles single characters like `t    "org.apache..."` in arrays
     const strayTextBeforeStringPattern = /([}\],]|\n|^)(\s*)([a-z]{2,10})"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextBeforeStringPattern,
@@ -860,6 +861,80 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             );
           }
           return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 12b: Remove single stray character before string values in arrays =====
+    // Pattern: `t    "org.apache.fineract...",` -> `"org.apache.fineract...",`
+    // This handles cases where a single character appears before a quoted string in an array
+    // The pattern matches: newline + single char + whitespace + quoted string (the comma is on the previous line)
+    const singleStrayCharBeforeArrayStringPattern = /(\n)([a-z])(\s+)"([^"]+)"\s*(,|\])/g;
+    sanitized = sanitized.replace(
+      singleStrayCharBeforeArrayStringPattern,
+      (match, newline, strayChar, whitespace, stringValue, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context by scanning backwards
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inString = false;
+        let escape = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escape) {
+            escape = false;
+            continue;
+          }
+          if (char === "\\") {
+            escape = true;
+            continue;
+          }
+          if (char === '"') {
+            inString = !inString;
+            continue;
+          }
+          if (!inString) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth >= 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        // Also check if the previous line ends with a comma (common in arrays)
+        const isAfterComma = /,\s*$/.test(beforeMatch.trimEnd());
+
+        if (foundArray || isAfterComma) {
+          hasChanges = true;
+          const newlineStr = typeof newline === "string" ? newline : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          const strayCharStr = typeof strayChar === "string" ? strayChar : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed single stray character '${strayCharStr}' before array element: "${stringValueStr.substring(0, 30)}..."`,
+            );
+          }
+          return `${newlineStr}${whitespaceStr}"${stringValueStr}"${terminatorStr}`;
         }
 
         return match;
@@ -978,6 +1053,53 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           diagnostics.push(`Removed invalid property-like structure: ${invalidProp}=...`);
         }
         return `${delimiterStr}${whitespaceStr}`;
+      },
+    );
+
+    // ===== Pattern 16b: Remove YAML-like blocks embedded in JSON =====
+    // Pattern: `semantically-similar-code-detection-results:\n  - score: 0.98\n  ...` -> remove entire block
+    // This handles cases where LLM inserts YAML-like metadata blocks in the middle of JSON
+    // Also handles single-line YAML-like entries: `extra_thoughts: I've identified all...`
+    const yamlBlockPattern =
+      /(\n\s*)(semantically-similar-code-detection-results|extra_thoughts|extra_code_analysis|extra_notes|extra_info):\s*([\s\S]*?)(?=\n\s*"[a-zA-Z]|\n\s*[}\]]|$)/gi;
+    sanitized = sanitized.replace(
+      yamlBlockPattern,
+      (match, newlinePrefix, blockName, _blockContent, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const newlinePrefixStr = typeof newlinePrefix === "string" ? newlinePrefix : "";
+        const blockNameStr = typeof blockName === "string" ? blockName : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed YAML-like block: ${blockNameStr}:`);
+        }
+        return newlinePrefixStr;
+      },
+    );
+
+    // ===== Pattern 16c: Remove extra_text= style attributes embedded in JSON =====
+    // Pattern: `extra_text="  "externalReferences": [` -> remove the extra_text= part
+    // This handles cases where LLM wraps valid JSON in an extra_text= attribute
+    const extraTextEqualPattern =
+      /(\n\s*)(extra_text|extra_info|extra_notes)\s*=\s*"(\s*"[a-zA-Z])/gi;
+    sanitized = sanitized.replace(
+      extraTextEqualPattern,
+      (match, newlinePrefix, _attrName, jsonStart, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        const newlinePrefixStr = typeof newlinePrefix === "string" ? newlinePrefix : "";
+        const jsonStartStr = typeof jsonStart === "string" ? jsonStart : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Removed extra_text= wrapper around JSON`);
+        }
+        return newlinePrefixStr + jsonStartStr;
       },
     );
 
