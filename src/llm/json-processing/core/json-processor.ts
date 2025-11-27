@@ -149,7 +149,7 @@ export class JsonProcessor {
       );
       const error = new JsonProcessingError(
         JsonProcessingErrorType.PARSE,
-        this._buildErrorMessage("is not a string", context),
+        this.buildResourceErrorMessage("is not a string", context),
       );
       return { success: false, error };
     }
@@ -163,7 +163,7 @@ export class JsonProcessor {
       );
       const error = new JsonProcessingError(
         JsonProcessingErrorType.PARSE,
-        this._buildErrorMessage(
+        this.buildResourceErrorMessage(
           "contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.",
           context,
         ),
@@ -171,7 +171,7 @@ export class JsonProcessor {
       return { success: false, error };
     }
 
-    return this.runSanitizationPipeline<T>(content, context, completionOptions);
+    return this.executeSanitizationPipeline<T>(content, context, completionOptions);
   }
 
   /**
@@ -192,7 +192,7 @@ export class JsonProcessor {
    * Stops immediately if validation fails (as opposed to parse failures), since
    * sanitizers cannot fix schema validation issues.
    */
-  private runSanitizationPipeline<T>(
+  private executeSanitizationPipeline<T>(
     originalContent: string,
     context: LLMContext,
     completionOptions: LLMCompletionOptions,
@@ -201,7 +201,7 @@ export class JsonProcessor {
     const allDiagnostics: string[] = [];
     let lastSanitizer: string | undefined;
 
-    const result = this.runPipelineLoop<T>(
+    const result = this.executeSanitizationLoop<T>(
       originalContent,
       context,
       completionOptions,
@@ -213,7 +213,7 @@ export class JsonProcessor {
     );
 
     if (result.success) {
-      return this._buildSuccessResult(result.data, appliedSteps, allDiagnostics, context);
+      return this.buildProcessingSuccessResult(result.data, appliedSteps, allDiagnostics, context);
     }
 
     // Check if this is a validation error (which should be returned as-is)
@@ -239,7 +239,10 @@ export class JsonProcessor {
     );
     const error = new JsonProcessingError(
       JsonProcessingErrorType.PARSE,
-      this._buildErrorMessage("cannot be parsed to JSON after all sanitization attempts", context),
+      this.buildResourceErrorMessage(
+        "cannot be parsed to JSON after all sanitization attempts",
+        context,
+      ),
       result.lastParseError,
     );
     return { success: false, error };
@@ -252,7 +255,7 @@ export class JsonProcessor {
    * returns failure info if all sanitizers are exhausted.
    */
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  private runPipelineLoop<T>(
+  private executeSanitizationLoop<T>(
     originalContent: string,
     context: LLMContext,
     completionOptions: LLMCompletionOptions,
@@ -262,7 +265,7 @@ export class JsonProcessor {
   ):
     | { success: true; data: T }
     | { success: false; workingContent: string; lastParseError?: Error } {
-    const fastPathResult = this._tryParseAndValidate<T>(
+    const fastPathResult = this.attemptParseAndValidate<T>(
       originalContent,
       context,
       completionOptions,
@@ -271,7 +274,11 @@ export class JsonProcessor {
     if (fastPathResult.success) return { success: true, data: fastPathResult.data };
 
     if (fastPathResult.errorType === JsonProcessingErrorType.VALIDATION) {
-      return this._createValidationErrorResult(context, fastPathResult.error, originalContent);
+      return this.createValidationErrorFailureResult(
+        context,
+        fastPathResult.error,
+        originalContent,
+      );
     }
 
     let workingContent = originalContent;
@@ -280,7 +287,7 @@ export class JsonProcessor {
     // Iterate through phases, then through sanitizers within each phase
     for (const phase of this.SANITIZATION_PIPELINE_PHASES) {
       for (const sanitizer of phase) {
-        const { newContent, changed } = this._applySanitizer(
+        const { newContent, changed } = this.applySanitizerToContent(
           sanitizer,
           workingContent,
           appliedSteps,
@@ -293,7 +300,7 @@ export class JsonProcessor {
           onSanitizerApplied(sanitizer.name);
         }
 
-        const parseResult = this._tryParseAndValidate<T>(
+        const parseResult = this.attemptParseAndValidate<T>(
           workingContent,
           context,
           completionOptions,
@@ -302,7 +309,7 @@ export class JsonProcessor {
         if (parseResult.success) return { success: true, data: parseResult.data };
 
         if (parseResult.errorType === JsonProcessingErrorType.VALIDATION) {
-          return this._createValidationErrorResult(
+          return this.createValidationErrorFailureResult(
             context,
             parseResult.error,
             workingContent,
@@ -320,7 +327,7 @@ export class JsonProcessor {
    * Applies a single sanitizer and updates tracking arrays.
    * Returns the new content and whether changes were made.
    */
-  private _applySanitizer(
+  private applySanitizerToContent(
     sanitizer: Sanitizer,
     content: string,
     appliedSteps: string[],
@@ -346,7 +353,7 @@ export class JsonProcessor {
    * Returns a result indicating success or failure, distinguishing between parse errors
    * (JSON syntax issues) and validation errors (valid JSON that doesn't match schema).
    */
-  private _tryParseAndValidate<T>(
+  private attemptParseAndValidate<T>(
     content: string,
     context: LLMContext,
     completionOptions: LLMCompletionOptions,
@@ -363,13 +370,13 @@ export class JsonProcessor {
       };
     }
 
-    return this.applyTransformsAndValidate<T>(parsedContent, context, completionOptions);
+    return this.applyPostParseTransformsAndValidate<T>(parsedContent, context, completionOptions);
   }
 
   /**
    * Applies post-parse transformations and validates the data against the schema.
    */
-  private applyTransformsAndValidate<T>(
+  private applyPostParseTransformsAndValidate<T>(
     parsedData: unknown,
     _context: LLMContext,
     completionOptions: LLMCompletionOptions,
@@ -403,7 +410,7 @@ export class JsonProcessor {
   /**
    * Builds a standardized error message with resource context.
    */
-  private _buildErrorMessage(baseMessage: string, context: LLMContext): string {
+  private buildResourceErrorMessage(baseMessage: string, context: LLMContext): string {
     return `LLM response for resource '${context.resource}' ${baseMessage}`;
   }
 
@@ -411,7 +418,7 @@ export class JsonProcessor {
    * Creates a validation error result with logging and standardized error message.
    * Used when JSON parses successfully but fails schema validation.
    */
-  private _createValidationErrorResult(
+  private createValidationErrorFailureResult(
     context: LLMContext,
     error: Error,
     workingContent: string,
@@ -426,7 +433,7 @@ export class JsonProcessor {
     });
     const validationError = new JsonProcessingError(
       JsonProcessingErrorType.VALIDATION,
-      this._buildErrorMessage("parsed successfully but failed schema validation", context),
+      this.buildResourceErrorMessage("parsed successfully but failed schema validation", context),
       error,
     );
     return {
@@ -439,7 +446,7 @@ export class JsonProcessor {
   /**
    * Builds a success result with optional steps and diagnostics.
    */
-  private _buildSuccessResult<T>(
+  private buildProcessingSuccessResult<T>(
     data: T,
     appliedSteps: string[],
     allDiagnostics: string[],
