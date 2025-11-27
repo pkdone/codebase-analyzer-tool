@@ -149,7 +149,7 @@ export class JsonProcessor {
       );
       const error = new JsonProcessingError(
         JsonProcessingErrorType.PARSE,
-        `LLM response for resource '${context.resource}' is not a string`,
+        this._buildErrorMessage("is not a string", context),
       );
       return { success: false, error };
     }
@@ -163,7 +163,10 @@ export class JsonProcessor {
       );
       const error = new JsonProcessingError(
         JsonProcessingErrorType.PARSE,
-        `LLM response for resource '${context.resource}' contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
+        this._buildErrorMessage(
+          "contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.",
+          context,
+        ),
       );
       return { success: false, error };
     }
@@ -210,17 +213,7 @@ export class JsonProcessor {
     );
 
     if (result.success) {
-      if (this.loggingEnabled && hasSignificantSanitizationSteps(appliedSteps)) {
-        let message = `Applied ${appliedSteps.length} sanitization step(s): ${appliedSteps.join(" -> ")}`;
-        if (allDiagnostics.length > 0) message += ` | Diagnostics: ${allDiagnostics.join(" | ")}`;
-        logSingleLineWarning(message, context);
-      }
-      return {
-        success: true,
-        data: result.data,
-        steps: appliedSteps,
-        diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
-      };
+      return this._buildSuccessResult(result.data, appliedSteps, allDiagnostics, context);
     }
 
     // Check if this is a validation error (which should be returned as-is)
@@ -246,7 +239,7 @@ export class JsonProcessor {
     );
     const error = new JsonProcessingError(
       JsonProcessingErrorType.PARSE,
-      `LLM response for resource '${context.resource}' cannot be parsed to JSON after all sanitization attempts`,
+      this._buildErrorMessage("cannot be parsed to JSON after all sanitization attempts", context),
       result.lastParseError,
     );
     return { success: false, error };
@@ -278,20 +271,7 @@ export class JsonProcessor {
     if (fastPathResult.success) return { success: true, data: fastPathResult.data };
 
     if (fastPathResult.errorType === JsonProcessingErrorType.VALIDATION) {
-      logSingleLineWarning("Parsed successfully but failed schema validation", {
-        ...context,
-        responseContentParseError: fastPathResult.error,
-      });
-      const validationError = new JsonProcessingError(
-        JsonProcessingErrorType.VALIDATION,
-        `LLM response for resource '${context.resource}' parsed successfully but failed schema validation`,
-        fastPathResult.error,
-      );
-      return {
-        success: false,
-        workingContent: originalContent,
-        lastParseError: validationError,
-      };
+      return this._createValidationErrorResult(context, fastPathResult.error, originalContent);
     }
 
     let workingContent = originalContent;
@@ -322,20 +302,12 @@ export class JsonProcessor {
         if (parseResult.success) return { success: true, data: parseResult.data };
 
         if (parseResult.errorType === JsonProcessingErrorType.VALIDATION) {
-          logSingleLineWarning(
-            `Parsed successfully but failed schema validation after sanitizer: ${sanitizer.name}`,
-            { ...context, responseContentParseError: parseResult.error },
-          );
-          const validationError = new JsonProcessingError(
-            JsonProcessingErrorType.VALIDATION,
-            `LLM response for resource '${context.resource}' parsed successfully but failed schema validation`,
+          return this._createValidationErrorResult(
+            context,
             parseResult.error,
-          );
-          return {
-            success: false,
             workingContent,
-            lastParseError: validationError,
-          };
+            sanitizer.name,
+          );
         }
         lastParseError = parseResult.error;
       }
@@ -426,5 +398,63 @@ export class JsonProcessor {
     }
 
     return { success: true, data: validationResult.data as T };
+  }
+
+  /**
+   * Builds a standardized error message with resource context.
+   */
+  private _buildErrorMessage(baseMessage: string, context: LLMContext): string {
+    return `LLM response for resource '${context.resource}' ${baseMessage}`;
+  }
+
+  /**
+   * Creates a validation error result with logging and standardized error message.
+   * Used when JSON parses successfully but fails schema validation.
+   */
+  private _createValidationErrorResult(
+    context: LLMContext,
+    error: Error,
+    workingContent: string,
+    sanitizerName?: string,
+  ): { success: false; workingContent: string; lastParseError: JsonProcessingError } {
+    const logMessage = sanitizerName
+      ? `Parsed successfully but failed schema validation after sanitizer: ${sanitizerName}`
+      : "Parsed successfully but failed schema validation";
+    logSingleLineWarning(logMessage, {
+      ...context,
+      responseContentParseError: error,
+    });
+    const validationError = new JsonProcessingError(
+      JsonProcessingErrorType.VALIDATION,
+      this._buildErrorMessage("parsed successfully but failed schema validation", context),
+      error,
+    );
+    return {
+      success: false,
+      workingContent,
+      lastParseError: validationError,
+    };
+  }
+
+  /**
+   * Builds a success result with optional steps and diagnostics.
+   */
+  private _buildSuccessResult<T>(
+    data: T,
+    appliedSteps: string[],
+    allDiagnostics: string[],
+    context: LLMContext,
+  ): JsonProcessorResult<T> {
+    if (this.loggingEnabled && hasSignificantSanitizationSteps(appliedSteps)) {
+      let message = `Applied ${appliedSteps.length} sanitization step(s): ${appliedSteps.join(" -> ")}`;
+      if (allDiagnostics.length > 0) message += ` | Diagnostics: ${allDiagnostics.join(" | ")}`;
+      logSingleLineWarning(message, context);
+    }
+    return {
+      success: true,
+      data,
+      steps: appliedSteps,
+      diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
+    };
   }
 }
