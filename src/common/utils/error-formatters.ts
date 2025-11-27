@@ -25,8 +25,8 @@ export function formatError(error: unknown): string {
  * Capture error message and detail as a formatted string.
  */
 export function formatErrorMessageAndDetail(msg: string | null, error: unknown): string {
-  const prefix = msg ? `${msg}: ` : "";
-  return `${prefix}${formatError(error)}\n-\n${getErrorStack(error)}`;
+  const prefix = msg ? `${msg}:  ` : "";
+  return `${prefix}'${formatError(error)}'\n${getErrorStack(error)}`;
 }
 
 /**

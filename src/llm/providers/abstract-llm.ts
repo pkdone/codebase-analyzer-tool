@@ -358,8 +358,11 @@ export default abstract class AbstractLLM implements LLMProvider {
         "Resource: " +
         context.resource +
         "\n\n" +
-        "Error messgage:\n\n```\n" +
-        formatErrorMessageAndDetail("LLM response parsing error", error) +
+        "Error message:\n\n```\n" +
+        formatErrorMessageAndDetail(
+          "LLM response parsing error",
+          error instanceof Error && error.cause ? error.cause : error,
+        ) +
         "\n```\n\n\nBad LLM JSON response: \n\n```\n" +
         responseContent +
         "\n```";
