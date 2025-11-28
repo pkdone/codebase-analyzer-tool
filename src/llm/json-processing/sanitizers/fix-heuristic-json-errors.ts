@@ -143,8 +143,9 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // ===== Pattern 3: Remove text appearing outside string values =====
     // Pattern: "value",\n    text that appears after closing quote
     // This handles cases like: "lombok.RequiredArgsConstructor",\nfrom the API layer...
+    // Enhanced to handle cases like: "value", tribulations.
     const textOutsideStringPattern =
-      /"([^"]+)"\s*,\s*\n\s*([a-z][^"]{20,200}?)(?=\s*[,}\]]|\s*\n\s*"[a-zA-Z])/g;
+      /"([^"]+)"\s*,\s*\n\s*([a-z][^"]{5,200}?)(?=\s*[,}\]]|\s*\n\s*"[a-zA-Z]|\.\s*$)/g;
     sanitized = sanitized.replace(
       textOutsideStringPattern,
       (match, value, strayText, offset: unknown) => {
@@ -156,9 +157,10 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         // Check if the stray text looks like descriptive text (not JSON structure)
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const looksLikeDescriptiveText =
-          /\b(the|a|an|is|are|was|were|this|that|from|to|for|with|by|in|on|at|suggests|pattern|use|layer)\b/i.test(
+          (/\b(the|a|an|is|are|was|were|this|that|from|to|for|with|by|in|on|at|suggests|pattern|use|layer|tribulations|thought|user|wants|act|senior|developer|analyze|provided|java|code|produce|json|output|conforms|specified|schema)\b/i.test(
             strayTextStr,
-          ) &&
+          ) ||
+            /^[a-z][a-z\s]{5,50}\.$/i.test(strayTextStr)) &&
           !strayTextStr.includes('"') &&
           !strayTextStr.includes("{") &&
           !strayTextStr.includes("}") &&
@@ -172,6 +174,50 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
             `Removed descriptive text outside string: "${valueStr}" + "${strayTextStr.substring(0, 50)}..."`,
           );
           return `"${valueStr}",`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 3b: Handle text appearing after string values with punctuation
+    // Pattern: "value", tribulations. -> "value",
+    const textAfterStringWithPunctuationPattern =
+      /"([^"]+)"\s*,\s*([a-z][a-z\s]{5,50}\.)\s*([,}\]]|\n|$)/g;
+    sanitized = sanitized.replace(
+      textAfterStringWithPunctuationPattern,
+      (match, value, strayText, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const valueStr = typeof value === "string" ? value : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        // Check if it looks like descriptive text ending with a period
+        if (
+          /^[a-z][a-z\s]{5,50}\.$/i.test(strayTextStr) &&
+          !strayTextStr.includes('"') &&
+          !strayTextStr.includes("{") &&
+          !strayTextStr.includes("}") &&
+          !strayTextStr.includes("[") &&
+          !strayTextStr.includes("]")
+        ) {
+          hasChanges = true;
+          diagnostics.push(
+            `Removed descriptive text after string value: "${valueStr}", ${strayTextStr}`,
+          );
+          // If terminator is empty or newline, use closing bracket for array context
+          if (terminatorStr === "" || terminatorStr === "\n") {
+            // Check if we're in an array context
+            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+            if (/\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch)) {
+              return `"${valueStr}"\n  ]`;
+            }
+          }
+          return `"${valueStr}",${terminatorStr}`;
         }
 
         return match;
@@ -282,6 +328,53 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
             strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
           diagnostics.push(`Removed text after JSON structure: "${displayText}"`);
           return closingBraceStr;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 4d: Remove text like "_llm_thought:" appearing after JSON structure
+    // Pattern: }\n_llm_thought: The user wants...
+    const llmThoughtPattern = /(}\s*)\n\s*_llm_thought\s*:.*$/s;
+    sanitized = sanitized.replace(llmThoughtPattern, (match, closingBrace, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
+      hasChanges = true;
+      diagnostics.push("Removed _llm_thought text after JSON structure");
+      return closingBraceStr;
+    });
+
+    // Pattern 4e: Remove text like "so    "connectionInfo":" appearing after closing brace
+    // Pattern: },\n    so    "connectionInfo":
+    const textBeforePropertyAfterBracePattern =
+      /(}\s*)\s*,\s*\n\s*([a-z]{1,3})\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
+    sanitized = sanitized.replace(
+      textBeforePropertyAfterBracePattern,
+      (match, closingBrace, strayText, propertyWithQuote, _propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const propertyWithQuoteStr = typeof propertyWithQuote === "string" ? propertyWithQuote : "";
+
+        // Check if it's a short word that looks like stray text
+        if (
+          /^[a-z]{1,3}$/i.test(strayTextStr) &&
+          !/^(the|and|for|are|was|were)$/i.test(strayTextStr)
+        ) {
+          hasChanges = true;
+          diagnostics.push(
+            `Removed stray text '${strayTextStr}' before property after closing brace: ${strayTextStr} ${propertyWithQuoteStr}`,
+          );
+          return `${closingBraceStr},\n    ${propertyWithQuoteStr}`;
         }
 
         return match;

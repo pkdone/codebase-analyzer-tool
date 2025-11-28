@@ -4722,6 +4722,116 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         sanitized.substring(0, repl.start) + repl.replacement + sanitized.substring(repl.end);
     }
 
+    // ===== Pattern 90: Fix extra characters before array elements =====
+    // Pattern: `e    "org.apache...`, `g    "org.apache...`, `ax      "Staff",`
+    // Handles cases where single or multiple characters (1-4) appear before quoted strings in arrays
+    // Match ,\n or just \n as delimiter to handle both cases
+    const extraCharsBeforeArrayElementPattern =
+      /((?:,\s*)?\n|^)(\s*)([a-z]{1,4})\s+("([^"]+)"\s*(,|\]))/g;
+    sanitized = sanitized.replace(
+      extraCharsBeforeArrayElementPattern,
+      (
+        match,
+        delimiter,
+        whitespace,
+        extraChars,
+        quotedString,
+        _stringValue,
+        terminator,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context - look for array patterns
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        // Simple check: if we see a comma+newline or quoted string+comma+newline before us,
+        // we're likely in an array (this pattern is very specific to arrays anyway)
+        const hasArrayPattern =
+          /,\s*\n\s*$/.test(beforeMatch) || /"\s*,\s*\n\s*$/.test(beforeMatch);
+        const hasArrayBracket = beforeMatch.includes("[");
+        // Also check if delimiter is newline and we have array-like context
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const isLikelyArray =
+          hasArrayPattern ||
+          (delimiterStr.includes("\n") && hasArrayBracket) ||
+          /\[\s*$/.test(beforeMatch);
+
+        if (isLikelyArray) {
+          hasChanges = true;
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const quotedStringStr = typeof quotedString === "string" ? quotedString : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          const extraCharsStr = typeof extraChars === "string" ? extraChars : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed extra characters '${extraCharsStr}' before array element: "${quotedStringStr.substring(0, 30)}..."`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}${quotedStringStr}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 91: Fix Unicode special characters in package names =====
+    // Pattern: `orgʻapache` -> `org.apache` (handles Unicode character ʻ which is U+02BB)
+    // Also handles other similar Unicode characters that might appear in package names
+    const unicodeCharInPackagePattern =
+      /"org([\u02BB\u02BC\u02BD\u02BE\u02BF\u02C0-\u02FF]|[\u0300-\u036F])apache\./g;
+    sanitized = sanitized.replace(
+      unicodeCharInPackagePattern,
+      (match, unicodeChar, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+        hasChanges = true;
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed Unicode character in package name: org${unicodeChar}apache -> org.apache`,
+          );
+        }
+        return '"org.apache.';
+      },
+    );
+
+    // ===== Pattern 92: Fix corrupted property values with extra text after commas =====
+    // Pattern: `"cyclomaticComplexity": 3, a` -> `"cyclomaticComplexity": 3,`
+    // Handles cases where extra text appears after a property value and comma
+    const corruptedPropertyValuePattern = /"([^"]+)"\s*:\s*([^,}]+)\s*,\s*([a-z])\s*([,}\]]|\n)/g;
+    sanitized = sanitized.replace(
+      corruptedPropertyValuePattern,
+      (match, propertyName, value, extraText, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if the extra text looks like stray text (single letter, not a valid JSON value)
+        const extraTextStr = typeof extraText === "string" ? extraText : "";
+        const valueStr = typeof value === "string" ? value : "";
+        const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        // Check if it's a single letter that's not part of a valid JSON value
+        if (/^[a-z]$/i.test(extraTextStr) && !/^(true|false|null)$/i.test(extraTextStr)) {
+          hasChanges = true;
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed extra text '${extraTextStr}' after property value: "${propertyNameStr}": ${valueStr}, ${extraTextStr}`,
+            );
+          }
+          return `"${propertyNameStr}": ${valueStr},${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;
 
