@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import {
   LLMCompletionOptions,
   LLMOutputFormat,
@@ -7,17 +7,11 @@ import {
 import { JsonProcessingErrorType } from "../../../src/llm/json-processing/types/json-processing.errors";
 
 /**
- * Tests for the JsonProcessor's post-parse transformation pipeline.
+ * Tests for the post-parse transformation pipeline.
  * These tests verify that transformations are applied after JSON.parse
  * but before schema validation.
  */
-describe("JsonProcessor - Post-Parse Transforms", () => {
-  let processor: JsonProcessor;
-
-  beforeEach(() => {
-    processor = new JsonProcessor();
-  });
-
+describe("Post-Parse Transforms", () => {
   const defaultOptions: LLMCompletionOptions = {
     outputFormat: LLMOutputFormat.JSON,
   };
@@ -33,7 +27,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -54,7 +48,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         version: "1.0.0",
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         normalJson,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -81,7 +75,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -105,7 +99,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         properties: {},
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -129,7 +123,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -152,7 +146,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
     it("applies transforms only after successful parse", () => {
       const invalidJson = "{ this is not valid json";
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         invalidJson,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -174,7 +168,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -203,7 +197,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
 }
 \`\`\``;
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -235,7 +229,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -270,7 +264,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -295,7 +289,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         databaseIntegration: [],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -333,7 +327,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -366,7 +360,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         implementation: "Some code",
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -391,7 +385,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -466,7 +460,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -514,7 +508,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -550,7 +544,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -582,7 +576,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -610,7 +604,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -638,7 +632,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -680,7 +674,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -707,7 +701,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -727,7 +721,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         empty: {},
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -748,7 +742,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         nullValue: null,
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -786,7 +780,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -813,7 +807,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -840,7 +834,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         },
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -877,7 +871,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -913,7 +907,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -944,7 +938,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,
@@ -970,7 +964,7 @@ describe("JsonProcessor - Post-Parse Transforms", () => {
         ],
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         defaultOptions,

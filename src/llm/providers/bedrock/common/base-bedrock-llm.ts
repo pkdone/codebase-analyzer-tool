@@ -24,7 +24,6 @@ import {
   extractGenericCompletionResponse,
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
-import { JsonProcessor } from "../../../json-processing/core/json-processor";
 import { EnvVars } from "../../../../env/env.types";
 
 const TOKEN_LIMIT_ERROR_KEYWORDS = new Set([
@@ -94,7 +93,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: BedrockConfig,
-    jsonProcessor: JsonProcessor,
     modelFamily: string,
     llmFeatures?: readonly string[],
   ) {
@@ -106,7 +104,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       modelsMetadata,
       errorPatterns,
       config.providerSpecificConfig,
-      jsonProcessor,
       modelFamily,
       llmFeatures,
     );

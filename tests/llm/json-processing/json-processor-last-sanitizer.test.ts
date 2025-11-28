@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import {
   LLMCompletionOptions,
   LLMOutputFormat,
@@ -6,12 +6,11 @@ import {
 } from "../../../src/llm/types/llm.types";
 
 describe("JsonProcessor lastSanitizer tracking", () => {
-  const processor = new JsonProcessor(false);
   const completionOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.JSON } as any;
 
   it("includes lastSanitizer in error when pipeline fails", () => {
     const malformed = "NOT_JSON@@";
-    const result = processor.parseAndValidate(
+    const result = processJson(
       malformed,
       { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,

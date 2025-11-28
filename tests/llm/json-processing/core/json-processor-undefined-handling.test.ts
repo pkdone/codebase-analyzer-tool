@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../../src/llm/json-processing/core/json-processing";
 import {
   LLMCompletionOptions,
   LLMOutputFormat,
@@ -7,11 +7,7 @@ import {
 import { z } from "zod";
 
 describe("JsonProcessor - Undefined Value Handling Integration", () => {
-  let processor: JsonProcessor;
-
-  beforeEach(() => {
-    processor = new JsonProcessor(false); // Disable logging for tests
-  });
+  beforeEach(() => {});
 
   describe("undefined value sanitization", () => {
     it("should successfully parse JSON with undefined values", () => {
@@ -32,7 +28,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "ejb-jar.xml", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -83,7 +79,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "test-component", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -118,7 +114,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "array-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -155,7 +151,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         problematicResponse,
         { resource: "ejb-jar.xml", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -191,7 +187,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "fenced-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -224,7 +220,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "unquoted-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -274,7 +270,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "multi-sanitizer-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -350,7 +346,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "nested-undefined-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -393,7 +389,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "no-undefined-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -425,7 +421,7 @@ describe("JsonProcessor - Undefined Value Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "omitted-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

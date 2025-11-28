@@ -16,7 +16,7 @@ import {
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
 import { formatError, formatErrorMessageAndDetail } from "../../common/utils/error-formatters";
 import { logSingleLineWarning, logError } from "../../common/utils/logging";
-import { JsonProcessor } from "../json-processing/core/json-processor";
+import { processJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
@@ -37,7 +37,6 @@ export default abstract class AbstractLLM implements LLMProvider {
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private hasLoggedJsonError = false;
-  private readonly jsonProcessor: JsonProcessor;
   private readonly modelFamily: string;
 
   /**
@@ -48,7 +47,6 @@ export default abstract class AbstractLLM implements LLMProvider {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     providerSpecificConfig: LLMProviderSpecificConfig,
-    jsonProcessor: JsonProcessor,
     modelFamily: string,
     llmFeatures?: readonly string[],
   ) {
@@ -56,7 +54,6 @@ export default abstract class AbstractLLM implements LLMProvider {
     this.llmModelsMetadata = modelsMetadata;
     this.errorPatterns = errorPatterns;
     this.providerSpecificConfig = providerSpecificConfig;
-    this.jsonProcessor = jsonProcessor;
     this.modelFamily = modelFamily;
     this.llmFeatures = llmFeatures;
   }
@@ -303,10 +300,11 @@ export default abstract class AbstractLLM implements LLMProvider {
   ): Promise<LLMFunctionResponse> {
     if (taskType === LLMPurpose.COMPLETIONS) {
       if (completionOptions.outputFormat === LLMOutputFormat.JSON) {
-        const parseResult = this.jsonProcessor.parseAndValidate(
+        const parseResult = processJson(
           responseContent,
           context,
           completionOptions,
+          true, // loggingEnabled
         );
 
         if (parseResult.success) {

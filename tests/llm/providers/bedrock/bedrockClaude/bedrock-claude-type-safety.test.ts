@@ -8,7 +8,6 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
-import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 
 /**
  * Unit tests for BedrockClaudeLLM - Type Safety Improvements
@@ -65,7 +64,6 @@ describe("BedrockClaudeLLM - Type Safety", () => {
           anthropicBetaFlags: ["context-1m-2025-08-07"],
         },
       },
-      createMockJsonProcessor(),
       "BedrockClaude",
     );
 
@@ -96,7 +94,6 @@ describe("BedrockClaudeLLM - Type Safety", () => {
           maxRetryDelayMillis: 360000,
         },
       },
-      createMockJsonProcessor(),
       "BedrockClaude",
     );
 
@@ -131,7 +128,6 @@ describe("BedrockClaudeLLM - Type Safety", () => {
           anthropicBetaFlags: ["context-1m-2025-08-07"],
         },
       },
-      createMockJsonProcessor(),
       "BedrockClaude",
     );
 
@@ -175,7 +171,6 @@ describe("BedrockClaudeLLM - Type Safety", () => {
           maxRetryDelayMillis: 360000,
         },
       },
-      createMockJsonProcessor(),
       "BedrockClaude",
     );
 

@@ -7,7 +7,6 @@ import {
 import BaseOpenAILLM from "../common/base-openai-llm";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { JsonProcessor } from "../../../json-processing/core/json-processor";
 import { EnvVars } from "../../../../env/env.types";
 import { getRequiredEnvVar } from "../../../../env/env-utils";
 
@@ -28,7 +27,6 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
-    jsonProcessor: JsonProcessor,
     modelFamily: string,
     llmFeatures?: readonly string[],
   ) {
@@ -37,7 +35,6 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
       modelsMetadata,
       errorPatterns,
       config.providerSpecificConfig,
-      jsonProcessor,
       modelFamily,
       llmFeatures,
     );

@@ -58,8 +58,6 @@ export type InsightsToken = keyof typeof insightsTokens;
 
 // LLM module tokens
 export const llmTokens = {
-  JsonProcessor: Symbol("JsonProcessor"),
-  JsonValidator: Symbol("JsonValidator"),
   LLMStats: Symbol("LLMStats"),
   LLMStatsReporter: Symbol("LLMStatsReporter"),
   PromptAdaptationStrategy: Symbol("PromptAdaptationStrategy"),

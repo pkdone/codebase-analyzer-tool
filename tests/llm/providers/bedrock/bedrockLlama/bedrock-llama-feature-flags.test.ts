@@ -1,9 +1,5 @@
 import { bedrockLlamaProviderManifest } from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
 import BedrockLlamaLLM from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm";
-import { JsonProcessor } from "../../../../../src/llm/json-processing/core/json-processor";
-// Local minimal builder to avoid cross-test helper dependency (helper not present in repo)
-const buildJsonProcessorForTests = () => new JsonProcessor(false);
-
 // Minimal mocks for metadata
 const mockModelsKeysSet = {
   embeddingsModelKey: bedrockLlamaProviderManifest.models.embeddings.modelKey,
@@ -18,11 +14,6 @@ const mockModelsMetadata: Record<string, any> = {
 };
 
 describe("Bedrock Llama Manifest Feature Flags", () => {
-  let jsonProcessor: JsonProcessor;
-  beforeAll(() => {
-    jsonProcessor = buildJsonProcessorForTests();
-  });
-
   test("CAP_MAX_GEN_LEN feature triggers max_gen_len capping", () => {
     const instance = new BedrockLlamaLLM(
       {} as any,
@@ -30,7 +21,6 @@ describe("Bedrock Llama Manifest Feature Flags", () => {
       mockModelsMetadata,
       bedrockLlamaProviderManifest.errorPatterns,
       { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
-      jsonProcessor,
       bedrockLlamaProviderManifest.modelFamily,
     ) as unknown as {
       llmFeatures?: readonly string[];
@@ -54,7 +44,6 @@ describe("Bedrock Llama Manifest Feature Flags", () => {
       mockModelsMetadata,
       bedrockLlamaProviderManifest.errorPatterns,
       { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
-      jsonProcessor,
       bedrockLlamaProviderManifest.modelFamily,
     ) as unknown as {
       llmFeatures?: readonly string[];

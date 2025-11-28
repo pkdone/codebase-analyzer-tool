@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 
@@ -7,11 +7,7 @@ import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
  * using the actual sourceSummarySchema to ensure the fix works with real validation.
  */
 describe("normalizeDatabaseIntegrationArray - Integration with sourceSummarySchema", () => {
-  let processor: JsonProcessor;
-
-  beforeEach(() => {
-    processor = new JsonProcessor(false); // Disable logging for tests
-  });
+  beforeEach(() => {});
 
   it("should fix validation error when databaseIntegration is returned as array", () => {
     // This is the actual error scenario from the log file
@@ -87,7 +83,7 @@ describe("normalizeDatabaseIntegrationArray - Integration with sourceSummarySche
 
     // Before the fix, this would fail with: "Expected object, received array" at path ["databaseIntegration"]
     // After the fix, this should succeed
-    const result = processor.parseAndValidate(
+    const result = processJson(
       llmResponse,
       { resource: "dbstuff/cursor-for-loop-optimization.sql", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -140,7 +136,7 @@ describe("normalizeDatabaseIntegrationArray - Integration with sourceSummarySche
       ],
     });
 
-    const result = processor.parseAndValidate(
+    const result = processJson(
       llmResponse,
       { resource: "test.sql", purpose: LLMPurpose.COMPLETIONS },
       {
@@ -164,7 +160,7 @@ describe("normalizeDatabaseIntegrationArray - Integration with sourceSummarySche
       implementation: "No database code here",
     });
 
-    const result = processor.parseAndValidate(
+    const result = processJson(
       llmResponse,
       { resource: "test.ts", purpose: LLMPurpose.COMPLETIONS },
       {

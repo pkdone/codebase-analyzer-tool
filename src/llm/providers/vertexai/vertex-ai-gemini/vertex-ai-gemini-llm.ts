@@ -31,7 +31,6 @@ import {
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { toMongoJsonSchema } from "../../../../common/mongodb/utils/zod-to-mongodb-schema";
 import { isJsonObject } from "../../../../common/utils/type-guards";
-import { JsonProcessor } from "../../../json-processing/core/json-processor";
 import { EnvVars } from "../../../../env/env.types";
 import { getRequiredEnvVar } from "../../../../env/env-utils";
 
@@ -66,7 +65,6 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
-    jsonProcessor: JsonProcessor,
     modelFamily: string,
     llmFeatures?: readonly string[],
   ) {
@@ -75,7 +73,6 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       modelsMetadata,
       errorPatterns,
       config.providerSpecificConfig,
-      jsonProcessor,
       modelFamily,
       llmFeatures,
     );

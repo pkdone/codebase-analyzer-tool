@@ -6,7 +6,6 @@ import {
   LLMPurpose,
 } from "../../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
-import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 import { llmConfig } from "../../../../../src/llm/llm.config";
 
 // Define model key used in tests (matching the manifest internal constant)
@@ -52,7 +51,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -86,7 +85,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -102,7 +101,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: { ...mockConfig, apiVersion: "bedrock-2023-05-31" } },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -121,7 +120,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -145,7 +144,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -173,7 +172,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
             topP: 0.5, // This should be ignored
           },
         },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -193,7 +192,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -214,7 +213,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -243,7 +242,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 
@@ -263,7 +262,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
+
         "BedrockDeepseek",
       );
 

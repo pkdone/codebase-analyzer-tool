@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/llm/types/llm.types";
 import { z } from "zod";
 
@@ -7,13 +7,7 @@ import { z } from "zod";
  * These tests ensure that the phased pipeline maintains the same behavior
  * as the previous flat array structure.
  */
-describe("JsonProcessor - Phased Pipeline", () => {
-  let processor: JsonProcessor;
-
-  beforeEach(() => {
-    processor = new JsonProcessor(false); // Disable logging for tests
-  });
-
+describe("Phased Pipeline", () => {
   describe("pipeline execution order", () => {
     it("should apply sanitizers in the correct phase order", () => {
       // This test verifies that the phased structure maintains the same execution order
@@ -33,7 +27,7 @@ describe("JsonProcessor - Phased Pipeline", () => {
         items: z.array(z.number()),
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         malformedJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -63,7 +57,7 @@ describe("JsonProcessor - Phased Pipeline", () => {
         name: z.string(),
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         jsonWithNoise,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -89,7 +83,7 @@ describe("JsonProcessor - Phased Pipeline", () => {
         value: z.number(),
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         jsonWithStructureIssues,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -116,7 +110,7 @@ describe("JsonProcessor - Phased Pipeline", () => {
         path: z.string(),
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         jsonWithPropertyIssues,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -145,7 +139,7 @@ describe("JsonProcessor - Phased Pipeline", () => {
         items: z.array(z.number()),
       });
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         jsonWithContentIssues,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -184,7 +178,7 @@ describe("JsonProcessor - Phased Pipeline", () => {
       ];
 
       for (const testCase of testCases) {
-        const result = processor.parseAndValidate(
+        const result = processJson(
           testCase.input,
           { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
           {

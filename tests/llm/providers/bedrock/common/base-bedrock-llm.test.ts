@@ -7,9 +7,7 @@ import {
 } from "../../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
 import { z } from "zod";
-import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 import { ValidationException } from "@aws-sdk/client-bedrock-runtime";
-import type { JsonProcessor } from "../../../../../src/llm/json-processing/core/json-processor";
 
 /**
  * Test implementation of BaseBedrockLLM to verify JSON stringification
@@ -24,17 +22,8 @@ class TestBedrockLLM extends BaseBedrockLLM {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
-    jsonProcessor: JsonProcessor,
   ) {
-    super(
-      _env as any,
-      modelsKeys,
-      modelsMetadata,
-      errorPatterns,
-      config,
-      jsonProcessor,
-      "TEST_BEDROCK",
-    );
+    super(_env as any, modelsKeys, modelsMetadata, errorPatterns, config, "TEST_BEDROCK");
   }
 
   protected buildCompletionRequestBody(modelKey: string, prompt: string): Record<string, unknown> {
@@ -102,16 +91,9 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   };
 
   it("should return an object from buildCompletionRequestBody, not a string", () => {
-    const llm = new TestBedrockLLM(
-      {},
-      mockModelsKeys,
-      mockModelsMetadata,
-      [],
-      {
-        providerSpecificConfig: mockConfig,
-      },
-      createMockJsonProcessor(),
-    );
+    const llm = new TestBedrockLLM({}, mockModelsKeys, mockModelsMetadata, [], {
+      providerSpecificConfig: mockConfig,
+    });
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const result = llm["buildCompletionRequestBody"]("COMPLETION", "test prompt");
@@ -123,16 +105,9 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should build request body with correct structure", () => {
-    const llm = new TestBedrockLLM(
-      {},
-      mockModelsKeys,
-      mockModelsMetadata,
-      [],
-      {
-        providerSpecificConfig: mockConfig,
-      },
-      createMockJsonProcessor(),
-    );
+    const llm = new TestBedrockLLM({}, mockModelsKeys, mockModelsMetadata, [], {
+      providerSpecificConfig: mockConfig,
+    });
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const result = llm["buildCompletionRequestBody"]("COMPLETION", "hello world");
@@ -150,16 +125,9 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should verify base class handles JSON stringification internally for completions", () => {
-    const llm = new TestBedrockLLM(
-      {},
-      mockModelsKeys,
-      mockModelsMetadata,
-      [],
-      {
-        providerSpecificConfig: mockConfig,
-      },
-      createMockJsonProcessor(),
-    );
+    const llm = new TestBedrockLLM({}, mockModelsKeys, mockModelsMetadata, [], {
+      providerSpecificConfig: mockConfig,
+    });
 
     // Access the private method through bracket notation for testing
     // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -179,16 +147,9 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should handle embeddings body as object and stringify it", () => {
-    const llm = new TestBedrockLLM(
-      {},
-      mockModelsKeys,
-      mockModelsMetadata,
-      [],
-      {
-        providerSpecificConfig: mockConfig,
-      },
-      createMockJsonProcessor(),
-    );
+    const llm = new TestBedrockLLM({}, mockModelsKeys, mockModelsMetadata, [], {
+      providerSpecificConfig: mockConfig,
+    });
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const fullParams = llm["buildEmbeddingParameters"]("EMBEDDINGS", "embed this text");
@@ -235,16 +196,9 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     };
 
     it("should detect token limit exceeded errors using Set-based keyword matching", () => {
-      const llm = new TestBedrockLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        {
-          providerSpecificConfig: mockConfig,
-        },
-        createMockJsonProcessor(),
-      );
+      const llm = new TestBedrockLLM({} as any, mockModelsKeys, mockModelsMetadata, [], {
+        providerSpecificConfig: mockConfig,
+      });
 
       const mockError1 = new ValidationException({
         message: "Too many input tokens",

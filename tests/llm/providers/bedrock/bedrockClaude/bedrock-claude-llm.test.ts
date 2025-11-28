@@ -6,7 +6,6 @@ import {
   LLMPurpose,
 } from "../../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
-import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 import { llmConfig } from "../../../../../src/llm/llm.config";
 import { AWS_COMPLETIONS_CLAUDE_V40 } from "../../../../../src/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 
@@ -62,7 +61,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
         "BedrockClaude",
       );
 
@@ -102,7 +100,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
         "BedrockClaude",
       );
 
@@ -137,7 +134,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: minimalConfig },
-        createMockJsonProcessor(),
         "BedrockClaude",
       );
 
@@ -156,7 +152,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
         "BedrockClaude",
       );
 
@@ -179,7 +174,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
         "BedrockClaude",
       );
 
@@ -201,7 +195,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
         "BedrockClaude",
       );
 
@@ -222,7 +215,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
         "BedrockClaude",
       );
 
@@ -252,7 +244,6 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         { providerSpecificConfig: mockConfig },
-        createMockJsonProcessor(),
         "BedrockClaude",
       );
 

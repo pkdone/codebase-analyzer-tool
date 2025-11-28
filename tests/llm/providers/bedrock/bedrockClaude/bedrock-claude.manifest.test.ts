@@ -1,6 +1,5 @@
 import { calculateTokenUsageFromError } from "../../../../../src/llm/utils/error-parser";
 import { bedrockClaudeProviderManifest } from "../../../../../src/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
-import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 import {
   createBedrockMockEnv,
   createBedrockTestData,
@@ -94,7 +93,6 @@ describe("Bedrock Claude Provider Tests", () => {
         bedrockClaudeModelsMetadata,
         bedrockClaudeProviderManifest.errorPatterns,
         { providerSpecificConfig: bedrockClaudeProviderManifest.providerSpecificConfig },
-        createMockJsonProcessor(),
         bedrockClaudeProviderManifest.modelFamily,
       );
       expect(llm.getModelFamily()).toBe("BedrockClaude");
@@ -107,7 +105,6 @@ describe("Bedrock Claude Provider Tests", () => {
         bedrockClaudeModelsMetadata,
         bedrockClaudeProviderManifest.errorPatterns,
         { providerSpecificConfig: bedrockClaudeProviderManifest.providerSpecificConfig },
-        createMockJsonProcessor(),
         bedrockClaudeProviderManifest.modelFamily,
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);

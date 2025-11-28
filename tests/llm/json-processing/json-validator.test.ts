@@ -1,15 +1,9 @@
-import { JsonValidator } from "../../../src/llm/json-processing/core/json-validator";
+import { validateJson } from "../../../src/llm/json-processing/core/json-validating";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { z } from "zod";
 
 describe("json-validator", () => {
-  let jsonValidator: JsonValidator;
-
-  beforeEach(() => {
-    jsonValidator = new JsonValidator();
-  });
-
-  describe("JsonValidator.validate", () => {
+  describe("validateJson", () => {
     it("should validate and return data when schema validation succeeds", () => {
       const schema = z.object({ name: z.string(), age: z.number() });
       const content = { name: "John", age: 30 };
@@ -18,7 +12,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -34,7 +28,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -51,7 +45,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = jsonValidator.validate(content, options, false);
+      const result = validateJson(content, options, false);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -69,7 +63,7 @@ describe("json-validator", () => {
       const content = "This is plain text content";
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -81,7 +75,7 @@ describe("json-validator", () => {
       const content = undefined; // Not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -90,7 +84,7 @@ describe("json-validator", () => {
       const validContent = { key: "value" }; // Valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(validContent, options);
+      const result = validateJson(validContent, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -102,7 +96,7 @@ describe("json-validator", () => {
       const content = 42; // Number is not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -111,7 +105,7 @@ describe("json-validator", () => {
       const content = { name: "John", age: 30 };
       const options = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -123,7 +117,7 @@ describe("json-validator", () => {
       const content = undefined; // Not valid LLMGeneratedContent
       const options = { outputFormat: LLMOutputFormat.JSON };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -134,7 +128,7 @@ describe("json-validator", () => {
       const content = "This is a string";
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -146,7 +140,7 @@ describe("json-validator", () => {
       const content = { key: "value", nested: { data: 123 } };
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -158,7 +152,7 @@ describe("json-validator", () => {
       const content = [1, 2, 3, "four", { five: 5 }];
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -170,7 +164,7 @@ describe("json-validator", () => {
       const content = null;
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -182,7 +176,7 @@ describe("json-validator", () => {
       const content = 42;
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -191,7 +185,7 @@ describe("json-validator", () => {
       const content = true;
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
     });
@@ -200,19 +194,13 @@ describe("json-validator", () => {
       const content = undefined;
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = jsonValidator.validate(content, options);
+      const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
     });
   });
 
-  describe("instance isolation", () => {
-    it("should create independent instances", () => {
-      const validator1 = new JsonValidator();
-      const validator2 = new JsonValidator();
-      expect(validator1).not.toBe(validator2);
-    });
-
+  describe("function isolation", () => {
     it("should not share state between calls", () => {
       const schema = z.object({ value: z.number() });
       const options = {
@@ -220,8 +208,8 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result1 = jsonValidator.validate({ value: 1 }, options);
-      const result2 = jsonValidator.validate({ value: 2 }, options);
+      const result1 = validateJson({ value: 1 }, options);
+      const result2 = validateJson({ value: 2 }, options);
 
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);

@@ -1,13 +1,9 @@
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import { z } from "zod";
 
 describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () => {
-  let jsonProcessor: JsonProcessor;
-
-  beforeEach(() => {
-    jsonProcessor = new JsonProcessor();
-  });
+  beforeEach(() => {});
   it("should handle the exact error case from the log", () => {
     // This is the exact problematic response from the error log
     const llmResponse = `{
@@ -30,7 +26,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
     };
 
     // This should now succeed because the unwrapJsonSchema sanitizer will fix it
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       llmResponse,
       {
         resource: "buildSrc/src/main/resources/instructions/step13.txt.ftl",
@@ -73,7 +69,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       llmResponse,
       { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -107,7 +103,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       llmResponse,
       { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -143,7 +139,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       jsonSchema: schema,
     };
 
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       llmResponse,
       { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,

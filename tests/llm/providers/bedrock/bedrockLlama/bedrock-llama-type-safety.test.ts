@@ -8,7 +8,6 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
-import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 import { z } from "zod";
 
 /**
@@ -55,7 +54,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
           maxGenLenCap: 2048,
         },
       },
-      createMockJsonProcessor(),
+
       "BedrockLlama",
     );
 
@@ -107,7 +106,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
           maxGenLenCap: 2048,
         },
       },
-      createMockJsonProcessor(),
+
       "BedrockLlama",
     );
 
@@ -168,7 +167,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
           maxGenLenCap: 2048,
         },
       },
-      createMockJsonProcessor(),
+
       "BedrockLlama",
     );
 

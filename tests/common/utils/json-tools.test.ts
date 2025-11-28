@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 
 // Test interfaces for generic type testing
@@ -17,11 +17,6 @@ interface TestConfig {
 }
 
 describe("JSON utilities", () => {
-  let jsonProcessor: JsonProcessor;
-
-  beforeEach(() => {
-    jsonProcessor = new JsonProcessor();
-  });
   describe("convertTextToJSON", () => {
     // Test data for convertTextToJSON function
     const validJsonTestData = [
@@ -49,7 +44,7 @@ describe("JSON utilities", () => {
 
     test.each(validJsonTestData)("with $description", ({ input, expected }) => {
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         input,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -63,7 +58,7 @@ describe("JSON utilities", () => {
     test("returns failure result for invalid JSON", () => {
       const text = "No JSON here";
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         text,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -81,7 +76,7 @@ describe("JSON utilities", () => {
       const testCases = [{ input: { key: "value" } }, { input: [1, 2, 3] }, { input: null }];
 
       testCases.forEach(({ input }) => {
-        const result = jsonProcessor.parseAndValidate(
+        const result = processJson(
           input,
           { resource: "content", purpose: LLMPurpose.COMPLETIONS },
           completionOptions,
@@ -97,7 +92,7 @@ describe("JSON utilities", () => {
       const userJson =
         'Text before {"name": "John Doe", "age": 30, "email": "john@example.com"} text after';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = jsonProcessor.parseAndValidate<TestUser>(
+      const result = processJson<TestUser>(
         userJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -116,7 +111,7 @@ describe("JSON utilities", () => {
       const configJson =
         'Prefix {"enabled": true, "settings": {"timeout": 5000, "retries": 3}} suffix';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = jsonProcessor.parseAndValidate<TestConfig>(
+      const result = processJson<TestConfig>(
         configJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -134,7 +129,7 @@ describe("JSON utilities", () => {
     test("defaults to Record<string, unknown> when no type parameter provided", () => {
       const input = 'Text {"dynamic": "content", "count": 42} more text';
       const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         input,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

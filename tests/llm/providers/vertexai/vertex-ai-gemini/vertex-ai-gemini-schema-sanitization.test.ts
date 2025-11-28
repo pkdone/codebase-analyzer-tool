@@ -10,7 +10,6 @@ import {
   LLMResponseStatus,
   LLMContext,
 } from "../../../../../src/llm/types/llm.types";
-import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 import { z } from "zod";
 
 // Mock the Vertex AI SDK
@@ -107,7 +106,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
           maxRetryDelayMillis: 5000,
         },
       },
-      createMockJsonProcessor(),
+
       "VertexGemini",
     );
   });

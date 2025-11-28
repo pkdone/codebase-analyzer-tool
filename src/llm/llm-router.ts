@@ -20,7 +20,6 @@ import {
   buildCompletionCandidates,
 } from "./utils/completions-models-retriever";
 import { loadManifestForModelFamily } from "./utils/manifest-loader";
-import { JsonProcessor } from "./json-processing/core/json-processor";
 import { logSingleLineWarning } from "../common/utils/logging";
 
 /**
@@ -43,13 +42,11 @@ export default class LLMRouter {
    * Constructor.
    *
    * @param modelFamily The LLM model family identifier
-   * @param jsonProcessor The JSON processor for LLM responses
    * @param envVars Environment variables
    * @param executionPipeline The execution pipeline for orchestrating LLM calls
    */
   constructor(
     @inject(llmTokens.LLMModelFamily) private readonly modelFamily: string,
-    @inject(llmTokens.JsonProcessor) private readonly jsonProcessor: JsonProcessor,
     @inject(coreTokens.EnvVars) private readonly envVars: EnvVars,
     private readonly executionPipeline: LLMExecutionPipeline,
   ) {
@@ -69,7 +66,6 @@ export default class LLMRouter {
       modelsMetadata,
       this.manifest.errorPatterns,
       config,
-      this.jsonProcessor,
       this.manifest.modelFamily,
       this.manifest.features,
     );

@@ -15,7 +15,6 @@ import {
 } from "../../../src/llm/providers/llm-provider.types";
 import AbstractLLM from "../../../src/llm/providers/abstract-llm";
 import { AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT } from "../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
-import { createMockJsonProcessor } from "../../helpers/llm/json-processor-mock";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4_32k = "GPT_COMPLETIONS_GPT4_32k";
@@ -68,14 +67,7 @@ class TestLLM extends AbstractLLM {
       maxRetryDelayMillis: 5000,
     };
 
-    super(
-      modelsKeys,
-      testModelsMetadata,
-      errorPatterns,
-      providerConfig,
-      createMockJsonProcessor(),
-      "test",
-    );
+    super(modelsKeys, testModelsMetadata, errorPatterns, providerConfig, "test");
   }
 
   // Method to set mock token usage for testing
@@ -186,14 +178,7 @@ describe("Abstract LLM Token Extraction", () => {
         };
 
         constructor() {
-          super(
-            modelsKeys,
-            testModelsMetadata,
-            errorPatterns,
-            providerConfig,
-            createMockJsonProcessor(),
-            "test",
-          );
+          super(modelsKeys, testModelsMetadata, errorPatterns, providerConfig, "test");
         }
 
         setMockTokenUsage(tokenUsage: LLMResponseTokensUsage) {
@@ -254,14 +239,7 @@ class TestJSONLLM extends AbstractLLM {
       maxRetryDelayMillis: 5000,
     };
 
-    super(
-      modelsKeys,
-      testModelsMetadata,
-      errorPatterns,
-      providerConfig,
-      createMockJsonProcessor(),
-      "test",
-    );
+    super(modelsKeys, testModelsMetadata, errorPatterns, providerConfig, "test");
   }
 
   setMockResponse(content: string, isIncomplete = false) {

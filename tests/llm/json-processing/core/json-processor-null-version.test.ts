@@ -1,11 +1,9 @@
-import { JsonProcessor } from "../../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/llm/types/llm.types";
 
 describe("JsonProcessor Integration Tests", () => {
   describe("Real-world error cases", () => {
     it("should handle the actual error case from the log file", () => {
-      const processor = new JsonProcessor();
-
       // This is the actual problematic JSON from the error log
       const problematicJson = `{
   "name": "CreditCardLocal",
@@ -155,7 +153,7 @@ describe("JsonProcessor Integration Tests", () => {
   }
 }`;
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         problematicJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -179,8 +177,6 @@ describe("JsonProcessor Integration Tests", () => {
     });
 
     it("should handle unquoted property names in real-world scenarios", () => {
-      const processor = new JsonProcessor();
-
       const problematicJson = `{
   "name": "CreditCardLocal",
   kind: "INTERFACE",
@@ -193,7 +189,7 @@ describe("JsonProcessor Integration Tests", () => {
   "publicMethods": []
 }`;
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         problematicJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -215,8 +211,6 @@ describe("JsonProcessor Integration Tests", () => {
     });
 
     it("should handle both truncated and unquoted property names", () => {
-      const processor = new JsonProcessor();
-
       const problematicJson = `{
   "name": "CreditCardLocal",
   kind: "INTERFACE",
@@ -230,7 +224,7 @@ describe("JsonProcessor Integration Tests", () => {
   "publicMethods": []
 }`;
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         problematicJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {

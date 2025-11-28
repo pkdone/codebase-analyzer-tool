@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../../src/llm/json-processing/core/json-processing";
 import {
   LLMCompletionOptions,
   LLMOutputFormat,
@@ -18,13 +18,7 @@ const bomDependencySchema = z
   })
   .passthrough();
 
-describe("JsonProcessor - Null Handling Integration", () => {
-  let processor: JsonProcessor;
-
-  beforeEach(() => {
-    processor = new JsonProcessor(false); // Disable logging for tests
-  });
-
+describe("Null Handling Integration", () => {
   describe("Bill of Materials null groupId handling", () => {
     it("should successfully validate BOM with null groupId values from LLM response", () => {
       // This is the exact scenario from the error log where the LLM correctly
@@ -61,7 +55,7 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: z.array(bomDependencySchema),
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "billOfMaterials", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -145,7 +139,7 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: appSummarySchema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "all-categories", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -203,7 +197,7 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         llmResponse,
         { resource: "nested-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -245,7 +239,7 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: bomDependencySchema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         problematicResponse,
         { resource: "single-dependency", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -280,7 +274,7 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: schema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "multi-null-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -313,7 +307,7 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: bomDependencySchema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "no-null-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -340,7 +334,7 @@ describe("JsonProcessor - Null Handling Integration", () => {
         jsonSchema: bomDependencySchema,
       };
 
-      const result = processor.parseAndValidate(
+      const result = processJson(
         response,
         { resource: "omitted-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

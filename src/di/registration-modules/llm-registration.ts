@@ -3,7 +3,6 @@ import LLMRouter from "../../llm/llm-router";
 import LLMStats from "../../llm/tracking/llm-stats";
 import { LLMStatsReporter } from "../../llm/tracking/llm-stats-reporter";
 import { PromptAdaptationStrategy } from "../../llm/strategies/prompt-adaptation-strategy";
-import { JsonProcessor } from "../../llm/json-processing/core/json-processor";
 import { llmTokens } from "../tokens";
 
 /**
@@ -13,7 +12,6 @@ import { llmTokens } from "../tokens";
  */
 export function registerLLMProviders(): void {
   // Register LLM utility classes
-  container.registerSingleton(llmTokens.JsonProcessor, JsonProcessor);
   container.registerSingleton(llmTokens.LLMStats, LLMStats);
   container.registerSingleton(llmTokens.LLMStatsReporter, LLMStatsReporter);
   container.registerSingleton(llmTokens.PromptAdaptationStrategy, PromptAdaptationStrategy);

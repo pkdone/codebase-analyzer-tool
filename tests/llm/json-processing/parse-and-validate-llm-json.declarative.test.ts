@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 
 jest.mock("../../../src/common/utils/logging", () => ({
@@ -10,17 +10,15 @@ jest.mock("../../../src/common/utils/logging", () => ({
 import { logSingleLineWarning } from "../../../src/common/utils/logging";
 
 describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", () => {
-  let jsonProcessor: JsonProcessor;
   const completionOptions = { outputFormat: LLMOutputFormat.JSON } as const;
 
   beforeEach(() => {
-    jsonProcessor = new JsonProcessor(true);
     jest.clearAllMocks();
   });
 
   it("returns fast path untouched JSON with no sanitation log", () => {
     const json = '{"x":1}';
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       json,
       { resource: "decl-fast", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -34,7 +32,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
 
   it("applies extract sanitizer when JSON is embedded in prose", () => {
     const txt = 'Leading words {"y":2} trailing info';
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       txt,
       { resource: "decl-extract", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -54,7 +52,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
 
   it("applies concatenation chain sanitizer for identifier-only chains", () => {
     const chain = '{"path": A_CONST + B_CONST + C_CONST}';
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       chain,
       { resource: "decl-concat", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -71,7 +69,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
 
   it("applies multiple sanitizers in pipeline for complex malformed JSON", () => {
     const malformed = '```json\n{"a":1,}\n``` noise after';
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       malformed,
       { resource: "decl-multi", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,

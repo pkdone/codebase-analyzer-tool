@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import {
   JsonProcessingError,
@@ -12,17 +12,13 @@ import { z } from "zod";
  * between parse errors and validation errors.
  */
 describe("JsonProcessor - Enhanced Error Reporting", () => {
-  let jsonProcessor: JsonProcessor;
-
-  beforeEach(() => {
-    jsonProcessor = new JsonProcessor(false); // Disable logging for tests
-  });
+  beforeEach(() => {});
 
   describe("parse error type", () => {
     it("should return parse error for invalid JSON syntax", () => {
       // Use invalid JSON that can't be auto-fixed (malformed structure)
       const invalidJson = '{"key": {unclosed}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         invalidJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -39,7 +35,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
     });
 
     it("should return parse error for non-string content", () => {
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         123 as any,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -57,7 +53,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
 
     it("should return parse error when all sanitizers are exhausted", () => {
       const malformedJson = "definitely not json at all";
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         malformedJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -85,7 +81,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
         age: z.number(),
       });
 
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         validJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -108,7 +104,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
         differentField: z.string(),
       });
 
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         validJson,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -133,7 +129,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
         age: z.number(),
       });
 
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         jsonWithIssues,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -162,7 +158,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
       const schema = z.object({ name: z.string() }); // Will fail validation for second case
 
       cases.forEach(({ input, expectedType }) => {
-        const result = jsonProcessor.parseAndValidate(
+        const result = processJson(
           input,
           { resource: "test", purpose: LLMPurpose.COMPLETIONS },
           {
@@ -190,7 +186,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
     });
 
     it("should provide different debugging info for parse vs validation errors", () => {
-      const parseError = jsonProcessor.parseAndValidate(
+      const parseError = processJson(
         "invalid",
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -198,7 +194,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
         },
       );
 
-      const validationError = jsonProcessor.parseAndValidate(
+      const validationError = processJson(
         '{"wrong": "fields"}',
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         {
@@ -224,7 +220,7 @@ describe("JsonProcessor - Enhanced Error Reporting", () => {
   describe("successful parsing", () => {
     it("should not include error type in successful results", () => {
       const validJson = '{"name": "John"}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         validJson,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         {

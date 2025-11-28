@@ -19,7 +19,6 @@ import { LLMExecutionPipeline } from "../../../src/llm/llm-execution-pipeline";
 import type { EnvVars } from "../../../src/env/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
-import { createMockJsonProcessor } from "../../helpers/llm/json-processor-mock";
 import * as manifestLoader from "../../../src/llm/utils/manifest-loader";
 
 // Mock the dependencies
@@ -221,8 +220,6 @@ describe("LLM Router tests", () => {
     const mockPromptAdaptationStrategy = new PromptAdaptationStrategy();
     const mockRetryStrategy = new RetryStrategy(mockLLMStats);
     const mockFallbackStrategy = new FallbackStrategy();
-    const mockJsonProcessor = createMockJsonProcessor();
-
     // Create execution pipeline with strategies
     const mockExecutionPipeline = new LLMExecutionPipeline(
       mockRetryStrategy,
@@ -231,12 +228,7 @@ describe("LLM Router tests", () => {
       mockLLMStats,
     );
 
-    const router = new LLMRouter(
-      "openai",
-      mockJsonProcessor,
-      mockEnvVars as EnvVars,
-      mockExecutionPipeline,
-    );
+    const router = new LLMRouter("openai", mockEnvVars as EnvVars, mockExecutionPipeline);
     return { router, mockProvider, mockManifest };
   };
 

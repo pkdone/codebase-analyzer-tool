@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../src/llm/types/llm.types";
 
 // Tests for handling concatenated JSON objects through the public API.
@@ -6,16 +6,12 @@ import { LLMOutputFormat, LLMPurpose } from "../../src/llm/types/llm.types";
 // effectively handling cases where multiple objects might be present.
 
 describe("json-tools concatenated objects handling", () => {
-  let jsonProcessor: JsonProcessor;
-
-  beforeEach(() => {
-    jsonProcessor = new JsonProcessor();
-  });
+  beforeEach(() => {});
   it("successfully extracts the first valid object from concatenated objects", () => {
     // When multiple objects are concatenated, the parser extracts the first complete one
     const concatenated = '{"a":1}{"b":2}';
 
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       concatenated,
       { resource: "concat-resource", purpose: LLMPurpose.COMPLETIONS },
       {
@@ -34,7 +30,7 @@ describe("json-tools concatenated objects handling", () => {
     // Malformed JSON with concatenated objects triggers sanitization
     const malformedConcatenated = '{"a":1,}{"b":2,}';
 
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       malformedConcatenated,
       { resource: "malformed-concat-resource", purpose: LLMPurpose.COMPLETIONS },
       { outputFormat: LLMOutputFormat.JSON },
@@ -51,7 +47,7 @@ describe("json-tools concatenated objects handling", () => {
     // When identical objects are concatenated, parsing handles it gracefully
     const duplicateConcatenated = '{"a":1}{"a":1}';
 
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       duplicateConcatenated,
       { resource: "duplicate-concat-resource", purpose: LLMPurpose.COMPLETIONS },
       { outputFormat: LLMOutputFormat.JSON },
@@ -68,7 +64,7 @@ describe("json-tools concatenated objects handling", () => {
     // Parser should extract JSON even when surrounded by other text
     const textWithJson = 'Here is some data: {"value": 42} and more text';
 
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       textWithJson,
       { resource: "text-wrapped-resource", purpose: LLMPurpose.COMPLETIONS },
       {

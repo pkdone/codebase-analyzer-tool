@@ -1,4 +1,4 @@
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import {
   JsonProcessingError,
@@ -14,18 +14,16 @@ jest.mock("../../../src/common/utils/logging", () => ({
 import { logSingleLineWarning } from "../../../src/common/utils/logging";
 
 describe("JsonProcessor - Unified Pipeline", () => {
-  let jsonProcessor: JsonProcessor;
   const completionOptions = { outputFormat: LLMOutputFormat.JSON };
 
   beforeEach(() => {
-    jsonProcessor = new JsonProcessor();
     jest.clearAllMocks();
   });
 
   describe("Pipeline execution order", () => {
     it("should attempt parsing without any sanitization first", () => {
       const validJson = '{"clean": "json"}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         validJson,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -42,7 +40,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should stop pipeline as soon as parsing succeeds", () => {
       // This JSON needs code fence removal but nothing else
       const jsonInFence = '```json\n{"key": "value"}\n```';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         jsonInFence,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -60,7 +58,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should apply sanitizers in sequence until parsing succeeds", () => {
       // This needs both code fence removal and trailing comma removal
       const malformed = '```json\n{"a": 1,}\n```';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         malformed,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -77,7 +75,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should track all applied sanitization steps", () => {
       const complexMalformed = '```json\n  {"x": 1,}  \n```';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         complexMalformed,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -95,7 +93,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
   describe("Sanitizer effectiveness", () => {
     it("should handle whitespace-only issues", () => {
       const withWhitespace = '  \n\t  {"data": "value"}  \n\t  ';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         withWhitespace,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -109,7 +107,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should handle code fence removal", () => {
       const fenced = '```json\n{"fenced": true}\n```';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         fenced,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -123,7 +121,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should handle trailing commas", () => {
       const withTrailingCommas = '{"a": 1, "b": 2,}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         withTrailingCommas,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -137,7 +135,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should extract JSON from surrounding text", () => {
       const embedded = 'Some text before {"embedded": true} some text after';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         embedded,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -151,7 +149,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should handle concatenation chains", () => {
       const chain = '{"path": CONST_A + CONST_B}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         chain,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -165,7 +163,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should handle collapsed duplicate objects", () => {
       const duplicate = '{"id": 1}{"id": 1}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         duplicate,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -180,7 +178,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should handle mismatched delimiters in simple cases", () => {
       // Note: Complex mismatched delimiter cases may not always be fixable
       const mismatched = '{"items": [1, 2, 3]}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         mismatched,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -197,7 +195,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should handle JSON with multiple issues", () => {
       // Has: code fence, trailing comma, surrounding whitespace
       const multiIssue = '```json\n  {"multi": "issue", "test": true,}  \n```';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         multiIssue,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -223,7 +221,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         \`\`\`
         That's all!
       `;
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         complex,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -239,7 +237,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should apply sanitizers progressively and stop early", () => {
       // This should succeed after just code fence removal
       const simpleCase = '```\n{"simple": true}\n```';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         simpleCase,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -257,7 +255,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
   describe("Error handling and reporting", () => {
     it("should return comprehensive error when all sanitizers fail", () => {
       const unparseable = "This is completely not JSON at all, no braces or brackets";
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         unparseable,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -273,7 +271,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should capture underlying parse error", () => {
       const invalid = '{"broken": "json" with syntax error}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         invalid,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -289,7 +287,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should track applied sanitizers even on failure", () => {
       const almostValid = '```json\n{"almost": "valid" but not quite}\n```';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         almostValid,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -308,7 +306,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       // Use a more complex malformed JSON that can't be easily fixed
       // Note: Our sanitizers now fix unquoted properties, so we need truly broken JSON
       const malformed = "```json\n{broken: value without quotes, missing: }\n```";
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         malformed,
         { resource: "test-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -326,7 +324,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
   describe("Logging behavior", () => {
     it("should log sanitization steps when enabled", () => {
       const malformed = 'Some text before {"test": true} some text after';
-      jsonProcessor.parseAndValidate(
+      processJson(
         malformed,
         { resource: "logged-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -338,12 +336,12 @@ describe("JsonProcessor - Unified Pipeline", () => {
     });
 
     it("should not log sanitization steps when disabled", () => {
-      const processorWithoutLogging = new JsonProcessor(false);
       const malformed = '```json\n{"test": true}\n```';
-      processorWithoutLogging.parseAndValidate(
+      processJson(
         malformed,
         { resource: "not-logged-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
+        false, // loggingEnabled = false
       );
 
       expect(logSingleLineWarning).not.toHaveBeenCalled();
@@ -351,7 +349,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should not log when no sanitization was needed", () => {
       const clean = '{"clean": "json"}';
-      jsonProcessor.parseAndValidate(
+      processJson(
         clean,
         { resource: "clean-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -362,7 +360,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should include all applied steps in log message", () => {
       const multiIssue = '```json\n{"a": 1,}\n```';
-      jsonProcessor.parseAndValidate(
+      processJson(
         multiIssue,
         { resource: "multi-resource", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -382,7 +380,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
   describe("Result metadata", () => {
     it("should include steps in successful result", () => {
       const malformed = '{"test": true,}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         malformed,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -398,7 +396,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should include diagnostics when sanitizers are applied", () => {
       const malformed = '```json\n{"test": true,}\n```';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         malformed,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -413,7 +411,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should have empty steps array for clean JSON", () => {
       const clean = '{"clean": true}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         clean,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -431,7 +429,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
     it("should handle sanitizer that doesn't change content", () => {
       // A valid JSON that won't be changed by most sanitizers
       const json = '{"already": "valid"}';
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -445,7 +443,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
     it("should handle empty steps when sanitizers don't apply", () => {
       const json = "{}";
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -467,7 +465,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         }
         \`\`\`
       `;
-      const result = jsonProcessor.parseAndValidate(
+      const result = processJson(
         manyIssues,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

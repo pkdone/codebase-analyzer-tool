@@ -3,7 +3,6 @@ import {
   bedrockLlamaProviderManifest,
   AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT,
 } from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
-import { createMockJsonProcessor } from "../../../../helpers/llm/json-processor-mock";
 import {
   createBedrockMockEnv,
   createBedrockTestData,
@@ -89,7 +88,7 @@ describe("Bedrock Llama Provider Tests", () => {
         bedrockLlamaModelsMetadata,
         bedrockLlamaProviderManifest.errorPatterns,
         { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
-        createMockJsonProcessor(),
+
         bedrockLlamaProviderManifest.modelFamily,
       );
       expect(llm.getModelFamily()).toBe("BedrockLlama");
@@ -102,7 +101,7 @@ describe("Bedrock Llama Provider Tests", () => {
         bedrockLlamaModelsMetadata,
         bedrockLlamaProviderManifest.errorPatterns,
         { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
-        createMockJsonProcessor(),
+
         bedrockLlamaProviderManifest.modelFamily,
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);

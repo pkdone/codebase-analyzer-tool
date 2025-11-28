@@ -1,5 +1,5 @@
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
-import { JsonProcessor } from "../../../src/llm/json-processing/core/json-processor";
+import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 
 // We'll mock the logging utility to capture sanitation step logging
 jest.mock("../../../src/common/utils/logging", () => {
@@ -13,17 +13,15 @@ jest.mock("../../../src/common/utils/logging", () => {
 import { logSingleLineWarning } from "../../../src/common/utils/logging";
 
 describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => {
-  let jsonProcessor: JsonProcessor;
   const completionOptions = { outputFormat: LLMOutputFormat.JSON } as const;
 
   beforeEach(() => {
-    jsonProcessor = new JsonProcessor();
     jest.clearAllMocks();
   });
 
   test("fast path: valid JSON returns with no sanitation steps logged", () => {
     const json = '{"a":1,"b":2}';
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       json,
       { resource: "fast-path", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -38,7 +36,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
 
   test("extraction path: JSON embedded in text triggers extraction step logging", () => {
     const text = 'Intro text before JSON {"hello":"world"} trailing commentary';
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       text,
       { resource: "extract-path", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -64,7 +62,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
   test("unified sanitization pipeline: deliberately malformed then recoverable JSON", () => {
     // Force multiple sanitizers: content with code fences & trailing comma
     const malformed = '```json\n{"key":"value",}\n``` Extra trailing';
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       malformed,
       { resource: "pipeline-test", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -80,7 +78,7 @@ describe("json-tools sanitation pipeline (incremental refactor wrapper)", () => 
 
   test("pre-concat strategy invoked for identifier-only concatenations", () => {
     const withConcat = '{"path": SOME_CONST + OTHER_CONST + THIRD_CONST}';
-    const result = jsonProcessor.parseAndValidate(
+    const result = processJson(
       withConcat,
       { resource: "pre-concat", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,

@@ -7,7 +7,6 @@ import {
   LLMOutputFormat,
 } from "../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../src/llm/providers/llm-provider.types";
-import { createMockJsonProcessor } from "../../../helpers/llm/json-processor-mock";
 import { OpenAI } from "openai";
 
 // Minimal fake client with only used methods
@@ -67,7 +66,7 @@ class TestOpenAILLM extends BaseOpenAILLM {
       metadata,
       errorPatterns,
       providerConfig,
-      createMockJsonProcessor(),
+
       "openai-test",
     );
   }
