@@ -1,5 +1,5 @@
 import { MongoServerError } from "mongodb";
-import { logSingleLineWarning } from "../utils/logging";
+import { logOneLineWarning } from "../utils/logging";
 
 /**
  * Type guard and interface for MongoDB server error with response details
@@ -33,7 +33,7 @@ export function isMongoServerErrorWithResponse(
 export function logMongoValidationErrorIfPresent(error: unknown, doLog = true): void {
   if (doLog && isMongoServerErrorWithResponse(error)) {
     if (error.errorResponse.errmsg.toLowerCase().includes("document failed validation")) {
-      logSingleLineWarning("MongoDB document validation failed", error.errorResponse.errInfo);
+      logOneLineWarning("MongoDB document validation failed", error.errorResponse.errInfo);
     }
   }
 }

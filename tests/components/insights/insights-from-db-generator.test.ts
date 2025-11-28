@@ -10,7 +10,7 @@ import * as logging from "../../../src/common/utils/logging";
 // Mock the logging utilities
 jest.mock("../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
 }));
 
 describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
@@ -176,7 +176,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
       // Should still proceed to REDUCE with the one valid result
       expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalled();
-      expect(logging.logSingleLineWarning).not.toHaveBeenCalledWith(
+      expect(logging.logOneLineWarning).not.toHaveBeenCalledWith(
         expect.stringContaining("No partial insights were generated"),
       );
     });
@@ -194,7 +194,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
       // Should not call updateAppSummary
       expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
-      expect(logging.logSingleLineWarning).toHaveBeenCalledWith(
+      expect(logging.logOneLineWarning).toHaveBeenCalledWith(
         expect.stringContaining("No partial insights were generated"),
       );
     });
@@ -214,7 +214,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       await (generator as any).generateAndRecordDataForCategory("entities", summaries);
 
       expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
-      expect(logging.logSingleLineWarning).toHaveBeenCalledWith(
+      expect(logging.logOneLineWarning).toHaveBeenCalledWith(
         expect.stringContaining("Failed to generate final consolidated summary"),
       );
     });

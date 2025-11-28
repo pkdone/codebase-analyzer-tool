@@ -4,7 +4,7 @@ import type {
   HierarchicalJavaClassDependency,
   JavaClassDependency,
 } from "../../../repositories/sources/sources.model";
-import { logSingleLineWarning } from "../../../common/utils/logging";
+import { logOneLineWarning } from "../../../common/utils/logging";
 
 /**
  * Utility functions for transforming flat dependency structures into hierarchical trees.
@@ -113,7 +113,7 @@ function buildHierarchicalDependencies(
     // We still apply a reasonable limit to prevent infinite loops
     const ITERATIVE_MAX_DEPTH = 50; // Much higher than recursive limit
     if (workItem.level >= ITERATIVE_MAX_DEPTH) {
-      logSingleLineWarning(
+      logOneLineWarning(
         `Maximum depth of ${ITERATIVE_MAX_DEPTH} reached in buildHierarchicalDependencies for ${workItem.namespace}. Not processing children to prevent excessive depth.`,
       );
       // Still create the node but with no children

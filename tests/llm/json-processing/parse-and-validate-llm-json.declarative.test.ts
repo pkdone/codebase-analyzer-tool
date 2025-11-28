@@ -3,11 +3,11 @@ import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
   logError: jest.fn(),
 }));
 
-import { logSingleLineWarning } from "../../../src/common/utils/logging";
+import { logOneLineWarning } from "../../../src/common/utils/logging";
 
 describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", () => {
   const completionOptions = { outputFormat: LLMOutputFormat.JSON } as const;
@@ -27,7 +27,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     if (result.success) {
       expect(result.data).toEqual({ x: 1 });
     }
-    expect(logSingleLineWarning).not.toHaveBeenCalled();
+    expect(logOneLineWarning).not.toHaveBeenCalled();
   });
 
   it("applies extract sanitizer when JSON is embedded in prose", () => {
@@ -41,7 +41,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     if (result.success) {
       expect((result.data as any).y).toBe(2);
     }
-    const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
+    const calls = (logOneLineWarning as jest.Mock).mock.calls.flat();
     expect(
       calls.some(
         (c: string) =>
@@ -61,7 +61,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     if (result.success) {
       expect((result.data as any).path).toBe("");
     }
-    const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
+    const calls = (logOneLineWarning as jest.Mock).mock.calls.flat();
     expect(
       calls.some((c: string) => c.includes("Fixed") && c.includes("property and value syntax")),
     ).toBe(true);
@@ -78,7 +78,7 @@ describe("JsonProcessor.parseAndValidate (declarative sanitization pipeline)", (
     if (result.success) {
       expect((result.data as any).a).toBe(1);
     }
-    const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
+    const calls = (logOneLineWarning as jest.Mock).mock.calls.flat();
     // Should have applied multiple sanitizers for this complex case
     expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
     // Should include at least code fence removal or JSON structure fixes

@@ -24,7 +24,7 @@ export function logError(msg: string, error: unknown): void {
  * @param message The main warning message.
  * @param context Optional additional data to log, will be stringified.
  */
-export function logSingleLineWarning(message: string, context?: unknown): void {
+export function logOneLineWarning(message: string, context?: unknown): void {
   let logMessage = message.replace(/(\r\n|\n|\r)/gm, " ");
 
   if (context) {

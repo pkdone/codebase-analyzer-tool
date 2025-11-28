@@ -1,6 +1,6 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
 import { injectable } from "tsyringe";
-import { logError, logSingleLineWarning } from "../utils/logging";
+import { logError, logOneLineWarning } from "../utils/logging";
 import { redactUrl } from "../security/url-redactor";
 import { DatabaseConnectionError } from "./mdb-errors";
 
@@ -24,7 +24,7 @@ export class MongoDBClientFactory {
     const existingClient = this.clients.get(id);
 
     if (existingClient) {
-      logSingleLineWarning(`MongoDB client with id '${id}' is already connected.`);
+      logOneLineWarning(`MongoDB client with id '${id}' is already connected.`);
       return existingClient;
     }
 

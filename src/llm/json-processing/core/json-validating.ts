@@ -1,5 +1,5 @@
-import { LLMGeneratedContent, LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
-import { logSingleLineWarning } from "../../../common/utils/logging";
+import { LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
+import { logOneLineWarning } from "../../../common/utils/logging";
 import { z } from "zod";
 
 /**
@@ -11,27 +11,19 @@ export type ValidationResult<T> =
   | { success: false; issues: z.ZodIssue[] };
 
 /**
- * Zod schema for validating LLM-generated content types.
- * LLM-generated content can be a string, object, array, or null.
+ * Creates a validation failure result with a custom error message.
  */
-const llmGeneratedContentSchema = z.union([
-  z.string(),
-  z.record(z.unknown()),
-  z.array(z.unknown()),
-  z.null(),
-]);
-
-/**
- * Creates a generic validation issue for non-schema validation failures.
- */
-function createValidationIssue(message: string): z.ZodIssue[] {
-  return [
-    {
-      code: z.ZodIssueCode.custom,
-      path: [],
-      message,
-    },
-  ];
+function createValidationFailure<T>(message: string): ValidationResult<T> {
+  return {
+    success: false,
+    issues: [
+      {
+        code: z.ZodIssueCode.custom,
+        path: [],
+        message,
+      },
+    ],
+  };
 }
 
 /**
@@ -48,35 +40,33 @@ export function validateJson<T>(
   completionOptions: LLMCompletionOptions,
   loggingEnabled = true,
 ): ValidationResult<T> {
-  if (
-    data &&
-    completionOptions.outputFormat === LLMOutputFormat.JSON &&
-    completionOptions.jsonSchema
-  ) {
-    const validation = completionOptions.jsonSchema.safeParse(data);
+  if (!data) {
+    return createValidationFailure<T>("Data is required for validation and cannot be empty");
+  }
 
-    if (validation.success) {
-      return { success: true, data: validation.data as T };
-    } else {
-      const issues = validation.error.issues;
-      if (loggingEnabled) {
-        logSingleLineWarning("Schema validation failed. Validation issues:", issues);
-      }
-      return { success: false, issues };
-    }
-  } else if (completionOptions.outputFormat === LLMOutputFormat.TEXT) {
-    const validation = llmGeneratedContentSchema.safeParse(data);
-    if (validation.success) return { success: true, data: data as LLMGeneratedContent as T };
-    if (loggingEnabled) {
-      logSingleLineWarning("Content for TEXT format is not valid LLMGeneratedContent");
-    }
-    return { success: false, issues: createValidationIssue("Invalid LLMGeneratedContent") };
+  if (
+    (typeof data === "object" && !Array.isArray(data) && Object.keys(data).length === 0) ||
+    (Array.isArray(data) && data.length === 0)
+  ) {
+    return createValidationFailure<T>("Data is required for validation and cannot be empty");
+  }
+
+  if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
+    return createValidationFailure<T>("Output format must be JSON for schema validation");
+  }
+
+  if (!completionOptions.jsonSchema) {
+    return createValidationFailure<T>("JSON schema is required for validation");
+  }
+
+  // Main validation: safeParse with the schema
+  const validation = completionOptions.jsonSchema.safeParse(data);
+
+  if (validation.success) {
+    return { success: true, data: validation.data as T };
   } else {
-    const validation = llmGeneratedContentSchema.safeParse(data);
-    if (validation.success) return { success: true, data: data as LLMGeneratedContent as T };
-    if (loggingEnabled) {
-      logSingleLineWarning("Content is not valid LLMGeneratedContent");
-    }
-    return { success: false, issues: createValidationIssue("Invalid LLMGeneratedContent") };
+    const issues = validation.error.issues;
+    if (loggingEnabled) logOneLineWarning("Schema validation failed. Validation issues:", issues);
+    return { success: false, issues };
   }
 }

@@ -1,4 +1,4 @@
-import { logSingleLineWarning, logError } from "../../../src/common/utils/logging";
+import { logOneLineWarning, logError } from "../../../src/common/utils/logging";
 
 describe("logging", () => {
   let consoleErrorSpy: jest.SpyInstance;
@@ -75,21 +75,21 @@ describe("logging", () => {
 
   describe("logSingleLineWarning", () => {
     it("should log a warning message", () => {
-      logSingleLineWarning("Warning message");
+      logOneLineWarning("Warning message");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       expect(consoleWarnSpy).toHaveBeenCalledWith("Warning message");
     });
 
     it("should replace newlines with spaces in message", () => {
-      logSingleLineWarning("Warning\nmessage\nwith\nnewlines");
+      logOneLineWarning("Warning\nmessage\nwith\nnewlines");
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       expect(consoleWarnSpy).toHaveBeenCalledWith("Warning message with newlines");
     });
 
     it("should include context when provided", () => {
-      logSingleLineWarning("Warning message", { key: "value", nested: { data: "test" } });
+      logOneLineWarning("Warning message", { key: "value", nested: { data: "test" } });
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -99,7 +99,7 @@ describe("logging", () => {
     });
 
     it("should replace newlines in context JSON", () => {
-      logSingleLineWarning("Warning", { multiline: "text\nwith\nnewlines" });
+      logOneLineWarning("Warning", { multiline: "text\nwith\nnewlines" });
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -109,7 +109,7 @@ describe("logging", () => {
 
     it("should handle Error objects in context", () => {
       const error = new Error("Test error message");
-      logSingleLineWarning("Warning message", error);
+      logOneLineWarning("Warning message", error);
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
@@ -121,7 +121,7 @@ describe("logging", () => {
 
     it("should handle Error objects with newlines in message", () => {
       const error = new Error("Error\nwith\nnewlines");
-      logSingleLineWarning("Warning", error);
+      logOneLineWarning("Warning", error);
 
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];

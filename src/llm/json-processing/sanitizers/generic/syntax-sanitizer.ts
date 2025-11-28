@@ -1,11 +1,11 @@
-import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { logSingleLineWarning } from "../../../common/utils/logging";
+import { Sanitizer, SanitizerResult } from "../sanitizers-types";
+import { logOneLineWarning } from "../../../../common/utils/logging";
 import {
   SANITIZATION_STEP_TEMPLATE,
   SANITIZATION_STEP,
-} from "../constants/sanitization-steps.config";
-import { DELIMITERS } from "../constants/json-processing.config";
-import { isInArrayContext } from "../utils/parser-context-utils";
+} from "../../constants/sanitization-steps.config";
+import { DELIMITERS } from "../../constants/json-processing.config";
+import { isInArrayContext } from "../../utils/parser-context-utils";
 
 /**
  * Internal helper: Adds missing commas between object properties on separate lines.
@@ -604,7 +604,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logSingleLineWarning(`fixMissingArrayObjectBracesInternal failed: ${errorMessage}`);
+    logOneLineWarning(`fixMissingArrayObjectBracesInternal failed: ${errorMessage}`);
     return {
       content: input,
       changed: false,
@@ -725,7 +725,7 @@ export const fixJsonSyntax: Sanitizer = (input: string): SanitizerResult => {
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    logSingleLineWarning(`fixJsonSyntax sanitizer failed: ${String(error)}`);
+    logOneLineWarning(`fixJsonSyntax sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

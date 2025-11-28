@@ -1,4 +1,4 @@
-import { fixJsonStructureAndNoise } from "../../../../src/llm/json-processing/sanitizers";
+import { fixJsonStructureAndNoise } from "../../../../../src/llm/json-processing/sanitizers/index.js";
 
 describe("fixJsonStructureAndNoise", () => {
   describe("should handle whitespace trimming", () => {

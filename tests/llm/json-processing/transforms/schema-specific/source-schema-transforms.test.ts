@@ -1,9 +1,11 @@
 import {
   normalizeDatabaseIntegrationArray,
   fixParameterPropertyNameTypos,
-} from "../../../src/llm/json-processing/transforms/post-parse-transforms";
+  fixMissingRequiredFields,
+  fixParametersFieldType,
+} from "../../../../../src/llm/json-processing/transforms/schema-specific/source-schema-transforms.js";
 
-describe("schema-transforms", () => {
+describe("source-schema-transforms", () => {
   describe("normalizeDatabaseIntegrationArray", () => {
     it("should convert single-element array to object", () => {
       const input = {
@@ -217,6 +219,127 @@ describe("schema-transforms", () => {
       const result = fixParameterPropertyNameTypos(input);
 
       expect(result).toEqual(input);
+    });
+  });
+
+  describe("fixMissingRequiredFields", () => {
+    it("should add missing returnType field to publicMethods", () => {
+      const input = {
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod1",
+            parameters: [],
+            // returnType is missing
+          },
+          {
+            name: "testMethod2",
+            parameters: [],
+            returnType: "string",
+          },
+        ],
+      };
+
+      const result = fixMissingRequiredFields(input);
+
+      expect((result as any).publicMethods[0].returnType).toBe("void");
+      expect((result as any).publicMethods[1].returnType).toBe("string");
+    });
+
+    it("should add missing description field to publicMethods", () => {
+      const input = {
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod1",
+            parameters: [],
+            returnType: "void",
+            // description is missing
+          },
+        ],
+      };
+
+      const result = fixMissingRequiredFields(input);
+
+      expect((result as any).publicMethods[0].description).toBe("");
+    });
+
+    it("should handle nested structures correctly", () => {
+      const input = {
+        name: "TestClass",
+        nested: {
+          publicMethods: [
+            {
+              name: "nestedMethod",
+              parameters: [],
+              // returnType is missing
+            },
+          ],
+        },
+      };
+
+      const result = fixMissingRequiredFields(input);
+
+      expect((result as any).nested.publicMethods[0].returnType).toBe("void");
+    });
+  });
+
+  describe("fixParametersFieldType", () => {
+    it("should convert string parameters field to empty array", () => {
+      const input = {
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "basicLoanDetails",
+            parameters:
+              "59 parameters including id, accountNo, status, externalId, clientId, clientAccountNo, etc.",
+            returnType: "LoanAccountData",
+          },
+        ],
+      };
+
+      const result = fixParametersFieldType(input);
+
+      expect(Array.isArray((result as any).publicMethods[0].parameters)).toBe(true);
+      expect((result as any).publicMethods[0].parameters).toEqual([]);
+    });
+
+    it("should leave array parameters unchanged", () => {
+      const input = {
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod",
+            parameters: [
+              { name: "param1", type: "String" },
+              { name: "param2", type: "Number" },
+            ],
+            returnType: "void",
+          },
+        ],
+      };
+
+      const result = fixParametersFieldType(input);
+
+      expect(Array.isArray((result as any).publicMethods[0].parameters)).toBe(true);
+      expect((result as any).publicMethods[0].parameters).toHaveLength(2);
+      expect((result as any).publicMethods[0].parameters[0].name).toBe("param1");
+    });
+
+    it("should handle methods without parameters field", () => {
+      const input = {
+        name: "TestClass",
+        publicMethods: [
+          {
+            name: "testMethod",
+            returnType: "void",
+          },
+        ],
+      };
+
+      const result = fixParametersFieldType(input);
+
+      expect("parameters" in (result as any).publicMethods[0]).toBe(false);
     });
   });
 });

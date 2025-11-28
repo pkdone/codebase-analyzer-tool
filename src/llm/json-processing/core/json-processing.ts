@@ -1,7 +1,7 @@
 import { LLMGeneratedContent, LLMCompletionOptions, LLMContext } from "../../types/llm.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
-import { logSingleLineWarning } from "../../../common/utils/logging";
+import { logOneLineWarning } from "../../../common/utils/logging";
 import { hasSignificantSanitizationSteps } from "../sanitizers";
 import { parseJson } from "./json-parsing";
 import { validateJson } from "./json-validating";
@@ -46,7 +46,7 @@ export function processJson<T = Record<string, unknown>>(
   // Step 1: Pre-check - ensure content is a string
   if (typeof content !== "string") {
     const contentText = JSON.stringify(content);
-    logSingleLineWarning(
+    logOneLineWarning(
       `LLM response is not a string. Content: ${contentText.substring(0, 100)}`,
       context,
     );
@@ -60,7 +60,7 @@ export function processJson<T = Record<string, unknown>>(
   // Early detection: Check if content has any JSON-like structure at all
   // This helps provide clearer error messages for completely non-JSON responses
   if (!hasJsonLikeStructure(content)) {
-    logSingleLineWarning(
+    logOneLineWarning(
       `Contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
       { ...context, contentLength: content.length },
     );
@@ -83,7 +83,7 @@ export function processJson<T = Record<string, unknown>>(
       parseResult.steps.length > 0
         ? `Applied steps: ${parseResult.steps.join(" -> ")}`
         : "No sanitization steps applied";
-    logSingleLineWarning(`Cannot parse JSON after all sanitization attempts. ${stepsMessage}`, {
+    logOneLineWarning(`Cannot parse JSON after all sanitization attempts. ${stepsMessage}`, {
       ...context,
       originalLength: content.length,
       sanitizedLength: content.length, // Content length after sanitization attempts
@@ -103,40 +103,60 @@ export function processJson<T = Record<string, unknown>>(
     return { success: false, error };
   }
 
-  // Step 3: Validate the parsed data
-  const validationResult = validateJson<T>(parseResult.data, completionOptions, loggingEnabled);
+  // Step 3: Validate the parsed data (only if schema is provided)
+  if (completionOptions.jsonSchema) {
+    const validationResult = validateJson<T>(parseResult.data, completionOptions, loggingEnabled);
 
-  if (!validationResult.success) {
-    // Log validation failure
-    const validationError = new Error(
-      `Schema validation failed: ${JSON.stringify(validationResult.issues)}`,
-    );
-    logSingleLineWarning("Parsed successfully but failed schema validation", {
-      ...context,
-      responseContentParseError: validationError,
-    });
-    const error = new JsonProcessingError(
-      JsonProcessingErrorType.VALIDATION,
-      buildResourceErrorMessage("parsed successfully but failed schema validation", context),
-      validationError,
-    );
-    return { success: false, error };
+    if (!validationResult.success) {
+      // Log validation failure
+      const validationError = new Error(
+        `Schema validation failed: ${JSON.stringify(validationResult.issues)}`,
+      );
+      logOneLineWarning("Parsed successfully but failed schema validation", {
+        ...context,
+        responseContentParseError: validationError,
+      });
+      const error = new JsonProcessingError(
+        JsonProcessingErrorType.VALIDATION,
+        buildResourceErrorMessage("parsed successfully but failed schema validation", context),
+        validationError,
+      );
+      return { success: false, error };
+    }
+
+    // Step 4: Both parsing and validation succeeded
+    // Log sanitization steps if enabled and significant
+    if (loggingEnabled && hasSignificantSanitizationSteps(parseResult.steps)) {
+      let message = `Applied ${parseResult.steps.length} sanitization step(s): ${parseResult.steps.join(" -> ")}`;
+      if (parseResult.diagnostics) {
+        message += ` | Diagnostics: ${parseResult.diagnostics}`;
+      }
+      logOneLineWarning(message, context);
+    }
+
+    // Step 5: Return success result with validated data
+    return {
+      success: true,
+      data: validationResult.data,
+      steps: parseResult.steps,
+      diagnostics: parseResult.diagnostics,
+    };
   }
 
-  // Step 4: Both parsing and validation succeeded
+  // No schema provided - return parsed data without validation
   // Log sanitization steps if enabled and significant
   if (loggingEnabled && hasSignificantSanitizationSteps(parseResult.steps)) {
     let message = `Applied ${parseResult.steps.length} sanitization step(s): ${parseResult.steps.join(" -> ")}`;
     if (parseResult.diagnostics) {
       message += ` | Diagnostics: ${parseResult.diagnostics}`;
     }
-    logSingleLineWarning(message, context);
+    logOneLineWarning(message, context);
   }
 
-  // Step 5: Return success result
+  // Return success result with parsed data (no validation)
   return {
     success: true,
-    data: validationResult.data,
+    data: parseResult.data as T,
     steps: parseResult.steps,
     diagnostics: parseResult.diagnostics,
   };

@@ -59,144 +59,102 @@ describe("json-validator", () => {
       }
     });
 
-    it("should return content as-is for TEXT output format", () => {
-      const content = "This is plain text content";
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(content, options);
-
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toBe(content);
-      }
-    });
-
-    it("should return failure result for invalid content in TEXT output format", () => {
-      const content = undefined; // Not valid LLMGeneratedContent
-      const options = { outputFormat: LLMOutputFormat.TEXT };
+    it("should return failure when output format is not JSON", () => {
+      const schema = z.object({ name: z.string() });
+      const content = { name: "John" };
+      const options = {
+        outputFormat: LLMOutputFormat.TEXT,
+        jsonSchema: schema,
+      };
 
       const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
-    });
-
-    it("should use type guard for TEXT format to validate content safety", () => {
-      const validContent = { key: "value" }; // Valid LLMGeneratedContent
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(validContent, options);
-
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual(validContent);
+      if (!result.success) {
+        expect(result.issues).toBeDefined();
+        expect(result.issues[0]?.message).toContain("Output format must be JSON");
       }
     });
 
-    it("should handle number as invalid content for TEXT format", () => {
-      const content = 42; // Number is not valid LLMGeneratedContent
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(content, options);
-
-      expect(result.success).toBe(false);
-    });
-
-    it("should return content when no schema is provided for JSON format", () => {
+    it("should return failure when no schema is provided", () => {
       const content = { name: "John", age: 30 };
       const options = { outputFormat: LLMOutputFormat.JSON };
 
       const result = validateJson(content, options);
 
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual(content);
-      }
-    });
-
-    it("should return failure result for invalid content when no schema and not TEXT format", () => {
-      const content = undefined; // Not valid LLMGeneratedContent
-      const options = { outputFormat: LLMOutputFormat.JSON };
-
-      const result = validateJson(content, options);
-
       expect(result.success).toBe(false);
-    });
-  });
-
-  describe("Zod schema validation for LLMGeneratedContent", () => {
-    it("should accept string as valid LLMGeneratedContent", () => {
-      const content = "This is a string";
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(content, options);
-
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toBe(content);
+      if (!result.success) {
+        expect(result.issues).toBeDefined();
+        expect(result.issues[0]?.message).toContain("JSON schema is required");
       }
     });
 
-    it("should accept object as valid LLMGeneratedContent", () => {
-      const content = { key: "value", nested: { data: 123 } };
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(content, options);
-
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual(content);
-      }
-    });
-
-    it("should accept array as valid LLMGeneratedContent", () => {
-      const content = [1, 2, 3, "four", { five: 5 }];
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(content, options);
-
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toEqual(content);
-      }
-    });
-
-    it("should accept null as valid LLMGeneratedContent", () => {
+    it("should return failure when data is null", () => {
+      const schema = z.object({ name: z.string() });
       const content = null;
-      const options = { outputFormat: LLMOutputFormat.TEXT };
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
 
       const result = validateJson(content, options);
 
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data).toBeNull();
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.issues).toBeDefined();
+        expect(result.issues[0]?.message).toContain("Data is required");
       }
     });
 
-    it("should reject number as invalid LLMGeneratedContent", () => {
-      const content = 42;
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(content, options);
-
-      expect(result.success).toBe(false);
-    });
-
-    it("should reject boolean as invalid LLMGeneratedContent", () => {
-      const content = true;
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(content, options);
-
-      expect(result.success).toBe(false);
-    });
-
-    it("should reject undefined as invalid LLMGeneratedContent", () => {
+    it("should return failure when data is undefined", () => {
+      const schema = z.object({ name: z.string() });
       const content = undefined;
-      const options = { outputFormat: LLMOutputFormat.TEXT };
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
 
       const result = validateJson(content, options);
 
       expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.issues).toBeDefined();
+        expect(result.issues[0]?.message).toContain("Data is required");
+      }
+    });
+
+    it("should return failure when data is empty object", () => {
+      const schema = z.object({ name: z.string() });
+      const content = {};
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
+
+      const result = validateJson(content, options);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.issues).toBeDefined();
+        expect(result.issues[0]?.message).toContain("Data is required");
+      }
+    });
+
+    it("should return failure when data is empty array", () => {
+      const schema = z.array(z.string());
+      const content: string[] = [];
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
+
+      const result = validateJson(content, options);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.issues).toBeDefined();
+        expect(result.issues[0]?.message).toContain("Data is required");
+      }
     });
   });
 

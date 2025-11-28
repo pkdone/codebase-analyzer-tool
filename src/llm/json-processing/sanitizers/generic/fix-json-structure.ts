@@ -1,5 +1,5 @@
-import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { Sanitizer, SanitizerResult } from "../sanitizers-types";
+import { SANITIZATION_STEP } from "../../constants/sanitization-steps.config";
 
 /**
  * Post-processing sanitizer that fixes advanced JSON structure issues.

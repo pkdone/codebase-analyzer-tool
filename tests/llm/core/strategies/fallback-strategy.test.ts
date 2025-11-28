@@ -11,7 +11,7 @@ import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 
 // Mock the logging module
 jest.mock("../../../../src/common/utils/logging", () => ({
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
 }));
 
 describe("FallbackStrategy", () => {

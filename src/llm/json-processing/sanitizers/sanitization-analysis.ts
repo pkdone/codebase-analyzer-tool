@@ -8,20 +8,10 @@ import { INSIGNIFICANT_SANITIZATION_STEPS } from "../constants/sanitization-step
  *
  * @param steps - Array of sanitization step descriptions
  * @returns true if any steps are significant (not in INSIGNIFICANT_SANITIZATION_STEPS), false otherwise
- *
- * @example
- * ```typescript
- * const steps = ["Trimmed whitespace", "Fixed 2 mismatched delimiters"];
- * const hasSignificant = hasSignificantSanitizationSteps(steps);
- * // Returns: true (because "Fixed 2 mismatched delimiters" is significant)
- * ```
  */
 export function hasSignificantSanitizationSteps(
   steps: readonly string[] | string[] | undefined,
 ): boolean {
-  if (!steps || steps.length === 0) {
-    return false;
-  }
-
+  if (!steps || steps.length === 0) return false;
   return steps.some((step) => !INSIGNIFICANT_SANITIZATION_STEPS.has(step));
 }

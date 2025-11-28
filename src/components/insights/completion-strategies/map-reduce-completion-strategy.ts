@@ -4,7 +4,7 @@ import LLMRouter from "../../../llm/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
-import { logSingleLineWarning } from "../../../common/utils/logging";
+import { logOneLineWarning } from "../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt";
 import { llmTokens } from "../../../di/tokens";
 import { ICompletionStrategy } from "./completion-strategy.interface";
@@ -68,7 +68,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
       ).filter((result): result is PartialAppSummaryRecord => result !== null);
 
       if (partialResults.length === 0) {
-        logSingleLineWarning(
+        logOneLineWarning(
           `No partial insights were generated for ${categoryLabel}. Skipping final consolidation.`,
         );
         return null;
@@ -82,13 +82,13 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
       const finalSummaryData = await this.reducePartialInsights(category, partialResults);
 
       if (!finalSummaryData) {
-        logSingleLineWarning(`Failed to generate final consolidated summary for ${categoryLabel}.`);
+        logOneLineWarning(`Failed to generate final consolidated summary for ${categoryLabel}.`);
         return null;
       }
 
       return finalSummaryData;
     } catch (error: unknown) {
-      logSingleLineWarning(
+      logOneLineWarning(
         `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,
       );
       return null;
@@ -155,7 +155,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
         },
       );
     } catch (error: unknown) {
-      logSingleLineWarning(
+      logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       return null;

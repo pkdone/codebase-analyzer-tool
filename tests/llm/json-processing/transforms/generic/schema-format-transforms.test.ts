@@ -1,6 +1,6 @@
-import { unwrapJsonSchemaStructure } from "../../../../src/llm/json-processing/transforms/post-parse-transforms";
+import { unwrapJsonSchemaStructure } from "../../../../../src/llm/json-processing/transforms/generic/schema-format-transforms.js";
 
-describe("generic-transforms", () => {
+describe("schema-format-transforms", () => {
   describe("unwrapJsonSchemaStructure", () => {
     it("should unwrap JSON Schema structure when LLM returns schema instead of data", () => {
       const schemaResponse = {

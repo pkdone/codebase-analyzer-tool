@@ -1,6 +1,6 @@
-import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { logSingleLineWarning } from "../../../common/utils/logging";
-import { isInStringAt } from "../utils/parser-context-utils";
+import { Sanitizer, SanitizerResult } from "../sanitizers-types";
+import { logOneLineWarning } from "../../../../common/utils/logging";
+import { isInStringAt } from "../../utils/parser-context-utils";
 
 /**
  * Sanitizer that fixes various malformed JSON patterns found in LLM responses.
@@ -4846,7 +4846,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    logSingleLineWarning(`fixMalformedJsonPatterns sanitizer failed: ${String(error)}`);
+    logOneLineWarning(`fixMalformedJsonPatterns sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

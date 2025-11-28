@@ -1,5 +1,5 @@
 import { llmProviderConfig } from "../llm.config";
-import { logSingleLineWarning } from "../../common/utils/logging";
+import { logOneLineWarning } from "../../common/utils/logging";
 
 /**
  * Configuration for text chunking based on token limits
@@ -51,7 +51,7 @@ export function chunkTextByTokenLimit(items: string[], config: TextChunkingConfi
 
     // Handle items that are individually too large
     if (itemTokenCount > tokenLimitPerChunk) {
-      logSingleLineWarning(`A text item is too large and will be truncated to fit token limit.`);
+      logOneLineWarning(`A text item is too large and will be truncated to fit token limit.`);
       const truncatedLength = Math.floor(tokenLimitPerChunk * charsPerToken);
       itemToProcess = item.substring(0, truncatedLength);
       itemTokenCount = tokenLimitPerChunk;

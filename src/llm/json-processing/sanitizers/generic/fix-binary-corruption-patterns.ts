@@ -1,7 +1,7 @@
-import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
-import { BINARY_CORRUPTION_REGEX } from "../constants/regex.constants";
-import { logSingleLineWarning } from "../../../common/utils/logging";
+import { Sanitizer, SanitizerResult } from "../sanitizers-types";
+import { SANITIZATION_STEP } from "../../constants/sanitization-steps.config";
+import { BINARY_CORRUPTION_REGEX } from "../../constants/regex.constants";
+import { logOneLineWarning } from "../../../../common/utils/logging";
 
 /**
  * Sanitizer that fixes binary corruption patterns in LLM responses.
@@ -88,7 +88,7 @@ export const fixBinaryCorruptionPatterns: Sanitizer = (jsonString: string): Sani
     };
   } catch (error) {
     // If sanitization fails, return the original string
-    logSingleLineWarning(`fixBinaryCorruptionPatterns sanitizer failed: ${String(error)}`);
+    logOneLineWarning(`fixBinaryCorruptionPatterns sanitizer failed: ${String(error)}`);
     return {
       content: jsonString,
       changed: false,

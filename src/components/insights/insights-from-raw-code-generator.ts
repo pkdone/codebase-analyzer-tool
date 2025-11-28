@@ -8,7 +8,7 @@ import { coreTokens } from "../../di/tokens";
 import type { IInsightsProcessor } from "./insights-processor.interface";
 import { formatCodeBlockMarkdownFromFolderCodebase } from "../../common/utils/codebase-formatter";
 import type { EnvVars } from "../../env/env.types";
-import { logSingleLineWarning } from "../../common/utils/logging";
+import { logOneLineWarning } from "../../common/utils/logging";
 import { renderPrompt } from "../../prompts/prompt";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
@@ -69,7 +69,7 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
       });
       console.log(`Captured summary details of all categories into database`);
     } catch (error: unknown) {
-      logSingleLineWarning(
+      logOneLineWarning(
         `Unable to generate summary data for all app categories details into database`,
         error,
       );
@@ -102,7 +102,7 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
       );
       return llmResponse;
     } catch (error: unknown) {
-      logSingleLineWarning(
+      logOneLineWarning(
         `${error instanceof Error ? error.message : "Unknown error"} for getting summary data for all categories`,
       );
       return null;

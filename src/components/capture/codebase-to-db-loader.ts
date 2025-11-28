@@ -7,7 +7,7 @@ import { readFile } from "../../common/fs/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../common/fs/directory-operations";
 import { getFileExtension } from "../../common/fs/path-utils";
 import { countLines } from "../../common/utils/text-utils";
-import { logSingleLineWarning } from "../../common/utils/logging";
+import { logOneLineWarning } from "../../common/utils/logging";
 import { summarizeFile, type SourceSummaryType } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
@@ -96,7 +96,7 @@ export default class CodebaseToDBLoader {
           successes++;
         } catch (error: unknown) {
           failures++;
-          logSingleLineWarning(`Failed to process file: ${filepath}`, error);
+          logOneLineWarning(`Failed to process file: ${filepath}`, error);
         }
       });
     });

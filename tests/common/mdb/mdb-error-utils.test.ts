@@ -7,9 +7,9 @@ import {
 // Simple spy for logging (avoid importing real logger implementation)
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
 }));
-import { logSingleLineWarning } from "../../../src/common/utils/logging";
+import { logOneLineWarning } from "../../../src/common/utils/logging";
 
 describe("mdb-error-utils", () => {
   function buildMongoError(
@@ -39,13 +39,13 @@ describe("mdb-error-utils", () => {
   it("should log validation failure when errmsg contains document failed validation", () => {
     const err = buildMongoError({ errorResponse: { errmsg: "Document failed validation" } });
     logMongoValidationErrorIfPresent(err, true);
-    expect(logSingleLineWarning).toHaveBeenCalled();
+    expect(logOneLineWarning).toHaveBeenCalled();
   });
 
   it("should not log when doLog is false", () => {
     const err = buildMongoError({ errorResponse: { errmsg: "Document failed validation" } });
-    (logSingleLineWarning as jest.Mock).mockClear();
+    (logOneLineWarning as jest.Mock).mockClear();
     logMongoValidationErrorIfPresent(err, false);
-    expect(logSingleLineWarning).not.toHaveBeenCalled();
+    expect(logOneLineWarning).not.toHaveBeenCalled();
   });
 });

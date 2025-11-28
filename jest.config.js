@@ -13,5 +13,11 @@ module.exports = {
     '/node_modules/',        // Keep the default ignore
     '<rootDir>/dist/',       // Ignore the dist folder
     '.*\\.int\\.test\\.ts$',   // Skip integration tests using regex
-  ],  
+  ],
+
+  // Map .js extensions to .ts files for Jest to resolve NodeNext module resolution
+  // This allows Jest to find .ts files when imports use .js extensions (required by NodeNext)
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
 };

@@ -1,11 +1,11 @@
 import { processJson } from "../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../src/llm/types/llm.types";
 import { JsonProcessingErrorType } from "../../src/llm/json-processing/types/json-processing.errors";
-import { logSingleLineWarning } from "../../src/common/utils/logging";
+import { logOneLineWarning } from "../../src/common/utils/logging";
 
 // Mock the logging module
 jest.mock("../../src/common/utils/logging", () => ({
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
   logErrorMsg: jest.fn(),
   logInfoMsg: jest.fn(),
 }));
@@ -31,7 +31,7 @@ describe("json-tools enhanced fast path", () => {
         expect(result.data).toEqual({ purpose: "Test", value: 42 });
       }
       // Should not log any sanitization steps since fast path succeeded
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("parses valid JSON with leading whitespace via fast path", () => {
@@ -46,7 +46,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ purpose: "Test", value: 42 });
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("parses valid JSON with trailing whitespace via fast path", () => {
@@ -61,7 +61,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ purpose: "Test", value: 42 });
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("parses valid JSON array with whitespace via fast path", () => {
@@ -76,7 +76,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual([1, 2, 3, 4, 5]);
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("parses nested valid JSON via fast path", () => {
@@ -99,7 +99,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect((result.data as any).level1.level2.level3.value).toBe("deep");
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
   });
 
@@ -117,7 +117,7 @@ describe("json-tools enhanced fast path", () => {
         expect(result.data).toEqual({ value: 42 });
       }
       // Code fence removal is now considered a significant sanitization step
-      expect(logSingleLineWarning).toHaveBeenCalled();
+      expect(logOneLineWarning).toHaveBeenCalled();
     });
 
     it("falls back to progressive strategies for JSON with surrounding text", () => {
@@ -132,7 +132,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalled();
+      expect(logOneLineWarning).toHaveBeenCalled();
     });
 
     it("falls back to progressive strategies for invalid JSON", () => {
@@ -147,7 +147,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalled();
+      expect(logOneLineWarning).toHaveBeenCalled();
     });
   });
 
@@ -166,7 +166,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("logs sanitization steps when logging is enabled", () => {
@@ -182,7 +182,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(
+      expect(logOneLineWarning).toHaveBeenCalledWith(
         expect.stringContaining("Applied"),
         expect.any(Object),
       );
@@ -200,7 +200,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({ value: 42 });
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(
+      expect(logOneLineWarning).toHaveBeenCalledWith(
         expect.stringContaining("Applied"),
         expect.any(Object),
       );
@@ -221,7 +221,7 @@ describe("json-tools enhanced fast path", () => {
         expect((result.data as any).a).toBe(1);
         expect((result.data as any).b).toEqual([1, 2, 3]);
       }
-      expect(logSingleLineWarning).toHaveBeenCalledWith(
+      expect(logOneLineWarning).toHaveBeenCalledWith(
         expect.stringContaining("Applied"),
         expect.any(Object),
       );
@@ -274,7 +274,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual({});
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("handles empty array via fast path", () => {
@@ -289,7 +289,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect(result.data).toEqual([]);
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("handles JSON with unicode characters via fast path", () => {
@@ -305,7 +305,7 @@ describe("json-tools enhanced fast path", () => {
         expect((result.data as any).emoji).toBe("🚀");
         expect((result.data as any).text).toBe("Hello, 世界");
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("handles JSON with escaped quotes via fast path", () => {
@@ -320,7 +320,7 @@ describe("json-tools enhanced fast path", () => {
       if (result.success) {
         expect((result.data as any).text).toBe('He said "Hello"');
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
   });
 });

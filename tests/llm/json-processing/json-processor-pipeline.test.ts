@@ -7,11 +7,11 @@ import {
 
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
   logError: jest.fn(),
 }));
 
-import { logSingleLineWarning } from "../../../src/common/utils/logging";
+import { logOneLineWarning } from "../../../src/common/utils/logging";
 
 describe("JsonProcessor - Unified Pipeline", () => {
   const completionOptions = { outputFormat: LLMOutputFormat.JSON };
@@ -34,7 +34,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         expect(result.data).toEqual({ clean: "json" });
         expect(result.steps).toEqual([]);
       }
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("should stop pipeline as soon as parsing succeeds", () => {
@@ -69,7 +69,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         expect(result.data).toEqual({ a: 1 });
         expect(result.steps.length).toBeGreaterThan(0);
         // Should have logged the sanitization steps
-        expect(logSingleLineWarning).toHaveBeenCalled();
+        expect(logOneLineWarning).toHaveBeenCalled();
       }
     });
 
@@ -330,8 +330,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
         completionOptions,
       );
 
-      expect(logSingleLineWarning).toHaveBeenCalled();
-      const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
+      expect(logOneLineWarning).toHaveBeenCalled();
+      const calls = (logOneLineWarning as jest.Mock).mock.calls.flat();
       expect(calls.some((c: string) => c.includes("Applied"))).toBe(true);
     });
 
@@ -344,7 +344,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         false, // loggingEnabled = false
       );
 
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("should not log when no sanitization was needed", () => {
@@ -355,7 +355,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
         completionOptions,
       );
 
-      expect(logSingleLineWarning).not.toHaveBeenCalled();
+      expect(logOneLineWarning).not.toHaveBeenCalled();
     });
 
     it("should include all applied steps in log message", () => {
@@ -366,8 +366,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
         completionOptions,
       );
 
-      expect(logSingleLineWarning).toHaveBeenCalled();
-      const calls = (logSingleLineWarning as jest.Mock).mock.calls.flat();
+      expect(logOneLineWarning).toHaveBeenCalled();
+      const calls = (logOneLineWarning as jest.Mock).mock.calls.flat();
       const logMsg = calls.find((c: string) => c.includes("Applied"));
       expect(logMsg).toBeDefined();
       // Should contain arrow separators for multiple steps

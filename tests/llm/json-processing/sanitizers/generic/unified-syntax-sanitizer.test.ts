@@ -1,4 +1,4 @@
-import { unifiedSyntaxSanitizer } from "../../../../src/llm/json-processing/sanitizers/unified-syntax-sanitizer";
+import { unifiedSyntaxSanitizer } from "../../../../../src/llm/json-processing/sanitizers/index.js";
 
 /**
  * Comprehensive tests for unifiedSyntaxSanitizer sanitizer.
@@ -129,7 +129,7 @@ describe("unifiedSyntaxSanitizer", () => {
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"k": ""}');
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("identifier-only"))).toBe(true);
+      expect(result.diagnostics?.some((d: string) => d.includes("identifier-only"))).toBe(true);
     });
 
     it("should keep only literal when identifiers precede it", () => {
@@ -172,7 +172,7 @@ describe("unifiedSyntaxSanitizer", () => {
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"cyclomaticComplexity": 10');
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("concatenated"))).toBe(true);
+      expect(result.diagnostics?.some((d: string) => d.includes("concatenated"))).toBe(true);
     });
 
     it("should handle multiple concatenated parts", () => {
@@ -332,7 +332,7 @@ describe("unifiedSyntaxSanitizer", () => {
       // The sanitizer preserves the whitespace that was there (none in this case)
       expect(result.content).toBe('"linesOfCode":3,');
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("corrupted numeric"))).toBe(true);
+      expect(result.diagnostics?.some((d: string) => d.includes("corrupted numeric"))).toBe(true);
     });
 
     it("should handle corrupted numeric values with whitespace", () => {
@@ -360,7 +360,7 @@ describe("unifiedSyntaxSanitizer", () => {
       expect(result.changed).toBe(true);
       expect(result.content).toBe('"name": "value"');
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("assignment syntax"))).toBe(true);
+      expect(result.diagnostics?.some((d: string) => d.includes("assignment syntax"))).toBe(true);
     });
 
     it("should remove stray text between colon and opening quote", () => {
@@ -422,7 +422,7 @@ describe("unifiedSyntaxSanitizer", () => {
       expect(result.changed).toBe(true);
       expect(result.diagnostics).toBeDefined();
       expect(
-        result.diagnostics?.some((d) =>
+        result.diagnostics?.some((d: string) =>
           d.includes("Fixed escaped quote followed by unescaped quote"),
         ),
       ).toBe(true);

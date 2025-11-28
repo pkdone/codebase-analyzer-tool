@@ -26,7 +26,7 @@ import * as manifestLoader from "../../../src/llm/utils/manifest-loader";
 // postProcessAsJSONIfNeededGeneratingNewResult have been moved to AbstractLLM class
 
 jest.mock("../../../src/common/utils/logging", () => ({
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
   logError: jest.fn(),
   logErrorMsg: jest.fn(),
 }));

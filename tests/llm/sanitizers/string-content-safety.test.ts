@@ -1,6 +1,6 @@
-import { unifiedSyntaxSanitizer } from "../../../src/llm/json-processing/sanitizers/unified-syntax-sanitizer";
-import { fixJsonStructure } from "../../../src/llm/json-processing/sanitizers/fix-json-structure";
-import { normalizeCharacters } from "../../../src/llm/json-processing/sanitizers/normalize-characters";
+import { unifiedSyntaxSanitizer } from "../../../src/llm/json-processing/sanitizers/generic/unified-syntax-sanitizer";
+import { fixJsonStructure } from "../../../src/llm/json-processing/sanitizers/generic/fix-json-structure";
+import { normalizeCharacters } from "../../../src/llm/json-processing/sanitizers/generic/normalize-characters";
 
 /**
  * Safety tests to ensure sanitizers don't modify valid JSON string content.

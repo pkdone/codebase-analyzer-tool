@@ -1,7 +1,7 @@
-import { Sanitizer, SanitizerResult } from "./sanitizers-types";
-import { CODE_FENCE_MARKERS } from "../constants/json-processing.config";
-import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
-import { logSingleLineWarning } from "../../../common/utils/logging";
+import { Sanitizer, SanitizerResult } from "../sanitizers-types";
+import { CODE_FENCE_MARKERS } from "../../constants/json-processing.config";
+import { CODE_FENCE_REGEXES } from "../../constants/regex.constants";
+import { logOneLineWarning } from "../../../../common/utils/logging";
 
 /**
  * Consolidated structural sanitizer that handles high-level structural issues and noise.
@@ -101,7 +101,7 @@ export const fixJsonStructureAndNoise: Sanitizer = (input: string): SanitizerRes
       diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
     };
   } catch (error) {
-    logSingleLineWarning(`fixJsonStructureAndNoise sanitizer failed: ${String(error)}`);
+    logOneLineWarning(`fixJsonStructureAndNoise sanitizer failed: ${String(error)}`);
     return {
       content: input,
       changed: false,

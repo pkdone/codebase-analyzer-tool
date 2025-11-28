@@ -11,7 +11,7 @@ jest.mock("../../../src/llm/llm-router");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logError: jest.fn(),
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
 }));
 
 jest.unmock("../../../src/prompts/definitions/sources");
@@ -111,8 +111,8 @@ jest.mock("../../../src/prompts/definitions/sources", () => ({
 // Note: We no longer mock buildPrompt as FileSummarizer now uses the Prompt class directly
 
 // LLMRouter is mocked, we'll create a mock instance directly
-const mockLogSingleLineWarning = logging.logSingleLineWarning as jest.MockedFunction<
-  typeof logging.logSingleLineWarning
+const mockLogSingleLineWarning = logging.logOneLineWarning as jest.MockedFunction<
+  typeof logging.logOneLineWarning
 >;
 
 import { fileTypePromptMetadata } from "../../../src/prompts/definitions/sources";

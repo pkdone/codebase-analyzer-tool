@@ -1,5 +1,5 @@
-import { normalizeCharacters } from "../../../../src/llm/json-processing/sanitizers/normalize-characters";
-import { SANITIZATION_STEP } from "../../../../src/llm/json-processing/constants/sanitization-steps.config";
+import { normalizeCharacters } from "../../../../../src/llm/json-processing/sanitizers/index.js";
+import { SANITIZATION_STEP } from "../../../../../src/llm/json-processing/constants/sanitization-steps.config.js";
 
 describe("normalizeCharacters", () => {
   describe("converts curly quotes to ASCII quotes", () => {
@@ -239,7 +239,9 @@ describe("normalizeCharacters", () => {
       expect(result.changed).toBe(true);
       expect(result.diagnostics).toBeDefined();
       expect(
-        result.diagnostics?.some((d) => d.includes("Escaped") && d.includes("control character")),
+        result.diagnostics?.some(
+          (d: string) => d.includes("Escaped") && d.includes("control character"),
+        ),
       ).toBe(true);
     });
   });
@@ -325,7 +327,7 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("invalid escape"))).toBe(true);
+      expect(result.diagnostics?.some((d: string) => d.includes("invalid escape"))).toBe(true);
     });
   });
 
@@ -386,7 +388,7 @@ describe("normalizeCharacters", () => {
 
       expect(result.changed).toBe(true);
       expect(result.diagnostics).toBeDefined();
-      expect(result.diagnostics?.some((d) => d.includes("over-escaped"))).toBe(true);
+      expect(result.diagnostics?.some((d: string) => d.includes("over-escaped"))).toBe(true);
     });
   });
 

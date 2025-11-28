@@ -20,7 +20,7 @@ import {
   buildCompletionCandidates,
 } from "./utils/completions-models-retriever";
 import { loadManifestForModelFamily } from "./utils/manifest-loader";
-import { logSingleLineWarning } from "../common/utils/logging";
+import { logOneLineWarning } from "../common/utils/logging";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -174,10 +174,7 @@ export default class LLMRouter {
     );
 
     if (!contentResponse.success) {
-      logSingleLineWarning(
-        `Failed to generate embeddings: ${contentResponse.error.message}`,
-        context,
-      );
+      logOneLineWarning(`Failed to generate embeddings: ${contentResponse.error.message}`, context);
       return null;
     }
 
@@ -187,7 +184,7 @@ export default class LLMRouter {
         contentResponse.data.every((item: unknown) => typeof item === "number")
       )
     ) {
-      logSingleLineWarning("LLM response for embeddings was not an array of numbers", context);
+      logOneLineWarning("LLM response for embeddings was not an array of numbers", context);
       return null;
     }
 
@@ -234,7 +231,7 @@ export default class LLMRouter {
     );
 
     if (!result.success) {
-      logSingleLineWarning(`Failed to execute completion: ${result.error.message}`, context);
+      logOneLineWarning(`Failed to execute completion: ${result.error.message}`, context);
       return null;
     }
 

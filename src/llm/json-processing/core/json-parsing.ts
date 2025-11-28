@@ -1,12 +1,12 @@
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
-import { convertNullToUndefined } from "../transforms/convert-null-to-undefined";
+import { convertNullToUndefined } from "../transforms/generic/convert-null-to-undefined.js";
+import { unwrapJsonSchemaStructure } from "../transforms/generic/schema-format-transforms.js";
 import {
-  unwrapJsonSchemaStructure,
   normalizeDatabaseIntegrationArray,
   fixParameterPropertyNameTypos,
   fixMissingRequiredFields,
   fixParametersFieldType,
-} from "../transforms/post-parse-transforms";
+} from "../transforms/schema-specific/source-schema-transforms.js";
 import {
   fixJsonStructureAndNoise,
   fixJsonSyntax,
@@ -18,7 +18,7 @@ import {
   fixMalformedJsonPatterns,
   type Sanitizer,
   type PostParseTransform,
-} from "../sanitizers";
+} from "../sanitizers/index.js";
 
 /**
  * Result type for JSON parsing operations.
@@ -91,13 +91,13 @@ const SANITIZATION_PIPELINE_PHASES = [
  * Post-parse transformations applied after successful JSON.parse but before validation.
  * These operate on the parsed object structure rather than raw strings.
  *
- * Currently contains:
- * - fixParametersFieldType: Converts string parameters field to array in publicMethods
- * - convertNullToUndefined: Converts null to undefined for optional fields
- * - fixParameterPropertyNameTypos: Fixes typos in parameter property names
- * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data
- * - normalizeDatabaseIntegrationArray: Converts databaseIntegration from array to single object
- * - fixMissingRequiredFields: Adds missing required fields in publicMethods
+ * Transform order:
+ * - fixParametersFieldType: Converts string parameters field to array in publicMethods (schema-specific)
+ * - convertNullToUndefined: Converts null to undefined for optional fields (generic)
+ * - fixParameterPropertyNameTypos: Fixes typos in parameter property names (schema-specific)
+ * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data (generic)
+ * - normalizeDatabaseIntegrationArray: Converts databaseIntegration from array to single object (schema-specific)
+ * - fixMissingRequiredFields: Adds missing required fields in publicMethods (schema-specific)
  */
 const POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
   fixParametersFieldType,

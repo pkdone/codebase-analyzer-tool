@@ -18,7 +18,7 @@ import { llmTokens } from "../di/tokens";
 import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
 import type { LLMExecutionResult } from "./types/llm-execution-result.types";
 import { LLMExecutionError } from "./types/llm-execution-result.types";
-import { logSingleLineWarning } from "../common/utils/logging";
+import { logOneLineWarning } from "../common/utils/logging";
 
 /**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
@@ -78,7 +78,7 @@ export class LLMExecutionPipeline {
         };
       }
 
-      logSingleLineWarning(
+      logOneLineWarning(
         `Given-up on trying to fulfill the current prompt with an LLM for the following resource: '${resourceName}'`,
         context,
       );
@@ -93,7 +93,7 @@ export class LLMExecutionPipeline {
         ),
       };
     } catch (error: unknown) {
-      logSingleLineWarning(
+      logOneLineWarning(
         `Unable to process the following resource with an LLM due to a non-recoverable error for the following resource: '${resourceName}'`,
         { ...context, error },
       );
@@ -143,7 +143,7 @@ export class LLMExecutionPipeline {
         this.llmStats.recordSuccess();
         return llmResponse;
       } else if (llmResponse?.status === LLMResponseStatus.ERRORED) {
-        logSingleLineWarning("LLM Error for resource", { ...context, error: llmResponse.error });
+        logOneLineWarning("LLM Error for resource", { ...context, error: llmResponse.error });
         break;
       }
 
@@ -165,7 +165,7 @@ export class LLMExecutionPipeline {
         this.llmStats.recordCrop();
 
         if (currentPrompt.trim() === "") {
-          logSingleLineWarning(
+          logOneLineWarning(
             `Prompt became empty after cropping for resource '${resourceName}', terminating attempts.`,
             context,
           );

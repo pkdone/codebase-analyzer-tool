@@ -20,7 +20,7 @@ jest.mock("../../../src/components/capture/file-summarizer", () => ({
 }));
 jest.mock("../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
-  logSingleLineWarning: jest.fn(),
+  logOneLineWarning: jest.fn(),
 }));
 
 jest.mock("../../../src/config/file-processing.config", () => ({
@@ -179,7 +179,7 @@ describe("CodebaseToDBLoader", () => {
       mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
       mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
 
-      const { logSingleLineWarning: mockLogWarning } = jest.requireMock(
+      const { logOneLineWarning: mockLogWarning } = jest.requireMock(
         "../../../src/common/utils/logging",
       );
 
@@ -411,7 +411,7 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockRejectedValue(processingError);
 
-      const { logSingleLineWarning: mockLogWarning } = jest.requireMock(
+      const { logOneLineWarning: mockLogWarning } = jest.requireMock(
         "../../../src/common/utils/logging",
       );
 

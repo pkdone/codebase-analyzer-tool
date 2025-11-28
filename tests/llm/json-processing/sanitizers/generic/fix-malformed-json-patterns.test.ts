@@ -1,4 +1,4 @@
-import { fixMalformedJsonPatterns } from "../../../../src/llm/json-processing/sanitizers/fix-malformed-json-patterns";
+import { fixMalformedJsonPatterns } from "../../../../../src/llm/json-processing/sanitizers/index.js";
 
 describe("fixMalformedJsonPatterns", () => {
   describe("Pattern: Asterisk before property names", () => {
