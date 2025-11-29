@@ -1,9 +1,7 @@
 import { convertNullToUndefined } from "../../../../src/llm/json-processing/transforms/generic/convert-null-to-undefined.js";
 import { unwrapJsonSchemaStructure } from "../../../../src/llm/json-processing/transforms/generic/schema-format-transforms.js";
-import {
-  normalizeDatabaseIntegrationArray,
-  fixParameterPropertyNameTypos,
-} from "../../../../src/llm/json-processing/transforms/schema-specific/source-schema-transforms.js";
+import { normalizeDatabaseIntegrationArray } from "../../../../src/llm/json-processing/transforms/schema-specific/source-schema-transforms.js";
+import { fixCommonPropertyNameTypos } from "../../../../src/llm/json-processing/transforms/generic/property-typo-fixes.js";
 
 describe("Consolidated Post-Parse Transforms", () => {
   describe("convertNullToUndefined", () => {
@@ -96,12 +94,12 @@ describe("Consolidated Post-Parse Transforms", () => {
     });
   });
 
-  describe("fixParameterPropertyNameTypos", () => {
+  describe("fixCommonPropertyNameTypos", () => {
     it("should fix type_ to type", () => {
       const input = {
         parameters: [{ type_: "string", name: "param" }],
       };
-      const result = fixParameterPropertyNameTypos(input);
+      const result = fixCommonPropertyNameTypos(input);
       expect((result as Record<string, unknown>).parameters).toEqual([
         { type: "string", name: "param" },
       ]);
@@ -111,7 +109,7 @@ describe("Consolidated Post-Parse Transforms", () => {
       const input = {
         parameters: [{ type: "string", name_: "param" }],
       };
-      const result = fixParameterPropertyNameTypos(input);
+      const result = fixCommonPropertyNameTypos(input);
       expect((result as Record<string, unknown>).parameters).toEqual([
         { type: "string", name: "param" },
       ]);
@@ -121,7 +119,7 @@ describe("Consolidated Post-Parse Transforms", () => {
       const input = {
         parameters: [{ type: "string", name: "param" }],
       };
-      const result = fixParameterPropertyNameTypos(input);
+      const result = fixCommonPropertyNameTypos(input);
       expect(result).toStrictEqual(input);
     });
   });

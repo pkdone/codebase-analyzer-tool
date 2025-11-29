@@ -6,12 +6,12 @@
 import {
   convertNullToUndefined,
   unwrapJsonSchemaStructure,
+  fixCommonPropertyNameTypos,
+  coerceStringToArray,
 } from "../../../../src/llm/json-processing/transforms/generic/index.js";
 import {
   normalizeDatabaseIntegrationArray,
-  fixParameterPropertyNameTypos,
   fixMissingRequiredFields,
-  fixParametersFieldType,
 } from "../../../../src/llm/json-processing/transforms/schema-specific/index.js";
 import * as transforms from "../../../../src/llm/json-processing/transforms/index.js";
 
@@ -24,6 +24,14 @@ describe("Transform Barrel Exports", () => {
     it("should export unwrapJsonSchemaStructure", () => {
       expect(typeof unwrapJsonSchemaStructure).toBe("function");
     });
+
+    it("should export fixCommonPropertyNameTypos", () => {
+      expect(typeof fixCommonPropertyNameTypos).toBe("function");
+    });
+
+    it("should export coerceStringToArray", () => {
+      expect(typeof coerceStringToArray).toBe("function");
+    });
   });
 
   describe("schema-specific transforms barrel export", () => {
@@ -31,16 +39,8 @@ describe("Transform Barrel Exports", () => {
       expect(typeof normalizeDatabaseIntegrationArray).toBe("function");
     });
 
-    it("should export fixParameterPropertyNameTypos", () => {
-      expect(typeof fixParameterPropertyNameTypos).toBe("function");
-    });
-
     it("should export fixMissingRequiredFields", () => {
       expect(typeof fixMissingRequiredFields).toBe("function");
-    });
-
-    it("should export fixParametersFieldType", () => {
-      expect(typeof fixParametersFieldType).toBe("function");
     });
   });
 
@@ -48,13 +48,13 @@ describe("Transform Barrel Exports", () => {
     it("should export all generic transforms", () => {
       expect(typeof transforms.convertNullToUndefined).toBe("function");
       expect(typeof transforms.unwrapJsonSchemaStructure).toBe("function");
+      expect(typeof transforms.fixCommonPropertyNameTypos).toBe("function");
+      expect(typeof transforms.coerceStringToArray).toBe("function");
     });
 
     it("should export all schema-specific transforms", () => {
       expect(typeof transforms.normalizeDatabaseIntegrationArray).toBe("function");
-      expect(typeof transforms.fixParameterPropertyNameTypos).toBe("function");
       expect(typeof transforms.fixMissingRequiredFields).toBe("function");
-      expect(typeof transforms.fixParametersFieldType).toBe("function");
     });
   });
 

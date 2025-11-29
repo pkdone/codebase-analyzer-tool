@@ -5,7 +5,5 @@
 
 export {
   normalizeDatabaseIntegrationArray,
-  fixParameterPropertyNameTypos,
   fixMissingRequiredFields,
-  fixParametersFieldType,
 } from "./source-schema-transforms.js";
