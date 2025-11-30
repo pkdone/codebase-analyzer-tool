@@ -7,6 +7,7 @@ export { fixJsonSyntax } from "./generic/syntax-sanitizer.js";
 
 // Individual sanitizers (still available for specific use cases)
 export { normalizeCharacters } from "./generic/normalize-characters.js";
+export { removeComments } from "./generic/remove-comments.js";
 export { fixJsonStructure } from "./generic/fix-json-structure.js";
 export { unifiedSyntaxSanitizer } from "./generic/unified-syntax-sanitizer.js";
 export { fixBinaryCorruptionPatterns } from "./generic/fix-binary-corruption-patterns.js";

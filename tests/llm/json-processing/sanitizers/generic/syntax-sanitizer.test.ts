@@ -97,4 +97,68 @@ describe("fixJsonSyntax", () => {
       expect(result.content).toBe(input);
     });
   });
+
+  describe("improved trailing comma removal", () => {
+    it("should remove trailing comma with various whitespace arrangements", () => {
+      const input = '{ "key": "value", }';
+      const result = fixJsonSyntax(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toBe('{ "key": "value"}');
+    });
+
+    it("should remove trailing comma with newline and spaces", () => {
+      const input = `{
+  "key": "value",
+}`;
+
+      const result = fixJsonSyntax(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"key": "value"');
+      expect(result.content).not.toContain('"value",');
+    });
+
+    it("should remove trailing comma with tabs", () => {
+      const input = '{\t"key": "value",\t}';
+      const result = fixJsonSyntax(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"key": "value"');
+      expect(result.content).not.toContain('"value",');
+    });
+
+    it("should remove trailing comma before closing bracket with newline", () => {
+      const input = `[
+  "item1",
+  "item2",
+]`;
+
+      const result = fixJsonSyntax(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"item2"');
+      expect(result.content).not.toContain('"item2",');
+    });
+
+    it("should handle multiple trailing commas", () => {
+      const input = `{
+  "key1": "value1",
+  "key2": "value2",
+}`;
+
+      const result = fixJsonSyntax(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('"value2",');
+    });
+
+    it("should not remove commas inside string values", () => {
+      const input = '{ "key": "value, with comma" }';
+      const result = fixJsonSyntax(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+  });
 });

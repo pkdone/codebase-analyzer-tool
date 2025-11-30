@@ -1,6 +1,13 @@
 import { unifiedSyntaxSanitizer } from "../../../../../src/llm/json-processing/sanitizers/index.js";
 
 /**
+ * Additional tests for generic patterns added in refactoring:
+ * - Generic unquoted property keys
+ * - Generic unquoted string values
+ * - Generic property name typo patterns (trailing/double underscores)
+ */
+
+/**
  * Comprehensive tests for unifiedSyntaxSanitizer sanitizer.
  * This sanitizer consolidates:
  * 1. fixPropertyNames - Fixes all property name issues
@@ -1178,6 +1185,171 @@ extra_text=""""
       expect(result.content).toContain('"lombok.Data"');
       expect(result.content).not.toContain('*   "lombok.Data"');
       expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("generic patterns - unquoted property keys", () => {
+    it("should fix unquoted property keys after various delimiters", () => {
+      const input = `{
+  "name": "value",
+  unquotedKey: "value2",
+  } anotherKey: "value3",
+  ] arrayKey: "value4"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"unquotedKey":');
+      expect(result.content).toContain('"anotherKey":');
+      expect(result.content).toContain('"arrayKey":');
+    });
+
+    it("should fix unquoted property keys after newline", () => {
+      const input = `{
+  "name": "value"
+  newProperty: "value2"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"newProperty":');
+    });
+
+    it("should handle unquoted keys with various property name patterns", () => {
+      const input = `{
+  camelCase: "value1",
+  snake_case: "value2",
+  PascalCase: "value3",
+  $special: "value4"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"camelCase":');
+      expect(result.content).toContain('"snake_case":');
+      expect(result.content).toContain('"PascalCase":');
+      expect(result.content).toContain('"$special":');
+    });
+  });
+
+  describe("generic patterns - unquoted string values", () => {
+    it("should quote unquoted string values generically", () => {
+      const input = `{
+  "name": unquotedValue,
+  "property": anotherValue,
+  "description": someText
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "unquotedValue"');
+      expect(result.content).toContain('"property": "anotherValue"');
+      expect(result.content).toContain('"description": "someText"');
+    });
+
+    it("should not quote numbers, booleans, or null", () => {
+      const input = `{
+  "number": 123,
+  "boolean": true,
+  "nullValue": null,
+  "negative": -45,
+  "decimal": 3.14
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      // Should not change valid JSON literals
+      expect(result.content).toContain('"number": 123');
+      expect(result.content).toContain('"boolean": true');
+      expect(result.content).toContain('"nullValue": null');
+      expect(result.content).toContain('"negative": -45');
+      expect(result.content).toContain('"decimal": 3.14');
+    });
+
+    it("should not quote objects or arrays", () => {
+      const input = `{
+  "object": { "key": "value" },
+  "array": [1, 2, 3]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.content).toContain('"object": {');
+      expect(result.content).toContain('"array": [');
+    });
+
+    it("should handle unquoted values with various terminators", () => {
+      const input = `{
+  "prop1": value1,
+  "prop2": value2}
+  "prop3": value3]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"prop1": "value1"');
+      expect(result.content).toContain('"prop2": "value2"');
+      expect(result.content).toContain('"prop3": "value3"');
+    });
+  });
+
+  describe("generic patterns - property name typos (trailing/double underscores)", () => {
+    it("should fix trailing underscores using generic pattern", () => {
+      const input = `{
+  "name_": "value1",
+  "property_": "value2",
+  "description_": "value3"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name":');
+      expect(result.content).not.toContain('"name_":');
+      expect(result.content).toContain('"property":');
+      expect(result.content).toContain('"description":');
+    });
+
+    it("should fix double underscores using generic pattern", () => {
+      const input = `{
+  "property__name": "value1",
+  "key__with__multiple": "value2",
+  "triple___underscore": "value3"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"property_name":');
+      expect(result.content).toContain('"key_with_multiple":');
+      expect(result.content).toContain('"triple_underscore":');
+    });
+
+    it("should fix both trailing and double underscores", () => {
+      const input = `{
+  "name__with__underscores_": "value"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name_with_underscores":');
+    });
+
+    it("should not modify property names in string values", () => {
+      const input = `{
+  "description": "This has name_ and property__name in it"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toContain('"This has name_ and property__name in it"');
     });
   });
 });

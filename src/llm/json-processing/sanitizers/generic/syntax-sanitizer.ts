@@ -226,6 +226,7 @@ function addMissingCommasInternal(input: string): SanitizerResult {
 
 /**
  * Internal helper: Removes trailing commas before closing braces or brackets.
+ * Enhanced to handle various whitespace arrangements including newlines and tabs.
  * Inlined from remove-trailing-commas.ts
  */
 function removeTrailingCommasInternal(input: string): SanitizerResult {
@@ -234,16 +235,55 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
     return { content: input, changed: false };
   }
 
-  const trailingCommaPattern = /,\s*([}\]])/g;
+  // Enhanced pattern that handles:
+  // - Commas followed by any whitespace (spaces, tabs, newlines) and closing delimiter
+  // - Commas on same line or different lines from closing delimiter
+  // - Multiple whitespace characters
+  const trailingCommaPattern = /(,)(\s*)([}\]])/g;
   const beforeRemoval = trimmed;
-  const sanitized = trimmed.replaceAll(trailingCommaPattern, "$1");
+  let sanitized = trimmed;
+  let commaCount = 0;
+
+    sanitized = sanitized.replace(trailingCommaPattern, (match, _comma, _whitespace, delimiter, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+
+      // Check if we're inside a string literal by counting quotes before this position
+      let inString = false;
+      let escaped = false;
+      for (let i = 0; i < numericOffset; i++) {
+        const char = sanitized[i];
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (char === "\\") {
+          escaped = true;
+        } else if (char === '"') {
+          inString = !inString;
+        }
+      }
+
+      // Don't remove if we're inside a string
+      if (inString) {
+        return match;
+      }
+
+      commaCount++;
+      // Remove comma and whitespace, just keep the delimiter
+      // This matches the original behavior: trailing commas should be completely removed
+      const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+      return delimiterStr;
+    });
 
   if (sanitized !== beforeRemoval) {
     return {
       content: sanitized,
       changed: true,
       description: SANITIZATION_STEP.REMOVED_TRAILING_COMMAS,
-      diagnostics: [SANITIZATION_STEP.REMOVED_TRAILING_COMMAS],
+      diagnostics: [
+        SANITIZATION_STEP.REMOVED_TRAILING_COMMAS,
+        `Removed ${commaCount} trailing comma${commaCount !== 1 ? "s" : ""}`,
+      ],
     };
   }
 

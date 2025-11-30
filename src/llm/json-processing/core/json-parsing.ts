@@ -13,6 +13,7 @@ import {
   fixJsonStructureAndNoise,
   fixJsonSyntax,
   normalizeCharacters,
+  removeComments,
   fixJsonStructure,
   unifiedSyntaxSanitizer,
   fixBinaryCorruptionPatterns,
@@ -55,11 +56,15 @@ export interface TransformResult {
  *     * Collapsing duplicate objects
  *     * Removing truncation markers
  *
- * Phase 2: Character Normalization
+ * Phase 2: Comment Removal
+ *   Removes JavaScript-style comments from JSON-like text
+ *   - removeComments: Strips single-line (//) and multi-line comments
+ *
+ * Phase 3: Character Normalization
  *   Normalizes escape sequences, control characters, and curly quotes
  *   - normalizeCharacters: Normalize escape sequences, control characters, and curly quotes
  *
- * Phase 3: Syntax Fixes (Consolidated)
+ * Phase 4: Syntax Fixes (Consolidated)
  *   Fixes common JSON syntax errors
  *   - fixJsonSyntax: Consolidated sanitizer that handles:
  *     * Adding missing commas
@@ -68,14 +73,14 @@ export interface TransformResult {
  *     * Completing truncated structures
  *     * Fixing missing array object braces
  *
- * Phase 4: Property & Value Fixes
+ * Phase 5: Property & Value Fixes
  *   Fixes property names and value syntax issues
  *   - fixJsonStructure: Post-processing fixes for various structural issues
  *   - unifiedSyntaxSanitizer: Unified property and value syntax fixes
  *   - fixHeuristicJsonErrors: Fixes assorted malformed patterns
  *   - fixMalformedJsonPatterns: Fixes specific malformed patterns
  *
- * Phase 5: Content Fixes
+ * Phase 6: Content Fixes
  *   Fixes content corruption
  *   - fixBinaryCorruptionPatterns: Fix binary corruption patterns (e.g., <y_bin_XXX> markers)
  *
@@ -88,13 +93,15 @@ export interface TransformResult {
 const SANITIZATION_PIPELINE_PHASES = [
   // Phase 1: Structural & Noise Removal (Consolidated)
   [fixJsonStructureAndNoise],
-  // Phase 2: Character Normalization
+  // Phase 2: Comment Removal
+  [removeComments],
+  // Phase 3: Character Normalization
   [normalizeCharacters],
-  // Phase 3: Syntax Fixes (Consolidated)
+  // Phase 4: Syntax Fixes (Consolidated)
   [fixJsonSyntax],
-  // Phase 4: Property & Value Fixes
+  // Phase 5: Property & Value Fixes
   [fixJsonStructure, unifiedSyntaxSanitizer, fixHeuristicJsonErrors, fixMalformedJsonPatterns],
-  // Phase 5: Content Fixes
+  // Phase 6: Content Fixes
   [fixBinaryCorruptionPatterns],
 ] as const satisfies readonly (readonly Sanitizer[])[];
 
