@@ -120,6 +120,49 @@ const POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
 ] as const;
 
 /**
+ * Formats diagnostics array into a single string, or returns undefined if empty.
+ */
+function formatDiagnostics(diagnostics: string[]): string | undefined {
+  return diagnostics.length > 0 ? diagnostics.join(" | ") : undefined;
+}
+
+/**
+ * Builds a success ParseResult with the given data, steps, and diagnostics.
+ */
+function buildSuccessResult(
+  data: unknown,
+  steps: readonly string[],
+  diagnostics: string[],
+): ParseResult {
+  return {
+    success: true,
+    data,
+    steps,
+    diagnostics: formatDiagnostics(diagnostics),
+  };
+}
+
+/**
+ * Builds a failure ParseResult with the given error, steps, and diagnostics.
+ */
+function buildFailureResult(
+  error: Error,
+  steps: readonly string[],
+  diagnostics: string[],
+): ParseResult {
+  return {
+    success: false,
+    error: new JsonProcessingError(
+      JsonProcessingErrorType.PARSE,
+      "cannot be parsed to JSON after all sanitization attempts",
+      error,
+    ),
+    steps,
+    diagnostics: formatDiagnostics(diagnostics),
+  };
+}
+
+/**
  * Applies a single sanitizer and updates tracking arrays.
  * Returns the new content and whether changes were made.
  */
@@ -130,13 +173,9 @@ function applySanitizerToContent(
   allDiagnostics: string[],
 ): { newContent: string; changed: boolean } {
   const stepResult = sanitizer(content);
-  if (!stepResult.changed) {
-    return { newContent: content, changed: false };
-  }
+  if (!stepResult.changed) return { newContent: content, changed: false };
+  if (stepResult.description) appliedSteps.push(stepResult.description);
 
-  if (stepResult.description) {
-    appliedSteps.push(stepResult.description);
-  }
   if (stepResult.diagnostics && stepResult.diagnostics.length > 0) {
     allDiagnostics.push(...stepResult.diagnostics);
   }
@@ -151,84 +190,14 @@ function applySanitizerToContent(
 function attemptParse(
   content: string,
 ): { success: true; data: unknown } | { success: false; error: Error } {
-  let parsedContent: unknown;
-
   try {
-    parsedContent = JSON.parse(content);
+    return { success: true, data: JSON.parse(content) };
   } catch (err) {
     return {
       success: false,
       error: err instanceof Error ? err : new Error(String(err)),
     };
   }
-
-  return { success: true, data: parsedContent };
-}
-
-/**
- * Core loop of the pipeline: tries parsing the raw content first (fast path),
- * then applies sanitizers one by one if the raw parse fails (slow path).
- * Returns success with data if parsing succeeds at any step, or
- * returns failure info if all sanitizers are exhausted.
- */
-function executeSanitizationLoop(
-  originalContent: string,
-  appliedSteps: string[],
-  allDiagnostics: string[],
-): ParseResult {
-  // Fast path: try direct parse first
-  const fastPathResult = attemptParse(originalContent);
-  if (fastPathResult.success) {
-    return {
-      success: true,
-      data: fastPathResult.data,
-      steps: appliedSteps,
-      diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
-    };
-  }
-
-  let workingContent = originalContent;
-  let lastParseError: Error = fastPathResult.error; // initial parse error
-
-  // Slow path: iterate through phases, then through sanitizers within each phase
-  for (const phase of SANITIZATION_PIPELINE_PHASES) {
-    for (const sanitizer of phase) {
-      const { newContent, changed } = applySanitizerToContent(
-        sanitizer,
-        workingContent,
-        appliedSteps,
-        allDiagnostics,
-      );
-      if (!changed) continue;
-
-      workingContent = newContent;
-
-      const parseResult = attemptParse(workingContent);
-
-      if (parseResult.success) {
-        return {
-          success: true,
-          data: parseResult.data,
-          steps: appliedSteps,
-          diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
-        };
-      }
-      lastParseError = parseResult.error;
-    }
-  }
-
-  // All sanitizers exhausted without success
-  const error = new JsonProcessingError(
-    JsonProcessingErrorType.PARSE,
-    "cannot be parsed to JSON after all sanitization attempts",
-    lastParseError,
-  );
-  return {
-    success: false,
-    error,
-    steps: appliedSteps,
-    diagnostics: allDiagnostics.length > 0 ? allDiagnostics.join(" | ") : undefined,
-  };
 }
 
 /**
@@ -247,9 +216,8 @@ export function applyPostParseTransforms(data: unknown): TransformResult {
     transformedData = transform(transformedData);
     const after = JSON.stringify(transformedData);
 
-    // Track if transform made changes (simple heuristic: if JSON string changed)
+    // Track if transform made changes (i.e., if JSON string changed)
     if (before !== after) {
-      // Extract function name for logging
       const transformName = transform.name || "unknown";
       appliedTransforms.push(transformName);
     }
@@ -270,6 +238,10 @@ export function applyPostParseTransforms(data: unknown): TransformResult {
  *
  * This function does NOT perform Zod schema validation - it only handles parsing.
  *
+ * Tries parsing the raw content first (fast path), then applies sanitizers one by one
+ * if the raw parse fails (slow path). Returns success with data if parsing succeeds at
+ * any step, or returns failure info if all sanitizers are exhausted.
+ *
  * @param content - The raw JSON string to parse
  * @returns A ParseResult indicating success with parsed data and steps, or failure with an error
  */
@@ -277,5 +249,37 @@ export function parseJson(content: string): ParseResult {
   const appliedSteps: string[] = [];
   const allDiagnostics: string[] = [];
 
-  return executeSanitizationLoop(content, appliedSteps, allDiagnostics);
+  // Fast path: try direct parse first
+  const fastPathResult = attemptParse(content);
+
+  if (fastPathResult.success) {
+    return buildSuccessResult(fastPathResult.data, appliedSteps, allDiagnostics);
+  }
+
+  let workingContent = content;
+  let lastParseError: Error = fastPathResult.error;
+
+  // Slow path: iterate through phases, then through sanitizers within each phase
+  for (const phase of SANITIZATION_PIPELINE_PHASES) {
+    for (const sanitizer of phase) {
+      const { newContent, changed } = applySanitizerToContent(
+        sanitizer,
+        workingContent,
+        appliedSteps,
+        allDiagnostics,
+      );
+      if (!changed) continue;
+      workingContent = newContent;
+      const parseResult = attemptParse(workingContent);
+
+      if (parseResult.success) {
+        return buildSuccessResult(parseResult.data, appliedSteps, allDiagnostics);
+      }
+
+      lastParseError = parseResult.error;
+    }
+  }
+
+  // All sanitizers exhausted without success
+  return buildFailureResult(lastParseError, appliedSteps, allDiagnostics);
 }

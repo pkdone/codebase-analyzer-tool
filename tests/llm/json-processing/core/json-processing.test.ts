@@ -211,18 +211,19 @@ describe("json-processing", () => {
         }
       });
 
-      it("should apply transforms when no schema is provided", () => {
-        // JSON with null value - transforms should be applied even without schema
+      it("should not apply transforms when no schema is provided", () => {
+        // JSON with null value - transforms should NOT be applied without schema
         const json = '{"name": "test", "groupId": null}';
         const completionOptions = { outputFormat: LLMOutputFormat.JSON };
         const result = processJson(json, context, completionOptions);
 
         expect(result.success).toBe(true);
         if (result.success) {
-          // convertNullToUndefined transform should have been applied
+          // No transforms applied - null should remain as null
           const data = result.data;
           expect(data.name).toBe("test");
-          expect("groupId" in data).toBe(false); // null converted to undefined and omitted
+          expect("groupId" in data).toBe(true); // null is still present
+          expect(data.groupId).toBeNull();
         }
       });
 

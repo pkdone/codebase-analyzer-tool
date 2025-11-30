@@ -12,8 +12,6 @@ import { validateJson } from "./json-validating";
  */
 function hasJsonLikeStructure(content: string): boolean {
   const trimmed = content.trim();
-  // Check for opening JSON delimiters (after removing code fences and whitespace)
-  // This is a simple heuristic - if there's no { or [, it's likely not JSON
   return trimmed.includes("{") || trimmed.includes("[");
 }
 
@@ -22,6 +20,79 @@ function hasJsonLikeStructure(content: string): boolean {
  */
 function buildResourceErrorMessage(baseMessage: string, context: LLMContext): string {
   return `LLM response for resource '${context.resource}' ${baseMessage}`;
+}
+
+/**
+ * Logs sanitization steps and transforms if enabled and significant.
+ */
+function logProcessingSteps(
+  parseResult: { steps: readonly string[]; diagnostics?: string },
+  appliedTransforms: readonly string[],
+  loggingEnabled: boolean,
+  context: LLMContext,
+): void {
+  if (!loggingEnabled) return;
+  const messages: string[] = [];
+
+  if (hasSignificantSanitizationSteps(parseResult.steps)) {
+    let sanitizerMessage = `Applied ${parseResult.steps.length} sanitization step(s): ${parseResult.steps.join(" -> ")}`;
+    if (parseResult.diagnostics) {
+      sanitizerMessage += ` | Diagnostics: ${parseResult.diagnostics}`;
+    }
+    messages.push(sanitizerMessage);
+  }
+
+  if (appliedTransforms.length > 0) {
+    messages.push(
+      `Applied ${appliedTransforms.length} post-parse transform(s): ${appliedTransforms.join(", ")}`,
+    );
+  }
+
+  if (messages.length > 0) logOneLineWarning(messages.join(" | "), context);
+}
+
+/**
+ * Builds a success result object with validated/transformed data and parse metadata.
+ */
+function buildSuccessResult<T>(
+  data: T,
+  parseResult: { steps: readonly string[]; diagnostics?: string },
+): JsonProcessorResult<T> {
+  return {
+    success: true,
+    data,
+    steps: parseResult.steps,
+    diagnostics: parseResult.diagnostics,
+  };
+}
+
+/**
+ * Builds a validation error for cases where validation fails even after applying transforms.
+ */
+function buildValidationErrorAfterTransforms(
+  validationResult: { issues: unknown[] },
+  appliedTransforms: readonly string[],
+  context: LLMContext,
+): JsonProcessingError {
+  const validationError = new Error(
+    `Schema validation failed after applying transforms: ${JSON.stringify(validationResult.issues)}`,
+  );
+  logOneLineWarning(
+    "Parsed successfully and applied transforms but still failed schema validation",
+    {
+      ...context,
+      responseContentParseError: validationError,
+      appliedTransforms: appliedTransforms.join(", "),
+    },
+  );
+  return new JsonProcessingError(
+    JsonProcessingErrorType.VALIDATION,
+    buildResourceErrorMessage(
+      "parsed successfully and applied transforms but still failed schema validation",
+      context,
+    ),
+    validationError,
+  );
 }
 
 /**
@@ -43,7 +114,7 @@ export function processJson<T = Record<string, unknown>>(
   completionOptions: LLMCompletionOptions,
   loggingEnabled = true,
 ): JsonProcessorResult<T> {
-  // Step 1: Pre-check - ensure content is a string
+  // Pre-check - ensure content is a string
   if (typeof content !== "string") {
     const contentText = JSON.stringify(content);
     logOneLineWarning(
@@ -58,7 +129,6 @@ export function processJson<T = Record<string, unknown>>(
   }
 
   // Early detection: Check if content has any JSON-like structure at all
-  // This helps provide clearer error messages for completely non-JSON responses
   if (!hasJsonLikeStructure(content)) {
     logOneLineWarning(
       `Contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
@@ -74,11 +144,11 @@ export function processJson<T = Record<string, unknown>>(
     return { success: false, error };
   }
 
-  // Step 2: Parse the JSON content (without post-parse transforms)
+  // Parse the JSON content (without post-parse transforms)
   const parseResult = parseJson(content);
 
+  // If can't parse, log failure and return error
   if (!parseResult.success) {
-    // Log parse failure with context
     const stepsMessage =
       parseResult.steps.length > 0
         ? `Applied steps: ${parseResult.steps.join(" -> ")}`
@@ -86,12 +156,10 @@ export function processJson<T = Record<string, unknown>>(
     logOneLineWarning(`Cannot parse JSON after all sanitization attempts. ${stepsMessage}`, {
       ...context,
       originalLength: content.length,
-      sanitizedLength: content.length, // Content length after sanitization attempts
       lastSanitizer: parseResult.steps[parseResult.steps.length - 1],
       diagnosticsCount: parseResult.diagnostics ? parseResult.diagnostics.split(" | ").length : 0,
       responseContentParseError: parseResult.error.cause,
     });
-    // Update error message with resource context
     const error = new JsonProcessingError(
       JsonProcessingErrorType.PARSE,
       buildResourceErrorMessage(
@@ -103,143 +171,45 @@ export function processJson<T = Record<string, unknown>>(
     return { success: false, error };
   }
 
-  // Track applied transforms
-  let appliedTransforms: readonly string[] = [];
-  let transformedData = parseResult.data;
-
-  // Step 3: Validate the parsed data (only if schema is provided)
+  // Validate the parsed data (only if schema is provided)
   if (completionOptions.jsonSchema) {
-    // Step 3a: Try validation with raw parsed data first
-    const firstValidationResult = validateJson<T>(
+    // Try validation with raw parsed data first
+    const initialValidation = validateJson<T>(parseResult.data, completionOptions, loggingEnabled);
+
+    // If validation succeeded on first attempt, no transforms needed so return
+    if (initialValidation.success) {
+      logProcessingSteps(parseResult, [], loggingEnabled, context);
+      return buildSuccessResult(initialValidation.data, parseResult);
+    }
+
+    // Initial validation failed so apply post-parse transforms
+    const transformResult = applyPostParseTransforms(parseResult.data);
+    const transformedData = transformResult.data;
+    const appliedTransforms = transformResult.appliedTransforms;
+
+    // Try validation again with transformed data
+    const validationAfterTransforms = validateJson<T>(
       transformedData,
       completionOptions,
       loggingEnabled,
     );
 
-    if (firstValidationResult.success) {
-      // Validation succeeded on first attempt - no transforms needed
-      // Log sanitization steps if enabled and significant
-      if (loggingEnabled && hasSignificantSanitizationSteps(parseResult.steps)) {
-        let message = `Applied ${parseResult.steps.length} sanitization step(s): ${parseResult.steps.join(" -> ")}`;
-        if (parseResult.diagnostics) {
-          message += ` | Diagnostics: ${parseResult.diagnostics}`;
-        }
-        logOneLineWarning(message, context);
-      }
-
-      // Return success result with validated data
-      return {
-        success: true,
-        data: firstValidationResult.data,
-        steps: parseResult.steps,
-        diagnostics: parseResult.diagnostics,
-      };
-    }
-
-    // Step 3b: First validation failed - apply post-parse transforms
-    const transformResult = applyPostParseTransforms(transformedData);
-    transformedData = transformResult.data;
-    appliedTransforms = transformResult.appliedTransforms;
-
-    // Log transform application if transforms were applied
-    if (loggingEnabled && appliedTransforms.length > 0) {
-      logOneLineWarning(
-        `Applied ${appliedTransforms.length} post-parse transform(s): ${appliedTransforms.join(", ")}`,
+    // Validation failed even after transforms
+    if (!validationAfterTransforms.success) {
+      const error = buildValidationErrorAfterTransforms(
+        validationAfterTransforms,
+        appliedTransforms,
         context,
-      );
-    }
-
-    // Step 3c: Try validation again with transformed data
-    const secondValidationResult = validateJson<T>(
-      transformedData,
-      completionOptions,
-      loggingEnabled,
-    );
-
-    if (!secondValidationResult.success) {
-      // Log validation failure after transforms
-      const validationError = new Error(
-        `Schema validation failed after applying transforms: ${JSON.stringify(secondValidationResult.issues)}`,
-      );
-      logOneLineWarning(
-        "Parsed successfully and applied transforms but still failed schema validation",
-        {
-          ...context,
-          responseContentParseError: validationError,
-          appliedTransforms: appliedTransforms.join(", "),
-        },
-      );
-      const error = new JsonProcessingError(
-        JsonProcessingErrorType.VALIDATION,
-        buildResourceErrorMessage(
-          "parsed successfully and applied transforms but still failed schema validation",
-          context,
-        ),
-        validationError,
       );
       return { success: false, error };
     }
 
-    // Step 3d: Validation succeeded after transforms
-    // Log both sanitization steps and transforms if enabled and significant
-    if (loggingEnabled) {
-      const messages: string[] = [];
-      if (hasSignificantSanitizationSteps(parseResult.steps)) {
-        let sanitizerMessage = `Applied ${parseResult.steps.length} sanitization step(s): ${parseResult.steps.join(" -> ")}`;
-        if (parseResult.diagnostics) {
-          sanitizerMessage += ` | Diagnostics: ${parseResult.diagnostics}`;
-        }
-        messages.push(sanitizerMessage);
-      }
-      if (appliedTransforms.length > 0) {
-        messages.push(
-          `Applied ${appliedTransforms.length} post-parse transform(s): ${appliedTransforms.join(", ")}`,
-        );
-      }
-      if (messages.length > 0) {
-        logOneLineWarning(messages.join(" | "), context);
-      }
-    }
-
-    // Return success result with validated data
-    return {
-      success: true,
-      data: secondValidationResult.data,
-      steps: parseResult.steps,
-      diagnostics: parseResult.diagnostics,
-    };
+    // Validation succeeded after transforms
+    logProcessingSteps(parseResult, appliedTransforms, loggingEnabled, context);
+    return buildSuccessResult(validationAfterTransforms.data, parseResult);
   }
 
-  // No schema provided - apply transforms and return parsed data
-  const transformResult = applyPostParseTransforms(transformedData);
-  transformedData = transformResult.data;
-  appliedTransforms = transformResult.appliedTransforms;
-
-  // Log both sanitization steps and transforms if enabled and significant
-  if (loggingEnabled) {
-    const messages: string[] = [];
-    if (hasSignificantSanitizationSteps(parseResult.steps)) {
-      let sanitizerMessage = `Applied ${parseResult.steps.length} sanitization step(s): ${parseResult.steps.join(" -> ")}`;
-      if (parseResult.diagnostics) {
-        sanitizerMessage += ` | Diagnostics: ${parseResult.diagnostics}`;
-      }
-      messages.push(sanitizerMessage);
-    }
-    if (appliedTransforms.length > 0) {
-      messages.push(
-        `Applied ${appliedTransforms.length} post-parse transform(s): ${appliedTransforms.join(", ")}`,
-      );
-    }
-    if (messages.length > 0) {
-      logOneLineWarning(messages.join(" | "), context);
-    }
-  }
-
-  // Return success result with parsed data (no validation)
-  return {
-    success: true,
-    data: transformedData as T,
-    steps: parseResult.steps,
-    diagnostics: parseResult.diagnostics,
-  };
+  // No schema provided - return parsed data without transforms
+  logProcessingSteps(parseResult, [], loggingEnabled, context);
+  return buildSuccessResult(parseResult.data as T, parseResult);
 }

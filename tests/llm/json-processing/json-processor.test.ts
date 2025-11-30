@@ -187,8 +187,8 @@ describe("processJson", () => {
         { input: '{"string": "value"}', expected: { string: "value" } },
         { input: '{"number": 123}', expected: { number: 123 } },
         { input: '{"boolean": true}', expected: { boolean: true } },
-        // Note: null values are converted to undefined and omitted by the post-parse transform
-        { input: '{"null": null}', expected: {} },
+        // Note: null values remain as null when no schema is provided (transforms not applied)
+        { input: '{"null": null}', expected: { null: null } },
         { input: '{"array": [1,2,3]}', expected: { array: [1, 2, 3] } },
       ];
 

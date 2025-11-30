@@ -5,6 +5,7 @@ import {
   LLMPurpose,
 } from "../../../src/llm/types/llm.types";
 import { JsonProcessingErrorType } from "../../../src/llm/json-processing/types/json-processing.errors";
+import { z } from "zod";
 
 /**
  * Tests for the post-parse transformation pipeline.
@@ -27,10 +28,16 @@ describe("Post-Parse Transforms", () => {
         },
       });
 
+      // Schema expects unwrapped structure (will fail validation initially, triggering transform)
+      const schema = z.object({
+        name: z.string(),
+        version: z.string(),
+      });
+
       const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -75,10 +82,18 @@ describe("Post-Parse Transforms", () => {
         },
       });
 
+      const schema = z.object({
+        config: z.object({
+          apiKey: z.string(),
+          timeout: z.number(),
+        }),
+        enabled: z.boolean(),
+      });
+
       const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -168,10 +183,14 @@ describe("Post-Parse Transforms", () => {
         },
       });
 
+      const schema = z.object({
+        validField: z.string(),
+      });
+
       const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       // The transform should unwrap it first, then validate
@@ -197,10 +216,15 @@ describe("Post-Parse Transforms", () => {
 }
 \`\`\``;
 
+      const schema = z.object({
+        projectName: z.string(),
+        dependencies: z.array(z.string()),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -229,10 +253,21 @@ describe("Post-Parse Transforms", () => {
         },
       });
 
+      const schema = z.object({
+        database: z.object({
+          host: z.string(),
+          port: z.number(),
+          credentials: z.object({
+            username: z.string(),
+            password: z.string(),
+          }),
+        }),
+      });
+
       const result = processJson(
         schemaResponse,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -264,10 +299,22 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      // Schema expects object, not array (will fail validation initially, triggering transform)
+      const schema = z.object({
+        purpose: z.string(),
+        databaseIntegration: z
+          .object({
+            mechanism: z.string(),
+            description: z.string(),
+            codeExample: z.string(),
+          })
+          .optional(),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -289,10 +336,20 @@ describe("Post-Parse Transforms", () => {
         databaseIntegration: [],
       });
 
+      // Schema expects object or undefined, not array (will fail validation initially, triggering transform)
+      const schema = z.object({
+        purpose: z.string(),
+        databaseIntegration: z
+          .object({
+            mechanism: z.string(),
+          })
+          .optional(),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -327,10 +384,25 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      // Schema expects object, not array (will fail validation initially, triggering transform)
+      const schema = z.object({
+        purpose: z.string(),
+        databaseIntegration: z
+          .object({
+            mechanism: z.string(),
+            description: z.string(),
+            codeExample: z.string(),
+            tablesAccessed: z.array(z.string()),
+            operationType: z.array(z.string()),
+            protocol: z.string(),
+          })
+          .optional(),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -460,10 +532,28 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      // Schema expects object, not array (will fail validation initially, triggering transform)
+      const schema = z.object({
+        purpose: z.string(),
+        implementation: z.string(),
+        tables: z.array(z.unknown()),
+        storedProcedures: z.array(z.unknown()),
+        triggers: z.array(z.unknown()),
+        databaseIntegration: z
+          .object({
+            mechanism: z.string(),
+            description: z.string(),
+            codeExample: z.string(),
+            tablesAccessed: z.array(z.string()),
+            operationType: z.array(z.string()),
+          })
+          .optional(),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -508,10 +598,28 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      // Schema expects type, not type_ (will fail validation initially, triggering transform)
+      const schema = z.object({
+        name: z.string(),
+        kind: z.string(),
+        publicMethods: z.array(
+          z.object({
+            name: z.string(),
+            parameters: z.array(
+              z.object({
+                name: z.string(),
+                type: z.string(),
+              }),
+            ),
+            returnType: z.string(),
+          }),
+        ),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -544,10 +652,24 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      const schema = z.object({
+        publicMethods: z.array(
+          z.object({
+            name: z.string(),
+            parameters: z.array(
+              z.object({
+                name: z.string(),
+                type: z.string(),
+              }),
+            ),
+          }),
+        ),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -576,10 +698,24 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      const schema = z.object({
+        publicMethods: z.array(
+          z.object({
+            name: z.string(),
+            parameters: z.array(
+              z.object({
+                name: z.string(),
+                type: z.string(),
+              }),
+            ),
+          }),
+        ),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -632,10 +768,23 @@ describe("Post-Parse Transforms", () => {
         },
       });
 
+      const schema = z.object({
+        nested: z.object({
+          deeper: z.object({
+            parameters: z.array(
+              z.object({
+                name: z.string(),
+                type: z.string(),
+              }),
+            ),
+          }),
+        }),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -674,10 +823,23 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      const schema = z.object({
+        methods: z.array(
+          z.object({
+            parameters: z.array(
+              z.object({
+                name: z.string(),
+                type: z.string(),
+              }),
+            ),
+          }),
+        ),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -780,10 +942,22 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      // Schema requires returnType (will fail validation initially, triggering transform)
+      const schema = z.object({
+        name: z.string(),
+        publicMethods: z.array(
+          z.object({
+            name: z.string(),
+            parameters: z.array(z.unknown()),
+            returnType: z.string(),
+          }),
+        ),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -834,10 +1008,23 @@ describe("Post-Parse Transforms", () => {
         },
       });
 
+      const schema = z.object({
+        name: z.string(),
+        nested: z.object({
+          publicMethods: z.array(
+            z.object({
+              name: z.string(),
+              parameters: z.array(z.unknown()),
+              returnType: z.string(),
+            }),
+          ),
+        }),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -871,10 +1058,22 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      const schema = z.object({
+        name: z.string(),
+        publicMethods: z.array(
+          z.object({
+            name: z.string(),
+            parameters: z.array(z.unknown()),
+            returnType: z.string(),
+            description: z.string(),
+          }),
+        ),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
@@ -907,10 +1106,22 @@ describe("Post-Parse Transforms", () => {
         ],
       });
 
+      // Schema expects parameters to be array, not string (will fail validation initially, triggering transform)
+      const schema = z.object({
+        name: z.string(),
+        publicMethods: z.array(
+          z.object({
+            name: z.string(),
+            parameters: z.array(z.unknown()),
+            returnType: z.string(),
+          }),
+        ),
+      });
+
       const result = processJson(
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
-        defaultOptions,
+        { ...defaultOptions, jsonSchema: schema },
       );
 
       expect(result.success).toBe(true);
