@@ -12,4 +12,9 @@ export const appConfig = {
    * MIME type wildcard for accepting any content type
    */
   MIME_TYPE_ANY: "*/*",
+
+  /**
+   * UTF-8 encoding constant for file I/O operations
+   */
+  UTF8_ENCODING: "utf8",
 } as const;

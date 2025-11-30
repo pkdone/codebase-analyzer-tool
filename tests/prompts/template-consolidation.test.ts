@@ -3,7 +3,7 @@ import {
   APP_SUMMARY_TEMPLATE,
   REDUCE_INSIGHTS_TEMPLATE,
 } from "../../src/prompts/templates";
-import { renderPrompt } from "../../src/prompts/prompt";
+import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { z } from "zod";
 
 describe("Template Consolidation", () => {

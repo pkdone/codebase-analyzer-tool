@@ -3,7 +3,7 @@ import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata } from "../../../prompts/definitions/app-summaries";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
-import { renderPrompt } from "../../../prompts/prompt";
+import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI

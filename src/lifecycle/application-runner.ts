@@ -3,7 +3,7 @@ import { bootstrapContainer, container } from "../di/container";
 import { Task } from "../tasks/task.types";
 import { formatDateForLogging } from "../common/utils/date-utils";
 import { coreTokens, llmTokens } from "../di/tokens";
-import type { MongoDBClientFactory } from "../common/mongodb/mdb-client-factory";
+import type { MongoDBConnectionManager } from "../common/mongodb/mdb-connection-manager";
 import type LLMRouter from "../llm/llm-router";
 
 /**
@@ -36,11 +36,11 @@ export async function runApplication(taskToken: symbol): Promise<void> {
     // Gracefully shutdown all registered services
     try {
       // Directly resolve and shutdown MongoDB and LLM components
-      if (container.isRegistered(coreTokens.MongoDBClientFactory)) {
-        const mongoFactory = container.resolve<MongoDBClientFactory>(
-          coreTokens.MongoDBClientFactory,
+      if (container.isRegistered(coreTokens.MongoDBConnectionManager)) {
+        const mongoConnectionManager = container.resolve<MongoDBConnectionManager>(
+          coreTokens.MongoDBConnectionManager,
         );
-        await mongoFactory.shutdown();
+        await mongoConnectionManager.shutdown();
       }
       if (container.isRegistered(llmTokens.LLMRouter)) {
         const llmRouter = container.resolve<LLMRouter>(llmTokens.LLMRouter);

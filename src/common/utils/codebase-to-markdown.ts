@@ -14,9 +14,7 @@ const TRAILING_SLASH_PATTERN = /\/$/;
  * @param codebaseDirPath - The path to the codebase directory
  * @returns Promise resolving to formatted content containing all source files as markdown code blocks
  */
-export async function formatCodeBlockMarkdownFromFolderCodebase(
-  codebaseDirPath: string,
-): Promise<string> {
+export async function formatCodebaseAsMarkdown(codebaseDirPath: string): Promise<string> {
   // Remove trailing slashes from the directory path
   const srcDirPath = codebaseDirPath.replace(TRAILING_SLASH_PATTERN, "");
 

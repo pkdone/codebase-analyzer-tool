@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DatabaseInitializer } from "../../src/tasks/database-initializer";
-import { taskTokens } from "../../src/di/tokens";
+import { coreTokens } from "../../src/di/tokens";
 
 describe("DatabaseInitializer", () => {
   it("should be importable from tasks directory", () => {
@@ -9,8 +9,8 @@ describe("DatabaseInitializer", () => {
   });
 
   it("should have the correct token registered", () => {
-    expect(taskTokens.DatabaseInitializer).toBeDefined();
-    expect(typeof taskTokens.DatabaseInitializer).toBe("symbol");
+    expect(coreTokens.DatabaseInitializer).toBeDefined();
+    expect(typeof coreTokens.DatabaseInitializer).toBe("symbol");
   });
 
   it("should be a class (constructor function)", () => {

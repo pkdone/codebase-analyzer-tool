@@ -1,4 +1,4 @@
-import { renderPrompt } from "../../src/prompts/prompt";
+import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { PromptDefinition } from "../../src/prompts/prompt.types";
 import { z } from "zod";
 import {

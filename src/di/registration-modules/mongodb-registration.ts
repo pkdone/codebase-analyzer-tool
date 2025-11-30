@@ -1,6 +1,6 @@
 import { container } from "tsyringe";
 import { coreTokens } from "../tokens";
-import { MongoDBClientFactory } from "../../common/mongodb/mdb-client-factory";
+import { MongoDBConnectionManager } from "../../common/mongodb/mdb-connection-manager";
 import { databaseConfig } from "../../config/database.config";
 import type { EnvVars } from "../../env/env.types";
 
@@ -9,14 +9,14 @@ import type { EnvVars } from "../../env/env.types";
  * Uses a factory function to handle async initialization cleanly while maintaining compatibility with testing.
  */
 export function registerMongoDBDependencies(): void {
-  if (container.isRegistered(coreTokens.MongoDBClientFactory)) {
+  if (container.isRegistered(coreTokens.MongoDBConnectionManager)) {
     console.log("MongoDB dependencies already registered - skipping registration");
     return;
   }
 
-  // Register the factory as singleton
-  container.registerSingleton(coreTokens.MongoDBClientFactory, MongoDBClientFactory);
-  console.log("MongoDB Client Factory initialized and registered as singleton");
+  // Register the connection manager as singleton
+  container.registerSingleton(coreTokens.MongoDBConnectionManager, MongoDBConnectionManager);
+  console.log("MongoDB Connection Manager initialized and registered as singleton");
 }
 
 /**
@@ -29,10 +29,12 @@ export async function connectAndRegisterMongoClient(): Promise<void> {
     return;
   }
 
-  const factory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
+  const connectionManager = container.resolve<MongoDBConnectionManager>(
+    coreTokens.MongoDBConnectionManager,
+  );
   const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
 
-  const client = await factory.connect(
+  const client = await connectionManager.connect(
     databaseConfig.DEFAULT_MONGO_SERVICE_ID,
     envVars.MONGODB_URL,
   );

@@ -7,12 +7,13 @@
 export const coreTokens = {
   MongoClient: Symbol("MongoClient"),
   DatabaseName: Symbol("DatabaseName"),
-  MongoDBClientFactory: Symbol("MongoDBClientFactory"),
+  MongoDBConnectionManager: Symbol("MongoDBConnectionManager"),
   LLMRouter: Symbol("LLMRouter"),
   LLMModelFamily: Symbol("LLMModelFamily"),
   EnvVars: Symbol("EnvVars"),
   ProjectName: Symbol("ProjectName"),
   FileTypeMappingsConfig: Symbol("FileTypeMappingsConfig"),
+  DatabaseInitializer: Symbol("DatabaseInitializer"),
 } as const;
 
 export type CoreToken = keyof typeof coreTokens;
@@ -34,7 +35,6 @@ export const taskTokens = {
   PluggableLLMsTestTask: Symbol("PluggableLLMsTestTask"),
   MongoConnectionTestTask: Symbol("MongoConnectionTestTask"),
   ReportGenerationTask: Symbol("ReportGenerationTask"),
-  DatabaseInitializer: Symbol("DatabaseInitializer"),
 } as const;
 
 export type TaskToken = keyof typeof taskTokens;

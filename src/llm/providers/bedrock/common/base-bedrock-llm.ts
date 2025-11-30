@@ -13,7 +13,6 @@ import {
   LLMErrorMsgRegExPattern,
 } from "../../../types/llm.types";
 import { appConfig } from "../../../../config/app.config";
-import { commonConstants } from "../../../../common/constants";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { formatError } from "../../../../common/utils/error-formatters";
 import { logError } from "../../../../common/utils/logging";
@@ -133,14 +132,14 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       const parameters = this.buildEmbeddingParameters(modelKey, prompt);
       const command = new InvokeModelCommand(parameters);
       const rawResponse = await this.client.send(command);
-      const jsonString = new TextDecoder(commonConstants.UTF8_ENCODING).decode(rawResponse.body);
+      const jsonString = new TextDecoder(appConfig.UTF8_ENCODING).decode(rawResponse.body);
       const llmResponse: unknown = JSON.parse(jsonString);
       return this.extractEmbeddingModelSpecificResponse(llmResponse);
     } else {
       const parameters = this.buildCompletionParameters(modelKey, prompt);
       const command = new InvokeModelCommand(parameters);
       const rawResponse = await this.client.send(command);
-      const jsonString = new TextDecoder(commonConstants.UTF8_ENCODING).decode(rawResponse.body);
+      const jsonString = new TextDecoder(appConfig.UTF8_ENCODING).decode(rawResponse.body);
       const llmResponse: unknown = JSON.parse(jsonString);
       const config = this.getResponseExtractionConfig();
       return extractGenericCompletionResponse(

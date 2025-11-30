@@ -5,7 +5,7 @@ import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import { logOneLineWarning } from "../../../common/utils/logging";
-import { renderPrompt } from "../../../prompts/prompt";
+import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
 import { ICompletionStrategy } from "./completion-strategy.interface";
 import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";

@@ -6,7 +6,7 @@ import LLMRouter from "../../llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./insights-from-db-generator";
 import type InsightsFromRawCodeGenerator from "./insights-from-raw-code-generator";
-import { formatCodeBlockMarkdownFromFolderCodebase } from "../../common/utils/codebase-formatter";
+import { formatCodebaseAsMarkdown } from "../../common/utils/codebase-to-markdown";
 import { llmProviderConfig } from "../../llm/llm.config";
 
 /**
@@ -31,9 +31,7 @@ export class InsightsProcessorSelector {
   async selectInsightsProcessor(): Promise<InsightsFromDBGenerator | InsightsFromRawCodeGenerator> {
     const manifest = this.llmRouter.getLLMManifest();
     const primaryCompletionTokens = manifest.models.primaryCompletion.maxTotalTokens;
-    const codeBlocksContent = await formatCodeBlockMarkdownFromFolderCodebase(
-      this.envVars.CODEBASE_DIR_PATH,
-    );
+    const codeBlocksContent = await formatCodebaseAsMarkdown(this.envVars.CODEBASE_DIR_PATH);
     const codeBlockContentTokensEstimate =
       codeBlocksContent.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
     console.log(

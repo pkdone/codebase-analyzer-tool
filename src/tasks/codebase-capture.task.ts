@@ -6,9 +6,7 @@ import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";
 import { DatabaseInitializer } from "./database-initializer";
 import { databaseConfig } from "../config/database.config";
-import { llmTokens } from "../di/tokens";
-import { taskTokens } from "../di/tokens";
-import { coreTokens } from "../di/tokens";
+import { llmTokens, coreTokens } from "../di/tokens";
 import { captureTokens } from "../di/tokens";
 import { clearDirectory } from "../common/fs/directory-operations";
 import { outputConfig } from "../config/output.config";
@@ -23,7 +21,7 @@ export class CodebaseCaptureTask implements Task {
    */
   constructor(
     @inject(llmTokens.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
-    @inject(taskTokens.DatabaseInitializer)
+    @inject(coreTokens.DatabaseInitializer)
     private readonly databaseInitializer: DatabaseInitializer,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(coreTokens.ProjectName) private readonly projectName: string,

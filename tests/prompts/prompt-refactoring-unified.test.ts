@@ -1,4 +1,4 @@
-import { renderPrompt } from "../../src/prompts/prompt";
+import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
 import {

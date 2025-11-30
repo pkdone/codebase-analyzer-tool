@@ -3,7 +3,7 @@ import { bootstrapContainer, container } from "../../src/di/container";
 import { coreTokens } from "../../src/di/tokens";
 import { taskTokens } from "../../src/di/tokens";
 import { repositoryTokens } from "../../src/di/tokens";
-import { MongoDBClientFactory } from "../../src/common/mongodb/mdb-client-factory";
+import { MongoDBConnectionManager } from "../../src/common/mongodb/mdb-connection-manager";
 import { MongoConnectionTestTask } from "../../src/tasks/mdb-connection-test.task";
 import { ReportGenerationTask } from "../../src/tasks/report-generation.task";
 import { MongoClient } from "mongodb";
@@ -35,12 +35,12 @@ describe("DI Container Integration Tests", () => {
 
   afterEach(async () => {
     // Ensure DB connection is closed and container is reset
-    if (container.isRegistered(coreTokens.MongoDBClientFactory)) {
+    if (container.isRegistered(coreTokens.MongoDBConnectionManager)) {
       try {
-        const mongoFactory = container.resolve<MongoDBClientFactory>(
-          coreTokens.MongoDBClientFactory,
+        const mongoConnectionManager = container.resolve<MongoDBConnectionManager>(
+          coreTokens.MongoDBConnectionManager,
         );
-        await mongoFactory.closeAll();
+        await mongoConnectionManager.closeAll();
       } catch (error) {
         // Ignore errors during cleanup
         console.warn("Error during MongoDB cleanup:", error);
@@ -121,10 +121,10 @@ describe("DI Container Integration Tests", () => {
 
       // Assert: Verify that all MongoDB-related dependencies can be resolved
       expect(() => {
-        const mongoFactory = container.resolve<MongoDBClientFactory>(
-          coreTokens.MongoDBClientFactory,
+        const mongoConnectionManager = container.resolve<MongoDBConnectionManager>(
+          coreTokens.MongoDBConnectionManager,
         );
-        expect(mongoFactory).toBeDefined();
+        expect(mongoConnectionManager).toBeDefined();
       }).not.toThrow();
 
       expect(() => {
@@ -191,11 +191,15 @@ describe("DI Container Integration Tests", () => {
 
       try {
         // Assert: Multiple resolutions should return the same instance
-        expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
-        const factory1 = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
-        const factory2 = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
+        expect(container.isRegistered(coreTokens.MongoDBConnectionManager)).toBe(true);
+        const connectionManager1 = container.resolve<MongoDBConnectionManager>(
+          coreTokens.MongoDBConnectionManager,
+        );
+        const connectionManager2 = container.resolve<MongoDBConnectionManager>(
+          coreTokens.MongoDBConnectionManager,
+        );
 
-        expect(factory1).toBe(factory2);
+        expect(connectionManager1).toBe(connectionManager2);
 
         // Both should be able to get the same client
         const client1 = container.resolve<MongoClient>(coreTokens.MongoClient);
@@ -204,8 +208,10 @@ describe("DI Container Integration Tests", () => {
         expect(client1).toBe(client2); // Should be the same connection
       } finally {
         // Clean up
-        const factory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
-        await factory.closeAll();
+        const connectionManager = container.resolve<MongoDBConnectionManager>(
+          coreTokens.MongoDBConnectionManager,
+        );
+        await connectionManager.closeAll();
       }
     }, 30000);
   });
@@ -246,17 +252,19 @@ describe("DI Container Integration Tests", () => {
 
       // Assert: With simplified bootstrap, all dependencies are always registered (lazy-loaded)
       // They're only instantiated when actually resolved
-      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBConnectionManager)).toBe(true);
 
       // Act: Bootstrap again
       await bootstrapContainer();
 
       // Assert: MongoDB dependencies should now be registered and resolvable
-      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBConnectionManager)).toBe(true);
 
       expect(() => {
-        const factory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
-        expect(factory).toBeDefined();
+        const connectionManager = container.resolve<MongoDBConnectionManager>(
+          coreTokens.MongoDBConnectionManager,
+        );
+        expect(connectionManager).toBeDefined();
       }).not.toThrow();
     }, 30000);
 
@@ -270,24 +278,28 @@ describe("DI Container Integration Tests", () => {
       // Arrange
       await bootstrapContainer();
 
-      // Verify factory is registered
-      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(true);
-      const factory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
+      // Verify connection manager is registered
+      expect(container.isRegistered(coreTokens.MongoDBConnectionManager)).toBe(true);
+      const connectionManager = container.resolve<MongoDBConnectionManager>(
+        coreTokens.MongoDBConnectionManager,
+      );
 
       // Act: Clear the container completely (both instances and registrations)
-      await factory.closeAll(); // Cleanup connections first
+      await connectionManager.closeAll(); // Cleanup connections first
       container.clearInstances(); // Clear cached instances
       container.reset(); // Clear all registrations
 
       // Assert: After clearing, should not be able to resolve
-      expect(container.isRegistered(coreTokens.MongoDBClientFactory)).toBe(false);
+      expect(container.isRegistered(coreTokens.MongoDBConnectionManager)).toBe(false);
 
       // Re-bootstrap should work fine
       await expect(bootstrapContainer()).resolves.not.toThrow();
 
       // Final cleanup
-      const newFactory = container.resolve<MongoDBClientFactory>(coreTokens.MongoDBClientFactory);
-      await newFactory.closeAll();
+      const newConnectionManager = container.resolve<MongoDBConnectionManager>(
+        coreTokens.MongoDBConnectionManager,
+      );
+      await newConnectionManager.closeAll();
     }, 30000);
   });
 

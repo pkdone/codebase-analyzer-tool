@@ -1,6 +1,6 @@
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
 import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates";
-import { renderPrompt } from "../../src/prompts/prompt";
+import { renderPrompt } from "../../src/prompts/prompt-renderer";
 
 describe("App Summaries Refactoring", () => {
   describe("Prompt definitions consistency", () => {

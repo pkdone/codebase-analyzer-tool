@@ -5,11 +5,11 @@ import { redactUrl } from "../security/url-redactor";
 import { DatabaseConnectionError } from "./mdb-errors";
 
 /**
- * A factory class for creating and managing MongoDB client connections.
+ * A connection manager for creating and managing MongoDB client connections.
  * This replaces the singleton pattern with dependency injection.
  */
 @injectable()
-export class MongoDBClientFactory {
+export class MongoDBConnectionManager {
   private readonly clients = new Map<string, MongoClient>();
 
   /**
@@ -67,7 +67,7 @@ export class MongoDBClientFactory {
   }
 
   /**
-   * Closes all MongoDB connections managed by this factory.
+   * Closes all MongoDB connections managed by this manager.
    */
   async closeAll(): Promise<void> {
     const closePromises = Array.from(this.clients, async ([id, client]) => {

@@ -80,7 +80,7 @@ function registerComponents(): void {
   container.registerSingleton(llmTokens.LLMExecutionPipeline, LLMExecutionPipeline);
 
   // Register database components
-  container.registerSingleton(taskTokens.DatabaseInitializer, DatabaseInitializer);
+  container.registerSingleton(coreTokens.DatabaseInitializer, DatabaseInitializer);
 
   // Register domain-specific components (including LLM-dependent ones)
   // tsyringe's lazy-loading ensures components are only instantiated when actually needed

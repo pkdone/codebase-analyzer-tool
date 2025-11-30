@@ -5,7 +5,7 @@ import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
 import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
-import { renderPrompt } from "../../prompts/prompt";
+import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import { FILE_TYPE_MAPPING_RULES } from "../../config/file-types.config";
 

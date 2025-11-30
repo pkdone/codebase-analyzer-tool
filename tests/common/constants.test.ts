@@ -1,8 +1,8 @@
-import { commonConstants } from "../../src/common/constants";
+import { appConfig } from "../../src/config/app.config";
 
-describe("commonConstants", () => {
+describe("appConfig constants", () => {
   it("should have UTF8_ENCODING defined", () => {
-    expect(commonConstants.UTF8_ENCODING).toBeDefined();
-    expect(commonConstants.UTF8_ENCODING).toBe("utf8");
+    expect(appConfig.UTF8_ENCODING).toBeDefined();
+    expect(appConfig.UTF8_ENCODING).toBe("utf8");
   });
 });

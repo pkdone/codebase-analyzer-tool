@@ -6,10 +6,10 @@ import { repositoryTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
 import { coreTokens } from "../../di/tokens";
 import type { IInsightsProcessor } from "./insights-processor.interface";
-import { formatCodeBlockMarkdownFromFolderCodebase } from "../../common/utils/codebase-formatter";
+import { formatCodebaseAsMarkdown } from "../../common/utils/codebase-to-markdown";
 import type { EnvVars } from "../../env/env.types";
 import { logOneLineWarning } from "../../common/utils/logging";
-import { renderPrompt } from "../../prompts/prompt";
+import { renderPrompt } from "../../prompts/prompt-renderer";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
 import { APP_SUMMARY_TEMPLATE } from "../../prompts/templates";
@@ -47,9 +47,7 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
    * Generate insights from raw code and store in the database
    */
   async generateAndStoreInsights(): Promise<void> {
-    const codeBlocksContent = await formatCodeBlockMarkdownFromFolderCodebase(
-      this.env.CODEBASE_DIR_PATH,
-    );
+    const codeBlocksContent = await formatCodebaseAsMarkdown(this.env.CODEBASE_DIR_PATH);
     await this.generateDataForAllCategories(codeBlocksContent);
   }
 

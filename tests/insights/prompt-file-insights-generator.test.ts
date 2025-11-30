@@ -13,8 +13,8 @@ jest.mock("../../src/common/fs/file-operations", () => ({
   readFile: jest.fn(async () => "Question?"),
   writeFile: jest.fn(async () => undefined),
 }));
-jest.mock("../../src/common/utils/codebase-formatter", () => ({
-  formatCodeBlockMarkdownFromFolderCodebase: jest.fn(async () => "CODEBLOCK"),
+jest.mock("../../src/common/utils/codebase-to-markdown", () => ({
+  formatCodebaseAsMarkdown: jest.fn(async () => "CODEBLOCK"),
 }));
 jest.mock("../../src/llm/llm-router");
 
