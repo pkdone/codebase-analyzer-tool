@@ -2,6 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
 import type { ModuleCoupling } from "../report-gen.types";
+import { moduleCouplingConfig } from "../config/module-coupling.config";
 
 type ModuleCouplingMap = Record<string, Record<string, number>>;
 
@@ -16,8 +17,6 @@ export type ModuleCouplingAggregationResult = ModuleCoupling;
  */
 @injectable()
 export class ModuleCouplingDataProvider {
-  private readonly DEFAULT_MODULE_DEPTH = 2;
-
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
@@ -28,7 +27,7 @@ export class ModuleCouplingDataProvider {
    */
   async getModuleCoupling(
     projectName: string,
-    moduleDepth: number = this.DEFAULT_MODULE_DEPTH,
+    moduleDepth: number = moduleCouplingConfig.DEFAULT_MODULE_DEPTH,
   ): Promise<ModuleCouplingAggregationResult> {
     // Fetch all source files from the project
     const sourceFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, []);

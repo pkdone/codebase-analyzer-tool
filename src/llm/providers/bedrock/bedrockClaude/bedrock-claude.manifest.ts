@@ -6,10 +6,12 @@ import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns"
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
-  BEDROCK_CLAUDE_FAMILY,
 } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../llm.config";
 import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
+
+// Model family constant - exported for use in provider registry
+export const BEDROCK_CLAUDE_FAMILY = "BedrockClaude";
 
 // Environment variable name constants
 const BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY";

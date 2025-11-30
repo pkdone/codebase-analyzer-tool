@@ -13,18 +13,26 @@ import {
   vertexAIGeminiProviderManifest,
   VERTEX_GEMINI,
 } from "./vertexai/vertex-ai-gemini/vertex-ai-gemini.manifest";
-import { bedrockClaudeProviderManifest } from "./bedrock/bedrockClaude/bedrock-claude.manifest";
-import { bedrockDeepseekProviderManifest } from "./bedrock/bedrockDeepseek/bedrock-deepseek.manifest";
-import { bedrockLlamaProviderManifest } from "./bedrock/bedrockLlama/bedrock-llama.manifest";
-import { bedrockMistralProviderManifest } from "./bedrock/bedrockMistral/bedrock-mistral.manifest";
-import { bedrockNovaProviderManifest } from "./bedrock/bedrockNova/bedrock-nova.manifest";
 import {
+  bedrockClaudeProviderManifest,
   BEDROCK_CLAUDE_FAMILY,
+} from "./bedrock/bedrockClaude/bedrock-claude.manifest";
+import {
+  bedrockDeepseekProviderManifest,
   BEDROCK_DEEPSEEK_FAMILY,
+} from "./bedrock/bedrockDeepseek/bedrock-deepseek.manifest";
+import {
+  bedrockLlamaProviderManifest,
   BEDROCK_LLAMA_FAMILY,
+} from "./bedrock/bedrockLlama/bedrock-llama.manifest";
+import {
+  bedrockMistralProviderManifest,
   BEDROCK_MISTRAL_FAMILY,
+} from "./bedrock/bedrockMistral/bedrock-mistral.manifest";
+import {
+  bedrockNovaProviderManifest,
   BEDROCK_NOVA_FAMILY,
-} from "./bedrock/common/bedrock-models.constants";
+} from "./bedrock/bedrockNova/bedrock-nova.manifest";
 
 /**
  * Map of model family names to their provider manifests.

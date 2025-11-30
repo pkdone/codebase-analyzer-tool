@@ -6,9 +6,11 @@ import { z } from "zod";
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
-  BEDROCK_MISTRAL_FAMILY,
 } from "../common/bedrock-models.constants";
 import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
+
+// Model family constant - exported for use in provider registry
+export const BEDROCK_MISTRAL_FAMILY = "BedrockMistral";
 
 // Environment variable name constants
 const BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY_KEY = "BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY";

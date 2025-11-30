@@ -5,7 +5,7 @@ import { formatError } from "../common/utils/error-formatters";
 import { queryCodebaseWithQuestion } from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
 import { coreTokens, repositoryTokens, llmTokens } from "../di/tokens";
-import { queryingInputConfig } from "../components/querying/config/querying-input.config";
+import { inputConfig } from "../config/input.config";
 import type { SourcesRepository } from "../repositories/sources/sources.repository.interface";
 import type LLMRouter from "../llm/llm-router";
 
@@ -38,7 +38,7 @@ export class CodebaseQueryTask implements Task {
     console.log(
       `Performing vector search then invoking LLM for optimal results for project: ${this.projectName}`,
     );
-    const questions = await readAndFilterLines(queryingInputConfig.QUESTIONS_PROMPTS_FILEPATH);
+    const questions = await readAndFilterLines(inputConfig.QUESTIONS_PROMPTS_FILEPATH);
     const queryPromises = questions.map(async (question) =>
       queryCodebaseWithQuestion(this.sourcesRepository, this.llmRouter, question, this.projectName),
     );

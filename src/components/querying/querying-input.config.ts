@@ -1,16 +1,10 @@
 /**
- * Configuration for input files and codebase querying features.
- * Contains paths to input files and tuning parameters for vector search operations.
+ * Configuration for codebase querying features.
+ * Contains tuning parameters for vector search operations.
+ * Note: Input file paths are now centralized in src/config/input.config.ts
  */
 
-const INPUT_BASE_PATH = "./input";
-
 export const queryingInputConfig = {
-  /**
-   * Path to file containing user questions/prompts for querying
-   */
-  QUESTIONS_PROMPTS_FILEPATH: `${INPUT_BASE_PATH}/questions.prompts`,
-
   /**
    * Number of candidates to consider in vector search.
    * Higher values provide more comprehensive search but may impact performance.

@@ -2,7 +2,7 @@ import LLMRouter from "../../llm/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";
-import { queryingInputConfig } from "./config/querying-input.config";
+import { queryingInputConfig } from "./querying-input.config";
 import { renderPrompt } from "../../prompts/prompt";
 import { codebaseQueryPromptDefinition } from "../../prompts/definitions/utility-prompts";
 import { formatFilesAsMarkdownCodeBlocks } from "../../common/utils/markdown-formatter";

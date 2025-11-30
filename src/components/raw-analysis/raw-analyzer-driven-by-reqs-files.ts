@@ -14,7 +14,7 @@ import LLMRouter from "../../llm/llm-router";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { formatCodeBlockMarkdownFromFolderCodebase } from "../../common/utils/codebase-formatter";
 import { formatDateForFilename } from "../../common/utils/date-utils";
-import { reqsFilesConfig } from "./reqs-files.config";
+import { inputConfig } from "../../config/input.config";
 
 /**
  * Interface to define the filename and question of a file requirement prompt
@@ -94,14 +94,14 @@ export class RawAnalyzerDrivenByReqsFiles {
    * Load prompts from files in the input folder
    */
   private async loadPrompts(): Promise<FileRequirementPrompt[]> {
-    const inputDir = reqsFilesConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
+    const inputDir = inputConfig.REQUIREMENTS_PROMPTS_FOLDERPATH;
     const prompts: FileRequirementPrompt[] = [];
 
     try {
       await ensureDirectoryExists(inputDir);
       const files = await listDirectoryEntries(inputDir);
       const promptFiles = files.filter((file) =>
-        reqsFilesConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
+        inputConfig.REQUIREMENTS_FILE_REGEX.test(file.name),
       );
 
       for (const file of promptFiles) {

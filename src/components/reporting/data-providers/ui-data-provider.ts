@@ -2,6 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
 import type { UiTechnologyAnalysis } from "../report-gen.types";
+import { uiAnalysisConfig } from "../config/ui-analysis.config";
 
 /**
  * Type for UI analysis summary
@@ -21,9 +22,6 @@ type JspFileMetrics = UiTechnologyAnalysis["topScriptletFiles"][0];
  */
 @injectable()
 export class UiDataProvider {
-  private readonly TOP_FILES_LIMIT = 10;
-  private readonly HIGH_SCRIPTLET_THRESHOLD = 10;
-
   constructor(
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
@@ -84,7 +82,7 @@ export class UiDataProvider {
       const totalBlocks =
         metrics.scriptletCount + metrics.expressionCount + metrics.declarationCount;
 
-      if (totalBlocks > this.HIGH_SCRIPTLET_THRESHOLD) {
+      if (totalBlocks > uiAnalysisConfig.HIGH_SCRIPTLET_THRESHOLD) {
         filesWithHighScriptletCount++;
       }
 
@@ -122,7 +120,7 @@ export class UiDataProvider {
     // Sort JSP files by total scriptlet blocks (descending) and take top N
     const topScriptletFiles = jspFileMetrics
       .toSorted((a, b) => b.totalScriptletBlocks - a.totalScriptletBlocks)
-      .slice(0, this.TOP_FILES_LIMIT);
+      .slice(0, uiAnalysisConfig.TOP_FILES_LIMIT);
 
     // Calculate average scriptlets per file
     const totalJspFiles = jspFileMetrics.length;

@@ -1,12 +1,12 @@
 import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
-  BEDROCK_CLAUDE_FAMILY,
-  BEDROCK_LLAMA_FAMILY,
-  BEDROCK_MISTRAL_FAMILY,
-  BEDROCK_NOVA_FAMILY,
-  BEDROCK_DEEPSEEK_FAMILY,
 } from "../../../../../src/llm/providers/bedrock/common/bedrock-models.constants";
+import { BEDROCK_CLAUDE_FAMILY } from "../../../../../src/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
+import { BEDROCK_LLAMA_FAMILY } from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
+import { BEDROCK_MISTRAL_FAMILY } from "../../../../../src/llm/providers/bedrock/bedrockMistral/bedrock-mistral.manifest";
+import { BEDROCK_NOVA_FAMILY } from "../../../../../src/llm/providers/bedrock/bedrockNova/bedrock-nova.manifest";
+import { BEDROCK_DEEPSEEK_FAMILY } from "../../../../../src/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek.manifest";
 
 describe("bedrock-models.constants", () => {
   describe("environment variable name constants", () => {

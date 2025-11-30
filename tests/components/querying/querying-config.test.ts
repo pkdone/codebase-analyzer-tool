@@ -1,4 +1,4 @@
-import { queryingInputConfig } from "../../../src/components/querying/config/querying-input.config";
+import { queryingInputConfig } from "../../../src/components/querying/querying-input.config";
 
 describe("queryingInputConfig", () => {
   it("should be defined", () => {
