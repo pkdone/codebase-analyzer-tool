@@ -127,7 +127,6 @@ describe("LLM Router tests", () => {
         GPT_COMPLETIONS_GPT4: mockPrimaryModelMetadata,
         GPT_EMBEDDINGS_ADA002: mockEmbeddingModelMetadata,
       })),
-      getProviderSpecificConfig: jest.fn().mockReturnValue({}),
       close: jest.fn(),
     } as unknown as LLMProvider;
 

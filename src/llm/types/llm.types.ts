@@ -20,7 +20,6 @@ export interface LLMProvider {
   getEmbeddingModelDimensions(): number | undefined;
   getModelFamily(): string;
   getModelsMetadata(): Readonly<Record<string, ResolvedLLMModelMetadata>>;
-  getProviderSpecificConfig(): Readonly<Record<string, unknown>>;
   close(): Promise<void>;
   needsForcedShutdown(): boolean;
 }

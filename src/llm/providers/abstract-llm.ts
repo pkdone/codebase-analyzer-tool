@@ -67,14 +67,6 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
-   * Get the provider-specific configuration in a readonly format.
-   * Uses structuredClone for deep immutability.
-   */
-  getProviderSpecificConfig() {
-    return Object.freeze(structuredClone(this.providerSpecificConfig));
-  }
-
-  /**
    * Get the model key for the embeddings model.
    */
   getAvailableCompletionModelQualities(): LLMModelQuality[] {

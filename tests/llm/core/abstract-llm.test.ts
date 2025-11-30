@@ -408,39 +408,4 @@ describe("Abstract LLM Deep Immutability", () => {
       expect(metadata[GPT_EMBEDDINGS_GPT4].urn).toBe("text-embedding-ada-002");
     });
   });
-
-  describe("getProviderSpecificConfig", () => {
-    test("should return a frozen object", () => {
-      const config = testLLM.getProviderSpecificConfig();
-      expect(Object.isFrozen(config)).toBe(true);
-    });
-
-    test("should return a deep clone that prevents mutation", () => {
-      const config1 = testLLM.getProviderSpecificConfig();
-      const config2 = testLLM.getProviderSpecificConfig();
-
-      // Should be different object references (deep clone)
-      expect(config1).not.toBe(config2);
-
-      // But should have equal values
-      expect(config1).toEqual(config2);
-    });
-
-    test("should prevent modification of returned config", () => {
-      const config = testLLM.getProviderSpecificConfig();
-
-      expect(() => {
-        (config as any).requestTimeoutMillis = 99999;
-      }).toThrow();
-    });
-
-    test("should contain expected config properties", () => {
-      const config = testLLM.getProviderSpecificConfig();
-
-      expect(config.requestTimeoutMillis).toBe(60000);
-      expect(config.maxRetryAttempts).toBe(3);
-      expect(config.minRetryDelayMillis).toBe(1000);
-      expect(config.maxRetryDelayMillis).toBe(5000);
-    });
-  });
 });
