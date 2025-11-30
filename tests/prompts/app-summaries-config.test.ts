@@ -19,19 +19,19 @@ describe("App Summaries Config", () => {
       requiredCategories.forEach((category) => {
         expect(appSummaryConfigMap[category]).toBeDefined();
         expect(appSummaryConfigMap[category].label).toBeTruthy();
-        expect(appSummaryConfigMap[category].contentDesc).toBeTruthy();
+        expect(appSummaryConfigMap[category].instructions).toBeTruthy();
         expect(appSummaryConfigMap[category].responseSchema).toBeDefined();
       });
     });
 
-    it("should have non-empty labels and contentDesc", () => {
+    it("should have non-empty labels and instructions", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
         expect(config.label).toBeTruthy();
-        expect(config.contentDesc).toBeTruthy();
+        expect(config.instructions).toBeTruthy();
         expect(typeof config.label).toBe("string");
-        expect(typeof config.contentDesc).toBe("string");
+        expect(Array.isArray(config.instructions)).toBe(true);
         expect(config.label.length).toBeGreaterThan(0);
-        expect(config.contentDesc.length).toBeGreaterThan(0);
+        expect(config.instructions.length).toBeGreaterThan(0);
       });
     });
 
@@ -65,8 +65,7 @@ describe("App Summaries Config", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata.instructions).toBeDefined();
-        expect(metadata.instructions).toHaveLength(1);
-        expect(metadata.instructions[0]).toBe(config.contentDesc);
+        expect(metadata.instructions).toEqual(config.instructions);
       });
     });
 
@@ -75,8 +74,8 @@ describe("App Summaries Config", () => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         // contentDesc should be generic
         expect(metadata.contentDesc).toBe("a set of source file summaries");
-        // instructions should contain the specific instruction from config
-        expect(metadata.instructions[0]).toBe(config.contentDesc);
+        // instructions should contain the specific instructions from config
+        expect(metadata.instructions).toEqual(config.instructions);
       });
     });
   });

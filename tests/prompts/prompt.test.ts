@@ -1,6 +1,9 @@
 import { renderPrompt } from "../../src/prompts/prompt";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
-import { PROMPT_FRAGMENTS } from "../../src/prompts/definitions/fragments";
+import {
+  FORCE_JSON_FORMAT,
+  SOURCES_PROMPT_FRAGMENTS,
+} from "../../src/prompts/definitions/fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../src/prompts/definitions/instruction-titles";
 
 describe("renderPrompt", () => {
@@ -111,10 +114,10 @@ public abstract class AddressEJB implements EntityBean {
       expect(renderedPrompt).toContain(`__${INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS}__`);
 
       // Verify instruction fragments are included
-      expect(renderedPrompt).toContain(PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(renderedPrompt).toContain(PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
-      expect(renderedPrompt).toContain(PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
-      expect(renderedPrompt).toContain(PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
+      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
+      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.INTERNAL_REFS);
+      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.EXTERNAL_REFS);
 
       // Verify JSON schema is present
       expect(renderedPrompt).toContain("```json");
@@ -122,7 +125,7 @@ public abstract class AddressEJB implements EntityBean {
       expect(renderedPrompt).toContain("properties");
 
       // Verify FORCE_JSON_FORMAT instruction is present
-      expect(renderedPrompt).toContain(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT);
+      expect(renderedPrompt).toContain(FORCE_JSON_FORMAT);
 
       // Verify JSON schema contains Java-specific fields
       const jsonSchemaRegex = /```json\n([\s\S]*?)\n```/;
@@ -156,8 +159,8 @@ public abstract class AddressEJB implements EntityBean {
       expect(refsIndex).toBeGreaterThan(basicInfoIndex);
 
       // Verify instruction points are included in sections
-      expect(renderedPrompt).toContain(PROMPT_FRAGMENTS.COMMON.PURPOSE);
-      expect(renderedPrompt).toContain(PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
+      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE);
+      expect(renderedPrompt).toContain(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION);
     });
 
     it("should include all template placeholders correctly", () => {
@@ -171,7 +174,7 @@ public abstract class AddressEJB implements EntityBean {
       // Verify all expected content is present
       expect(renderedPrompt).toContain(javaMetadata.contentDesc);
       expect(renderedPrompt).toContain(javaCodeSample);
-      expect(renderedPrompt).toContain(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT);
+      expect(renderedPrompt).toContain(FORCE_JSON_FORMAT);
     });
 
     it("should support additional parameters in render method", () => {

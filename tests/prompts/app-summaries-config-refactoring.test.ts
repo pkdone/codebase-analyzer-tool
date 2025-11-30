@@ -5,11 +5,12 @@ import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates";
 
 describe("App Summaries Config Refactoring", () => {
   describe("Configuration Structure", () => {
-    it("should use contentDesc string instead of instructions array", () => {
+    it("should use instructions array instead of contentDesc string", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
-        expect(config.contentDesc).toBeDefined();
-        expect(typeof config.contentDesc).toBe("string");
-        expect(config.contentDesc.length).toBeGreaterThan(0);
+        expect(config.instructions).toBeDefined();
+        expect(Array.isArray(config.instructions)).toBe(true);
+        expect(config.instructions.length).toBeGreaterThan(0);
+        expect(typeof config.instructions[0]).toBe("string");
       });
     });
 
@@ -19,10 +20,14 @@ describe("App Summaries Config Refactoring", () => {
       });
     });
 
-    it("should have proper contentDesc structure for all categories", () => {
+    it("should have proper instructions structure for all categories", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
-        expect(typeof config.contentDesc).toBe("string");
-        expect(config.contentDesc.length).toBeGreaterThan(0);
+        expect(Array.isArray(config.instructions)).toBe(true);
+        expect(config.instructions.length).toBeGreaterThan(0);
+        config.instructions.forEach((instruction) => {
+          expect(typeof instruction).toBe("string");
+          expect(instruction.length).toBeGreaterThan(0);
+        });
       });
     });
   });
@@ -37,7 +42,7 @@ describe("App Summaries Config Refactoring", () => {
         expect(metadata.contentDesc).toBe("a set of source file summaries");
         expect(metadata.responseSchema).toBe(config.responseSchema);
         expect(metadata.template).toBe(APP_SUMMARY_TEMPLATE);
-        expect(metadata.instructions[0]).toBe(config.contentDesc);
+        expect(metadata.instructions).toEqual(config.instructions);
       });
     });
 
@@ -45,7 +50,7 @@ describe("App Summaries Config Refactoring", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata.contentDesc).toBe("a set of source file summaries");
-        expect(metadata.instructions[0]).toBe(config.contentDesc);
+        expect(metadata.instructions).toEqual(config.instructions);
       });
     });
 
@@ -65,12 +70,12 @@ describe("App Summaries Config Refactoring", () => {
       });
     });
 
-    it("should maintain same instruction content from config contentDesc", () => {
+    it("should maintain same instruction content from config instructions", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
 
-        // The instruction content should be the same as the config's contentDesc
-        expect(metadata.instructions[0]).toBe(config.contentDesc);
+        // The instruction content should be the same as the config's instructions
+        expect(metadata.instructions).toEqual(config.instructions);
       });
     });
   });
@@ -80,20 +85,20 @@ describe("App Summaries Config Refactoring", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
         // These should compile without TypeScript errors
         const label: string = config.label;
-        const contentDesc: string = config.contentDesc;
+        const instructions: readonly string[] = config.instructions;
         const responseSchema = config.responseSchema;
 
         expect(typeof label).toBe("string");
-        expect(typeof contentDesc).toBe("string");
+        expect(Array.isArray(instructions)).toBe(true);
         expect(responseSchema).toBeDefined();
       });
     });
 
     it("should maintain readonly properties", () => {
       Object.values(appSummaryConfigMap).forEach((config) => {
-        // Test that the contentDesc is a string
-        expect(typeof config.contentDesc).toBe("string");
-        expect(config.contentDesc.length).toBeGreaterThan(0);
+        // Test that the instructions is an array
+        expect(Array.isArray(config.instructions)).toBe(true);
+        expect(config.instructions.length).toBeGreaterThan(0);
       });
     });
   });

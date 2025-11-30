@@ -721,7 +721,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       trailingUnderscorePattern,
       (match, quotedNameWithUnderscore, colonWithWhitespace, offset: unknown) => {
         const numericOffset = typeof offset === "number" ? offset : 0;
-        const quotedNameStr = typeof quotedNameWithUnderscore === "string" ? quotedNameWithUnderscore : "";
+        const quotedNameStr =
+          typeof quotedNameWithUnderscore === "string" ? quotedNameWithUnderscore : "";
         const colonStr = typeof colonWithWhitespace === "string" ? colonWithWhitespace : "";
 
         if (isInStringAt(numericOffset, sanitized)) {
@@ -732,7 +733,9 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         const fixedName = quotedNameStr.slice(0, -2) + '"'; // Remove the underscore before the closing quote
         hasChanges = true;
         if (diagnostics.length < 20) {
-          diagnostics.push(`Fixed trailing underscore in property name: ${quotedNameStr} -> ${fixedName}`);
+          diagnostics.push(
+            `Fixed trailing underscore in property name: ${quotedNameStr} -> ${fixedName}`,
+          );
         }
         return `${fixedName}${colonStr}`;
       },
@@ -741,27 +744,26 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
     // Generic pattern 2: Fix double (or more) underscores (e.g., "property__name": -> "property_name":)
     // Match quoted property names containing double underscores anywhere in the name
     const doubleUnderscorePattern = /("[\w]*__+[\w]*")/g;
-    sanitized = sanitized.replace(
-      doubleUnderscorePattern,
-      (match, quotedName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        const quotedNameStr = typeof quotedName === "string" ? quotedName : "";
+    sanitized = sanitized.replace(doubleUnderscorePattern, (match, quotedName, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      const quotedNameStr = typeof quotedName === "string" ? quotedName : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
 
-        // Replace multiple consecutive underscores with single underscore
-        // Remove quotes, fix underscores, add quotes back
-        const nameWithoutQuotes = quotedNameStr.slice(1, -1);
-        const fixedName = nameWithoutQuotes.replace(/__+/g, "_");
-        hasChanges = true;
-        if (diagnostics.length < 20) {
-          diagnostics.push(`Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`);
-        }
-        return `"${fixedName}"`;
-      },
-    );
+      // Replace multiple consecutive underscores with single underscore
+      // Remove quotes, fix underscores, add quotes back
+      const nameWithoutQuotes = quotedNameStr.slice(1, -1);
+      const fixedName = nameWithoutQuotes.replace(/__+/g, "_");
+      hasChanges = true;
+      if (diagnostics.length < 20) {
+        diagnostics.push(
+          `Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`,
+        );
+      }
+      return `"${fixedName}"`;
+    });
 
     // Pattern 3: Fix property names using mappings (for truly ambiguous cases)
     const quotedPropertyPattern = /"([^"]+)"\s*:/g;
@@ -798,8 +800,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
     // Pass 6: Fix completely unquoted property names (generalized)
     // More generic pattern that catches unquoted property keys after {, }, comma, or newline
     // Pattern matches: (delimiter + optional whitespace including newlines) + identifier (including dashes) + optional whitespace + colon
-    const unquotedPropertyPattern =
-      /([{,}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s*:/g;
+    const unquotedPropertyPattern = /([{,}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s*:/g;
     sanitized = sanitized.replace(
       unquotedPropertyPattern,
       (match, delimiter, whitespace, propertyName, offset: unknown) => {
@@ -812,7 +813,10 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         // Skip if already quoted (check character before the delimiter+whitespace+property)
         // The offset points to the start of the match (delimiter), so we need to check further back
         const propertyStartOffset = numericOffset + delimiterStr.length + whitespaceStr.length;
-        if (propertyStartOffset > 0 && sanitized[propertyStartOffset - 1] === DELIMITERS.DOUBLE_QUOTE) {
+        if (
+          propertyStartOffset > 0 &&
+          sanitized[propertyStartOffset - 1] === DELIMITERS.DOUBLE_QUOTE
+        ) {
           return match;
         }
 
@@ -824,18 +828,29 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         // Enhanced context checking: verify we're in a valid property context
         // If we matched a delimiter, it's likely a property context
         let isValidContext = false;
-        
+
         // Check if delimiter is a valid property context delimiter
-        if (/[{,}\],]/.test(delimiterStr) || delimiterStr === "\n" || delimiterStr === "" || numericOffset === 0) {
+        if (
+          /[{,}\],]/.test(delimiterStr) ||
+          delimiterStr === "\n" ||
+          delimiterStr === "" ||
+          numericOffset === 0
+        ) {
           isValidContext = true;
         }
-        
+
         // If we matched a delimiter like }, ], or , followed by whitespace and a property name, it's valid
         // The pattern already ensures we have a delimiter, so we can trust it
         if (!isValidContext && numericOffset > 0) {
           const charBefore = sanitized[numericOffset - 1];
           // Check if we're after a valid delimiter (comma, closing brace/bracket, or newline)
-          if (charBefore === "," || charBefore === "}" || charBefore === "]" || charBefore === "\n" || charBefore === "{") {
+          if (
+            charBefore === "," ||
+            charBefore === "}" ||
+            charBefore === "]" ||
+            charBefore === "\n" ||
+            charBefore === "{"
+          ) {
             isValidContext = true;
           }
         }
@@ -848,7 +863,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
           if (jsonKeywords.includes(lowerPropertyName)) {
             return match;
           }
-          
+
           // Try property name mappings first, then use the property name as-is
           const fixedName =
             PROPERTY_NAME_MAPPINGS[propertyNameStr] ||
@@ -1982,7 +1997,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
     // Actually, this is likely `"cyclomaticComplexity": a,` where 'a' is a stray character
     // We need to be careful - this might be a truncated property name issue
     // Updated pattern to handle various whitespace arrangements
-    const strayCharBeforeCommaPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])(\s*[,}\]]|[,}\]]|$)/g;
+    const strayCharBeforeCommaPattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])(\s*[,}\]]|[,}\]]|$)/g;
     sanitized = sanitized.replace(
       strayCharBeforeCommaPattern,
       (match, propertyName, strayChar, terminator, offset: unknown) => {

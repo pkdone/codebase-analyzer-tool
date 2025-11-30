@@ -71,8 +71,8 @@ describe("Data-driven Prompt System", () => {
         expect(metadata.contentDesc).toBe("a set of source file summaries"); // Generic contentDesc
         expect(metadata.template).toBeDefined();
         expect(metadata.responseSchema).toBe(config.responseSchema);
-        // Instructions should be built from config.contentDesc
-        expect(metadata.instructions[0]).toBe(config.contentDesc);
+        // Instructions should be built from config.instructions
+        expect(metadata.instructions).toEqual(config.instructions);
       });
     });
 

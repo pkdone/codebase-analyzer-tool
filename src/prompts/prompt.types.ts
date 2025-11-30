@@ -3,17 +3,6 @@ import { AppSummaryCategories } from "../schemas/app-summaries.schema";
 import type { CanonicalFileType } from "../config/file-types.config";
 
 /**
- * @deprecated Use readonly string[] instead. Instruction sections can be formatted
- * directly in the strings (e.g., "__TITLE__\n- Point 1").
- */
-export interface InstructionSection {
-  /** Optional title for the instruction section */
-  title?: string;
-  /** Array of instruction points in this section */
-  points: readonly string[];
-}
-
-/**
  * Formal prompt definition interface for consistent structure
  * This enforces a standard shape for prompt configurations across the application.
  */

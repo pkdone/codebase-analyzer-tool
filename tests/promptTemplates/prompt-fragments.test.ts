@@ -1,5 +1,5 @@
 import {
-  PROMPT_FRAGMENTS,
+  SOURCES_PROMPT_FRAGMENTS,
   CODE_QUALITY_INSTRUCTIONS,
   DB_INTEGRATION_INSTRUCTIONS,
   INTEGRATION_POINTS_INSTRUCTIONS,
@@ -11,30 +11,17 @@ import {
 describe("prompt-fragments", () => {
   describe("PROMPT_FRAGMENTS.COMMON", () => {
     it("should have PURPOSE and IMPLEMENTATION fragments", () => {
-      expect(PROMPT_FRAGMENTS.COMMON.PURPOSE).toBeDefined();
-      expect(PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBeDefined();
-      expect(typeof PROMPT_FRAGMENTS.COMMON.PURPOSE).toBe("string");
-      expect(typeof PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBe("string");
-    });
-
-    it("should have FORCE_JSON_FORMAT fragment", () => {
-      expect(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toBeDefined();
-      expect(typeof PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toBe("string");
-      expect(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toContain(
-        "The response MUST be valid JSON",
-      );
-      expect(PROMPT_FRAGMENTS.COMMON.FORCE_JSON_FORMAT).toContain(
-        "All property names must be quoted",
-      );
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE).toBeDefined();
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBeDefined();
+      expect(typeof SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE).toBe("string");
+      expect(typeof SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION).toBe("string");
     });
 
     it("should have all common fragments consolidated in COMMON section", () => {
-      // Verify that FORCE_JSON_FORMAT is now in COMMON (consolidated from separate COMMON_FRAGMENTS)
-      expect(PROMPT_FRAGMENTS.COMMON).toHaveProperty("FORCE_JSON_FORMAT");
-      expect(PROMPT_FRAGMENTS.COMMON).toHaveProperty("PURPOSE");
-      expect(PROMPT_FRAGMENTS.COMMON).toHaveProperty("IMPLEMENTATION");
-      expect(PROMPT_FRAGMENTS.COMMON).toHaveProperty("DB_IN_DOCUMENTATION");
-      expect(PROMPT_FRAGMENTS.COMMON).toHaveProperty("DB_IN_FILE");
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON).toHaveProperty("PURPOSE");
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON).toHaveProperty("IMPLEMENTATION");
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON).toHaveProperty("DB_IN_DOCUMENTATION");
+      expect(SOURCES_PROMPT_FRAGMENTS.COMMON).toHaveProperty("DB_IN_FILE");
     });
   });
 

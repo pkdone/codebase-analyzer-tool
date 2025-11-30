@@ -244,7 +244,9 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
   let sanitized = trimmed;
   let commaCount = 0;
 
-    sanitized = sanitized.replace(trailingCommaPattern, (match, _comma, _whitespace, delimiter, offset: unknown) => {
+  sanitized = sanitized.replace(
+    trailingCommaPattern,
+    (match, _comma, _whitespace, delimiter, offset: unknown) => {
       const numericOffset = typeof offset === "number" ? offset : 0;
 
       // Check if we're inside a string literal by counting quotes before this position
@@ -273,7 +275,8 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
       // This matches the original behavior: trailing commas should be completely removed
       const delimiterStr = typeof delimiter === "string" ? delimiter : "";
       return delimiterStr;
-    });
+    },
+  );
 
   if (sanitized !== beforeRemoval) {
     return {

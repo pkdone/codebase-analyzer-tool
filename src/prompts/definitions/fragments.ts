@@ -1,34 +1,27 @@
 /**
- * Reusable prompt instruction fragments for building complex prompts.
- * These fragments can be composed to create instruction sets for different file types.
- *
- * IMPORTANT: These fragments do NOT include the "* " prefix - that is added during
- * prompt construction to maintain consistency with the existing system.
+ * Common instruction fragments used across multiple app summary templates
  */
-export const PROMPT_FRAGMENTS = {
+export const APP_SUMMARY_PROMPT_FRAGMENTS = {
+  DETAILED_DESCRIPTION: "a detailed description of the application's purpose and implementation",
+  CONCISE_LIST: "a concise list",
+  COMPREHENSIVE_LIST: "a comprehensive list",
+  COMPREHENSIVE_ANALYSIS: "a comprehensive analysis",
+  AGGREGATED_METRICS:
+    "aggregated code quality metrics including complexity analysis, code smell detection, and maintainability indicators to help prioritize refactoring efforts",
+  DEPENDENCY_MATRIX:
+    "a dependency matrix showing coupling relationships between modules to identify highly coupled components (candidates for single services) and loosely coupled components (candidates for easy separation)",
+} as const;
+
+/**
+ * Common instruction fragments used across multiple sources templates
+ */
+export const SOURCES_PROMPT_FRAGMENTS = {
   COMMON: {
     PURPOSE: "A detailed definition of its purpose",
     IMPLEMENTATION: "A detailed definition of its implementation",
     DB_IN_DOCUMENTATION:
       "Look for database schemas, queries, or data models mentioned in the documentation",
     DB_IN_FILE: "Look for database operations, queries, or connections in the file",
-    FORCE_JSON_FORMAT: `The response MUST be valid JSON and meet the following critical JSON requirements:
-- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
-- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
-- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
-- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
-- All string values must be quoted: use "value" not unquoted strings
-- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
-- No stray text: do not include any text, characters, or lines between or around JSON properties
-- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
-- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
-- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
-- Use only exact property names from the schema - do not add extra properties or characters before property names
-- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
-- ASCII only: use only ASCII characters in string values
-- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
-- Proper commas: ensure commas separate all array elements and object properties
-- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX`,
   },
 
   CODE_QUALITY: {
@@ -473,22 +466,24 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
  * Composable instruction sets for common patterns across file types
  */
 export const CODE_QUALITY_INSTRUCTIONS = [
-  PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-  PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-  PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
-  PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
+  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
+  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
+  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
 ] as const;
 
 export const DB_INTEGRATION_INSTRUCTIONS = [
-  PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-  PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+  SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
+  SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
 ] as const;
 
-export const INTEGRATION_POINTS_INSTRUCTIONS = [PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO] as const;
+export const INTEGRATION_POINTS_INSTRUCTIONS = [
+  SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+] as const;
 
 export const SCHEDULED_JOBS_INSTRUCTIONS = [
-  PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-  PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+  SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+  SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
 ] as const;
 
 /**
@@ -512,16 +507,23 @@ export const MODULE_LANGUAGE_BASE_INSTRUCTIONS = [
 ] as const;
 
 /**
- * Common instruction fragments used across multiple app summary templates
- * These are composed into instruction arrays for consistency
+ * JSON format enforcement instruction used across all prompt templates.
+ * This ensures LLM responses are valid, parseable JSON that conforms to strict formatting requirements.
  */
-export const APP_SUMMARY_FRAGMENTS = {
-  DETAILED_DESCRIPTION: "a detailed description of the application's purpose and implementation",
-  CONCISE_LIST: "a concise list",
-  COMPREHENSIVE_LIST: "a comprehensive list",
-  COMPREHENSIVE_ANALYSIS: "a comprehensive analysis",
-  AGGREGATED_METRICS:
-    "aggregated code quality metrics including complexity analysis, code smell detection, and maintainability indicators to help prioritize refactoring efforts",
-  DEPENDENCY_MATRIX:
-    "a dependency matrix showing coupling relationships between modules to identify highly coupled components (candidates for single services) and loosely coupled components (candidates for easy separation)",
-} as const;
+export const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX`;
