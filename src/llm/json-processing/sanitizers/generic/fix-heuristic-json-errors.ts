@@ -1,6 +1,7 @@
 import { Sanitizer, SanitizerResult } from "../sanitizers-types";
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import { COMMON_PROPERTY_STARTS } from "../../constants/schema-specific-sanitizer.constants";
 
 /**
  * Heuristic sanitizer that fixes assorted malformed JSON patterns from LLM responses.
@@ -87,29 +88,6 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // Pattern: 'se":' or similar property name fragments followed by colon and value
     // This handles cases where the property name got truncated (e.g., "purpose" -> "se", "codeSmells" -> "alues")
     const truncatedPropertyPattern = /(\s*)([a-z]{2,10})"\s*:\s*/g;
-    const commonPropertyStarts: Record<string, string> = {
-      se: "purpose",
-      na: "name",
-      nam: "name",
-      pu: "purpose",
-      purpos: "purpose",
-      purpo: "purpose",
-      de: "description",
-      descript: "description",
-      im: "implementation",
-      implemen: "implementation",
-      pa: "parameters",
-      re: "returnType",
-      retur: "returnType",
-      ty: "type",
-      alues: "codeSmells",
-      lues: "codeSmells",
-      ues: "codeSmells",
-      es: "codeSmells",
-      eferences: "references",
-      refere: "references",
-      refer: "references",
-    };
 
     sanitized = sanitized.replace(
       truncatedPropertyPattern,
@@ -128,7 +106,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
           /\[\s*$/.test(beforeMatch);
 
         const truncatedStr = typeof truncated === "string" ? truncated : "";
-        const fixedName = commonPropertyStarts[truncatedStr];
+        const fixedName = COMMON_PROPERTY_STARTS[truncatedStr];
         if (isPropertyContext && fixedName) {
           hasChanges = true;
           diagnostics.push(`Fixed truncated property name: "${truncatedStr}" -> "${fixedName}"`);

@@ -171,6 +171,85 @@ describe("json-processing", () => {
       });
     });
 
+    describe("conditional post-parse transforms", () => {
+      it("should NOT apply transforms if validation succeeds on first attempt", () => {
+        // Valid JSON that passes validation without needing transforms
+        const schema = z.object({ name: z.string(), value: z.string() });
+        const json = '{"name": "test", "value": "data"}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // Data should be unchanged (no transforms applied)
+          expect(result.data).toEqual({ name: "test", value: "data" });
+        }
+      });
+
+      it("should apply transforms if validation fails on first attempt", () => {
+        // JSON with null value that will fail validation, then transforms will fix it
+        const schema = z.object({
+          name: z.string(),
+          groupId: z.string().optional(), // Does not allow null, only undefined
+        });
+        const json = '{"name": "test", "groupId": null}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // convertNullToUndefined transform should have been applied
+          const data = result.data;
+          expect(data.name).toBe("test");
+          expect("groupId" in data).toBe(false); // null converted to undefined and omitted
+        }
+      });
+
+      it("should apply transforms when no schema is provided", () => {
+        // JSON with null value - transforms should be applied even without schema
+        const json = '{"name": "test", "groupId": null}';
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // convertNullToUndefined transform should have been applied
+          const data = result.data;
+          expect(data.name).toBe("test");
+          expect("groupId" in data).toBe(false); // null converted to undefined and omitted
+        }
+      });
+
+      it("should apply transforms for property name typos when validation fails", () => {
+        // JSON with typo that will fail validation, then transforms will fix it
+        const schema = z.object({
+          name: z.string(),
+          type: z.string(), // Expects "type", not "type_"
+        });
+        const json = '{"name": "test", "type_": "string"}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        };
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // fixCommonPropertyNameTypos transform should have been applied
+          const data = result.data;
+          expect(data.name).toBe("test");
+          expect(data.type).toBe("string");
+          expect("type_" in data).toBe(false);
+        }
+      });
+    });
+
     describe("edge cases", () => {
       it("should handle empty string", () => {
         const empty = "";

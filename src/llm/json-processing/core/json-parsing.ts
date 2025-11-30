@@ -31,6 +31,15 @@ export type ParseResult =
   | { success: false; error: JsonProcessingError; steps: readonly string[]; diagnostics?: string };
 
 /**
+ * Result type for post-parse transform operations.
+ * Contains the transformed data and a list of transform function names that were applied.
+ */
+export interface TransformResult {
+  data: unknown;
+  appliedTransforms: readonly string[];
+}
+
+/**
  * Unified, ordered pipeline of sanitizers organized into logical phases.
  *
  * The order is critical for effective JSON repair. Sanitizers are organized into phases
@@ -136,7 +145,7 @@ function applySanitizerToContent(
 }
 
 /**
- * Attempts to parse the given content as JSON and apply post-parse transformations.
+ * Attempts to parse the given content as JSON without applying post-parse transformations.
  * Returns a result indicating success or failure.
  */
 function attemptParse(
@@ -153,13 +162,7 @@ function attemptParse(
     };
   }
 
-  // Apply post-parse transformations
-  let transformedContent = parsedContent;
-  for (const transform of POST_PARSE_TRANSFORMS) {
-    transformedContent = transform(transformedContent);
-  }
-
-  return { success: true, data: transformedContent };
+  return { success: true, data: parsedContent };
 }
 
 /**
@@ -229,8 +232,41 @@ function executeSanitizationLoop(
 }
 
 /**
+ * Applies all post-parse transformations to parsed JSON data.
+ * Tracks which transforms were applied and returns both the transformed data and the list of applied transforms.
+ *
+ * @param data - The parsed JSON data to transform
+ * @returns A TransformResult containing the transformed data and a list of transform function names that were applied
+ */
+export function applyPostParseTransforms(data: unknown): TransformResult {
+  const appliedTransforms: string[] = [];
+  let transformedData = data;
+
+  for (const transform of POST_PARSE_TRANSFORMS) {
+    const before = JSON.stringify(transformedData);
+    transformedData = transform(transformedData);
+    const after = JSON.stringify(transformedData);
+
+    // Track if transform made changes (simple heuristic: if JSON string changed)
+    if (before !== after) {
+      // Extract function name for logging
+      const transformName = transform.name || "unknown";
+      appliedTransforms.push(transformName);
+    }
+  }
+
+  return {
+    data: transformedData,
+    appliedTransforms,
+  };
+}
+
+/**
  * Parses a JSON string through a multi-stage sanitization and repair pipeline.
  * Returns a result object indicating success or failure with sanitization steps.
+ *
+ * This function does NOT apply post-parse transformations - those should be applied
+ * conditionally after validation attempts. Use applyPostParseTransforms() for that.
  *
  * This function does NOT perform Zod schema validation - it only handles parsing.
  *

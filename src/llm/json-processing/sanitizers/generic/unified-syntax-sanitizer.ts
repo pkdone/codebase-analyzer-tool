@@ -2,6 +2,14 @@ import { Sanitizer, SanitizerResult } from "../sanitizers-types";
 import { DELIMITERS } from "../../constants/json-processing.config";
 import { CONCATENATION_REGEXES } from "../../constants/regex.constants";
 import { logOneLineWarning } from "../../../../common/utils/logging";
+import {
+  PROPERTY_NAME_MAPPINGS,
+  PROPERTY_TYPO_CORRECTIONS,
+  KNOWN_PROPERTIES,
+  NUMERIC_PROPERTIES,
+  PACKAGE_NAME_PREFIX_REPLACEMENTS,
+  PACKAGE_NAME_TYPO_PATTERNS,
+} from "../../constants/schema-specific-sanitizer.constants";
 
 /**
  * Helper to determine if a position is inside a string literal.
@@ -28,218 +36,6 @@ function isInStringAt(position: number, content: string): boolean {
 
   return inString;
 }
-
-/**
- * Consolidated property name mappings combining all typo and truncation patterns.
- * This merges mappings from multiple property name fix sanitizers.
- */
-const PROPERTY_NAME_MAPPINGS: Record<string, string> = {
-  // === General truncations ===
-  eferences: "references",
-  refere: "references",
-  refer: "references",
-  se: "purpose",
-  nam: "name",
-  na: "name",
-  alues: "codeSmells",
-  lues: "codeSmells",
-  ues: "codeSmells",
-  es: "codeSmells",
-  integra: "integration",
-  integrat: "integration",
-  implemen: "implementation",
-  purpos: "purpose",
-  purpo: "purpose",
-  descript: "description",
-  retur: "return",
-  metho: "methods",
-  method: "methods",
-  constan: "constants",
-  consta: "constants",
-  databas: "database",
-  qualit: "quality",
-  metric: "metrics",
-  metri: "metrics",
-  smell: "smells",
-  smel: "smells",
-  complexi: "complexity",
-  complex: "complexity",
-  averag: "average",
-  avera: "average",
-  maxim: "maximum",
-  maxi: "maximum",
-  minim: "minimum",
-  mini: "minimum",
-  lengt: "length",
-  leng: "length",
-  total: "total",
-  tota: "total",
-  clas: "class",
-  interfac: "interface",
-  interfa: "interface",
-  interf: "interface",
-  inter: "interface",
-  namespac: "namespace",
-  namespa: "namespace",
-  namesp: "namespace",
-  names: "namespace",
-  publi: "public",
-  publ: "public",
-  privat: "private",
-  priva: "private",
-  priv: "private",
-  protec: "protected",
-  prote: "protected",
-  prot: "protected",
-  stati: "static",
-  stat: "static",
-  fina: "final",
-  abstrac: "abstract",
-  abstra: "abstract",
-  abst: "abstract",
-  synchronize: "synchronized",
-  synchroniz: "synchronized",
-  synchroni: "synchronized",
-  synchron: "synchronized",
-  synchro: "synchronized",
-  synchr: "synchronized",
-  synch: "synchronized",
-  sync: "synchronized",
-  volatil: "volatile",
-  volati: "volatile",
-  volat: "volatile",
-  vola: "volatile",
-  transien: "transient",
-  transie: "transient",
-  transi: "transient",
-  trans: "transient",
-  tran: "transient",
-  nativ: "native",
-  nati: "native",
-  strictf: "strictfp",
-  strict: "strictfp",
-  stric: "strictfp",
-  stri: "strictfp",
-  e: "name",
-  n: "name",
-  m: "name",
-  am: "name",
-  me: "name",
-  extraReferences: "externalReferences",
-  exterReferences: "externalReferences",
-  externReferences: "externalReferences",
-  externalRefs: "externalReferences",
-  externalRef: "externalReferences",
-  internReferences: "internalReferences",
-  internalRefs: "internalReferences",
-  internalRef: "internalReferences",
-  publMethods: "publicMethods",
-  publicMeth: "publicMethods",
-  publicMeths: "publicMethods",
-  _publicConstants: "publicConstants",
-  publConstants: "publicConstants",
-  publicConst: "publicConstants",
-  publicConsts: "publicConstants",
-  integrationPt: "integrationPoints",
-  integrationPts: "integrationPoints",
-  integPoints: "integrationPoints",
-  dbIntegration: "databaseIntegration",
-  databaseInteg: "databaseIntegration",
-  qualityMetrics: "codeQualityMetrics",
-  codeMetrics: "codeQualityMetrics",
-  codeQuality: "codeQualityMetrics",
-  ethods: "publicMethods",
-  thods: "publicMethods",
-  nstants: "publicConstants",
-  stants: "publicConstants",
-  ants: "publicConstants",
-  egrationPoints: "integrationPoints",
-  grationPoints: "integrationPoints",
-  rationPoints: "integrationPoints",
-  ationPoints: "integrationPoints",
-  ernalReferences: "internalReferences",
-  alReferences: "externalReferences",
-  aseIntegration: "databaseIntegration",
-  seIntegration: "databaseIntegration",
-  QualityMetrics: "codeQualityMetrics",
-  ameters: "parameters",
-  meters: "parameters",
-  eters: "parameters",
-  ferences: "references",
-  pu: "purpose",
-  pur: "purpose",
-  purp: "purpose",
-  de: "description",
-  des: "description",
-  desc: "description",
-  descr: "description",
-  descri: "description",
-  descrip: "description",
-  descripti: "description",
-  descriptio: "description",
-  pa: "parameters",
-  par: "parameters",
-  para: "parameters",
-  param: "parameters",
-  parame: "parameters",
-  paramet: "parameters",
-  paramete: "parameters",
-  re: "returnType",
-  ret: "returnType",
-  retu: "returnType",
-  return: "returnType",
-  returnT: "returnType",
-  returnTy: "returnType",
-  returnTyp: "returnType",
-  im: "implementation",
-  imp: "implementation",
-  impl: "implementation",
-  imple: "implementation",
-  implem: "implementation",
-  impleme: "implementation",
-  implementa: "implementation",
-  implementat: "implementation",
-  implementati: "implementation",
-  implementatio: "implementation",
-};
-
-/**
- * Known property name typo corrections for quoted properties.
- * These handle trailing underscores, double underscores, and common typos.
- */
-const PROPERTY_TYPO_CORRECTIONS: Record<string, string> = {
-  type_: "type",
-  name_: "name",
-  value_: "value",
-  purpose_: "purpose",
-  description_: "description",
-  parameters_: "parameters",
-  returnType_: "returnType",
-  "return a": "returnType",
-  "return ": "returnType",
-  cyclomaticComplexity_: "cyclomaticComplexity",
-  cyclometicComplexity: "cyclomaticComplexity",
-  cyclometicComplexity_: "cyclomaticComplexity",
-  linesOfCode_: "linesOfCode",
-  codeSmells_: "codeSmells",
-  implementation_: "implementation",
-  namespace_: "namespace",
-  kind_: "kind",
-  internalReferences_: "internalReferences",
-  externalReferences_: "externalReferences",
-  publicConstants_: "publicConstants",
-  publicMethods_: "publicMethods",
-  integrationPoints_: "integrationPoints",
-  databaseIntegration_: "databaseIntegration",
-  dataInputFields_: "dataInputFields",
-  codeQualityMetrics_: "codeQualityMetrics",
-  // Common LLM typos for property names
-  nameprobably: "name",
-  namelikely: "name",
-  namemaybe: "name",
-  typeprobably: "type",
-  valueprobably: "value",
-};
 
 /**
  * Constants for diagnostic message formatting
@@ -710,27 +506,11 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
           // Check if propertyName is a known property name
           const lowerPropertyName = propertyNameStr.toLowerCase();
-          const knownProperties = [
-            "name",
-            "purpose",
-            "description",
-            "parameters",
-            "returntype",
-            "cyclomaticcomplexity",
-            "linesofcode",
-            "codesmells",
-            "type",
-            "value",
-            "returnType",
-            "cyclomaticComplexity",
-            "linesOfCode",
-            "codeSmells",
-          ];
 
           // Also check if it looks like a property name (camelCase or lowercase)
           const looksLikePropertyName =
             /^[a-z][a-zA-Z0-9_$]*$/.test(propertyNameStr) &&
-            (knownProperties.includes(lowerPropertyName) || lowerPropertyName.length > 2);
+            (KNOWN_PROPERTIES.includes(lowerPropertyName) || lowerPropertyName.length > 2);
 
           if (looksLikePropertyName) {
             hasChanges = true;
@@ -833,27 +613,9 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
           // Check if it looks like a property name
           const lowerPropertyName = propertyNameStr.toLowerCase();
-          const knownProperties = [
-            "name",
-            "purpose",
-            "description",
-            "parameters",
-            "returntype",
-            "cyclomaticcomplexity",
-            "linesofcode",
-            "codesmells",
-            "type",
-            "value",
-            "mechanism",
-            "path",
-            "method",
-            "direction",
-            "requestbody",
-            "responsebody",
-          ];
           const looksLikePropertyName =
             /^[a-z][a-zA-Z0-9_$]*$/.test(propertyNameStr) &&
-            (knownProperties.includes(lowerPropertyName) || lowerPropertyName.length > 2);
+            (KNOWN_PROPERTIES.includes(lowerPropertyName) || lowerPropertyName.length > 2);
 
           if (looksLikePropertyName) {
             hasChanges = true;
@@ -1097,28 +859,23 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         }
 
         if (foundArray || prefixStr === "[") {
-          // Fix common truncations in package names (e.g., `extractions.loanproduct` -> `org.apache.fineract.portfolio.loanproduct`)
+          // Fix common truncations in package names using prefix replacements
           let fixedValue = unquotedValueStr;
-          if (unquotedValueStr.startsWith("extractions.")) {
-            fixedValue = unquotedValueStr.replace(
-              /^extractions\./,
-              "org.apache.fineract.portfolio.",
-            );
-            hasChanges = true;
-            if (diagnostics.length < 20) {
-              diagnostics.push(
-                `Fixed truncated package name in array: ${unquotedValueStr} -> ${fixedValue}`,
-              );
+          let foundReplacement = false;
+          for (const [prefix, replacement] of Object.entries(PACKAGE_NAME_PREFIX_REPLACEMENTS)) {
+            if (unquotedValueStr.startsWith(prefix)) {
+              fixedValue = replacement + unquotedValueStr.substring(prefix.length);
+              hasChanges = true;
+              foundReplacement = true;
+              if (diagnostics.length < 20) {
+                diagnostics.push(
+                  `Fixed truncated package name in array: ${unquotedValueStr} -> ${fixedValue}`,
+                );
+              }
+              break;
             }
-          } else if (unquotedValueStr.startsWith("orgapache.")) {
-            fixedValue = unquotedValueStr.replace(/^orgapache\./, "org.apache.");
-            hasChanges = true;
-            if (diagnostics.length < 20) {
-              diagnostics.push(
-                `Fixed missing dot in package name: ${unquotedValueStr} -> ${fixedValue}`,
-              );
-            }
-          } else {
+          }
+          if (!foundReplacement) {
             hasChanges = true;
             if (diagnostics.length < 20) {
               diagnostics.push(
@@ -1193,19 +950,13 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         const isAfterCommaOrBracket = prevLineEnd.endsWith(",") || prevLineEnd.endsWith("[");
 
         if (foundArray || isAfterCommaOrBracket) {
-          // Fix common truncations in package names
+          // Fix common truncations in package names using prefix replacements
           let fixedValue = unquotedValueStr;
-          if (unquotedValueStr.startsWith("extractions.")) {
-            fixedValue = unquotedValueStr.replace(
-              /^extractions\./,
-              "org.apache.fineract.portfolio.",
-            );
-          } else if (unquotedValueStr.startsWith("orgapache.")) {
-            fixedValue = unquotedValueStr.replace(/^orgapache\./, "org.apache.");
-          } else if (unquotedValueStr.startsWith("orgf.")) {
-            fixedValue = unquotedValueStr.replace(/^orgf\./, "org.");
-          } else if (unquotedValueStr.startsWith("orgah.")) {
-            fixedValue = unquotedValueStr.replace(/^orgah\./, "org.");
+          for (const [prefix, replacement] of Object.entries(PACKAGE_NAME_PREFIX_REPLACEMENTS)) {
+            if (unquotedValueStr.startsWith(prefix)) {
+              fixedValue = replacement + unquotedValueStr.substring(prefix.length);
+              break;
+            }
           }
 
           hasChanges = true;
@@ -1405,27 +1156,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
         if (isPropertyContext) {
           const lowerPropertyName = propertyNameStr.toLowerCase();
-          const knownProperties = [
-            "name",
-            "purpose",
-            "description",
-            "parameters",
-            "returntype",
-            "cyclomaticcomplexity",
-            "linesofcode",
-            "codesmells",
-            "type",
-            "value",
-            "internalreferences",
-            "externalreferences",
-            "publicconstants",
-            "publicmethods",
-            "integrationpoints",
-            "databaseintegration",
-            "codequalitymetrics",
-          ];
 
-          if (knownProperties.includes(lowerPropertyName)) {
+          if (KNOWN_PROPERTIES.includes(lowerPropertyName)) {
             hasChanges = true;
             if (diagnostics.length < 20) {
               diagnostics.push(
@@ -1860,20 +1592,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
           const terminatorStr = typeof terminator === "string" ? terminator : "";
 
           // Check if this looks like a property name (common property names)
-          const knownProperties = [
-            "name",
-            "purpose",
-            "description",
-            "parameters",
-            "returnType",
-            "type",
-            "value",
-            "cyclomaticComplexity",
-            "linesOfCode",
-            "codeSmells",
-          ];
           const lowerPropertyName = propertyNameStr.toLowerCase();
-          if (knownProperties.includes(lowerPropertyName) || propertyNameStr.length > 2) {
+          if (KNOWN_PROPERTIES.includes(lowerPropertyName) || propertyNameStr.length > 2) {
             hasChanges = true;
             if (diagnostics.length < 10) {
               diagnostics.push(
@@ -1914,20 +1634,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
           const terminatorStr = typeof terminator === "string" ? terminator : "";
 
           // Check if this looks like a property name
-          const knownProperties = [
-            "name",
-            "purpose",
-            "description",
-            "parameters",
-            "returnType",
-            "type",
-            "value",
-            "cyclomaticComplexity",
-            "linesOfCode",
-            "codeSmells",
-          ];
           const lowerPropertyName = propertyNameStr.toLowerCase();
-          if (knownProperties.includes(lowerPropertyName) || propertyNameStr.length > 2) {
+          if (KNOWN_PROPERTIES.includes(lowerPropertyName) || propertyNameStr.length > 2) {
             hasChanges = true;
             if (diagnostics.length < 10) {
               diagnostics.push(
@@ -2196,22 +1904,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         // Check if this looks like a numeric property that should have a number value
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const lowerPropertyName = propertyNameStr.toLowerCase();
-        const numericProperties = [
-          "cyclomaticcomplexity",
-          "linesofcode",
-          "totalmethods",
-          "averagecomplexity",
-          "maxcomplexity",
-          "averagemethodlength",
-          "complexity",
-          "lines",
-          "total",
-          "average",
-          "max",
-          "min",
-        ];
 
-        if (numericProperties.includes(lowerPropertyName)) {
+        if (NUMERIC_PROPERTIES.includes(lowerPropertyName)) {
           // This is likely a numeric property - we can't guess the value, so we'll set it to 0
           // But actually, it's better to leave it and let other sanitizers handle it
           // For now, we'll just remove the stray character and leave it as null
@@ -2234,26 +1928,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
     // Pattern 2: `"org.apachefineract...` -> `"org.apache.fineract...`
     // Pattern 3: `"orgfineract...` -> `"org.apache.fineract...`
     // Pattern 4: `"org.apachefineract...` -> `"org.apache.fineract...` (missing dot)
-    const packageNameTypoPatterns = [
-      { pattern: /"orgah\./g, replacement: '"org.', description: "Fixed typo: orgah -> org" },
-      {
-        pattern: /"org\.apachefineract\./g,
-        replacement: '"org.apache.fineract.',
-        description: "Fixed missing dot: org.apachefineract -> org.apache.fineract",
-      },
-      {
-        pattern: /"orgfineract\./g,
-        replacement: '"org.apache.fineract.',
-        description: "Fixed missing package: orgfineract -> org.apache.fineract",
-      },
-      {
-        pattern: /"org\.apachefineract\./g,
-        replacement: '"org.apache.fineract.',
-        description: "Fixed missing dot: org.apachefineract -> org.apache.fineract",
-      },
-    ];
-
-    for (const { pattern, replacement, description } of packageNameTypoPatterns) {
+    for (const { pattern, replacement, description } of PACKAGE_NAME_TYPO_PATTERNS) {
       if (pattern.test(sanitized)) {
         const beforeFix = sanitized;
         sanitized = sanitized.replace(pattern, replacement);

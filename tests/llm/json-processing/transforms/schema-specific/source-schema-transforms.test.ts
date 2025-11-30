@@ -164,5 +164,4 @@ describe("source-schema-transforms", () => {
       expect((result as any).nested.publicMethods[0].returnType).toBe("void");
     });
   });
-
 });

@@ -26,10 +26,7 @@
  */
 const ARRAY_PROPERTY_NAMES = ["parameters", "dependencies", "references"] as const;
 
-export function coerceStringToArray(
-  value: unknown,
-  visited = new WeakSet<object>(),
-): unknown {
+export function coerceStringToArray(value: unknown, visited = new WeakSet<object>()): unknown {
   // Handle primitives and null
   if (value === null || typeof value !== "object") {
     return value;
@@ -85,4 +82,3 @@ export function coerceStringToArray(
 
   return result;
 }
-

@@ -6,13 +6,13 @@ import { isInStringAt } from "../../utils/parser-context-utils";
  * Sanitizer that fixes various malformed JSON patterns found in LLM responses.
  *
  * This sanitizer handles:
- * 1. Malformed string references (missing dots, typos, weird characters like `org.apachefineract`, `orgf.apache.fineract`, `orgah.apache.fineract`, `orgʻ.apache.fineract`, `_MODULE"`)
- * 2. Extra single characters before properties (like `a  "integrationPoints":`, `s  "publicMethods":`, `e "externalReferences":`, `c{`)
- * 3. Corrupted property values (like `"linesOfCode":_CODE`4,`)
- * 4. Invalid property names (like `extra_code_analysis:`)
- * 5. Duplicate closing braces at the end
- * 6. Missing quotes on property names (like `name":` instead of `"name":`)
- * 7. Non-ASCII characters in string values that break JSON parsing
+ * 1. Extra single characters before properties (like `a  "propertyName":`, `s  "anotherProperty":`, `e "property":`, `c{`)
+ * 2. Corrupted property values (like `"propertyName":_CODE`4,`)
+ * 3. Invalid property names (like `extra_code_analysis:`)
+ * 4. Duplicate closing braces at the end
+ * 5. Missing quotes on property names (like `name":` instead of `"name":`)
+ * 6. Non-ASCII characters in string values that break JSON parsing
+ * 7. Malformed JSON structures and stray text
  *
  * @param input - The raw string content to sanitize
  * @returns Sanitizer result with malformed patterns fixed
@@ -27,11 +27,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // This prevents unnecessary modifications to valid JSON while still allowing fixes for typos
     try {
       JSON.parse(input);
-      // Check if there are obvious errors that need fixing (typos, missing dots, etc.)
+      // Check if there are obvious errors that need fixing (malformed structures, stray text, etc.)
       const hasObviousErrors =
-        /orgfineract|orgahce|jakarta\.ws-rs|orgf\.apache|orgah\.apache|orgapache\.|io_swagger|org_|com_|"[^"]+\s+[a-zA-Z]+\s*":|<x_bin_\d+|[\u0080-\uFFFF]|orgaho\.apache|"\/v\d+[a-z]+\/|ax"org\.|pache"\.|_[A-Z_]+\s*=\s*"|cyclocomplexity|cyclometiccomplexity|cyclometicComplexity/i.test(
-          input,
-        );
+        /"[^"]+\s+[a-zA-Z]+\s*":|<x_bin_\d+|[\u0080-\uFFFF]|_[A-Z_]+\s*=\s*"/i.test(input);
       if (!hasObviousErrors) {
         // Valid JSON with no obvious errors, return as-is
         return { content: input, changed: false };
@@ -45,66 +43,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     let hasChanges = false;
     const diagnostics: string[] = [];
 
-    // ===== Pattern 1: Fix malformed string references in arrays =====
-    // Pattern: Missing dots (org.apachefineract -> org.apache.fineract)
-    const missingDotPattern = /"org\.apache([a-z])([a-z]+)\./g;
-    sanitized = sanitized.replace(missingDotPattern, (match, first, rest, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
-        return match;
-      }
-      hasChanges = true;
-      if (diagnostics.length < 10) {
-        diagnostics.push(
-          `Fixed missing dot in package reference: org.apache${first}${rest} -> org.apache.${first}${rest}`,
-        );
-      }
-      return `"org.apache.${first}${rest}.`;
-    });
-
-    // Pattern: Missing dot between org and apache (orgapache. -> org.apache.)
-    const missingDotOrgApachePattern = /"orgapache\./g;
-    sanitized = sanitized.replace(missingDotOrgApachePattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
-        return match;
-      }
-      hasChanges = true;
-      if (diagnostics.length < 10) {
-        diagnostics.push("Fixed missing dot in package reference: orgapache. -> org.apache.");
-      }
-      return '"org.apache.';
-    });
-
-    // Pattern: Typos (orgf.apache.fineract -> org.apache.fineract, orgah.apache.fineract -> org.apache.fineract)
-    const typoPattern = /"org([fh]|ah|ʻ)\.apache\./g;
-    sanitized = sanitized.replace(typoPattern, (match, typo, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
-        return match;
-      }
-      hasChanges = true;
-      if (diagnostics.length < 10) {
-        diagnostics.push(`Fixed typo in package reference: org${typo}.apache -> org.apache`);
-      }
-      return '"org.apache.';
-    });
-
-    // Pattern: More complex typos like orgahce.fineract -> org.apache.fineract
-    const complexTypoPattern = /"orgahce\.fineract\./g;
-    sanitized = sanitized.replace(complexTypoPattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
-        return match;
-      }
-      hasChanges = true;
-      if (diagnostics.length < 10) {
-        diagnostics.push(
-          "Fixed typo in package reference: orgahce.fineract -> org.apache.fineract",
-        );
-      }
-      return '"org.apache.fineract.';
-    });
+    // ===== Pattern 1: Fix corrupted entries like _MODULE" =====
 
     // Pattern: Corrupted entries like _MODULE",
     sanitized = sanitized.replace(
@@ -189,7 +128,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Pattern: Remove 'ar' prefix before quoted strings in arrays (run early)
-    // Pattern: `ar"org.apache...` -> `"org.apache...`
+    // Pattern: `ar"stringValue"` -> `"stringValue"`
     const arPrefixEarlyPattern = /([}\],]|\n|^)(\s*)ar"([^"]+)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       arPrefixEarlyPattern,
@@ -309,7 +248,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Pattern: Fix missing opening quote on property name (starts with colon and quote)
-    // Pattern: `": "This is a JUnit 5 test class...` -> `"purpose": "This is a JUnit 5 test class...`
+    // Pattern: `": "value"` -> `"name": "value"`
     const missingPropertyNameBeforeColonPattern = /(\n\s+)"\s*:\s*"([^"]{20,})"/g;
     // Also handle case without newline: `  ": "This is...`
     const missingPropertyNameBeforeColonPattern2 = /([{,]\s+)"\s*:\s*"([^"]{20,})"/g;
@@ -328,11 +267,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           /]\s*,\s*\n\s*$/.test(beforeMatch);
 
         if (isPropertyContext) {
-          let inferredProperty = "purpose";
+          const inferredProperty = "name"; // Generic default
           const valueStr = typeof value === "string" ? value : "";
-          if (valueStr.length < 50) {
-            inferredProperty = "name";
-          }
 
           hasChanges = true;
           const prefixStr = typeof prefix === "string" ? prefix : "";
@@ -363,12 +299,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           /\n\s*$/.test(beforeMatch);
 
         if (isPropertyContext) {
-          // Try to infer property name from context or value content
-          let inferredProperty = "purpose"; // default for long text values
+          const inferredProperty = "name"; // Generic default
           const valueStr = typeof value === "string" ? value : "";
-          if (valueStr.length < 50) {
-            inferredProperty = "name";
-          }
 
           hasChanges = true;
           const prefixStr = typeof prefix === "string" ? prefix : "";
@@ -385,7 +317,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Pattern: Remove stray text before property names
-    // Pattern: `running on a different machine    "connectionInfo":` -> `"connectionInfo":`
+    // Pattern: `stray text    "propertyName":` -> `"propertyName":`
     const strayTextBeforePropertyPattern =
       /([}\],]|\n|^)(\s*)([a-z][a-z\s]{10,}?)\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
@@ -450,7 +382,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 3: Fix corrupted property values =====
-    // Pattern: `"linesOfCode":_CODE`4,` -> `"linesOfCode": 4,`
+    // Pattern: `"propertyName":_CODE`4,` -> `"propertyName": 4,`
     const corruptedValuePattern = /"([^"]+)"\s*:\s*_CODE`(\d+)(\s*[,}])/g;
     sanitized = sanitized.replace(
       corruptedValuePattern,
@@ -835,8 +767,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 12: Remove stray text before string values in arrays =====
-    // Pattern: `thank"lombok.RequiredArgsConstructor",` -> `"lombok.RequiredArgsConstructor",`
-    // Also handles single characters like `t    "org.apache..."` in arrays
+    // Pattern: `strayText"stringValue",` -> `"stringValue",`
+    // Also handles single characters like `t    "stringValue"` in arrays
     const strayTextBeforeStringPattern = /([}\],]|\n|^)(\s*)([a-z]{2,10})"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextBeforeStringPattern,
@@ -868,7 +800,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 12b: Remove single stray character before string values in arrays =====
-    // Pattern: `t    "org.apache.fineract...",` -> `"org.apache.fineract...",`
+    // Pattern: `t    "stringValue",` -> `"stringValue",`
     // This handles cases where a single character appears before a quoted string in an array
     // The pattern matches: newline + single char + whitespace + quoted string (the comma is on the previous line)
     const singleStrayCharBeforeArrayStringPattern = /(\n)([a-z])(\s+)"([^"]+)"\s*(,|\])/g;
@@ -1181,8 +1113,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 18: Remove stray text/hostnames before property names =====
-    // Pattern: `hp-probook-650-g8-notebook-pc"purpose":` -> `"purpose":`
-    // Also handles: `tribulations"integrationPoints":` -> `"integrationPoints":`
+    // Pattern: `hostname"propertyName":` -> `"propertyName":`
+    // Also handles: `strayText"propertyName":` -> `"propertyName":`
     const hostnameBeforePropertyPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z0-9\-_.]{10,100})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
@@ -1254,8 +1186,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 20: Fix missing opening quotes in string array elements =====
-    // Pattern: `import lombok.RequiredArgsConstructor",` -> `"import lombok.RequiredArgsConstructor",`
-    // Also handles: `fineract.infrastructure.event...",` -> `"fineract.infrastructure.event...",`
+    // Pattern: `unquotedStringValue",` -> `"unquotedStringValue",`
+    // Handles cases where strings in arrays are missing their opening quote
     // This pattern detects strings in arrays that are missing the opening quote
     // Improved to handle more cases including package names with dots
     // Updated to handle newlines before unquoted strings
@@ -1334,49 +1266,12 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const prefixStr = typeof fullPrefix === "string" ? fullPrefix : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-          let stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
 
-          // If it starts with "fineract." and doesn't have "org.apache." prefix, add it
-          if (
-            stringValueStr.startsWith("fineract.") &&
-            !stringValueStr.startsWith("org.apache.fineract.")
-          ) {
-            stringValueStr = `org.apache.${stringValueStr}`;
-            if (diagnostics.length < 10) {
-              diagnostics.push(
-                `Fixed missing opening quote and org.apache prefix in array: ${stringValue}" -> "org.apache.${stringValue}"`,
-              );
-            }
-          } else if (stringValueStr.startsWith("to.")) {
-            // For "to.loan.transaction..." patterns, try to reconstruct from context
-            const beforeContext = sanitized.substring(
-              Math.max(0, numericOffset - 1000),
-              numericOffset,
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Fixed missing opening quote in array element: ${stringValueStr}" -> "${stringValueStr}"`,
             );
-            const previousPackageRegex =
-              /"org\.apache\.fineract\.infrastructure\.event\.business\.domain\.loan\.transaction\.([^"]+)"/;
-            const previousPackageMatch = previousPackageRegex.exec(beforeContext);
-            if (previousPackageMatch) {
-              const className = stringValueStr.replace(/^to\.loan\.transaction\./, "");
-              stringValueStr = `org.apache.fineract.infrastructure.event.business.domain.loan.transaction.${className}`;
-              if (diagnostics.length < 10) {
-                diagnostics.push(
-                  `Fixed missing opening quote and reconstructed package name: to.${className} -> org.apache.fineract.infrastructure.event.business.domain.loan.transaction.${className}`,
-                );
-              }
-            } else {
-              if (diagnostics.length < 10) {
-                diagnostics.push(
-                  `Fixed missing opening quote in array: ${stringValueStr}" -> "${stringValueStr}"`,
-                );
-              }
-            }
-          } else {
-            if (diagnostics.length < 10) {
-              diagnostics.push(
-                `Fixed missing opening quote in array element: ${stringValueStr}" -> "${stringValueStr}"`,
-              );
-            }
           }
           return `${prefixStr}${whitespaceStr}"${stringValueStr}",`;
         }
@@ -1386,7 +1281,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 21: Fix missing opening quotes with stray text before string in arrays =====
-    // Pattern: `cv"org.apache.fineract...",` -> `"org.apache.fineract...",`
+    // Pattern: `cv"stringValue",` -> `"stringValue",`
     // This handles cases where there's stray text (like "cv", "import", etc.) before a string missing its opening quote
     const strayTextBeforeMissingQuotePattern =
       /([[\s,]\s*)([a-z]{1,10})"([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,/g;
@@ -1449,8 +1344,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 22: Fix missing comma and quote for unquoted strings at end of array lines =====
-    // Pattern: `"org.apache.poi.ss.usermodel.Workbook",\norg.junit.jupiter.api.Assertions"` ->
-    //          `"org.apache.poi.ss.usermodel.Workbook",\n    "org.junit.jupiter.api.Assertions",`
+    // Pattern: `"stringValue",\nunquotedString"` -> `"stringValue",\n    "unquotedString",`
     // This handles cases where a string in an array is missing both the comma before it and the opening quote
     const missingCommaAndQuotePattern =
       /("([^"]+)"\s*,?\s*\n\s*)([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,?\s*(\n|])/g;
@@ -1516,92 +1410,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 23: Fix typos in package names (tribur -> org, missing org.apache. prefix) =====
-    // Pattern: `tribur.apache.fineract...` -> `"org.apache.fineract...`
-    // Pattern: `fineract.portfolio.meeting...` -> `"org.apache.fineract.portfolio.meeting...`
-    // Also handles missing opening quotes: `tribur.apache.fineract...",` -> `"org.apache.fineract...",`
-    const typoPackagePattern =
-      /([}\],]|\n|^)(\s*)(tribur|orgf|orgah)\.apache\.([a-zA-Z0-9_.]+)"\s*,/g;
-    sanitized = sanitized.replace(
-      typoPackagePattern,
-      (match, delimiter, whitespace, typo, packagePath, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
-
-        hasChanges = true;
-        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
-        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-        const packagePathStr = typeof packagePath === "string" ? packagePath : "";
-        if (diagnostics.length < 10) {
-          diagnostics.push(
-            `Fixed typo in package name: ${typo}.apache.${packagePathStr} -> org.apache.${packagePathStr}`,
-          );
-        }
-        return `${delimiterStr}${whitespaceStr}"org.apache.${packagePathStr}",`;
-      },
-    );
-
-    // Pattern: Missing org.apache. prefix (fineract.portfolio... -> org.apache.fineract.portfolio...)
-    // Also handles missing opening quotes: `fineract.portfolio.meeting...",` -> `"org.apache.fineract.portfolio.meeting...",`
-    const missingOrgApachePrefixPattern = /([}\],]|\n|^)(\s*)(fineract\.[a-zA-Z0-9_.]+)"\s*,/g;
-    sanitized = sanitized.replace(
-      missingOrgApachePrefixPattern,
-      (match, delimiter, whitespace, packagePath, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
-
-        // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
-        const isInArray =
-          /\[\s*$/.test(beforeMatch) ||
-          /,\s*\n\s*$/.test(beforeMatch) ||
-          /"\s*,\s*\n\s*$/.test(beforeMatch);
-
-        if (isInArray) {
-          hasChanges = true;
-          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
-          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-          const packagePathStr = typeof packagePath === "string" ? packagePath : "";
-          if (diagnostics.length < 10) {
-            diagnostics.push(
-              `Fixed missing org.apache. prefix: ${packagePathStr} -> org.apache.${packagePathStr}`,
-            );
-          }
-          return `${delimiterStr}${whitespaceStr}"org.apache.${packagePathStr}",`;
-        }
-
-        return match;
-      },
-    );
-
-    // ===== Pattern 24: Fix accented characters in package names =====
-    // Pattern: `orgá.apache.fineract...` -> `org.apache.fineract...`
-    const accentedCharPattern = /"org([áàâäéèêëíìîïóòôöúùûüñç])\.apache\.([a-zA-Z0-9_.]+)"/g;
-    sanitized = sanitized.replace(
-      accentedCharPattern,
-      (match, accentedChar, packagePath, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
-
-        hasChanges = true;
-        const packagePathStr = typeof packagePath === "string" ? packagePath : "";
-        if (diagnostics.length < 10) {
-          diagnostics.push(
-            `Fixed accented character in package name: org${accentedChar}.apache.${packagePathStr} -> org.apache.${packagePathStr}`,
-          );
-        }
-        return `"org.apache.${packagePathStr}"`;
-      },
-    );
-
     // ===== Pattern 25: Fix stray single characters at start of lines in arrays =====
-    // Pattern: `e    "org.apache.fineract...",` -> `    "org.apache.fineract...",`
+    // Pattern: `e    "stringValue",` -> `    "stringValue",`
     const strayCharAtLineStartPattern = /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z0-9_.]+)")/g;
     sanitized = sanitized.replace(
       strayCharAtLineStartPattern,
@@ -1781,8 +1591,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 31: Fix missing comma and opening quote before array items =====
-    // Pattern: `]tribus.data.TransactionProcessingStrategyData"` -> `], "org.apache.fineract.portfolio.transaction.data.TransactionProcessingStrategyData"`
-    // Or: `]tribus.data.TransactionProcessingStrategyData"` -> `], "tribus.data.TransactionProcessingStrategyData"`
+    // Pattern: `]unquoted.string.value"` -> `], "unquoted.string.value"`
     const missingCommaAndQuoteBeforeArrayItemPattern =
       /([}\],])\s*\n\s*([a-z]+)\.([a-z]+)\.([a-z.]+)"\s*,?\s*\n/g;
     sanitized = sanitized.replace(
@@ -1828,27 +1637,19 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
-        // Common property names that might be truncated
-        const propertyMap: Record<string, string> = {
-          se: "name",
-          ce: "name",
-          me: "name",
-          pu: "purpose",
-          de: "description",
-          pa: "parameters",
-          re: "returnType",
-        };
+        // Use a generic default property name for truncated names
+        const fullProperty = "name"; // Generic default for truncated property names
 
-        const truncatedStr = typeof truncated === "string" ? truncated : "";
-        const fullProperty = propertyMap[truncatedStr] || "name";
-
-        if (isPropertyContext && fullProperty) {
+        if (isPropertyContext) {
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const valueStartStr = typeof valueStart === "string" ? valueStart : "";
+          const truncatedStr = typeof truncated === "string" ? truncated : "";
           if (diagnostics.length < 10) {
-            diagnostics.push(`Fixed truncated property name: ${truncated}" -> "${fullProperty}"`);
+            diagnostics.push(
+              `Fixed truncated property name: ${truncatedStr}" -> "${fullProperty}"`,
+            );
           }
           return `${delimiterStr}${whitespaceStr}"${fullProperty}": "${valueStartStr}`;
         }
@@ -1922,7 +1723,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 35: Fix missing opening quote on property names =====
-    // Pattern: `cyclomaticComplexity": 1,` -> `"cyclomaticComplexity": 1,`
+    // Pattern: `propertyName": value` -> `"propertyName": value`
     // Also handles: `name": "value"` -> `"name": "value"`
     const missingOpeningQuoteOnPropertyPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([^,}\]]+)/g;
@@ -2031,27 +1832,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 38: Fix typo "orgain" -> "org" in package names =====
-    // Pattern: `"orgain.apache.fineract...` -> `"org.apache.fineract...`
-    const orgainTypoPattern = /"orgain\.apache\.([a-zA-Z0-9_.]+)"/g;
-    sanitized = sanitized.replace(orgainTypoPattern, (match, packagePath, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
-        return match;
-      }
-
-      hasChanges = true;
-      const packagePathStr = typeof packagePath === "string" ? packagePath : "";
-      if (diagnostics.length < 10) {
-        diagnostics.push(
-          `Fixed typo in package name: orgain.apache.${packagePathStr} -> org.apache.${packagePathStr}`,
-        );
-      }
-      return `"org.apache.${packagePathStr}"`;
-    });
-
     // ===== Pattern 39: Remove minus signs before array elements =====
-    // Pattern: `-"org.apache.fineract...",` -> `"org.apache.fineract...",`
+    // Pattern: `-"stringValue",` -> `"stringValue",`
     const minusSignBeforeArrayElementPattern = /([}\],]|\n|^)(\s*)-\s*("([^"]+)"\s*,)/g;
     sanitized = sanitized.replace(
       minusSignBeforeArrayElementPattern,
@@ -2083,8 +1865,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 40: Fix missing quotes on property names (codeSmells: -> "codeSmells":) =====
-    // Pattern: `codeSmells: [` -> `"codeSmells": [`
+    // ===== Pattern 40: Fix missing quotes on property names =====
+    // Pattern: `propertyName: [` -> `"propertyName": [`
     const missingQuotesOnPropertyPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\[|{)/g;
     sanitized = sanitized.replace(
@@ -2194,7 +1976,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 13: Remove asterisk before property names =====
-    // Pattern: `* "purpose":` -> `"purpose":`
+    // Pattern: `* "propertyName":` -> `"propertyName":`
     // This handles markdown list item markers that shouldn't be in JSON
     const asteriskBeforePropertyPattern =
       /([}\],]|\n|^)(\s*)\*\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
@@ -2399,7 +2181,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 43: Fix stray text "stop" before string values in arrays =====
-    // Pattern: `stop"org.apache.commons.lang3.BooleanUtils",` -> `"org.apache.commons.lang3.BooleanUtils",`
+    // Pattern: `stop"stringValue",` -> `"stringValue",`
     const stopBeforeStringPattern = /([}\],]|\n|^)(\s*)stop"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       stopBeforeStringPattern,
@@ -2501,8 +2283,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 46: Fix missing opening quotes and commas before strings =====
-    // Pattern: `Src/main/java/...",` -> `"Src/main/java/...",`
-    // Also handles: `namespace": "org.apache..."` -> `"namespace": "org.apache..."`
+    // Pattern: `UnquotedStringValue",` -> `"UnquotedStringValue",`
+    // Handles cases where strings in arrays are missing opening quotes
     const missingQuoteAndCommaBeforeStringPattern =
       /([}\],]|\n|^)(\s*)([A-Z][a-zA-Z0-9_./]+)"\s*,/g;
     sanitized = sanitized.replace(
@@ -2538,7 +2320,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 47: Fix malformed property names with spaces/extra chars =====
-    // Pattern: `"name A": "uriInfo"` -> `"name": "uriInfo"`
+    // Pattern: `"propertyName A": "value"` -> `"propertyName": "value"`
     // Also handles: `"name A":`, `"property B":`
     const malformedPropertyNameWithSpacePattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+[A-Z]"\s*:\s*"([^"]+)"/g;
@@ -2572,9 +2354,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 48: Fix non-ASCII characters in string values =====
-    // Pattern: `"org.apache.fineract.interoperation একজন.data.InteropQuoteRequestData"` ->
-    //          `"org.apache.fineract.interoperation.data.InteropQuoteRequestData"`
-    // This removes non-ASCII characters that appear in package names or other identifiers
+    // Pattern: `"stringValueWithNonASCII"` -> `"stringValueWithoutNonASCII"`
+    // This removes non-ASCII characters that appear in identifiers or package-like strings
     // eslint-disable-next-line no-control-regex
     const nonAsciiInStringValuePattern = /"([^"]*)([^\x00-\x7F]+)([^"]*)"/g;
     sanitized = sanitized.replace(
@@ -2638,8 +2419,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 50: Fix stray text after array elements =====
-    // Pattern: `"org.apache.fineract...",\nwhich_is_implemented_by_this_class",` ->
-    //          `"org.apache.fineract...",`
+    // Pattern: `"stringValue",\nstrayText",` -> `"stringValue",`
     const strayTextAfterArrayElementPattern = /"([^"]+)"\s*,\s*\n\s*([a-z_]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextAfterArrayElementPattern,
@@ -2736,11 +2516,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 53: Fix missing opening quotes with stray text before strings in arrays =====
-    // Pattern: `body.fineract.portfolio...",` -> `"org.apache.fineract.portfolio...",`
-    // Also handles: `semver "lombok...",` -> `"lombok...",`
-    // Pattern: `body.` or `semver ` followed by a string (with or without opening quote)
+    // Pattern: `strayPrefix.stringValue",` -> `"stringValue",`
+    // Handles cases where stray text appears before a string missing its opening quote
     const missingQuoteWithStrayTextPattern =
-      /([}\],]|\n|^)(\s*)(body\.|semver\s+)([a-zA-Z][a-zA-Z0-9_.]*)"\s*,/g;
+      /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]*\.)([a-zA-Z][a-zA-Z0-9_.]*)"\s*,/g;
     sanitized = sanitized.replace(
       missingQuoteWithStrayTextPattern,
       (match, delimiter, whitespace, strayPrefix, stringValue, offset: unknown) => {
@@ -2763,18 +2542,12 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const stringValueStr = typeof stringValue === "string" ? stringValue : "";
           const strayPrefixStr = typeof strayPrefix === "string" ? strayPrefix : "";
 
-          // If it's "body.fineract..." try to fix it to "org.apache.fineract..."
-          let fixedValue = stringValueStr;
-          if (strayPrefixStr.startsWith("body.") && stringValueStr.startsWith("fineract.")) {
-            fixedValue = `org.apache.${stringValueStr}`;
-          }
-
           if (diagnostics.length < 10) {
             diagnostics.push(
-              `Removed stray text '${strayPrefixStr.trim()}' and fixed missing opening quote: ${strayPrefixStr}${stringValueStr}" -> "${fixedValue}"`,
+              `Removed stray text '${strayPrefixStr.trim()}' and fixed missing opening quote: ${strayPrefixStr}${stringValueStr}" -> "${stringValueStr}"`,
             );
           }
-          return `${delimiterStr}${whitespaceStr}"${fixedValue}",`;
+          return `${delimiterStr}${whitespaceStr}"${stringValueStr}",`;
         }
 
         return match;
@@ -2782,9 +2555,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Pattern 53b: Handle stray text before already-quoted strings
-    // Pattern: `semver "lombok...",` -> `"lombok...",`
+    // Pattern: `strayPrefix "stringValue",` -> `"stringValue",`
     // Note: 'ar' prefix is handled earlier in the pipeline
-    const strayTextBeforeQuotedStringPattern = /([}\],]|\n|^)(\s*)(semver\s+|body\.)"([^"]+)"\s*,/g;
+    const strayTextBeforeQuotedStringPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]*\s+)"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextBeforeQuotedStringPattern,
       (match, delimiter, whitespace, strayPrefix, stringValue, offset: unknown) => {
@@ -2818,8 +2592,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 54: Fix missing property names =====
-    // Pattern: `ce": "REST"` -> `"mechanism": "REST"`
-    // Also handles: `ce": "String"` -> `"type": "String"` (context-dependent)
+    // Pattern: `ce": "value"` -> `"name": "value"`
     // Also handles: `{_PARAM_TABLE":` -> `{"name": "PARAM_TABLE":`
     const missingPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,3}|_[A-Z_]+)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
@@ -2841,12 +2614,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const fragmentStr = typeof fragment === "string" ? fragment : "";
           const valueStr = typeof value === "string" ? value : "";
 
-          // Try to infer the property name from context
-          // Look at nearby properties to guess what this should be
-          let inferredProperty = "name"; // default
+          // Use a generic default property name
+          const inferredProperty = "name"; // default
           if (fragmentStr.startsWith("_") && fragmentStr.length > 1) {
-            // Handle cases like `_PARAM_TABLE"` -> `"name": "API_PARAM_TABLE"`
-            inferredProperty = "name";
+            // Handle cases like `_PARAM_TABLE"` -> `"name": "PARAM_TABLE"`
             const fixedValue = fragmentStr.substring(1); // Remove leading underscore
             hasChanges = true;
             const delimiterStr = typeof delimiter === "string" ? delimiter : "";
@@ -2857,18 +2628,6 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
               );
             }
             return `${delimiterStr}${whitespaceStr}"${inferredProperty}": "${fixedValue}"`;
-          } else if (valueStr === "REST" || valueStr === "HTTP" || valueStr === "SOAP") {
-            inferredProperty = "mechanism";
-          } else if (
-            valueStr === "String" ||
-            valueStr === "Long" ||
-            valueStr === "Integer" ||
-            valueStr === "Boolean"
-          ) {
-            inferredProperty = "type";
-          } else if (fragmentStr === "ce" && valueStr.length > 10) {
-            // "ce" might be a fragment of "mechanism" or "name"
-            inferredProperty = "mechanism";
           }
 
           hasChanges = true;
@@ -3186,7 +2945,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 62: Fix truncated text patterns with markers like `cyclomaticComplexity: 1,_OF_CODE` =====
+    // ===== Pattern 62: Fix truncated text patterns with markers =====
     // Pattern: `property: value,_OF_CODE` -> `property: value,`
     // This handles cases where text is truncated with patterns like `_OF_CODE`, `_CODE`, etc.
     // Note: Pattern 17 already handles general truncated text like "so many methods..."
@@ -3396,8 +3155,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 68: Fix missing opening quote before property values =====
-    // Pattern: `post": "jakarta.ws.rs.POST"` -> `"post": "jakarta.ws.rs.POST"`
-    // Also handles: `"post": "jakarta.ws.rs.POST"` in arrays -> `"jakarta.ws.rs.POST"` (just the value)
+    // Pattern: `propertyName": "value"` -> `"propertyName": "value"`
+    // Also handles property-like structures in arrays -> converts to just the value
     // This handles cases where property names are missing the opening quote
     // Also handles cases in arrays where property-like structures appear (even if quote was already added)
     const missingOpeningQuoteBeforePropertyPattern =
@@ -3534,31 +3293,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return "";
     });
 
-    // ===== Pattern 70: Fix missing dots in package names (orgfineract -> org.apache.fineract) =====
-    // Pattern: `orgfineract` -> `org.apache.fineract`
-    // This handles cases where "org.apache" is merged into "orgfineract"
-    const missingDotInOrgFineractPattern = /"orgfineract\.([a-zA-Z0-9_.]+)"/g;
-    sanitized = sanitized.replace(
-      missingDotInOrgFineractPattern,
-      (match, packagePath, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
-
-        hasChanges = true;
-        const packagePathStr = typeof packagePath === "string" ? packagePath : "";
-        if (diagnostics.length < 10) {
-          diagnostics.push(
-            `Fixed missing dots in package: orgfineract.${packagePathStr} -> org.apache.fineract.${packagePathStr}`,
-          );
-        }
-        return `"org.apache.fineract.${packagePathStr}"`;
-      },
-    );
-
     // ===== Pattern 71: Fix stray text like "trib" at end of property =====
-    // Pattern: `"externalReferences": [\n...],\ntrib` -> `"externalReferences": [\n...],`
+    // Pattern: `"propertyName": [\n...],\ntrib` -> `"propertyName": [\n...],`
     const strayTextAtEndPattern = /([}\],])\s*\n\s*(trib[a-z-]*)(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
       strayTextAtEndPattern,
@@ -3578,102 +3314,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 72: Fix missing opening quote for strings starting with "to." =====
-    // Pattern: `to.loan.transaction...",` -> `"to.loan.transaction...",`
-    // This is a specific case for package-like strings missing quotes
-    const missingQuoteToPattern = /([}\],]|\n|^)(\s*)(to\.[a-zA-Z0-9_.]+)"\s*,/g;
-    sanitized = sanitized.replace(
-      missingQuoteToPattern,
-      (match, delimiter, whitespace, unquotedValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
-
-        // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
-        let bracketDepth = 0;
-        let braceDepth = 0;
-        let inString = false;
-        let escape = false;
-        for (let i = beforeMatch.length - 1; i >= 0; i--) {
-          const char = beforeMatch[i];
-          if (escape) {
-            escape = false;
-            continue;
-          }
-          if (char === "\\") {
-            escape = true;
-            continue;
-          }
-          if (char === '"') {
-            inString = !inString;
-            continue;
-          }
-          if (!inString) {
-            if (char === "]") {
-              bracketDepth++;
-            } else if (char === "[") {
-              bracketDepth--;
-              if (bracketDepth >= 0 && braceDepth <= 0) {
-                hasChanges = true;
-                const delimiterStr = typeof delimiter === "string" ? delimiter : "";
-                const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-                const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
-                if (diagnostics.length < 10) {
-                  diagnostics.push(
-                    `Fixed missing opening quote: ${unquotedValueStr}" -> "${unquotedValueStr}"`,
-                  );
-                }
-                return `${delimiterStr}${whitespaceStr}"${unquotedValueStr}",`;
-              }
-            } else if (char === "}") {
-              braceDepth++;
-            } else if (char === "{") {
-              braceDepth--;
-            }
-          }
-        }
-
-        return match;
-      },
-    );
-
-    // ===== Pattern 73: Fix hyphens instead of dots in package names =====
-    // Pattern: `jakarta.ws-rs.Path` -> `jakarta.ws.rs.Path`
-    // This handles cases where hyphens are used instead of dots in package names
-    const hyphenInPackagePattern = /"([a-zA-Z0-9_.]+)-([a-zA-Z0-9_]+)\.([a-zA-Z0-9_.]+)"/g;
-    sanitized = sanitized.replace(
-      hyphenInPackagePattern,
-      (match, before, hyphenated, after, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
-
-        // Only fix if it looks like a package name (before has a dot, indicating it's a package)
-        const beforeStr = typeof before === "string" ? before : "";
-        const afterStr = typeof after === "string" ? after : "";
-        // Check if before has a dot (package-like) OR if after has a dot (also package-like)
-        if (beforeStr.includes(".") || afterStr.includes(".")) {
-          hasChanges = true;
-          const hyphenatedStr = typeof hyphenated === "string" ? hyphenated : "";
-          if (diagnostics.length < 10) {
-            diagnostics.push(
-              `Fixed hyphen in package name: ${beforeStr}-${hyphenatedStr}.${afterStr} -> ${beforeStr}.${hyphenatedStr}.${afterStr}`,
-            );
-          }
-          return `"${beforeStr}.${hyphenatedStr}.${afterStr}"`;
-        }
-
-        return match;
-      },
-    );
-
     // ===== Pattern 74: Fix missing opening quote before property name =====
-    // Pattern: `- "externalReferences"` -> `"externalReferences"`
-    // Pattern: `name":` -> `"name":`
-    // Pattern: `se":` -> `"purpose":` (common truncation of "purpose")
+    // Pattern: `- "propertyName"` -> `"propertyName"`
+    // Pattern: `propertyName":` -> `"propertyName":`
     // This handles cases where property names are missing the opening quote
     // First handle the case where there's a dash and quote before the property name
     const dashQuotePropertyPattern = /([}\],]|\n|^)(\s*)-\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
@@ -3741,18 +3384,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-          let propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const hasQuote = optionalQuote === '"';
-
-          // Fix common truncations (regardless of whether quote is present)
-          if (propertyNameStr === "se") {
-            // "se" is likely a truncation of "purpose"
-            propertyNameStr = "purpose";
-            if (diagnostics.length < 10) {
-              diagnostics.push('Fixed truncated property name: "se": -> "purpose":');
-            }
-            return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
-          }
 
           // If quote is missing, add it
           if (!hasQuote) {
@@ -3801,8 +3434,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 65: Fix missing quotes on property names followed by numeric or boolean values =====
-    // Pattern: `linesOfCode: 14,` -> `"linesOfCode": 14,`
-    // Also handles: `cyclomaticComplexity: 1,` -> `"cyclomaticComplexity": 1,`
+    // Pattern: `propertyName: 14,` -> `"propertyName": 14,`
+    // Also handles: `propertyName: true,` -> `"propertyName": true,`
     const missingQuotesOnPropertyWithNumericPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\d+|true|false|null)(\s*[,}])/g;
     sanitized = sanitized.replace(
@@ -3840,9 +3473,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 66: Fix duplicated property names like cyclcyclomaticComplexity =====
-    // Pattern: `cyclcyclomaticComplexity` -> `cyclomaticComplexity`
-    // Also handles: `returnreturnType` -> `returnType`, `namename` -> `name`
+    // ===== Pattern 66: Fix duplicated property names =====
+    // Pattern: `prefixprefixPropertyName` -> `prefixPropertyName`
+    // Handles cases where a property name prefix is duplicated
     const duplicatedPropertyNamePattern = /"([a-zA-Z_$]+)\1([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       duplicatedPropertyNamePattern,
@@ -3877,7 +3510,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 75: Remove asterisks before property names (enhanced) =====
-    // Pattern: `* "purpose":` -> `"purpose":`
+    // Pattern: `* "propertyName":` -> `"propertyName":`
     // Handles cases where LLM adds asterisks before property names
     // This is an enhanced version that handles cases Pattern 13 might miss (single space after asterisk)
     const asteriskBeforePropertyPattern75 = /(\n\s*)\*\s("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
@@ -3938,19 +3571,6 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 77: Enhance missing dot pattern for orgapache.fineract =====
-    // Pattern: `"orgapache.fineract` -> `"org.apache.fineract`
-    // Extends Pattern 1 to handle cases where the dot is completely missing
-    // Package names are always in quoted strings, so we can apply this directly
-    const missingDotPattern77 = /"orgapache\.([a-z]+)\./g;
-    sanitized = sanitized.replace(missingDotPattern77, (_match, rest) => {
-      hasChanges = true;
-      if (diagnostics.length < 10) {
-        diagnostics.push(`Fixed missing dot: orgapache.${rest} -> org.apache.${rest}`);
-      }
-      return `"org.apache.${rest}.`;
-    });
-
     // ===== Pattern 78: Fix corrupted property assignments =====
     // Pattern: `"name":alue": "LocalDate"` -> `"name": "transferDate", "type": "LocalDate"`
     // This is a more specific case where a property name got corrupted
@@ -3998,24 +3618,18 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           return match;
         }
 
-        // Common property names that might have typos
-        const validPropertyNames = [
-          "name",
-          "type",
-          "purpose",
-          "description",
-          "parameters",
-          "returntype",
-          "cyclomaticcomplexity",
-          "linesofcode",
-        ];
+        // Check if propertyPart looks like a valid property name (basic validation)
+        // We'll accept any property name that doesn't contain spaces in the first part
 
         const propertyPartStr = typeof propertyPart === "string" ? propertyPart : "";
         const extraWordStr = typeof extraWord === "string" ? extraWord : "";
-        const lowerPropertyPart = propertyPartStr.toLowerCase();
 
-        // Check if propertyPart is a valid property name
-        if (validPropertyNames.includes(lowerPropertyPart)) {
+        // Check if propertyPart looks like a valid property name (no spaces, reasonable length)
+        if (
+          propertyPartStr.length > 0 &&
+          propertyPartStr.length <= 50 &&
+          !propertyPartStr.includes(" ")
+        ) {
           hasChanges = true;
           if (diagnostics.length < 10) {
             diagnostics.push(
@@ -4040,13 +3654,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       const restStr = typeof rest === "string" ? rest : "";
       const fullMatch = `${prefixStr}_${restStr}`;
 
-      // Check if it's likely a package name (contains dots or common prefixes)
-      // If rest contains dots, it's definitely a package name
-      // Also check if prefix is a common package prefix
-      const isPackageName =
-        restStr.includes(".") ||
-        /^(io|org|com|jakarta|javax|java|net)$/.test(prefixStr) ||
-        (prefixStr === "io" && restStr.startsWith("swagger"));
+      // Check if it's likely a package name (contains dots)
+      // If rest contains dots, it's likely a package name where underscore should be a dot
+      const isPackageName = restStr.includes(".");
 
       if (isPackageName) {
         hasChanges = true;
@@ -4094,8 +3704,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 81.5: Fix missing colon after property name =====
-    // Pattern: `"parameters []"` or `"parameters {}"` -> `"parameters": []` or `"parameters": {}`
-    // Also handles with comma: `"parameters [],"` -> `"parameters": [],`
+    // Pattern: `"propertyName []"` or `"propertyName {}"` -> `"propertyName": []` or `"propertyName": {}`
+    // Also handles with comma: `"propertyName [],"` -> `"propertyName": [],`
     const missingColonAfterPropertyPattern815 = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+(\[|\{)/g;
     sanitized = sanitized.replace(
       missingColonAfterPropertyPattern815,
@@ -4218,54 +3828,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return "";
     });
 
-    // ===== Pattern 84: Fix corrupted Unicode text in package names =====
-    // Pattern: Fix Unicode corruption like रेशन in package names
-    // This removes non-ASCII characters that appear in package names
-    const unicodeCorruptionPattern = /"org\.apache\.fineract\.[^"]*[\u0080-\uFFFF]+[^"]*"/g;
-    sanitized = sanitized.replace(unicodeCorruptionPattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
-        return match;
-      }
-      // Remove Unicode characters and reconstruct the package name
-      const cleaned = match.replace(/[\u0080-\uFFFF]+/g, "");
-      hasChanges = true;
-      if (diagnostics.length < 10) {
-        diagnostics.push(`Fixed Unicode corruption in package name: ${match.substring(0, 50)}...`);
-      }
-      return cleaned;
-    });
-
-    // ===== Pattern 85: Fix missing slashes in URLs/paths =====
-    // Pattern: Fix missing slashes like /v1interoperation -> /v1/interoperation
-    const missingSlashPattern = /"(\/v\d+)([a-z]+)(\/[^"]+)"/g;
-    sanitized = sanitized.replace(
-      missingSlashPattern,
-      (match, prefix, word, rest, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
-        // Only fix if it looks like a path (has more slashes after)
-        const prefixStr = typeof prefix === "string" ? prefix : "";
-        const wordStr = typeof word === "string" ? word : "";
-        const restStr = typeof rest === "string" ? rest : "";
-        if (restStr && restStr.length > 0) {
-          hasChanges = true;
-          const fixed = `"${prefixStr}/${wordStr}${restStr}"`;
-          if (diagnostics.length < 10) {
-            diagnostics.push(
-              `Fixed missing slash in path: ${prefixStr}${wordStr} -> ${prefixStr}/${wordStr}`,
-            );
-          }
-          return fixed;
-        }
-        return match;
-      },
-    );
-
     // ===== Pattern 86: Fix wrong quote characters (non-ASCII quotes) =====
-    // Pattern: Fix non-ASCII quotes like ʻlinesOfCode" -> "linesOfCode"
+    // Pattern: Fix non-ASCII quotes like ʻpropertyName" -> "propertyName"
     // Common wrong quotes: ʻ (U+02BB), ' (U+2018), ' (U+2019), " (U+201C), " (U+201D)
     const wrongQuotePattern = /([ʻ''""])([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
@@ -4287,9 +3851,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // ===== Pattern 87: Fix missing opening quotes in array elements =====
-    // Pattern: Fix patterns like ax"org.apache... or pache.fineract... in arrays
+    // Pattern: Fix patterns like ax"stringValue... or prefix.stringValue... in arrays
     // This handles cases where part of the string is missing before the quote
-    // Match either: [a-z]+\. (like org.) or \. (like .fineract)
+    // Match either: [a-z]+\. (like prefix.) or \. (like .suffix)
     const missingOpeningQuoteInArrayPattern87 =
       /(\[|,\s*|\n\s*)(\s*)([a-z]{1,5})"((?:[a-z]+\.|\.)[a-z]+\.[a-z]+[^"]*)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
@@ -4345,16 +3909,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const packageNameStr = typeof packageName === "string" ? packageName : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-        // Try to reconstruct the full package name
-        // Common patterns: "ax" + "org.apache..." -> "org.apache..."
-        // "pache" + ".fineract..." -> "org.apache.fineract..."
+        // Remove the prefix text and use the package name as-is
+        // Generic case: if prefix is short and package name contains dots, it's likely a package name
         let fullPackageName = packageNameStr;
-        if (prefixTextStr === "ax" && packageNameStr.startsWith("org.")) {
-          // Already correct, just remove prefix
-          fullPackageName = packageNameStr;
-        } else if (prefixTextStr === "pache" && packageNameStr.startsWith(".fineract")) {
-          fullPackageName = `org.apache${packageNameStr}`;
-        } else if (prefixTextStr.length <= 5 && packageNameStr.includes(".")) {
+        if (prefixTextStr.length <= 5 && packageNameStr.includes(".")) {
           // Generic case: remove the prefix and use the package name
           fullPackageName = packageNameStr;
         } else {
@@ -4470,53 +4028,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 89: Fix typos like orgaho.apache -> org.apache =====
-    // Pattern: Fix typos in org.apache patterns
-    const orgahoTypoPattern = /"orgaho\.apache\./g;
-    sanitized = sanitized.replace(orgahoTypoPattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
-        return match;
-      }
-      hasChanges = true;
-      if (diagnostics.length < 10) {
-        diagnostics.push("Fixed typo in package reference: orgaho.apache -> org.apache");
-      }
-      return '"org.apache.';
-    });
-
-    // ===== Pattern 88: Fix property name typos in quoted properties =====
-    // Pattern: Fix typos like "cyclocomplexity" -> "cyclomaticComplexity"
-    const propertyTypoPatterns: [RegExp, string][] = [
-      [/"cyclocomplexity"\s*:/gi, '"cyclomaticComplexity":'],
-      [/"cyclometiccomplexity"\s*:/gi, '"cyclomaticComplexity":'],
-      [/"cyclometicComplexity"\s*:/gi, '"cyclomaticComplexity":'],
-    ];
-
-    for (const [pattern, replacement] of propertyTypoPatterns) {
-      const beforeReplace = sanitized;
-      sanitized = sanitized.replace(pattern, (match) => {
-        // Property names are always outside strings in valid JSON, so no need to check
-        hasChanges = true;
-        if (diagnostics.length < 10) {
-          diagnostics.push(`Fixed property name typo: ${match.trim()} -> ${replacement.trim()}`);
-        }
-        return replacement;
-      });
-      // Check if replacement actually changed anything
-      if (sanitized !== beforeReplace) {
-        hasChanges = true;
-      }
-    }
-
     // ===== Pattern 89: Fix malformed JSON fragments in string values =====
     // Pattern: Detect and escape unescaped quotes or fix malformed JSON-like content in descriptions
     // This handles cases where descriptions contain JSON-like content that breaks parsing
     // Pattern: Look for unescaped quotes in string values that might break JSON
     // We'll be conservative and only fix obvious issues
 
-    // Fix duplicate property names in descriptions (e.g., `"purpose": "purpose": "text"` -> `"purpose": "text"`)
-    // Also handles cases like `"purpose": "purpose": "This method..."` where the property name is duplicated
+    // Fix duplicate property names in descriptions (e.g., `"propertyName": "propertyName": "text"` -> `"propertyName": "text"`)
+    // Also handles cases where the property name is duplicated in the value
     const duplicatePropertyInDescriptionPattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"\1"\s*:\s*"([^"]*)"(\s*[,}])/g;
     sanitized = sanitized.replace(
@@ -4551,8 +4070,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Fix malformed JSON in descriptions where multiple properties are concatenated
-    // Pattern: `"purpose": "purpose": "text", "parameters": [], "returnType": "void", ...`
-    // This handles cases where the entire method object is concatenated into a single string value
+    // Pattern: `"propertyName": "propertyName": "text", "anotherProperty": [], ...`
+    // This handles cases where JSON structure is concatenated into a single string value
     // We need to escape the inner quotes and structure to make it a valid JSON string
     const concatenatedPropertiesInStringPattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]*)"(\s*,\s*"[^"]*"\s*:\s*[^,}]+)*(\s*[,}])/g;
@@ -4723,7 +4242,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     }
 
     // ===== Pattern 90: Fix extra characters before array elements =====
-    // Pattern: `e    "org.apache...`, `g    "org.apache...`, `ax      "Staff",`
+    // Pattern: `e    "stringValue",` `g    "stringValue",` `ax      "value",`
     // Handles cases where single or multiple characters (1-4) appear before quoted strings in arrays
     // Match ,\n or just \n as delimiter to handle both cases
     const extraCharsBeforeArrayElementPattern =
@@ -4777,30 +4296,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 91: Fix Unicode special characters in package names =====
-    // Pattern: `orgʻapache` -> `org.apache` (handles Unicode character ʻ which is U+02BB)
-    // Also handles other similar Unicode characters that might appear in package names
-    const unicodeCharInPackagePattern =
-      /"org([\u02BB\u02BC\u02BD\u02BE\u02BF\u02C0-\u02FF]|[\u0300-\u036F])apache\./g;
-    sanitized = sanitized.replace(
-      unicodeCharInPackagePattern,
-      (match, unicodeChar, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
-          return match;
-        }
-        hasChanges = true;
-        if (diagnostics.length < 10) {
-          diagnostics.push(
-            `Fixed Unicode character in package name: org${unicodeChar}apache -> org.apache`,
-          );
-        }
-        return '"org.apache.';
-      },
-    );
-
     // ===== Pattern 92: Fix corrupted property values with extra text after commas =====
-    // Pattern: `"cyclomaticComplexity": 3, a` -> `"cyclomaticComplexity": 3,`
+    // Pattern: `"propertyName": value, a` -> `"propertyName": value,`
     // Handles cases where extra text appears after a property value and comma
     const corruptedPropertyValuePattern = /"([^"]+)"\s*:\s*([^,}]+)\s*,\s*([a-z])\s*([,}\]]|\n)/g;
     sanitized = sanitized.replace(

@@ -158,7 +158,6 @@ function mergeDatabaseIntegrationObjects(objects: unknown[]): Record<string, unk
   return result;
 }
 
-
 /**
  * Fixes missing required fields in publicMethods objects.
  *
@@ -232,4 +231,3 @@ export function fixMissingRequiredFields(parsed: unknown): unknown {
 
   return result as unknown;
 }
-

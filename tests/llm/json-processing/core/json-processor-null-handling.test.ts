@@ -7,10 +7,12 @@ import {
 import { z } from "zod";
 
 // Define schema locally for testing (matches the structure of BomDependency)
+// Note: groupId is .optional() not .nullable().optional() so that null values fail validation
+// and triggers the convertNullToUndefined transform, which converts null to undefined
 const bomDependencySchema = z
   .object({
     name: z.string(),
-    groupId: z.string().nullable().optional(),
+    groupId: z.string().optional(),
     versions: z.array(z.string()),
     hasConflict: z.boolean(),
     scopes: z.array(z.string()).optional(),

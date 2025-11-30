@@ -77,4 +77,3 @@ export function fixCommonPropertyNameTypos(
 
   return result;
 }
-
