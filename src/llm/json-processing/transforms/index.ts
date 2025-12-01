@@ -1,7 +1,9 @@
 /**
  * Barrel export for all post-parse transformations.
- * Provides a unified import point for generic transforms.
+ * Provides a unified import point for transforms.
  */
 
-// Generic transforms (schema-agnostic)
-export * from "./generic/index.js";
+export { convertNullToUndefined } from "./convert-null-to-undefined.js";
+export { unwrapJsonSchemaStructure } from "./schema-format-transforms.js";
+export { fixCommonPropertyNameTypos } from "./property-typo-fixes.js";
+export { coerceStringToArray } from "./coerce-string-to-array.js";

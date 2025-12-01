@@ -1,4 +1,4 @@
-import { unifiedSyntaxSanitizer } from "../../../../../src/llm/json-processing/sanitizers/index.js";
+import { unifiedSyntaxSanitizer } from "../../../../src/llm/json-processing/sanitizers/index.js";
 
 /**
  * Additional tests for generic patterns added in refactoring:

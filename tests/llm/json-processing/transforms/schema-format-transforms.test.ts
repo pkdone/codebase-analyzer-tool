@@ -1,4 +1,4 @@
-import { unwrapJsonSchemaStructure } from "../../../../../src/llm/json-processing/transforms/generic/schema-format-transforms.js";
+import { unwrapJsonSchemaStructure } from "../../../../src/llm/json-processing/transforms/schema-format-transforms.js";
 
 describe("schema-format-transforms", () => {
   describe("unwrapJsonSchemaStructure", () => {

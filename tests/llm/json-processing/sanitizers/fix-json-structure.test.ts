@@ -1,4 +1,4 @@
-import { fixJsonStructure } from "../../../../../src/llm/json-processing/sanitizers/index.js";
+import { fixJsonStructure } from "../../../../src/llm/json-processing/sanitizers/index.js";
 
 describe("fixJsonStructure", () => {
   describe("post-processing fixes", () => {

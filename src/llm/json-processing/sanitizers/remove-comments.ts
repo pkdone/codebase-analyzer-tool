@@ -1,5 +1,5 @@
-import { Sanitizer, SanitizerResult } from "../sanitizers-types";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { Sanitizer, SanitizerResult } from "./sanitizers-types";
+import { logOneLineWarning } from "../../../common/utils/logging";
 
 /**
  * Sanitizer that removes JavaScript-style comments from JSON-like text.

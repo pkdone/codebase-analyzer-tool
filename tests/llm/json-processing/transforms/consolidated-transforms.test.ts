@@ -1,6 +1,6 @@
-import { convertNullToUndefined } from "../../../../src/llm/json-processing/transforms/generic/convert-null-to-undefined.js";
-import { unwrapJsonSchemaStructure } from "../../../../src/llm/json-processing/transforms/generic/schema-format-transforms.js";
-import { fixCommonPropertyNameTypos } from "../../../../src/llm/json-processing/transforms/generic/property-typo-fixes.js";
+import { convertNullToUndefined } from "../../../../src/llm/json-processing/transforms/convert-null-to-undefined.js";
+import { unwrapJsonSchemaStructure } from "../../../../src/llm/json-processing/transforms/schema-format-transforms.js";
+import { fixCommonPropertyNameTypos } from "../../../../src/llm/json-processing/transforms/property-typo-fixes.js";
 
 describe("Consolidated Post-Parse Transforms", () => {
   describe("convertNullToUndefined", () => {

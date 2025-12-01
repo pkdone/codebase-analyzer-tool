@@ -1,4 +1,4 @@
-import { coerceStringToArray } from "../../../../../src/llm/json-processing/transforms/generic/coerce-string-to-array.js";
+import { coerceStringToArray } from "../../../../src/llm/json-processing/transforms/coerce-string-to-array.js";
 
 describe("coerceStringToArray", () => {
   describe("converting parameters string to empty array", () => {

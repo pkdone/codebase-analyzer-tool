@@ -1,5 +1,5 @@
-import { fixBinaryCorruptionPatterns } from "../../../../../src/llm/json-processing/sanitizers/index.js";
-import { SANITIZATION_STEP } from "../../../../../src/llm/json-processing/constants/sanitization-steps.config.js";
+import { fixBinaryCorruptionPatterns } from "../../../../src/llm/json-processing/sanitizers/index.js";
+import { SANITIZATION_STEP } from "../../../../src/llm/json-processing/constants/sanitization-steps.config.js";
 
 describe("fixBinaryCorruptionPatterns", () => {
   describe("binary corruption markers", () => {

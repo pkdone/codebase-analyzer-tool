@@ -1,4 +1,4 @@
-import { fixHeuristicJsonErrors } from "../../../../../src/llm/json-processing/sanitizers/index.js";
+import { fixHeuristicJsonErrors } from "../../../../src/llm/json-processing/sanitizers/index.js";
 
 describe("fixHeuristicJsonErrors", () => {
   describe("Pattern 3: Text appearing outside string values", () => {

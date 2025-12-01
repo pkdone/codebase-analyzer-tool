@@ -8,7 +8,7 @@ import {
   unwrapJsonSchemaStructure,
   fixCommonPropertyNameTypos,
   coerceStringToArray,
-} from "../../../../src/llm/json-processing/transforms/generic/index.js";
+} from "../../../../src/llm/json-processing/transforms/index.js";
 import * as transforms from "../../../../src/llm/json-processing/transforms/index.js";
 
 describe("Transform Barrel Exports", () => {

@@ -4,7 +4,7 @@ import {
   fixCommonPropertyNameTypos,
   coerceStringToArray,
   unwrapJsonSchemaStructure,
-} from "../transforms/generic/index.js";
+} from "../transforms/index.js";
 import {
   fixJsonStructureAndNoise,
   fixJsonSyntax,

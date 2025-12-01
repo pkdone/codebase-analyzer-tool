@@ -1,4 +1,4 @@
-import { fixCommonPropertyNameTypos } from "../../../../../src/llm/json-processing/transforms/generic/property-typo-fixes.js";
+import { fixCommonPropertyNameTypos } from "../../../../src/llm/json-processing/transforms/property-typo-fixes.js";
 
 describe("fixCommonPropertyNameTypos", () => {
   describe("fixing type_ to type", () => {

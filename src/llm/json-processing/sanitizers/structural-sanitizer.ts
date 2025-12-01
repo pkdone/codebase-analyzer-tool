@@ -1,7 +1,7 @@
-import { Sanitizer, SanitizerResult } from "../sanitizers-types";
-import { CODE_FENCE_MARKERS } from "../../constants/json-processing.config";
-import { CODE_FENCE_REGEXES } from "../../constants/regex.constants";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { Sanitizer, SanitizerResult } from "./sanitizers-types";
+import { CODE_FENCE_MARKERS } from "../constants/json-processing.config";
+import { CODE_FENCE_REGEXES } from "../constants/regex.constants";
+import { logOneLineWarning } from "../../../common/utils/logging";
 
 /**
  * Consolidated structural sanitizer that handles high-level structural issues and noise.

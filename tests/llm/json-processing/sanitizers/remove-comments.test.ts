@@ -1,4 +1,4 @@
-import { removeComments } from "../../../../../src/llm/json-processing/sanitizers/index.js";
+import { removeComments } from "../../../../src/llm/json-processing/sanitizers/index.js";
 
 describe("removeComments", () => {
   describe("single-line comments", () => {

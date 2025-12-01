@@ -1,7 +1,7 @@
-import { Sanitizer, SanitizerResult } from "../sanitizers-types";
-import { DELIMITERS } from "../../constants/json-processing.config";
-import { CONCATENATION_REGEXES } from "../../constants/regex.constants";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { Sanitizer, SanitizerResult } from "./sanitizers-types";
+import { DELIMITERS } from "../constants/json-processing.config";
+import { CONCATENATION_REGEXES } from "../constants/regex.constants";
+import { logOneLineWarning } from "../../../common/utils/logging";
 import {
   PROPERTY_NAME_MAPPINGS,
   PROPERTY_TYPO_CORRECTIONS,
@@ -9,7 +9,7 @@ import {
   NUMERIC_PROPERTIES,
   PACKAGE_NAME_PREFIX_REPLACEMENTS,
   PACKAGE_NAME_TYPO_PATTERNS,
-} from "../../constants/schema-specific-sanitizer.constants";
+} from "../constants/schema-specific-sanitizer.constants";
 
 /**
  * Helper to determine if a position is inside a string literal.

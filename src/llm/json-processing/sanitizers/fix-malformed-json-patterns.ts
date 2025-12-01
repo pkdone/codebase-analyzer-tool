@@ -1,6 +1,6 @@
-import { Sanitizer, SanitizerResult } from "../sanitizers-types";
-import { logOneLineWarning } from "../../../../common/utils/logging";
-import { isInStringAt } from "../../utils/parser-context-utils";
+import { Sanitizer, SanitizerResult } from "./sanitizers-types";
+import { logOneLineWarning } from "../../../common/utils/logging";
+import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
  * Sanitizer that fixes various malformed JSON patterns found in LLM responses.

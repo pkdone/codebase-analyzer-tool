@@ -1,11 +1,11 @@
-import { Sanitizer, SanitizerResult } from "../sanitizers-types";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { Sanitizer, SanitizerResult } from "./sanitizers-types";
+import { logOneLineWarning } from "../../../common/utils/logging";
 import {
   SANITIZATION_STEP_TEMPLATE,
   SANITIZATION_STEP,
-} from "../../constants/sanitization-steps.config";
-import { DELIMITERS } from "../../constants/json-processing.config";
-import { isInArrayContext } from "../../utils/parser-context-utils";
+} from "../constants/sanitization-steps.config";
+import { DELIMITERS } from "../constants/json-processing.config";
+import { isInArrayContext } from "../utils/parser-context-utils";
 
 /**
  * Internal helper: Adds missing commas between object properties on separate lines.

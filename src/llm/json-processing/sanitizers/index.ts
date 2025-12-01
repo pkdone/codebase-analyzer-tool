@@ -2,17 +2,17 @@
  * Barrel export for all JSON sanitizers.
  */
 // Consolidated sanitizers (primary API)
-export { fixJsonStructureAndNoise } from "./generic/structural-sanitizer.js";
-export { fixJsonSyntax } from "./generic/syntax-sanitizer.js";
+export { fixJsonStructureAndNoise } from "./structural-sanitizer.js";
+export { fixJsonSyntax } from "./syntax-sanitizer.js";
 
 // Individual sanitizers (still available for specific use cases)
-export { normalizeCharacters } from "./generic/normalize-characters.js";
-export { removeComments } from "./generic/remove-comments.js";
-export { fixJsonStructure } from "./generic/fix-json-structure.js";
-export { unifiedSyntaxSanitizer } from "./generic/unified-syntax-sanitizer.js";
-export { fixBinaryCorruptionPatterns } from "./generic/fix-binary-corruption-patterns.js";
-export { fixHeuristicJsonErrors } from "./generic/fix-heuristic-json-errors.js";
-export { fixMalformedJsonPatterns } from "./generic/fix-malformed-json-patterns.js";
+export { normalizeCharacters } from "./normalize-characters.js";
+export { removeComments } from "./remove-comments.js";
+export { fixJsonStructure } from "./fix-json-structure.js";
+export { unifiedSyntaxSanitizer } from "./unified-syntax-sanitizer.js";
+export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns.js";
+export { fixHeuristicJsonErrors } from "./fix-heuristic-json-errors.js";
+export { fixMalformedJsonPatterns } from "./fix-malformed-json-patterns.js";
 
 export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types.js";
 
@@ -25,4 +25,4 @@ export {
 } from "../constants/sanitization-steps.config.js";
 
 // Export sanitization analysis utilities
-export { hasSignificantSanitizationSteps } from "./sanitization-analysis.js";
+export { hasSignificantSanitizationSteps } from "../utils/sanitization-analysis.js";

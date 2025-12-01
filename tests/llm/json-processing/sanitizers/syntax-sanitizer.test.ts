@@ -1,4 +1,4 @@
-import { fixJsonSyntax } from "../../../../../src/llm/json-processing/sanitizers/index.js";
+import { fixJsonSyntax } from "../../../../src/llm/json-processing/sanitizers/index.js";
 
 describe("fixJsonSyntax", () => {
   describe("should add missing commas", () => {
