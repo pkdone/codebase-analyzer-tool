@@ -38,7 +38,8 @@ function createValidationFailure<T>(message: string): ValidationResult<T> {
 export function validateJson<T>(
   data: unknown,
   completionOptions: LLMCompletionOptions,
-  loggingEnabled = true,
+  alreadyTransformed: boolean,
+  loggingEnabled: boolean,
 ): ValidationResult<T> {
   if (!data) {
     return createValidationFailure<T>("Data is required for validation and cannot be empty");
@@ -66,7 +67,8 @@ export function validateJson<T>(
     return { success: true, data: validation.data as T };
   } else {
     const issues = validation.error.issues;
-    if (loggingEnabled) logOneLineWarning("Schema validation failed. Validation issues:", issues);
+    if (loggingEnabled && alreadyTransformed)
+      logOneLineWarning("Schema validation failed. Validation issues:", issues);
     return { success: false, issues };
   }
 }

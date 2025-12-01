@@ -1,6 +1,5 @@
 import { convertNullToUndefined } from "../../../../src/llm/json-processing/transforms/generic/convert-null-to-undefined.js";
 import { unwrapJsonSchemaStructure } from "../../../../src/llm/json-processing/transforms/generic/schema-format-transforms.js";
-import { normalizeDatabaseIntegrationArray } from "../../../../src/llm/json-processing/transforms/schema-specific/source-schema-transforms.js";
 import { fixCommonPropertyNameTypos } from "../../../../src/llm/json-processing/transforms/generic/property-typo-fixes.js";
 
 describe("Consolidated Post-Parse Transforms", () => {
@@ -58,38 +57,6 @@ describe("Consolidated Post-Parse Transforms", () => {
         properties: {},
       };
       const result = unwrapJsonSchemaStructure(input);
-      expect(result).toBe(input);
-    });
-  });
-
-  describe("normalizeDatabaseIntegrationArray", () => {
-    it("should convert single-element array to object", () => {
-      const input = {
-        databaseIntegration: [{ mechanism: "SQL", description: "test" }],
-      };
-      const result = normalizeDatabaseIntegrationArray(input);
-      expect(result).toEqual({
-        databaseIntegration: { mechanism: "SQL", description: "test" },
-      });
-    });
-
-    it("should merge multiple elements intelligently", () => {
-      const input = {
-        databaseIntegration: [
-          { mechanism: "SQL", description: "first", tablesAccessed: ["table1"] },
-          { mechanism: "DDL", description: "second", tablesAccessed: ["table2"] },
-        ],
-      };
-      const result = normalizeDatabaseIntegrationArray(input);
-      expect((result as Record<string, unknown>).databaseIntegration).toHaveProperty("mechanism");
-      expect((result as Record<string, unknown>).databaseIntegration).toHaveProperty("description");
-    });
-
-    it("should return unchanged if not an array", () => {
-      const input = {
-        databaseIntegration: { mechanism: "SQL", description: "test" },
-      };
-      const result = normalizeDatabaseIntegrationArray(input);
       expect(result).toBe(input);
     });
   });

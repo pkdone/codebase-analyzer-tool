@@ -13,7 +13,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options);
+        const result = validateJson(content, options, false, true);
 
         expect(result.success).toBe(true);
         if (result.success) {
@@ -29,7 +29,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options);
+        const result = validateJson(content, options, false, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -46,7 +46,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options, false);
+        const result = validateJson(content, options, false, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -69,7 +69,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(null, options);
+        const result = validateJson(null, options, false, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -84,7 +84,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(undefined, options);
+        const result = validateJson(undefined, options, false, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -99,7 +99,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson({}, options);
+        const result = validateJson({}, options, false, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -114,7 +114,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson([], options);
+        const result = validateJson([], options, false, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -130,7 +130,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options);
+        const result = validateJson(content, options, false, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -144,7 +144,7 @@ describe("json-validating", () => {
           outputFormat: LLMOutputFormat.JSON,
         };
 
-        const result = validateJson(content, options);
+        const result = validateJson(content, options, false, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -163,7 +163,7 @@ describe("json-validating", () => {
         };
 
         // We can't easily test logging, but we can verify the function works
-        const result = validateJson(content, options, true);
+        const result = validateJson(content, options, true, true);
 
         expect(result.success).toBe(false);
       });
@@ -176,7 +176,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options, false);
+        const result = validateJson(content, options, false, false);
 
         expect(result.success).toBe(false);
       });

@@ -44,10 +44,11 @@ function logProcessingSteps(
   sanitizationSteps: readonly string[],
   sanitizationDiagnostics: string | undefined,
   transformSteps: readonly string[],
-  loggingEnabled: boolean,
   context: LLMContext,
+  loggingEnabled: boolean,
 ): void {
   if (!loggingEnabled) return;
+
   const messages: string[] = [];
 
   if (hasSignificantSanitizationSteps(sanitizationSteps)) {
@@ -72,18 +73,21 @@ function buildValidationErrorAfterTransforms(
   validationResult: { issues: unknown[] },
   transformSteps: readonly string[],
   context: LLMContext,
+  loggingEnabled: boolean,
 ): JsonProcessingError {
   const validationError = new Error(
     `Schema validation failed after applying transforms: ${JSON.stringify(validationResult.issues)}`,
   );
-  logOneLineWarning(
-    "Parsed successfully and applied transforms but still failed schema validation",
-    {
-      ...context,
-      responseContentParseError: validationError,
-      appliedTransforms: transformSteps.join(", "),
-    },
-  );
+  if (loggingEnabled) {
+    logOneLineWarning(
+      "Parsed successfully and applied transforms but still failed schema validation",
+      {
+        ...context,
+        responseContentParseError: validationError,
+        appliedTransforms: transformSteps.join(", "),
+      },
+    );
+  }
   return new JsonProcessingError(
     JsonProcessingErrorType.VALIDATION,
     buildResourceErrorMessage(
@@ -116,19 +120,23 @@ export function processJson<T = Record<string, unknown>>(
   // Pre-check - ensure content is a string
   if (typeof content !== "string") {
     const contentText = JSON.stringify(content);
-    logOneLineWarning(
-      `LLM response is not a string. Content: ${contentText.substring(0, 100)}`,
-      context,
-    );
+    if (loggingEnabled) {
+      logOneLineWarning(
+        `LLM response is not a string. Content: ${contentText.substring(0, 100)}`,
+        context,
+      );
+    }
     return { success: false, error: createParseError("is not a string", context) };
   }
 
   // Early detection: Check if content has any JSON-like structure at all
   if (!hasJsonLikeStructure(content)) {
-    logOneLineWarning(
-      `Contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
-      { ...context, contentLength: content.length },
-    );
+    if (loggingEnabled) {
+      logOneLineWarning(
+        `Contains no JSON structure (no objects or arrays found). The response appears to be plain text rather than JSON.`,
+        { ...context, contentLength: content.length },
+      );
+    }
     return {
       success: false,
       error: createParseError(
@@ -147,13 +155,15 @@ export function processJson<T = Record<string, unknown>>(
       parseResult.steps.length > 0
         ? `Applied sanitization steps: ${parseResult.steps.join(" -> ")}`
         : "No sanitization steps applied";
-    logOneLineWarning(`Cannot parse JSON after all sanitization attempts. ${stepsMessage}`, {
-      ...context,
-      originalLength: content.length,
-      lastSanitizer: parseResult.steps[parseResult.steps.length - 1],
-      diagnosticsCount: parseResult.diagnostics ? parseResult.diagnostics.split(" | ").length : 0,
-      responseContentParseError: parseResult.error.cause,
-    });
+    if (loggingEnabled) {
+      logOneLineWarning(`Cannot parse JSON after all sanitization attempts. ${stepsMessage}`, {
+        ...context,
+        originalLength: content.length,
+        lastSanitizer: parseResult.steps[parseResult.steps.length - 1],
+        diagnosticsCount: parseResult.diagnostics ? parseResult.diagnostics.split(" | ").length : 0,
+        responseContentParseError: parseResult.error.cause,
+      });
+    }
     return {
       success: false,
       error: createParseError(
@@ -166,7 +176,7 @@ export function processJson<T = Record<string, unknown>>(
 
   // If no schema provided, return parsed data without validation or transforms
   if (!completionOptions.jsonSchema) {
-    logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], loggingEnabled, context);
+    logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
       data: parseResult.data as T,
@@ -175,11 +185,16 @@ export function processJson<T = Record<string, unknown>>(
   }
 
   // Validate the parsed data
-  const initialValidation = validateJson<T>(parseResult.data, completionOptions, loggingEnabled);
+  const initialValidation = validateJson<T>(
+    parseResult.data,
+    completionOptions,
+    false,
+    loggingEnabled,
+  );
 
   // If validation succeeded on first attempt, no transforms needed
   if (initialValidation.success) {
-    logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], loggingEnabled, context);
+    logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
       data: initialValidation.data,
@@ -192,6 +207,7 @@ export function processJson<T = Record<string, unknown>>(
   const validationAfterTransforms = validateJson<T>(
     transformResult.data,
     completionOptions,
+    true,
     loggingEnabled,
   );
 
@@ -203,6 +219,7 @@ export function processJson<T = Record<string, unknown>>(
         validationAfterTransforms,
         transformResult.steps,
         context,
+        loggingEnabled,
       ),
     };
   }
@@ -212,8 +229,8 @@ export function processJson<T = Record<string, unknown>>(
     parseResult.steps,
     parseResult.diagnostics,
     transformResult.steps,
-    loggingEnabled,
     context,
+    loggingEnabled,
   );
   return {
     success: true,

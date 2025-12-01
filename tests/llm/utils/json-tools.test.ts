@@ -838,7 +838,7 @@ describe("json-tools", () => {
       const content = { key: "value" };
       const options = { outputFormat: LLMOutputFormat.TEXT };
 
-      const result = validateJson(content, options);
+      const result = validateJson(content, options, false, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -855,7 +855,7 @@ describe("json-tools", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJson(content, options);
+      const result = validateJson(content, options, false, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -871,7 +871,7 @@ describe("json-tools", () => {
         jsonSchema: sourceSummarySchema.pick({ purpose: true }),
       } as any;
 
-      const result = validateJson(badContent, options, false);
+      const result = validateJson(badContent, options, false, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {

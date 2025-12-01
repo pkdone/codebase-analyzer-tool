@@ -6,10 +6,6 @@ import {
   unwrapJsonSchemaStructure,
 } from "../transforms/generic/index.js";
 import {
-  normalizeDatabaseIntegrationArray,
-  fixMissingRequiredFields,
-} from "../transforms/schema-specific/source-schema-transforms.js";
-import {
   fixJsonStructureAndNoise,
   fixJsonSyntax,
   normalizeCharacters,
@@ -114,16 +110,12 @@ const SANITIZATION_PIPELINE_PHASES = [
  * - convertNullToUndefined: Converts null to undefined for optional fields (generic)
  * - fixCommonPropertyNameTypos: Fixes typos in property names ending with underscore (generic)
  * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data (generic)
- * - normalizeDatabaseIntegrationArray: Converts databaseIntegration from array to single object (schema-specific)
- * - fixMissingRequiredFields: Adds missing required fields in publicMethods (schema-specific)
  */
 const POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
   coerceStringToArray,
   convertNullToUndefined,
   fixCommonPropertyNameTypos,
   unwrapJsonSchemaStructure,
-  normalizeDatabaseIntegrationArray,
-  fixMissingRequiredFields,
 ] as const;
 
 /**
