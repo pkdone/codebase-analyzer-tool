@@ -13,6 +13,39 @@ export const APP_SUMMARY_PROMPT_FRAGMENTS = {
 } as const;
 
 /**
+ * Base instruction for database mechanism mapping.
+ * This is the common prefix used across all language-specific DB mechanism mappings.
+ */
+const BASE_DB_MECHANISM_PREFIX =
+  `    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:` as const;
+
+/**
+ * Base suffix for database mechanism mapping.
+ * This is the common ending used across all language-specific DB mechanism mappings.
+ */
+const BASE_DB_MECHANISM_SUFFIX =
+  `      - Otherwise, if the code does not use a database => mechanism: 'NONE'` as const;
+
+/**
+ * Creates database mechanism mapping instructions by combining the base prefix,
+ * language-specific examples, and the base suffix.
+ *
+ * @param examples - Array of language-specific database mechanism examples
+ * @param additionalNote - Optional additional note to append (e.g., Java's JMS/JNDI note)
+ * @returns A formatted string with the complete DB mechanism mapping instructions
+ */
+function createDbMechanismInstructions(
+  examples: readonly string[],
+  additionalNote?: string,
+): string {
+  const parts = [BASE_DB_MECHANISM_PREFIX, ...examples, BASE_DB_MECHANISM_SUFFIX];
+  if (additionalNote) {
+    parts.push(additionalNote);
+  }
+  return parts.join("\n");
+}
+
+/**
  * Common instruction fragments used across multiple sources templates
  */
 export const SOURCES_PROMPT_FRAGMENTS = {
@@ -125,26 +158,28 @@ export const SOURCES_PROMPT_FRAGMENTS = {
     - WebSocketHandler implementations
   * gRPC (mechanism: 'GRPC'):
     - @GrpcService annotations or gRPC stub usage - include service name, methods`,
-    DB_MECHANISM_MAPPING: `    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
-      - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
-      - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'
-      - Uses Hibernate API directly (SessionFactory, Session, Criteria API) => mechanism: 'HIBERNATE'
-      - Uses standard JPA annotations and EntityManager (without Spring Data) => mechanism: 'JPA'
-      - Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => mechanism: 'EJB'
-      - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => mechanism: 'SQL'
-      - Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'
-      - Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => mechanism: 'ORM'
-      - Defines DDL / migration style schema changes inline => mechanism: 'DDL'
-      - Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'
-      - Invokes stored procedures (CallableStatement, @Procedure, etc.) => mechanism: 'STORED-PROCEDURE'
-      - Creates or manages database triggers => mechanism: 'TRIGGER'
-      - Creates or invokes database functions => mechanism: 'FUNCTION'
-      - Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'
-      - Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'
-      - Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'
-      - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
-      - Otherwise, if the code does not use a database => mechanism: 'NONE'
-    (note, JMS and JNDI are not related to interacting with a database)`,
+    DB_MECHANISM_MAPPING: createDbMechanismInstructions(
+      [
+        "      - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'",
+        "      - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'",
+        "      - Uses Hibernate API directly (SessionFactory, Session, Criteria API) => mechanism: 'HIBERNATE'",
+        "      - Uses standard JPA annotations and EntityManager (without Spring Data) => mechanism: 'JPA'",
+        "      - Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => mechanism: 'EJB'",
+        "      - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => mechanism: 'SQL'",
+        "      - Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'",
+        "      - Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => mechanism: 'ORM'",
+        "      - Defines DDL / migration style schema changes inline => mechanism: 'DDL'",
+        "      - Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'",
+        "      - Invokes stored procedures (CallableStatement, @Procedure, etc.) => mechanism: 'STORED-PROCEDURE'",
+        "      - Creates or manages database triggers => mechanism: 'TRIGGER'",
+        "      - Creates or invokes database functions => mechanism: 'FUNCTION'",
+        "      - Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'",
+        "      - Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'",
+        "      - Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'",
+        "      - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'",
+      ],
+      "    (note, JMS and JNDI are not related to interacting with a database)",
+    ),
   },
 
   JAVASCRIPT_SPECIFIC: {
@@ -181,22 +216,22 @@ export const SOURCES_PROMPT_FRAGMENTS = {
     - @grpc/grpc-js usage, service definitions
   * Server-Sent Events (mechanism: 'SSE'):
     - res.writeHead with text/event-stream`,
-    DB_MECHANISM_MAPPING: `    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
-      - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'
-      - Uses Prisma Client (PrismaClient, prisma.user.findMany) => mechanism: 'PRISMA'
-      - Uses TypeORM (Repository, EntityManager, @Entity decorators) => mechanism: 'TYPEORM'
-      - Uses Sequelize models (sequelize.define, Model.findAll) => mechanism: 'SEQUELIZE'
-      - Uses Knex query builder (knex.select, knex('table')) => mechanism: 'KNEX'
-      - Uses Drizzle ORM (drizzle, select, insert) => mechanism: 'DRIZZLE'
-      - Uses Redis client (redis.set, redis.get, ioredis) => mechanism: 'REDIS'
-      - Uses Elasticsearch client (@elastic/elasticsearch, client.search) => mechanism: 'ELASTICSEARCH'
-      - Uses Cassandra driver (cassandra-driver, client.execute with CQL) => mechanism: 'CASSANDRA-CQL'
-      - Uses MongoDB driver directly (MongoClient, db.collection) without Mongoose => mechanism: 'MQL'
-      - Contains raw SQL strings without ORM => mechanism: 'SQL'
-      - Uses generic database driver (pg, mysql2, tedious) without ORM => mechanism: 'DRIVER'
-      - Defines DDL / migration scripts => mechanism: 'DDL'
-      - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
-     - Otherwise, if no database interaction => mechanism: 'NONE'`,
+    DB_MECHANISM_MAPPING: createDbMechanismInstructions([
+      "      - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'",
+      "      - Uses Prisma Client (PrismaClient, prisma.user.findMany) => mechanism: 'PRISMA'",
+      "      - Uses TypeORM (Repository, EntityManager, @Entity decorators) => mechanism: 'TYPEORM'",
+      "      - Uses Sequelize models (sequelize.define, Model.findAll) => mechanism: 'SEQUELIZE'",
+      "      - Uses Knex query builder (knex.select, knex('table')) => mechanism: 'KNEX'",
+      "      - Uses Drizzle ORM (drizzle, select, insert) => mechanism: 'DRIZZLE'",
+      "      - Uses Redis client (redis.set, redis.get, ioredis) => mechanism: 'REDIS'",
+      "      - Uses Elasticsearch client (@elastic/elasticsearch, client.search) => mechanism: 'ELASTICSEARCH'",
+      "      - Uses Cassandra driver (cassandra-driver, client.execute with CQL) => mechanism: 'CASSANDRA-CQL'",
+      "      - Uses MongoDB driver directly (MongoClient, db.collection) without Mongoose => mechanism: 'MQL'",
+      "      - Contains raw SQL strings without ORM => mechanism: 'SQL'",
+      "      - Uses generic database driver (pg, mysql2, tedious) without ORM => mechanism: 'DRIVER'",
+      "      - Defines DDL / migration scripts => mechanism: 'DDL'",
+      "      - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'",
+    ]),
   },
 
   CSHARP_SPECIFIC: {
@@ -225,20 +260,20 @@ export const SOURCES_PROMPT_FRAGMENTS = {
   * gRPC (mechanism: 'GRPC'):
     - Grpc.Net.Client, Grpc.Core service definitions
    - gRPC client stubs and service implementations`,
-    DB_MECHANISM_MAPPING: `    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
-      - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'
-      - Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => mechanism: 'DAPPER'
-      - Uses other micro ORMs (NPoco, ServiceStack.OrmLite, PetaPoco) => mechanism: 'MICRO-ORM'
-      - Uses ADO.NET primitives (SqlConnection, SqlCommand, DataReader) without ORM => mechanism: 'ADO-NET'
-      - Executes raw SQL strings or stored procedures via SqlCommand => mechanism: 'SQL'
-      - Invokes stored procedures explicitly (CommandType.StoredProcedure) => mechanism: 'STORED-PROCEDURE'
-      - Uses database provider drivers directly (NpgsqlConnection, MySqlConnection) without abstraction => mechanism: 'DRIVER'
-      - Contains EF Core migrations or explicit DDL (CREATE/ALTER/DROP TABLE) => mechanism: 'DDL'
-      - Performs data manipulation operations (bulk INSERT, SqlBulkCopy) => mechanism: 'DML'
-      - Creates or invokes database functions => mechanism: 'FUNCTION'
-      - Uses Redis client (StackExchange.Redis) => mechanism: 'REDIS'
-      - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'
-      - Otherwise when no DB interaction present => mechanism: 'NONE'`,
+    DB_MECHANISM_MAPPING: createDbMechanismInstructions([
+      "      - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'",
+      "      - Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => mechanism: 'DAPPER'",
+      "      - Uses other micro ORMs (NPoco, ServiceStack.OrmLite, PetaPoco) => mechanism: 'MICRO-ORM'",
+      "      - Uses ADO.NET primitives (SqlConnection, SqlCommand, DataReader) without ORM => mechanism: 'ADO-NET'",
+      "      - Executes raw SQL strings or stored procedures via SqlCommand => mechanism: 'SQL'",
+      "      - Invokes stored procedures explicitly (CommandType.StoredProcedure) => mechanism: 'STORED-PROCEDURE'",
+      "      - Uses database provider drivers directly (NpgsqlConnection, MySqlConnection) without abstraction => mechanism: 'DRIVER'",
+      "      - Contains EF Core migrations or explicit DDL (CREATE/ALTER/DROP TABLE) => mechanism: 'DDL'",
+      "      - Performs data manipulation operations (bulk INSERT, SqlBulkCopy) => mechanism: 'DML'",
+      "      - Creates or invokes database functions => mechanism: 'FUNCTION'",
+      "      - Uses Redis client (StackExchange.Redis) => mechanism: 'REDIS'",
+      "      - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'",
+    ]),
   },
 
   PYTHON_SPECIFIC: {
@@ -263,15 +298,15 @@ export const SOURCES_PROMPT_FRAGMENTS = {
   * Messaging: Celery tasks (@app.task) => mechanism 'OTHER' (specify Celery); RabbitMQ (pika), Kafka (producer/consumer), Redis Pub/Sub (redis.publish/subscribe), AWS SQS/SNS (boto3)
   * WebSockets (mechanism: 'WEBSOCKET'): FastAPI WebSocket endpoints, Django Channels consumers
   * Server-Sent Events (mechanism: 'SSE'): streaming responses with 'text/event-stream'`,
-    DB_MECHANISM_MAPPING: `    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
-      - SQLAlchemy ORM (Session, declarative Base) => 'SQLALCHEMY'
-      - Django ORM (models.Model, QuerySet) => 'DJANGO-ORM'
-      - Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => 'DRIVER' or 'SQL' (if many inline SQL strings)
-      - Async drivers (asyncpg, aiomysql) => 'DRIVER'
-      - Inline CREATE/ALTER => also 'DDL'
-      - Bulk data scripts => also 'DML'
-      - Stored procedure/function invocation (CALL/EXEC) => 'STORED-PROCEDURE' or 'FUNCTION'
-      - No database access => 'NONE'`,
+    DB_MECHANISM_MAPPING: createDbMechanismInstructions([
+      "      - SQLAlchemy ORM (Session, declarative Base) => 'SQLALCHEMY'",
+      "      - Django ORM (models.Model, QuerySet) => 'DJANGO-ORM'",
+      "      - Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => 'DRIVER' or 'SQL' (if many inline SQL strings)",
+      "      - Async drivers (asyncpg, aiomysql) => 'DRIVER'",
+      "      - Inline CREATE/ALTER => also 'DDL'",
+      "      - Bulk data scripts => also 'DML'",
+      "      - Stored procedure/function invocation (CALL/EXEC) => 'STORED-PROCEDURE' or 'FUNCTION'",
+    ]),
     PYTHON_COMPLEXITY_METRICS: `Cyclomatic complexity (Python):
 - Start at 1; +1 for each if / elif / for / while / except / finally / with (when it controls resource flow) / comprehension 'for' / ternary / logical operator (and/or) in a condition / match case arm
 - +1 for each additional 'if' inside a comprehension
@@ -307,19 +342,19 @@ File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMetho
   * WebSockets (mechanism: 'WEBSOCKET'):
     - Action Cable channels
     - WebSocket-Rails usage`,
-    DB_MECHANISM_MAPPING: `    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
-      - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'
-      - Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'
-      - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or 'MICRO-ORM' if lightweight)
-      - Uses Redis client (redis-rb, redis.set/get) => mechanism: 'REDIS'
-      - Executes raw SQL strings (SELECT / INSERT / etc.) => mechanism: 'SQL'
-      - Invokes stored procedures (via connection.exec with CALL) => mechanism: 'STORED-PROCEDURE'
-      - Uses database driver / adapter directly (PG gem, mysql2 gem) without ORM => mechanism: 'DRIVER'
-      - Defines migration DSL (create_table, add_column, change_table) => mechanism: 'DDL'
-      - Performs data manipulation (bulk insert helpers, seeding, data-only scripts) => mechanism: 'DML'
-      - Creates or manages triggers (via execute or DSL) => mechanism: 'TRIGGER'
-      - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'
-      - Otherwise, if no database interaction is evident => mechanism: 'NONE'`,
+    DB_MECHANISM_MAPPING: createDbMechanismInstructions([
+      "      - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'",
+      "      - Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'",
+      "      - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or 'MICRO-ORM' if lightweight)",
+      "      - Uses Redis client (redis-rb, redis.set/get) => mechanism: 'REDIS'",
+      "      - Executes raw SQL strings (SELECT / INSERT / etc.) => mechanism: 'SQL'",
+      "      - Invokes stored procedures (via connection.exec with CALL) => mechanism: 'STORED-PROCEDURE'",
+      "      - Uses database driver / adapter directly (PG gem, mysql2 gem) without ORM => mechanism: 'DRIVER'",
+      "      - Defines migration DSL (create_table, add_column, change_table) => mechanism: 'DDL'",
+      "      - Performs data manipulation (bulk insert helpers, seeding, data-only scripts) => mechanism: 'DML'",
+      "      - Creates or manages triggers (via execute or DSL) => mechanism: 'TRIGGER'",
+      "      - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'",
+    ]),
   },
 
   SQL_SPECIFIC: {

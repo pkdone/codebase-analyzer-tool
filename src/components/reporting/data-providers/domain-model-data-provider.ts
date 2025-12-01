@@ -214,6 +214,8 @@ export class DomainModelDataProvider {
     const contextDescLower = context.description.toLowerCase();
     const aggregateDescLower = aggregate.description.toLowerCase();
 
+    // TODO: fix hardcodings
+
     // Improved heuristics for better matching
     if (contextNameLower.includes("storefront")) {
       // Storefront context should include customer-facing aggregates

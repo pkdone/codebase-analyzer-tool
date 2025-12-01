@@ -1,0 +1,4527 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots C# prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the C# code shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+The name of the main public class/interface of the file
+Its kind ('class' or 'interface')
+Its namespace (classpath)
+A detailed definition of its purpose
+A detailed definition of its implementation
+Its kind ('class', 'interface', 'record', or 'struct')
+
+__References and Dependencies__
+A list of the internal references to other application classes - fully qualified type names (only include 'using' directives that clearly belong to this same application's code – exclude BCL / System.* and third-party packages)
+A list of the external references to 3rd party / NuGet package classes (Fully qualified type names) it depends on (exclude System.* where possible)
+A list of public constants / readonly static fields (if any) – include name, value (redact secrets), and a short type/role description
+A list of its public methods (if any) – for each method list: name, purpose (detailed), parameters (name and type), return type, async/sync indicator, and a very detailed implementation description highlighting notable control flow, LINQ queries, awaits, exception handling, and important business logic decisions
+
+__Integration Points__
+A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:
+  * REST APIs (mechanism: 'REST'):
+    - ASP.NET Core MVC/Web API controller actions with [HttpGet], [HttpPost], [HttpPut], [HttpDelete], [HttpPatch], [Route]
+    - ASP.NET Core Minimal API endpoints (MapGet, MapPost, MapPut, MapDelete)
+    - HTTP client calls (HttpClient, RestSharp, Refit interfaces)
+  * WCF/SOAP Services (mechanism: 'SOAP'):
+    - WCF service contracts ([ServiceContract], [OperationContract])
+    - SOAP service references, WCF client proxies
+    - BasicHttpBinding, WSHttpBinding configurations
+  * Messaging Systems:
+    - Azure Service Bus (ServiceBusClient, QueueClient for queues, TopicClient for topics) => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
+    - RabbitMQ.Client usage (IModel.BasicPublish, BasicConsume) => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
+    - MSMQ (MessageQueue class) => 'OTHER' (specify MSMQ in description and protocol)
+    - AWS SQS/SNS (AWSSDK) => 'AWS-SQS' or 'AWS-SNS'
+  * gRPC (mechanism: 'GRPC'):
+    - Grpc.Net.Client, Grpc.Core service definitions
+   - gRPC client stubs and service implementations
+
+__Database Integration Analysis__
+Database Integration Analysis (REQUIRED for source files that interact with databases)
+For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
+  * REQUIRED FIELDS:
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below (use "NONE" if no database integration)
+    - description (REQUIRED): Detailed explanation of how database integration is achieved (use "n/a" if no database integration)
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction  (use "n/a" if no database integration)
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible, using "n/a" if no database integration):
+    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+    - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
+    - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+    - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+    - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+    - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
+    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
+      - Uses Entity Framework / EF Core (DbContext, LINQ-to-Entities, DbSet) => mechanism: 'EF-CORE'
+      - Uses Dapper extension methods (Query<T>, Execute, QueryAsync) => mechanism: 'DAPPER'
+      - Uses other micro ORMs (NPoco, ServiceStack.OrmLite, PetaPoco) => mechanism: 'MICRO-ORM'
+      - Uses ADO.NET primitives (SqlConnection, SqlCommand, DataReader) without ORM => mechanism: 'ADO-NET'
+      - Executes raw SQL strings or stored procedures via SqlCommand => mechanism: 'SQL'
+      - Invokes stored procedures explicitly (CommandType.StoredProcedure) => mechanism: 'STORED-PROCEDURE'
+      - Uses database provider drivers directly (NpgsqlConnection, MySqlConnection) without abstraction => mechanism: 'DRIVER'
+      - Contains EF Core migrations or explicit DDL (CREATE/ALTER/DROP TABLE) => mechanism: 'DDL'
+      - Performs data manipulation operations (bulk INSERT, SqlBulkCopy) => mechanism: 'DML'
+      - Creates or invokes database functions => mechanism: 'FUNCTION'
+      - Uses Redis client (StackExchange.Redis) => mechanism: 'REDIS'
+      - Uses Elasticsearch.Net client => mechanism: 'ELASTICSEARCH'
+      - Otherwise, if the code does not use a database => mechanism: 'NONE'
+
+__Code Quality Metrics__
+Code Quality Analysis (REQUIRED for all code files and for all public methods)
+For each public method/function you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+  * linesOfCode: Count actual lines of code (exclude blank lines and comments)
+  * codeSmells: Identify any of these common code smells present. Allowed labels:
+    - 'LONG METHOD' - method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+    - 'DUPLICATE CODE' - similar logic repeated in multiple places
+    - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+    - 'DEEP NESTING' - more than 3-4 levels of nesting
+    - 'DEAD CODE' - unreachable or commented-out code
+    - 'OTHER' - some other method-level smell
+For file-level codeQualityMetrics, provide:
+  * totalMethods: Count of all methods in the file
+  * averageComplexity: Average of all method complexities
+  * maxComplexity: Highest complexity score in the file
+  * averageMethodLength: Average lines of code per method
+  * fileSmells: File-level smells. Allowed labels:
+    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public methods
+    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'DATA CLASS' - class only contains fields and getters/setters
+    - 'LARGE FILE' - class file exceeds 500 lines of code
+    - 'OTHER' - some other file-level smell.
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the main public class or interface."
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "CLASS",
+            "INTERFACE",
+            "RECORD",
+            "STRUCT",
+            "ENUM",
+            "ANNOTATION-TYPE",
+            "MODULE",
+            "UNION",
+            "FUNCTION"
+          ]
+        },
+        {
+          "type": "string",
+          "const": "INVALID"
+        }
+      ],
+      "description": "The kind of the main entity - only the listed values are valid."
+    },
+    "namespace": {
+      "type": "string",
+      "description": "The fully qualified namespace including class/object name (e.g. classpath in Java)."
+    },
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "internalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of internal references to other modules in the same project."
+    },
+    "externalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of external references to 3rd party modules outside this project."
+    },
+    "publicConstants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the constant."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the constant."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the constant."
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "type"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public constants defined."
+    },
+    "publicMethods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the method/function."
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the parameter."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "The type of the parameter."
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "additionalProperties": true
+            },
+            "description": "List parameters of the method/function."
+          },
+          "returnType": {
+            "type": "string",
+            "description": "The return type of the method/function."
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of how the method/function is implementated."
+          },
+          "cyclomaticComplexity": {
+            "type": "number",
+            "description": "Estimated cyclomatic complexity score (number of independent paths through the code)"
+          },
+          "linesOfCode": {
+            "type": "number",
+            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+          },
+          "codeSmells": {
+            "allOf": [
+              {},
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "LONG METHOD",
+                        "LONG PARAMETER LIST",
+                        "COMPLEX CONDITIONAL",
+                        "DUPLICATE CODE",
+                        "MAGIC NUMBERS",
+                        "DEEP NESTING",
+                        "DEAD CODE",
+                        "GOD CLASS",
+                        "LARGE CLASS",
+                        "DATA CLASS",
+                        "FEATURE ENVY",
+                        "SHOTGUN SURGERY",
+                        "OTHER"
+                      ]
+                    },
+                    {
+                      "type": "string",
+                      "const": "INVALID"
+                    }
+                  ]
+                }
+              }
+            ],
+            "description": "List of code smells detected - only the listed values are valid"
+          }
+        },
+        "required": [
+          "name",
+          "purpose",
+          "returnType",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public methods/functions)."
+    },
+    "databaseIntegration": {
+      "type": "object",
+      "properties": {
+        "mechanism": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "JDBC",
+                "SPRING-DATA",
+                "HIBERNATE",
+                "JPA",
+                "EJB",
+                "EF-CORE",
+                "ADO-NET",
+                "DAPPER",
+                "ACTIVE-RECORD",
+                "SEQUEL",
+                "MONGOOSE",
+                "PRISMA",
+                "TYPEORM",
+                "SEQUELIZE",
+                "KNEX",
+                "DRIZZLE",
+                "SQLALCHEMY",
+                "DJANGO-ORM",
+                "GORM",
+                "SQLX",
+                "ROOM",
+                "CORE-DATA",
+                "MQL",
+                "REDIS",
+                "ELASTICSEARCH",
+                "CASSANDRA-CQL",
+                "SQL",
+                "ORM",
+                "MICRO-ORM",
+                "DRIVER",
+                "DDL",
+                "DML",
+                "STORED-PROCEDURE",
+                "TRIGGER",
+                "FUNCTION",
+                "OTHER"
+              ]
+            },
+            {
+              "type": "string",
+              "const": "INVALID"
+            }
+          ],
+          "description": "The database integration mechanism used - only the listed values are valid."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of the database, schema, or collection being accessed"
+        },
+        "tablesAccessed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tables, collections, or entities being accessed by this code"
+        },
+        "operationType": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "READ",
+                      "WRITE",
+                      "READ_WRITE",
+                      "DDL",
+                      "ADMIN",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "Array of database operation types performed - only the listed values are valid."
+        },
+        "queryPatterns": {
+          "type": "string",
+          "description": "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics."
+        },
+        "queryPatternsNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SIMPLE CRUD",
+                    "COMPLEX JOINS",
+                    "AGGREGATIONS",
+                    "STORED PROCEDURES",
+                    "BATCH OPERATIONS",
+                    "MIGRATIONS",
+                    "INLINE SQL",
+                    "ORM QUERIES",
+                    "RAW DRIVER CALLS",
+                    "CACHE LOOKUPS",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized query pattern category derived from 'queryPatterns'."
+        },
+        "transactionHandling": {
+          "type": "string",
+          "description": "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics."
+        },
+        "transactionHandlingNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SPRING @TRANSACTIONAL",
+                    "MANUAL",
+                    "AUTO-COMMIT",
+                    "NONE",
+                    "JPA ENTITYTRANSACTION",
+                    "BATCH",
+                    "DB CONTEXT",
+                    "EXPLICIT BEGIN/COMMIT",
+                    "ROLLBACK ON ERROR",
+                    "UNKNOWN",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized transaction handling category derived from 'transactionHandling')."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
+        "codeExample": {
+          "type": "string",
+          "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
+        }
+      },
+      "required": [
+        "mechanism",
+        "description",
+        "codeExample"
+      ],
+      "additionalProperties": true,
+      "description": "Information about how the file interacts with a database."
+    },
+    "integrationPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mechanism": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "REST",
+                  "GRAPHQL",
+                  "GRPC",
+                  "SOAP",
+                  "WEBSOCKET",
+                  "TRPC",
+                  "JMS-QUEUE",
+                  "JMS-TOPIC",
+                  "KAFKA-TOPIC",
+                  "RABBITMQ-QUEUE",
+                  "RABBITMQ-EXCHANGE",
+                  "ACTIVEMQ-QUEUE",
+                  "ACTIVEMQ-TOPIC",
+                  "AWS-SQS",
+                  "AWS-SNS",
+                  "AZURE-SERVICE-BUS-QUEUE",
+                  "AZURE-SERVICE-BUS-TOPIC",
+                  "REDIS-PUBSUB",
+                  "WEBHOOK",
+                  "SSE",
+                  "OTHER"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "INVALID"
+              }
+            ],
+            "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this integration point does"
+          },
+          "path": {
+            "type": "string",
+            "description": "The endpoint path (e.g., '/api/users/{id}' for REST or operation name for SOAP)"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method (GET, POST, PUT, DELETE, PATCH) or SOAP operation"
+          },
+          "queueOrTopicName": {
+            "type": "string",
+            "description": "Name of the queue or topic (for JMS, Kafka, RabbitMQ, etc.)"
+          },
+          "messageType": {
+            "type": "string",
+            "description": "Type of message being sent/received (for messaging systems)"
+          },
+          "direction": {
+            "allOf": [
+              {},
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "PRODUCER",
+                      "CONSUMER",
+                      "BOTH",
+                      "BIDIRECTIONAL",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            ],
+            "description": "Whether this code produces, consumes, both, or is bidirectional"
+          },
+          "requestBody": {
+            "type": "string",
+            "description": "Expected request body structure or message payload structure"
+          },
+          "responseBody": {
+            "type": "string",
+            "description": "Expected response structure or acknowledgment structure"
+          },
+          "authentication": {
+            "type": "string",
+            "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          }
+        },
+        "required": [
+          "mechanism",
+          "name",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "List of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, etc.) defined or consumed by this file"
+    },
+    "codeQualityMetrics": {
+      "type": "object",
+      "properties": {
+        "totalMethods": {
+          "type": "number",
+          "description": "Total number of methods in the file"
+        },
+        "averageComplexity": {
+          "type": "number",
+          "description": "Average cyclomatic complexity"
+        },
+        "maxComplexity": {
+          "type": "number",
+          "description": "Maximum cyclomatic complexity found"
+        },
+        "averageMethodLength": {
+          "type": "number",
+          "description": "Average lines of code per method"
+        },
+        "fileSmells": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "GOD CLASS",
+                      "TOO MANY METHODS",
+                      "FEATURE ENVY",
+                      "DATA CLASS",
+                      "LARGE FILE",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "File-level code smells - only the listed values are valid"
+        }
+      },
+      "required": [
+        "totalMethods"
+      ],
+      "additionalProperties": true,
+      "description": "File-level code quality metrics and analysis"
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+public class TestClass {
+  // Test code
+}
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Default prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the source files shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+A detailed definition of its purpose
+A detailed definition of its implementation
+
+__Database Integration Analysis__
+Database Integration Analysis (REQUIRED for source files that interact with databases)
+For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
+  * REQUIRED FIELDS:
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below (use "NONE" if no database integration)
+    - description (REQUIRED): Detailed explanation of how database integration is achieved (use "n/a" if no database integration)
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction  (use "n/a" if no database integration)
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible, using "n/a" if no database integration):
+    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+    - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
+    - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+    - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+    - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+    - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
+Look for database operations, queries, or connections in the file.
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "databaseIntegration": {
+      "type": "object",
+      "properties": {
+        "mechanism": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "JDBC",
+                "SPRING-DATA",
+                "HIBERNATE",
+                "JPA",
+                "EJB",
+                "EF-CORE",
+                "ADO-NET",
+                "DAPPER",
+                "ACTIVE-RECORD",
+                "SEQUEL",
+                "MONGOOSE",
+                "PRISMA",
+                "TYPEORM",
+                "SEQUELIZE",
+                "KNEX",
+                "DRIZZLE",
+                "SQLALCHEMY",
+                "DJANGO-ORM",
+                "GORM",
+                "SQLX",
+                "ROOM",
+                "CORE-DATA",
+                "MQL",
+                "REDIS",
+                "ELASTICSEARCH",
+                "CASSANDRA-CQL",
+                "SQL",
+                "ORM",
+                "MICRO-ORM",
+                "DRIVER",
+                "DDL",
+                "DML",
+                "STORED-PROCEDURE",
+                "TRIGGER",
+                "FUNCTION",
+                "OTHER"
+              ]
+            },
+            {
+              "type": "string",
+              "const": "INVALID"
+            }
+          ],
+          "description": "The database integration mechanism used - only the listed values are valid."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of the database, schema, or collection being accessed"
+        },
+        "tablesAccessed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tables, collections, or entities being accessed by this code"
+        },
+        "operationType": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "READ",
+                      "WRITE",
+                      "READ_WRITE",
+                      "DDL",
+                      "ADMIN",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "Array of database operation types performed - only the listed values are valid."
+        },
+        "queryPatterns": {
+          "type": "string",
+          "description": "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics."
+        },
+        "queryPatternsNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SIMPLE CRUD",
+                    "COMPLEX JOINS",
+                    "AGGREGATIONS",
+                    "STORED PROCEDURES",
+                    "BATCH OPERATIONS",
+                    "MIGRATIONS",
+                    "INLINE SQL",
+                    "ORM QUERIES",
+                    "RAW DRIVER CALLS",
+                    "CACHE LOOKUPS",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized query pattern category derived from 'queryPatterns'."
+        },
+        "transactionHandling": {
+          "type": "string",
+          "description": "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics."
+        },
+        "transactionHandlingNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SPRING @TRANSACTIONAL",
+                    "MANUAL",
+                    "AUTO-COMMIT",
+                    "NONE",
+                    "JPA ENTITYTRANSACTION",
+                    "BATCH",
+                    "DB CONTEXT",
+                    "EXPLICIT BEGIN/COMMIT",
+                    "ROLLBACK ON ERROR",
+                    "UNKNOWN",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized transaction handling category derived from 'transactionHandling')."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
+        "codeExample": {
+          "type": "string",
+          "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
+        }
+      },
+      "required": [
+        "mechanism",
+        "description",
+        "codeExample"
+      ],
+      "additionalProperties": true,
+      "description": "Information about how the file interacts with a database."
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+public class TestClass {
+  // Test code
+}
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots JSP prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the JSP code shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+A detailed definition of its purpose
+A detailed definition of its implementation
+
+__References and Dependencies__
+A list of the internal references to the classpaths of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)
+A list of the external references to third-party classpath used by this source file, which do not belong to this same application that this class/interface file is part of
+
+__User Input Fields__
+A list of data input fields it contains (if any). For each field, provide its name (or an approximate name), its type (e.g., 'text', 'hidden', 'password'), and a detailed description of its purpose
+
+__Code Quality Metrics__
+JSP Metrics Analysis (REQUIRED for all JSP files)
+You MUST analyze and provide the following JSP metrics in the jspMetrics object:
+  * scriptletCount (REQUIRED): Count the exact number of Java scriptlets (<% ... %>) in this file
+  * expressionCount (REQUIRED): Count the exact number of expressions (<%= ... %>) in this file
+  * declarationCount (REQUIRED): Count the exact number of declarations (<%! ... %>) in this file
+  * customTags (REQUIRED if any exist): For each <%@ taglib ... %> directive, extract:
+    - prefix: The tag library prefix from the taglib directive
+    - uri: The URI of the tag library from the taglib directive
+   Examples:
+    - <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %> => { prefix: "c", uri: "http://java.sun.com/jsp/jstl/core" }
+    - <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %> => { prefix: "fmt", uri: "http://java.sun.com/jsp/jstl/fmt" }
+    - <%@ taglib prefix="custom" uri="/WEB-INF/custom.tld" %> => { prefix: "custom", uri: "/WEB-INF/custom.tld" }
+   Note: Do NOT count directive tags (<%@ ... %>) or action tags (<jsp:... />) as scriptlets. Only count code blocks with <% %>, <%= %>, and <%! %>..
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "internalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of internal references to other modules in the same project."
+    },
+    "externalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of external references to 3rd party modules outside this project."
+    },
+    "dataInputFields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name attribute of the input field (of there is no name, suggest and use an approximate indicative name that reflects its purpose)."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the input field (e.g., 'text', 'password', 'hidden')."
+          },
+          "description": {
+            "type": "string",
+            "description": "A detailed description of the input field's purpose."
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of data input fields."
+    },
+    "jspMetrics": {
+      "type": "object",
+      "properties": {
+        "scriptletCount": {
+          "type": "number",
+          "description": "Number of Java scriptlets (<% ... %>)"
+        },
+        "expressionCount": {
+          "type": "number",
+          "description": "Number of expressions (<%= ... %>)"
+        },
+        "declarationCount": {
+          "type": "number",
+          "description": "Number of declarations (<%! ... %>)"
+        },
+        "customTags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "prefix": {
+                "type": "string",
+                "description": "Tag library prefix (e.g., 'c', 'fmt', 'custom')"
+              },
+              "uri": {
+                "type": "string",
+                "description": "Tag library URI from taglib directive"
+              }
+            },
+            "required": [
+              "prefix",
+              "uri"
+            ],
+            "additionalProperties": true
+          },
+          "description": "List of custom tag libraries imported"
+        }
+      },
+      "required": [
+        "scriptletCount",
+        "expressionCount",
+        "declarationCount"
+      ],
+      "additionalProperties": true,
+      "description": "JSP-specific metrics for scriptlets and tag libraries"
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+<%@ page language="java" %>
+<html>test</html>
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Java prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the JVM code shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+The name of the main public class/interface of the file
+Its kind ('class' or 'interface')
+Its namespace (classpath)
+A detailed definition of its purpose
+A detailed definition of its implementation
+
+__References and Dependencies__
+A list of the internal references to the classpaths of other classes and interfaces belonging to the same application referenced by the code of this class/interface (do not include standard Java SE, Java EE 'javax.*' classes or 3rd party library classes in the list of internal references)
+A list of the external references to third-party classpath used by this source file, which do not belong to this same application that this class/interface file is part of
+A list of public constants (name, value and type) it defines (if any)
+A list of its public methods (if any) - for each public method, include the method's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation
+
+__Integration Points__
+A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:
+  * REST APIs (mechanism: 'REST'):
+    - JAX-RS annotations (@Path, @GET, @POST, @PUT, @DELETE, @PATCH) - include path, method, request/response body
+    - Spring annotations (@RestController, @RequestMapping, @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping)
+    - Servlet mappings (web.xml or @WebServlet) - include URL patterns
+    - HTTP client calls (RestTemplate, WebClient, HttpClient, OkHttp, Feign @FeignClient)
+  * SOAP Services (mechanism: 'SOAP'):
+    - JAX-WS annotations (@WebService, @WebMethod, @SOAPBinding) - include service name, operation name, SOAP version
+    - WSDL references or Apache CXF service definitions
+    - SOAPConnectionFactory, SOAPMessage usage
+    - SOAP client proxy usage (Service.create, getPort)
+   * JMS Messaging (mechanism: 'JMS-QUEUE' or 'JMS-TOPIC'):
+    - Queue operations: MessageProducer sending to Queue, QueueSender, @JmsListener with destination type QUEUE
+    - Topic operations: TopicPublisher, @JmsListener with destination type TOPIC
+    - Include queue/topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
+    - ConnectionFactory, Session, MessageProducer/MessageConsumer patterns
+  * Kafka (mechanism: 'KAFKA-TOPIC'):
+    - KafkaProducer, KafkaConsumer usage - include topic name, message type, direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL)
+    - @KafkaListener annotations - include topic names, consumer group
+  * RabbitMQ (mechanism: 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'):
+    - RabbitTemplate send/receive operations - include queue/exchange name and direction (PRODUCER/CONSUMER/BOTH/BIDIRECTIONAL if inferable)
+    - @RabbitListener annotations - include queue names, direction
+  * Other Messaging:
+    - ActiveMQ: @JmsListener with ActiveMQ-specific config => 'ACTIVEMQ-QUEUE' or 'ACTIVEMQ-TOPIC'
+    - AWS SQS/SNS: AmazonSQS client, sendMessage, receiveMessage => 'AWS-SQS' or 'AWS-SNS'
+    - Azure Service Bus: ServiceBusClient, QueueClient, TopicClient => 'AZURE-SERVICE-BUS-QUEUE' or 'AZURE-SERVICE-BUS-TOPIC'
+  * WebSockets (mechanism: 'WEBSOCKET'):
+    - @ServerEndpoint annotations - include endpoint path
+    - WebSocketHandler implementations
+  * gRPC (mechanism: 'GRPC'):
+    - @GrpcService annotations or gRPC stub usage - include service name, methods
+
+__Database Integration Analysis__
+Database Integration Analysis (REQUIRED for source files that interact with databases)
+For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
+  * REQUIRED FIELDS:
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below (use "NONE" if no database integration)
+    - description (REQUIRED): Detailed explanation of how database integration is achieved (use "n/a" if no database integration)
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction  (use "n/a" if no database integration)
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible, using "n/a" if no database integration):
+    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+    - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
+    - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+    - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+    - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+    - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
+    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
+      - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'
+      - Uses Spring Data repositories (CrudRepository, JpaRepository, MongoRepository, etc.) => mechanism: 'SPRING-DATA'
+      - Uses Hibernate API directly (SessionFactory, Session, Criteria API) => mechanism: 'HIBERNATE'
+      - Uses standard JPA annotations and EntityManager (without Spring Data) => mechanism: 'JPA'
+      - Uses Enterprise Java Beans for persistence (CMP/BMP, @Entity with EJB) => mechanism: 'EJB'
+      - Contains inline SQL strings / queries (SELECT / UPDATE / etc.) without ORM => mechanism: 'SQL'
+      - Uses raw database driver APIs (DataSource, Connection, etc.) without higher abstraction => mechanism: 'DRIVER'
+      - Uses other JPA-based ORMs (TopLink, EclipseLink) not clearly Hibernate => mechanism: 'ORM'
+      - Defines DDL / migration style schema changes inline => mechanism: 'DDL'
+      - Executes DML specific batch / manipulation blocks distinct from generic SQL => mechanism: 'DML'
+      - Invokes stored procedures (CallableStatement, @Procedure, etc.) => mechanism: 'STORED-PROCEDURE'
+      - Creates or manages database triggers => mechanism: 'TRIGGER'
+      - Creates or invokes database functions => mechanism: 'FUNCTION'
+      - Uses Redis client (Jedis, Lettuce) => mechanism: 'REDIS'
+      - Uses Elasticsearch client (RestHighLevelClient, ElasticsearchTemplate) => mechanism: 'ELASTICSEARCH'
+      - Uses Cassandra CQL (CqlSession, @Query with CQL) => mechanism: 'CASSANDRA-CQL'
+      - Uses a 3rd party framework not otherwise categorized => mechanism: 'OTHER'
+      - Otherwise, if the code does not use a database => mechanism: 'NONE'
+    (note, JMS and JNDI are not related to interacting with a database)
+
+__Code Quality Metrics__
+Code Quality Analysis (REQUIRED for all code files and for all public methods)
+For each public method/function you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+  * linesOfCode: Count actual lines of code (exclude blank lines and comments)
+  * codeSmells: Identify any of these common code smells present. Allowed labels:
+    - 'LONG METHOD' - method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+    - 'DUPLICATE CODE' - similar logic repeated in multiple places
+    - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+    - 'DEEP NESTING' - more than 3-4 levels of nesting
+    - 'DEAD CODE' - unreachable or commented-out code
+    - 'OTHER' - some other method-level smell
+For file-level codeQualityMetrics, provide:
+  * totalMethods: Count of all methods in the file
+  * averageComplexity: Average of all method complexities
+  * maxComplexity: Highest complexity score in the file
+  * averageMethodLength: Average lines of code per method
+  * fileSmells: File-level smells. Allowed labels:
+    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public methods
+    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'DATA CLASS' - class only contains fields and getters/setters
+    - 'LARGE FILE' - class file exceeds 500 lines of code
+    - 'OTHER' - some other file-level smell.
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the main public class or interface."
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "CLASS",
+            "INTERFACE",
+            "RECORD",
+            "STRUCT",
+            "ENUM",
+            "ANNOTATION-TYPE",
+            "MODULE",
+            "UNION",
+            "FUNCTION"
+          ]
+        },
+        {
+          "type": "string",
+          "const": "INVALID"
+        }
+      ],
+      "description": "The kind of the main entity - only the listed values are valid."
+    },
+    "namespace": {
+      "type": "string",
+      "description": "The fully qualified namespace including class/object name (e.g. classpath in Java)."
+    },
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "internalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of internal references to other modules in the same project."
+    },
+    "externalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of external references to 3rd party modules outside this project."
+    },
+    "publicConstants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the constant."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the constant."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the constant."
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "type"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public constants defined."
+    },
+    "publicMethods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the method/function."
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the parameter."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "The type of the parameter."
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "additionalProperties": true
+            },
+            "description": "List parameters of the method/function."
+          },
+          "returnType": {
+            "type": "string",
+            "description": "The return type of the method/function."
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of how the method/function is implementated."
+          },
+          "cyclomaticComplexity": {
+            "type": "number",
+            "description": "Estimated cyclomatic complexity score (number of independent paths through the code)"
+          },
+          "linesOfCode": {
+            "type": "number",
+            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+          },
+          "codeSmells": {
+            "allOf": [
+              {},
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "LONG METHOD",
+                        "LONG PARAMETER LIST",
+                        "COMPLEX CONDITIONAL",
+                        "DUPLICATE CODE",
+                        "MAGIC NUMBERS",
+                        "DEEP NESTING",
+                        "DEAD CODE",
+                        "GOD CLASS",
+                        "LARGE CLASS",
+                        "DATA CLASS",
+                        "FEATURE ENVY",
+                        "SHOTGUN SURGERY",
+                        "OTHER"
+                      ]
+                    },
+                    {
+                      "type": "string",
+                      "const": "INVALID"
+                    }
+                  ]
+                }
+              }
+            ],
+            "description": "List of code smells detected - only the listed values are valid"
+          }
+        },
+        "required": [
+          "name",
+          "purpose",
+          "returnType",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public methods/functions)."
+    },
+    "databaseIntegration": {
+      "type": "object",
+      "properties": {
+        "mechanism": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "JDBC",
+                "SPRING-DATA",
+                "HIBERNATE",
+                "JPA",
+                "EJB",
+                "EF-CORE",
+                "ADO-NET",
+                "DAPPER",
+                "ACTIVE-RECORD",
+                "SEQUEL",
+                "MONGOOSE",
+                "PRISMA",
+                "TYPEORM",
+                "SEQUELIZE",
+                "KNEX",
+                "DRIZZLE",
+                "SQLALCHEMY",
+                "DJANGO-ORM",
+                "GORM",
+                "SQLX",
+                "ROOM",
+                "CORE-DATA",
+                "MQL",
+                "REDIS",
+                "ELASTICSEARCH",
+                "CASSANDRA-CQL",
+                "SQL",
+                "ORM",
+                "MICRO-ORM",
+                "DRIVER",
+                "DDL",
+                "DML",
+                "STORED-PROCEDURE",
+                "TRIGGER",
+                "FUNCTION",
+                "OTHER"
+              ]
+            },
+            {
+              "type": "string",
+              "const": "INVALID"
+            }
+          ],
+          "description": "The database integration mechanism used - only the listed values are valid."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of the database, schema, or collection being accessed"
+        },
+        "tablesAccessed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tables, collections, or entities being accessed by this code"
+        },
+        "operationType": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "READ",
+                      "WRITE",
+                      "READ_WRITE",
+                      "DDL",
+                      "ADMIN",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "Array of database operation types performed - only the listed values are valid."
+        },
+        "queryPatterns": {
+          "type": "string",
+          "description": "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics."
+        },
+        "queryPatternsNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SIMPLE CRUD",
+                    "COMPLEX JOINS",
+                    "AGGREGATIONS",
+                    "STORED PROCEDURES",
+                    "BATCH OPERATIONS",
+                    "MIGRATIONS",
+                    "INLINE SQL",
+                    "ORM QUERIES",
+                    "RAW DRIVER CALLS",
+                    "CACHE LOOKUPS",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized query pattern category derived from 'queryPatterns'."
+        },
+        "transactionHandling": {
+          "type": "string",
+          "description": "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics."
+        },
+        "transactionHandlingNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SPRING @TRANSACTIONAL",
+                    "MANUAL",
+                    "AUTO-COMMIT",
+                    "NONE",
+                    "JPA ENTITYTRANSACTION",
+                    "BATCH",
+                    "DB CONTEXT",
+                    "EXPLICIT BEGIN/COMMIT",
+                    "ROLLBACK ON ERROR",
+                    "UNKNOWN",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized transaction handling category derived from 'transactionHandling')."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
+        "codeExample": {
+          "type": "string",
+          "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
+        }
+      },
+      "required": [
+        "mechanism",
+        "description",
+        "codeExample"
+      ],
+      "additionalProperties": true,
+      "description": "Information about how the file interacts with a database."
+    },
+    "integrationPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mechanism": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "REST",
+                  "GRAPHQL",
+                  "GRPC",
+                  "SOAP",
+                  "WEBSOCKET",
+                  "TRPC",
+                  "JMS-QUEUE",
+                  "JMS-TOPIC",
+                  "KAFKA-TOPIC",
+                  "RABBITMQ-QUEUE",
+                  "RABBITMQ-EXCHANGE",
+                  "ACTIVEMQ-QUEUE",
+                  "ACTIVEMQ-TOPIC",
+                  "AWS-SQS",
+                  "AWS-SNS",
+                  "AZURE-SERVICE-BUS-QUEUE",
+                  "AZURE-SERVICE-BUS-TOPIC",
+                  "REDIS-PUBSUB",
+                  "WEBHOOK",
+                  "SSE",
+                  "OTHER"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "INVALID"
+              }
+            ],
+            "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this integration point does"
+          },
+          "path": {
+            "type": "string",
+            "description": "The endpoint path (e.g., '/api/users/{id}' for REST or operation name for SOAP)"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method (GET, POST, PUT, DELETE, PATCH) or SOAP operation"
+          },
+          "queueOrTopicName": {
+            "type": "string",
+            "description": "Name of the queue or topic (for JMS, Kafka, RabbitMQ, etc.)"
+          },
+          "messageType": {
+            "type": "string",
+            "description": "Type of message being sent/received (for messaging systems)"
+          },
+          "direction": {
+            "allOf": [
+              {},
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "PRODUCER",
+                      "CONSUMER",
+                      "BOTH",
+                      "BIDIRECTIONAL",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            ],
+            "description": "Whether this code produces, consumes, both, or is bidirectional"
+          },
+          "requestBody": {
+            "type": "string",
+            "description": "Expected request body structure or message payload structure"
+          },
+          "responseBody": {
+            "type": "string",
+            "description": "Expected response structure or acknowledgment structure"
+          },
+          "authentication": {
+            "type": "string",
+            "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          }
+        },
+        "required": [
+          "mechanism",
+          "name",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "List of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, etc.) defined or consumed by this file"
+    },
+    "codeQualityMetrics": {
+      "type": "object",
+      "properties": {
+        "totalMethods": {
+          "type": "number",
+          "description": "Total number of methods in the file"
+        },
+        "averageComplexity": {
+          "type": "number",
+          "description": "Average cyclomatic complexity"
+        },
+        "maxComplexity": {
+          "type": "number",
+          "description": "Maximum cyclomatic complexity found"
+        },
+        "averageMethodLength": {
+          "type": "number",
+          "description": "Average lines of code per method"
+        },
+        "fileSmells": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "GOD CLASS",
+                      "TOO MANY METHODS",
+                      "FEATURE ENVY",
+                      "DATA CLASS",
+                      "LARGE FILE",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "File-level code smells - only the listed values are valid"
+        }
+      },
+      "required": [
+        "totalMethods"
+      ],
+      "additionalProperties": true,
+      "description": "File-level code quality metrics and analysis"
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+public class TestClass {
+  // Test code
+}
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots JavaScript prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the JavaScript/TypeScript code shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+The name of the main public class/interface of the file
+Its kind ('class' or 'interface')
+Its namespace (classpath)
+A detailed definition of its purpose
+A detailed definition of its implementation
+
+__References and Dependencies__
+A list of the internal references to other modules used by this source file (by using \`require\` or \`import\` keywords) belonging to the same application referenced by the code in this source file (do not include external or 3rd party modules/libraries in the list of internal references)
+A list of the external references to other external modules/libraries used by this source file (by using \`require\` or \`import\` keywords), which do not belong to this same application that this source file is part of
+A list of any exported constants or configuration values defined in this file
+A list of any exported functions or procedures defined in this file
+
+__Integration Points__
+A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:
+  * REST APIs (mechanism: 'REST'):
+    - Express route definitions (app.get, app.post, app.put, app.delete, router.use)
+    - Fastify route definitions (fastify.get, fastify.post, etc.)
+    - Koa route definitions (router.get, router.post, etc.)
+    - NestJS decorators (@Get, @Post, @Put, @Delete, @Patch, @Controller)
+    - HTTP client calls (fetch, axios, request, superagent, got)
+  * GraphQL (mechanism: 'GRAPHQL'):
+    - Schema definitions (type Query, type Mutation, resolvers)
+    - Apollo Server or GraphQL Yoga setup
+    - GraphQL client usage (Apollo Client, urql)
+  * tRPC (mechanism: 'TRPC'):
+    - Procedure definitions (publicProcedure, protectedProcedure)
+    - Router definitions
+  * WebSockets (mechanism: 'WEBSOCKET'):
+    - Socket.io usage (io.on, socket.emit)
+    - ws library (WebSocket server/client)
+    - WebSocket API usage
+  * Messaging Systems:
+    - RabbitMQ (amqplib): Channel.sendToQueue, consume => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
+    - Kafka (kafkajs): producer.send, consumer.subscribe => 'KAFKA-TOPIC'
+    - AWS SQS/SNS (aws-sdk): sendMessage, subscribe => 'AWS-SQS' or 'AWS-SNS'
+    - Redis Pub/Sub: publish, subscribe => 'REDIS-PUBSUB'
+  * gRPC (mechanism: 'GRPC'):
+    - @grpc/grpc-js usage, service definitions
+  * Server-Sent Events (mechanism: 'SSE'):
+    - res.writeHead with text/event-stream
+
+__Database Integration Analysis__
+Database Integration Analysis (REQUIRED for source files that interact with databases)
+For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
+  * REQUIRED FIELDS:
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below (use "NONE" if no database integration)
+    - description (REQUIRED): Detailed explanation of how database integration is achieved (use "n/a" if no database integration)
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction  (use "n/a" if no database integration)
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible, using "n/a" if no database integration):
+    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+    - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
+    - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+    - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+    - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+    - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
+    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
+      - Uses Mongoose schemas/models (mongoose.model, Schema) => mechanism: 'MONGOOSE'
+      - Uses Prisma Client (PrismaClient, prisma.user.findMany) => mechanism: 'PRISMA'
+      - Uses TypeORM (Repository, EntityManager, @Entity decorators) => mechanism: 'TYPEORM'
+      - Uses Sequelize models (sequelize.define, Model.findAll) => mechanism: 'SEQUELIZE'
+      - Uses Knex query builder (knex.select, knex('table')) => mechanism: 'KNEX'
+      - Uses Drizzle ORM (drizzle, select, insert) => mechanism: 'DRIZZLE'
+      - Uses Redis client (redis.set, redis.get, ioredis) => mechanism: 'REDIS'
+      - Uses Elasticsearch client (@elastic/elasticsearch, client.search) => mechanism: 'ELASTICSEARCH'
+      - Uses Cassandra driver (cassandra-driver, client.execute with CQL) => mechanism: 'CASSANDRA-CQL'
+      - Uses MongoDB driver directly (MongoClient, db.collection) without Mongoose => mechanism: 'MQL'
+      - Contains raw SQL strings without ORM => mechanism: 'SQL'
+      - Uses generic database driver (pg, mysql2, tedious) without ORM => mechanism: 'DRIVER'
+      - Defines DDL / migration scripts => mechanism: 'DDL'
+      - Performs data manipulation (bulk operations, seeding) => mechanism: 'DML'
+      - Otherwise, if the code does not use a database => mechanism: 'NONE'
+
+__Code Quality Metrics__
+Code Quality Analysis (REQUIRED for all code files and for all public methods)
+For each public method/function you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+  * linesOfCode: Count actual lines of code (exclude blank lines and comments)
+  * codeSmells: Identify any of these common code smells present. Allowed labels:
+    - 'LONG METHOD' - method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+    - 'DUPLICATE CODE' - similar logic repeated in multiple places
+    - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+    - 'DEEP NESTING' - more than 3-4 levels of nesting
+    - 'DEAD CODE' - unreachable or commented-out code
+    - 'OTHER' - some other method-level smell
+For file-level codeQualityMetrics, provide:
+  * totalMethods: Count of all methods in the file
+  * averageComplexity: Average of all method complexities
+  * maxComplexity: Highest complexity score in the file
+  * averageMethodLength: Average lines of code per method
+  * fileSmells: File-level smells. Allowed labels:
+    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public methods
+    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'DATA CLASS' - class only contains fields and getters/setters
+    - 'LARGE FILE' - class file exceeds 500 lines of code
+    - 'OTHER' - some other file-level smell.
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the main public class or interface."
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "CLASS",
+            "INTERFACE",
+            "RECORD",
+            "STRUCT",
+            "ENUM",
+            "ANNOTATION-TYPE",
+            "MODULE",
+            "UNION",
+            "FUNCTION"
+          ]
+        },
+        {
+          "type": "string",
+          "const": "INVALID"
+        }
+      ],
+      "description": "The kind of the main entity - only the listed values are valid."
+    },
+    "namespace": {
+      "type": "string",
+      "description": "The fully qualified namespace including class/object name (e.g. classpath in Java)."
+    },
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "internalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of internal references to other modules in the same project."
+    },
+    "externalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of external references to 3rd party modules outside this project."
+    },
+    "publicConstants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the constant."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the constant."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the constant."
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "type"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public constants defined."
+    },
+    "publicMethods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the method/function."
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the parameter."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "The type of the parameter."
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "additionalProperties": true
+            },
+            "description": "List parameters of the method/function."
+          },
+          "returnType": {
+            "type": "string",
+            "description": "The return type of the method/function."
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of how the method/function is implementated."
+          },
+          "cyclomaticComplexity": {
+            "type": "number",
+            "description": "Estimated cyclomatic complexity score (number of independent paths through the code)"
+          },
+          "linesOfCode": {
+            "type": "number",
+            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+          },
+          "codeSmells": {
+            "allOf": [
+              {},
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "LONG METHOD",
+                        "LONG PARAMETER LIST",
+                        "COMPLEX CONDITIONAL",
+                        "DUPLICATE CODE",
+                        "MAGIC NUMBERS",
+                        "DEEP NESTING",
+                        "DEAD CODE",
+                        "GOD CLASS",
+                        "LARGE CLASS",
+                        "DATA CLASS",
+                        "FEATURE ENVY",
+                        "SHOTGUN SURGERY",
+                        "OTHER"
+                      ]
+                    },
+                    {
+                      "type": "string",
+                      "const": "INVALID"
+                    }
+                  ]
+                }
+              }
+            ],
+            "description": "List of code smells detected - only the listed values are valid"
+          }
+        },
+        "required": [
+          "name",
+          "purpose",
+          "returnType",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public methods/functions)."
+    },
+    "databaseIntegration": {
+      "type": "object",
+      "properties": {
+        "mechanism": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "JDBC",
+                "SPRING-DATA",
+                "HIBERNATE",
+                "JPA",
+                "EJB",
+                "EF-CORE",
+                "ADO-NET",
+                "DAPPER",
+                "ACTIVE-RECORD",
+                "SEQUEL",
+                "MONGOOSE",
+                "PRISMA",
+                "TYPEORM",
+                "SEQUELIZE",
+                "KNEX",
+                "DRIZZLE",
+                "SQLALCHEMY",
+                "DJANGO-ORM",
+                "GORM",
+                "SQLX",
+                "ROOM",
+                "CORE-DATA",
+                "MQL",
+                "REDIS",
+                "ELASTICSEARCH",
+                "CASSANDRA-CQL",
+                "SQL",
+                "ORM",
+                "MICRO-ORM",
+                "DRIVER",
+                "DDL",
+                "DML",
+                "STORED-PROCEDURE",
+                "TRIGGER",
+                "FUNCTION",
+                "OTHER"
+              ]
+            },
+            {
+              "type": "string",
+              "const": "INVALID"
+            }
+          ],
+          "description": "The database integration mechanism used - only the listed values are valid."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of the database, schema, or collection being accessed"
+        },
+        "tablesAccessed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tables, collections, or entities being accessed by this code"
+        },
+        "operationType": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "READ",
+                      "WRITE",
+                      "READ_WRITE",
+                      "DDL",
+                      "ADMIN",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "Array of database operation types performed - only the listed values are valid."
+        },
+        "queryPatterns": {
+          "type": "string",
+          "description": "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics."
+        },
+        "queryPatternsNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SIMPLE CRUD",
+                    "COMPLEX JOINS",
+                    "AGGREGATIONS",
+                    "STORED PROCEDURES",
+                    "BATCH OPERATIONS",
+                    "MIGRATIONS",
+                    "INLINE SQL",
+                    "ORM QUERIES",
+                    "RAW DRIVER CALLS",
+                    "CACHE LOOKUPS",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized query pattern category derived from 'queryPatterns'."
+        },
+        "transactionHandling": {
+          "type": "string",
+          "description": "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics."
+        },
+        "transactionHandlingNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SPRING @TRANSACTIONAL",
+                    "MANUAL",
+                    "AUTO-COMMIT",
+                    "NONE",
+                    "JPA ENTITYTRANSACTION",
+                    "BATCH",
+                    "DB CONTEXT",
+                    "EXPLICIT BEGIN/COMMIT",
+                    "ROLLBACK ON ERROR",
+                    "UNKNOWN",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized transaction handling category derived from 'transactionHandling')."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
+        "codeExample": {
+          "type": "string",
+          "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
+        }
+      },
+      "required": [
+        "mechanism",
+        "description",
+        "codeExample"
+      ],
+      "additionalProperties": true,
+      "description": "Information about how the file interacts with a database."
+    },
+    "integrationPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mechanism": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "REST",
+                  "GRAPHQL",
+                  "GRPC",
+                  "SOAP",
+                  "WEBSOCKET",
+                  "TRPC",
+                  "JMS-QUEUE",
+                  "JMS-TOPIC",
+                  "KAFKA-TOPIC",
+                  "RABBITMQ-QUEUE",
+                  "RABBITMQ-EXCHANGE",
+                  "ACTIVEMQ-QUEUE",
+                  "ACTIVEMQ-TOPIC",
+                  "AWS-SQS",
+                  "AWS-SNS",
+                  "AZURE-SERVICE-BUS-QUEUE",
+                  "AZURE-SERVICE-BUS-TOPIC",
+                  "REDIS-PUBSUB",
+                  "WEBHOOK",
+                  "SSE",
+                  "OTHER"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "INVALID"
+              }
+            ],
+            "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this integration point does"
+          },
+          "path": {
+            "type": "string",
+            "description": "The endpoint path (e.g., '/api/users/{id}' for REST or operation name for SOAP)"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method (GET, POST, PUT, DELETE, PATCH) or SOAP operation"
+          },
+          "queueOrTopicName": {
+            "type": "string",
+            "description": "Name of the queue or topic (for JMS, Kafka, RabbitMQ, etc.)"
+          },
+          "messageType": {
+            "type": "string",
+            "description": "Type of message being sent/received (for messaging systems)"
+          },
+          "direction": {
+            "allOf": [
+              {},
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "PRODUCER",
+                      "CONSUMER",
+                      "BOTH",
+                      "BIDIRECTIONAL",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            ],
+            "description": "Whether this code produces, consumes, both, or is bidirectional"
+          },
+          "requestBody": {
+            "type": "string",
+            "description": "Expected request body structure or message payload structure"
+          },
+          "responseBody": {
+            "type": "string",
+            "description": "Expected response structure or acknowledgment structure"
+          },
+          "authentication": {
+            "type": "string",
+            "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          }
+        },
+        "required": [
+          "mechanism",
+          "name",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "List of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, etc.) defined or consumed by this file"
+    },
+    "codeQualityMetrics": {
+      "type": "object",
+      "properties": {
+        "totalMethods": {
+          "type": "number",
+          "description": "Total number of methods in the file"
+        },
+        "averageComplexity": {
+          "type": "number",
+          "description": "Average cyclomatic complexity"
+        },
+        "maxComplexity": {
+          "type": "number",
+          "description": "Maximum cyclomatic complexity found"
+        },
+        "averageMethodLength": {
+          "type": "number",
+          "description": "Average lines of code per method"
+        },
+        "fileSmells": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "GOD CLASS",
+                      "TOO MANY METHODS",
+                      "FEATURE ENVY",
+                      "DATA CLASS",
+                      "LARGE FILE",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "File-level code smells - only the listed values are valid"
+        }
+      },
+      "required": [
+        "totalMethods"
+      ],
+      "additionalProperties": true,
+      "description": "File-level code quality metrics and analysis"
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+public class TestClass {
+  // Test code
+}
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Markdown prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the Markdown documentation shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+A detailed definition of its purpose
+A detailed definition of its implementation
+
+__Database Integration Analysis__
+Database Integration Analysis (REQUIRED for source files that interact with databases)
+For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
+  * REQUIRED FIELDS:
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below (use "NONE" if no database integration)
+    - description (REQUIRED): Detailed explanation of how database integration is achieved (use "n/a" if no database integration)
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction  (use "n/a" if no database integration)
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible, using "n/a" if no database integration):
+    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+    - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
+    - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+    - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+    - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+    - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
+Look for database schemas, queries, or data models mentioned in the documentation.
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "databaseIntegration": {
+      "type": "object",
+      "properties": {
+        "mechanism": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "JDBC",
+                "SPRING-DATA",
+                "HIBERNATE",
+                "JPA",
+                "EJB",
+                "EF-CORE",
+                "ADO-NET",
+                "DAPPER",
+                "ACTIVE-RECORD",
+                "SEQUEL",
+                "MONGOOSE",
+                "PRISMA",
+                "TYPEORM",
+                "SEQUELIZE",
+                "KNEX",
+                "DRIZZLE",
+                "SQLALCHEMY",
+                "DJANGO-ORM",
+                "GORM",
+                "SQLX",
+                "ROOM",
+                "CORE-DATA",
+                "MQL",
+                "REDIS",
+                "ELASTICSEARCH",
+                "CASSANDRA-CQL",
+                "SQL",
+                "ORM",
+                "MICRO-ORM",
+                "DRIVER",
+                "DDL",
+                "DML",
+                "STORED-PROCEDURE",
+                "TRIGGER",
+                "FUNCTION",
+                "OTHER"
+              ]
+            },
+            {
+              "type": "string",
+              "const": "INVALID"
+            }
+          ],
+          "description": "The database integration mechanism used - only the listed values are valid."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of the database, schema, or collection being accessed"
+        },
+        "tablesAccessed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tables, collections, or entities being accessed by this code"
+        },
+        "operationType": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "READ",
+                      "WRITE",
+                      "READ_WRITE",
+                      "DDL",
+                      "ADMIN",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "Array of database operation types performed - only the listed values are valid."
+        },
+        "queryPatterns": {
+          "type": "string",
+          "description": "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics."
+        },
+        "queryPatternsNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SIMPLE CRUD",
+                    "COMPLEX JOINS",
+                    "AGGREGATIONS",
+                    "STORED PROCEDURES",
+                    "BATCH OPERATIONS",
+                    "MIGRATIONS",
+                    "INLINE SQL",
+                    "ORM QUERIES",
+                    "RAW DRIVER CALLS",
+                    "CACHE LOOKUPS",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized query pattern category derived from 'queryPatterns'."
+        },
+        "transactionHandling": {
+          "type": "string",
+          "description": "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics."
+        },
+        "transactionHandlingNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SPRING @TRANSACTIONAL",
+                    "MANUAL",
+                    "AUTO-COMMIT",
+                    "NONE",
+                    "JPA ENTITYTRANSACTION",
+                    "BATCH",
+                    "DB CONTEXT",
+                    "EXPLICIT BEGIN/COMMIT",
+                    "ROLLBACK ON ERROR",
+                    "UNKNOWN",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized transaction handling category derived from 'transactionHandling')."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
+        "codeExample": {
+          "type": "string",
+          "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
+        }
+      },
+      "required": [
+        "mechanism",
+        "description",
+        "codeExample"
+      ],
+      "additionalProperties": true,
+      "description": "Information about how the file interacts with a database."
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+# Test Document
+
+Content here
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Python prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the Python code shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+The name of the main public class/interface of the file
+Its kind ('class' or 'interface')
+Its namespace (classpath)
+A detailed definition of its purpose
+A detailed definition of its implementation
+Its kind ('class', 'module', 'function', or 'package'; choose the dominant one)
+
+__References and Dependencies__
+A list of internal references (imports that belong to this same project; exclude Python stdlib & third‑party packages)
+A list of external references (third‑party libraries imported; exclude stdlib modules like sys, os, json, typing, pathlib, re, math, datetime, logging, asyncio, dataclasses, functools, itertools)
+A list of public constants (UPPERCASE module-level assignments; include name, redacted value, brief type/role)
+A list of its public functions/methods – for each include: name, purpose (detailed), parameters (name + type hint or inferred type; if no hint, describe expected type), returnType (type hint or inferred description of returned value shape), implementation (very detailed explanation of logic, branches, important data transformations, exception handling), cyclomaticComplexity (see rules), linesOfCode (exclude blank lines & comments), codeSmells (if any; use EXACT enum labels)
+
+__Integration Points__
+A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:
+  * REST APIs (mechanism: 'REST'):
+    - Flask @app.route decorators (path, methods)
+    - FastAPI endpoint decorators (@app.get/post/put/delete/patch)
+    - Django REST Framework views / viewsets (method names, URL pattern if inferable)
+    - aiohttp route registrations
+    - HTTP client calls (requests/httpx/aiohttp ClientSession)
+  * GraphQL (mechanism: 'GRAPHQL'): Graphene / Strawberry schema & resolver definitions
+  * gRPC (mechanism: 'GRPC'): grpc.* Servicer classes, stub usage
+  * Messaging: Celery tasks (@app.task) => mechanism 'OTHER' (specify Celery); RabbitMQ (pika), Kafka (producer/consumer), Redis Pub/Sub (redis.publish/subscribe), AWS SQS/SNS (boto3)
+  * WebSockets (mechanism: 'WEBSOCKET'): FastAPI WebSocket endpoints, Django Channels consumers
+  * Server-Sent Events (mechanism: 'SSE'): streaming responses with 'text/event-stream'
+
+__Database Integration Analysis__
+Database Integration Analysis (REQUIRED for source files that interact with databases)
+For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
+  * REQUIRED FIELDS:
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below (use "NONE" if no database integration)
+    - description (REQUIRED): Detailed explanation of how database integration is achieved (use "n/a" if no database integration)
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction  (use "n/a" if no database integration)
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible, using "n/a" if no database integration):
+    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+    - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
+    - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+    - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+    - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+    - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
+    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
+      - SQLAlchemy ORM (Session, declarative Base) => 'SQLALCHEMY'
+      - Django ORM (models.Model, QuerySet) => 'DJANGO-ORM'
+      - Raw DB-API / driver (psycopg2, mysqlclient, sqlite3) => 'DRIVER' or 'SQL' (if many inline SQL strings)
+      - Async drivers (asyncpg, aiomysql) => 'DRIVER'
+      - Inline CREATE/ALTER => also 'DDL'
+      - Bulk data scripts => also 'DML'
+      - Stored procedure/function invocation (CALL/EXEC) => 'STORED-PROCEDURE' or 'FUNCTION'
+      - Otherwise, if the code does not use a database => mechanism: 'NONE'
+
+__Code Quality Metrics__
+Code Quality Analysis (REQUIRED for all code files and for all public methods)
+For each public method/function you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+  * linesOfCode: Count actual lines of code (exclude blank lines and comments)
+  * codeSmells: Identify any of these common code smells present. Allowed labels:
+    - 'LONG METHOD' - method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+    - 'DUPLICATE CODE' - similar logic repeated in multiple places
+    - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+    - 'DEEP NESTING' - more than 3-4 levels of nesting
+    - 'DEAD CODE' - unreachable or commented-out code
+    - 'OTHER' - some other method-level smell
+For file-level codeQualityMetrics, provide:
+  * totalMethods: Count of all methods in the file
+  * averageComplexity: Average of all method complexities
+  * maxComplexity: Highest complexity score in the file
+  * averageMethodLength: Average lines of code per method
+  * fileSmells: File-level smells. Allowed labels:
+    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public methods
+    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'DATA CLASS' - class only contains fields and getters/setters
+    - 'LARGE FILE' - class file exceeds 500 lines of code
+    - 'OTHER' - some other file-level smell
+Cyclomatic complexity (Python):
+- Start at 1; +1 for each if / elif / for / while / except / finally / with (when it controls resource flow) / comprehension 'for' / ternary / logical operator (and/or) in a condition / match case arm
+- +1 for each additional 'if' inside a comprehension
+For each public function/method capture: cyclomaticComplexity, linesOfCode, and codeSmells
+File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMethodLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY').
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the main public class or interface."
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "CLASS",
+            "INTERFACE",
+            "RECORD",
+            "STRUCT",
+            "ENUM",
+            "ANNOTATION-TYPE",
+            "MODULE",
+            "UNION",
+            "FUNCTION"
+          ]
+        },
+        {
+          "type": "string",
+          "const": "INVALID"
+        }
+      ],
+      "description": "The kind of the main entity - only the listed values are valid."
+    },
+    "namespace": {
+      "type": "string",
+      "description": "The fully qualified namespace including class/object name (e.g. classpath in Java)."
+    },
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "internalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of internal references to other modules in the same project."
+    },
+    "externalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of external references to 3rd party modules outside this project."
+    },
+    "publicConstants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the constant."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the constant."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the constant."
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "type"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public constants defined."
+    },
+    "publicMethods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the method/function."
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the parameter."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "The type of the parameter."
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "additionalProperties": true
+            },
+            "description": "List parameters of the method/function."
+          },
+          "returnType": {
+            "type": "string",
+            "description": "The return type of the method/function."
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of how the method/function is implementated."
+          },
+          "cyclomaticComplexity": {
+            "type": "number",
+            "description": "Estimated cyclomatic complexity score (number of independent paths through the code)"
+          },
+          "linesOfCode": {
+            "type": "number",
+            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+          },
+          "codeSmells": {
+            "allOf": [
+              {},
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "LONG METHOD",
+                        "LONG PARAMETER LIST",
+                        "COMPLEX CONDITIONAL",
+                        "DUPLICATE CODE",
+                        "MAGIC NUMBERS",
+                        "DEEP NESTING",
+                        "DEAD CODE",
+                        "GOD CLASS",
+                        "LARGE CLASS",
+                        "DATA CLASS",
+                        "FEATURE ENVY",
+                        "SHOTGUN SURGERY",
+                        "OTHER"
+                      ]
+                    },
+                    {
+                      "type": "string",
+                      "const": "INVALID"
+                    }
+                  ]
+                }
+              }
+            ],
+            "description": "List of code smells detected - only the listed values are valid"
+          }
+        },
+        "required": [
+          "name",
+          "purpose",
+          "returnType",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public methods/functions)."
+    },
+    "databaseIntegration": {
+      "type": "object",
+      "properties": {
+        "mechanism": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "JDBC",
+                "SPRING-DATA",
+                "HIBERNATE",
+                "JPA",
+                "EJB",
+                "EF-CORE",
+                "ADO-NET",
+                "DAPPER",
+                "ACTIVE-RECORD",
+                "SEQUEL",
+                "MONGOOSE",
+                "PRISMA",
+                "TYPEORM",
+                "SEQUELIZE",
+                "KNEX",
+                "DRIZZLE",
+                "SQLALCHEMY",
+                "DJANGO-ORM",
+                "GORM",
+                "SQLX",
+                "ROOM",
+                "CORE-DATA",
+                "MQL",
+                "REDIS",
+                "ELASTICSEARCH",
+                "CASSANDRA-CQL",
+                "SQL",
+                "ORM",
+                "MICRO-ORM",
+                "DRIVER",
+                "DDL",
+                "DML",
+                "STORED-PROCEDURE",
+                "TRIGGER",
+                "FUNCTION",
+                "OTHER"
+              ]
+            },
+            {
+              "type": "string",
+              "const": "INVALID"
+            }
+          ],
+          "description": "The database integration mechanism used - only the listed values are valid."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of the database, schema, or collection being accessed"
+        },
+        "tablesAccessed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tables, collections, or entities being accessed by this code"
+        },
+        "operationType": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "READ",
+                      "WRITE",
+                      "READ_WRITE",
+                      "DDL",
+                      "ADMIN",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "Array of database operation types performed - only the listed values are valid."
+        },
+        "queryPatterns": {
+          "type": "string",
+          "description": "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics."
+        },
+        "queryPatternsNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SIMPLE CRUD",
+                    "COMPLEX JOINS",
+                    "AGGREGATIONS",
+                    "STORED PROCEDURES",
+                    "BATCH OPERATIONS",
+                    "MIGRATIONS",
+                    "INLINE SQL",
+                    "ORM QUERIES",
+                    "RAW DRIVER CALLS",
+                    "CACHE LOOKUPS",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized query pattern category derived from 'queryPatterns'."
+        },
+        "transactionHandling": {
+          "type": "string",
+          "description": "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics."
+        },
+        "transactionHandlingNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SPRING @TRANSACTIONAL",
+                    "MANUAL",
+                    "AUTO-COMMIT",
+                    "NONE",
+                    "JPA ENTITYTRANSACTION",
+                    "BATCH",
+                    "DB CONTEXT",
+                    "EXPLICIT BEGIN/COMMIT",
+                    "ROLLBACK ON ERROR",
+                    "UNKNOWN",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized transaction handling category derived from 'transactionHandling')."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
+        "codeExample": {
+          "type": "string",
+          "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
+        }
+      },
+      "required": [
+        "mechanism",
+        "description",
+        "codeExample"
+      ],
+      "additionalProperties": true,
+      "description": "Information about how the file interacts with a database."
+    },
+    "integrationPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mechanism": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "REST",
+                  "GRAPHQL",
+                  "GRPC",
+                  "SOAP",
+                  "WEBSOCKET",
+                  "TRPC",
+                  "JMS-QUEUE",
+                  "JMS-TOPIC",
+                  "KAFKA-TOPIC",
+                  "RABBITMQ-QUEUE",
+                  "RABBITMQ-EXCHANGE",
+                  "ACTIVEMQ-QUEUE",
+                  "ACTIVEMQ-TOPIC",
+                  "AWS-SQS",
+                  "AWS-SNS",
+                  "AZURE-SERVICE-BUS-QUEUE",
+                  "AZURE-SERVICE-BUS-TOPIC",
+                  "REDIS-PUBSUB",
+                  "WEBHOOK",
+                  "SSE",
+                  "OTHER"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "INVALID"
+              }
+            ],
+            "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this integration point does"
+          },
+          "path": {
+            "type": "string",
+            "description": "The endpoint path (e.g., '/api/users/{id}' for REST or operation name for SOAP)"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method (GET, POST, PUT, DELETE, PATCH) or SOAP operation"
+          },
+          "queueOrTopicName": {
+            "type": "string",
+            "description": "Name of the queue or topic (for JMS, Kafka, RabbitMQ, etc.)"
+          },
+          "messageType": {
+            "type": "string",
+            "description": "Type of message being sent/received (for messaging systems)"
+          },
+          "direction": {
+            "allOf": [
+              {},
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "PRODUCER",
+                      "CONSUMER",
+                      "BOTH",
+                      "BIDIRECTIONAL",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            ],
+            "description": "Whether this code produces, consumes, both, or is bidirectional"
+          },
+          "requestBody": {
+            "type": "string",
+            "description": "Expected request body structure or message payload structure"
+          },
+          "responseBody": {
+            "type": "string",
+            "description": "Expected response structure or acknowledgment structure"
+          },
+          "authentication": {
+            "type": "string",
+            "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          }
+        },
+        "required": [
+          "mechanism",
+          "name",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "List of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, etc.) defined or consumed by this file"
+    },
+    "codeQualityMetrics": {
+      "type": "object",
+      "properties": {
+        "totalMethods": {
+          "type": "number",
+          "description": "Total number of methods in the file"
+        },
+        "averageComplexity": {
+          "type": "number",
+          "description": "Average cyclomatic complexity"
+        },
+        "maxComplexity": {
+          "type": "number",
+          "description": "Maximum cyclomatic complexity found"
+        },
+        "averageMethodLength": {
+          "type": "number",
+          "description": "Average lines of code per method"
+        },
+        "fileSmells": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "GOD CLASS",
+                      "TOO MANY METHODS",
+                      "FEATURE ENVY",
+                      "DATA CLASS",
+                      "LARGE FILE",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "File-level code smells - only the listed values are valid"
+        }
+      },
+      "required": [
+        "totalMethods"
+      ],
+      "additionalProperties": true,
+      "description": "File-level code quality metrics and analysis"
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+public class TestClass {
+  // Test code
+}
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Ruby prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the Ruby code shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+The name of the main public class/interface of the file
+Its kind ('class' or 'interface')
+Its namespace (classpath)
+A detailed definition of its purpose
+A detailed definition of its implementation
+Its kind ('class', 'module', or 'enum')
+
+__References and Dependencies__
+A list of the internal references to other Ruby source files in the same project that this file depends on (only include paths required via require or require_relative that clearly belong to this same application; exclude Ruby standard library and external gem dependencies)
+A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)
+A list of public (non-internal) constants it defines (if any) – for each constant include its name, value (redact secrets), and a short type/role description
+A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals
+
+__Integration Points__
+A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:
+  * REST APIs (mechanism: 'REST'):
+    - Rails controller actions (routes.rb get/post/put/delete/patch, controller action methods)
+    - Sinatra route definitions (get, post, put, delete, patch blocks)
+    - Grape API endpoints (get, post, put, delete, patch declarations)
+    - HTTP client calls (Net::HTTP, RestClient, HTTParty, Faraday)
+  * GraphQL (mechanism: 'GRAPHQL'):
+    - GraphQL type definitions (GraphQL::ObjectType, field definitions)
+    - GraphQL mutations and queries
+  * SOAP (mechanism: 'SOAP'):
+    - Savon SOAP client usage
+    - SOAP service definitions
+  * Messaging Systems:
+    - RabbitMQ (bunny gem): channel.queue, publish => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
+    - Redis Pub/Sub: redis.publish, subscribe => 'REDIS-PUBSUB'
+    - AWS SQS/SNS (aws-sdk) => 'AWS-SQS' or 'AWS-SNS'
+  * WebSockets (mechanism: 'WEBSOCKET'):
+    - Action Cable channels
+    - WebSocket-Rails usage
+
+__Database Integration Analysis__
+Database Integration Analysis (REQUIRED for source files that interact with databases)
+For files that interact with a database, you MUST extract and provide ALL of the following fields in the databaseIntegration object. DO NOT omit any field - if you cannot determine a value, use "unknown" or indicate "not identifiable from code":
+  * REQUIRED FIELDS:
+    - mechanism (REQUIRED): The integration type - see mechanism mapping below (use "NONE" if no database integration)
+    - description (REQUIRED): Detailed explanation of how database integration is achieved (use "n/a" if no database integration)
+    - codeExample (REQUIRED): A small redacted code snippet showing the database interaction  (use "n/a" if no database integration)
+  * STRONGLY RECOMMENDED FIELDS (provide whenever possible, using "n/a" if no database integration):
+    - name: Name of the database service or data access component (e.g., "UserRepository", "OrderDAO", "DatabaseConfig")
+    - databaseName: Specific database/schema name being accessed (look in connection strings, config files, or annotations)
+    - tablesAccessed: Array of table/collection/entity names accessed (from SQL queries, JPA entity names, @Table annotations, repository interfaces)
+    - operationType: Array of operation types (EXACT enumeration values only): READ, WRITE, READ_WRITE, DDL, ADMIN, OTHER. Use READ_WRITE instead of separate READ and WRITE entries.
+    - queryPatterns: Description of query complexity (e.g., 'simple CRUD', 'complex joins with subqueries', 'aggregations', 'stored procedure calls', 'batch operations')
+    - transactionHandling: How transactions are managed (e.g., 'Spring @Transactional', 'manual tx.commit()', 'JPA EntityTransaction', 'auto-commit', 'none', 'unknown')
+    - protocol: Database type and version (e.g., 'PostgreSQL 15', 'MySQL 8.0', 'MongoDB 6.0', 'Oracle 19c', 'H2', 'SQL Server 2019')
+    - connectionInfo: JDBC URL or connection string - MUST REDACT passwords/secrets (e.g., 'jdbc:postgresql://localhost:5432/mydb', 'mongodb://localhost:27017/appdb')
+    - mechanism: If any of the following are true (apart from 'NONE'), you MUST assume database interaction:
+      - Uses ActiveRecord (models, migrations, associations, where/find methods) => mechanism: 'ACTIVE-RECORD'
+      - Uses Sequel ORM (DB[:table], dataset operations) => mechanism: 'SEQUEL'
+      - Uses other Ruby ORM / micro ORM (ROM.rb, DataMapper) => mechanism: 'ORM' (or 'MICRO-ORM' if lightweight)
+      - Uses Redis client (redis-rb, redis.set/get) => mechanism: 'REDIS'
+      - Executes raw SQL strings (SELECT / INSERT / etc.) => mechanism: 'SQL'
+      - Invokes stored procedures (via connection.exec with CALL) => mechanism: 'STORED-PROCEDURE'
+      - Uses database driver / adapter directly (PG gem, mysql2 gem) without ORM => mechanism: 'DRIVER'
+      - Defines migration DSL (create_table, add_column, change_table) => mechanism: 'DDL'
+      - Performs data manipulation (bulk insert helpers, seeding, data-only scripts) => mechanism: 'DML'
+      - Creates or manages triggers (via execute or DSL) => mechanism: 'TRIGGER'
+      - Creates or invokes functions / stored routines => mechanism: 'FUNCTION'
+      - Otherwise, if the code does not use a database => mechanism: 'NONE'
+
+__Code Quality Metrics__
+Code Quality Analysis (REQUIRED for all code files and for all public methods)
+For each public method/function you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+  * linesOfCode: Count actual lines of code (exclude blank lines and comments)
+  * codeSmells: Identify any of these common code smells present. Allowed labels:
+    - 'LONG METHOD' - method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
+    - 'DUPLICATE CODE' - similar logic repeated in multiple places
+    - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
+    - 'DEEP NESTING' - more than 3-4 levels of nesting
+    - 'DEAD CODE' - unreachable or commented-out code
+    - 'OTHER' - some other method-level smell
+For file-level codeQualityMetrics, provide:
+  * totalMethods: Count of all methods in the file
+  * averageComplexity: Average of all method complexities
+  * maxComplexity: Highest complexity score in the file
+  * averageMethodLength: Average lines of code per method
+  * fileSmells: File-level smells. Allowed labels:
+    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public methods
+    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'DATA CLASS' - class only contains fields and getters/setters
+    - 'LARGE FILE' - class file exceeds 500 lines of code
+    - 'OTHER' - some other file-level smell.
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the main public class or interface."
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "CLASS",
+            "INTERFACE",
+            "RECORD",
+            "STRUCT",
+            "ENUM",
+            "ANNOTATION-TYPE",
+            "MODULE",
+            "UNION",
+            "FUNCTION"
+          ]
+        },
+        {
+          "type": "string",
+          "const": "INVALID"
+        }
+      ],
+      "description": "The kind of the main entity - only the listed values are valid."
+    },
+    "namespace": {
+      "type": "string",
+      "description": "The fully qualified namespace including class/object name (e.g. classpath in Java)."
+    },
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "internalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of internal references to other modules in the same project."
+    },
+    "externalReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "A list of external references to 3rd party modules outside this project."
+    },
+    "publicConstants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the constant."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the constant."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the constant."
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "type"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public constants defined."
+    },
+    "publicMethods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the method/function."
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the parameter."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "The type of the parameter."
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "additionalProperties": true
+            },
+            "description": "List parameters of the method/function."
+          },
+          "returnType": {
+            "type": "string",
+            "description": "The return type of the method/function."
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of how the method/function is implementated."
+          },
+          "cyclomaticComplexity": {
+            "type": "number",
+            "description": "Estimated cyclomatic complexity score (number of independent paths through the code)"
+          },
+          "linesOfCode": {
+            "type": "number",
+            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+          },
+          "codeSmells": {
+            "allOf": [
+              {},
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "LONG METHOD",
+                        "LONG PARAMETER LIST",
+                        "COMPLEX CONDITIONAL",
+                        "DUPLICATE CODE",
+                        "MAGIC NUMBERS",
+                        "DEEP NESTING",
+                        "DEAD CODE",
+                        "GOD CLASS",
+                        "LARGE CLASS",
+                        "DATA CLASS",
+                        "FEATURE ENVY",
+                        "SHOTGUN SURGERY",
+                        "OTHER"
+                      ]
+                    },
+                    {
+                      "type": "string",
+                      "const": "INVALID"
+                    }
+                  ]
+                }
+              }
+            ],
+            "description": "List of code smells detected - only the listed values are valid"
+          }
+        },
+        "required": [
+          "name",
+          "purpose",
+          "returnType",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of public methods/functions)."
+    },
+    "databaseIntegration": {
+      "type": "object",
+      "properties": {
+        "mechanism": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "JDBC",
+                "SPRING-DATA",
+                "HIBERNATE",
+                "JPA",
+                "EJB",
+                "EF-CORE",
+                "ADO-NET",
+                "DAPPER",
+                "ACTIVE-RECORD",
+                "SEQUEL",
+                "MONGOOSE",
+                "PRISMA",
+                "TYPEORM",
+                "SEQUELIZE",
+                "KNEX",
+                "DRIZZLE",
+                "SQLALCHEMY",
+                "DJANGO-ORM",
+                "GORM",
+                "SQLX",
+                "ROOM",
+                "CORE-DATA",
+                "MQL",
+                "REDIS",
+                "ELASTICSEARCH",
+                "CASSANDRA-CQL",
+                "SQL",
+                "ORM",
+                "MICRO-ORM",
+                "DRIVER",
+                "DDL",
+                "DML",
+                "STORED-PROCEDURE",
+                "TRIGGER",
+                "FUNCTION",
+                "OTHER"
+              ]
+            },
+            {
+              "type": "string",
+              "const": "INVALID"
+            }
+          ],
+          "description": "The database integration mechanism used - only the listed values are valid."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of the database, schema, or collection being accessed"
+        },
+        "tablesAccessed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tables, collections, or entities being accessed by this code"
+        },
+        "operationType": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "READ",
+                      "WRITE",
+                      "READ_WRITE",
+                      "DDL",
+                      "ADMIN",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "Array of database operation types performed - only the listed values are valid."
+        },
+        "queryPatterns": {
+          "type": "string",
+          "description": "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics."
+        },
+        "queryPatternsNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SIMPLE CRUD",
+                    "COMPLEX JOINS",
+                    "AGGREGATIONS",
+                    "STORED PROCEDURES",
+                    "BATCH OPERATIONS",
+                    "MIGRATIONS",
+                    "INLINE SQL",
+                    "ORM QUERIES",
+                    "RAW DRIVER CALLS",
+                    "CACHE LOOKUPS",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized query pattern category derived from 'queryPatterns'."
+        },
+        "transactionHandling": {
+          "type": "string",
+          "description": "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics."
+        },
+        "transactionHandlingNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SPRING @TRANSACTIONAL",
+                    "MANUAL",
+                    "AUTO-COMMIT",
+                    "NONE",
+                    "JPA ENTITYTRANSACTION",
+                    "BATCH",
+                    "DB CONTEXT",
+                    "EXPLICIT BEGIN/COMMIT",
+                    "ROLLBACK ON ERROR",
+                    "UNKNOWN",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized transaction handling category derived from 'transactionHandling')."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
+        "codeExample": {
+          "type": "string",
+          "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
+        }
+      },
+      "required": [
+        "mechanism",
+        "description",
+        "codeExample"
+      ],
+      "additionalProperties": true,
+      "description": "Information about how the file interacts with a database."
+    },
+    "integrationPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mechanism": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "REST",
+                  "GRAPHQL",
+                  "GRPC",
+                  "SOAP",
+                  "WEBSOCKET",
+                  "TRPC",
+                  "JMS-QUEUE",
+                  "JMS-TOPIC",
+                  "KAFKA-TOPIC",
+                  "RABBITMQ-QUEUE",
+                  "RABBITMQ-EXCHANGE",
+                  "ACTIVEMQ-QUEUE",
+                  "ACTIVEMQ-TOPIC",
+                  "AWS-SQS",
+                  "AWS-SNS",
+                  "AZURE-SERVICE-BUS-QUEUE",
+                  "AZURE-SERVICE-BUS-TOPIC",
+                  "REDIS-PUBSUB",
+                  "WEBHOOK",
+                  "SSE",
+                  "OTHER"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "INVALID"
+              }
+            ],
+            "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the endpoint, queue, topic, or service operation"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this integration point does"
+          },
+          "path": {
+            "type": "string",
+            "description": "The endpoint path (e.g., '/api/users/{id}' for REST or operation name for SOAP)"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP method (GET, POST, PUT, DELETE, PATCH) or SOAP operation"
+          },
+          "queueOrTopicName": {
+            "type": "string",
+            "description": "Name of the queue or topic (for JMS, Kafka, RabbitMQ, etc.)"
+          },
+          "messageType": {
+            "type": "string",
+            "description": "Type of message being sent/received (for messaging systems)"
+          },
+          "direction": {
+            "allOf": [
+              {},
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "PRODUCER",
+                      "CONSUMER",
+                      "BOTH",
+                      "BIDIRECTIONAL",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            ],
+            "description": "Whether this code produces, consumes, both, or is bidirectional"
+          },
+          "requestBody": {
+            "type": "string",
+            "description": "Expected request body structure or message payload structure"
+          },
+          "responseBody": {
+            "type": "string",
+            "description": "Expected response structure or acknowledgment structure"
+          },
+          "authentication": {
+            "type": "string",
+            "description": "Authentication mechanism required (JWT, OAuth, SAML, etc.)"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Specific protocol details (e.g., 'HTTP/1.1', 'SOAP 1.2', 'AMQP 0.9.1')"
+          },
+          "connectionInfo": {
+            "type": "string",
+            "description": "Connection string, broker info, or WSDL location (redacted if sensitive)"
+          }
+        },
+        "required": [
+          "mechanism",
+          "name",
+          "description"
+        ],
+        "additionalProperties": true
+      },
+      "description": "List of integration points (REST APIs, SOAP services, message queues/topics, WebSockets, etc.) defined or consumed by this file"
+    },
+    "codeQualityMetrics": {
+      "type": "object",
+      "properties": {
+        "totalMethods": {
+          "type": "number",
+          "description": "Total number of methods in the file"
+        },
+        "averageComplexity": {
+          "type": "number",
+          "description": "Average cyclomatic complexity"
+        },
+        "maxComplexity": {
+          "type": "number",
+          "description": "Maximum cyclomatic complexity found"
+        },
+        "averageMethodLength": {
+          "type": "number",
+          "description": "Average lines of code per method"
+        },
+        "fileSmells": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "GOD CLASS",
+                      "TOO MANY METHODS",
+                      "FEATURE ENVY",
+                      "DATA CLASS",
+                      "LARGE FILE",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "File-level code smells - only the listed values are valid"
+        }
+      },
+      "required": [
+        "totalMethods"
+      ],
+      "additionalProperties": true,
+      "description": "File-level code quality metrics and analysis"
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+public class TestClass {
+  // Test code
+}
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots SQL prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the database DDL/DML/SQL code shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+A detailed definition of its purpose
+A detailed definition of its implementation
+
+__Database Objects__
+A list of the tables (if any) it defines - for each table, include the names of the table's fields, if known
+A list of the stored procedure (if any) it defines - for each stored procedure, include the stored procedure's name, its purpose, the number of lines of code in the stored procedure, and a complexity score or how complex the stored procedure's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score
+A list of the triggers (if any) it defines - for each trigger, include the trigger's name, its purpose, the number of lines of code in the trigger, and a complexity score or how complex the trigger's code is (the score must be have one of the following values: 'LOW', 'MEDIUM', 'HIGH') along with a short reason for the chosen complexity score
+
+__Database Integration Analysis__
+Database Integration Analysis (REQUIRED) - Extract ALL possible database details:
+IMPORTANT: databaseIntegration must be a SINGLE OBJECT (not an array). If multiple integration mechanisms exist in the file (e.g., both STORED-PROCEDURE and DDL), combine them into one object:
+  - mechanism: Use the primary mechanism (or combine related mechanisms in the description)
+  - description: Include details about ALL integration mechanisms present
+  - codeExample: Include examples from all relevant mechanisms
+  - tablesAccessed: Merge all tables accessed across all mechanisms
+  - operationType: Merge all operation types across mechanisms
+
+REQUIRED: mechanism (must be 'NONE', 'DDL', 'DML', 'SQL', 'STORED-PROCEDURE', or 'TRIGGER'), description (detailed explanation covering all mechanisms if multiple exist), codeExample (max 6 lines, can include examples from multiple mechanisms)
+STRONGLY RECOMMENDED (extract whenever possible): databaseName (specific database/schema name if mentioned), tablesAccessed (array of table names from queries or DDL), operationType (array: ['READ'], ['WRITE'], ['READ', 'WRITE'], ['DDL'], ['ADMIN']), queryPatterns (e.g., 'CREATE TABLE statements', 'INSERT/UPDATE operations', 'complex joins', 'stored procedures'), transactionHandling (e.g., 'explicit BEGIN/COMMIT', 'auto-commit', 'none'), protocol (database type and version if identifiable, e.g., 'PostgreSQL 14', 'MySQL 8.0', 'SQL Server 2019', 'Oracle 19c'), connectionInfo ('not applicable for SQL files' or specific connection details if present).
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the table."
+          },
+          "fields": {
+            "type": "string",
+            "description": "The names of the fields in the table, comma seperated, if known."
+          }
+        },
+        "required": [
+          "name",
+          "fields"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of tables defined."
+    },
+    "storedProcedures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the procedure or trigger."
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Detailed purpose in at least 3 sentences."
+          },
+          "complexity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "LOW",
+                  "MEDIUM",
+                  "HIGH"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "INVALID"
+              }
+            ],
+            "description": "Complexity score - only the listed values are valid; invalid becomes 'INVALID'."
+          },
+          "complexityReason": {
+            "type": "string",
+            "description": "A brief, one-sentence reason for the chosen complexity score."
+          },
+          "linesOfCode": {
+            "type": "number",
+            "description": "Number of lines of code it contains."
+          }
+        },
+        "required": [
+          "name",
+          "purpose",
+          "complexity",
+          "complexityReason",
+          "linesOfCode"
+        ],
+        "additionalProperties": true
+      },
+      "description": "A list of stored procedures defined."
+    },
+    "triggers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/properties/storedProcedures/items"
+      },
+      "description": "A list of triggers defined."
+    },
+    "databaseIntegration": {
+      "type": "object",
+      "properties": {
+        "mechanism": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "JDBC",
+                "SPRING-DATA",
+                "HIBERNATE",
+                "JPA",
+                "EJB",
+                "EF-CORE",
+                "ADO-NET",
+                "DAPPER",
+                "ACTIVE-RECORD",
+                "SEQUEL",
+                "MONGOOSE",
+                "PRISMA",
+                "TYPEORM",
+                "SEQUELIZE",
+                "KNEX",
+                "DRIZZLE",
+                "SQLALCHEMY",
+                "DJANGO-ORM",
+                "GORM",
+                "SQLX",
+                "ROOM",
+                "CORE-DATA",
+                "MQL",
+                "REDIS",
+                "ELASTICSEARCH",
+                "CASSANDRA-CQL",
+                "SQL",
+                "ORM",
+                "MICRO-ORM",
+                "DRIVER",
+                "DDL",
+                "DML",
+                "STORED-PROCEDURE",
+                "TRIGGER",
+                "FUNCTION",
+                "OTHER"
+              ]
+            },
+            {
+              "type": "string",
+              "const": "INVALID"
+            }
+          ],
+          "description": "The database integration mechanism used - only the listed values are valid."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the database, service, or data access component"
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the way database integration is achieved (or a note saying no database integration related code exists)."
+        },
+        "databaseName": {
+          "type": "string",
+          "description": "Name of the database, schema, or collection being accessed"
+        },
+        "tablesAccessed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tables, collections, or entities being accessed by this code"
+        },
+        "operationType": {
+          "allOf": [
+            {},
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "READ",
+                      "WRITE",
+                      "READ_WRITE",
+                      "DDL",
+                      "ADMIN",
+                      "OTHER"
+                    ]
+                  },
+                  {
+                    "type": "string",
+                    "const": "INVALID"
+                  }
+                ]
+              }
+            }
+          ],
+          "description": "Array of database operation types performed - only the listed values are valid."
+        },
+        "queryPatterns": {
+          "type": "string",
+          "description": "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). A separate 'queryPatternsNormalized' field may be derived for internal analytics."
+        },
+        "queryPatternsNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SIMPLE CRUD",
+                    "COMPLEX JOINS",
+                    "AGGREGATIONS",
+                    "STORED PROCEDURES",
+                    "BATCH OPERATIONS",
+                    "MIGRATIONS",
+                    "INLINE SQL",
+                    "ORM QUERIES",
+                    "RAW DRIVER CALLS",
+                    "CACHE LOOKUPS",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized query pattern category derived from 'queryPatterns'."
+        },
+        "transactionHandling": {
+          "type": "string",
+          "description": "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics."
+        },
+        "transactionHandlingNormalized": {
+          "allOf": [
+            {},
+            {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "SPRING @TRANSACTIONAL",
+                    "MANUAL",
+                    "AUTO-COMMIT",
+                    "NONE",
+                    "JPA ENTITYTRANSACTION",
+                    "BATCH",
+                    "DB CONTEXT",
+                    "EXPLICIT BEGIN/COMMIT",
+                    "ROLLBACK ON ERROR",
+                    "UNKNOWN",
+                    "OTHER"
+                  ]
+                },
+                {
+                  "type": "string",
+                  "const": "INVALID"
+                }
+              ]
+            }
+          ],
+          "description": "Normalized transaction handling category derived from 'transactionHandling')."
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Database protocol, version, or driver details (e.g., 'PostgreSQL 15', 'MongoDB 6.0')"
+        },
+        "connectionInfo": {
+          "type": "string",
+          "description": "Connection string, JDBC URL, or database connection details (redacted if sensitive)"
+        },
+        "codeExample": {
+          "type": "string",
+          "description": "A single very small redacted example of some code that performs the database integration (if no database integration, just state 'n/a')"
+        }
+      },
+      "required": [
+        "mechanism",
+        "description",
+        "codeExample"
+      ],
+      "additionalProperties": true,
+      "description": "Information about how the file interacts with a database."
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+CREATE TABLE test (id INT);
+\`\`\`"
+`;
+
+exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots XML prompt should match snapshot 1`] = `
+"Act as a senior developer analyzing the code in a legacy application. Based on the XML configuration shown below in the section marked 'CODE', return a JSON response that contains the following metadata about the source file:
+
+__Basic Information__
+A detailed definition of its purpose
+A detailed definition of its implementation
+
+__User Interface Framework__
+UI Frameworks Detection (REQUIRED for web application config files)
+If this XML file is a web application configuration file, you MUST analyze and identify the UI framework:
+  * Struts Framework Detection:
+    - Look for <servlet-class> containing "org.apache.struts.action.ActionServlet" or "StrutsPrepareAndExecuteFilter"
+    - Check for <servlet-name> with "action" or "struts"
+    - Look for DOCTYPE or root element referencing struts-config
+    - Extract version from DTD/XSD if available (e.g., "struts-config_1_3.dtd" => version "1.3")
+    - If detected, provide: { name: "Struts", version: "X.X" (if found), configFile: <current file path> }
+  * JSF (JavaServer Faces) Framework Detection:
+    - Look for <servlet-class> containing "javax.faces.webapp.FacesServlet" or "jakarta.faces.webapp.FacesServlet"
+    - Check for root element <faces-config> in faces-config.xml
+    - Extract version from namespace (e.g., "http://xmlns.jcp.org/xml/ns/javaee" with version="2.2")
+    - If detected, provide: { name: "JSF", version: "X.X" (if found), configFile: <current file path> }
+  *Spring MVC Framework Detection:
+    - Look for <servlet-class> containing "org.springframework.web.servlet.DispatcherServlet"
+    - Check for root element containing "http://www.springframework.org/schema/mvc"
+    - Look for annotations like @Controller, @RequestMapping in servlet definitions
+    - If detected, provide: { name: "Spring MVC", version: <if identifiable>, configFile: <current file path> }
+If a UI framework is detected, populate the uiFramework field. Otherwise, omit the field entirely from the JSON response..
+
+The JSON response must follow this JSON schema:
+\`\`\`json
+{
+  "type": "object",
+  "properties": {
+    "purpose": {
+      "type": "string",
+      "description": "A detailed definition of the file's purpose in at least 4 sentences."
+    },
+    "implementation": {
+      "type": "string",
+      "description": "A detailed definition of the file's implementation, and what business logic decisions it makes (where relevant), in at least 5 sentences."
+    },
+    "uiFramework": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Framework name (e.g., 'Struts', 'JSF', 'Spring MVC')"
+        },
+        "version": {
+          "type": "string",
+          "description": "Framework version if identifiable"
+        },
+        "configFile": {
+          "type": "string",
+          "description": "Configuration file where framework was detected"
+        }
+      },
+      "required": [
+        "name",
+        "configFile"
+      ],
+      "additionalProperties": true,
+      "description": "UI framework identification from configuration and UI files"
+    }
+  },
+  "required": [
+    "purpose",
+    "implementation"
+  ],
+  "additionalProperties": true,
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
+\`\`\`
+
+The response MUST be valid JSON and meet the following critical JSON requirements:
+- Only include JSON: start directly with { or [, no XML, markdown, explanations, or other text
+- All property names must be quoted: use "propertyName": value at ALL nesting levels (both opening and closing quotes required)
+- Property name format: every property must follow the exact pattern "propertyName": value - no unquoted names (e.g., use "name": not name:)
+- Property names must be followed by a colon: use "propertyName": value, not "propertyName" value or "propertyName" []
+- All string values must be quoted: use "value" not unquoted strings
+- No markdown formatting: do not use asterisks (*), bullet points (•), or any markdown characters before property names
+- No stray text: do not include any text, characters, or lines between or around JSON properties
+- Every property must have a name: do not omit property names (e.g., use "purpose": "value" not ": "value")
+- Use proper JSON syntax: commas, colons, matching brackets/braces, and escape quotes in strings
+- Complete and valid: ensure all property names are complete (no truncation) and JSON is parseable
+- Use only exact property names from the schema - do not add extra properties or characters before property names
+- No stray prefixes: do not add prefixes like "ar" or other characters before array elements or string values
+- ASCII only: use only ASCII characters in string values
+- No explanatory text: do not include phrases like "so many methods" or "I will stop here" in the JSON
+- Proper commas: ensure commas separate all array elements and object properties
+- Escape control characters: any control characters in string values must be properly escaped as \\uXXXX
+
+CODE:
+\`\`\`
+<root><element>test</element></root>
+\`\`\`"
+`;
