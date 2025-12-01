@@ -37,7 +37,7 @@ export type ParseResult =
  */
 export interface TransformResult {
   data: unknown;
-  appliedTransforms: readonly string[];
+  steps: readonly string[];
 }
 
 /**
@@ -232,7 +232,7 @@ export function applyPostParseTransforms(data: unknown): TransformResult {
 
   return {
     data: transformedData,
-    appliedTransforms,
+    steps: appliedTransforms,
   };
 }
 

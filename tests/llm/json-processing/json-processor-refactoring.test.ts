@@ -43,8 +43,8 @@ describe("JsonProcessor - Refactored Methods", () => {
       if (result.success) {
         expect(result.data.name).toBe("Test");
         expect(result.data.items).toEqual([1, 2, 3]);
-        expect(result.steps).toBeDefined();
-        expect(result.steps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps).toBeDefined();
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
       }
     });
 
@@ -122,7 +122,7 @@ describe("JsonProcessor - Refactored Methods", () => {
       // This actually succeeds after sanitization (removes code fences and fixes concatenation)
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.steps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
       }
     });
   });
@@ -148,7 +148,7 @@ describe("JsonProcessor - Refactored Methods", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         // No sanitization steps should be applied for already valid JSON
-        expect(result.steps).toEqual([]);
+        expect(result.mutationSteps).toEqual([]);
       }
     });
 
@@ -174,10 +174,10 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.steps).toBeDefined();
-        expect(result.steps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps).toBeDefined();
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
         expect(
-          result.steps.some(
+          result.mutationSteps.some(
             (s: string) =>
               s.includes("Fixed JSON structure and noise") ||
               s.includes("Removed markdown code fences"),
@@ -215,7 +215,7 @@ describe("JsonProcessor - Refactored Methods", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.steps.length).toBeGreaterThan(1);
+        expect(result.mutationSteps.length).toBeGreaterThan(1);
       }
     });
   });

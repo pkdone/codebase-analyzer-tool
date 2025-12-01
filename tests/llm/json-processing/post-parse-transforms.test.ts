@@ -234,7 +234,7 @@ describe("Post-Parse Transforms", () => {
           dependencies: ["react", "typescript"],
         });
         // Should have applied sanitization steps
-        expect(result.steps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
       }
     });
 

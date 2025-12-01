@@ -177,7 +177,7 @@ export interface LLMFunctionResponse {
   readonly generated?: LLMGeneratedContent;
   readonly tokensUsage?: LLMResponseTokensUsage;
   readonly error?: unknown;
-  readonly sanitizationSteps?: readonly string[];
+  readonly mutationSteps?: readonly string[];
 }
 
 /**

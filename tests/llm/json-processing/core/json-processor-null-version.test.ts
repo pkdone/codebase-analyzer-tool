@@ -171,8 +171,7 @@ describe("JsonProcessor Integration Tests", () => {
         expect(result.data).toBeDefined();
         // The JSON is now valid, so sanitizers aren't applied
         // This is the correct behavior - sanitizers only run when JSON parsing fails
-        expect(result.steps).toEqual([]);
-        expect(result.diagnostics).toBeUndefined();
+        expect(result.mutationSteps).toEqual([]);
       }
     });
 
@@ -200,13 +199,7 @@ describe("JsonProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
-        expect(result.steps).toContain("Fixed property and value syntax");
-        expect(result.diagnostics).toContain(
-          "Fixed unquoted property name with quoted value: kind:",
-        );
-        expect(result.diagnostics).toContain(
-          "Fixed unquoted property name with quoted value: purpose:",
-        );
+        expect(result.mutationSteps).toContain("Fixed property and value syntax");
       }
     });
 
@@ -235,16 +228,7 @@ describe("JsonProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
-        expect(result.steps).toContain("Fixed property and value syntax");
-        expect(result.diagnostics).toContain(
-          "Fixed unquoted property name with quoted value: kind:",
-        );
-        expect(result.diagnostics).toContain(
-          "Fixed unquoted property name with quoted value: purpose:",
-        );
-        expect(result.diagnostics).toContain(
-          "Fixed truncated property name: eferences -> references",
-        );
+        expect(result.mutationSteps).toContain("Fixed property and value syntax");
       }
     });
   });

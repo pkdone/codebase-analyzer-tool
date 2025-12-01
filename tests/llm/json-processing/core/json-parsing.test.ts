@@ -158,7 +158,7 @@ describe("json-parsing", () => {
       const transformed = result.data as Record<string, unknown>;
       expect("key" in transformed).toBe(false); // null converted to undefined and omitted
       expect(transformed.other).toBe("value");
-      expect(result.appliedTransforms).toContain("convertNullToUndefined");
+      expect(result.steps).toContain("convertNullToUndefined");
     });
 
     it("should apply fixCommonPropertyNameTypos transform", () => {
@@ -170,7 +170,7 @@ describe("json-parsing", () => {
       expect(transformed.name).toBe("test");
       expect("type_" in transformed).toBe(false);
       expect("name_" in transformed).toBe(false);
-      expect(result.appliedTransforms).toContain("fixCommonPropertyNameTypos");
+      expect(result.steps).toContain("fixCommonPropertyNameTypos");
     });
 
     it("should apply coerceStringToArray transform", () => {
@@ -185,7 +185,7 @@ describe("json-parsing", () => {
       expect(transformed.parameters).toEqual([]);
       expect(Array.isArray(transformed.dependencies)).toBe(true);
       expect(transformed.dependencies).toEqual([]);
-      expect(result.appliedTransforms).toContain("coerceStringToArray");
+      expect(result.steps).toContain("coerceStringToArray");
     });
 
     it("should track all applied transforms", () => {
@@ -196,8 +196,8 @@ describe("json-parsing", () => {
       };
       const result = applyPostParseTransforms(data);
 
-      expect(result.appliedTransforms.length).toBeGreaterThan(0);
-      expect(Array.isArray(result.appliedTransforms)).toBe(true);
+      expect(result.steps.length).toBeGreaterThan(0);
+      expect(Array.isArray(result.steps)).toBe(true);
     });
 
     it("should not track transforms that made no changes", () => {

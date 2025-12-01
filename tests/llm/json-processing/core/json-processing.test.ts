@@ -19,7 +19,7 @@ describe("json-processing", () => {
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual({ key: "value", number: 42 });
-          expect(Array.isArray(result.steps)).toBe(true);
+          expect(Array.isArray(result.mutationSteps)).toBe(true);
         }
       });
 
@@ -45,7 +45,7 @@ describe("json-processing", () => {
 
         expect(result.success).toBe(true);
         if (result.success) {
-          expect(Array.isArray(result.steps)).toBe(true);
+          expect(Array.isArray(result.mutationSteps)).toBe(true);
         }
       });
     });

@@ -42,7 +42,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
       expect(typeof (result.data as any).purpose).toBe("string");
       expect(typeof (result.data as any).implementation).toBe("string");
       // Verify unwrapping happens post-parse (not in sanitization steps)
-      expect(result.steps).not.toContain("Unwrapped JSON Schema");
+      expect(result.mutationSteps).not.toContain("Unwrapped JSON Schema");
     }
   });
 
@@ -83,7 +83,7 @@ describe("unwrapJsonSchema integration with JsonProcessor.parseAndValidate", () 
         field3: "value3",
       });
       // Verify unwrapping happens post-parse (not in sanitization steps)
-      expect(result.steps).not.toContain("Unwrapped JSON Schema");
+      expect(result.mutationSteps).not.toContain("Unwrapped JSON Schema");
     }
   });
 

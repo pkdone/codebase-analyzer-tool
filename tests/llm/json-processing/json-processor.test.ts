@@ -580,8 +580,8 @@ describe("processJson", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         // New behavior: fast path parse does not record a trimWhitespace step; steps may be empty
-        expect(Array.isArray(result.steps)).toBe(true);
-        expect(result.steps.length).toBe(0);
+        expect(Array.isArray(result.mutationSteps)).toBe(true);
+        expect(result.mutationSteps.length).toBe(0);
       }
     });
 
@@ -597,7 +597,7 @@ describe("processJson", () => {
       );
       if (result.success) {
         // Successful repair: steps should include missing comma fix (now handled by addMissingCommas)
-        const stepsJoined = result.steps.join(" | ");
+        const stepsJoined = result.mutationSteps.join(" | ");
         expect(
           /missing comma/i.test(stepsJoined) || /Fixed JSON structure/i.test(stepsJoined),
         ).toBe(true);

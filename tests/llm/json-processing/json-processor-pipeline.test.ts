@@ -32,7 +32,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual({ clean: "json" });
-        expect(result.steps).toEqual([]);
+        expect(result.mutationSteps).toEqual([]);
       }
       expect(logOneLineWarning).not.toHaveBeenCalled();
     });
@@ -50,8 +50,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
       if (result.success) {
         expect(result.data).toEqual({ key: "value" });
         // Should have stopped after code fence removal
-        expect(result.steps.length).toBeGreaterThan(0);
-        expect(result.steps.length).toBeLessThanOrEqual(3);
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps.length).toBeLessThanOrEqual(3);
       }
     });
 
@@ -67,7 +67,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual({ a: 1 });
-        expect(result.steps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
         // Should have logged the sanitization steps
         expect(logOneLineWarning).toHaveBeenCalled();
       }
@@ -83,9 +83,9 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.steps).toBeDefined();
-        expect(Array.isArray(result.steps)).toBe(true);
-        expect(result.steps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps).toBeDefined();
+        expect(Array.isArray(result.mutationSteps)).toBe(true);
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
       }
     });
   });
@@ -247,7 +247,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
       if (result.success) {
         expect(result.data).toEqual({ simple: true });
         // Should have minimal steps since it succeeds early
-        expect(result.steps.length).toBeLessThan(5);
+        expect(result.mutationSteps.length).toBeLessThan(5);
       }
     });
   });
@@ -388,13 +388,13 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.steps).toBeDefined();
-        expect(Array.isArray(result.steps)).toBe(true);
-        expect(result.steps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps).toBeDefined();
+        expect(Array.isArray(result.mutationSteps)).toBe(true);
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
       }
     });
 
-    it("should include diagnostics when sanitizers are applied", () => {
+    it("should successfully process malformed JSON with sanitizers", () => {
       const malformed = '```json\n{"test": true,}\n```';
       const result = processJson(
         malformed,
@@ -403,9 +403,8 @@ describe("JsonProcessor - Unified Pipeline", () => {
       );
 
       expect(result.success).toBe(true);
-      if (result.success && result.diagnostics) {
-        expect(typeof result.diagnostics).toBe("string");
-        expect(result.diagnostics.length).toBeGreaterThan(0);
+      if (result.success) {
+        expect(result.data).toBeDefined();
       }
     });
 
@@ -419,8 +418,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.steps).toEqual([]);
-        expect(result.diagnostics).toBeUndefined();
+        expect(result.mutationSteps).toEqual([]);
       }
     });
   });
@@ -451,7 +449,7 @@ describe("JsonProcessor - Unified Pipeline", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.steps).toEqual([]);
+        expect(result.mutationSteps).toEqual([]);
       }
     });
 

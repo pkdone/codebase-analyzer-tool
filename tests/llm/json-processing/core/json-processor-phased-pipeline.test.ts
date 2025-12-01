@@ -41,8 +41,8 @@ describe("Phased Pipeline", () => {
         expect(result.data.name).toBe("Test");
         expect(result.data.items).toEqual([1, 2, 3]);
         // Verify that multiple phases were applied
-        expect(result.steps).toBeDefined();
-        expect(result.steps.length).toBeGreaterThan(0);
+        expect(result.mutationSteps).toBeDefined();
+        expect(result.mutationSteps.length).toBeGreaterThan(0);
       }
     });
 

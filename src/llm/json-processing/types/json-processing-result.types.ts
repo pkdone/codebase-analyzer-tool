@@ -16,5 +16,5 @@ export type JsonValidatorResult<T> =
  * were applied during the process.
  */
 export type JsonProcessorResult<T> =
-  | { success: true; data: T; steps: readonly string[]; diagnostics?: string }
+  | { success: true; data: T; mutationSteps: readonly string[] }
   | { success: false; error: JsonProcessingError };

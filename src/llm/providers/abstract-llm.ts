@@ -292,24 +292,19 @@ export default abstract class AbstractLLM implements LLMProvider {
   ): Promise<LLMFunctionResponse> {
     if (taskType === LLMPurpose.COMPLETIONS) {
       if (completionOptions.outputFormat === LLMOutputFormat.JSON) {
-        const parseResult = processJson(
-          responseContent,
-          context,
-          completionOptions,
-          true, // loggingEnabled
-        );
+        const jsonProcessingResult = processJson(responseContent, context, completionOptions, true);
 
-        if (parseResult.success) {
+        if (jsonProcessingResult.success) {
           return {
             ...skeletonResult,
             status: LLMResponseStatus.COMPLETED,
-            generated: parseResult.data,
-            sanitizationSteps: parseResult.steps,
+            generated: jsonProcessingResult.data,
+            mutationSteps: jsonProcessingResult.mutationSteps,
           };
         } else {
-          context.responseContentParseError = formatError(parseResult.error);
+          context.responseContentParseError = formatError(jsonProcessingResult.error);
           await this.recordTestResponseToJSONErrorToFile(
-            parseResult.error,
+            jsonProcessingResult.error,
             responseContent,
             context,
           );

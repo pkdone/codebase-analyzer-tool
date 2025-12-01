@@ -64,7 +64,7 @@ export class LLMExecutionPipeline {
       );
 
       if (result) {
-        if (hasSignificantSanitizationSteps(result.sanitizationSteps)) {
+        if (hasSignificantSanitizationSteps(result.mutationSteps)) {
           this.llmStats.recordJsonMutated();
         }
         // result.generated has already been validated by JsonProcessor in the LLM function
