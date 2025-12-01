@@ -103,6 +103,45 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 2b: Remove stray single characters before quoted strings in arrays =====
+    // Pattern: `e"org.apache...` -> `"org.apache...`
+    // This handles cases where a single lowercase letter appears directly before a quoted string
+    // Handles both with and without newlines: `,e"string",` or `,\ne"string",`
+    const strayCharBeforeQuotePattern = /([,[]\s*\n?\s*)([a-z])("([^"]+)"\s*,)/g;
+    sanitized = sanitized.replace(
+      strayCharBeforeQuotePattern,
+      (match, prefix, strayChar, quotedString, _stringValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context (after comma, bracket, newline, or start)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isArrayContext =
+          /[,[]\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /^\s*$/.test(beforeMatch) ||
+          numericOffset < 100;
+
+        if (isArrayContext) {
+          hasChanges = true;
+          const prefixStr = typeof prefix === "string" ? prefix : "";
+          const quotedStringStr = typeof quotedString === "string" ? quotedString : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray character '${strayChar}' before quoted string in array`,
+            );
+          }
+          // Preserve the delimiter and whitespace from prefix, but remove the stray char
+          const cleanPrefix = prefixStr.replace(/\s*$/, ""); // Remove trailing whitespace
+          return `${cleanPrefix}\n    ${quotedStringStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // Pattern: Fix missing property name with single character before quote (run early)
     // Pattern: `y"name":` -> `"name":` or `{y"name":` -> `{"name":`
     const singleCharBeforePropertyQuoteEarlyPattern =

@@ -98,10 +98,12 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         }
 
         // Check if this looks like a property name context (after comma, brace, or newline)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 150), numericOffset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /}\s*$/.test(beforeMatch) ||
+          /]\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
           /\[\s*$/.test(beforeMatch);
 
@@ -559,6 +561,638 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         return match;
       },
     );
+
+    // ===== Pattern 8: Fix missing opening quotes before property names =====
+    // Pattern: `cyclomaticComplexity":` -> `"cyclomaticComplexity":`
+    // This handles cases where a full property name is missing its opening quote
+    // Enhanced to handle cases where property appears after quoted string values or newlines
+    const missingOpeningQuotePattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*/g;
+    sanitized = sanitized.replace(
+      missingOpeningQuotePattern,
+      (match, whitespace, propertyName, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context (after comma, brace, newline, quoted string, or start of object)
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 150), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          /\[\s*$/.test(beforeMatch) ||
+          numericOffset < 150;
+
+        // Check if there's already a quote before this (shouldn't match if quote exists)
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const propertyStart = numericOffset + whitespaceStr.length;
+        if (propertyStart > 0 && sanitized[propertyStart - 1] === '"') {
+          return match;
+        }
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          hasChanges = true;
+          diagnostics.push(
+            `Fixed missing opening quote before property: ${propertyNameStr}" -> "${propertyNameStr}"`,
+          );
+          return `${whitespaceStr}"${propertyNameStr}": `;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 9: Remove corrupted text like "},ce" or "e-12," =====
+    // Pattern: `},ce` or `},e-12,` -> `},`
+    // Also handles `e-12,` on its own line
+    // Enhanced to handle cases with newlines: `},\n    ce` or `},\nce`
+    // Pattern 9a: Original pattern for corrupted text without orphaned property
+    const corruptedTextPattern1 = /([},])(\s*\n?\s*)([a-z]{1,2})(-\d+)?\s*([,}\]]|\n|$)/g;
+    // Pattern 9a-orphaned: Handles corrupted text with orphaned property: `e-12,\n    "codeSmells": []\n    }`
+    const corruptedTextPattern1Orphaned =
+      /([},])(\s*\n?\s*)([a-z]{1,2})(-\d+)?\s*,\s*\n\s*("codeSmells"\s*:\s*\[\s*\]\s*,?\s*\n\s*)([},]|\n|$)/g;
+    // Pattern 9a-orphaned: Handle corrupted text with orphaned property first (more specific)
+    sanitized = sanitized.replace(
+      corruptedTextPattern1Orphaned,
+      (
+        match,
+        delimiter,
+        whitespace,
+        chars,
+        number,
+        orphanedProperty,
+        terminator,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this looks like corrupted text (1-2 lowercase letters followed by optional dash-number)
+        const charsStr = typeof chars === "string" ? chars : "";
+        const numberStr = typeof number === "string" ? number : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const orphanedPropertyStr = typeof orphanedProperty === "string" ? orphanedProperty : "";
+
+        // Only match if it's 1-2 lowercase letters (not part of a longer word)
+        // Also check that the terminator is valid (comma, closing brace/bracket, newline, or end)
+        if (
+          /^[a-z]{1,2}$/.test(charsStr) &&
+          (numberStr === "" || /^-\d+$/.test(numberStr)) &&
+          /^([,}\]]|\n|$)/.test(terminatorStr)
+        ) {
+          hasChanges = true;
+          if (orphanedPropertyStr) {
+            diagnostics.push(
+              `Removed corrupted text ${charsStr}${numberStr} and orphaned property: ${orphanedPropertyStr.trim()}`,
+            );
+          } else {
+            diagnostics.push(
+              `Removed corrupted text: ${delimiterStr}${whitespaceStr}${charsStr}${numberStr} -> ${delimiterStr}`,
+            );
+          }
+          // If we have an orphaned property and terminator is }, handle the replacement
+          if (orphanedPropertyStr && terminatorStr === "}") {
+            // If delimiter is just comma, the method object before already has },
+            // Check what comes after - if it's `,\n    {`, we need to remove the comma from after
+            // For now, return just newline - the comma from }, is already there
+            if (delimiterStr === ",") {
+              // Check the content after the match to see if we need to handle the following comma
+              const afterMatch = sanitized.substring(numericOffset + match.length);
+              if (afterMatch.trim().startsWith(",")) {
+                // Next structure starts with comma, return newline to connect structures
+                return "\n    ";
+              }
+              return ",\n    ";
+            }
+            // If delimiter ends with }, return },
+            if (delimiterStr.endsWith("}")) {
+              return "},\n    ";
+            }
+          }
+          // If terminator is newline or empty and we're before an object/array, keep the structure
+          if ((terminatorStr === "\n" || terminatorStr === "") && whitespaceStr.includes("\n")) {
+            return `${delimiterStr}${whitespaceStr}`;
+          }
+          // If delimiter already ends with comma and terminator is also comma, don't add another comma
+          if (delimiterStr.endsWith(",") && terminatorStr === ",") {
+            return delimiterStr;
+          }
+          return `${delimiterStr}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 9a: Handle corrupted text without orphaned property (original pattern)
+    sanitized = sanitized.replace(
+      corruptedTextPattern1,
+      (match, delimiter, whitespace, chars, number, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if this looks like corrupted text (1-2 lowercase letters followed by optional dash-number)
+        const charsStr = typeof chars === "string" ? chars : "";
+        const numberStr = typeof number === "string" ? number : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+
+        // Only match if it's 1-2 lowercase letters (not part of a longer word)
+        // Also check that the terminator is valid (comma, closing brace/bracket, newline, or end)
+        if (
+          /^[a-z]{1,2}$/.test(charsStr) &&
+          (numberStr === "" || /^-\d+$/.test(numberStr)) &&
+          /^([,}\]]|\n|$)/.test(terminatorStr)
+        ) {
+          hasChanges = true;
+          diagnostics.push(
+            `Removed corrupted text: ${delimiterStr}${whitespaceStr}${charsStr}${numberStr} -> ${delimiterStr}`,
+          );
+          // If terminator is newline or empty and we're before an object/array, keep the structure
+          if ((terminatorStr === "\n" || terminatorStr === "") && whitespaceStr.includes("\n")) {
+            return `${delimiterStr}${whitespaceStr}`;
+          }
+          // If delimiter already ends with comma and terminator is also comma, don't add another comma
+          if (delimiterStr.endsWith(",") && terminatorStr === ",") {
+            return delimiterStr;
+          }
+          return `${delimiterStr}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 9b: Handle corrupted text on its own line like `e-12,` or after `},`
+    // Enhanced to also handle orphaned properties that follow (like `"codeSmells": []`)
+    const corruptedTextPattern2 =
+      /([},]\s*\n\s*|\n\s*)([a-z]{1,2})(-\d+)?\s*,\s*\n\s*("codeSmells"\s*:\s*\[\s*\]\s*,?\s*\n\s*)([},])/g;
+    sanitized = sanitized.replace(
+      corruptedTextPattern2,
+      (match, prefix, chars, number, orphanedProperty, _terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const charsStr = typeof chars === "string" ? chars : "";
+        const numberStr = typeof number === "string" ? number : "";
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const orphanedPropertyStr = typeof orphanedProperty === "string" ? orphanedProperty : "";
+
+        if (/^[a-z]{1,2}$/.test(charsStr) && (numberStr === "" || /^-\d+$/.test(numberStr))) {
+          hasChanges = true;
+          if (orphanedPropertyStr) {
+            diagnostics.push(
+              `Removed corrupted text ${charsStr}${numberStr} and orphaned property: ${orphanedPropertyStr.trim()}`,
+            );
+          } else {
+            diagnostics.push(`Removed corrupted text: ${charsStr}${numberStr}`);
+          }
+          // Handle the replacement: remove corrupted text and orphaned property
+          // The pattern matches: prefix + corrupted + orphaned + terminator
+          // We want to return just the prefix (which maintains the structure)
+          const prefixTrimmed = prefixStr.trim();
+          // If prefix ends with }, we want to keep it and add proper spacing
+          if (prefixTrimmed.endsWith("}")) {
+            return `${prefixTrimmed}\n    `;
+          }
+          // If prefix is just comma, return it with newline
+          if (prefixTrimmed === ",") {
+            return ",\n    ";
+          }
+          // Default: return prefix as-is
+          return prefixStr;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 9c: Remove orphaned properties that appear after corrupted text was removed
+    // This runs after Pattern 9a/9b to clean up any orphaned properties left behind
+    // Pattern: `},\n      "codeSmells": []\n    },\n    {` -> `},\n    {`
+    // Only match orphaned properties that appear between a closing brace+comma and another structure
+    const orphanedPropertyAfterCorruptionPattern =
+      /(}\s*,\s*\n\s*)("codeSmells"\s*:\s*\[\s*\]\s*,?\s*\n\s*)(},\s*\n\s*{)/g;
+    sanitized = sanitized.replace(
+      orphanedPropertyAfterCorruptionPattern,
+      (match, _prefix, _orphanedProperty, _suffix, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // This pattern specifically matches: }, + orphaned property + },
+        // Replace with: },
+        hasChanges = true;
+        diagnostics.push("Removed orphaned property after corrupted text removal");
+        // Return },\n    { to connect the closing method object with the next method
+        return "},\n    {";
+      },
+    );
+
+    // ===== Pattern 10: Remove "to be continued..." text and similar LLM commentary =====
+    // Pattern: `to be continued...` or `to be conti...` appearing in JSON
+    const continuationTextPattern = /to\s+be\s+conti[nued]*\.\.\.?\s*/gi;
+    sanitized = sanitized.replace(continuationTextPattern, (match, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      hasChanges = true;
+      diagnostics.push("Removed 'to be continued...' continuation text");
+      return "";
+    });
+
+    // Pattern 10b: Remove LLM commentary text like "awesome, let's do this."
+    // Pattern: Text like "awesome, let's do this." appearing between properties
+    const llmCommentaryPattern = /([,}])\s*\n\s*([a-z][a-z\s,']{5,50}\.)\s*\n\s*"/gi;
+    sanitized = sanitized.replace(
+      llmCommentaryPattern,
+      (match, delimiter, commentary, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const commentaryStr = typeof commentary === "string" ? commentary : "";
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+
+        // Check if it looks like commentary (contains common words like "awesome", "let's", "do", "this")
+        if (
+          /\b(awesome|let's|let us|do this|here we|ready|ok|sure|great|perfect)\b/i.test(
+            commentaryStr,
+          )
+        ) {
+          hasChanges = true;
+          diagnostics.push("Removed LLM commentary text");
+          return `${delimiterStr}\n  "`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 11a: Remove extra_keys with YAML-like syntax and other LLM markers =====
+    // Pattern: `extra_keys:\n  - "extra_key"` - YAML-like syntax that should be removed
+    const extraKeysYamlPattern = /([,{])\s*extra_keys\s*:\s*\n\s*-\s*"[^"]*"\s*\n/g;
+    sanitized = sanitized.replace(extraKeysYamlPattern, (match, delimiter, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+      hasChanges = true;
+      diagnostics.push("Removed extra_keys property with YAML-like syntax");
+      return delimiterStr;
+    });
+
+    // Pattern 11b: Remove LLM response markers like "extrai-response-marker"
+    const llmMarkerPattern = /([,}])\s*\n\s*extra[a-z-]*\s*\n/g;
+    sanitized = sanitized.replace(llmMarkerPattern, (match, delimiter, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+      hasChanges = true;
+      diagnostics.push("Removed LLM response marker");
+      return `${delimiterStr}\n`;
+    });
+
+    // ===== Pattern 11: Remove extra_thoughts and extra_text properties =====
+    // Pattern: `extra_thoughts: {` or `extra_text: "..."` or `extra_text="  "externalReferences": [` - these are LLM artifacts that should be removed
+    // This pattern handles both object values and string values, removing the entire property
+    // Also handles unquoted property names and malformed syntax like `extra_text="  "property":`
+    // Pattern 11-pre: Handle malformed extra_text like `extra_text="  "externalReferences":` or `extra_text="  "xternalReferences":`
+    // This handles cases where extra_text is followed by a property name that's missing its opening quote
+    const malformedExtraTextPattern =
+      /([,{])\s*extra_text\s*=\s*"\s*"\s*([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:\s*)/g;
+    sanitized = sanitized.replace(
+      malformedExtraTextPattern,
+      (match, delimiter, propertyNameWithQuote, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        hasChanges = true;
+        diagnostics.push("Removed malformed extra_text property and fixed missing opening quote");
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const propertyNameWithQuoteStr =
+          typeof propertyNameWithQuote === "string" ? propertyNameWithQuote : "";
+        // Add the missing opening quote before the property name
+        const fixedProperty = `"${propertyNameWithQuoteStr}`;
+        // Return delimiter + the fixed property that follows
+        return `${delimiterStr}\n    ${fixedProperty}`;
+      },
+    );
+
+    // Pattern 11-pre2: Handle unquoted extra_thoughts/extra_text (runs before the main pattern)
+    // This uses a simpler approach: find the comma after the property value and remove everything
+    const unquotedExtraPropertyPattern = /([,{])\s*(extra_thoughts|extra_text)\s*:\s*/g;
+    let previousUnquoted = "";
+    while (previousUnquoted !== sanitized) {
+      previousUnquoted = sanitized;
+      const matches: { start: number; end: number; delimiter: string }[] = [];
+      let match;
+      const pattern = new RegExp(
+        unquotedExtraPropertyPattern.source,
+        unquotedExtraPropertyPattern.flags,
+      );
+      while ((match = pattern.exec(sanitized)) !== null) {
+        const numericOffset = match.index;
+        if (isInStringAt(numericOffset, sanitized)) {
+          continue;
+        }
+
+        const delimiterStr = match[1] || "";
+        const valueStartPos = numericOffset + match[0].length;
+
+        // Find the next comma after the property value
+        // This handles both well-formed and malformed values
+        let valueEndPos = valueStartPos;
+        let inString = false;
+        let escaped = false;
+        let braceCount = 0;
+        let bracketCount = 0;
+
+        // Skip whitespace
+        while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
+          valueEndPos++;
+        }
+
+        if (valueEndPos >= sanitized.length) {
+          continue;
+        }
+
+        const firstChar = sanitized[valueEndPos];
+        if (firstChar === "{") {
+          braceCount = 1;
+          valueEndPos++;
+          while (braceCount > 0 && valueEndPos < sanitized.length) {
+            if (escaped) {
+              escaped = false;
+            } else if (sanitized[valueEndPos] === "\\") {
+              escaped = true;
+            } else if (sanitized[valueEndPos] === '"') {
+              inString = !inString;
+            } else if (!inString) {
+              if (sanitized[valueEndPos] === "{") {
+                braceCount++;
+              } else if (sanitized[valueEndPos] === "}") {
+                braceCount--;
+              }
+            }
+            valueEndPos++;
+          }
+        } else if (firstChar === '"') {
+          // Try to parse the string, but if it's malformed, find the next comma
+          inString = true;
+          valueEndPos++;
+          let foundClosingQuote = false;
+          while (valueEndPos < sanitized.length) {
+            if (escaped) {
+              escaped = false;
+            } else if (sanitized[valueEndPos] === "\\") {
+              escaped = true;
+            } else if (sanitized[valueEndPos] === '"') {
+              inString = false;
+              foundClosingQuote = true;
+              valueEndPos++;
+              break;
+            }
+            valueEndPos++;
+          }
+          // If malformed, find the next comma
+          if (!foundClosingQuote) {
+            const nextComma = sanitized.indexOf(",", valueStartPos);
+            if (nextComma !== -1) {
+              valueEndPos = nextComma + 1;
+            } else {
+              // No comma found, try to find end of line
+              const nextNewline = sanitized.indexOf("\n", valueStartPos);
+              if (nextNewline !== -1) {
+                valueEndPos = nextNewline;
+              }
+            }
+          }
+        } else if (firstChar === "[") {
+          bracketCount = 1;
+          valueEndPos++;
+          while (bracketCount > 0 && valueEndPos < sanitized.length) {
+            if (escaped) {
+              escaped = false;
+            } else if (sanitized[valueEndPos] === "\\") {
+              escaped = true;
+            } else if (sanitized[valueEndPos] === '"') {
+              inString = !inString;
+            } else if (!inString) {
+              if (sanitized[valueEndPos] === "[") {
+                bracketCount++;
+              } else if (sanitized[valueEndPos] === "]") {
+                bracketCount--;
+              }
+            }
+            valueEndPos++;
+          }
+        } else {
+          // Unknown value type, find next comma
+          const nextComma = sanitized.indexOf(",", valueStartPos);
+          if (nextComma !== -1) {
+            valueEndPos = nextComma + 1;
+          } else {
+            continue;
+          }
+        }
+
+        // Skip trailing comma if present
+        while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
+          valueEndPos++;
+        }
+        if (valueEndPos < sanitized.length && sanitized[valueEndPos] === ",") {
+          valueEndPos++;
+        }
+
+        matches.push({
+          start: numericOffset,
+          end: valueEndPos,
+          delimiter: delimiterStr,
+        });
+      }
+
+      // Remove matches in reverse order
+      for (let i = matches.length - 1; i >= 0; i--) {
+        const m = matches[i];
+        const before = sanitized.substring(0, m.start);
+        let after = sanitized.substring(m.end);
+
+        // Clean up: if delimiter was a comma, we may need to adjust
+        let replacement = "";
+        if (m.delimiter === ",") {
+          replacement = "";
+          // Check if we need to add a comma before the next property
+          const beforeTrimmed = before.trimEnd();
+          const afterTrimmed = after.trimStart();
+          if (
+            (beforeTrimmed.endsWith("]") || beforeTrimmed.endsWith("}")) &&
+            afterTrimmed.startsWith('"')
+          ) {
+            replacement = ",";
+          }
+          // Remove any trailing comma or whitespace after the property value
+          after = after.trimStart();
+          if (after.startsWith(",")) {
+            after = after.substring(1).trimStart();
+          }
+        } else if (m.delimiter === "{") {
+          replacement = "{";
+        }
+
+        sanitized = before + replacement + after;
+        hasChanges = true;
+        diagnostics.push("Removed unquoted extra_thoughts/extra_text property");
+      }
+    }
+
+    // Pattern 11: Handle quoted extra_thoughts/extra_text properties
+    const extraPropertyPattern = /([,{])\s*"(extra_thoughts|extra_text)"\s*:\s*/g;
+    let previousExtraProperty = "";
+    while (previousExtraProperty !== sanitized) {
+      previousExtraProperty = sanitized;
+      const matches: { start: number; end: number; delimiter: string }[] = [];
+      let match;
+      const pattern = new RegExp(extraPropertyPattern.source, extraPropertyPattern.flags);
+      while ((match = pattern.exec(sanitized)) !== null) {
+        const numericOffset = match.index;
+        if (isInStringAt(numericOffset, sanitized)) {
+          continue;
+        }
+
+        const delimiterStr = match[1] || "";
+        const valueStartPos = numericOffset + match[0].length;
+
+        // Check what type of value follows
+        let valueEndPos = valueStartPos;
+        let inString = false;
+        let escaped = false;
+
+        // Skip whitespace
+        while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
+          valueEndPos++;
+        }
+
+        if (valueEndPos >= sanitized.length) {
+          continue;
+        }
+
+        const firstChar = sanitized[valueEndPos];
+
+        if (firstChar === "{") {
+          // Object value - find matching closing brace
+          let braceCount = 1;
+          valueEndPos++;
+          while (braceCount > 0 && valueEndPos < sanitized.length) {
+            if (escaped) {
+              escaped = false;
+            } else if (sanitized[valueEndPos] === "\\") {
+              escaped = true;
+            } else if (sanitized[valueEndPos] === '"') {
+              inString = !inString;
+            } else if (!inString) {
+              if (sanitized[valueEndPos] === "{") {
+                braceCount++;
+              } else if (sanitized[valueEndPos] === "}") {
+                braceCount--;
+              }
+            }
+            valueEndPos++;
+          }
+        } else if (firstChar === '"') {
+          // String value - find closing quote (handling escaped quotes)
+          inString = true;
+          valueEndPos++;
+          while (inString && valueEndPos < sanitized.length) {
+            if (escaped) {
+              escaped = false;
+            } else if (sanitized[valueEndPos] === "\\") {
+              escaped = true;
+            } else if (sanitized[valueEndPos] === '"') {
+              inString = false;
+            }
+            valueEndPos++;
+          }
+          valueEndPos++; // Include the closing quote
+        } else {
+          // Unknown value type, skip this match
+          continue;
+        }
+
+        // Skip trailing comma if present
+        while (valueEndPos < sanitized.length && /\s/.test(sanitized[valueEndPos])) {
+          valueEndPos++;
+        }
+        if (valueEndPos < sanitized.length && sanitized[valueEndPos] === ",") {
+          valueEndPos++;
+        }
+
+        matches.push({
+          start: numericOffset,
+          end: valueEndPos,
+          delimiter: delimiterStr,
+        });
+      }
+
+      // Remove matches in reverse order to maintain indices
+      for (let i = matches.length - 1; i >= 0; i--) {
+        const m = matches[i];
+        const before = sanitized.substring(0, m.start);
+        let after = sanitized.substring(m.end);
+
+        // Clean up: if delimiter was a comma, remove it; if it was {, keep it
+        let replacement = "";
+        if (m.delimiter === ",") {
+          // Remove the comma, but ensure there's proper JSON structure
+          replacement = "";
+          // Check if we need to add a comma before the next property
+          const beforeTrimmed = before.trimEnd();
+          const afterTrimmed = after.trimStart();
+          // If before ends with ] or } and after starts with ", we need a comma
+          if (
+            (beforeTrimmed.endsWith("]") || beforeTrimmed.endsWith("}")) &&
+            afterTrimmed.startsWith('"')
+          ) {
+            replacement = ",";
+          }
+          // Remove any trailing comma or whitespace after the property value
+          after = after.trimStart();
+          if (after.startsWith(",")) {
+            after = after.substring(1).trimStart();
+          }
+        } else if (m.delimiter === "{") {
+          // Keep the opening brace
+          replacement = "{";
+        }
+
+        sanitized = before + replacement + after;
+        hasChanges = true;
+        diagnostics.push("Removed extra_thoughts/extra_text property");
+      }
+    }
 
     // Ensure hasChanges reflects actual changes
     hasChanges = sanitized !== input;

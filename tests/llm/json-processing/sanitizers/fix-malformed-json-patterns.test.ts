@@ -1294,4 +1294,28 @@ ax      "Staff",
       }
     });
   });
+
+  describe("Pattern 2b: Stray character before quoted strings in arrays", () => {
+    it("should remove stray character 'e' before quoted string in array", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.interoperation.data.InteropTransactionRequestData",
+    "org.apache.fineract.interoperation.data.InteropTransactionRequestResponseData",
+e"org.apache.fineract.interoperation.data.InteropTransactionsData",
+    "org.apache.fineract.interoperation.data.InteropTransferRequestData"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.interoperation.data.InteropTransactionsData"',
+      );
+      expect(result.content).not.toContain(
+        'e"org.apache.fineract.interoperation.data.InteropTransactionsData"',
+      );
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });

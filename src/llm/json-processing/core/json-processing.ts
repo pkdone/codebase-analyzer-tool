@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { LLMGeneratedContent, LLMCompletionOptions, LLMContext } from "../../types/llm.types";
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import { JsonProcessorResult } from "../types/json-processing-result.types";
@@ -168,8 +169,7 @@ export function processJson<T = Record<string, unknown>>(
   // Validate the parsed data (with transforms applied internally if needed)
   const validationResult = validateJsonWithTransforms<T>(
     parseResult.data,
-    completionOptions.jsonSchema,
-    loggingEnabled,
+    completionOptions.jsonSchema as z.ZodType<T>,
   );
 
   // Validation succeeded

@@ -12,7 +12,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -29,7 +29,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -46,7 +46,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -68,7 +68,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -85,7 +85,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -102,7 +102,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -119,7 +119,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -137,8 +137,8 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result1 = validateJsonWithTransforms({ value: 1 }, options.jsonSchema, true);
-      const result2 = validateJsonWithTransforms({ value: 2 }, options.jsonSchema, true);
+      const result1 = validateJsonWithTransforms({ value: 1 }, options.jsonSchema);
+      const result2 = validateJsonWithTransforms({ value: 2 }, options.jsonSchema);
 
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);

@@ -838,7 +838,7 @@ describe("json-tools", () => {
       const schema = z.object({ key: z.string() });
       const content = null;
 
-      const result = validateJsonWithTransforms(content, schema, true);
+      const result = validateJsonWithTransforms(content, schema);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -854,7 +854,7 @@ describe("json-tools", () => {
         jsonSchema: sourceSummarySchema.pick({ purpose: true }),
       } as any;
 
-      const result = validateJsonWithTransforms(badContent, options.jsonSchema, true);
+      const result = validateJsonWithTransforms(badContent, options.jsonSchema);
 
       expect(result.success).toBe(false);
       if (!result.success) {

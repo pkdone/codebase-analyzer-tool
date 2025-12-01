@@ -67,16 +67,14 @@ function createValidationFailureWithTransforms<T>(
  * @param jsonSchema - The Zod schema to validate against
  * @returns A result indicating success with validated data, or failure with validation issues
  */
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function attemptValidate<T>(
   data: unknown,
-  jsonSchema: z.ZodType<unknown>,
+  jsonSchema: z.ZodType<T>,
 ): { success: true; data: T } | { success: false; issues: z.ZodIssue[] } {
-  // Main validation: safeParse with the schema
   const validation = jsonSchema.safeParse(data);
 
   if (validation.success) {
-    return { success: true, data: validation.data as T };
+    return { success: true, data: validation.data };
   } else {
     const issues = validation.error.issues;
     return { success: false, issues };
@@ -98,6 +96,7 @@ function applySchemaFixingTransforms(data: unknown): { data: unknown; steps: rea
 
   for (const transform of SCHEMA_FIXING_TRANSFORMS) {
     const before = JSON.stringify(transformedData);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     transformedData = transform(transformedData);
     const after = JSON.stringify(transformedData);
 
@@ -125,8 +124,7 @@ function applySchemaFixingTransforms(data: unknown): { data: unknown; steps: rea
  */
 export function validateJsonWithTransforms<T>(
   data: unknown,
-  jsonSchema: z.ZodType<unknown>,
-  _loggingEnabled: boolean,
+  jsonSchema: z.ZodType<T>,
 ): ValidationWithTransformsResult<T> {
   // Fail validation early if not JSON
   if (
@@ -140,7 +138,7 @@ export function validateJsonWithTransforms<T>(
   }
 
   // Try initial validation
-  const initialValidation = attemptValidate<T>(data, jsonSchema);
+  const initialValidation = attemptValidate(data, jsonSchema);
 
   // If validation succeeded on first attempt, no transforms needed
   if (initialValidation.success) {
@@ -149,7 +147,7 @@ export function validateJsonWithTransforms<T>(
 
   // Initial validation failed, so apply schema fixing transforms
   const transformResult = applySchemaFixingTransforms(data);
-  const validationAfterTransforms = attemptValidate<T>(transformResult.data, jsonSchema);
+  const validationAfterTransforms = attemptValidate(transformResult.data, jsonSchema);
 
   // Return result with transform steps included
   if (validationAfterTransforms.success) {
