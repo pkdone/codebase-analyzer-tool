@@ -26,3 +26,4 @@ export function renderPrompt(definition: PromptDefinition, data: Record<string, 
   };
   return fillPrompt(definition.template, templateData);
 }
+

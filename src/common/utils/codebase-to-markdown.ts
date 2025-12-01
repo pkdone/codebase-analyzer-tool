@@ -60,3 +60,4 @@ async function mergeSourceFilesIntoMarkdownCodeblock(
   const files = (await Promise.all(filePromises)).filter((file): file is FileLike => file !== null);
   return formatFilesAsMarkdownCodeBlocksWithPath(files, srcDirPath).trim();
 }
+
