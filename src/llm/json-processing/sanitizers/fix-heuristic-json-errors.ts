@@ -1,7 +1,7 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import { isInStringAt } from "../utils/parser-context-utils";
-import { COMMON_PROPERTY_STARTS } from "../constants/schema-specific-sanitizer.constants";
+import { COMMON_PROPERTY_STARTS } from "../constants/schema-specific.constants";
 
 /**
  * Heuristic sanitizer that fixes assorted malformed JSON patterns from LLM responses.

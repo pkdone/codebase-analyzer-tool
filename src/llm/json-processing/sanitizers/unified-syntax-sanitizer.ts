@@ -9,7 +9,7 @@ import {
   NUMERIC_PROPERTIES,
   PACKAGE_NAME_PREFIX_REPLACEMENTS,
   PACKAGE_NAME_TYPO_PATTERNS,
-} from "../constants/schema-specific-sanitizer.constants";
+} from "../constants/schema-specific.constants";
 
 /**
  * Helper to determine if a position is inside a string literal.
@@ -1457,7 +1457,6 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
           return `"${propertyNameStr}": "${valueStr}"`;
         },
       );
-
     }
 
     // Fix 3: Fix missing opening quotes after colon
@@ -2242,12 +2241,14 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
 
         // Also check if terminator contains ] or , - this is a strong indicator we're in an array
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        const isInArrayContext = foundArray || terminatorStr.includes("]") || terminatorStr.includes(",");
+        const isInArrayContext =
+          foundArray || terminatorStr.includes("]") || terminatorStr.includes(",");
 
         if (isInArrayContext) {
           const value1Str = typeof value1 === "string" ? value1 : "";
           const value2Str = typeof value2 === "string" ? value2 : "";
-          const newlineWhitespaceStr = typeof newlineWhitespace === "string" ? newlineWhitespace : "";
+          const newlineWhitespaceStr =
+            typeof newlineWhitespace === "string" ? newlineWhitespace : "";
 
           // Check if there's already a comma before value2
           if (!terminatorStr.startsWith(",") && !terminatorStr.startsWith("]")) {
@@ -2277,11 +2278,11 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         }
 
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        
+
         // Simplified check: if terminator contains ], we're definitely in an array
         // Also check the context before to see if we're in an array
         const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
-        
+
         // Check if we're in an array by looking for [ before this position
         let bracketDepth = 0;
         let braceDepth = 0;

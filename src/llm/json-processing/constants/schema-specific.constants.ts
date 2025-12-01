@@ -309,6 +309,23 @@ export const NUMERIC_PROPERTIES: readonly string[] = [
 ] as const;
 
 /**
+ * Property names that are typically required strings and should default to empty string
+ * when they are undefined. Used by transforms to handle missing required fields.
+ */
+export const REQUIRED_STRING_PROPERTIES: readonly string[] = [
+  "name",
+  "type",
+  "purpose",
+  "description",
+  "path",
+  "method",
+  "namespace",
+  "kind",
+  "mechanism",
+  "value",
+] as const;
+
+/**
  * Package name prefix replacements for fixing truncated package names.
  * Maps truncated prefixes to their full package name prefixes.
  * These are use-case specific and tied to a particular codebase structure.

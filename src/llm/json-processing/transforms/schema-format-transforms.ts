@@ -1,4 +1,4 @@
-import { NUMERIC_PROPERTIES } from "../constants/schema-specific-sanitizer.constants.js";
+import { NUMERIC_PROPERTIES } from "../constants/schema-specific.constants.js";
 
 /**
  * Generic post-parse transformations that operate on already-parsed JSON objects.

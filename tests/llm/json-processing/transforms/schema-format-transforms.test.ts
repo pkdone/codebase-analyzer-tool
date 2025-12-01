@@ -159,17 +159,11 @@ describe("schema-format-transforms", () => {
     });
 
     it("should handle arrays", () => {
-      const input = [
-        { linesOfCode: "10" },
-        { linesOfCode: "20" },
-      ];
+      const input = [{ linesOfCode: "10" }, { linesOfCode: "20" }];
 
       const result = coerceNumericProperties(input);
 
-      expect(result).toEqual([
-        { linesOfCode: 10 },
-        { linesOfCode: 20 },
-      ]);
+      expect(result).toEqual([{ linesOfCode: 10 }, { linesOfCode: 20 }]);
     });
 
     it("should handle null and undefined", () => {

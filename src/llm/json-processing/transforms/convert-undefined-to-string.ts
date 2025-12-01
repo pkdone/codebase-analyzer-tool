@@ -1,3 +1,5 @@
+import { REQUIRED_STRING_PROPERTIES } from "../constants/schema-specific.constants.js";
+
 /**
  * Post-parse transformation that converts `undefined` values to empty strings
  * for common required string properties.
@@ -20,26 +22,7 @@
  * - Handles circular references safely
  */
 
-/**
- * Common property names that are typically required strings and should default to empty string.
- */
-const REQUIRED_STRING_PROPERTIES = new Set([
-  "name",
-  "type",
-  "purpose",
-  "description",
-  "path",
-  "method",
-  "namespace",
-  "kind",
-  "mechanism",
-  "value",
-]);
-
-export function convertUndefinedToString(
-  value: unknown,
-  visited = new WeakSet<object>(),
-): unknown {
+export function convertUndefinedToString(value: unknown, visited = new WeakSet<object>()): unknown {
   // Handle primitives and functions
   if (typeof value !== "object" || value === null) {
     return value;
@@ -70,7 +53,7 @@ export function convertUndefinedToString(
     const lowerKey = key.toLowerCase();
 
     // If the property is undefined and it's a known required string property, convert to empty string
-    if (val === undefined && REQUIRED_STRING_PROPERTIES.has(lowerKey)) {
+    if (val === undefined && REQUIRED_STRING_PROPERTIES.includes(lowerKey)) {
       result[key] = "";
     } else {
       // Recursively process nested objects and arrays
@@ -87,4 +70,3 @@ export function convertUndefinedToString(
 
   return result;
 }
-
