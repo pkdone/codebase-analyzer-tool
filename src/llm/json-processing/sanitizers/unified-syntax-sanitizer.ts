@@ -146,6 +146,35 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       }
     }
 
+    // ===== Block 1.5: Fix stray text directly after colon (MUST run before property name fixes) =====
+    // This must run very early to catch cases like "name":g": "value" before property name patterns interfere
+    // The property name fix patterns will add quotes around the stray text if this runs later
+    let previousStrayTextDirect = "";
+    while (previousStrayTextDirect !== sanitized) {
+      previousStrayTextDirect = sanitized;
+      // Pattern: Stray text directly after colon without space: "name":g": "value"
+      const strayTextDirectlyAfterColonPattern =
+        /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:([a-zA-Z_$0-9]{1,10})":\s*"([^"]+)"/g;
+
+      sanitized = sanitized.replace(
+        strayTextDirectlyAfterColonPattern,
+        (_match, propertyName, strayText, value) => {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const strayTextStr = typeof strayText === "string" ? strayText : "";
+          const valueStr = typeof value === "string" ? value : "";
+
+          // This pattern is very specific (property":text": "value") so we can apply it directly
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Removed stray text "${strayTextStr}" directly after colon: "${propertyNameStr}":${strayTextStr}": -> "${propertyNameStr}": "${valueStr}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${valueStr}"`;
+        },
+      );
+    }
+
     // ===== Block 2: Fix property names =====
     // Pass 1: Fix concatenated property names
     const concatenatedPattern = /"([^"]+)"\s*\+\s*"([^"]+)"(\s*\+\s*"[^"]+")*\s*:/g;
@@ -1381,11 +1410,14 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
     );
 
     // Fix 2: Remove stray text between colon and opening quote
+    // Enhanced to handle single characters and short text like "g", "sem", etc.
     let previousStrayText = "";
     while (previousStrayText !== sanitized) {
       previousStrayText = sanitized;
+      // Pattern 1: Stray text with quotes after it: "name": g": "value" (with space)
+      // This requires at least one space after colon to distinguish from Pattern 2
       const strayTextBetweenColonAndValuePattern =
-        /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-zA-Z_$0-9]{1,10})":\s*"([^"]+)"/g;
+        /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s+([a-zA-Z_$0-9]{1,10})":\s*"([^"]+)"/g;
 
       sanitized = sanitized.replace(
         strayTextBetweenColonAndValuePattern,
@@ -1417,12 +1449,15 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
           }
 
           hasChanges = true;
-          diagnostics.push(
-            `Removed stray text "${strayTextStr}":" between colon and value: "${propertyNameStr}": ${strayTextStr}": -> "${propertyNameStr}": "${valueStr}"`,
-          );
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Removed stray text "${strayTextStr}":" between colon and value: "${propertyNameStr}": ${strayTextStr}": -> "${propertyNameStr}": "${valueStr}"`,
+            );
+          }
           return `"${propertyNameStr}": "${valueStr}"`;
         },
       );
+
     }
 
     // Fix 3: Fix missing opening quotes after colon
@@ -1670,7 +1705,51 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
       },
     );
 
-    // ===== Block 6: Fix missing colons between property names and values =====
+    // ===== Block 6: Fix property names with text before colon =====
+    // Pattern: Fix "name payLoanCharge": "value" -> "name": "payLoanCharge"
+    // This handles cases where text appears between property name and colon
+    const propertyNameWithTextBeforeColonPattern =
+      /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"(\s*[,}])/g;
+    sanitized = sanitized.replace(
+      propertyNameWithTextBeforeColonPattern,
+      (match, propertyName, textBeforeColon, value, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          numericOffset < 200;
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          const textBeforeColonStr = typeof textBeforeColon === "string" ? textBeforeColon : "";
+          const valueStr = typeof value === "string" ? value : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+          // If the value matches the text before colon, it's likely the value should be the text
+          // Otherwise, keep the value as is
+          const finalValue = valueStr === textBeforeColonStr ? textBeforeColonStr : valueStr;
+
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Fixed property name with text before colon: "${propertyNameStr} ${textBeforeColonStr}": "${valueStr}" -> "${propertyNameStr}": "${finalValue}"`,
+            );
+          }
+          return `"${propertyNameStr}": "${finalValue}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Block 6.1: Fix missing colons between property names and values =====
     // Pattern: Fix missing colon like "name" "value" -> "name": "value"
     const missingColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+"([^"]+)"(\s*[,}])/g;
     sanitized = sanitized.replace(
@@ -2108,6 +2187,173 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
         },
       );
     }
+
+    // ===== Block 12.5: Fix missing commas after array elements =====
+    // Pattern: Fix missing commas between array elements
+    // Handles cases like: "value1" "value2" or "value1"\n"value2" -> "value1", "value2"
+    const missingCommaAfterArrayElementPattern =
+      /"([^"]+)"(\s*)\n(\s*)"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
+    sanitized = sanitized.replace(
+      missingCommaAfterArrayElementPattern,
+      (match, value1, _whitespace1, newlineWhitespace, value2, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context by scanning backwards
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth < 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        // Also check if terminator contains ] or , - this is a strong indicator we're in an array
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+        const isInArrayContext = foundArray || terminatorStr.includes("]") || terminatorStr.includes(",");
+
+        if (isInArrayContext) {
+          const value1Str = typeof value1 === "string" ? value1 : "";
+          const value2Str = typeof value2 === "string" ? value2 : "";
+          const newlineWhitespaceStr = typeof newlineWhitespace === "string" ? newlineWhitespace : "";
+
+          // Check if there's already a comma before value2
+          if (!terminatorStr.startsWith(",") && !terminatorStr.startsWith("]")) {
+            hasChanges = true;
+            if (diagnostics.length < 20) {
+              diagnostics.push(
+                `Added missing comma after array element: "${value1Str}" -> "${value1Str}",`,
+              );
+            }
+            return `"${value1Str}",${newlineWhitespaceStr}"${value2Str}"${terminatorStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
+
+    // Also handle cases where array elements are on the same line
+    const missingCommaAfterArrayElementSameLinePattern =
+      /"([^"]+)"(\s+)"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
+    sanitized = sanitized.replace(
+      missingCommaAfterArrayElementSameLinePattern,
+      (match, value1, whitespace, value2, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+        
+        // Simplified check: if terminator contains ], we're definitely in an array
+        // Also check the context before to see if we're in an array
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        
+        // Check if we're in an array by looking for [ before this position
+        let bracketDepth = 0;
+        let braceDepth = 0;
+        let inStringCheck = false;
+        let escapeCheck = false;
+        let foundArray = false;
+
+        for (let i = beforeMatch.length - 1; i >= 0; i--) {
+          const char = beforeMatch[i];
+          if (escapeCheck) {
+            escapeCheck = false;
+            continue;
+          }
+          if (char === "\\") {
+            escapeCheck = true;
+            continue;
+          }
+          if (char === '"') {
+            inStringCheck = !inStringCheck;
+            continue;
+          }
+          if (!inStringCheck) {
+            if (char === "]") {
+              bracketDepth++;
+            } else if (char === "[") {
+              bracketDepth--;
+              if (bracketDepth < 0 && braceDepth <= 0) {
+                foundArray = true;
+                break;
+              }
+            } else if (char === "}") {
+              braceDepth++;
+            } else if (char === "{") {
+              braceDepth--;
+            }
+          }
+        }
+
+        // If terminator contains ], we're definitely in an array
+        // Also check if we found an array by scanning backwards, or if the context suggests an array
+        const isInArrayContext =
+          terminatorStr.includes("]") ||
+          foundArray ||
+          /:\s*\[/.test(beforeMatch) ||
+          /\[\s*"/.test(beforeMatch);
+
+        if (isInArrayContext) {
+          const value1Str = typeof value1 === "string" ? value1 : "";
+          const value2Str = typeof value2 === "string" ? value2 : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : " ";
+
+          // Check if there's already a comma - if not, add one
+          // If terminator is ], we need to add comma before it
+          if (!terminatorStr.startsWith(",")) {
+            hasChanges = true;
+            if (diagnostics.length < 20) {
+              diagnostics.push(
+                `Added missing comma after array element (same line): "${value1Str}" -> "${value1Str}",`,
+              );
+            }
+            // If terminator starts with ], preserve the ] and add comma before it
+            if (terminatorStr.startsWith("]")) {
+              return `"${value1Str}",${whitespaceStr}"${value2Str}"${terminatorStr}`;
+            }
+            // Otherwise, add comma before the terminator
+            return `"${value1Str}",${whitespaceStr}"${value2Str}"${terminatorStr}`;
+          }
+        }
+
+        return match;
+      },
+    );
 
     // ===== Block 13: Fix comment markers in JSON =====
     // Pattern: `*   "lombok...` -> `"lombok...` (removes comment-style asterisks)

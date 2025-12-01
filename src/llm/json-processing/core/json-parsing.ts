@@ -1,9 +1,11 @@
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import {
   convertNullToUndefined,
+  convertUndefinedToString,
   fixCommonPropertyNameTypos,
   coerceStringToArray,
   unwrapJsonSchemaStructure,
+  coerceNumericProperties,
 } from "../transforms/index.js";
 import {
   fixJsonStructureAndNoise,
@@ -108,13 +110,17 @@ const SANITIZATION_PIPELINE_PHASES = [
  * Transform order:
  * - coerceStringToArray: Converts string values to empty arrays for predefined property names (generic)
  * - convertNullToUndefined: Converts null to undefined for optional fields (generic)
+ * - convertUndefinedToString: Converts undefined to empty string for required string fields (generic)
  * - fixCommonPropertyNameTypos: Fixes typos in property names ending with underscore (generic)
+ * - coerceNumericProperties: Converts string values to numbers for known numeric properties (generic)
  * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data (generic)
  */
 const POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
   coerceStringToArray,
   convertNullToUndefined,
+  convertUndefinedToString,
   fixCommonPropertyNameTypos,
+  coerceNumericProperties,
   unwrapJsonSchemaStructure,
 ] as const;
 

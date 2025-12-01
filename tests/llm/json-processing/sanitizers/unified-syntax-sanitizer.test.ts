@@ -1352,4 +1352,105 @@ extra_text=""""
       expect(result.content).toContain('"This has name_ and property__name in it"');
     });
   });
+
+  describe("property names with text before colon", () => {
+    it("should fix property name with text before colon", () => {
+      const input = `{
+  "name payLoanCharge": "payLoanCharge",
+  "purpose": "Test purpose"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "payLoanCharge"');
+      expect(result.content).not.toContain('"name payLoanCharge"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle property name with different value", () => {
+      const input = `{
+  "name payLoanCharge": "differentValue",
+  "purpose": "Test"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "differentValue"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("stray text directly after colon", () => {
+    it("should remove stray text directly after colon", () => {
+      const input = `{
+  "name":g": "interestPostingPeriodType",
+  "type": "String"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "interestPostingPeriodType"');
+      expect(result.content).not.toContain('"name":g":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove stray text like 'sem' after colon", () => {
+      const input = `{
+  "name":sem": "fieldOfficer",
+  "type": "Staff"
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "fieldOfficer"');
+      expect(result.content).not.toContain('"name":sem":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("missing commas after array elements", () => {
+    it("should add missing comma between array elements on new lines", () => {
+      const input = `{
+  "internalReferences": [
+    "org.apache.fineract.portfolio.savings.DepositsApiConstants"
+    "org.apache.fineract.infrastructure.core.api.JsonCommand"
+  ]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain(
+        '"org.apache.fineract.portfolio.savings.DepositsApiConstants",',
+      );
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should add missing comma between array elements on same line", () => {
+      const input = `{
+  "internalReferences": ["value1" "value2"]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"value1", "value2"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not add comma if already present", () => {
+      const input = `{
+  "internalReferences": ["value1", "value2"]
+}`;
+
+      const result = unifiedSyntaxSanitizer(input);
+
+      expect(result.changed).toBe(false);
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
 });

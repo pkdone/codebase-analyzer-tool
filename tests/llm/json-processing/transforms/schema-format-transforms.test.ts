@@ -1,4 +1,7 @@
-import { unwrapJsonSchemaStructure } from "../../../../src/llm/json-processing/transforms/schema-format-transforms.js";
+import {
+  unwrapJsonSchemaStructure,
+  coerceNumericProperties,
+} from "../../../../src/llm/json-processing/transforms/schema-format-transforms.js";
 
 describe("schema-format-transforms", () => {
   describe("unwrapJsonSchemaStructure", () => {
@@ -69,6 +72,109 @@ describe("schema-format-transforms", () => {
       expect(unwrapJsonSchemaStructure("string")).toBe("string");
       expect(unwrapJsonSchemaStructure(123)).toBe(123);
       expect(unwrapJsonSchemaStructure(true)).toBe(true);
+    });
+  });
+
+  describe("coerceNumericProperties", () => {
+    it("should coerce string values to numbers for known numeric properties", () => {
+      const input = {
+        linesOfCode: "19",
+        cyclomaticComplexity: "5",
+        name: "TestClass",
+      };
+
+      const result = coerceNumericProperties(input);
+
+      expect(result).toEqual({
+        linesOfCode: 19,
+        cyclomaticComplexity: 5,
+        name: "TestClass",
+      });
+    });
+
+    it("should handle nested objects", () => {
+      const input = {
+        publicMethods: [
+          {
+            name: "testMethod",
+            linesOfCode: "10",
+            cyclomaticComplexity: "3",
+          },
+        ],
+      };
+
+      const result = coerceNumericProperties(input);
+
+      expect(result).toEqual({
+        publicMethods: [
+          {
+            name: "testMethod",
+            linesOfCode: 10,
+            cyclomaticComplexity: 3,
+          },
+        ],
+      });
+    });
+
+    it("should not coerce non-numeric strings", () => {
+      const input = {
+        linesOfCode: "not-a-number",
+        name: "TestClass",
+      };
+
+      const result = coerceNumericProperties(input);
+
+      expect(result).toEqual({
+        linesOfCode: "not-a-number",
+        name: "TestClass",
+      });
+    });
+
+    it("should not coerce empty strings", () => {
+      const input = {
+        linesOfCode: "",
+        name: "TestClass",
+      };
+
+      const result = coerceNumericProperties(input);
+
+      expect(result).toEqual({
+        linesOfCode: "",
+        name: "TestClass",
+      });
+    });
+
+    it("should handle already numeric values", () => {
+      const input = {
+        linesOfCode: 19,
+        cyclomaticComplexity: 5,
+      };
+
+      const result = coerceNumericProperties(input);
+
+      expect(result).toEqual({
+        linesOfCode: 19,
+        cyclomaticComplexity: 5,
+      });
+    });
+
+    it("should handle arrays", () => {
+      const input = [
+        { linesOfCode: "10" },
+        { linesOfCode: "20" },
+      ];
+
+      const result = coerceNumericProperties(input);
+
+      expect(result).toEqual([
+        { linesOfCode: 10 },
+        { linesOfCode: 20 },
+      ]);
+    });
+
+    it("should handle null and undefined", () => {
+      expect(coerceNumericProperties(null)).toBeNull();
+      expect(coerceNumericProperties(undefined)).toBeUndefined();
     });
   });
 });
