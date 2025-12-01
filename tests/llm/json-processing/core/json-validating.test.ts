@@ -1,12 +1,9 @@
-import {
-  validateJson,
-  applySchemaFixingTransforms,
-} from "../../../../src/llm/json-processing/core/json-validating";
+import { validateJsonWithTransforms } from "../../../../src/llm/json-processing/core/json-validating";
 import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
 import { z } from "zod";
 
 describe("json-validating", () => {
-  describe("validateJson", () => {
+  describe("validateJsonWithTransforms", () => {
     describe("schema validation", () => {
       it("should validate and return data when schema validation succeeds", () => {
         const schema = z.object({ name: z.string(), age: z.number() });
@@ -16,11 +13,12 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options, false, true);
+        const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toEqual(content);
+          expect(result.transformSteps).toEqual([]);
         }
       });
 
@@ -32,12 +30,13 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options, false, true);
+        const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.issues).toBeDefined();
           expect(Array.isArray(result.issues)).toBe(true);
+          expect(result.transformSteps).toBeDefined();
         }
       });
 
@@ -49,7 +48,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options, false, true);
+        const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -72,11 +71,12 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(null, options, false, true);
+        const result = validateJsonWithTransforms(null, options.jsonSchema, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.issues[0].message).toContain("Data is required");
+          expect(result.transformSteps).toBeDefined();
         }
       });
 
@@ -87,11 +87,12 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(undefined, options, false, true);
+        const result = validateJsonWithTransforms(undefined, options.jsonSchema, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.issues[0].message).toContain("Data is required");
+          expect(result.transformSteps).toBeDefined();
         }
       });
 
@@ -102,7 +103,7 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson({}, options, false, true);
+        const result = validateJsonWithTransforms({}, options.jsonSchema, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
@@ -117,41 +118,11 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson([], options, false, true);
+        const result = validateJsonWithTransforms([], options.jsonSchema, true);
 
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.issues[0].message).toContain("cannot be empty");
-        }
-      });
-
-      it("should return failure when output format is not JSON", () => {
-        const schema = z.object({ name: z.string() });
-        const content = { name: "John" };
-        const options = {
-          outputFormat: LLMOutputFormat.TEXT,
-          jsonSchema: schema,
-        };
-
-        const result = validateJson(content, options, false, true);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.issues[0].message).toContain("Output format must be JSON");
-        }
-      });
-
-      it("should return failure when JSON schema is not provided", () => {
-        const content = { name: "John" };
-        const options = {
-          outputFormat: LLMOutputFormat.JSON,
-        };
-
-        const result = validateJson(content, options, false, true);
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.issues[0].message).toContain("JSON schema is required");
         }
       });
     });
@@ -166,9 +137,12 @@ describe("json-validating", () => {
         };
 
         // We can't easily test logging, but we can verify the function works
-        const result = validateJson(content, options, true, true);
+        const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
         expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.transformSteps).toBeDefined();
+        }
       });
 
       it("should not log validation failures when loggingEnabled is false", () => {
@@ -179,77 +153,142 @@ describe("json-validating", () => {
           jsonSchema: schema,
         };
 
-        const result = validateJson(content, options, false, false);
+        const result = validateJsonWithTransforms(content, options.jsonSchema, false);
 
         expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.transformSteps).toBeDefined();
+        }
+      });
+    });
+
+    describe("transform application", () => {
+      it("should apply transforms when initial validation fails", () => {
+        const schema = z.object({
+          name: z.string(),
+          groupId: z.string().optional(), // Does not allow null, only undefined
+        });
+        const content = { name: "test", groupId: null };
+        const options = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        };
+
+        const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          const data = result.data as Record<string, unknown>;
+          expect(data.name).toBe("test");
+          expect("groupId" in data).toBe(false); // null converted to undefined and omitted
+          expect(result.transformSteps).toContain("convertNullToUndefined");
+        }
+      });
+
+      it("should return transform steps even when validation fails after transforms", () => {
+        const schema = z.object({
+          name: z.string(),
+          requiredField: z.string(),
+        });
+        const content = { name: "test" }; // Missing requiredField
+        const options = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        };
+
+        const result = validateJsonWithTransforms(content, options.jsonSchema, true);
+
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.transformSteps).toBeDefined();
+          expect(Array.isArray(result.transformSteps)).toBe(true);
+        }
       });
     });
   });
 
-  describe("applySchemaFixingTransforms", () => {
-    it("should apply convertNullToUndefined transform", () => {
-      const data = { key: null, other: "value" };
-      const result = applySchemaFixingTransforms(data);
-
-      expect(result.data).toBeDefined();
-      const transformed = result.data as Record<string, unknown>;
-      expect("key" in transformed).toBe(false); // null converted to undefined and omitted
-      expect(transformed.other).toBe("value");
-      expect(result.steps).toContain("convertNullToUndefined");
-    });
-
-    it("should apply fixCommonPropertyNameTypos transform", () => {
+  describe("transform application through public API", () => {
+    it("should apply fixCommonPropertyNameTypos transform via validateJsonWithTransforms", () => {
+      const schema = z.object({ type: z.string(), name: z.string(), value: z.number() });
       const data = { type_: "string", name_: "test", value: 123 };
-      const result = applySchemaFixingTransforms(data);
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
 
-      const transformed = result.data as Record<string, unknown>;
-      expect(transformed.type).toBe("string");
-      expect(transformed.name).toBe("test");
-      expect("type_" in transformed).toBe(false);
-      expect("name_" in transformed).toBe(false);
-      expect(result.steps).toContain("fixCommonPropertyNameTypos");
+      const result = validateJsonWithTransforms(data, options.jsonSchema, true);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as Record<string, unknown>;
+        expect(data.type).toBe("string");
+        expect(data.name).toBe("test");
+        expect("type_" in data).toBe(false);
+        expect("name_" in data).toBe(false);
+        expect(result.transformSteps).toContain("fixCommonPropertyNameTypos");
+      }
     });
 
-    it("should apply coerceStringToArray transform", () => {
+    it("should apply coerceStringToArray transform via validateJsonWithTransforms", () => {
+      const schema = z.object({
+        parameters: z.array(z.unknown()),
+        dependencies: z.array(z.unknown()),
+      });
       const data = {
         parameters: "some parameters description",
         dependencies: "some dependencies",
       };
-      const result = applySchemaFixingTransforms(data);
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
 
-      const transformed = result.data as Record<string, unknown>;
-      expect(Array.isArray(transformed.parameters)).toBe(true);
-      expect(transformed.parameters).toEqual([]);
-      expect(Array.isArray(transformed.dependencies)).toBe(true);
-      expect(transformed.dependencies).toEqual([]);
-      expect(result.steps).toContain("coerceStringToArray");
+      const result = validateJsonWithTransforms(data, options.jsonSchema, true);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as Record<string, unknown>;
+        expect(Array.isArray(data.parameters)).toBe(true);
+        expect(data.parameters).toEqual([]);
+        expect(Array.isArray(data.dependencies)).toBe(true);
+        expect(data.dependencies).toEqual([]);
+        expect(result.transformSteps).toContain("coerceStringToArray");
+      }
     });
 
-    it("should track all applied transforms", () => {
+    it("should track all applied transforms via validateJsonWithTransforms", () => {
+      const schema = z.object({
+        type: z.string(),
+        parameters: z.array(z.unknown()),
+        nested: z.object({ value: z.string().optional() }),
+      });
       const data = {
         type_: "string",
         parameters: "test",
         nested: { value: null },
       };
-      const result = applySchemaFixingTransforms(data);
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
 
-      expect(result.steps.length).toBeGreaterThan(0);
-      expect(Array.isArray(result.steps)).toBe(true);
+      const result = validateJsonWithTransforms(data, options.jsonSchema, true);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.transformSteps.length).toBeGreaterThan(0);
+        expect(Array.isArray(result.transformSteps)).toBe(true);
+      }
     });
 
-    it("should not track transforms that made no changes", () => {
-      const data = { key: "value", number: 42 };
-      const result = applySchemaFixingTransforms(data);
-
-      // If no transforms made changes, appliedTransforms might be empty
-      // or only contain transforms that always run
-      expect(result.data).toBeDefined();
-      const transformed = result.data as Record<string, unknown>;
-      expect(transformed.key).toBe("value");
-      expect(transformed.number).toBe(42);
-    });
-
-    it("should handle nested structures", () => {
+    it("should handle nested structures via validateJsonWithTransforms", () => {
+      const schema = z.object({
+        level1: z.object({
+          type: z.string(),
+          parameters: z.array(z.unknown()),
+          value: z.string().optional(),
+        }),
+      });
       const data = {
         level1: {
           type_: "nested",
@@ -257,13 +296,21 @@ describe("json-validating", () => {
           value: null,
         },
       };
-      const result = applySchemaFixingTransforms(data);
+      const options = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
 
-      const transformed = result.data as Record<string, unknown>;
-      const level1 = transformed.level1 as Record<string, unknown>;
-      expect(level1.type).toBe("nested");
-      expect(Array.isArray(level1.parameters)).toBe(true);
-      expect("value" in level1).toBe(false);
+      const result = validateJsonWithTransforms(data, options.jsonSchema, true);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as Record<string, unknown>;
+        const level1 = data.level1 as Record<string, unknown>;
+        expect(level1.type).toBe("nested");
+        expect(Array.isArray(level1.parameters)).toBe(true);
+        expect("value" in level1).toBe(false);
+      }
     });
   });
 });

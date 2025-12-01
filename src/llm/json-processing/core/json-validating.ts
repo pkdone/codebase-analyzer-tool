@@ -1,5 +1,3 @@
-import { LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
-import { logOneLineWarning } from "../../../common/utils/logging";
 import { z } from "zod";
 import {
   convertNullToUndefined,
@@ -12,21 +10,12 @@ import {
 import { type SchemaFixingTransform } from "../sanitizers/index.js";
 
 /**
- * Result type for JSON validation operations.
- * Uses a discriminated union to distinguish between success and validation failures.
+ * Result type for validation with transforms operations.
+ * Includes transform steps that were applied during the validation process.
  */
-export type ValidationResult<T> =
-  | { success: true; data: T }
-  | { success: false; issues: z.ZodIssue[] };
-
-/**
- * Result type for schema fixing transform operations.
- * Contains the transformed data and a list of transform function names that were applied.
- */
-export interface TransformResult {
-  data: unknown;
-  steps: readonly string[];
-}
+export type ValidationWithTransformsResult<T> =
+  | { success: true; data: T; transformSteps: readonly string[] }
+  | { success: false; issues: z.ZodIssue[]; transformSteps: readonly string[] };
 
 /**
  * Schema fixing transformations applied after successful JSON.parse when initial validation fails.
@@ -50,9 +39,11 @@ const SCHEMA_FIXING_TRANSFORMS: readonly SchemaFixingTransform[] = [
 ] as const;
 
 /**
- * Creates a validation failure result with a custom error message.
+ * Creates a validation failure result with transforms for the public API.
  */
-function createValidationFailure<T>(message: string): ValidationResult<T> {
+function createValidationFailureWithTransforms<T>(
+  message: string,
+): ValidationWithTransformsResult<T> {
   return {
     success: false,
     issues: [
@@ -62,52 +53,32 @@ function createValidationFailure<T>(message: string): ValidationResult<T> {
         message,
       },
     ],
-  };
+    transformSteps: [],
+  } as ValidationWithTransformsResult<T>;
 }
 
 /**
- * Validates parsed data against a Zod schema if provided, or validates it as LLM-generated content.
+ * Validates parsed data against a Zod schema.
  * Returns a result object that indicates success or failure with detailed context.
  *
+ * Internal function used by validateJsonWithTransforms(). Not exported.
+ *
  * @param data - The parsed data to validate
- * @param completionOptions - Options containing output format and optional JSON schema
- * @param loggingEnabled - Whether to enable validation error logging. Defaults to true.
- * @returns A ValidationResult indicating success with validated data, or failure with validation issues
+ * @param jsonSchema - The Zod schema to validate against
+ * @returns A result indicating success with validated data, or failure with validation issues
  */
-export function validateJson<T>(
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+function attemptValidate<T>(
   data: unknown,
-  completionOptions: LLMCompletionOptions,
-  alreadyTransformed: boolean,
-  loggingEnabled: boolean,
-): ValidationResult<T> {
-  if (!data) {
-    return createValidationFailure<T>("Data is required for validation and cannot be empty");
-  }
-
-  if (
-    (typeof data === "object" && !Array.isArray(data) && Object.keys(data).length === 0) ||
-    (Array.isArray(data) && data.length === 0)
-  ) {
-    return createValidationFailure<T>("Data is required for validation and cannot be empty");
-  }
-
-  if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
-    return createValidationFailure<T>("Output format must be JSON for schema validation");
-  }
-
-  if (!completionOptions.jsonSchema) {
-    return createValidationFailure<T>("JSON schema is required for validation");
-  }
-
+  jsonSchema: z.ZodType<unknown>,
+): { success: true; data: T } | { success: false; issues: z.ZodIssue[] } {
   // Main validation: safeParse with the schema
-  const validation = completionOptions.jsonSchema.safeParse(data);
+  const validation = jsonSchema.safeParse(data);
 
   if (validation.success) {
     return { success: true, data: validation.data as T };
   } else {
     const issues = validation.error.issues;
-    if (loggingEnabled && alreadyTransformed)
-      logOneLineWarning("Schema validation failed. Validation issues:", issues);
     return { success: false, issues };
   }
 }
@@ -116,16 +87,17 @@ export function validateJson<T>(
  * Applies all schema fixing transformations to parsed JSON data.
  * Tracks which transforms were applied and returns both the transformed data and the list of applied transforms.
  *
+ * Internal function used by validateJsonWithTransforms(). Not exported.
+ *
  * @param data - The parsed JSON data to transform
- * @returns A TransformResult containing the transformed data and a list of transform function names that were applied
+ * @returns The transformed data and a list of transform function names that were applied
  */
-export function applySchemaFixingTransforms(data: unknown): TransformResult {
+function applySchemaFixingTransforms(data: unknown): { data: unknown; steps: readonly string[] } {
   const appliedTransforms: string[] = [];
   let transformedData = data;
 
   for (const transform of SCHEMA_FIXING_TRANSFORMS) {
     const before = JSON.stringify(transformedData);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     transformedData = transform(transformedData);
     const after = JSON.stringify(transformedData);
 
@@ -140,4 +112,57 @@ export function applySchemaFixingTransforms(data: unknown): TransformResult {
     data: transformedData,
     steps: appliedTransforms,
   };
+}
+
+/**
+ * Validates parsed data against a Zod schema, applying schema fixing transforms if initial validation fails.
+ * This function encapsulates the test-fix-test pattern: it tries validation first, and if that fails,
+ * applies transforms and tries validation again.
+ *
+ * @param data - The parsed data to validate
+ * @param jsonSchema - The Zod schema to validate against
+ * @returns A ValidationWithTransformsResult indicating success with validated data and transform steps, or failure with validation issues and transform steps
+ */
+export function validateJsonWithTransforms<T>(
+  data: unknown,
+  jsonSchema: z.ZodType<unknown>,
+  _loggingEnabled: boolean,
+): ValidationWithTransformsResult<T> {
+  // Fail validation early if not JSON
+  if (
+    !data ||
+    (typeof data === "object" && !Array.isArray(data) && Object.keys(data).length === 0) ||
+    (Array.isArray(data) && data.length === 0)
+  ) {
+    return createValidationFailureWithTransforms<T>(
+      "Data is required for validation and cannot be empty",
+    );
+  }
+
+  // Try initial validation
+  const initialValidation = attemptValidate<T>(data, jsonSchema);
+
+  // If validation succeeded on first attempt, no transforms needed
+  if (initialValidation.success) {
+    return { success: true, data: initialValidation.data, transformSteps: [] };
+  }
+
+  // Initial validation failed, so apply schema fixing transforms
+  const transformResult = applySchemaFixingTransforms(data);
+  const validationAfterTransforms = attemptValidate<T>(transformResult.data, jsonSchema);
+
+  // Return result with transform steps included
+  if (validationAfterTransforms.success) {
+    return {
+      success: true,
+      data: validationAfterTransforms.data,
+      transformSteps: transformResult.steps,
+    };
+  } else {
+    return {
+      success: false,
+      issues: validationAfterTransforms.issues,
+      transformSteps: transformResult.steps,
+    };
+  }
 }

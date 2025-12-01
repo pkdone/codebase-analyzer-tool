@@ -1,6 +1,6 @@
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import { processJson } from "../../../src/llm/json-processing/core/json-processing";
-import { validateJson } from "../../../src/llm/json-processing/core/json-validating";
+import { validateJsonWithTransforms } from "../../../src/llm/json-processing/core/json-validating";
 import { sourceSummarySchema } from "../../../src/schemas/sources.schema";
 import { z } from "zod";
 
@@ -833,29 +833,12 @@ describe("json-tools", () => {
     });
   });
 
-  describe("validateJson (integration)", () => {
-    test("should return failure when output format is not JSON", () => {
-      const content = { key: "value" };
-      const options = { outputFormat: LLMOutputFormat.TEXT };
-
-      const result = validateJson(content, options, false, true);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.issues).toBeDefined();
-        expect(result.issues[0]?.message).toContain("Output format must be JSON");
-      }
-    });
-
+  describe("validateJsonWithTransforms (integration)", () => {
     test("should return failure for null content", () => {
       const schema = z.object({ key: z.string() });
       const content = null;
-      const options = {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-      };
 
-      const result = validateJson(content, options, false, true);
+      const result = validateJsonWithTransforms(content, schema, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -871,7 +854,7 @@ describe("json-tools", () => {
         jsonSchema: sourceSummarySchema.pick({ purpose: true }),
       } as any;
 
-      const result = validateJson(badContent, options, false, true);
+      const result = validateJsonWithTransforms(badContent, options.jsonSchema, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {

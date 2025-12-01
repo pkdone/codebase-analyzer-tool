@@ -1,9 +1,9 @@
-import { validateJson } from "../../../src/llm/json-processing/core/json-validating";
+import { validateJsonWithTransforms } from "../../../src/llm/json-processing/core/json-validating";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { z } from "zod";
 
 describe("json-validator", () => {
-  describe("validateJson", () => {
+  describe("validateJsonWithTransforms", () => {
     it("should validate and return data when schema validation succeeds", () => {
       const schema = z.object({ name: z.string(), age: z.number() });
       const content = { name: "John", age: 30 };
@@ -12,11 +12,12 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJson(content, options, false, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toEqual(content);
+        expect(result.transformSteps).toBeDefined();
       }
     });
 
@@ -28,7 +29,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJson(content, options, false, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -45,7 +46,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJson(content, options, false, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -59,36 +60,6 @@ describe("json-validator", () => {
       }
     });
 
-    it("should return failure when output format is not JSON", () => {
-      const schema = z.object({ name: z.string() });
-      const content = { name: "John" };
-      const options = {
-        outputFormat: LLMOutputFormat.TEXT,
-        jsonSchema: schema,
-      };
-
-      const result = validateJson(content, options, false, true);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.issues).toBeDefined();
-        expect(result.issues[0]?.message).toContain("Output format must be JSON");
-      }
-    });
-
-    it("should return failure when no schema is provided", () => {
-      const content = { name: "John", age: 30 };
-      const options = { outputFormat: LLMOutputFormat.JSON };
-
-      const result = validateJson(content, options, false, true);
-
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.issues).toBeDefined();
-        expect(result.issues[0]?.message).toContain("JSON schema is required");
-      }
-    });
-
     it("should return failure when data is null", () => {
       const schema = z.object({ name: z.string() });
       const content = null;
@@ -97,7 +68,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJson(content, options, false, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -114,7 +85,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJson(content, options, false, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -131,7 +102,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJson(content, options, false, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -148,7 +119,7 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJson(content, options, false, true);
+      const result = validateJsonWithTransforms(content, options.jsonSchema, true);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -166,8 +137,8 @@ describe("json-validator", () => {
         jsonSchema: schema,
       };
 
-      const result1 = validateJson({ value: 1 }, options, false, true);
-      const result2 = validateJson({ value: 2 }, options, false, true);
+      const result1 = validateJsonWithTransforms({ value: 1 }, options.jsonSchema, true);
+      const result2 = validateJsonWithTransforms({ value: 2 }, options.jsonSchema, true);
 
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);

@@ -179,7 +179,7 @@ function attemptParse(
  * @param content - The raw JSON string to parse
  * @returns A ParseResult indicating success with parsed data and steps, or failure with an error
  */
-export function parseJson(content: string): ParseResult {
+export function parseJsonWithSanitizers(content: string): ParseResult {
   const appliedSteps: string[] = [];
   const allDiagnostics: string[] = [];
 
