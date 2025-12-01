@@ -1,5 +1,5 @@
 /**
- * Barrel export for all post-parse transformations.
+ * Barrel export for all schema fixing transformations.
  * Provides a unified import point for transforms.
  */
 

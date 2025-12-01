@@ -1,7 +1,7 @@
 import { NUMERIC_PROPERTIES } from "../constants/schema-specific.constants.js";
 
 /**
- * Generic post-parse transformations that operate on already-parsed JSON objects.
+ * Generic schema fixing transformations that operate on already-parsed JSON objects.
  * These transformations are schema-agnostic and work with any JSON structure.
  */
 

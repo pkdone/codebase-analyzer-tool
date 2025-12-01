@@ -1,5 +1,5 @@
 /**
- * Post-parse transformation that recursively coerces string values to empty arrays
+ * Schema fixing transformation that recursively coerces string values to empty arrays
  * for properties that are expected to be arrays.
  *
  * LLMs sometimes return descriptive strings for properties that should be arrays

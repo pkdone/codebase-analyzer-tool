@@ -24,7 +24,7 @@ However, the LLM returned `null` for npm packages that don't have Maven groupIds
 
 ## Solution
 
-### 1. New Post-Parse Transform
+### 1. New Schema Fixing Transform
 Created `/home/pdone/Projects/codebase-analyzer-tool/src/llm/json-processing/utils/convert-null-to-undefined.ts`
 
 This transform:
@@ -35,9 +35,9 @@ This transform:
 - Safely handles circular references (though not expected in JSON from LLMs)
 
 ### 2. Integration
-Updated the JsonProcessor pipeline to apply this transform **before** other post-parse transforms:
+Updated the JsonProcessor pipeline to apply this transform **before** other schema fixing transforms:
 ```typescript
-POST_PARSE_TRANSFORMS = [
+SCHEMA_FIXING_TRANSFORMS = [
   convertNullToUndefined,  // Applied first
   unwrapJsonSchemaStructure,
 ]

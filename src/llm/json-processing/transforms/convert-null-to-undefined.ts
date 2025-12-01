@@ -1,5 +1,5 @@
 /**
- * Post-parse transformation that recursively converts all `null` values to `undefined`.
+ * Schema fixing transformation that recursively converts all `null` values to `undefined`.
  *
  * This is necessary because LLMs often return `null` for missing or inapplicable values,
  * but Zod schemas with `.optional()` expect `undefined` (or the field to be omitted entirely),

@@ -2,7 +2,7 @@ import { convertNullToUndefined } from "../../../../src/llm/json-processing/tran
 import { unwrapJsonSchemaStructure } from "../../../../src/llm/json-processing/transforms/schema-format-transforms.js";
 import { fixCommonPropertyNameTypos } from "../../../../src/llm/json-processing/transforms/property-typo-fixes.js";
 
-describe("Consolidated Post-Parse Transforms", () => {
+describe("Consolidated Schema Fixing Transforms", () => {
   describe("convertNullToUndefined", () => {
     it("should convert null to undefined in simple object", () => {
       const input = { name: "test", value: null };

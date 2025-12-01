@@ -171,7 +171,7 @@ describe("json-processing", () => {
       });
     });
 
-    describe("conditional post-parse transforms", () => {
+    describe("conditional schema fixing transforms", () => {
       it("should NOT apply transforms if validation succeeds on first attempt", () => {
         // Valid JSON that passes validation without needing transforms
         const schema = z.object({ name: z.string(), value: z.string() });

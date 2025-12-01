@@ -1,5 +1,5 @@
 /**
- * Post-parse transformation that recursively fixes common property name typos
+ * Schema fixing transformation that recursively fixes common property name typos
  * by removing trailing underscores from property keys.
  *
  * LLMs sometimes return property names with trailing underscores (e.g., `type_`, `name_`)

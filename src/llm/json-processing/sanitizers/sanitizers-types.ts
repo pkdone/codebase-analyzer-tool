@@ -19,8 +19,9 @@ export interface SanitizerResult {
 export type Sanitizer = (input: string) => SanitizerResult;
 
 /**
- * Type definition for a post-parse transformation function.
+ * Type definition for a schema fixing transformation function.
  * These operate on the parsed object structure rather than raw strings,
- * and are applied after successful JSON.parse but before validation.
+ * and are applied after successful JSON.parse when initial validation fails
+ * to normalize and correct parsed data to help it pass schema validation.
  */
-export type PostParseTransform = (data: unknown) => unknown;
+export type SchemaFixingTransform = (data: unknown) => unknown;

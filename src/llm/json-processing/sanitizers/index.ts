@@ -14,7 +14,7 @@ export { fixBinaryCorruptionPatterns } from "./fix-binary-corruption-patterns.js
 export { fixHeuristicJsonErrors } from "./fix-heuristic-json-errors.js";
 export { fixMalformedJsonPatterns } from "./fix-malformed-json-patterns.js";
 
-export type { Sanitizer, SanitizerResult, PostParseTransform } from "./sanitizers-types.js";
+export type { Sanitizer, SanitizerResult, SchemaFixingTransform } from "./sanitizers-types.js";
 
 // Export sanitization step constants
 export {

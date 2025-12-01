@@ -52,8 +52,8 @@ describe("JsonProcessor - Refactored Methods", () => {
     // so "not a number" actually fails parsing, not validation. The JsonValidator handles type checking.
   });
 
-  describe("parse with post-parse transforms", () => {
-    it("should apply post-parse transforms before validation", () => {
+  describe("parse with schema fixing transforms", () => {
+    it("should apply schema fixing transforms before validation", () => {
       // JSON Schema wrapper that should be unwrapped
       const wrappedJson = JSON.stringify({
         type: "object",

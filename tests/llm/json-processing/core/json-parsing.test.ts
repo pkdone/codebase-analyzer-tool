@@ -1,7 +1,4 @@
-import {
-  parseJson,
-  applyPostParseTransforms,
-} from "../../../../src/llm/json-processing/core/json-parsing";
+import { parseJson } from "../../../../src/llm/json-processing/core/json-parsing";
 import {
   JsonProcessingError,
   JsonProcessingErrorType,
@@ -133,8 +130,8 @@ describe("json-parsing", () => {
       });
     });
 
-    describe("post-parse transformations", () => {
-      it("should NOT apply post-parse transformations (raw parsing only)", () => {
+    describe("schema fixing transforms", () => {
+      it("should NOT apply schema fixing transforms (raw parsing only)", () => {
         // Test that parseJson returns raw parsed data without transforms
         const json = '{"key": null}';
         const result = parseJson(json);
@@ -146,87 +143,6 @@ describe("json-parsing", () => {
           expect(data.key).toBeNull();
         }
       });
-    });
-  });
-
-  describe("applyPostParseTransforms", () => {
-    it("should apply convertNullToUndefined transform", () => {
-      const data = { key: null, other: "value" };
-      const result = applyPostParseTransforms(data);
-
-      expect(result.data).toBeDefined();
-      const transformed = result.data as Record<string, unknown>;
-      expect("key" in transformed).toBe(false); // null converted to undefined and omitted
-      expect(transformed.other).toBe("value");
-      expect(result.steps).toContain("convertNullToUndefined");
-    });
-
-    it("should apply fixCommonPropertyNameTypos transform", () => {
-      const data = { type_: "string", name_: "test", value: 123 };
-      const result = applyPostParseTransforms(data);
-
-      const transformed = result.data as Record<string, unknown>;
-      expect(transformed.type).toBe("string");
-      expect(transformed.name).toBe("test");
-      expect("type_" in transformed).toBe(false);
-      expect("name_" in transformed).toBe(false);
-      expect(result.steps).toContain("fixCommonPropertyNameTypos");
-    });
-
-    it("should apply coerceStringToArray transform", () => {
-      const data = {
-        parameters: "some parameters description",
-        dependencies: "some dependencies",
-      };
-      const result = applyPostParseTransforms(data);
-
-      const transformed = result.data as Record<string, unknown>;
-      expect(Array.isArray(transformed.parameters)).toBe(true);
-      expect(transformed.parameters).toEqual([]);
-      expect(Array.isArray(transformed.dependencies)).toBe(true);
-      expect(transformed.dependencies).toEqual([]);
-      expect(result.steps).toContain("coerceStringToArray");
-    });
-
-    it("should track all applied transforms", () => {
-      const data = {
-        type_: "string",
-        parameters: "test",
-        nested: { value: null },
-      };
-      const result = applyPostParseTransforms(data);
-
-      expect(result.steps.length).toBeGreaterThan(0);
-      expect(Array.isArray(result.steps)).toBe(true);
-    });
-
-    it("should not track transforms that made no changes", () => {
-      const data = { key: "value", number: 42 };
-      const result = applyPostParseTransforms(data);
-
-      // If no transforms made changes, appliedTransforms might be empty
-      // or only contain transforms that always run
-      expect(result.data).toBeDefined();
-      const transformed = result.data as Record<string, unknown>;
-      expect(transformed.key).toBe("value");
-      expect(transformed.number).toBe(42);
-    });
-
-    it("should handle nested structures", () => {
-      const data = {
-        level1: {
-          type_: "nested",
-          parameters: "nested params",
-          value: null,
-        },
-      };
-      const result = applyPostParseTransforms(data);
-
-      const transformed = result.data as Record<string, unknown>;
-      const level1 = transformed.level1 as Record<string, unknown>;
-      expect(level1.type).toBe("nested");
-      expect(Array.isArray(level1.parameters)).toBe(true);
-      expect("value" in level1).toBe(false);
     });
   });
 });

@@ -1,13 +1,5 @@
 import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-processing.errors";
 import {
-  convertNullToUndefined,
-  convertUndefinedToString,
-  fixCommonPropertyNameTypos,
-  coerceStringToArray,
-  unwrapJsonSchemaStructure,
-  coerceNumericProperties,
-} from "../transforms/index.js";
-import {
   fixJsonStructureAndNoise,
   fixJsonSyntax,
   normalizeCharacters,
@@ -18,7 +10,6 @@ import {
   fixHeuristicJsonErrors,
   fixMalformedJsonPatterns,
   type Sanitizer,
-  type PostParseTransform,
 } from "../sanitizers/index.js";
 
 /**
@@ -28,15 +19,6 @@ import {
 export type ParseResult =
   | { success: true; data: unknown; steps: readonly string[]; diagnostics?: string }
   | { success: false; error: JsonProcessingError; steps: readonly string[]; diagnostics?: string };
-
-/**
- * Result type for post-parse transform operations.
- * Contains the transformed data and a list of transform function names that were applied.
- */
-export interface TransformResult {
-  data: unknown;
-  steps: readonly string[];
-}
 
 /**
  * Unified, ordered pipeline of sanitizers organized into logical phases.
@@ -82,9 +64,6 @@ export interface TransformResult {
  *   Fixes content corruption
  *   - fixBinaryCorruptionPatterns: Fix binary corruption patterns (e.g., <y_bin_XXX> markers)
  *
- * Note: JSON Schema unwrapping is handled in POST_PARSE_TRANSFORMS after successful parsing,
- * which is more efficient than attempting to parse during sanitization.
- *
  * Each sanitizer only runs if it makes changes. Parsing is attempted after each step,
  * so earlier sanitizers have priority in fixing issues.
  */
@@ -102,27 +81,6 @@ const SANITIZATION_PIPELINE_PHASES = [
   // Phase 6: Content Fixes
   [fixBinaryCorruptionPatterns],
 ] as const satisfies readonly (readonly Sanitizer[])[];
-
-/**
- * Post-parse transformations applied after successful JSON.parse but before validation.
- * These operate on the parsed object structure rather than raw strings.
- *
- * Transform order:
- * - coerceStringToArray: Converts string values to empty arrays for predefined property names (generic)
- * - convertNullToUndefined: Converts null to undefined for optional fields (generic)
- * - convertUndefinedToString: Converts undefined to empty string for required string fields (generic)
- * - fixCommonPropertyNameTypos: Fixes typos in property names ending with underscore (generic)
- * - coerceNumericProperties: Converts string values to numbers for known numeric properties (generic)
- * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data (generic)
- */
-const POST_PARSE_TRANSFORMS: readonly PostParseTransform[] = [
-  coerceStringToArray,
-  convertNullToUndefined,
-  convertUndefinedToString,
-  fixCommonPropertyNameTypos,
-  coerceNumericProperties,
-  unwrapJsonSchemaStructure,
-] as const;
 
 /**
  * Formats diagnostics array into a single string, or returns undefined if empty.
@@ -189,7 +147,7 @@ function applySanitizerToContent(
 }
 
 /**
- * Attempts to parse the given content as JSON without applying post-parse transformations.
+ * Attempts to parse the given content as JSON.
  * Returns a result indicating success or failure.
  */
 function attemptParse(
@@ -206,40 +164,11 @@ function attemptParse(
 }
 
 /**
- * Applies all post-parse transformations to parsed JSON data.
- * Tracks which transforms were applied and returns both the transformed data and the list of applied transforms.
- *
- * @param data - The parsed JSON data to transform
- * @returns A TransformResult containing the transformed data and a list of transform function names that were applied
- */
-export function applyPostParseTransforms(data: unknown): TransformResult {
-  const appliedTransforms: string[] = [];
-  let transformedData = data;
-
-  for (const transform of POST_PARSE_TRANSFORMS) {
-    const before = JSON.stringify(transformedData);
-    transformedData = transform(transformedData);
-    const after = JSON.stringify(transformedData);
-
-    // Track if transform made changes (i.e., if JSON string changed)
-    if (before !== after) {
-      const transformName = transform.name || "unknown";
-      appliedTransforms.push(transformName);
-    }
-  }
-
-  return {
-    data: transformedData,
-    steps: appliedTransforms,
-  };
-}
-
-/**
  * Parses a JSON string through a multi-stage sanitization and repair pipeline.
  * Returns a result object indicating success or failure with sanitization steps.
  *
- * This function does NOT apply post-parse transformations - those should be applied
- * conditionally after validation attempts. Use applyPostParseTransforms() for that.
+ * This function does NOT apply schema fixing transforms - those should be applied
+ * conditionally after validation attempts. Use applySchemaFixingTransforms() from json-validating.ts for that.
  *
  * This function does NOT perform Zod schema validation - it only handles parsing.
  *

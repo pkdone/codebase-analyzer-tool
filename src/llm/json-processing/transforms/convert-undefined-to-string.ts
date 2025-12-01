@@ -1,7 +1,7 @@
 import { REQUIRED_STRING_PROPERTIES } from "../constants/schema-specific.constants.js";
 
 /**
- * Post-parse transformation that converts `undefined` values to empty strings
+ * Schema fixing transformation that converts `undefined` values to empty strings
  * for common required string properties.
  *
  * This handles cases where LLMs omit required string fields or set them to undefined,

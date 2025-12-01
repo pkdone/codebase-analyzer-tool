@@ -1,6 +1,15 @@
 import { LLMCompletionOptions, LLMOutputFormat } from "../../types/llm.types";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import { z } from "zod";
+import {
+  convertNullToUndefined,
+  convertUndefinedToString,
+  fixCommonPropertyNameTypos,
+  coerceStringToArray,
+  unwrapJsonSchemaStructure,
+  coerceNumericProperties,
+} from "../transforms/index.js";
+import { type SchemaFixingTransform } from "../sanitizers/index.js";
 
 /**
  * Result type for JSON validation operations.
@@ -9,6 +18,36 @@ import { z } from "zod";
 export type ValidationResult<T> =
   | { success: true; data: T }
   | { success: false; issues: z.ZodIssue[] };
+
+/**
+ * Result type for schema fixing transform operations.
+ * Contains the transformed data and a list of transform function names that were applied.
+ */
+export interface TransformResult {
+  data: unknown;
+  steps: readonly string[];
+}
+
+/**
+ * Schema fixing transformations applied after successful JSON.parse when initial validation fails.
+ * These normalize and correct parsed data to help it pass schema validation.
+ *
+ * Transform order:
+ * - coerceStringToArray: Converts string values to empty arrays for predefined property names (generic)
+ * - convertNullToUndefined: Converts null to undefined for optional fields (generic)
+ * - convertUndefinedToString: Converts undefined to empty string for required string fields (generic)
+ * - fixCommonPropertyNameTypos: Fixes typos in property names ending with underscore (generic)
+ * - coerceNumericProperties: Converts string values to numbers for known numeric properties (generic)
+ * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data (generic)
+ */
+const SCHEMA_FIXING_TRANSFORMS: readonly SchemaFixingTransform[] = [
+  coerceStringToArray,
+  convertNullToUndefined,
+  convertUndefinedToString,
+  fixCommonPropertyNameTypos,
+  coerceNumericProperties,
+  unwrapJsonSchemaStructure,
+] as const;
 
 /**
  * Creates a validation failure result with a custom error message.
@@ -71,4 +110,34 @@ export function validateJson<T>(
       logOneLineWarning("Schema validation failed. Validation issues:", issues);
     return { success: false, issues };
   }
+}
+
+/**
+ * Applies all schema fixing transformations to parsed JSON data.
+ * Tracks which transforms were applied and returns both the transformed data and the list of applied transforms.
+ *
+ * @param data - The parsed JSON data to transform
+ * @returns A TransformResult containing the transformed data and a list of transform function names that were applied
+ */
+export function applySchemaFixingTransforms(data: unknown): TransformResult {
+  const appliedTransforms: string[] = [];
+  let transformedData = data;
+
+  for (const transform of SCHEMA_FIXING_TRANSFORMS) {
+    const before = JSON.stringify(transformedData);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    transformedData = transform(transformedData);
+    const after = JSON.stringify(transformedData);
+
+    // Track if transform made changes (i.e., if JSON string changed)
+    if (before !== after) {
+      const transformName = (transform as { name?: string }).name ?? "unknown";
+      appliedTransforms.push(transformName);
+    }
+  }
+
+  return {
+    data: transformedData,
+    steps: appliedTransforms,
+  };
 }

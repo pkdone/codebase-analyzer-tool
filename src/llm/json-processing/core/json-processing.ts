@@ -3,8 +3,8 @@ import { JsonProcessingError, JsonProcessingErrorType } from "../types/json-proc
 import { JsonProcessorResult } from "../types/json-processing-result.types";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import { hasSignificantSanitizationSteps } from "../sanitizers";
-import { parseJson, applyPostParseTransforms } from "./json-parsing";
-import { validateJson } from "./json-validating";
+import { parseJson } from "./json-parsing";
+import { validateJson, applySchemaFixingTransforms } from "./json-validating";
 
 /**
  * Checks if the content has any JSON-like structure (contains opening braces or brackets).
@@ -59,7 +59,7 @@ function logProcessingSteps(
 
   if (transformSteps.length > 0) {
     messages.push(
-      `Applied ${transformSteps.length} post-parse transform(s): ${transformSteps.join(", ")}`,
+      `Applied ${transformSteps.length} schema fixing transform(s): ${transformSteps.join(", ")}`,
     );
   }
 
@@ -146,7 +146,7 @@ export function processJson<T = Record<string, unknown>>(
     };
   }
 
-  // Parse the JSON content (without post-parse transforms)
+  // Parse the JSON content (without schema fixing transforms)
   const parseResult = parseJson(content);
 
   // If can't parse, log failure and return error
@@ -202,8 +202,8 @@ export function processJson<T = Record<string, unknown>>(
     };
   }
 
-  // Initial validation failed, so apply post-parse transforms
-  const transformResult = applyPostParseTransforms(parseResult.data);
+  // Initial validation failed, so apply schema fixing transforms
+  const transformResult = applySchemaFixingTransforms(parseResult.data);
   const validationAfterTransforms = validateJson<T>(
     transformResult.data,
     completionOptions,
