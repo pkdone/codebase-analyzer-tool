@@ -96,7 +96,6 @@ function applySchemaFixingTransforms(data: unknown): { data: unknown; steps: rea
 
   for (const transform of SCHEMA_FIXING_TRANSFORMS) {
     const before = JSON.stringify(transformedData);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     transformedData = transform(transformedData);
     const after = JSON.stringify(transformedData);
 

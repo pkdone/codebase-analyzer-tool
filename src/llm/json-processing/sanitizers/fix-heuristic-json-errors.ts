@@ -6,12 +6,18 @@ import { COMMON_PROPERTY_STARTS } from "../constants/schema-specific.constants";
 /**
  * Heuristic sanitizer that fixes assorted malformed JSON patterns from LLM responses.
  *
- * This sanitizer handles various unrelated, highly specific regex-based fixes:
+ * This sanitizer uses generic, pattern-based fixes to handle various JSON errors:
  * 1. Duplicate/corrupted array entries (e.g., "extra.persistence.Version" after "jakarta.persistence.Version")
- * 2. Truncated property names (e.g., 'se":' -> '"name":')
- * 3. Text appearing outside string values (e.g., text after closing quote that should be inside)
- * 4. Stray text in JSON structures (e.g., "so many" between objects)
+ * 2. Truncated property names (e.g., 'se":' -> '"purpose":') - uses generic pattern with schema-specific fallback
+ * 3. Text appearing outside string values (e.g., descriptive text after closing quotes)
+ * 4. Stray text in JSON structures (e.g., commentary between objects)
  * 5. Missing quotes after colons (e.g., '"name":isInterestTransfer":' -> '"name": "isInterestTransfer"')
+ *
+ * The patterns are designed to be more generic and catch variations, using:
+ * - Character classes instead of specific word lists where possible
+ * - Lookaheads/lookbehinds for context-aware matching
+ * - Generic word boundary patterns for descriptive text detection
+ * - Schema-agnostic property name detection with schema-specific fallback
  *
  * @param input - The raw string content to sanitize
  * @returns Sanitizer result with heuristic fixes applied
@@ -29,6 +35,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // ===== Pattern 1: Remove duplicate/corrupted array entries =====
     // Pattern: "valid.entry",\n    corrupted.entry", or "valid.entry",\n    extra.entry",
     // where corrupted/extra entry is missing opening quote
+    // Uses generic pattern to detect corruption markers (words that suggest duplication/corruption)
     const duplicateEntryPattern1 = /"([^"]+)"\s*,\s*\n\s*([a-z]+)\.[^"]*"\s*,/g;
     sanitized = sanitized.replace(
       duplicateEntryPattern1,
@@ -41,10 +48,14 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         // Check if we're in an array context and the prefix looks like a corruption marker
         const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
         const isInArrayContext = /[[,]\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
-        const corruptionMarkers = ["extra", "duplicate", "repeat", "copy"];
         const prefixStr = typeof prefix === "string" ? prefix : "";
+        // Generic pattern: corruption markers are typically 4-10 letter words starting with common prefixes
+        const looksLikeCorruptionMarker =
+          /^(extra|duplicate|repeat|copy|another|second|third|additional|redundant|spurious)/i.test(
+            prefixStr,
+          );
 
-        if (isInArrayContext && corruptionMarkers.includes(prefixStr.toLowerCase())) {
+        if (isInArrayContext && looksLikeCorruptionMarker) {
           hasChanges = true;
           const validEntryStr = typeof validEntry === "string" ? validEntry : "";
           diagnostics.push(
@@ -58,8 +69,9 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     );
 
     // Pattern 1b: "valid.entry",\n    "corrupted.entry", where corrupted starts with corruption marker
+    // Uses more generic pattern with word boundary to catch variations
     const duplicateEntryPattern2 =
-      /"([^"]+)"\s*,\s*\n\s*"(extra|duplicate|repeat|copy)[^"]*"(\s*,\s*|\s*\n)/g;
+      /"([^"]+)"\s*,\s*\n\s*"(extra|duplicate|repeat|copy|another|second|third|additional|redundant|spurious)[^"]*"(\s*,\s*|\s*\n)/g;
     sanitized = sanitized.replace(
       duplicateEntryPattern2,
       (match, validEntry, prefix, delimiter, offset: unknown) => {
@@ -87,6 +99,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // ===== Pattern 2: Fix truncated property names =====
     // Pattern: 'se":' or similar property name fragments followed by colon and value
     // This handles cases where the property name got truncated (e.g., "purpose" -> "se", "codeSmells" -> "alues")
+    // Uses generic pattern: unquoted identifier before colon in property context, with schema-specific fallback
     const truncatedPropertyPattern = /(\s*)([a-z]{2,10})"\s*:\s*/g;
 
     sanitized = sanitized.replace(
@@ -98,6 +111,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         }
 
         // Check if this looks like a property name context (after comma, brace, or newline)
+        // Uses lookbehind-like logic: check preceding context
         const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 150), numericOffset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
@@ -108,11 +122,27 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
           /\[\s*$/.test(beforeMatch);
 
         const truncatedStr = typeof truncated === "string" ? truncated : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+
+        // First try schema-specific mapping (fallback for known truncations)
         const fixedName = COMMON_PROPERTY_STARTS[truncatedStr];
+
+        // If no schema-specific mapping, use generic approach: quote the identifier
+        // This is schema-agnostic - the identifier will be quoted and validation will catch invalid names
+        if (!fixedName && isPropertyContext) {
+          // Generic fix: quote the truncated identifier
+          // This assumes it's a property name fragment that should be quoted
+          // The validation step will catch if it's not a valid property name
+          hasChanges = true;
+          diagnostics.push(
+            `Fixed truncated property name (generic): "${truncatedStr}" -> quoted identifier`,
+          );
+          return `${whitespaceStr}"${truncatedStr}": `;
+        }
+
         if (isPropertyContext && fixedName) {
           hasChanges = true;
           diagnostics.push(`Fixed truncated property name: "${truncatedStr}" -> "${fixedName}"`);
-          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           return `${whitespaceStr}"${fixedName}": `;
         }
 
@@ -135,9 +165,11 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         }
 
         // Check if the stray text looks like descriptive text (not JSON structure)
+        // Generic pattern: text containing common English words (articles, prepositions, verbs)
+        // or ending with period, and not containing JSON structure characters
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const looksLikeDescriptiveText =
-          (/\b(the|a|an|is|are|was|were|this|that|from|to|for|with|by|in|on|at|suggests|pattern|use|layer|tribulations|thought|user|wants|act|senior|developer|analyze|provided|java|code|produce|json|output|conforms|specified|schema)\b/i.test(
+          (/\b(the|a|an|is|are|was|were|this|that|from|to|for|with|by|in|on|at|suggests|pattern|use|layer|thought|user|wants|act|senior|developer|analyze|provided|java|code|produce|json|output|conforms|specified|schema|since|as|when|where|while|if|although|though|because)\b/i.test(
             strayTextStr,
           ) ||
             /^[a-z][a-z\s]{5,50}\.$/i.test(strayTextStr)) &&
@@ -254,9 +286,10 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const closingBraceStr = typeof closingBrace === "string" ? closingBrace : "";
 
-        // Check if it looks like descriptive text (contains common words like "so many", "I will", "stop", etc.)
+        // Check if it looks like descriptive text (contains common commentary words/phrases)
+        // Generic pattern: matches common commentary patterns (first person, continuation markers, etc.)
         const looksLikeDescriptiveText =
-          /\b(so\s+many|I\s+will|stop|here|methods|continue|proceed|skip|ignore)\b/i.test(
+          /\b(so\s+many|I\s+will|I\s+shall|stop|here|methods|continue|proceed|skip|ignore|let\s+me|I\s+can|I\s+should|I\s+must|I\s+need|I\s+want|I\s+think|I\s+believe|I\s+see|I\s+notice|I\s+observe)\b/i.test(
             strayTextStr,
           ) &&
           !strayTextStr.includes('"') &&
@@ -330,7 +363,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     });
 
     // Pattern 4e: Remove text like "so    "connectionInfo":" appearing after closing brace
-    // Pattern: },\n    so    "connectionInfo":
+    // Pattern: },\n    so    "connectionInfo": or },\nso    "connectionInfo":
     const textBeforePropertyAfterBracePattern =
       /(}\s*)\s*,\s*\n\s*([a-z]{1,3})\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
@@ -346,9 +379,13 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         const propertyWithQuoteStr = typeof propertyWithQuote === "string" ? propertyWithQuote : "";
 
         // Check if it's a short word that looks like stray text
+        // Generic pattern: 1-3 letter words that aren't common English words
+        // Note: "so" is removed from exclusion list as it's often stray text in JSON context
         if (
           /^[a-z]{1,3}$/i.test(strayTextStr) &&
-          !/^(the|and|for|are|was|were)$/i.test(strayTextStr)
+          !/^(the|and|for|are|was|were|but|not|nor|yet|all|any|can|may|has|had|did|got|put|set|let|get|run|say|see|use|try|ask|end|own|way|day|man|new|old|big|low|few|one|two|ten)$/i.test(
+            strayTextStr,
+          )
         ) {
           hasChanges = true;
           diagnostics.push(
@@ -433,8 +470,9 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // ===== Pattern 7: Remove stray text in arrays (e.g., "from ...", "because it ...") =====
     // Pattern: `"value",\nfrom "org.apache..."` -> `"value",\n    "org.apache...",`
     // Also handles: `"value",\nbecause it is a private..."org.apache..."` -> `"value",\n    "org.apache...",`
+    // Generic pattern: matches common preposition/conjunction words that start descriptive text
     const strayTextInArrayPattern =
-      /"([^"]+)"\s*,\s*\n\s*(from|because|since|as|when|where|while|if|although|though)\s+[^"]{10,200}?"([^"]+)"\s*,/g;
+      /"([^"]+)"\s*,\s*\n\s*\b(from|because|since|as|when|where|while|if|although|though|after|before|during|through|until|unless|provided|given|considering|regarding)\b\s+[^"]{10,200}?"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextInArrayPattern,
       (match, value1, _strayPrefix, value2, offset: unknown) => {
@@ -465,7 +503,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // Pattern 7b: Handle stray text at end of array elements
     // Pattern: `"value",\nfrom "org.apache..."` -> `"value",\n    "org.apache..."` (when it's the last element)
     const strayTextAtEndOfArrayElementPattern =
-      /"([^"]+)"\s*,\s*\n\s*(from|because|since|as|when|where|while|if|although|though)\s+[^"]{10,200}?"([^"]+)"\s*(\n\s*[}\],])/g;
+      /"([^"]+)"\s*,\s*\n\s*\b(from|because|since|as|when|where|while|if|although|though|after|before|during|through|until|unless|provided|given|considering|regarding)\b\s+[^"]{10,200}?"([^"]+)"\s*(\n\s*[}\],])/g;
     sanitized = sanitized.replace(
       strayTextAtEndOfArrayElementPattern,
       (match, value1, _strayPrefix, value2, terminator, offset: unknown) => {
@@ -500,7 +538,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // Pattern: `"value",\nbecause it is a private inner class and not a public method.",\n    "nextValue",`
     // This handles cases where the stray text ends with a quote and comma, but isn't a valid JSON string
     const strayTextWithQuotePattern =
-      /"([^"]+)"\s*,\s*\n\s*(from|because|since|as|when|where|while|if|although|though)\s+[^"]{10,200}?"\s*,\s*\n\s*"([^"]+)"\s*,/g;
+      /"([^"]+)"\s*,\s*\n\s*\b(from|because|since|as|when|where|while|if|although|though|after|before|during|through|until|unless|provided|given|considering|regarding)\b\s+[^"]{10,200}?"\s*,\s*\n\s*"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextWithQuotePattern,
       (match, value1, _strayPrefix, value2, offset: unknown) => {

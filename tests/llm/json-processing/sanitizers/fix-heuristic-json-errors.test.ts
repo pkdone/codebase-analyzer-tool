@@ -334,4 +334,265 @@ extra_text: "  \\"externalReferences\\": []",
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
+
+  describe("Generalized patterns - new improvements", () => {
+    describe("Pattern 1: Generalized corruption marker detection", () => {
+      it("should remove array entry starting with 'another' (generalized corruption marker)", () => {
+        const input = `{
+  "externalReferences": [
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccount",
+    another.persistence.Version",
+    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
+  ]
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain(
+          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount",',
+        );
+        expect(result.content).not.toContain("another.persistence");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should remove array entry starting with 'second' (generalized corruption marker)", () => {
+        const input = `{
+  "externalReferences": [
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccount",
+    "second.persistence.Version",
+    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
+  ]
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain(
+          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount",',
+        );
+        expect(result.content).not.toContain("second.persistence");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should remove array entry starting with 'additional' (generalized corruption marker)", () => {
+        const input = `{
+  "externalReferences": [
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccount",
+    "additional.persistence.Version",
+    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
+  ]
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain(
+          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount",',
+        );
+        expect(result.content).not.toContain("additional.persistence");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+    });
+
+    describe("Pattern 2: Generic truncated property name detection", () => {
+      it("should quote generic truncated property name when not in COMMON_PROPERTY_STARTS", () => {
+        const input = `{
+  "name": "TestClass",
+  abcd": "some value",
+  "kind": "CLASS"
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain('"abcd": "some value"');
+        // The pattern should have fixed it, so the unfixed version should not exist
+        const unfixedPattern = /[{,]\s*abcd":/;
+        expect(result.content).not.toMatch(unfixedPattern);
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should use COMMON_PROPERTY_STARTS mapping when available (schema-specific fallback)", () => {
+        const input = `{
+  "name": "TestClass",
+  se": "some purpose value",
+  "kind": "CLASS"
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain('"purpose": "some purpose value"');
+        // The pattern should have fixed it using COMMON_PROPERTY_STARTS, so the unfixed version should not exist
+        const unfixedPattern = /[{,]\s*se":/;
+        expect(result.content).not.toMatch(unfixedPattern);
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+    });
+
+    describe("Pattern 3: Generalized descriptive text detection", () => {
+      it("should remove descriptive text starting with 'since' (generalized pattern)", () => {
+        const input = `{
+  "internalReferences": [
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccount",
+since it is used in the API layer
+    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
+  ]
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain(
+          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount",',
+        );
+        expect(result.content).not.toContain("since it is used");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should remove descriptive text starting with 'as' (generalized pattern)", () => {
+        const input = `{
+  "internalReferences": [
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccount",
+as this class is part of the domain model
+    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
+  ]
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain(
+          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount",',
+        );
+        expect(result.content).not.toContain("as this class");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+    });
+
+    describe("Pattern 4: Generalized commentary text detection", () => {
+      it("should remove text containing 'I shall' (generalized first-person pattern)", () => {
+        const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}
+I shall continue with the analysis here.`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain('"kind": "CLASS"\n}');
+        expect(result.content).not.toContain("I shall");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should remove text containing 'I can' (generalized first-person pattern)", () => {
+        const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}
+I can see that this is a complex class.`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain('"kind": "CLASS"\n}');
+        expect(result.content).not.toContain("I can");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+    });
+
+    describe("Pattern 7: Generalized preposition/conjunction detection in arrays", () => {
+      it("should remove stray text starting with 'after' (generalized preposition)", () => {
+        const input = `{
+  "externalReferences": [
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccount",
+after the initial setup is complete
+    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
+  ]
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain(
+          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount",',
+        );
+        expect(result.content).not.toContain("after the initial");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should remove stray text starting with 'during' (generalized preposition)", () => {
+        const input = `{
+  "externalReferences": [
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccount",
+during the execution phase
+    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
+  ]
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain(
+          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount",',
+        );
+        expect(result.content).not.toContain("during the execution");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should remove stray text starting with 'provided' (generalized conjunction)", () => {
+        const input = `{
+  "externalReferences": [
+    "org.apache.fineract.portfolio.savings.domain.SavingsAccount",
+provided that the conditions are met
+    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
+  ]
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain(
+          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount",',
+        );
+        expect(result.content).not.toContain("provided that");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+    });
+
+    describe("Pattern 4e: Generalized short word detection", () => {
+      it("should remove short stray word 'xyz' before property (not in common words list)", () => {
+        const input = `{
+  "databaseIntegration": {
+    "tablesAccessed": []
+  },
+xyz    "connectionInfo": "n/a"
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        expect(result.changed).toBe(true);
+        expect(result.content).toContain('"connectionInfo": "n/a"');
+        expect(result.content).not.toContain("xyz");
+        expect(() => JSON.parse(result.content)).not.toThrow();
+      });
+
+      it("should NOT remove common word 'the' before property (in exclusion list)", () => {
+        const input = `{
+  "databaseIntegration": {
+    "tablesAccessed": []
+  },
+the    "connectionInfo": "n/a"
+}`;
+
+        const result = fixHeuristicJsonErrors(input);
+
+        // 'the' is in the exclusion list, so it should not be removed
+        // This test verifies the exclusion list works correctly
+        expect(result.changed).toBe(false);
+      });
+    });
+  });
 });
