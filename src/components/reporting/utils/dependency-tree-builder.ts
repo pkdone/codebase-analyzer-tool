@@ -47,8 +47,9 @@ export function convertToHierarchical(
 }
 
 /**
- * Iteratively builds hierarchical dependencies from references using a stack-based approach.
- * This eliminates the risk of stack overflow with deep dependency trees.
+ * Iteratively builds hierarchical dependencies from references using a fully iterative approach.
+ * Uses two passes: discovery phase to find all nodes, then assembly phase using reverse
+ * topological order (leaf nodes first) to build the tree without recursion.
  */
 function buildHierarchicalDependencies(
   references: readonly string[],
@@ -56,21 +57,21 @@ function buildHierarchicalDependencies(
   visited: Set<string>,
   currentLevel: number,
 ): HierarchicalJavaClassDependency[] {
-  interface WorkItem {
+  interface DiscoveryWorkItem {
     namespace: string;
     level: number;
     visitedSet: Set<string>;
-    parentNamespaces: readonly string[]; // Track path to this node for proper hierarchy
   }
 
   // Track nodes and their parent-child relationships
   interface NodeInfo {
-    node: HierarchicalJavaClassDependency;
+    namespace: string;
+    originalLevel: number | undefined;
     children: string[];
   }
 
   const allNodes = new Map<string, NodeInfo>();
-  const stack: WorkItem[] = [];
+  const discoveryStack: DiscoveryWorkItem[] = [];
 
   // Initialize stack with root references
   for (const refNamespace of references) {
@@ -81,17 +82,18 @@ function buildHierarchicalDependencies(
     const visitedSet = new Set(visited);
     visitedSet.add(refNamespace);
 
-    stack.push({
+    discoveryStack.push({
       namespace: refNamespace,
       level: currentLevel,
       visitedSet,
-      parentNamespaces: [], // Root level has no parents
     });
   }
 
-  // First pass: populate allNodes with all nodes we encounter, and track their references
-  while (stack.length > 0) {
-    const workItem = stack.pop();
+  // === PHASE 1: Discovery - populate allNodes with all nodes and their children ===
+  const ITERATIVE_MAX_DEPTH = 50;
+
+  while (discoveryStack.length > 0) {
+    const workItem = discoveryStack.pop();
     if (!workItem) continue;
 
     const dependency = dependencyMap.get(workItem.namespace);
@@ -100,23 +102,18 @@ function buildHierarchicalDependencies(
     let nodeInfo = allNodes.get(workItem.namespace);
     if (!nodeInfo) {
       nodeInfo = {
-        node: {
-          namespace: workItem.namespace,
-          originalLevel: dependency?.level,
-        },
+        namespace: workItem.namespace,
+        originalLevel: dependency?.level,
         children: [],
       };
       allNodes.set(workItem.namespace, nodeInfo);
     }
 
-    // Note: With iterative approach, depth is much less of a concern than with recursion
-    // We still apply a reasonable limit to prevent infinite loops
-    const ITERATIVE_MAX_DEPTH = 50; // Much higher than recursive limit
+    // Apply depth limit to prevent infinite loops
     if (workItem.level >= ITERATIVE_MAX_DEPTH) {
       logOneLineWarning(
         `Maximum depth of ${ITERATIVE_MAX_DEPTH} reached in buildHierarchicalDependencies for ${workItem.namespace}. Not processing children to prevent excessive depth.`,
       );
-      // Still create the node but with no children
       continue;
     }
 
@@ -133,54 +130,67 @@ function buildHierarchicalDependencies(
         }
 
         // Create node info for child if not already exists
-        let childNodeInfo = allNodes.get(refNamespace);
-        if (!childNodeInfo) {
+        if (!allNodes.has(refNamespace)) {
           const childDependency = dependencyMap.get(refNamespace);
-          childNodeInfo = {
-            node: {
-              namespace: refNamespace,
-              originalLevel: childDependency?.level,
-            },
+          allNodes.set(refNamespace, {
+            namespace: refNamespace,
+            originalLevel: childDependency?.level,
             children: [],
-          };
-          allNodes.set(refNamespace, childNodeInfo);
+          });
         }
 
         const childVisitedSet = new Set(workItem.visitedSet);
         childVisitedSet.add(refNamespace);
 
-        stack.push({
+        discoveryStack.push({
           namespace: refNamespace,
           level: workItem.level + 1,
           visitedSet: childVisitedSet,
-          parentNamespaces: [...workItem.parentNamespaces, workItem.namespace],
         });
       }
     }
   }
 
-  // Build the final hierarchical structure iteratively using a stack
+  // === PHASE 2: Assembly - build tree iteratively using reverse topological order ===
+  // Process leaf nodes first (nodes with no unprocessed children), then their parents
+
   const processedNodes = new Map<string, HierarchicalJavaClassDependency>();
 
-  // Helper function to build a node and its children recursively
-  function buildNode(namespace: string): HierarchicalJavaClassDependency | null {
+  // Track how many unprocessed children each node has
+  const pendingChildCount = new Map<string, number>();
+  for (const [namespace, nodeInfo] of allNodes) {
+    pendingChildCount.set(namespace, nodeInfo.children.length);
+  }
+
+  // Build reverse adjacency: for each node, which nodes have it as a child?
+  const parents = new Map<string, string[]>();
+  for (const [namespace, nodeInfo] of allNodes) {
+    for (const child of nodeInfo.children) {
+      const childParents = parents.get(child) ?? [];
+      childParents.push(namespace);
+      parents.set(child, childParents);
+    }
+  }
+
+  // Start with leaf nodes (nodes with no children)
+  const readyToProcess: string[] = [];
+  for (const [namespace, count] of pendingChildCount) {
+    if (count === 0) {
+      readyToProcess.push(namespace);
+    }
+  }
+
+  // Process nodes in reverse topological order
+  while (readyToProcess.length > 0) {
+    const namespace = readyToProcess.pop();
+    if (namespace === undefined) continue;
     const nodeInfo = allNodes.get(namespace);
-    if (!nodeInfo) {
-      console.error(`[DEBUG] No nodeInfo for ${namespace}`);
-      console.error(`[DEBUG] All nodes:`, Array.from(allNodes.keys()));
-      return null;
-    }
+    if (!nodeInfo) continue;
 
-    // Check if already processed
-    const existing = processedNodes.get(namespace);
-    if (existing) {
-      return existing;
-    }
-
-    // Build child nodes recursively
+    // Build the node - all children are already processed
     const childNodes: HierarchicalJavaClassDependency[] = [];
     for (const childNamespace of nodeInfo.children) {
-      const childNode = buildNode(childNamespace);
+      const childNode = processedNodes.get(childNamespace);
       if (childNode) {
         childNodes.push(childNode);
       }
@@ -190,24 +200,34 @@ function buildHierarchicalDependencies(
     const result: HierarchicalJavaClassDependency =
       childNodes.length > 0
         ? {
-            namespace: nodeInfo.node.namespace,
-            originalLevel: nodeInfo.node.originalLevel,
+            namespace: nodeInfo.namespace,
+            originalLevel: nodeInfo.originalLevel,
             dependencies: childNodes,
           }
         : {
-            namespace: nodeInfo.node.namespace,
-            originalLevel: nodeInfo.node.originalLevel,
+            namespace: nodeInfo.namespace,
+            originalLevel: nodeInfo.originalLevel,
           };
 
     processedNodes.set(namespace, result);
-    return result;
+
+    // Decrement pending count for all parents and add ready ones to queue
+    const nodeParents = parents.get(namespace) ?? [];
+    for (const parent of nodeParents) {
+      const currentCount = pendingChildCount.get(parent) ?? 0;
+      const newCount = currentCount - 1;
+      pendingChildCount.set(parent, newCount);
+      if (newCount === 0) {
+        readyToProcess.push(parent);
+      }
+    }
   }
 
-  // Build root-level nodes
+  // Build root-level nodes from processed results
   const hierarchicalDeps: HierarchicalJavaClassDependency[] = [];
   for (const refNamespace of references) {
     if (visited.has(refNamespace)) continue;
-    const node = buildNode(refNamespace);
+    const node = processedNodes.get(refNamespace);
     if (node) {
       hierarchicalDeps.push(node);
     }

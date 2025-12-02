@@ -6,6 +6,13 @@ import { LLMGeneratedContent } from "../../../types/llm.types";
 import { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 
 /**
+ * Parses a value as a number, returning a default if the value is not a number.
+ * Simplifies verbose inline type guards for token count parsing.
+ */
+const parseNumericOrDefault = (value: unknown, defaultVal = -1): number =>
+  typeof value === "number" ? value : defaultVal;
+
+/**
  * Configuration for extracting response data from different Bedrock provider response structures
  */
 interface ResponsePathConfig {
@@ -63,10 +70,9 @@ export function extractGenericCompletionResponse(
     finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
     responseContent == null;
   const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
-  const promptTokens = (typeof promptTokensRaw === "number" ? promptTokensRaw : undefined) ?? -1;
+  const promptTokens = parseNumericOrDefault(promptTokensRaw);
   const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);
-  const completionTokens =
-    (typeof completionTokensRaw === "number" ? completionTokensRaw : undefined) ?? -1;
+  const completionTokens = parseNumericOrDefault(completionTokensRaw);
   const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
   const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
   return { isIncompleteResponse, responseContent, tokenUsage };
