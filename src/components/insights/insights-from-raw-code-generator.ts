@@ -114,7 +114,8 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
     codeBlocksContent: string,
   ): string {
     const allCategoriesConfig = {
-      contentDesc: "list of file summaries",
+      introTextTemplate:
+        "Act as a senior developer analyzing the code in a legacy application. Based on the list of file summaries shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.",
       instructions,
       responseSchema: appSummaryRecordCategoriesSchema,
       template: BASE_PROMPT_TEMPLATE,

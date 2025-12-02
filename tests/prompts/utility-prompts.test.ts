@@ -10,7 +10,7 @@ describe("Utility Prompts", () => {
   describe("codebaseQueryPromptDefinition", () => {
     it("should have correct structure", () => {
       expect(codebaseQueryPromptDefinition.label).toBe("Codebase Query");
-      expect(codebaseQueryPromptDefinition.contentDesc).toBe("source code files");
+      expect(codebaseQueryPromptDefinition.introTextTemplate).toContain("source code files");
       expect(codebaseQueryPromptDefinition.template).toBe(CODEBASE_QUERY_TEMPLATE);
       expect(codebaseQueryPromptDefinition.responseSchema).toBeDefined();
     });
@@ -51,7 +51,7 @@ describe("Utility Prompts", () => {
       const definition = createReduceInsightsPromptDefinition(categoryLabel, responseSchema);
 
       expect(definition.label).toBe("Reduce Entities");
-      expect(definition.contentDesc).toBe("several JSON objects");
+      expect(definition.introTextTemplate).toContain("several JSON objects");
       expect(definition.template).toBe(BASE_PROMPT_TEMPLATE);
       expect(definition.responseSchema).toBe(responseSchema);
       expect(definition.instructions).toHaveLength(1);

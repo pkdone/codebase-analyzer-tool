@@ -21,10 +21,10 @@ interface CreatePromptMetadataOptions<TConfig extends BaseConfigEntry> {
    */
   schemaBuilder?: (config: TConfig) => z.ZodType;
   /**
-   * Optional function to build the contentDesc for the PromptDefinition.
-   * If not provided, uses a default generic value.
+   * Optional function to build the introTextTemplate for the PromptDefinition.
+   * If not provided, uses a default generic template.
    */
-  contentDescBuilder?: (config: TConfig) => string;
+  introTextTemplateBuilder?: (config: TConfig) => string;
   /**
    * Optional function to build the instructions array from the config.
    * If not provided, must be handled by the config type itself.
@@ -48,7 +48,7 @@ interface CreatePromptMetadataOptions<TConfig extends BaseConfigEntry> {
  *
  * @param configMap - The configuration map (e.g., sourceConfigMap, appSummaryConfigMap)
  * @param template - The template string to use for all prompts
- * @param options - Optional builders for schema, contentDesc, and instructions
+ * @param options - Optional builders for schema, introTextTemplate, and instructions
  * @returns A record mapping keys to PromptDefinition objects
  */
 export function createPromptMetadata<TKey extends string, TConfig extends BaseConfigEntry>(
@@ -58,7 +58,7 @@ export function createPromptMetadata<TKey extends string, TConfig extends BaseCo
 ): Record<TKey, PromptDefinition> {
   const {
     schemaBuilder,
-    contentDescBuilder,
+    introTextTemplateBuilder,
     instructionsBuilder,
     dataBlockHeaderBuilder,
     wrapInCodeBlockBuilder,
@@ -70,9 +70,9 @@ export function createPromptMetadata<TKey extends string, TConfig extends BaseCo
       const configWithHasComplexSchema = typedConfig as { hasComplexSchema?: boolean };
       const definition: PromptDefinition = {
         label: typedConfig.label,
-        contentDesc: contentDescBuilder
-          ? contentDescBuilder(typedConfig)
-          : "a set of source file summaries",
+        introTextTemplate: introTextTemplateBuilder
+          ? introTextTemplateBuilder(typedConfig)
+          : "Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.",
         responseSchema: schemaBuilder
           ? schemaBuilder(typedConfig)
           : (typedConfig.responseSchema ?? z.unknown()),

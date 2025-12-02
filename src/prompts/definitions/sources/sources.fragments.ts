@@ -423,6 +423,19 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
     SORT_UTILITIES: "Look for SORT, IEBGENER, or custom program calls",
   },
 
+  BASE: {
+    CLASS: [
+      "The name of the main public class/interface of the file",
+      "Its kind ('class' or 'interface')",
+      "Its namespace (classpath)",
+    ] as const,
+    MODULE: [
+      "The name of the primary public entity of the file (class, module, or main function)",
+      "Its kind ('class', 'module', or enum; choose the dominant one)",
+      "Its namespace (fully qualified module path)",
+    ] as const,
+  },
+
   DEPENDENCY_EXTRACTION: {
     MAVEN: `A comprehensive list of dependencies declared in this POM file - for each dependency extract:
   * name (artifactId)
@@ -484,45 +497,37 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
 } as const;
 
 /**
- * Composable instruction sets for common patterns across file types
+ * Composable instruction sets for common patterns across file types.
+ * Organized for better discoverability and consistency.
  */
-export const CODE_QUALITY_INSTRUCTIONS = [
-  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
-  SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
-] as const;
+export const COMPOSITES = {
+  CODE_QUALITY: [
+    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
+    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
+    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
+    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
+  ] as const,
 
-export const DB_INTEGRATION_INSTRUCTIONS = [
-  SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
-  SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
-] as const;
+  DB_INTEGRATION: [
+    SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
+    SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
+  ] as const,
 
-export const INTEGRATION_POINTS_INSTRUCTIONS = [
-  SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
-] as const;
+  INTEGRATION_POINTS: [SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO] as const,
 
-export const SCHEDULED_JOBS_INSTRUCTIONS = [
-  SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
-  SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
-] as const;
+  SCHEDULED_JOBS: [
+    SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
+    SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
+  ] as const,
+} as const;
 
 /**
- * Common instruction sets for coding languages with class/interface structures
- * (Java, C#, etc.). Includes name, kind, namespace extraction.
+ * Export legacy constant names for backward compatibility.
+ * New code should use SOURCES_PROMPT_FRAGMENTS.BASE.CLASS/MODULE and COMPOSITES instead.
  */
-export const CLASS_LANGUAGE_BASE_INSTRUCTIONS = [
-  "The name of the main public class/interface of the file",
-  "Its kind ('class' or 'interface')",
-  "Its namespace (classpath)",
-] as const;
-
-/**
- * Common instruction sets for coding languages with module structures
- * (Python, Ruby, etc.). Includes name, kind, namespace extraction.
- */
-export const MODULE_LANGUAGE_BASE_INSTRUCTIONS = [
-  "The name of the primary public entity of the file (class, module, or main function)",
-  "Its kind ('class', 'module', or enum; choose the dominant one)",
-  "Its namespace (fully qualified module path)",
-] as const;
+export const CODE_QUALITY_INSTRUCTIONS = COMPOSITES.CODE_QUALITY;
+export const DB_INTEGRATION_INSTRUCTIONS = COMPOSITES.DB_INTEGRATION;
+export const INTEGRATION_POINTS_INSTRUCTIONS = COMPOSITES.INTEGRATION_POINTS;
+export const SCHEDULED_JOBS_INSTRUCTIONS = COMPOSITES.SCHEDULED_JOBS;
+export const CLASS_LANGUAGE_BASE_INSTRUCTIONS = SOURCES_PROMPT_FRAGMENTS.BASE.CLASS;
+export const MODULE_LANGUAGE_BASE_INSTRUCTIONS = SOURCES_PROMPT_FRAGMENTS.BASE.MODULE;

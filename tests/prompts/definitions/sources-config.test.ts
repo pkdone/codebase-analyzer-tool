@@ -50,10 +50,10 @@ describe("File Handler Configuration", () => {
 
     test("should have contentDesc, instructions and responseSchema for each type", () => {
       for (const [, config] of Object.entries(fileTypePromptMetadata)) {
-        expect(config).toHaveProperty("contentDesc");
+        expect(config).toHaveProperty("introTextTemplate");
         expect(config).toHaveProperty("instructions");
         expect(config).toHaveProperty("responseSchema");
-        expect(typeof config.contentDesc).toBe("string");
+        expect(typeof config.introTextTemplate).toBe("string");
         expect(typeof config.instructions).toBe("object");
         expect(Array.isArray(config.instructions)).toBe(true);
         expect(
@@ -66,7 +66,7 @@ describe("File Handler Configuration", () => {
   describe("DynamicPromptConfig structure", () => {
     test("should enforce correct structure", () => {
       const testConfig: PromptDefinition = {
-        contentDesc: "test content",
+        introTextTemplate: "test content",
         instructions: ["test instructions"],
         responseSchema: sourceSummarySchema,
         hasComplexSchema: false,
@@ -75,11 +75,11 @@ describe("File Handler Configuration", () => {
         wrapInCodeBlock: true,
       };
 
-      expect(testConfig).toHaveProperty("contentDesc");
+      expect(testConfig).toHaveProperty("introTextTemplate");
       expect(testConfig).toHaveProperty("instructions");
       expect(testConfig).toHaveProperty("responseSchema");
       expect(testConfig).toHaveProperty("hasComplexSchema");
-      expect(typeof testConfig.contentDesc).toBe("string");
+      expect(typeof testConfig.introTextTemplate).toBe("string");
       expect(typeof testConfig.instructions).toBe("object");
       expect(Array.isArray(testConfig.instructions)).toBe(true);
     });
@@ -87,7 +87,7 @@ describe("File Handler Configuration", () => {
     test("should work with type compatibility", () => {
       // Test that DynamicPromptConfig can work with inline schema types
       const typedConfig: PromptDefinition = {
-        contentDesc: "test content",
+        introTextTemplate: "test content",
         instructions: ["test instructions"],
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
@@ -143,9 +143,9 @@ describe("File Handler Configuration", () => {
   describe("Integration between file suffix mappings and prompt templates", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
       // Get all unique canonical types from the mapping rules
-      const canonicalTypes = new Set<import("../../../src/prompts/prompt.types").CanonicalFileType>(
-        FILE_TYPE_MAPPING_RULES.map((rule) => rule.type),
-      );
+      const canonicalTypes = new Set<
+        import("../../../src/config/file-types.config").CanonicalFileType
+      >(FILE_TYPE_MAPPING_RULES.map((rule) => rule.type));
 
       for (const canonicalType of canonicalTypes) {
         expect(fileTypePromptMetadata).toHaveProperty(canonicalType);

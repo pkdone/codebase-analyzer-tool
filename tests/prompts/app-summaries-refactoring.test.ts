@@ -7,12 +7,14 @@ describe("App Summaries Refactoring", () => {
     it("should have generic contentDesc and specific instructions for all app summary categories", () => {
       Object.entries(appSummaryPromptMetadata).forEach(([, config]) => {
         // Verify that contentDesc is generic
-        expect(config.contentDesc).toBe("a set of source file summaries");
+        expect(config.introTextTemplate).toContain("a set of source file summaries");
         // Verify that instructions contain the specific instruction text
         expect(config.instructions).toBeDefined();
         expect(config.instructions.length).toBeGreaterThan(0);
-        // Instructions should contain specific text, not the generic contentDesc
-        expect(config.instructions[0].length).toBeGreaterThan(config.contentDesc.length);
+        // Instructions should contain specific text
+        expect(config.instructions[0].length).toBeGreaterThan(0);
+        // introTextTemplate should contain generic description
+        expect(config.introTextTemplate).toContain("a set of source file summaries");
       });
     });
 
@@ -23,9 +25,9 @@ describe("App Summaries Refactoring", () => {
       const entitiesConfig = appSummaryPromptMetadata.entities;
 
       // Verify that contentDesc is generic
-      expect(technologiesConfig.contentDesc).toBe("a set of source file summaries");
-      expect(aggregatesConfig.contentDesc).toBe("a set of source file summaries");
-      expect(entitiesConfig.contentDesc).toBe("a set of source file summaries");
+      expect(technologiesConfig.introTextTemplate).toContain("a set of source file summaries");
+      expect(aggregatesConfig.introTextTemplate).toContain("a set of source file summaries");
+      expect(entitiesConfig.introTextTemplate).toContain("a set of source file summaries");
 
       // Verify instructions contain the specific instruction text
       expect(technologiesConfig.instructions[0]).toContain(

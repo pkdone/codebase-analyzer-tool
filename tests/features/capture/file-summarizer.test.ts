@@ -110,43 +110,43 @@ jest.mock("../../../src/config/file-types.config", () => {
 jest.mock("../../../src/prompts/definitions/sources", () => ({
   fileTypePromptMetadata: {
     java: {
-      contentDesc: "Java code",
+      introTextTemplate: "Java code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
       instructions: ["Java instructions"],
     },
     javascript: {
-      contentDesc: "JavaScript/TypeScript code",
+      introTextTemplate: "JavaScript/TypeScript code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
       instructions: ["JavaScript instructions"],
     },
     default: {
-      contentDesc: "project file content",
+      introTextTemplate: "project file content",
       hasComplexSchema: false,
       responseSchema: z.object({}),
       instructions: ["Default instructions"],
     },
     sql: {
-      contentDesc: "database DDL/DML/SQL code",
+      introTextTemplate: "database DDL/DML/SQL code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
       instructions: ["SQL instructions"],
     },
     xml: {
-      contentDesc: "XML code",
+      introTextTemplate: "XML code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
       instructions: ["XML instructions"],
     },
     jsp: {
-      contentDesc: "JSP code",
+      introTextTemplate: "JSP code",
       hasComplexSchema: false,
       responseSchema: z.object({}),
       instructions: ["JSP instructions"],
     },
     markdown: {
-      contentDesc: "Markdown content",
+      introTextTemplate: "Markdown content",
       hasComplexSchema: false,
       responseSchema: z.object({}),
       instructions: ["Markdown instructions"],
@@ -209,7 +209,7 @@ describe("summarizeFile", () => {
       }
 
       return {
-        contentDesc,
+        introTextTemplate: `Test intro template for ${contentDesc}`,
         hasComplexSchema: false,
         responseSchema: z.object({}),
         instructions: [`Instructions for ${contentDesc}`],

@@ -9,7 +9,8 @@ import { type PromptDefinition } from "../prompt.types";
  */
 export const codebaseQueryPromptDefinition: PromptDefinition = {
   label: "Codebase Query",
-  contentDesc: "source code files",
+  introTextTemplate:
+    "Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.",
   instructions: [
     "Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.",
   ],
@@ -33,7 +34,7 @@ export function createReduceInsightsPromptDefinition(
 ): PromptDefinition {
   return {
     label: `Reduce ${categoryLabel}`,
-    contentDesc: "several JSON objects",
+    introTextTemplate: `Act as a senior developer analyzing the code in a legacy application. You have been provided with several JSON objects shown below in the section marked '{{dataBlockHeader}}', each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized.`,
     instructions: [`a consolidated list of '${categoryLabel}'`],
     responseSchema,
     template: BASE_PROMPT_TEMPLATE,

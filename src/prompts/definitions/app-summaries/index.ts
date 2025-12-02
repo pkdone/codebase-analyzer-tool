@@ -10,7 +10,8 @@ export const appSummaryPromptMetadata = createPromptMetadata<
   keyof typeof appSummaryConfigMap,
   AppSummaryConfigEntry
 >(appSummaryConfigMap, BASE_PROMPT_TEMPLATE, {
-  contentDescBuilder: () => "a set of source file summaries", // Generic description
+  introTextTemplateBuilder: () =>
+    "Act as a senior developer analyzing the code in a legacy application. Based on the a set of source file summaries shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.",
   instructionsBuilder: (config) => config.instructions, // Use instructions directly from config
   dataBlockHeaderBuilder: () => "FILE_SUMMARIES",
   wrapInCodeBlockBuilder: () => false,

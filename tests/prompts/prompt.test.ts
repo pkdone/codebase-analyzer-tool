@@ -170,7 +170,7 @@ public abstract class AddressEJB implements EntityBean {
       expect(renderedPrompt).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
 
       // Verify all expected content is present
-      expect(renderedPrompt).toContain(javaMetadata.contentDesc);
+      expect(renderedPrompt).toContain("JVM code"); // Check intro text is rendered
       expect(renderedPrompt).toContain(javaCodeSample);
       expect(renderedPrompt).toContain(FORCE_JSON_FORMAT);
     });
@@ -179,7 +179,7 @@ public abstract class AddressEJB implements EntityBean {
       // Use BASE_PROMPT_TEMPLATE which supports additional parameters
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
-        contentDesc: "test content",
+        introTextTemplate: "Test intro text template with {{dataBlockHeader}}",
         instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
         template: `{{introText}}
@@ -212,7 +212,7 @@ public abstract class AddressEJB implements EntityBean {
     it("should use nullish coalescing for partialAnalysisNote (allows empty string)", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
-        contentDesc: "test content",
+        introTextTemplate: "Test intro text template",
         instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
         template: `{{partialAnalysisNote}}Test template`,

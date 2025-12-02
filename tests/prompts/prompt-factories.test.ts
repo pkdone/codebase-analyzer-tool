@@ -6,7 +6,8 @@ import { BASE_PROMPT_TEMPLATE } from "../../src/prompts/templates";
 describe("Prompt Constructor and Templates", () => {
   const sourceDefinition: PromptDefinition = {
     label: "Test",
-    contentDesc: "test content",
+    introTextTemplate:
+      "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below...",
     instructions: ["instruction 1"],
     responseSchema: z.string(),
     template: BASE_PROMPT_TEMPLATE,
@@ -16,7 +17,8 @@ describe("Prompt Constructor and Templates", () => {
 
   const appSummaryDefinition: PromptDefinition = {
     label: "Test",
-    contentDesc: "test content",
+    introTextTemplate:
+      "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below...",
     instructions: ["instruction 1"],
     responseSchema: z.string(),
     template: BASE_PROMPT_TEMPLATE,
@@ -73,6 +75,8 @@ describe("Prompt Constructor and Templates", () => {
       const categoryKey = "entities";
       const reduceDefinition = {
         ...sourceDefinition,
+        introTextTemplate:
+          "Act as a senior developer. You've been provided with data containing '{{categoryKey}}'...",
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FRAGMENTED_DATA" as const,
         wrapInCodeBlock: false,
@@ -83,7 +87,7 @@ describe("Prompt Constructor and Templates", () => {
       });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
-      expect(rendered).toContain(`'${categoryKey}'`);
+      expect(rendered).toContain(categoryKey);
       expect(rendered).not.toContain("{{categoryKey}}");
     });
   });

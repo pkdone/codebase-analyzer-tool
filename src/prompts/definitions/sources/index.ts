@@ -21,7 +21,8 @@ export const fileTypePromptMetadata = createPromptMetadata(
         schemaFields as Parameters<typeof sourceSummarySchema.pick>[0],
       );
     },
-    contentDescBuilder: (config) => config.contentDesc,
+    introTextTemplateBuilder: (config) =>
+      `Act as a senior developer analyzing the code in a legacy application. Based on the ${config.contentDesc} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains the following metadata about the source file:\n\n{{instructionsText}}.`,
     instructionsBuilder: (config) => config.instructions,
     dataBlockHeaderBuilder: () => "CODE",
     wrapInCodeBlockBuilder: () => true,

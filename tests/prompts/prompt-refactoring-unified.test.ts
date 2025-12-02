@@ -117,7 +117,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
   describe("Prompt Rendering Consistency", () => {
     it("should join instructions with double newlines", () => {
       const testDefinition = {
-        contentDesc: "test content",
+        introTextTemplate: "Intro with instructions: {{instructionsText}}",
         instructions: ["Instruction 1", "Instruction 2", "Instruction 3"] as const,
         responseSchema: z.object({ test: z.string() }),
         template: "{{introText}}",
@@ -133,7 +133,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
 
     it("should handle single instruction correctly", () => {
       const testDefinition = {
-        contentDesc: "test content",
+        introTextTemplate: "Intro with instruction: {{instructionsText}}",
         instructions: ["Single instruction"] as const,
         responseSchema: z.object({ test: z.string() }),
         template: "{{introText}}",

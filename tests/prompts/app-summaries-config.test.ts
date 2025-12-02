@@ -1,6 +1,6 @@
 import { appSummaryConfigMap } from "../../src/prompts/definitions/app-summaries/app-summaries.config";
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
-import { AppSummaryCategoryType } from "../../src/prompts/prompt.types";
+import type { AppSummaryCategoryType } from "../../src/components/insights/insights.types";
 
 describe("App Summaries Config", () => {
   describe("appSummaryConfigMap", () => {
@@ -56,7 +56,7 @@ describe("App Summaries Config", () => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata).toBeDefined();
         expect(metadata.label).toBe(config.label);
-        expect(metadata.contentDesc).toBe("a set of source file summaries"); // Generic contentDesc
+        expect(metadata.introTextTemplate).toContain("a set of source file summaries"); // Generic contentDesc
         expect(metadata.responseSchema).toBe(config.responseSchema);
       });
     });
@@ -72,8 +72,8 @@ describe("App Summaries Config", () => {
     it("should have generic contentDesc and specific instructions", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
-        // contentDesc should be generic
-        expect(metadata.contentDesc).toBe("a set of source file summaries");
+        // introTextTemplate should contain the generic content description
+        expect(metadata.introTextTemplate).toContain("a set of source file summaries");
         // instructions should contain the specific instructions from config
         expect(metadata.instructions).toEqual(config.instructions);
       });

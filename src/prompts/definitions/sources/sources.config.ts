@@ -1,4 +1,4 @@
-import { CanonicalFileType } from "../../prompt.types";
+import type { CanonicalFileType } from "../../../config/file-types.config";
 import {
   SOURCES_PROMPT_FRAGMENTS,
   CLASS_LANGUAGE_BASE_INSTRUCTIONS,

@@ -6,7 +6,8 @@ import { BASE_PROMPT_TEMPLATE } from "../../src/prompts/templates";
 describe("Prompt Refactoring", () => {
   const testDefinition: PromptDefinition = {
     label: "Test",
-    contentDesc: "test content",
+    introTextTemplate:
+      "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below, return:\n\n{{instructionsText}}.",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
     template: BASE_PROMPT_TEMPLATE,
@@ -44,6 +45,7 @@ describe("Prompt Refactoring", () => {
       const categoryKey = "entities";
       const reduceDefinition = {
         ...testDefinition,
+        introTextTemplate: "Consolidate {{categoryKey}} from the data below.",
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FRAGMENTED_DATA" as const,
         wrapInCodeBlock: false,
@@ -51,7 +53,7 @@ describe("Prompt Refactoring", () => {
       const rendered = renderPrompt(reduceDefinition, { categoryKey, content: testContent });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
-      expect(rendered).toContain(`'${categoryKey}'`);
+      expect(rendered).toContain(categoryKey);
       expect(rendered).not.toContain("{{categoryKey}}");
     });
 

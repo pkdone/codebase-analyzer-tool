@@ -1,6 +1,6 @@
 import { appSummaryConfigMap } from "../../src/prompts/definitions/app-summaries/app-summaries.config";
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
-import { AppSummaryCategoryType } from "../../src/prompts/prompt.types";
+import type { AppSummaryCategoryType } from "../../src/components/insights/insights.types";
 import { BASE_PROMPT_TEMPLATE } from "../../src/prompts/templates";
 
 describe("App Summaries Config Refactoring", () => {
@@ -39,7 +39,7 @@ describe("App Summaries Config Refactoring", () => {
 
         expect(metadata).toBeDefined();
         expect(metadata.label).toBe(config.label);
-        expect(metadata.contentDesc).toBe("a set of source file summaries");
+        expect(metadata.introTextTemplate).toContain("a set of source file summaries");
         expect(metadata.responseSchema).toBe(config.responseSchema);
         expect(metadata.template).toBe(BASE_PROMPT_TEMPLATE);
         expect(metadata.instructions).toEqual(config.instructions);
@@ -49,7 +49,7 @@ describe("App Summaries Config Refactoring", () => {
     it("should have generic contentDesc and specific instructions", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
-        expect(metadata.contentDesc).toBe("a set of source file summaries");
+        expect(metadata.introTextTemplate).toContain("a set of source file summaries");
         expect(metadata.instructions).toEqual(config.instructions);
       });
     });
@@ -66,7 +66,7 @@ describe("App Summaries Config Refactoring", () => {
     it("should use generic contentDesc for all categories", () => {
       Object.entries(appSummaryConfigMap).forEach(([category]) => {
         const metadata = appSummaryPromptMetadata[category as AppSummaryCategoryType];
-        expect(metadata.contentDesc).toBe("a set of source file summaries");
+        expect(metadata.introTextTemplate).toContain("a set of source file summaries");
       });
     });
 
