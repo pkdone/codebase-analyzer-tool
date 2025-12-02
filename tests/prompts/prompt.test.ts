@@ -1,9 +1,7 @@
 import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
-import {
-  FORCE_JSON_FORMAT,
-  SOURCES_PROMPT_FRAGMENTS,
-} from "../../src/prompts/definitions/fragments";
+import { FORCE_JSON_FORMAT } from "../../src/prompts/definitions/instructions";
+import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/sources/sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../src/prompts/definitions/instruction-titles";
 
 describe("renderPrompt", () => {
@@ -178,15 +176,13 @@ public abstract class AddressEJB implements EntityBean {
     });
 
     it("should support additional parameters in render method", () => {
-      // Use APP_SUMMARY_TEMPLATE which supports additional parameters
+      // Use BASE_PROMPT_TEMPLATE which supports additional parameters
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
-        template: `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked 'FILE_SUMMARIES', return a JSON response that contains:
-
-{{instructions}}.
+        template: `{{introText}}
 
 {{partialAnalysisNote}}The JSON response must follow this JSON schema:
 \`\`\`json
@@ -195,8 +191,10 @@ public abstract class AddressEJB implements EntityBean {
 
 {{forceJSON}}
 
-FILE_SUMMARIES:
-{{content}}`,
+{{dataBlockHeader}}:
+{{contentWrapper}}{{content}}{{contentWrapper}}`,
+        dataBlockHeader: "FILE_SUMMARIES" as const,
+        wrapInCodeBlock: false,
       };
 
       const renderedPrompt = renderPrompt(config, {
@@ -218,6 +216,8 @@ FILE_SUMMARIES:
         instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
         template: `{{partialAnalysisNote}}Test template`,
+        dataBlockHeader: "CODE" as const,
+        wrapInCodeBlock: false,
       };
 
       // Test that empty string is preserved (not replaced with default)

@@ -1,5 +1,5 @@
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
-import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates";
+import { BASE_PROMPT_TEMPLATE } from "../../src/prompts/templates";
 import { renderPrompt } from "../../src/prompts/prompt-renderer";
 
 describe("App Summaries Refactoring", () => {
@@ -37,7 +37,7 @@ describe("App Summaries Refactoring", () => {
   });
 
   describe("Unified template functionality", () => {
-    it("should render APP_SUMMARY_TEMPLATE with partialAnalysisNote parameter", () => {
+    it("should render BASE_PROMPT_TEMPLATE with partialAnalysisNote parameter", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
       const partialAnalysisNote = "This is a partial analysis note for testing";
@@ -56,7 +56,7 @@ describe("App Summaries Refactoring", () => {
       expect(renderedPrompt).toContain("```");
     });
 
-    it("should render APP_SUMMARY_TEMPLATE without partialAnalysisNote parameter", () => {
+    it("should render BASE_PROMPT_TEMPLATE without partialAnalysisNote parameter", () => {
       const config = appSummaryPromptMetadata.technologies;
       const testContent = "Test file content";
 
@@ -97,23 +97,14 @@ describe("App Summaries Refactoring", () => {
   });
 
   describe("Template consolidation", () => {
-    it("should have APP_SUMMARY_TEMPLATE that replaces both SINGLE_PASS and PARTIAL templates", () => {
-      // Verify the unified template contains the essential elements from both original templates
-      expect(APP_SUMMARY_TEMPLATE).toContain("Act as a senior developer analyzing the code");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{contentDesc}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{instructions}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{partialAnalysisNote}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{forceJSON}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{content}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("FILE_SUMMARIES:");
-    });
-
-    it("should maintain REDUCE_INSIGHTS_TEMPLATE for map-reduce strategy", () => {
-      // Verify the reduce template is still available and unchanged
-      expect(APP_SUMMARY_TEMPLATE).toBeDefined();
-      // The REDUCE_INSIGHTS_TEMPLATE should be imported and available
-      // This test ensures the consolidation didn't break the reduce functionality
+    it("should use BASE_PROMPT_TEMPLATE that replaces both SINGLE_PASS and PARTIAL templates", () => {
+      // Verify the unified template contains the essential elements
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{introText}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{forceJSON}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{content}}");
     });
 
     it("should verify prompt text structure with generic contentDesc and specific instructions", () => {

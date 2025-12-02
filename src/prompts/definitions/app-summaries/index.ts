@@ -1,5 +1,5 @@
 import { appSummaryConfigMap, type AppSummaryConfigEntry } from "./app-summaries.config";
-import { APP_SUMMARY_TEMPLATE } from "../../templates";
+import { BASE_PROMPT_TEMPLATE } from "../../templates";
 import { createPromptMetadata } from "../prompt-factory";
 
 /**
@@ -9,7 +9,9 @@ import { createPromptMetadata } from "../prompt-factory";
 export const appSummaryPromptMetadata = createPromptMetadata<
   keyof typeof appSummaryConfigMap,
   AppSummaryConfigEntry
->(appSummaryConfigMap, APP_SUMMARY_TEMPLATE, {
+>(appSummaryConfigMap, BASE_PROMPT_TEMPLATE, {
   contentDescBuilder: () => "a set of source file summaries", // Generic description
   instructionsBuilder: (config) => config.instructions, // Use instructions directly from config
+  dataBlockHeaderBuilder: () => "FILE_SUMMARIES",
+  wrapInCodeBlockBuilder: () => false,
 });

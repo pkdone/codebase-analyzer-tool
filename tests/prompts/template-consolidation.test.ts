@@ -1,129 +1,112 @@
-import {
-  SOURCES_TEMPLATE,
-  APP_SUMMARY_TEMPLATE,
-  REDUCE_INSIGHTS_TEMPLATE,
-} from "../../src/prompts/templates";
+import { BASE_PROMPT_TEMPLATE } from "../../src/prompts/templates";
 import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { z } from "zod";
 
 describe("Template Consolidation", () => {
-  describe("SOURCES_TEMPLATE", () => {
+  describe("BASE_PROMPT_TEMPLATE", () => {
     it("should be defined and exported", () => {
-      expect(SOURCES_TEMPLATE).toBeDefined();
-      expect(typeof SOURCES_TEMPLATE).toBe("string");
+      expect(BASE_PROMPT_TEMPLATE).toBeDefined();
+      expect(typeof BASE_PROMPT_TEMPLATE).toBe("string");
     });
 
-    it("should contain expected placeholders", () => {
-      expect(SOURCES_TEMPLATE).toContain("{{contentDesc}}");
-      expect(SOURCES_TEMPLATE).toContain("{{instructions}}");
-      expect(SOURCES_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(SOURCES_TEMPLATE).toContain("{{forceJSON}}");
-      expect(SOURCES_TEMPLATE).toContain("{{content}}");
+    it("should contain expected placeholders for unified template", () => {
+      // Unified template uses introText, dataBlockHeader, and contentWrapper
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{introText}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{forceJSON}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{content}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{contentWrapper}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
     });
 
-    it("should contain expected structure", () => {
-      expect(SOURCES_TEMPLATE).toContain("Act as a senior developer analyzing the code");
-      expect(SOURCES_TEMPLATE).toContain("CODE:");
-      expect(SOURCES_TEMPLATE).toContain("```");
+    it("should render correctly with sources configuration", () => {
+      const definition = {
+        contentDesc: "JVM code",
+        instructions: ["Extract class name"] as const,
+        responseSchema: z.string(),
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE" as const,
+        wrapInCodeBlock: true,
+      };
+      const rendered = renderPrompt(definition, { content: "test code" });
+      expect(rendered).toContain("Act as a senior developer analyzing the code");
+      expect(rendered).toContain("CODE:");
+      expect(rendered).toContain("```");
+    });
+
+    it("should render correctly with app summary configuration", () => {
+      const definition = {
+        contentDesc: "source file summaries",
+        instructions: ["Extract entities"] as const,
+        responseSchema: z.string(),
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "FILE_SUMMARIES" as const,
+        wrapInCodeBlock: false,
+      };
+      const rendered = renderPrompt(definition, { content: "test summaries" });
+      expect(rendered).toContain("Act as a senior developer analyzing the code");
+      expect(rendered).toContain("FILE_SUMMARIES:");
+      // JSON schema section has code blocks, but content section should not
+      expect(rendered).toContain("```json"); // JSON schema code block is expected
+      // Content should not be wrapped in code blocks (no ``` before/after "test summaries")
+      const contentIndex = rendered.indexOf("test summaries");
+      const beforeContent = rendered.substring(Math.max(0, contentIndex - 10), contentIndex);
+      expect(beforeContent).not.toContain("```");
     });
 
     it("should not contain any undefined placeholders", () => {
       // Check that all placeholders are properly formatted
       const placeholderRegex = /\{\{[^}]+\}\}/g;
-      const placeholders = SOURCES_TEMPLATE.match(placeholderRegex) ?? [];
+      const placeholders = BASE_PROMPT_TEMPLATE.match(placeholderRegex) ?? [];
 
       const expectedPlaceholders = [
-        "{{contentDesc}}",
-        "{{instructions}}",
+        "{{introText}}",
+        "{{dataBlockHeader}}",
         "{{jsonSchema}}",
         "{{forceJSON}}",
         "{{content}}",
+        "{{contentWrapper}}",
+        "{{partialAnalysisNote}}",
       ];
 
       placeholders.forEach((placeholder: string) => {
         expect(expectedPlaceholders).toContain(placeholder);
       });
     });
-  });
-
-  describe("APP_SUMMARY_TEMPLATE", () => {
-    it("should be defined and exported", () => {
-      expect(APP_SUMMARY_TEMPLATE).toBeDefined();
-      expect(typeof APP_SUMMARY_TEMPLATE).toBe("string");
-    });
-
-    it("should contain expected placeholders", () => {
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{contentDesc}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{instructions}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{forceJSON}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{content}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{partialAnalysisNote}}");
-    });
-
-    it("should contain expected structure", () => {
-      expect(APP_SUMMARY_TEMPLATE).toContain("Act as a senior developer analyzing the code");
-      expect(APP_SUMMARY_TEMPLATE).toContain("FILE_SUMMARIES:");
-    });
 
     it("should support partial analysis note", () => {
-      expect(APP_SUMMARY_TEMPLATE).toContain(
+      expect(BASE_PROMPT_TEMPLATE).toContain(
         "{{partialAnalysisNote}}The JSON response must follow this JSON schema:",
       );
     });
-  });
 
-  describe("REDUCE_INSIGHTS_TEMPLATE", () => {
-    it("should be defined and exported", () => {
-      expect(REDUCE_INSIGHTS_TEMPLATE).toBeDefined();
-      expect(typeof REDUCE_INSIGHTS_TEMPLATE).toBe("string");
-    });
-
-    it("should contain expected placeholders", () => {
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{contentDesc}}");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{categoryKey}}");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{forceJSON}}");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{content}}");
-    });
-
-    it("should contain expected structure", () => {
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("Act as a senior developer analyzing the code");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("FRAGMENTED_DATA:");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain(
-        "consolidate these lists into a single, de-duplicated",
-      );
+    it("should render correctly with reduce configuration", () => {
+      const definition = {
+        contentDesc: "several JSON objects",
+        instructions: ["a consolidated list"] as const,
+        responseSchema: z.string(),
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "FRAGMENTED_DATA" as const,
+        wrapInCodeBlock: false,
+      };
+      const rendered = renderPrompt(definition, { categoryKey: "entities", content: "test data" });
+      expect(rendered).toContain("Act as a senior developer analyzing the code");
+      expect(rendered).toContain("FRAGMENTED_DATA:");
+      expect(rendered).toContain("'entities'");
+      expect(rendered).toContain("consolidate these lists into a single, de-duplicated");
     });
   });
 
   describe("Template Consistency", () => {
     it("should have consistent JSON schema formatting", () => {
-      const templates = [SOURCES_TEMPLATE, APP_SUMMARY_TEMPLATE, REDUCE_INSIGHTS_TEMPLATE];
-
-      templates.forEach((template) => {
-        expect(template).toContain("```json");
-        expect(template).toContain("{{jsonSchema}}");
-        expect(template).toContain("```");
-      });
+      expect(BASE_PROMPT_TEMPLATE).toContain("```json");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("```");
     });
 
     it("should have consistent force JSON formatting", () => {
-      const templates = [SOURCES_TEMPLATE, APP_SUMMARY_TEMPLATE, REDUCE_INSIGHTS_TEMPLATE];
-
-      templates.forEach((template) => {
-        expect(template).toContain("{{forceJSON}}");
-      });
-    });
-
-    it("should have consistent instruction formatting", () => {
-      const templates = [SOURCES_TEMPLATE, APP_SUMMARY_TEMPLATE];
-
-      templates.forEach((template) => {
-        expect(template).toContain("{{instructions}}");
-      });
-
-      // REDUCE_INSIGHTS_TEMPLATE has a different structure
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{contentDesc}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{forceJSON}}");
     });
   });
 
@@ -133,7 +116,9 @@ describe("Template Consolidation", () => {
         contentDesc: "test content",
         instructions: ["test instruction"],
         responseSchema: z.string(),
-        template: SOURCES_TEMPLATE,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE" as const,
+        wrapInCodeBlock: true,
       };
 
       // This should not throw an error

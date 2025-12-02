@@ -3,6 +3,12 @@ import { AppSummaryCategories } from "../schemas/app-summaries.schema";
 import type { CanonicalFileType } from "../config/file-types.config";
 
 /**
+ * Valid values for the data section header in prompt templates.
+ * These correspond to the different prompt families we support.
+ */
+export type DataBlockHeader = "CODE" | "FILE_SUMMARIES" | "FRAGMENTED_DATA";
+
+/**
  * Formal prompt definition interface for consistent structure
  * This enforces a standard shape for prompt configurations across the application.
  */
@@ -20,6 +26,10 @@ export interface PromptDefinition {
   label?: string;
   /** Template string for rendering the prompt */
   template: string;
+  /** Header text for the data block section (e.g., "CODE", "FILE_SUMMARIES", "FRAGMENTED_DATA") */
+  dataBlockHeader: DataBlockHeader;
+  /** Whether to wrap the content in code block markers (```). Defaults to false. */
+  wrapInCodeBlock?: boolean;
 }
 
 /**

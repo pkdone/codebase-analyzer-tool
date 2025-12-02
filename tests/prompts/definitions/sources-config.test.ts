@@ -71,6 +71,8 @@ describe("File Handler Configuration", () => {
         responseSchema: sourceSummarySchema,
         hasComplexSchema: false,
         template: "Test template",
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(testConfig).toHaveProperty("contentDesc");
@@ -90,6 +92,8 @@ describe("File Handler Configuration", () => {
         responseSchema: sourceSummarySchema.pick({ purpose: true, implementation: true }),
         hasComplexSchema: false,
         template: "Test template",
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       };
 
       expect(typedConfig.responseSchema).toBeDefined();

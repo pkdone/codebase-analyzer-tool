@@ -1,7 +1,7 @@
 import { appSummaryConfigMap } from "../../src/prompts/definitions/app-summaries/app-summaries.config";
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
 import { AppSummaryCategoryType } from "../../src/prompts/prompt.types";
-import { APP_SUMMARY_TEMPLATE } from "../../src/prompts/templates";
+import { BASE_PROMPT_TEMPLATE } from "../../src/prompts/templates";
 
 describe("App Summaries Config Refactoring", () => {
   describe("Configuration Structure", () => {
@@ -41,7 +41,7 @@ describe("App Summaries Config Refactoring", () => {
         expect(metadata.label).toBe(config.label);
         expect(metadata.contentDesc).toBe("a set of source file summaries");
         expect(metadata.responseSchema).toBe(config.responseSchema);
-        expect(metadata.template).toBe(APP_SUMMARY_TEMPLATE);
+        expect(metadata.template).toBe(BASE_PROMPT_TEMPLATE);
         expect(metadata.instructions).toEqual(config.instructions);
       });
     });
@@ -57,7 +57,7 @@ describe("App Summaries Config Refactoring", () => {
     it("should apply template by default", () => {
       Object.entries(appSummaryConfigMap).forEach(([key]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
-        expect(metadata.template).toBe(APP_SUMMARY_TEMPLATE);
+        expect(metadata.template).toBe(BASE_PROMPT_TEMPLATE);
       });
     });
   });

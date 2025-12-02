@@ -670,8 +670,8 @@ CODE:
 \`\`\`
 public class TestClass {
   // Test code
-}
-\`\`\`"
+}\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Default prompt should match snapshot 1`] = `
@@ -934,8 +934,8 @@ CODE:
 \`\`\`
 public class TestClass {
   // Test code
-}
-\`\`\`"
+}\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots JSP prompt should match snapshot 1`] = `
@@ -1098,8 +1098,8 @@ The response MUST be valid JSON and meet the following critical JSON requirement
 CODE:
 \`\`\`
 <%@ page language="java" %>
-<html>test</html>
-\`\`\`"
+<html>test</html>\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Java prompt should match snapshot 1`] = `
@@ -1791,8 +1791,8 @@ CODE:
 \`\`\`
 public class TestClass {
   // Test code
-}
-\`\`\`"
+}\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots JavaScript prompt should match snapshot 1`] = `
@@ -2476,8 +2476,8 @@ CODE:
 \`\`\`
 public class TestClass {
   // Test code
-}
-\`\`\`"
+}\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Markdown prompt should match snapshot 1`] = `
@@ -2740,8 +2740,8 @@ CODE:
 \`\`\`
 # Test Document
 
-Content here
-\`\`\`"
+Content here\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Python prompt should match snapshot 1`] = `
@@ -3409,8 +3409,8 @@ CODE:
 \`\`\`
 public class TestClass {
   // Test code
-}
-\`\`\`"
+}\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots Ruby prompt should match snapshot 1`] = `
@@ -4084,8 +4084,8 @@ CODE:
 \`\`\`
 public class TestClass {
   // Test code
-}
-\`\`\`"
+}\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots SQL prompt should match snapshot 1`] = `
@@ -4424,8 +4424,8 @@ The response MUST be valid JSON and meet the following critical JSON requirement
 
 CODE:
 \`\`\`
-CREATE TABLE test (id INT);
-\`\`\`"
+CREATE TABLE test (id INT);\`\`\`
+"
 `;
 
 exports[`renderPrompt Snapshot Tests rendered prompts should match snapshots XML prompt should match snapshot 1`] = `
@@ -4522,6 +4522,6 @@ The response MUST be valid JSON and meet the following critical JSON requirement
 
 CODE:
 \`\`\`
-<root><element>test</element></root>
-\`\`\`"
+<root><element>test</element></root>\`\`\`
+"
 `;

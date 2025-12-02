@@ -1,10 +1,8 @@
 import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
 import { appSummaryPromptMetadata } from "../../src/prompts/definitions/app-summaries";
-import {
-  SOURCES_PROMPT_FRAGMENTS,
-  APP_SUMMARY_PROMPT_FRAGMENTS,
-} from "../../src/prompts/definitions/fragments";
+import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/sources/sources.fragments";
+import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/app-summaries/app-summaries.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../src/prompts/definitions/instruction-titles";
 import { sourceConfigMap } from "../../src/prompts/definitions/sources/sources.config";
 import { appSummaryConfigMap } from "../../src/prompts/definitions/app-summaries/app-summaries.config";
@@ -122,12 +120,14 @@ describe("Prompt Refactoring - Unified Configuration", () => {
         contentDesc: "test content",
         instructions: ["Instruction 1", "Instruction 2", "Instruction 3"] as const,
         responseSchema: z.object({ test: z.string() }),
-        template: "{{instructions}}",
+        template: "{{introText}}",
+        dataBlockHeader: "CODE" as const,
+        wrapInCodeBlock: false,
       };
 
       const rendered = renderPrompt(testDefinition, {});
 
-      // Should join with double newlines
+      // Instructions are joined with double newlines in the introText
       expect(rendered).toContain("Instruction 1\n\nInstruction 2\n\nInstruction 3");
     });
 
@@ -136,7 +136,9 @@ describe("Prompt Refactoring - Unified Configuration", () => {
         contentDesc: "test content",
         instructions: ["Single instruction"] as const,
         responseSchema: z.object({ test: z.string() }),
-        template: "{{instructions}}",
+        template: "{{introText}}",
+        dataBlockHeader: "CODE" as const,
+        wrapInCodeBlock: false,
       };
 
       const rendered = renderPrompt(testDefinition, {});

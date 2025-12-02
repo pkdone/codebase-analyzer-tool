@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CODEBASE_QUERY_TEMPLATE, REDUCE_INSIGHTS_TEMPLATE } from "../templates";
+import { CODEBASE_QUERY_TEMPLATE, BASE_PROMPT_TEMPLATE } from "../templates";
 import { type PromptDefinition } from "../prompt.types";
 
 /**
@@ -15,6 +15,8 @@ export const codebaseQueryPromptDefinition: PromptDefinition = {
   ],
   responseSchema: z.string(), // Text response, not JSON
   template: CODEBASE_QUERY_TEMPLATE,
+  dataBlockHeader: "CODE" as const, // Not used by CODEBASE_QUERY_TEMPLATE but required by type
+  wrapInCodeBlock: false,
 };
 
 /**
@@ -34,6 +36,8 @@ export function createReduceInsightsPromptDefinition(
     contentDesc: "several JSON objects",
     instructions: [`a consolidated list of '${categoryLabel}'`],
     responseSchema,
-    template: REDUCE_INSIGHTS_TEMPLATE,
+    template: BASE_PROMPT_TEMPLATE,
+    dataBlockHeader: "FRAGMENTED_DATA" as const,
+    wrapInCodeBlock: false,
   };
 }

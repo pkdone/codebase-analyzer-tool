@@ -44,11 +44,8 @@ export async function executeInsightCompletion(
     const renderParams: Record<string, unknown> = {
       content: codeContent,
     };
-    if (options.partialAnalysisNote) {
-      renderParams.partialAnalysisNote = options.partialAnalysisNote;
-    }
+    if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
-
     const llmResponse = await llmRouter.executeCompletion<PartialAppSummaryRecord>(
       taskCategory,
       renderedPrompt,

@@ -12,7 +12,7 @@ import { logOneLineWarning } from "../../common/utils/logging";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
-import { APP_SUMMARY_TEMPLATE } from "../../prompts/templates";
+import { BASE_PROMPT_TEMPLATE } from "../../prompts/templates";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
 // Type for validating the LLM response for all categories
@@ -84,7 +84,6 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
       const instructions: readonly string[] = Object.values(summaryCategoriesConfig).flatMap(
         (category) => {
           const inst = category.instructions;
-          // All instructions are now string[]
           return inst;
         },
       );
@@ -118,7 +117,9 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
       contentDesc: "list of file summaries",
       instructions,
       responseSchema: appSummaryRecordCategoriesSchema,
-      template: APP_SUMMARY_TEMPLATE,
+      template: BASE_PROMPT_TEMPLATE,
+      dataBlockHeader: "FILE_SUMMARIES" as const,
+      wrapInCodeBlock: false,
     };
     return renderPrompt(allCategoriesConfig, { content: codeBlocksContent });
   }

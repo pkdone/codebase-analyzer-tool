@@ -16,6 +16,8 @@ describe("Prompt Types", () => {
       responseSchema: z.string(),
       hasComplexSchema: false,
       template: "Test template",
+      dataBlockHeader: "CODE",
+      wrapInCodeBlock: false,
       ...overrides,
     });
 
@@ -25,6 +27,8 @@ describe("Prompt Types", () => {
         instructions: ["test"],
         responseSchema: z.string(),
         template: "Test template",
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
       };
 
       expect(definition.contentDesc).toBe("test");
@@ -51,6 +55,8 @@ describe("Prompt Types", () => {
         instructions: readonlyInstructions,
         responseSchema: z.string(),
         template: "Test template",
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: false,
       };
 
       expect(definition.instructions).toEqual(["instruction 1", "instruction 2"]);

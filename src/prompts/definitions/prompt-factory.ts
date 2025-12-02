@@ -1,4 +1,4 @@
-import { PromptDefinition } from "../prompt.types";
+import { DataBlockHeader, PromptDefinition } from "../prompt.types";
 import { z } from "zod";
 
 /**
@@ -30,6 +30,16 @@ interface CreatePromptMetadataOptions<TConfig extends BaseConfigEntry> {
    * If not provided, must be handled by the config type itself.
    */
   instructionsBuilder?: (config: TConfig) => readonly string[];
+  /**
+   * Optional function to build the dataBlockHeader for the PromptDefinition.
+   * If not provided, uses a default value based on the template type.
+   */
+  dataBlockHeaderBuilder?: (config: TConfig) => DataBlockHeader;
+  /**
+   * Optional function to determine if content should be wrapped in code blocks.
+   * If not provided, defaults to false.
+   */
+  wrapInCodeBlockBuilder?: (config: TConfig) => boolean;
 }
 
 /**
@@ -46,7 +56,13 @@ export function createPromptMetadata<TKey extends string, TConfig extends BaseCo
   template: string,
   options: CreatePromptMetadataOptions<TConfig> = {},
 ): Record<TKey, PromptDefinition> {
-  const { schemaBuilder, contentDescBuilder, instructionsBuilder } = options;
+  const {
+    schemaBuilder,
+    contentDescBuilder,
+    instructionsBuilder,
+    dataBlockHeaderBuilder,
+    wrapInCodeBlockBuilder,
+  } = options;
 
   return Object.fromEntries(
     Object.entries(configMap).map(([key, config]) => {
@@ -62,6 +78,10 @@ export function createPromptMetadata<TKey extends string, TConfig extends BaseCo
           : (typedConfig.responseSchema ?? z.unknown()),
         template,
         instructions: instructionsBuilder ? instructionsBuilder(typedConfig) : [],
+        dataBlockHeader: dataBlockHeaderBuilder
+          ? dataBlockHeaderBuilder(typedConfig)
+          : ("FILE_SUMMARIES" as const),
+        wrapInCodeBlock: wrapInCodeBlockBuilder ? wrapInCodeBlockBuilder(typedConfig) : false,
       };
 
       // Preserve hasComplexSchema if it exists in the config

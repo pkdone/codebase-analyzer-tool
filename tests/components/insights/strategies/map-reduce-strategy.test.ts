@@ -1,18 +1,20 @@
-import { REDUCE_INSIGHTS_TEMPLATE } from "../../../../src/prompts/templates";
+import { BASE_PROMPT_TEMPLATE } from "../../../../src/prompts/templates";
 import { renderPrompt } from "../../../../src/prompts/prompt-renderer";
 import { z } from "zod";
 
 describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
   it("should pass categoryKey through renderPrompt() instead of using String.replace()", () => {
-    // Verify that REDUCE_INSIGHTS_TEMPLATE contains the placeholder
-    expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{categoryKey}}");
+    // Note: categoryKey is now handled by the renderer's buildIntroText function,
+    // not via template placeholders, so we verify it's used in the rendered output instead
 
     // Create a test prompt to verify the render method works with categoryKey
     const testConfig = {
       contentDesc: "test",
       instructions: ["test"],
       responseSchema: z.object({ entities: z.array(z.object({ name: z.string() })) }),
-      template: REDUCE_INSIGHTS_TEMPLATE,
+      template: BASE_PROMPT_TEMPLATE,
+      dataBlockHeader: "FRAGMENTED_DATA" as const,
+      wrapInCodeBlock: false,
     };
 
     const rendered = renderPrompt(testConfig, {
@@ -30,7 +32,9 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
       contentDesc: "several JSON objects",
       instructions: ["a consolidated list"],
       responseSchema: z.object({ entities: z.array(z.object({ name: z.string() })) }),
-      template: REDUCE_INSIGHTS_TEMPLATE,
+      template: BASE_PROMPT_TEMPLATE,
+      dataBlockHeader: "FRAGMENTED_DATA" as const,
+      wrapInCodeBlock: false,
     };
 
     const content = JSON.stringify({ entities: [{ name: "Test" }] }, null, 2);

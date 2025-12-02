@@ -1,4 +1,4 @@
-import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/fragments";
+import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/sources/sources.fragments";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
 
 describe("prompt-composition", () => {

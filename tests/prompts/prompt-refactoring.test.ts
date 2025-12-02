@@ -1,11 +1,7 @@
 import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { PromptDefinition } from "../../src/prompts/prompt.types";
 import { z } from "zod";
-import {
-  SOURCES_TEMPLATE,
-  APP_SUMMARY_TEMPLATE,
-  REDUCE_INSIGHTS_TEMPLATE,
-} from "../../src/prompts/templates";
+import { BASE_PROMPT_TEMPLATE } from "../../src/prompts/templates";
 
 describe("Prompt Refactoring", () => {
   const testDefinition: PromptDefinition = {
@@ -13,7 +9,9 @@ describe("Prompt Refactoring", () => {
     contentDesc: "test content",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
-    template: SOURCES_TEMPLATE,
+    template: BASE_PROMPT_TEMPLATE,
+    dataBlockHeader: "CODE" as const,
+    wrapInCodeBlock: true,
   };
 
   const testContent = "test file content";
@@ -30,7 +28,12 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should handle different template types", () => {
-      const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
+      const appSummaryDefinition = {
+        ...testDefinition,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "FILE_SUMMARIES" as const,
+        wrapInCodeBlock: false,
+      };
       const rendered = renderPrompt(appSummaryDefinition, { content: testContent });
 
       expect(rendered).toContain("FILE_SUMMARIES:");
@@ -39,7 +42,12 @@ describe("Prompt Refactoring", () => {
 
     it("should handle reduce template with category key replacement via render parameters", () => {
       const categoryKey = "entities";
-      const reduceDefinition = { ...testDefinition, template: REDUCE_INSIGHTS_TEMPLATE };
+      const reduceDefinition = {
+        ...testDefinition,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "FRAGMENTED_DATA" as const,
+        wrapInCodeBlock: false,
+      };
       const rendered = renderPrompt(reduceDefinition, { categoryKey, content: testContent });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
@@ -67,8 +75,13 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should handle additional parameters in render method", () => {
-      // Use APP_SUMMARY_TEMPLATE which supports partialAnalysisNote
-      const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
+      // Use BASE_PROMPT_TEMPLATE with app summary configuration
+      const appSummaryDefinition = {
+        ...testDefinition,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "FILE_SUMMARIES" as const,
+        wrapInCodeBlock: false,
+      };
       const rendered = renderPrompt(appSummaryDefinition, {
         content: testContent,
         partialAnalysisNote: "This is a custom note for testing",
@@ -87,27 +100,15 @@ describe("Prompt Refactoring", () => {
 
   describe("Template consolidation", () => {
     it("should export all required templates", () => {
-      expect(SOURCES_TEMPLATE).toBeDefined();
-      expect(APP_SUMMARY_TEMPLATE).toBeDefined();
-      expect(REDUCE_INSIGHTS_TEMPLATE).toBeDefined();
+      expect(BASE_PROMPT_TEMPLATE).toBeDefined();
     });
 
     it("should have consistent template structure", () => {
-      expect(SOURCES_TEMPLATE).toContain("{{contentDesc}}");
-      expect(SOURCES_TEMPLATE).toContain("{{instructions}}");
-      expect(SOURCES_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(SOURCES_TEMPLATE).toContain("{{content}}");
-
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{contentDesc}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{instructions}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{content}}");
-      expect(APP_SUMMARY_TEMPLATE).toContain("{{partialAnalysisNote}}");
-
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{contentDesc}}");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{categoryKey}}");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{jsonSchema}}");
-      expect(REDUCE_INSIGHTS_TEMPLATE).toContain("{{content}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{introText}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{content}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
     });
 
     it("should not have any placeholder syntax in rendered output", () => {
@@ -120,8 +121,18 @@ describe("Prompt Refactoring", () => {
   describe("Backward compatibility", () => {
     it("should produce identical output as before refactoring", () => {
       // Test that the constructor produces the same output as the old factory methods
-      const sourceDefinition = { ...testDefinition, template: SOURCES_TEMPLATE };
-      const appSummaryDefinition = { ...testDefinition, template: APP_SUMMARY_TEMPLATE };
+      const sourceDefinition = {
+        ...testDefinition,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "CODE" as const,
+        wrapInCodeBlock: true,
+      };
+      const appSummaryDefinition = {
+        ...testDefinition,
+        template: BASE_PROMPT_TEMPLATE,
+        dataBlockHeader: "FILE_SUMMARIES" as const,
+        wrapInCodeBlock: false,
+      };
 
       const sourceRendered = renderPrompt(sourceDefinition, { content: testContent });
       const appSummaryRendered = renderPrompt(appSummaryDefinition, { content: testContent });

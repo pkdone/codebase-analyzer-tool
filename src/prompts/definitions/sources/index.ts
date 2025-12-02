@@ -1,6 +1,6 @@
 import { sourceConfigMap, type SourceConfigEntry } from "./sources.config";
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
-import { SOURCES_TEMPLATE } from "../../templates";
+import { BASE_PROMPT_TEMPLATE } from "../../templates";
 import { createPromptMetadata } from "../prompt-factory";
 
 /**
@@ -9,7 +9,7 @@ import { createPromptMetadata } from "../prompt-factory";
  */
 export const fileTypePromptMetadata = createPromptMetadata(
   sourceConfigMap as Record<keyof typeof sourceConfigMap, SourceConfigEntry & { label?: string }>,
-  SOURCES_TEMPLATE,
+  BASE_PROMPT_TEMPLATE,
   {
     schemaBuilder: (config) => {
       // Dynamically pick fields from the master schema
@@ -23,6 +23,8 @@ export const fileTypePromptMetadata = createPromptMetadata(
     },
     contentDescBuilder: (config) => config.contentDesc,
     instructionsBuilder: (config) => config.instructions,
+    dataBlockHeaderBuilder: () => "CODE",
+    wrapInCodeBlockBuilder: () => true,
   },
 );
 

@@ -15,7 +15,6 @@ jest.mock("../../../src/common/utils/logging", () => ({
 }));
 
 jest.unmock("../../../src/prompts/definitions/sources");
-jest.unmock("../../../src/prompts/definitions/fragments");
 
 jest.mock("../../../src/config/file-types.config", () => {
   // Create rules that match the test expectations
@@ -214,11 +213,9 @@ describe("summarizeFile", () => {
         hasComplexSchema: false,
         responseSchema: z.object({}),
         instructions: [`Instructions for ${contentDesc}`],
-        template: `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked 'CODE', return a JSON response that contains:
+        template: `{{introText}}
 
-{{instructions}}.
-
-The JSON response must follow this JSON schema:
+{{partialAnalysisNote}}The JSON response must follow this JSON schema:
 \`\`\`json
 {
   "type": "object",
@@ -242,8 +239,10 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 - EXAMPLE: ✅ CORRECT: {"name": "value", "items": [{"id": 1}]}  ❌ INCORRECT: {name: "value", items: [{id: 1}]}
 - CRITICAL: All property names at every nesting level MUST have double quotes.
 
-CODE:
-{{content}}`,
+{{dataBlockHeader}}:
+{{contentWrapper}}{{content}}{{contentWrapper}}`,
+        dataBlockHeader: "CODE",
+        wrapInCodeBlock: true,
       } as (typeof fileTypePromptMetadata)["default"]; // satisfy typing
     };
 

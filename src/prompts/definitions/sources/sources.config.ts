@@ -4,7 +4,7 @@ import {
   CLASS_LANGUAGE_BASE_INSTRUCTIONS,
   CODE_QUALITY_INSTRUCTIONS,
   DB_INTEGRATION_INSTRUCTIONS,
-} from "../fragments";
+} from "./sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
 import { buildInstructionBlock } from "../../prompt-utils";
 

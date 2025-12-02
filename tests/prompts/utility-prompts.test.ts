@@ -2,7 +2,7 @@ import {
   codebaseQueryPromptDefinition,
   createReduceInsightsPromptDefinition,
 } from "../../src/prompts/definitions/utility-prompts";
-import { CODEBASE_QUERY_TEMPLATE, REDUCE_INSIGHTS_TEMPLATE } from "../../src/prompts/templates";
+import { CODEBASE_QUERY_TEMPLATE, BASE_PROMPT_TEMPLATE } from "../../src/prompts/templates";
 import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { z } from "zod";
 
@@ -52,7 +52,7 @@ describe("Utility Prompts", () => {
 
       expect(definition.label).toBe("Reduce Entities");
       expect(definition.contentDesc).toBe("several JSON objects");
-      expect(definition.template).toBe(REDUCE_INSIGHTS_TEMPLATE);
+      expect(definition.template).toBe(BASE_PROMPT_TEMPLATE);
       expect(definition.responseSchema).toBe(responseSchema);
       expect(definition.instructions).toHaveLength(1);
       expect(definition.instructions[0]).toContain("a consolidated list of 'Entities'");
@@ -79,9 +79,9 @@ describe("Utility Prompts", () => {
       expect(rendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
 
-    it("should use REDUCE_INSIGHTS_TEMPLATE", () => {
+    it("should use BASE_PROMPT_TEMPLATE", () => {
       const definition = createReduceInsightsPromptDefinition("Test", z.string());
-      expect(definition.template).toBe(REDUCE_INSIGHTS_TEMPLATE);
+      expect(definition.template).toBe(BASE_PROMPT_TEMPLATE);
     });
 
     it("should handle different category labels correctly", () => {

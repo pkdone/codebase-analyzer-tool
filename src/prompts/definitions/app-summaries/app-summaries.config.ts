@@ -8,7 +8,8 @@ import {
   repositoriesSchema,
   technologiesSchema,
 } from "../../../schemas/app-summaries.schema";
-import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../fragments";
+import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
+import { buildInstructionBlock } from "../../prompt-utils";
 import { z } from "zod";
 
 /**
@@ -31,55 +32,78 @@ export interface AppSummaryConfigEntry {
 export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
   appDescription: {
     label: "Application Description",
-    instructions: [APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESCRIPTION] as const,
+    instructions: [
+      buildInstructionBlock("Instructions", APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESCRIPTION),
+    ] as const,
     responseSchema: appDescriptionSchema,
   },
   technologies: {
     label: "Technologies",
     instructions: [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
+      buildInstructionBlock(
+        "Instructions",
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
+      ),
     ] as const,
     responseSchema: technologiesSchema,
   },
   businessProcesses: {
     label: "Business Processes",
     instructions: [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
+      buildInstructionBlock(
+        "Instructions",
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of the application's main business processes with their key business activity steps that are linearly conducted by each process`,
+      ),
     ] as const,
     responseSchema: businessProcessesSchema,
   },
   boundedContexts: {
     label: "Bounded Contexts",
     instructions: [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
+      buildInstructionBlock(
+        "Instructions",
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
+      ),
     ] as const,
     responseSchema: boundedContextsSchema,
   },
   aggregates: {
     label: "Aggregates",
     instructions: [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
+      buildInstructionBlock(
+        "Instructions",
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
+      ),
     ] as const,
     responseSchema: aggregatesSchema,
   },
   entities: {
     label: "Entities",
     instructions: [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
+      buildInstructionBlock(
+        "Instructions",
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
+      ),
     ] as const,
     responseSchema: entitiesSchema,
   },
   repositories: {
     label: "Repositories",
     instructions: [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
+      buildInstructionBlock(
+        "Instructions",
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
+      ),
     ] as const,
     responseSchema: repositoriesSchema,
   },
   potentialMicroservices: {
     label: "Potential Microservices",
     instructions: [
-      `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
+      buildInstructionBlock(
+        "Instructions",
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of recommended microservices to modernize the monolithic application architecture, each following the Single Responsibility Principle with detailed domain entities, defined CRUD operations, and REST API endpoints`,
+      ),
     ] as const,
     responseSchema: potentialMicroservicesSchema,
   },
