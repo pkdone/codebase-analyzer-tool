@@ -1006,6 +1006,31 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
+    // ===== Pattern 50: Add missing comma after array when extra_text: appears =====
+    // Pattern: `]\n    extra_text:` -> `],\n    extra_text:`
+    // This handles cases where an array ends without a comma and extra_text: appears next
+    // Must run BEFORE Pattern 16 which removes extra_text patterns
+    const missingCommaAfterArrayExtraTextPattern =
+      /(\])\s*\n\s*(extra_text|extra_thoughts|extra_code_analysis)\s*:/g;
+    sanitized = sanitized.replace(
+      missingCommaAfterArrayExtraTextPattern,
+      (match, closingBracket, extraText, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // The pattern already ensures we're matching ] followed by extra_text, so this is always valid
+        hasChanges = true;
+        const closingBracketStr = typeof closingBracket === "string" ? closingBracket : "";
+        const extraTextStr = typeof extraText === "string" ? extraText : "";
+        if (diagnostics.length < 10) {
+          diagnostics.push(`Added missing comma after array before ${extraTextStr}:`);
+        }
+        return `${closingBracketStr},\n    ${extraTextStr}:`;
+      },
+    );
+
     // ===== Pattern 16: Remove invalid property-like structures =====
     // Pattern: `extra_text="  * `DatatableExportTargetParameter`..."` -> remove entire line
     const invalidPropertyPattern = /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+)\s*=\s*"[^"]*"\s*,?\s*\n/g;
@@ -4362,6 +4387,177 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             );
           }
           return `"${propertyNameStr}": ${valueStr},${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 47: Remove markdown list markers in arrays =====
+    // Pattern: `*   "lombok.NoArgsConstructor",` -> `"lombok.NoArgsConstructor",`
+    // This handles markdown list items that appear in JSON arrays
+    const markdownListInArrayPattern = /([}\],]|\n|^)(\s*)\*\s+("([^"]+)"\s*,)/g;
+    sanitized = sanitized.replace(
+      markdownListInArrayPattern,
+      (match, delimiter, whitespace, quotedElement, _elementValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in an array context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const isInArray =
+          /\[\s*$/.test(beforeMatch) ||
+          /,\s*\n\s*$/.test(beforeMatch) ||
+          /"\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isInArray) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const quotedElementStr = typeof quotedElement === "string" ? quotedElement : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push("Removed markdown list marker (*) in array");
+          }
+          return `${delimiterStr}${whitespaceStr}${quotedElementStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 48: Remove stray text after string values =====
+    // Pattern: `"lombok.RequiredArgsConstructor",JACKSON-CORE-2.12.0.JAR"` -> `"lombok.RequiredArgsConstructor",`
+    // Also handles: `"com.google.common.truth.Truth8"` after string
+    // This handles cases where library names, JAR names, or other text appears after a string value
+    const strayTextAfterStringPattern =
+      /"([^"]+)"\s*,?\s*([A-Z][A-Z0-9_.-]{5,50})"\s*([,}\]]|\n|$)/g;
+    sanitized = sanitized.replace(
+      strayTextAfterStringPattern,
+      (match, stringValue, strayText, terminator, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if it looks like a library/JAR name (all caps, contains dots/dashes, ends with quote)
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const looksLikeLibraryName =
+          /^[A-Z][A-Z0-9_.-]+$/.test(strayTextStr) &&
+          (strayTextStr.includes(".") || strayTextStr.includes("-") || strayTextStr.length > 10);
+
+        if (looksLikeLibraryName) {
+          hasChanges = true;
+          const stringValueStr = typeof stringValue === "string" ? stringValue : "";
+          const terminatorStr = typeof terminator === "string" ? terminator : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed stray library/JAR name '${strayTextStr}' after string: "${stringValueStr.substring(0, 30)}..."`,
+            );
+          }
+          // Ensure there's a comma if we're in an array context
+          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+          const isInArray =
+            /\[\s*$/.test(beforeMatch) ||
+            /,\s*\n\s*$/.test(beforeMatch) ||
+            /"\s*,\s*\n\s*$/.test(beforeMatch);
+          const comma = isInArray && !match.includes(",") ? "," : "";
+          return `"${stringValueStr}"${comma}${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 49: Remove config-like text before properties =====
+    // Pattern: `post_max_size = 20M    "propertyName":` -> `"propertyName":`
+    // This handles configuration text, environment variable assignments, etc. that appear before properties
+    const configTextBeforePropertyPattern =
+      /([}\],]|\n|^)(\s*)([a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^\s"]{1,20})\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
+    sanitized = sanitized.replace(
+      configTextBeforePropertyPattern,
+      (
+        match,
+        delimiter,
+        whitespace,
+        configText,
+        propertyWithQuote,
+        _propertyName,
+        offset: unknown,
+      ) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a valid context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isValidContext =
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+
+        if (isValidContext) {
+          hasChanges = true;
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+          const propertyWithQuoteStr =
+            typeof propertyWithQuote === "string" ? propertyWithQuote : "";
+          const configTextStr = typeof configText === "string" ? configText : "";
+          if (diagnostics.length < 10) {
+            diagnostics.push(
+              `Removed config text '${configTextStr}' before property: ${propertyWithQuoteStr}`,
+            );
+          }
+          return `${delimiterStr}${whitespaceStr}${propertyWithQuoteStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // ===== Pattern 51: Fix truncated property names with stray text fragments =====
+    // Pattern: `aus": "dateFormat"` -> `"dateFormat": "dateFormat"` (or infer correct property name)
+    // This handles cases where a short fragment appears before what looks like a property value
+    // The fragment might be a truncated property name or stray text
+    const truncatedPropertyWithFragmentPattern =
+      /([}\],]|\n|^)(\s*)([a-z]{2,4})"\s*:\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+    sanitized = sanitized.replace(
+      truncatedPropertyWithFragmentPattern,
+      (match, delimiter, whitespace, fragment, propertyValue, offset: unknown) => {
+        const numericOffset = typeof offset === "number" ? offset : 0;
+        if (isInStringAt(numericOffset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context
+        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
+
+        if (isPropertyContext) {
+          // The propertyValue looks like it might be the actual property name
+          // Check if it's a known property name pattern
+          const propertyValueStr = typeof propertyValue === "string" ? propertyValue : "";
+          const fragmentStr = typeof fragment === "string" ? fragment : "";
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+
+          // If the propertyValue looks like a property name (camelCase, PascalCase, or common property names)
+          const looksLikePropertyName =
+            /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(propertyValueStr) &&
+            (propertyValueStr.length > 3 ||
+              /^(name|type|value|path|method)$/i.test(propertyValueStr));
+
+          if (looksLikePropertyName) {
+            hasChanges = true;
+            if (diagnostics.length < 10) {
+              diagnostics.push(
+                `Fixed truncated property name: ${fragmentStr}": "${propertyValueStr}" -> "${propertyValueStr}": "${propertyValueStr}"`,
+              );
+            }
+            // Use the propertyValue as the property name (it might be the actual property name)
+            return `${delimiterStr}${whitespaceStr}"${propertyValueStr}": "${propertyValueStr}"`;
+          }
         }
 
         return match;

@@ -1318,4 +1318,186 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
+
+  describe("Pattern 47: Markdown list markers in arrays", () => {
+    it("should remove markdown list marker (*) from array elements", () => {
+      const input = `{
+  "externalReferences": [
+    *   "lombok.NoArgsConstructor",
+    "lombok.RequiredArgsConstructor"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"lombok.NoArgsConstructor"');
+      expect(result.content).not.toContain('*   "lombok.NoArgsConstructor"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove markdown list marker with different spacing", () => {
+      const input = `{
+  "publicMethods": [
+    * "testMethod",
+    "anotherMethod"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"testMethod"');
+      expect(result.content).not.toContain('* "testMethod"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 48: Stray text after string values", () => {
+    it("should remove JAR/library names after string values", () => {
+      const input = `{
+  "externalReferences": [
+    "lombok.RequiredArgsConstructor",JACKSON-CORE-2.12.0.JAR"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"lombok.RequiredArgsConstructor"');
+      expect(result.content).not.toContain("JACKSON-CORE-2.12.0.JAR");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove library names after string values", () => {
+      const input = `{
+  "externalReferences": [
+    "com.google.common.truth.Truth8",TRUTH-LIBRARY-1.0.0.JAR"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"com.google.common.truth.Truth8"');
+      expect(result.content).not.toContain("TRUTH-LIBRARY-1.0.0.JAR");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle stray text with proper comma handling", () => {
+      const input = `{
+  "externalReferences": [
+    "org.apache.commons.lang3.StringUtils",APACHE-COMMONS-LANG3-3.12.0.JAR"
+  ]
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"org.apache.commons.lang3.StringUtils"');
+      expect(result.content).not.toContain("APACHE-COMMONS-LANG3-3.12.0.JAR");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 49: Config text before properties", () => {
+    it("should remove config-like text before property names", () => {
+      const input = `{
+  "name": "TestClass",
+  post_max_size = 20M    "purpose": "Test purpose"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"purpose": "Test purpose"');
+      expect(result.content).not.toContain("post_max_size = 20M");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should remove environment variable assignments before properties", () => {
+      const input = `{
+  "name": "TestClass",
+  MAX_SIZE=100    "description": "Test description"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"description": "Test description"');
+      expect(result.content).not.toContain("MAX_SIZE=100");
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 50: Missing comma after array when extra_text appears", () => {
+    it("should add missing comma after array before extra_text", () => {
+      const input = `{
+  "externalReferences": [
+    "org.example.Class"
+  ]
+    extra_text: "some text"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"externalReferences": [');
+      // The pattern should add a comma after the closing bracket before extra_text
+      // Note: extra_text removal happens in another sanitizer, so we just verify the comma was added
+      expect(result.content).toMatch(/\]\s*,/);
+    });
+
+    it("should handle extra_thoughts after array", () => {
+      const input = `{
+  "publicMethods": [
+    "org.example.Method"
+  ]
+    extra_thoughts: "some thoughts"
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"publicMethods": [');
+      // Note: Pattern 16b removes extra_thoughts: blocks, which may happen after Pattern 50 adds the comma
+      // The important thing is that the JSON is valid after processing
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
+  describe("Pattern 51: Truncated property names with fragments", () => {
+    it('should fix truncated property name like aus": "dateFormat"', () => {
+      const input = `{
+  "properties": {
+    aus": "dateFormat"
+  }
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      // Pattern 6 will fix the missing quote, turning aus": into "aus":
+      // The exact output depends on the logic, but it should be valid JSON
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      // Pattern 6 should fix the missing quote, so the content should be valid JSON
+      expect(result.content).toContain('"aus"');
+    });
+
+    it("should handle other truncated property name patterns", () => {
+      const input = `{
+  "properties": {
+    cv": "purpose"
+  }
+}`;
+
+      const result = fixMalformedJsonPatterns(input);
+
+      expect(result.changed).toBe(true);
+      // Pattern 6 fixes the quote, making it valid JSON
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      // Pattern 6 should fix the missing quote, so the content should be valid JSON
+      expect(result.content).toContain('"cv"');
+    });
+  });
 });
