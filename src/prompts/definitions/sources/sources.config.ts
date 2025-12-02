@@ -1,10 +1,5 @@
 import type { CanonicalFileType } from "../../../config/file-types.config";
-import {
-  SOURCES_PROMPT_FRAGMENTS,
-  CLASS_LANGUAGE_BASE_INSTRUCTIONS,
-  CODE_QUALITY_INSTRUCTIONS,
-  DB_INTEGRATION_INSTRUCTIONS,
-} from "./sources.fragments";
+import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "./sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
 import { buildInstructionBlock } from "../../prompt-utils";
 
@@ -43,7 +38,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
         SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
         SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
       ),
@@ -61,12 +56,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        DB_INTEGRATION_INSTRUCTIONS,
+        COMPOSITES.DB_INTEGRATION,
         SOURCES_PROMPT_FRAGMENTS.JAVA_SPECIFIC.DB_MECHANISM_MAPPING,
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        CODE_QUALITY_INSTRUCTIONS,
+        COMPOSITES.CODE_QUALITY,
       ),
     ] as const,
   },
@@ -89,7 +84,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
         SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
         SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
       ),
@@ -107,12 +102,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        DB_INTEGRATION_INSTRUCTIONS,
+        COMPOSITES.DB_INTEGRATION,
         SOURCES_PROMPT_FRAGMENTS.JAVASCRIPT_SPECIFIC.DB_MECHANISM_MAPPING,
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        CODE_QUALITY_INSTRUCTIONS,
+        COMPOSITES.CODE_QUALITY,
       ),
     ] as const,
   },
@@ -135,7 +130,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
         SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
         SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
         SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.KIND_OVERRIDE,
@@ -154,12 +149,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        DB_INTEGRATION_INSTRUCTIONS,
+        COMPOSITES.DB_INTEGRATION,
         SOURCES_PROMPT_FRAGMENTS.CSHARP_SPECIFIC.DB_MECHANISM_MAPPING,
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        CODE_QUALITY_INSTRUCTIONS,
+        COMPOSITES.CODE_QUALITY,
       ),
     ] as const,
   },
@@ -182,7 +177,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
         SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
         SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
         SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.KIND_OVERRIDE,
@@ -201,12 +196,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        DB_INTEGRATION_INSTRUCTIONS,
+        COMPOSITES.DB_INTEGRATION,
         SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.DB_MECHANISM_MAPPING,
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        CODE_QUALITY_INSTRUCTIONS,
+        COMPOSITES.CODE_QUALITY,
         SOURCES_PROMPT_FRAGMENTS.PYTHON_SPECIFIC.PYTHON_COMPLEXITY_METRICS,
       ),
     ] as const,
@@ -230,7 +225,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
-        CLASS_LANGUAGE_BASE_INSTRUCTIONS,
+        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
         SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
         SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
         SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.KIND_OVERRIDE,
@@ -249,12 +244,12 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        DB_INTEGRATION_INSTRUCTIONS,
+        COMPOSITES.DB_INTEGRATION,
         SOURCES_PROMPT_FRAGMENTS.RUBY_SPECIFIC.DB_MECHANISM_MAPPING,
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
-        CODE_QUALITY_INSTRUCTIONS,
+        COMPOSITES.CODE_QUALITY,
       ),
     ] as const,
   },
@@ -297,7 +292,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        DB_INTEGRATION_INSTRUCTIONS,
+        COMPOSITES.DB_INTEGRATION,
         SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_DOCUMENTATION,
       ),
     ] as const,
@@ -568,7 +563,7 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
-        DB_INTEGRATION_INSTRUCTIONS,
+        COMPOSITES.DB_INTEGRATION,
         SOURCES_PROMPT_FRAGMENTS.COMMON.DB_IN_FILE,
       ),
     ] as const,

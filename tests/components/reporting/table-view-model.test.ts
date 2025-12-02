@@ -532,50 +532,6 @@ describe("TableViewModel", () => {
     });
   });
 
-  describe("getColumnClasses - simplified implementation", () => {
-    it("should return empty strings for all columns (styling moved to templates)", () => {
-      const vm = new TableViewModel([]);
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      expect(vm.getColumnClasses()).toEqual([]);
-    });
-
-    it("should return empty strings for all columns regardless of content", () => {
-      const data = [
-        {
-          fileCount: 50,
-          description: "A detailed description",
-          entities: ["User", "Order"],
-          type: "TypeScript",
-        },
-      ];
-      const vm = new TableViewModel(data);
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      const classes = vm.getColumnClasses();
-
-      // All columns should return empty strings - CSS classes should be applied in templates
-      expect(classes).toEqual(["", "", "", ""]);
-    });
-
-    it("should return empty strings for mixed column types", () => {
-      const data = [
-        {
-          id: 1,
-          type: "User",
-          username: "JohnDoe",
-          description: "A detailed user description",
-          count: 42,
-          tagsList: ["admin", "active", "user"],
-        },
-      ];
-      const vm = new TableViewModel(data);
-      // eslint-disable-next-line @typescript-eslint/no-deprecated
-      const classes = vm.getColumnClasses();
-
-      // All columns should return empty strings
-      expect(classes).toEqual(["", "", "", "", "", ""]);
-    });
-  });
-
   describe("Type Guards", () => {
     describe("isDisplayableTableRow", () => {
       it("should return true for valid object records", () => {

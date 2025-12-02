@@ -56,16 +56,6 @@ export class TableViewModel<T extends DisplayableTableRow = DisplayableTableRow>
   }
 
   /**
-   * Get the column classes for each header.
-   * Returns empty strings - CSS classes should be applied directly in templates.
-   * @deprecated This method is kept for backward compatibility but returns empty strings.
-   * CSS classes should be applied directly in EJS templates based on the specific table being rendered.
-   */
-  getColumnClasses(): string[] {
-    return this.headers.map(() => "");
-  }
-
-  /**
    * Get processed rows ready for display
    */
   getProcessedRows(): ProcessedTableCell[][] {

@@ -1,6 +1,6 @@
 import { fillPrompt } from "type-safe-prompt";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { FORCE_JSON_FORMAT } from "./definitions/instructions";
+import { FORCE_JSON_FORMAT } from "./templates";
 import { type PromptDefinition } from "./prompt.types";
 
 /**
@@ -34,9 +34,7 @@ export function renderPrompt(definition: PromptDefinition, data: Record<string, 
     jsonSchema: jsonSchemaString,
     dataBlockHeader: definition.dataBlockHeader,
     contentWrapper,
-    // Handle partialAnalysisNote - use type guard for safe type checking
-    partialAnalysisNote:
-      typeof data.partialAnalysisNote === "string" ? data.partialAnalysisNote : "",
+    partialAnalysisNote: data.partialAnalysisNote ?? "",
   };
   return fillPrompt(definition.template, templateData);
 }

@@ -29,4 +29,3 @@ export interface PromptDefinition {
   /** Whether to wrap the content in code block markers (```). Defaults to false. */
   wrapInCodeBlock?: boolean;
 }
-

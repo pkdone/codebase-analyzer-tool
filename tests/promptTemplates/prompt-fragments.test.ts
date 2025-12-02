@@ -1,11 +1,6 @@
 import {
   SOURCES_PROMPT_FRAGMENTS,
-  CODE_QUALITY_INSTRUCTIONS,
-  DB_INTEGRATION_INSTRUCTIONS,
-  INTEGRATION_POINTS_INSTRUCTIONS,
-  SCHEDULED_JOBS_INSTRUCTIONS,
-  CLASS_LANGUAGE_BASE_INSTRUCTIONS,
-  MODULE_LANGUAGE_BASE_INSTRUCTIONS,
+  COMPOSITES,
 } from "../../src/prompts/definitions/sources/sources.fragments";
 
 describe("prompt-fragments", () => {
@@ -25,96 +20,96 @@ describe("prompt-fragments", () => {
     });
   });
 
-  describe("CODE_QUALITY_INSTRUCTIONS", () => {
+  describe("COMPOSITES.CODE_QUALITY", () => {
     it("should be an array of strings", () => {
-      expect(Array.isArray(CODE_QUALITY_INSTRUCTIONS)).toBe(true);
-      expect(CODE_QUALITY_INSTRUCTIONS.length).toBeGreaterThan(0);
-      CODE_QUALITY_INSTRUCTIONS.forEach((instruction) => {
+      expect(Array.isArray(COMPOSITES.CODE_QUALITY)).toBe(true);
+      expect(COMPOSITES.CODE_QUALITY.length).toBeGreaterThan(0);
+      COMPOSITES.CODE_QUALITY.forEach((instruction) => {
         expect(typeof instruction).toBe("string");
       });
     });
 
     it("should include code quality fragments", () => {
-      const joined = CODE_QUALITY_INSTRUCTIONS.join(" ");
+      const joined = COMPOSITES.CODE_QUALITY.join(" ");
       expect(joined).toContain("Code Quality Analysis");
       expect(joined).toContain("cyclomaticComplexity");
     });
   });
 
-  describe("DB_INTEGRATION_INSTRUCTIONS", () => {
+  describe("COMPOSITES.DB_INTEGRATION", () => {
     it("should be an array of strings", () => {
-      expect(Array.isArray(DB_INTEGRATION_INSTRUCTIONS)).toBe(true);
-      expect(DB_INTEGRATION_INSTRUCTIONS.length).toBeGreaterThan(0);
-      DB_INTEGRATION_INSTRUCTIONS.forEach((instruction) => {
+      expect(Array.isArray(COMPOSITES.DB_INTEGRATION)).toBe(true);
+      expect(COMPOSITES.DB_INTEGRATION.length).toBeGreaterThan(0);
+      COMPOSITES.DB_INTEGRATION.forEach((instruction) => {
         expect(typeof instruction).toBe("string");
       });
     });
 
     it("should include database integration fragments", () => {
-      const joined = DB_INTEGRATION_INSTRUCTIONS.join(" ");
+      const joined = COMPOSITES.DB_INTEGRATION.join(" ");
       expect(joined).toContain("Database Integration Analysis");
       expect(joined).toContain("mechanism");
     });
   });
 
-  describe("INTEGRATION_POINTS_INSTRUCTIONS", () => {
+  describe("COMPOSITES.INTEGRATION_POINTS", () => {
     it("should be an array of strings", () => {
-      expect(Array.isArray(INTEGRATION_POINTS_INSTRUCTIONS)).toBe(true);
-      expect(INTEGRATION_POINTS_INSTRUCTIONS.length).toBeGreaterThan(0);
-      INTEGRATION_POINTS_INSTRUCTIONS.forEach((instruction) => {
+      expect(Array.isArray(COMPOSITES.INTEGRATION_POINTS)).toBe(true);
+      expect(COMPOSITES.INTEGRATION_POINTS.length).toBeGreaterThan(0);
+      COMPOSITES.INTEGRATION_POINTS.forEach((instruction) => {
         expect(typeof instruction).toBe("string");
       });
     });
 
     it("should include integration points fragment", () => {
-      const joined = INTEGRATION_POINTS_INSTRUCTIONS.join(" ");
+      const joined = COMPOSITES.INTEGRATION_POINTS.join(" ");
       expect(joined).toContain("integration points");
     });
   });
 
-  describe("SCHEDULED_JOBS_INSTRUCTIONS", () => {
+  describe("COMPOSITES.SCHEDULED_JOBS", () => {
     it("should be an array of strings", () => {
-      expect(Array.isArray(SCHEDULED_JOBS_INSTRUCTIONS)).toBe(true);
-      expect(SCHEDULED_JOBS_INSTRUCTIONS.length).toBeGreaterThan(0);
-      SCHEDULED_JOBS_INSTRUCTIONS.forEach((instruction) => {
+      expect(Array.isArray(COMPOSITES.SCHEDULED_JOBS)).toBe(true);
+      expect(COMPOSITES.SCHEDULED_JOBS.length).toBeGreaterThan(0);
+      COMPOSITES.SCHEDULED_JOBS.forEach((instruction) => {
         expect(typeof instruction).toBe("string");
       });
     });
 
     it("should include scheduled jobs fragments", () => {
-      const joined = SCHEDULED_JOBS_INSTRUCTIONS.join(" ");
+      const joined = COMPOSITES.SCHEDULED_JOBS.join(" ");
       expect(joined).toContain("scheduled jobs");
     });
   });
 
-  describe("CLASS_LANGUAGE_BASE_INSTRUCTIONS", () => {
+  describe("SOURCES_PROMPT_FRAGMENTS.BASE.CLASS", () => {
     it("should be an array of strings", () => {
-      expect(Array.isArray(CLASS_LANGUAGE_BASE_INSTRUCTIONS)).toBe(true);
-      expect(CLASS_LANGUAGE_BASE_INSTRUCTIONS.length).toBeGreaterThan(0);
-      CLASS_LANGUAGE_BASE_INSTRUCTIONS.forEach((instruction) => {
+      expect(Array.isArray(SOURCES_PROMPT_FRAGMENTS.BASE.CLASS)).toBe(true);
+      expect(SOURCES_PROMPT_FRAGMENTS.BASE.CLASS.length).toBeGreaterThan(0);
+      SOURCES_PROMPT_FRAGMENTS.BASE.CLASS.forEach((instruction) => {
         expect(typeof instruction).toBe("string");
       });
     });
 
     it("should include base instructions for class-based languages", () => {
-      const joined = CLASS_LANGUAGE_BASE_INSTRUCTIONS.join(" ");
+      const joined = SOURCES_PROMPT_FRAGMENTS.BASE.CLASS.join(" ");
       expect(joined).toContain("class");
       expect(joined).toContain("namespace");
       expect(joined).toContain("interface");
     });
   });
 
-  describe("MODULE_LANGUAGE_BASE_INSTRUCTIONS", () => {
+  describe("SOURCES_PROMPT_FRAGMENTS.BASE.MODULE", () => {
     it("should be an array of strings", () => {
-      expect(Array.isArray(MODULE_LANGUAGE_BASE_INSTRUCTIONS)).toBe(true);
-      expect(MODULE_LANGUAGE_BASE_INSTRUCTIONS.length).toBeGreaterThan(0);
-      MODULE_LANGUAGE_BASE_INSTRUCTIONS.forEach((instruction) => {
+      expect(Array.isArray(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE)).toBe(true);
+      expect(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE.length).toBeGreaterThan(0);
+      SOURCES_PROMPT_FRAGMENTS.BASE.MODULE.forEach((instruction) => {
         expect(typeof instruction).toBe("string");
       });
     });
 
     it("should include base instructions for module-based languages", () => {
-      const joined = MODULE_LANGUAGE_BASE_INSTRUCTIONS.join(" ");
+      const joined = SOURCES_PROMPT_FRAGMENTS.BASE.MODULE.join(" ");
       expect(joined).toContain("entity");
       expect(joined).toContain("module");
       expect(joined).toContain("namespace");
@@ -124,9 +119,9 @@ describe("prompt-fragments", () => {
   describe("Composing instructions", () => {
     it("should allow spreading instruction sets", () => {
       const composed = [
-        ...INTEGRATION_POINTS_INSTRUCTIONS,
-        ...DB_INTEGRATION_INSTRUCTIONS,
-        ...CODE_QUALITY_INSTRUCTIONS,
+        ...COMPOSITES.INTEGRATION_POINTS,
+        ...COMPOSITES.DB_INTEGRATION,
+        ...COMPOSITES.CODE_QUALITY,
       ];
 
       expect(composed.length).toBeGreaterThan(0);
@@ -138,7 +133,7 @@ describe("prompt-fragments", () => {
 
     it("should allow combining instruction sets with custom instructions", () => {
       const customInstructions = ["Custom instruction 1", "Custom instruction 2"];
-      const composed = [...INTEGRATION_POINTS_INSTRUCTIONS, ...customInstructions];
+      const composed = [...COMPOSITES.INTEGRATION_POINTS, ...customInstructions];
 
       expect(composed.length).toBeGreaterThan(customInstructions.length);
       expect(composed).toContain("Custom instruction 1");
@@ -146,9 +141,9 @@ describe("prompt-fragments", () => {
     });
 
     it("should allow combining base language instructions with code quality instructions", () => {
-      const composed = [...CLASS_LANGUAGE_BASE_INSTRUCTIONS, ...CODE_QUALITY_INSTRUCTIONS];
+      const composed = [...SOURCES_PROMPT_FRAGMENTS.BASE.CLASS, ...COMPOSITES.CODE_QUALITY];
       expect(composed.length).toBe(
-        CLASS_LANGUAGE_BASE_INSTRUCTIONS.length + CODE_QUALITY_INSTRUCTIONS.length,
+        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS.length + COMPOSITES.CODE_QUALITY.length,
       );
     });
   });

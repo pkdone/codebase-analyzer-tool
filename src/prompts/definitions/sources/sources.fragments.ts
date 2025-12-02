@@ -498,9 +498,19 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
 
 /**
  * Composable instruction sets for common patterns across file types.
- * Organized for better discoverability and consistency.
+ * These pre-composed instruction blocks combine related fragments for convenience and consistency.
+ *
+ * @example
+ * ```typescript
+ * // Use in instruction blocks for better clarity
+ * buildInstructionBlock(
+ *   INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+ *   COMPOSITES.CODE_QUALITY,
+ * )
+ * ```
  */
 export const COMPOSITES = {
+  /** Pre-composed code quality analysis instructions including metrics and code smells */
   CODE_QUALITY: [
     SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
     SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
@@ -508,26 +518,18 @@ export const COMPOSITES = {
     SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
   ] as const,
 
+  /** Pre-composed database integration analysis instructions */
   DB_INTEGRATION: [
     SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO,
     SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.REQUIRED_FIELDS,
   ] as const,
 
+  /** Pre-composed integration points instructions */
   INTEGRATION_POINTS: [SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO] as const,
 
+  /** Pre-composed scheduled jobs instructions */
   SCHEDULED_JOBS: [
     SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.INTRO,
     SOURCES_PROMPT_FRAGMENTS.SCHEDULED_JOBS.FIELDS,
   ] as const,
 } as const;
-
-/**
- * Export legacy constant names for backward compatibility.
- * New code should use SOURCES_PROMPT_FRAGMENTS.BASE.CLASS/MODULE and COMPOSITES instead.
- */
-export const CODE_QUALITY_INSTRUCTIONS = COMPOSITES.CODE_QUALITY;
-export const DB_INTEGRATION_INSTRUCTIONS = COMPOSITES.DB_INTEGRATION;
-export const INTEGRATION_POINTS_INSTRUCTIONS = COMPOSITES.INTEGRATION_POINTS;
-export const SCHEDULED_JOBS_INSTRUCTIONS = COMPOSITES.SCHEDULED_JOBS;
-export const CLASS_LANGUAGE_BASE_INSTRUCTIONS = SOURCES_PROMPT_FRAGMENTS.BASE.CLASS;
-export const MODULE_LANGUAGE_BASE_INSTRUCTIONS = SOURCES_PROMPT_FRAGMENTS.BASE.MODULE;

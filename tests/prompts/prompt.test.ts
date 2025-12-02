@@ -1,6 +1,6 @@
 import { renderPrompt } from "../../src/prompts/prompt-renderer";
 import { fileTypePromptMetadata } from "../../src/prompts/definitions/sources";
-import { FORCE_JSON_FORMAT } from "../../src/prompts/definitions/instructions";
+import { FORCE_JSON_FORMAT } from "../../src/prompts/templates";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../src/prompts/definitions/sources/sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../src/prompts/definitions/instruction-titles";
 

@@ -1,10 +1,6 @@
 import {
   SOURCES_PROMPT_FRAGMENTS,
   COMPOSITES,
-  CLASS_LANGUAGE_BASE_INSTRUCTIONS,
-  MODULE_LANGUAGE_BASE_INSTRUCTIONS,
-  CODE_QUALITY_INSTRUCTIONS,
-  DB_INTEGRATION_INSTRUCTIONS,
 } from "../../src/prompts/definitions/sources/sources.fragments";
 
 describe("Fragment Consolidation", () => {
@@ -19,11 +15,6 @@ describe("Fragment Consolidation", () => {
       expect(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE).toBeDefined();
       expect(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE).toHaveLength(3);
       expect(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE[0]).toContain("entity");
-    });
-
-    it("should maintain backward compatibility with legacy exports", () => {
-      expect(CLASS_LANGUAGE_BASE_INSTRUCTIONS).toBe(SOURCES_PROMPT_FRAGMENTS.BASE.CLASS);
-      expect(MODULE_LANGUAGE_BASE_INSTRUCTIONS).toBe(SOURCES_PROMPT_FRAGMENTS.BASE.MODULE);
     });
   });
 
@@ -40,9 +31,14 @@ describe("Fragment Consolidation", () => {
       expect(COMPOSITES.DB_INTEGRATION).toContain(SOURCES_PROMPT_FRAGMENTS.DB_INTEGRATION.INTRO);
     });
 
-    it("should maintain backward compatibility with legacy exports", () => {
-      expect(CODE_QUALITY_INSTRUCTIONS).toBe(COMPOSITES.CODE_QUALITY);
-      expect(DB_INTEGRATION_INSTRUCTIONS).toBe(COMPOSITES.DB_INTEGRATION);
+    it("should have INTEGRATION_POINTS composite", () => {
+      expect(COMPOSITES.INTEGRATION_POINTS).toBeDefined();
+      expect(COMPOSITES.INTEGRATION_POINTS.length).toBeGreaterThan(0);
+    });
+
+    it("should have SCHEDULED_JOBS composite", () => {
+      expect(COMPOSITES.SCHEDULED_JOBS).toBeDefined();
+      expect(COMPOSITES.SCHEDULED_JOBS.length).toBeGreaterThan(0);
     });
   });
 
