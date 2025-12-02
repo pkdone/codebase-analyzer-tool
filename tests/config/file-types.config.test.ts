@@ -2,6 +2,8 @@ import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
   FILE_TYPE_MAPPING_RULES,
+  FILENAME_TO_TYPE_MAP,
+  EXTENSION_TO_TYPE_MAP,
   type CanonicalFileType,
 } from "../../src/config/file-types.config";
 
@@ -111,20 +113,13 @@ describe("file-types.config", () => {
       expect(lastRule.test("any", "ext")).toBe(true);
     });
 
-    it("should match filename-based rules correctly", () => {
-      // Test pom.xml -> maven
-      const mavenRule = FILE_TYPE_MAPPING_RULES.find((r) => r.type === "maven");
-      expect(mavenRule).toBeDefined();
-      expect(mavenRule?.test("pom.xml", "xml")).toBe(true);
-      expect(mavenRule?.test("other.xml", "xml")).toBe(false);
+    it("should match filename-based mappings correctly", () => {
+      // Test exact filename matches in FILENAME_TO_TYPE_MAP
+      expect(FILENAME_TO_TYPE_MAP["pom.xml"]).toBe("maven");
+      expect(FILENAME_TO_TYPE_MAP["package.json"]).toBe("npm");
+      expect(FILENAME_TO_TYPE_MAP["build.gradle"]).toBe("gradle");
 
-      // Test package.json -> npm
-      const npmRule = FILE_TYPE_MAPPING_RULES.find((r) => r.type === "npm");
-      expect(npmRule).toBeDefined();
-      expect(npmRule?.test("package.json", "json")).toBe(true);
-      expect(npmRule?.test("other.json", "json")).toBe(false);
-
-      // Test README -> markdown
+      // Test pattern-based rules in FILE_TYPE_MAPPING_RULES (readme*, license*, changelog*)
       const readmeRule = FILE_TYPE_MAPPING_RULES.find(
         (r) => r.type === "markdown" && r.test("readme", ""),
       );
@@ -134,44 +129,21 @@ describe("file-types.config", () => {
       expect(readmeRule?.test("other.md", "md")).toBe(false);
     });
 
-    it("should match extension-based rules correctly", () => {
-      // Test .java extension -> java
-      const javaRule = FILE_TYPE_MAPPING_RULES.find(
-        (r) => r.type === "java" && !r.test("pom.xml", "xml"),
-      );
-      expect(javaRule).toBeDefined();
-      expect(javaRule?.test("Test.java", "java")).toBe(true);
-      expect(javaRule?.test("Test.kt", "kt")).toBe(true);
-      expect(javaRule?.test("Test.kts", "kts")).toBe(true);
-      expect(javaRule?.test("Test.js", "js")).toBe(false);
-
-      // Test .js/.ts extension -> javascript
-      const jsRule = FILE_TYPE_MAPPING_RULES.find((r) => r.type === "javascript");
-      expect(jsRule).toBeDefined();
-      expect(jsRule?.test("test.js", "js")).toBe(true);
-      expect(jsRule?.test("test.ts", "ts")).toBe(true);
-      expect(jsRule?.test("test.java", "java")).toBe(false);
+    it("should match extension-based mappings correctly", () => {
+      // Test extension mappings in EXTENSION_TO_TYPE_MAP
+      expect(EXTENSION_TO_TYPE_MAP.java).toBe("java");
+      expect(EXTENSION_TO_TYPE_MAP.kt).toBe("java");
+      expect(EXTENSION_TO_TYPE_MAP.kts).toBe("java");
+      expect(EXTENSION_TO_TYPE_MAP.js).toBe("javascript");
+      expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
+      expect(EXTENSION_TO_TYPE_MAP.py).toBe("python");
     });
 
-    it("should prioritize filename rules over extension rules", () => {
-      // pom.xml should match maven rule (filename) not xml rule (extension)
-      const mavenRule = FILE_TYPE_MAPPING_RULES.find((r) => r.type === "maven");
-      const xmlRule = FILE_TYPE_MAPPING_RULES.find((r) => r.type === "xml");
-
-      expect(mavenRule).toBeDefined();
-      expect(xmlRule).toBeDefined();
-
-      // Find the index of each rule
-      const mavenIndex = FILE_TYPE_MAPPING_RULES.indexOf(mavenRule!);
-      const xmlIndex = FILE_TYPE_MAPPING_RULES.indexOf(xmlRule!);
-
-      // Maven rule should come before xml rule
-      expect(mavenIndex).toBeLessThan(xmlIndex);
-
-      // pom.xml should match maven rule
-      expect(mavenRule?.test("pom.xml", "xml")).toBe(true);
-      // But other .xml files should match xml rule
-      expect(xmlRule?.test("config.xml", "xml")).toBe(true);
+    it("should prioritize filename mappings over extension mappings", () => {
+      // pom.xml should match maven in FILENAME_TO_TYPE_MAP (not xml extension)
+      expect(FILENAME_TO_TYPE_MAP["pom.xml"]).toBe("maven");
+      // Other .xml files should match xml extension
+      expect(EXTENSION_TO_TYPE_MAP.xml).toBe("xml");
     });
 
     it("should handle all file types from CANONICAL_FILE_TYPES", () => {
@@ -187,27 +159,27 @@ describe("file-types.config", () => {
     });
 
     it("should match real-world file examples correctly", () => {
-      const testCases = [
-        { filename: "pom.xml", extension: "xml", expectedType: "maven" },
-        { filename: "build.gradle", extension: "gradle", expectedType: "gradle" },
-        { filename: "package.json", extension: "json", expectedType: "npm" },
-        { filename: "Test.java", extension: "java", expectedType: "java" },
-        { filename: "app.js", extension: "js", expectedType: "javascript" },
-        { filename: "component.ts", extension: "ts", expectedType: "javascript" },
-        { filename: "README.md", extension: "md", expectedType: "markdown" },
-        { filename: "LICENSE", extension: "txt", expectedType: "markdown" },
-        { filename: "unknown.xyz", extension: "xyz", expectedType: "default" },
-      ];
+      // Test exact filename matches
+      expect(FILENAME_TO_TYPE_MAP["pom.xml"]).toBe("maven");
+      expect(FILENAME_TO_TYPE_MAP["build.gradle"]).toBe("gradle");
+      expect(FILENAME_TO_TYPE_MAP["package.json"]).toBe("npm");
 
-      for (const testCase of testCases) {
-        const filename = testCase.filename.toLowerCase();
-        const extension = testCase.extension.toLowerCase();
+      // Test extension matches
+      expect(EXTENSION_TO_TYPE_MAP.java).toBe("java");
+      expect(EXTENSION_TO_TYPE_MAP.js).toBe("javascript");
+      expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
+      expect(EXTENSION_TO_TYPE_MAP.md).toBe("markdown");
 
-        // Find the first matching rule
-        const matchingRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test(filename, extension));
-        expect(matchingRule).toBeDefined();
-        expect(matchingRule?.type).toBe(testCase.expectedType);
-      }
+      // Test pattern-based rules (readme*, license*, changelog*)
+      const readmeRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("readme.md", "md"));
+      expect(readmeRule?.type).toBe("markdown");
+
+      const licenseRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("license", "txt"));
+      expect(licenseRule?.type).toBe("markdown");
+
+      // Test default fallback
+      const defaultRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("unknown.xyz", "xyz"));
+      expect(defaultRule?.type).toBe("default");
     });
   });
 });

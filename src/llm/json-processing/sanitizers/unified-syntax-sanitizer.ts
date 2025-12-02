@@ -10,32 +10,7 @@ import {
   PACKAGE_NAME_PREFIX_REPLACEMENTS,
   PACKAGE_NAME_TYPO_PATTERNS,
 } from "../constants/schema-specific.constants";
-
-/**
- * Helper to determine if a position is inside a string literal.
- * This prevents us from modifying property names that appear as values.
- */
-function isInStringAt(position: number, content: string): boolean {
-  let inString = false;
-  let escaped = false;
-
-  for (let i = 0; i < position; i++) {
-    const char = content[i];
-
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-
-    if (char === "\\") {
-      escaped = true;
-    } else if (char === '"') {
-      inString = !inString;
-    }
-  }
-
-  return inString;
-}
+import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
  * Constants for diagnostic message formatting

@@ -1,7 +1,7 @@
 import { appConfig } from "../../src/config/app.config";
 import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
-import { FILE_TYPE_MAPPING_RULES } from "../../src/config/file-types.config";
+import { EXTENSION_TO_TYPE_MAP } from "../../src/config/file-types.config";
 import { outputConfig } from "../../src/config/output.config";
 import { loggingConfig } from "../../src/llm/tracking/logging.config";
 
@@ -23,10 +23,10 @@ describe("individual config modules", () => {
     expect(fileProcessingConfig).toHaveProperty("BINARY_FILE_EXTENSION_IGNORE_LIST");
   });
 
-  it("file type mapping rules should include java type", () => {
-    const javaRule = FILE_TYPE_MAPPING_RULES.find((rule) => rule.type === "java");
-    expect(javaRule).toBeDefined();
-    expect(javaRule?.test("Test.java", "java")).toBe(true);
+  it("file type mapping should include java type in extension map", () => {
+    expect(EXTENSION_TO_TYPE_MAP.java).toBe("java");
+    expect(EXTENSION_TO_TYPE_MAP.kt).toBe("java");
+    expect(EXTENSION_TO_TYPE_MAP.kts).toBe("java");
   });
 
   it("outputConfig should expose output directory", () => {

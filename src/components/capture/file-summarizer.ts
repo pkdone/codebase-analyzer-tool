@@ -7,7 +7,11 @@ import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
-import { FILE_TYPE_MAPPING_RULES } from "../../config/file-types.config";
+import {
+  FILE_TYPE_MAPPING_RULES,
+  FILENAME_TO_TYPE_MAP,
+  EXTENSION_TO_TYPE_MAP,
+} from "../../config/file-types.config";
 
 /**
  * Type for source summary
@@ -16,13 +20,23 @@ export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
 
 /**
  * Derive the canonical file type for a given path and declared extension/suffix.
- * Uses the consolidated ordered list of file type mapping rules.
+ * Uses data-driven maps for fast lookups, falling back to rule-based system for complex cases.
  */
 function getCanonicalFileType(filepath: string, type: string): keyof typeof fileTypePromptMetadata {
   const filename = path.basename(filepath).toLowerCase();
   const extension = type.toLowerCase();
 
-  // Iterate through rules in order, returning the first match
+  // 1. Check exact filename matches first (fastest lookup)
+  if (Object.hasOwn(FILENAME_TO_TYPE_MAP, filename)) {
+    return FILENAME_TO_TYPE_MAP[filename];
+  }
+
+  // 2. Check extension-based mappings
+  if (Object.hasOwn(EXTENSION_TO_TYPE_MAP, extension)) {
+    return EXTENSION_TO_TYPE_MAP[extension];
+  }
+
+  // 3. Fall back to rule-based system for complex patterns (e.g., "readme*", "license*")
   for (const rule of FILE_TYPE_MAPPING_RULES) {
     if (rule.test(filename, extension)) {
       return rule.type;

@@ -2,6 +2,7 @@ import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
 import { BINARY_CORRUPTION_REGEX } from "../constants/regex.constants";
 import { logOneLineWarning } from "../../../common/utils/logging";
+import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
  * Sanitizer that fixes binary corruption patterns in LLM responses.
@@ -23,29 +24,6 @@ export const fixBinaryCorruptionPatterns: Sanitizer = (jsonString: string): Sani
     let sanitized = jsonString;
     let hasChanges = false;
     const diagnostics: string[] = [];
-
-    // Helper to determine if a position is inside a string literal
-    function isInStringAt(position: number, content: string): boolean {
-      let inString = false;
-      let escaped = false;
-
-      for (let i = 0; i < position; i++) {
-        const char = content[i];
-
-        if (escaped) {
-          escaped = false;
-          continue;
-        }
-
-        if (char === "\\") {
-          escaped = true;
-        } else if (char === '"') {
-          inString = !inString;
-        }
-      }
-
-      return inString;
-    }
 
     // Pattern: Remove all binary corruption markers <y_bin_XXX>
     // This is a simple, generic approach that removes the markers and lets

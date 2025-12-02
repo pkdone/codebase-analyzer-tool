@@ -215,4 +215,104 @@ describe("bedrock-response-parser", () => {
     // Type guard should convert undefined to empty string, making response not incomplete
     expect(summary.isIncompleteResponse).toBe(false);
   });
+
+  describe("nullish coalescing for token counts", () => {
+    it("should use number token values when provided", () => {
+      const response = {
+        content: [{ text: "hello" }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: 42, output_tokens: 24 },
+      };
+
+      const summary = extractGenericCompletionResponse(
+        response,
+        schema,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: "max_tokens",
+        },
+        "TestProvider",
+      );
+
+      expect(summary.tokenUsage.promptTokens).toBe(42);
+      expect(summary.tokenUsage.completionTokens).toBe(24);
+    });
+
+    it("should default to -1 when token values are null", () => {
+      const schemaWithNull = z
+        .object({
+          content: z.array(z.object({ text: z.string() })).optional(),
+          stop_reason: z.string().optional(),
+          usage: z
+            .object({
+              input_tokens: z.number().nullable().optional(),
+              output_tokens: z.number().nullable().optional(),
+            })
+            .optional(),
+        })
+        .passthrough();
+
+      const response = {
+        content: [{ text: "hello" }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: null, output_tokens: null },
+      };
+
+      const summary = extractGenericCompletionResponse(
+        response,
+        schemaWithNull,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: "max_tokens",
+        },
+        "TestProvider",
+      );
+
+      expect(summary.tokenUsage.promptTokens).toBe(-1);
+      expect(summary.tokenUsage.completionTokens).toBe(-1);
+    });
+
+    it("should default to -1 when token values are other types", () => {
+      const schemaWithString = z
+        .object({
+          content: z.array(z.object({ text: z.string() })).optional(),
+          stop_reason: z.string().optional(),
+          usage: z
+            .object({
+              input_tokens: z.union([z.number(), z.string()]).optional(),
+              output_tokens: z.union([z.number(), z.string()]).optional(),
+            })
+            .optional(),
+        })
+        .passthrough();
+
+      const response = {
+        content: [{ text: "hello" }],
+        stop_reason: "end_turn",
+        usage: { input_tokens: "not a number", output_tokens: "also not a number" },
+      };
+
+      const summary = extractGenericCompletionResponse(
+        response,
+        schemaWithString,
+        {
+          contentPath: "content[0].text",
+          promptTokensPath: "usage.input_tokens",
+          completionTokensPath: "usage.output_tokens",
+          stopReasonPath: "stop_reason",
+          stopReasonValueForLength: "max_tokens",
+        },
+        "TestProvider",
+      );
+
+      expect(summary.tokenUsage.promptTokens).toBe(-1);
+      expect(summary.tokenUsage.completionTokens).toBe(-1);
+    });
+  });
 });

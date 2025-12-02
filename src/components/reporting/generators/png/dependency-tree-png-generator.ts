@@ -444,7 +444,7 @@ export class DependencyTreePngGenerator {
       const adjustedFromY = fromY + yOffset;
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = dependencyTreePngConfig.numeric.CONNECTION_WIDTH;
 
       // Draw the line with staggered source Y
       ctx.beginPath();
@@ -458,7 +458,8 @@ export class DependencyTreePngGenerator {
   }
 
   /**
-   * Draw a connection line with arrow between two nodes using smart connection points
+   * Draw a connection line with arrow between two nodes using smart connection points.
+   * This is a thin wrapper around drawConnectionLineWithYOffset with zero offset.
    */
   private drawConnectionLine(
     ctx: CanvasRenderingContext2D,
@@ -466,29 +467,7 @@ export class DependencyTreePngGenerator {
     toNode: HierarchicalTreeNode,
     color: string,
   ): void {
-    // Only draw if both nodes are within canvas bounds
-    if (
-      toNode.x >= 0 &&
-      toNode.y >= 0 &&
-      toNode.x + toNode.width <= dependencyTreePngConfig.canvas.MAX_WIDTH &&
-      toNode.y + toNode.height <= dependencyTreePngConfig.canvas.MAX_HEIGHT
-    ) {
-      // Calculate smart connection points based on node positions
-      const { fromX, fromY, toX, toY } = this.calculateConnectionPoints(fromNode, toNode);
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = dependencyTreePngConfig.numeric.CONNECTION_WIDTH; // Consistent line thickness for all connections
-
-      // Draw the line
-      ctx.beginPath();
-      ctx.moveTo(fromX, fromY);
-      ctx.lineTo(toX, toY);
-      ctx.stroke();
-
-      // Draw arrow at the end for ALL connections (pointing to the target node)
-      // This includes both normal dependencies AND references to existing nodes
-      this.drawArrow(ctx, fromX, fromY, toX, toY, color);
-    }
+    this.drawConnectionLineWithYOffset(ctx, fromNode, toNode, color, 0);
   }
 
   /**

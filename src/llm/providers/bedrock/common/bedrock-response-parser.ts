@@ -63,9 +63,10 @@ export function extractGenericCompletionResponse(
     finishReasonLowercase === pathConfig.stopReasonValueForLength.toLowerCase() ||
     responseContent == null;
   const promptTokensRaw = getNestedValue(response, pathConfig.promptTokensPath);
-  const promptTokens = typeof promptTokensRaw === "number" ? promptTokensRaw : -1;
+  const promptTokens = (typeof promptTokensRaw === "number" ? promptTokensRaw : undefined) ?? -1;
   const completionTokensRaw = getNestedValue(response, pathConfig.completionTokensPath);
-  const completionTokens = typeof completionTokensRaw === "number" ? completionTokensRaw : -1;
+  const completionTokens =
+    (typeof completionTokensRaw === "number" ? completionTokensRaw : undefined) ?? -1;
   const maxTotalTokens = -1; // Not using total tokens as that's prompt + completion, not the max limit
   const tokenUsage = { promptTokens, completionTokens, maxTotalTokens };
   return { isIncompleteResponse, responseContent, tokenUsage };

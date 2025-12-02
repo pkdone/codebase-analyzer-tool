@@ -1,5 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { logOneLineWarning } from "../../../common/utils/logging";
+import { isInStringAt } from "../utils/parser-context-utils";
 
 /**
  * Sanitizer that removes JavaScript-style comments from JSON-like text.
@@ -29,29 +30,6 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
 
     let sanitized = input;
     const diagnostics: string[] = [];
-
-    // Helper to check if a position is inside a string literal
-    function isInStringAt(position: number, content: string): boolean {
-      let inString = false;
-      let escaped = false;
-
-      for (let i = 0; i < position; i++) {
-        const char = content[i];
-
-        if (escaped) {
-          escaped = false;
-          continue;
-        }
-
-        if (char === "\\") {
-          escaped = true;
-        } else if (char === '"') {
-          inString = !inString;
-        }
-      }
-
-      return inString;
-    }
 
     // Pattern 1: Remove multi-line comments /* ... */
     // Use non-greedy match to handle multiple comments

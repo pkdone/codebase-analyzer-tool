@@ -21,8 +21,9 @@ export function renderPrompt(definition: PromptDefinition, data: Record<string, 
     forceJSON: FORCE_JSON_FORMAT,
     jsonSchema: jsonSchemaString,
     contentDesc: definition.contentDesc,
-    // Handle partialAnalysisNote - use nullish coalescing to only default when null/undefined
-    partialAnalysisNote: (data.partialAnalysisNote as string | undefined) ?? "",
+    // Handle partialAnalysisNote - use type guard for safe type checking
+    partialAnalysisNote:
+      typeof data.partialAnalysisNote === "string" ? data.partialAnalysisNote : "",
   };
   return fillPrompt(definition.template, templateData);
 }

@@ -95,7 +95,9 @@ describe("logging", () => {
       const callArg = consoleWarnSpy.mock.calls[0][0];
       expect(callArg).toContain("Warning message");
       expect(callArg).toContain("Context:");
-      expect(callArg).toContain('"key":"value"');
+      // formatError uses util.inspect which formats objects differently than JSON.stringify
+      expect(callArg).toContain("key");
+      expect(callArg).toContain("value");
     });
 
     it("should replace newlines in context JSON", () => {
@@ -126,6 +128,61 @@ describe("logging", () => {
       expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
       const callArg = consoleWarnSpy.mock.calls[0][0];
       expect(callArg).not.toContain("\n");
+    });
+
+    it("should handle plain objects using formatError (unified logging)", () => {
+      const plainObject = { key: "value", nested: { data: "test" } };
+      logOneLineWarning("Warning message", plainObject);
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("Warning message");
+      expect(callArg).toContain("Context:");
+      // formatError uses util.inspect which formats objects safely
+      expect(callArg).toContain("key");
+      expect(callArg).toContain("value");
+    });
+
+    it("should handle circular references safely using formatError", () => {
+      const circular: any = { key: "value" };
+      circular.self = circular; // Create circular reference
+
+      // Should not throw - formatError uses util.inspect which handles circular refs
+      expect(() => {
+        logOneLineWarning("Warning", circular);
+      }).not.toThrow();
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("Warning");
+      expect(callArg).toContain("Context:");
+    });
+
+    it("should handle primitives using String()", () => {
+      logOneLineWarning("Warning", 123);
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("Warning");
+      expect(callArg).toContain("Context: 123");
+    });
+
+    it("should handle string primitives using String()", () => {
+      logOneLineWarning("Warning", "string context");
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("Warning");
+      expect(callArg).toContain("Context: string context");
+    });
+
+    it("should handle boolean primitives using String()", () => {
+      logOneLineWarning("Warning", true);
+
+      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+      const callArg = consoleWarnSpy.mock.calls[0][0];
+      expect(callArg).toContain("Warning");
+      expect(callArg).toContain("Context: true");
     });
   });
 });

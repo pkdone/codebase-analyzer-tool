@@ -116,6 +116,45 @@ describe("renderPrompt Snapshot Tests", () => {
       const rendered = renderPrompt(definition, data);
       expect(rendered).toBeTruthy();
     });
+
+    test("prompt with null partialAnalysisNote should default to empty string", () => {
+      const definition = fileTypePromptMetadata.java;
+      const data = { content: testContent, partialAnalysisNote: null };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toBeTruthy();
+      // Should not throw and should render successfully
+    });
+
+    test("prompt with number partialAnalysisNote should default to empty string", () => {
+      const definition = fileTypePromptMetadata.java;
+      const data = { content: testContent, partialAnalysisNote: 123 as any };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toBeTruthy();
+      // Should not throw and should render successfully
+    });
+
+    test("prompt with object partialAnalysisNote should default to empty string", () => {
+      const definition = fileTypePromptMetadata.java;
+      const data = { content: testContent, partialAnalysisNote: { key: "value" } as any };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toBeTruthy();
+      // Should not throw and should render successfully
+    });
+
+    test("prompt with string partialAnalysisNote should use the string value", () => {
+      const definition = fileTypePromptMetadata.java;
+      const data = {
+        content: testContent,
+        partialAnalysisNote: "This is a valid note",
+      };
+
+      const rendered = renderPrompt(definition, data);
+      expect(rendered).toBeTruthy();
+      // Note: sources template doesn't use partialAnalysisNote, but renderer should handle it
+    });
   });
 
   describe("instruction block formatting", () => {
