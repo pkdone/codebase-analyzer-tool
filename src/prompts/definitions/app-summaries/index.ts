@@ -1,6 +1,7 @@
 import { appSummaryConfigMap, type AppSummaryConfigEntry } from "./app-summaries.config";
 import { BASE_PROMPT_TEMPLATE } from "../../templates";
 import { createPromptMetadata } from "../prompt-factory";
+import { createIntroTextTemplate } from "../../prompt-utils";
 
 /**
  * Data-driven mapping of app summary categories to their templates and schemas.
@@ -11,7 +12,11 @@ export const appSummaryPromptMetadata = createPromptMetadata<
   AppSummaryConfigEntry
 >(appSummaryConfigMap, BASE_PROMPT_TEMPLATE, {
   introTextTemplateBuilder: () =>
-    "Act as a senior developer analyzing the code in a legacy application. Based on the a set of source file summaries shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.",
+    createIntroTextTemplate({
+      contentDescription: "a set of source file summaries",
+      includeArticle: false,
+      responseDescription: "{{instructionsText}}.",
+    }),
   instructionsBuilder: (config) => config.instructions, // Use instructions directly from config
   dataBlockHeaderBuilder: () => "FILE_SUMMARIES",
   wrapInCodeBlockBuilder: () => false,

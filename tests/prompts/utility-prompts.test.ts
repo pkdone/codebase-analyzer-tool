@@ -15,6 +15,24 @@ describe("Utility Prompts", () => {
       expect(codebaseQueryPromptDefinition.responseSchema).toBeDefined();
     });
 
+    it("should have empty instructions array since template does not use instructionsText", () => {
+      // The CODEBASE_QUERY_TEMPLATE doesn't use {{instructionsText}} placeholder,
+      // so the instructions array should be empty to avoid redundancy
+      expect(codebaseQueryPromptDefinition.instructions).toEqual([]);
+      expect(codebaseQueryPromptDefinition.instructions).toHaveLength(0);
+    });
+
+    it("introTextTemplate should contain the complete instruction", () => {
+      // The intro text should contain all the necessary instructions since
+      // the template doesn't use a separate instructions section
+      const intro = codebaseQueryPromptDefinition.introTextTemplate;
+      expect(intro).toContain("Act as a senior developer");
+      expect(intro).toContain("source code files");
+      expect(intro).toContain("QUESTION");
+      expect(intro).toContain("CODE");
+      expect(intro).toContain("specific evidence in the provided code");
+    });
+
     it("should render correctly with renderPrompt function", () => {
       const testContent = "const x = 1;";
       const testQuestion = "What does this code do?";

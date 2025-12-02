@@ -1,4 +1,4 @@
-import { buildInstructionBlock } from "../../src/prompts/prompt-utils";
+import { buildInstructionBlock, createIntroTextTemplate } from "../../src/prompts/prompt-utils";
 
 describe("buildInstructionBlock", () => {
   describe("basic functionality", () => {
@@ -99,6 +99,165 @@ describe("buildInstructionBlock", () => {
       expect(lines[6]).toBe("Item 4");
       expect(lines[7]).toBe("Item 5");
       expect(lines[8]).toBe("Conclusion");
+    });
+  });
+});
+
+describe("createIntroTextTemplate", () => {
+  describe("basic functionality", () => {
+    test("should create intro text with default options", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "JVM code",
+      });
+
+      expect(result).toBe(
+        "Act as a senior developer analyzing the code in a legacy application. Based on the JVM code shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.",
+      );
+    });
+
+    test("should create intro text with custom responseDescription", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "JVM code",
+        responseDescription:
+          "the following metadata about the source file:\n\n{{instructionsText}}.",
+      });
+
+      expect(result).toContain("Based on the JVM code");
+      expect(result).toContain(
+        "return a JSON response that contains the following metadata about the source file:",
+      );
+      expect(result).toContain("{{instructionsText}}.");
+    });
+
+    test("should include article 'the' by default", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "JavaScript/TypeScript code",
+      });
+
+      expect(result).toContain("Based on the JavaScript/TypeScript code shown below");
+    });
+
+    test("should omit article 'the' when includeArticle is false", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "a set of source file summaries",
+        includeArticle: false,
+      });
+
+      expect(result).toContain("Based on a set of source file summaries shown below");
+      expect(result).not.toContain("Based on the a set of");
+    });
+  });
+
+  describe("placeholder preservation", () => {
+    test("should preserve dataBlockHeader placeholder", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "test content",
+      });
+
+      expect(result).toContain("'{{dataBlockHeader}}'");
+    });
+
+    test("should preserve instructionsText placeholder in default responseDescription", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "test content",
+      });
+
+      expect(result).toContain("{{instructionsText}}");
+    });
+
+    test("should preserve custom placeholders in responseDescription", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "test content",
+        responseDescription: "{{customPlaceholder}} and {{anotherOne}}",
+      });
+
+      expect(result).toContain("{{customPlaceholder}}");
+      expect(result).toContain("{{anotherOne}}");
+    });
+  });
+
+  describe("real-world usage patterns", () => {
+    test("should match sources intro text format", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "JVM code",
+        responseDescription:
+          "the following metadata about the source file:\n\n{{instructionsText}}.",
+      });
+
+      // Verify structure matches what sources/index.ts expects
+      expect(result).toContain(
+        "Act as a senior developer analyzing the code in a legacy application",
+      );
+      expect(result).toContain("Based on the JVM code shown below");
+      expect(result).toContain("section marked '{{dataBlockHeader}}'");
+      expect(result).toContain("return a JSON response that contains the following metadata");
+    });
+
+    test("should match app-summaries intro text format", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "a set of source file summaries",
+        includeArticle: false,
+        responseDescription: "{{instructionsText}}.",
+      });
+
+      // Verify structure matches what app-summaries/index.ts expects
+      expect(result).toContain(
+        "Act as a senior developer analyzing the code in a legacy application",
+      );
+      expect(result).toContain("Based on a set of source file summaries shown below");
+      expect(result).not.toContain("Based on the a set of"); // No double article
+      expect(result).toContain("return a JSON response that contains {{instructionsText}}.");
+    });
+
+    test("should work with various content descriptions", () => {
+      const contentTypes = [
+        "JavaScript/TypeScript code",
+        "C# code",
+        "Python code",
+        "Ruby code",
+        "database DDL/DML/SQL code",
+        "Markdown documentation",
+        "XML configuration",
+      ];
+
+      contentTypes.forEach((contentDesc) => {
+        const result = createIntroTextTemplate({
+          contentDescription: contentDesc,
+        });
+
+        expect(result).toContain(`Based on the ${contentDesc} shown below`);
+        expect(result).toContain("{{dataBlockHeader}}");
+        expect(result).toContain("{{instructionsText}}");
+      });
+    });
+  });
+
+  describe("edge cases", () => {
+    test("should handle empty content description", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "",
+      });
+
+      expect(result).toContain("Based on the  shown below");
+    });
+
+    test("should handle empty responseDescription", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "test",
+        responseDescription: "",
+      });
+
+      expect(result).toContain("return a JSON response that contains ");
+      expect(result).not.toContain("{{instructionsText}}");
+    });
+
+    test("should explicitly set includeArticle to true", () => {
+      const result = createIntroTextTemplate({
+        contentDescription: "test content",
+        includeArticle: true,
+      });
+
+      expect(result).toContain("Based on the test content");
     });
   });
 });

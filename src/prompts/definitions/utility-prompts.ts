@@ -11,9 +11,7 @@ export const codebaseQueryPromptDefinition: PromptDefinition = {
   label: "Codebase Query",
   introTextTemplate:
     "Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.",
-  instructions: [
-    "Act as a senior developer. I've provided the content of some source code files below in the section marked 'CODE'. Using all that code for context, answer the question a developer has asked about the code, where their question is shown in the section marked 'QUESTION' below. Provide your answer in a few paragraphs, referring to specific evidence in the provided code.",
-  ],
+  instructions: [], // Empty - CODEBASE_QUERY_TEMPLATE doesn't use {{instructionsText}}
   responseSchema: z.string(), // Text response, not JSON
   template: CODEBASE_QUERY_TEMPLATE,
   dataBlockHeader: "CODE" as const, // Not used by CODEBASE_QUERY_TEMPLATE but required by type
