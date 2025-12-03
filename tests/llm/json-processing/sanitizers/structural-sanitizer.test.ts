@@ -93,4 +93,129 @@ describe("fixJsonStructureAndNoise", () => {
       expect(result.content).toBe(input);
     });
   });
+
+  describe("should fix missing opening brace for array elements", () => {
+    it("should fix missing opening brace and leading underscore before property", () => {
+      const input = `{
+  "items": [
+    {
+      "name": "item1",
+      "value": 1
+    },
+    _name": "item2",
+      "value": 2
+    }
+  ]
+}`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('{"name": "item2"');
+    });
+
+    it("should fix missing opening brace when property has no leading quote", () => {
+      const input = `{
+  "methods": [
+    {
+      "name": "method1",
+      "returnType": "void"
+    },
+    name": "method2",
+      "returnType": "int"
+    }
+  ]
+}`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('{"name": "method2"');
+    });
+  });
+
+  describe("should remove LLM instruction text after JSON", () => {
+    it("should remove 'Please provide...' instruction after JSON", () => {
+      const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}
+Please provide the code for the next file.`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("Please provide");
+      expect(result.content).toContain('"kind": "CLASS"');
+    });
+
+    it("should remove 'Here is the JSON...' instruction after JSON", () => {
+      const input = `{
+  "data": [1, 2, 3]
+}
+Here is the JSON output as requested.`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("Here is the JSON");
+    });
+
+    it("should remove 'Note:' instruction after JSON", () => {
+      const input = `{
+  "methods": []
+}
+Note: This class has no public methods.`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("Note:");
+    });
+
+    it("should remove 'I have analyzed...' instruction after JSON", () => {
+      const input = `{
+  "analysis": "complete"
+}
+I have analyzed the code and found no issues.`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("I have analyzed");
+    });
+  });
+
+  describe("should remove extra JSON/schema after main structure", () => {
+    it("should remove JSON schema definition after main JSON", () => {
+      const input = `{
+  "name": "TestClass",
+  "kind": "CLASS"
+}
+{
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain("$schema");
+      expect(result.content).toContain('"kind": "CLASS"');
+    });
+
+    it("should remove type definition schema after main JSON", () => {
+      const input = `[
+  {"name": "item1"},
+  {"name": "item2"}
+]
+{
+  "type": "array"
+}`;
+
+      const result = fixJsonStructureAndNoise(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).not.toContain('"type": "array"');
+    });
+  });
 });

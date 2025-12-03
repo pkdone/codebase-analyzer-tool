@@ -819,6 +819,117 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       },
     );
 
+    // ===== Pattern 9d: Remove markdown list prefixes before JSON properties =====
+    // Pattern: ` - "property":` or `- "purpose":` where markdown list markers appear before JSON properties
+    // This handles cases where LLMs output markdown-style lists within JSON content
+    const markdownListPrefixPattern = /([\s\n])[ \t]*-[ \t]+("?[a-zA-Z_$][a-zA-Z0-9_$]*"?\s*:)/g;
+    sanitized = sanitized.replace(
+      markdownListPrefixPattern,
+      (match, precedingWhitespace, propertyWithColon, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const precedingStr = typeof precedingWhitespace === "string" ? precedingWhitespace : "";
+        const propertyStr = typeof propertyWithColon === "string" ? propertyWithColon : "";
+
+        hasChanges = true;
+        diagnostics.push(`Removed markdown list prefix before property: - ${propertyStr}`);
+        return `${precedingStr}${propertyStr}`;
+      },
+    );
+
+    // ===== Pattern 9e: Remove LLM commentary phrases in middle of JSON =====
+    // Pattern: `Next, I will analyze...` or `Let me continue...` appearing between JSON properties
+    // These are common LLM self-commentary that should not be in JSON output
+    const llmMidJsonCommentaryPattern =
+      /([,}\]])\s*\n\s*(Next,?\s+I\s+will|Let\s+me\s+(?:analyze|continue|proceed|now)|I\s+(?:will|shall)\s+(?:now|next)|Now\s+(?:let|I)|Moving\s+on)[^"]*?\n(\s*")/gi;
+    sanitized = sanitized.replace(
+      llmMidJsonCommentaryPattern,
+      (match, delimiter, _commentary, nextQuote, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const nextQuoteStr = typeof nextQuote === "string" ? nextQuote : "";
+
+        hasChanges = true;
+        diagnostics.push("Removed LLM mid-JSON commentary (Next, I will/Let me analyze/etc.)");
+        return `${delimiterStr}\n${nextQuoteStr}`;
+      },
+    );
+
+    // ===== Pattern 9f: Remove random text/filenames appearing between JSON properties =====
+    // Pattern: `},\n  tribal-council-meeting-notes.md\n  "prop":` - random text/filenames between properties
+    // This handles cases where LLMs insert random text that looks like filenames or identifiers
+    const randomTextBetweenPropertiesPattern =
+      /([}\]])\s*\n(\s*)([a-zA-Z][-a-zA-Z0-9_.]*\.(?:md|txt|json|js|ts|java|py|xml|html|css)|[a-zA-Z][-a-zA-Z0-9_]+[-][a-zA-Z0-9_-]+)\s*\n(\s*")/g;
+    sanitized = sanitized.replace(
+      randomTextBetweenPropertiesPattern,
+      (match, delimiter, _ws1, _randomText, nextPropWs, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const nextPropWsStr = typeof nextPropWs === "string" ? nextPropWs : "";
+
+        hasChanges = true;
+        diagnostics.push("Removed random text/filename between JSON properties");
+        return `${delimiterStr},\n${nextPropWsStr}`;
+      },
+    );
+
+    // ===== Pattern 9g: Fix concatenated text fragments like "instancetype" before property values =====
+    // Pattern: `instancetype"org.apache...` -> `"org.apache...`
+    // This handles cases where LLMs concatenate random identifiers with string values
+    const concatenatedTextPattern =
+      /([,{[]\s*\n?\s*)(instancetype|instancety|instance|instanc|instan|typename|typena|classname|classna)(")/gi;
+    sanitized = sanitized.replace(
+      concatenatedTextPattern,
+      (match, prefix, _corruptedText, quote, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const quoteStr = typeof quote === "string" ? quote : "";
+
+        hasChanges = true;
+        diagnostics.push("Removed concatenated text fragment before string value");
+        return `${prefixStr}${quoteStr}`;
+      },
+    );
+
+    // ===== Pattern 9h: Remove short stray text (2-4 chars) appearing before property names =====
+    // Pattern: `}\n    ano\n  "purpose":` -> `}\n  "purpose":`
+    // Extended from Pattern 9a to handle 3-4 character stray text like "ano", "so", etc.
+    const shortStrayTextBeforePropertyPattern =
+      /([}\],])\s*\n(\s*)([a-z]{2,4})\s*\n(\s*"[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
+    sanitized = sanitized.replace(
+      shortStrayTextBeforePropertyPattern,
+      (match, delimiter, _ws1, strayText, propertyPart, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+        const propertyPartStr = typeof propertyPart === "string" ? propertyPart : "";
+
+        // Only remove if it's a short word that isn't a JSON keyword
+        const jsonKeywords = ["true", "false", "null"];
+        if (!jsonKeywords.includes(strayTextStr.toLowerCase())) {
+          hasChanges = true;
+          diagnostics.push(`Removed short stray text "${strayTextStr}" before property`);
+          return `${delimiterStr},\n${propertyPartStr}`;
+        }
+
+        return match;
+      },
+    );
+
     // ===== Pattern 10: Remove "to be continued..." text and similar LLM commentary =====
     // Pattern: `to be continued...` or `to be conti...` appearing in JSON
     const continuationTextPattern = /to\s+be\s+conti[nued]*\.\.\.?\s*/gi;

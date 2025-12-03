@@ -232,6 +232,77 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
     },
   );
 
+  // Pattern 4: Fix missing opening brace for array elements
+  // Pattern: `},\n    _family_details":` -> `},\n    {"family_details":`
+  // This handles cases where array elements are missing the opening brace and the property name
+  // has a leading underscore or other character instead of a quote
+  const missingOpeningBracePattern = /(}\s*,\s*\n\s*)([_])([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+  sanitized = sanitized.replace(
+    missingOpeningBracePattern,
+    (match, prefix, strayChar, propertyName, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      const prefixStr = typeof prefix === "string" ? prefix : "";
+      const strayCharStr = typeof strayChar === "string" ? strayChar : "";
+      const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+
+      // Check if this looks like a missing opening brace situation
+      // The pattern is: close object }, newline, possibly a stray char, then property name with missing leading quote
+      // We need to verify we're in an array context by looking at the broader context
+      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+      // A simpler check: look for an opening bracket without matching closer before the match
+      const hasOpenArray =
+        beforeMatch.includes("[") && beforeMatch.lastIndexOf("[") > beforeMatch.lastIndexOf("]");
+
+      if (hasOpenArray && strayCharStr !== "") {
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed missing opening brace and quote before property "${propertyNameStr}"`,
+          );
+        }
+        return `${prefixStr}{"${propertyNameStr}":`;
+      }
+
+      return match;
+    },
+  );
+
+  // Pattern 5: Fix missing opening brace when property name has no leading quote at all
+  // Pattern: `},\n    propertyName":` -> `},\n    {"propertyName":`
+  const missingBraceAndQuotePattern = /(}\s*,\s*\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
+  sanitized = sanitized.replace(
+    missingBraceAndQuotePattern,
+    (match, prefix, propertyName, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      const prefixStr = typeof prefix === "string" ? prefix : "";
+      const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+
+      // Verify we're in an array context
+      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+      // A simpler check: look for an opening bracket without matching closer before the match
+      const hasOpenArray =
+        beforeMatch.includes("[") && beforeMatch.lastIndexOf("[") > beforeMatch.lastIndexOf("]");
+
+      if (hasOpenArray) {
+        if (diagnostics.length < 10) {
+          diagnostics.push(
+            `Fixed missing opening brace and quote before property "${propertyNameStr}"`,
+          );
+        }
+        return `${prefixStr}{"${propertyNameStr}":`;
+      }
+
+      return match;
+    },
+  );
+
   return sanitized;
 }
 
@@ -515,6 +586,55 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
         return `${beforeStr}\n${afterStr}`;
       }
       return `${beforeStr}${afterStr}`;
+    },
+  );
+
+  // Pattern 5: Remove LLM instruction text appended after truncation
+  // Pattern: JSON content followed by LLM instructions like "Please provide the code..." or "Here is the JSON..."
+  // These appear when the LLM adds instructions/commentary after the JSON output
+  const llmInstructionAfterJsonPattern =
+    /([}\]])\s*\n\s*(Please\s+(?:provide|note|ensure|make|check|review)|Here\s+(?:is|are)|Note\s*:|The\s+(?:JSON|response|output|above)|This\s+(?:JSON|response|output)|I\s+(?:have|will|shall)|Make\s+sure|Ensure\s+that|Remember\s+to)[^{}[\]]*$/gi;
+  sanitized = sanitized.replace(
+    llmInstructionAfterJsonPattern,
+    (match, delimiter, _instruction, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+
+      if (diagnostics.length < 10) {
+        diagnostics.push("Removed LLM instruction text appended after JSON");
+      }
+
+      return delimiterStr;
+    },
+  );
+
+  // Pattern 6: Remove schema definitions or extra JSON after the main structure
+  // Pattern: Complete JSON followed by schema definitions like `{\n  "$schema":` or `{\n  "type":`
+  const extraJsonAfterMainPattern =
+    /([}\]])\s*\n\s*\{\s*"\$schema"\s*:|([}\]])\s*\n\s*\{\s*"type"\s*:\s*"(?:object|array|string|number)"/g;
+  sanitized = sanitized.replace(
+    extraJsonAfterMainPattern,
+    (match, delimiter1, delimiter2, offset: unknown) => {
+      const numericOffset = typeof offset === "number" ? offset : 0;
+      if (isInStringAt(numericOffset, sanitized)) {
+        return match;
+      }
+
+      const delimiter1Str = typeof delimiter1 === "string" ? delimiter1 : "";
+      const delimiter2Str = typeof delimiter2 === "string" ? delimiter2 : "";
+      const delimiterStr = delimiter1Str !== "" ? delimiter1Str : delimiter2Str;
+      if (delimiterStr !== "") {
+        if (diagnostics.length < 10) {
+          diagnostics.push("Removed extra JSON/schema after main structure");
+        }
+        return delimiterStr;
+      }
+
+      return match;
     },
   );
 
