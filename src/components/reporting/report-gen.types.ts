@@ -1,5 +1,5 @@
 import { procedureTriggerSchema } from "../../schemas/sources.schema";
-import { COMPLEXITY_VALUES } from "../../schemas/source-schema.enums";
+import { COMPLEXITY_VALUES, COMPLEXITY_VALUES_SET } from "../../schemas/source-schema.enums";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
 import type {
   ProjectedFileTypesCountAndLines,
@@ -14,7 +14,7 @@ export type Complexity = (typeof COMPLEXITY_VALUES)[number];
  * Type guard to check if a value is a valid Complexity value
  */
 export function isComplexityLevel(value: unknown): value is Complexity {
-  return typeof value === "string" && COMPLEXITY_VALUES.includes(value.toUpperCase() as Complexity);
+  return typeof value === "string" && COMPLEXITY_VALUES_SET.has(value.toUpperCase() as Complexity);
 }
 
 export type ProcedureTrigger = TypeOf<typeof procedureTriggerSchema>;

@@ -12,17 +12,15 @@ interface MongoServerErrorWithResponse extends MongoServerError {
 }
 
 /**
- * Type guard to check if error is a MongoServerError with error response
+ * Type guard to check if error is a MongoServerError with error response.
+ * Uses explicit checks for safe property access.
  */
 export function isMongoServerErrorWithResponse(
   error: unknown,
 ): error is MongoServerErrorWithResponse {
   if (!(error instanceof MongoServerError)) return false;
-  // Access errorResponse only after verifying it's present and well-formed
-  const errorResponse = (error as { errorResponse?: unknown }).errorResponse;
-  if (typeof errorResponse !== "object" || errorResponse === null) return false;
-  const errmsg = (errorResponse as { errmsg?: unknown }).errmsg;
-  return typeof errmsg === "string";
+  const errorResponse = (error as { errorResponse?: { errmsg?: unknown } }).errorResponse;
+  return typeof errorResponse?.errmsg === "string";
 }
 
 /**

@@ -119,5 +119,4 @@ export class JobDataProvider {
       jobFiles: jobFilePaths,
     };
   }
-
 }

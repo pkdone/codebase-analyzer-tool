@@ -15,8 +15,8 @@ export function getNestedValue(obj: unknown, path: string): unknown {
     return undefined;
   }
 
-  const normalizedPath = path.replace(/\[(\d+)\]/g, ".$1"); // Normalize path: 'choices[0].message' -> 'choices.0.message'
-  const keys = normalizedPath.split(".").filter(Boolean); // filter(Boolean) removes empty strings
+  // Split on dot, open bracket, or close bracket - handles 'a.b', 'a[0].b', and 'a[0][1]' (though double bracket not supported)
+  const keys = path.split(/\.|\[|\]/).filter(Boolean);
   return keys.reduce<unknown>((current, key) => {
     if (current === null || typeof current !== "object") {
       return undefined;

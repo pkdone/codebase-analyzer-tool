@@ -163,3 +163,10 @@ export const SOURCE_ENTITY_KIND_VALUES = [
 
 /** Complexity score values for procedures/triggers (and similar constructs) */
 export const COMPLEXITY_VALUES = ["LOW", "MEDIUM", "HIGH"] as const;
+
+/**
+ * Set version of COMPLEXITY_VALUES for efficient membership checking.
+ * Use Set.has() for O(1) lookup instead of Array.includes() O(n).
+ * Typed as Set<string> to allow checking any string input.
+ */
+export const COMPLEXITY_VALUES_SET = new Set<string>(COMPLEXITY_VALUES);

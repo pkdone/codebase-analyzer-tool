@@ -21,6 +21,7 @@ import {
 } from "./utils/completions-models-retriever";
 import { loadManifestForModelFamily } from "./utils/manifest-loader";
 import { logOneLineWarning } from "../common/utils/logging";
+import { isDefined } from "../common/utils/type-guards";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -242,13 +243,13 @@ export default class LLMRouter {
    * Build LLMModelKeysSet from manifest
    */
   private buildModelsKeysSet(manifest: LLMProviderManifest): LLMModelKeysSet {
-    const keysSet: LLMModelKeysSet = {
+    return {
       embeddingsModelKey: manifest.models.embeddings.modelKey,
       primaryCompletionModelKey: manifest.models.primaryCompletion.modelKey,
+      ...(manifest.models.secondaryCompletion && {
+        secondaryCompletionModelKey: manifest.models.secondaryCompletion.modelKey,
+      }),
     };
-    if (manifest.models.secondaryCompletion)
-      keysSet.secondaryCompletionModelKey = manifest.models.secondaryCompletion.modelKey;
-    return keysSet;
   }
 
   /**
@@ -272,8 +273,8 @@ export default class LLMRouter {
     const models = [
       manifest.models.embeddings,
       manifest.models.primaryCompletion,
-      ...(manifest.models.secondaryCompletion ? [manifest.models.secondaryCompletion] : []),
-    ];
+      manifest.models.secondaryCompletion,
+    ].filter(isDefined);
     return Object.fromEntries(
       models.map((model) => [model.modelKey, { ...model, urn: resolveUrn(model) }]),
     );

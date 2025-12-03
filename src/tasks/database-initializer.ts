@@ -12,7 +12,7 @@ import {
   createVectorSearchIndexDefinition,
 } from "../common/mongodb/mdb-index-utils";
 import {
-  MONGODB_DUPLICATE_OBJ_ERROR_CODES,
+  MONGODB_DUPLICATE_OBJ_ERROR_CODES_SET,
   MONGODB_NAMESPACE_EXISTS_ERROR_CODE,
 } from "../common/mongodb/mdb.constants";
 
@@ -145,7 +145,7 @@ export class DatabaseInitializer {
       // Check if this is an expected duplicate error that we can safely ignore
       if (
         error instanceof MongoServerError &&
-        (MONGODB_DUPLICATE_OBJ_ERROR_CODES as readonly number[]).includes(Number(error.code))
+        MONGODB_DUPLICATE_OBJ_ERROR_CODES_SET.has(Number(error.code))
       ) {
         // Expected duplicate error - indexes already exist, which is fine
       } else {

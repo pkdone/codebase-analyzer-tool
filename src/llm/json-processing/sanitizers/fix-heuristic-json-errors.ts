@@ -39,14 +39,13 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     const duplicateEntryPattern1 = /"([^"]+)"\s*,\s*\n\s*([a-z]+)\.[^"]*"\s*,/g;
     sanitized = sanitized.replace(
       duplicateEntryPattern1,
-      (match, validEntry, prefix, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, validEntry, prefix, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context and the prefix looks like a corruption marker
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isInArrayContext = /[[,]\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
         const prefixStr = typeof prefix === "string" ? prefix : "";
         // Generic pattern: corruption markers are typically 4-10 letter words starting with common prefixes
@@ -74,13 +73,12 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*,\s*\n\s*"(extra|duplicate|repeat|copy|another|second|third|additional|redundant|spurious)[^"]*"(\s*,\s*|\s*\n)/g;
     sanitized = sanitized.replace(
       duplicateEntryPattern2,
-      (match, validEntry, prefix, delimiter, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, validEntry, prefix, delimiter, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isInArrayContext = /[[,]\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
 
         if (isInArrayContext) {
@@ -104,15 +102,14 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
 
     sanitized = sanitized.replace(
       truncatedPropertyPattern,
-      (match, whitespace, truncated, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, whitespace, truncated, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if this looks like a property name context (after comma, brace, or newline)
         // Uses lookbehind-like logic: check preceding context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 150), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 150), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -158,9 +155,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*,\s*\n\s*([a-z][^"]{5,200}?)(?=\s*[,}\]]|\s*\n\s*"[a-zA-Z]|\.\s*$)/g;
     sanitized = sanitized.replace(
       textOutsideStringPattern,
-      (match, value, strayText, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value, strayText, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -198,9 +194,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*,\s*([a-z][a-z\s]{5,50}\.)\s*([,}\]]|\n|$)/g;
     sanitized = sanitized.replace(
       textAfterStringWithPunctuationPattern,
-      (match, value, strayText, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value, strayText, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -224,7 +219,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
           // If terminator is empty or newline, use closing bracket for array context
           if (terminatorStr === "" || terminatorStr === "\n") {
             // Check if we're in an array context
-            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+            const beforeMatch = sanitized.substring(Math.max(0, offset - 50), offset);
             if (/\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch)) {
               return `"${valueStr}"\n  ]`;
             }
@@ -241,9 +236,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     const strayTextPattern = /([}\]])\s*,\s*\n\s*([a-z\s]{2,50})\n\s*([{"])/g;
     sanitized = sanitized.replace(
       strayTextPattern,
-      (match, delimiter, strayText, nextToken, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, strayText, nextToken, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -277,9 +271,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     const textAfterJsonEndPattern = /(}\s*)\n\s*([a-z][a-z\s]{5,200}?)(\.|\.\.\.|!|\?)?\s*$/i;
     sanitized = sanitized.replace(
       textAfterJsonEndPattern,
-      (match, closingBrace, strayText, _punctuation, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, closingBrace, strayText, _punctuation, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -315,9 +308,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     const textAfterJsonMiddlePattern = /(}\s*)\s*,\s*\n\s*([a-z][a-z\s]{2,50}?)(?=\s*[}\]]|$)/i;
     sanitized = sanitized.replace(
       textAfterJsonMiddlePattern,
-      (match, closingBrace, strayText, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, closingBrace, strayText, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -350,9 +342,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // Pattern 4d: Remove text like "_llm_thought:" appearing after JSON structure
     // Pattern: }\n_llm_thought: The user wants...
     const llmThoughtPattern = /(}\s*)\n\s*_llm_thought\s*:.*$/s;
-    sanitized = sanitized.replace(llmThoughtPattern, (match, closingBrace, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(llmThoughtPattern, (match, closingBrace, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -368,9 +359,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /(}\s*)\s*,\s*\n\s*([a-z]{1,3})\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
       textBeforePropertyAfterBracePattern,
-      (match, closingBrace, strayText, propertyWithQuote, _propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, closingBrace, strayText, propertyWithQuote, _propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -407,9 +397,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       missingQuoteAfterColonPattern,
-      (match, propertyName, unquotedValue, _nextValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, unquotedValue, _nextValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -440,9 +429,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*:\s*"([^"]+)"\s*\n\s*([a-z\s]+)"\s*\n\s*"([^"]+)"\s*:/g;
     sanitized = sanitized.replace(
       textAfterValuePattern1,
-      (match, prop1, value1, strayText, prop2, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prop1, value1, strayText, prop2, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -475,14 +463,13 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*,\s*\n\s*\b(from|because|since|as|when|where|while|if|although|though|after|before|during|through|until|unless|provided|given|considering|regarding)\b\s+[^"]{10,200}?"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextInArrayPattern,
-      (match, value1, _strayPrefix, value2, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value1, _strayPrefix, value2, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -506,14 +493,13 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*,\s*\n\s*\b(from|because|since|as|when|where|while|if|although|though|after|before|during|through|until|unless|provided|given|considering|regarding)\b\s+[^"]{10,200}?"([^"]+)"\s*(\n\s*[}\],])/g;
     sanitized = sanitized.replace(
       strayTextAtEndOfArrayElementPattern,
-      (match, value1, _strayPrefix, value2, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value1, _strayPrefix, value2, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -541,14 +527,13 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*,\s*\n\s*\b(from|because|since|as|when|where|while|if|although|though|after|before|during|through|until|unless|provided|given|considering|regarding)\b\s+[^"]{10,200}?"\s*,\s*\n\s*"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextWithQuotePattern,
-      (match, value1, _strayPrefix, value2, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value1, _strayPrefix, value2, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -573,9 +558,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /"([^"]+)"\s*:\s*"([^"]+)"\s*\n\s*"([^"]+)"\s*,\s*\n\s*"([^"]+)"\s*:/g;
     sanitized = sanitized.replace(
       textAfterValuePattern2,
-      (match, prop1, value1, strayText, prop2, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prop1, value1, strayText, prop2, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -607,25 +591,24 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     const missingOpeningQuotePattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*/g;
     sanitized = sanitized.replace(
       missingOpeningQuotePattern,
-      (match, whitespace, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, whitespace, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context (after comma, brace, newline, quoted string, or start of object)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 150), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 150), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /"\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
           /\[\s*$/.test(beforeMatch) ||
-          numericOffset < 150;
+          offset < 150;
 
         // Check if there's already a quote before this (shouldn't match if quote exists)
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-        const propertyStart = numericOffset + whitespaceStr.length;
+        const propertyStart = offset + whitespaceStr.length;
         if (propertyStart > 0 && sanitized[propertyStart - 1] === '"') {
           return match;
         }
@@ -663,10 +646,9 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         number,
         orphanedProperty,
         terminator,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -702,7 +684,7 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
             // For now, return just newline - the comma from }, is already there
             if (delimiterStr === ",") {
               // Check the content after the match to see if we need to handle the following comma
-              const afterMatch = sanitized.substring(numericOffset + match.length);
+              const afterMatch = sanitized.substring(offset + match.length);
               if (afterMatch.trim().startsWith(",")) {
                 // Next structure starts with comma, return newline to connect structures
                 return "\n    ";
@@ -732,9 +714,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // Pattern 9a: Handle corrupted text without orphaned property (original pattern)
     sanitized = sanitized.replace(
       corruptedTextPattern1,
-      (match, delimiter, whitespace, chars, number, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, chars, number, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -777,9 +758,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /([},]\s*\n\s*|\n\s*)([a-z]{1,2})(-\d+)?\s*,\s*\n\s*("codeSmells"\s*:\s*\[\s*\]\s*,?\s*\n\s*)([},])/g;
     sanitized = sanitized.replace(
       corruptedTextPattern2,
-      (match, prefix, chars, number, orphanedProperty, _terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, chars, number, orphanedProperty, _terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -825,9 +805,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /(}\s*,\s*\n\s*)("codeSmells"\s*:\s*\[\s*\]\s*,?\s*\n\s*)(},\s*\n\s*{)/g;
     sanitized = sanitized.replace(
       orphanedPropertyAfterCorruptionPattern,
-      (match, _prefix, _orphanedProperty, _suffix, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, _prefix, _orphanedProperty, _suffix, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -843,9 +822,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // ===== Pattern 10: Remove "to be continued..." text and similar LLM commentary =====
     // Pattern: `to be continued...` or `to be conti...` appearing in JSON
     const continuationTextPattern = /to\s+be\s+conti[nued]*\.\.\.?\s*/gi;
-    sanitized = sanitized.replace(continuationTextPattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(continuationTextPattern, (match, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -859,9 +837,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     const llmCommentaryPattern = /([,}])\s*\n\s*([a-z][a-z\s,']{5,50}\.)\s*\n\s*"/gi;
     sanitized = sanitized.replace(
       llmCommentaryPattern,
-      (match, delimiter, commentary, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, commentary, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -886,9 +863,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // ===== Pattern 11a: Remove extra_keys with YAML-like syntax and other LLM markers =====
     // Pattern: `extra_keys:\n  - "extra_key"` - YAML-like syntax that should be removed
     const extraKeysYamlPattern = /([,{])\s*extra_keys\s*:\s*\n\s*-\s*"[^"]*"\s*\n/g;
-    sanitized = sanitized.replace(extraKeysYamlPattern, (match, delimiter, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(extraKeysYamlPattern, (match, delimiter, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -900,9 +876,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
 
     // Pattern 11b: Remove LLM response markers like "extrai-response-marker"
     const llmMarkerPattern = /([,}])\s*\n\s*extra[a-z-]*\s*\n/g;
-    sanitized = sanitized.replace(llmMarkerPattern, (match, delimiter, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(llmMarkerPattern, (match, delimiter, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -922,9 +897,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
       /([,{])\s*extra_text\s*=\s*"\s*"\s*([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:\s*)/g;
     sanitized = sanitized.replace(
       malformedExtraTextPattern,
-      (match, delimiter, propertyNameWithQuote, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, propertyNameWithQuote, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 

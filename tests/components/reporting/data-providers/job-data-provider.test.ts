@@ -182,4 +182,3 @@ describe("job-data-provider", () => {
     });
   });
 });
-

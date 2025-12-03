@@ -260,12 +260,10 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       },
     ];
     const results = await this.collection.aggregate<ProjectedFileAndLineStats>(pipeline).toArray();
-    const [stats] = results;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!stats) return { fileCount: 0, linesOfCode: 0 };
+    const stats = results[0] as ProjectedFileAndLineStats | undefined;
     return {
-      fileCount: stats.fileCount,
-      linesOfCode: stats.linesOfCode,
+      fileCount: stats?.fileCount ?? 0,
+      linesOfCode: stats?.linesOfCode ?? 0,
     };
   }
 

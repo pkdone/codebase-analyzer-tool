@@ -25,14 +25,14 @@ import {
 } from "./bedrock-response-parser";
 import { EnvVars } from "../../../../env/env.types";
 
-const TOKEN_LIMIT_ERROR_KEYWORDS = new Set([
+const TOKEN_LIMIT_ERROR_KEYWORDS = [
   "too many input tokens",
   "expected maxlength",
   "input is too long",
   "input length",
   "too large for model",
   "please reduce the length of the prompt",
-]);
+] as const;
 
 /**
  * Configuration object for Bedrock LLM providers.
@@ -171,12 +171,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     if (!(error instanceof ValidationException)) return false;
 
     const lowercaseContent = formatError(error).toLowerCase();
-    for (const keyword of TOKEN_LIMIT_ERROR_KEYWORDS) {
-      if (lowercaseContent.includes(keyword)) {
-        return true;
-      }
-    }
-    return false;
+    return TOKEN_LIMIT_ERROR_KEYWORDS.some((keyword) => lowercaseContent.includes(keyword));
   }
 
   /**

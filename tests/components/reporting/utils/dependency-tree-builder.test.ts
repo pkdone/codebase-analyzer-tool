@@ -347,4 +347,3 @@ describe("dependency-tree-builder", () => {
     });
   });
 });
-
