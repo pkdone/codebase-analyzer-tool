@@ -12,7 +12,7 @@ import {
   COMPLEXITY_VALUES,
 } from "./source-schema.enums";
 import {
-  normalizeEnumValue,
+  createCaseInsensitiveEnumSchema,
   normalizeEnumArray,
   DEFAULT_INVALID_VALUE,
 } from "../common/schema/schema-utils";
@@ -22,12 +22,9 @@ import {
  */
 export const databaseIntegrationSchema = z
   .object({
-    mechanism: z
-      .preprocess(
-        (val) => normalizeEnumValue(val, DATABASE_MECHANISM_VALUES),
-        z.union([z.enum(DATABASE_MECHANISM_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-      )
-      .describe("The database integration mechanism used - only the listed values are valid."),
+    mechanism: createCaseInsensitiveEnumSchema(DATABASE_MECHANISM_VALUES).describe(
+      "The database integration mechanism used - only the listed values are valid.",
+    ),
     name: z.string().optional().describe("Name of the database, service, or data access component"),
     description: z
       .string()
@@ -54,9 +51,7 @@ export const databaseIntegrationSchema = z
         "Free-form description of query patterns (e.g., 'JPQL queries with dynamic criteria'). " +
           "A separate 'queryPatternsNormalized' field may be derived for internal analytics.",
       ),
-    queryPatternsNormalized: z
-      .preprocess((val) => normalizeEnumValue(val, QUERY_PATTERN_VALUES), z.any())
-      .pipe(z.union([z.enum(QUERY_PATTERN_VALUES), z.literal(DEFAULT_INVALID_VALUE)]))
+    queryPatternsNormalized: createCaseInsensitiveEnumSchema(QUERY_PATTERN_VALUES)
       .optional()
       .describe("Normalized query pattern category derived from 'queryPatterns'."),
     transactionHandling: z
@@ -66,9 +61,7 @@ export const databaseIntegrationSchema = z
         "Free-form description of transaction handling (e.g., 'Spring @Transactional annotations" +
           "'). A separate 'transactionHandlingNormalized' field may be derived for internal analytics.",
       ),
-    transactionHandlingNormalized: z
-      .preprocess((val) => normalizeEnumValue(val, TRANSACTION_HANDLING_VALUES), z.any())
-      .pipe(z.union([z.enum(TRANSACTION_HANDLING_VALUES), z.literal(DEFAULT_INVALID_VALUE)]))
+    transactionHandlingNormalized: createCaseInsensitiveEnumSchema(TRANSACTION_HANDLING_VALUES)
       .optional()
       .describe("Normalized transaction handling category derived from 'transactionHandling')."),
     protocol: z
@@ -162,12 +155,9 @@ export const procedureTriggerSchema = z
   .object({
     name: z.string().describe("The name of the procedure or trigger."),
     purpose: z.string().describe("Detailed purpose in at least 3 sentences."),
-    complexity: z
-      .preprocess(
-        (val) => normalizeEnumValue(val, COMPLEXITY_VALUES),
-        z.union([z.enum(COMPLEXITY_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-      )
-      .describe("Complexity score - only the listed values are valid; invalid becomes 'INVALID'."),
+    complexity: createCaseInsensitiveEnumSchema(COMPLEXITY_VALUES).describe(
+      "Complexity score - only the listed values are valid; invalid becomes 'INVALID'.",
+    ),
     complexityReason: z
       .string()
       .describe("A brief, one-sentence reason for the chosen complexity score."),
@@ -251,14 +241,9 @@ export const publicMethodSchema = z
  */
 export const integrationEndpointSchema = z
   .object({
-    mechanism: z
-      .preprocess(
-        (val) => normalizeEnumValue(val, INTEGRATION_MECHANISM_VALUES),
-        z.union([z.enum(INTEGRATION_MECHANISM_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-      )
-      .describe(
-        "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'.",
-      ),
+    mechanism: createCaseInsensitiveEnumSchema(INTEGRATION_MECHANISM_VALUES).describe(
+      "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'.",
+    ),
     name: z.string().describe("Name of the endpoint, queue, topic, or service operation"),
     description: z.string().describe("What this integration point does"),
     path: z
@@ -277,9 +262,7 @@ export const integrationEndpointSchema = z
       .string()
       .optional()
       .describe("Type of message being sent/received (for messaging systems)"),
-    direction: z
-      .preprocess((val) => normalizeEnumValue(val, DIRECTION_VALUES), z.any())
-      .pipe(z.union([z.enum(DIRECTION_VALUES), z.literal(DEFAULT_INVALID_VALUE)]))
+    direction: createCaseInsensitiveEnumSchema(DIRECTION_VALUES)
       .optional()
       .describe("Whether this code produces, consumes, both, or is bidirectional"),
     requestBody: z
@@ -379,11 +362,7 @@ export const sourceSummarySchema = z
       .describe(
         "The fully qualified namespace including class/object name (e.g. classpath in Java).",
       ),
-    kind: z
-      .preprocess(
-        (val) => normalizeEnumValue(val, SOURCE_ENTITY_KIND_VALUES),
-        z.union([z.enum(SOURCE_ENTITY_KIND_VALUES), z.literal(DEFAULT_INVALID_VALUE)]),
-      )
+    kind: createCaseInsensitiveEnumSchema(SOURCE_ENTITY_KIND_VALUES)
       .optional()
       .describe("The kind of the main entity - only the listed values are valid."),
     internalReferences: z

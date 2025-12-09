@@ -104,7 +104,10 @@ The JSON response must follow this JSON schema:
       "description": "The name of the main public class or interface."
     },
     "kind": {
-      "anyOf": [
+      "allOf": [
+        {
+          "type": "string"
+        },
         {
           "type": "string",
           "enum": [
@@ -118,10 +121,6 @@ The JSON response must follow this JSON schema:
             "UNION",
             "FUNCTION"
           ]
-        },
-        {
-          "type": "string",
-          "const": "INVALID"
         }
       ],
       "description": "The kind of the main entity - only the listed values are valid."
@@ -280,7 +279,10 @@ The JSON response must follow this JSON schema:
       "type": "object",
       "properties": {
         "mechanism": {
-          "anyOf": [
+          "allOf": [
+            {
+              "type": "string"
+            },
             {
               "type": "string",
               "enum": [
@@ -322,10 +324,6 @@ The JSON response must follow this JSON schema:
                 "FUNCTION",
                 "OTHER"
               ]
-            },
-            {
-              "type": "string",
-              "const": "INVALID"
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
@@ -383,29 +381,23 @@ The JSON response must follow this JSON schema:
         },
         "queryPatternsNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SIMPLE CRUD",
-                    "COMPLEX JOINS",
-                    "AGGREGATIONS",
-                    "STORED PROCEDURES",
-                    "BATCH OPERATIONS",
-                    "MIGRATIONS",
-                    "INLINE SQL",
-                    "ORM QUERIES",
-                    "RAW DRIVER CALLS",
-                    "CACHE LOOKUPS",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SIMPLE CRUD",
+                "COMPLEX JOINS",
+                "AGGREGATIONS",
+                "STORED PROCEDURES",
+                "BATCH OPERATIONS",
+                "MIGRATIONS",
+                "INLINE SQL",
+                "ORM QUERIES",
+                "RAW DRIVER CALLS",
+                "CACHE LOOKUPS",
+                "OTHER"
               ]
             }
           ],
@@ -417,29 +409,23 @@ The JSON response must follow this JSON schema:
         },
         "transactionHandlingNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SPRING @TRANSACTIONAL",
-                    "MANUAL",
-                    "AUTO-COMMIT",
-                    "NONE",
-                    "JPA ENTITYTRANSACTION",
-                    "BATCH",
-                    "DB CONTEXT",
-                    "EXPLICIT BEGIN/COMMIT",
-                    "ROLLBACK ON ERROR",
-                    "UNKNOWN",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SPRING @TRANSACTIONAL",
+                "MANUAL",
+                "AUTO-COMMIT",
+                "NONE",
+                "JPA ENTITYTRANSACTION",
+                "BATCH",
+                "DB CONTEXT",
+                "EXPLICIT BEGIN/COMMIT",
+                "ROLLBACK ON ERROR",
+                "UNKNOWN",
+                "OTHER"
               ]
             }
           ],
@@ -472,7 +458,10 @@ The JSON response must follow this JSON schema:
         "type": "object",
         "properties": {
           "mechanism": {
-            "anyOf": [
+            "allOf": [
+              {
+                "type": "string"
+              },
               {
                 "type": "string",
                 "enum": [
@@ -498,10 +487,6 @@ The JSON response must follow this JSON schema:
                   "SSE",
                   "OTHER"
                 ]
-              },
-              {
-                "type": "string",
-                "const": "INVALID"
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
@@ -532,23 +517,17 @@ The JSON response must follow this JSON schema:
           },
           "direction": {
             "allOf": [
-              {},
               {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "enum": [
-                      "PRODUCER",
-                      "CONSUMER",
-                      "BOTH",
-                      "BIDIRECTIONAL",
-                      "OTHER"
-                    ]
-                  },
-                  {
-                    "type": "string",
-                    "const": "INVALID"
-                  }
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "PRODUCER",
+                  "CONSUMER",
+                  "BOTH",
+                  "BIDIRECTIONAL",
+                  "OTHER"
                 ]
               }
             ],
@@ -716,7 +695,10 @@ The JSON response must follow this JSON schema:
       "type": "object",
       "properties": {
         "mechanism": {
-          "anyOf": [
+          "allOf": [
+            {
+              "type": "string"
+            },
             {
               "type": "string",
               "enum": [
@@ -758,10 +740,6 @@ The JSON response must follow this JSON schema:
                 "FUNCTION",
                 "OTHER"
               ]
-            },
-            {
-              "type": "string",
-              "const": "INVALID"
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
@@ -819,29 +797,23 @@ The JSON response must follow this JSON schema:
         },
         "queryPatternsNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SIMPLE CRUD",
-                    "COMPLEX JOINS",
-                    "AGGREGATIONS",
-                    "STORED PROCEDURES",
-                    "BATCH OPERATIONS",
-                    "MIGRATIONS",
-                    "INLINE SQL",
-                    "ORM QUERIES",
-                    "RAW DRIVER CALLS",
-                    "CACHE LOOKUPS",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SIMPLE CRUD",
+                "COMPLEX JOINS",
+                "AGGREGATIONS",
+                "STORED PROCEDURES",
+                "BATCH OPERATIONS",
+                "MIGRATIONS",
+                "INLINE SQL",
+                "ORM QUERIES",
+                "RAW DRIVER CALLS",
+                "CACHE LOOKUPS",
+                "OTHER"
               ]
             }
           ],
@@ -853,29 +825,23 @@ The JSON response must follow this JSON schema:
         },
         "transactionHandlingNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SPRING @TRANSACTIONAL",
-                    "MANUAL",
-                    "AUTO-COMMIT",
-                    "NONE",
-                    "JPA ENTITYTRANSACTION",
-                    "BATCH",
-                    "DB CONTEXT",
-                    "EXPLICIT BEGIN/COMMIT",
-                    "ROLLBACK ON ERROR",
-                    "UNKNOWN",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SPRING @TRANSACTIONAL",
+                "MANUAL",
+                "AUTO-COMMIT",
+                "NONE",
+                "JPA ENTITYTRANSACTION",
+                "BATCH",
+                "DB CONTEXT",
+                "EXPLICIT BEGIN/COMMIT",
+                "ROLLBACK ON ERROR",
+                "UNKNOWN",
+                "OTHER"
               ]
             }
           ],
@@ -1225,7 +1191,10 @@ The JSON response must follow this JSON schema:
       "description": "The name of the main public class or interface."
     },
     "kind": {
-      "anyOf": [
+      "allOf": [
+        {
+          "type": "string"
+        },
         {
           "type": "string",
           "enum": [
@@ -1239,10 +1208,6 @@ The JSON response must follow this JSON schema:
             "UNION",
             "FUNCTION"
           ]
-        },
-        {
-          "type": "string",
-          "const": "INVALID"
         }
       ],
       "description": "The kind of the main entity - only the listed values are valid."
@@ -1401,7 +1366,10 @@ The JSON response must follow this JSON schema:
       "type": "object",
       "properties": {
         "mechanism": {
-          "anyOf": [
+          "allOf": [
+            {
+              "type": "string"
+            },
             {
               "type": "string",
               "enum": [
@@ -1443,10 +1411,6 @@ The JSON response must follow this JSON schema:
                 "FUNCTION",
                 "OTHER"
               ]
-            },
-            {
-              "type": "string",
-              "const": "INVALID"
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
@@ -1504,29 +1468,23 @@ The JSON response must follow this JSON schema:
         },
         "queryPatternsNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SIMPLE CRUD",
-                    "COMPLEX JOINS",
-                    "AGGREGATIONS",
-                    "STORED PROCEDURES",
-                    "BATCH OPERATIONS",
-                    "MIGRATIONS",
-                    "INLINE SQL",
-                    "ORM QUERIES",
-                    "RAW DRIVER CALLS",
-                    "CACHE LOOKUPS",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SIMPLE CRUD",
+                "COMPLEX JOINS",
+                "AGGREGATIONS",
+                "STORED PROCEDURES",
+                "BATCH OPERATIONS",
+                "MIGRATIONS",
+                "INLINE SQL",
+                "ORM QUERIES",
+                "RAW DRIVER CALLS",
+                "CACHE LOOKUPS",
+                "OTHER"
               ]
             }
           ],
@@ -1538,29 +1496,23 @@ The JSON response must follow this JSON schema:
         },
         "transactionHandlingNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SPRING @TRANSACTIONAL",
-                    "MANUAL",
-                    "AUTO-COMMIT",
-                    "NONE",
-                    "JPA ENTITYTRANSACTION",
-                    "BATCH",
-                    "DB CONTEXT",
-                    "EXPLICIT BEGIN/COMMIT",
-                    "ROLLBACK ON ERROR",
-                    "UNKNOWN",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SPRING @TRANSACTIONAL",
+                "MANUAL",
+                "AUTO-COMMIT",
+                "NONE",
+                "JPA ENTITYTRANSACTION",
+                "BATCH",
+                "DB CONTEXT",
+                "EXPLICIT BEGIN/COMMIT",
+                "ROLLBACK ON ERROR",
+                "UNKNOWN",
+                "OTHER"
               ]
             }
           ],
@@ -1593,7 +1545,10 @@ The JSON response must follow this JSON schema:
         "type": "object",
         "properties": {
           "mechanism": {
-            "anyOf": [
+            "allOf": [
+              {
+                "type": "string"
+              },
               {
                 "type": "string",
                 "enum": [
@@ -1619,10 +1574,6 @@ The JSON response must follow this JSON schema:
                   "SSE",
                   "OTHER"
                 ]
-              },
-              {
-                "type": "string",
-                "const": "INVALID"
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
@@ -1653,23 +1604,17 @@ The JSON response must follow this JSON schema:
           },
           "direction": {
             "allOf": [
-              {},
               {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "enum": [
-                      "PRODUCER",
-                      "CONSUMER",
-                      "BOTH",
-                      "BIDIRECTIONAL",
-                      "OTHER"
-                    ]
-                  },
-                  {
-                    "type": "string",
-                    "const": "INVALID"
-                  }
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "PRODUCER",
+                  "CONSUMER",
+                  "BOTH",
+                  "BIDIRECTIONAL",
+                  "OTHER"
                 ]
               }
             ],
@@ -1910,7 +1855,10 @@ The JSON response must follow this JSON schema:
       "description": "The name of the main public class or interface."
     },
     "kind": {
-      "anyOf": [
+      "allOf": [
+        {
+          "type": "string"
+        },
         {
           "type": "string",
           "enum": [
@@ -1924,10 +1872,6 @@ The JSON response must follow this JSON schema:
             "UNION",
             "FUNCTION"
           ]
-        },
-        {
-          "type": "string",
-          "const": "INVALID"
         }
       ],
       "description": "The kind of the main entity - only the listed values are valid."
@@ -2086,7 +2030,10 @@ The JSON response must follow this JSON schema:
       "type": "object",
       "properties": {
         "mechanism": {
-          "anyOf": [
+          "allOf": [
+            {
+              "type": "string"
+            },
             {
               "type": "string",
               "enum": [
@@ -2128,10 +2075,6 @@ The JSON response must follow this JSON schema:
                 "FUNCTION",
                 "OTHER"
               ]
-            },
-            {
-              "type": "string",
-              "const": "INVALID"
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
@@ -2189,29 +2132,23 @@ The JSON response must follow this JSON schema:
         },
         "queryPatternsNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SIMPLE CRUD",
-                    "COMPLEX JOINS",
-                    "AGGREGATIONS",
-                    "STORED PROCEDURES",
-                    "BATCH OPERATIONS",
-                    "MIGRATIONS",
-                    "INLINE SQL",
-                    "ORM QUERIES",
-                    "RAW DRIVER CALLS",
-                    "CACHE LOOKUPS",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SIMPLE CRUD",
+                "COMPLEX JOINS",
+                "AGGREGATIONS",
+                "STORED PROCEDURES",
+                "BATCH OPERATIONS",
+                "MIGRATIONS",
+                "INLINE SQL",
+                "ORM QUERIES",
+                "RAW DRIVER CALLS",
+                "CACHE LOOKUPS",
+                "OTHER"
               ]
             }
           ],
@@ -2223,29 +2160,23 @@ The JSON response must follow this JSON schema:
         },
         "transactionHandlingNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SPRING @TRANSACTIONAL",
-                    "MANUAL",
-                    "AUTO-COMMIT",
-                    "NONE",
-                    "JPA ENTITYTRANSACTION",
-                    "BATCH",
-                    "DB CONTEXT",
-                    "EXPLICIT BEGIN/COMMIT",
-                    "ROLLBACK ON ERROR",
-                    "UNKNOWN",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SPRING @TRANSACTIONAL",
+                "MANUAL",
+                "AUTO-COMMIT",
+                "NONE",
+                "JPA ENTITYTRANSACTION",
+                "BATCH",
+                "DB CONTEXT",
+                "EXPLICIT BEGIN/COMMIT",
+                "ROLLBACK ON ERROR",
+                "UNKNOWN",
+                "OTHER"
               ]
             }
           ],
@@ -2278,7 +2209,10 @@ The JSON response must follow this JSON schema:
         "type": "object",
         "properties": {
           "mechanism": {
-            "anyOf": [
+            "allOf": [
+              {
+                "type": "string"
+              },
               {
                 "type": "string",
                 "enum": [
@@ -2304,10 +2238,6 @@ The JSON response must follow this JSON schema:
                   "SSE",
                   "OTHER"
                 ]
-              },
-              {
-                "type": "string",
-                "const": "INVALID"
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
@@ -2338,23 +2268,17 @@ The JSON response must follow this JSON schema:
           },
           "direction": {
             "allOf": [
-              {},
               {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "enum": [
-                      "PRODUCER",
-                      "CONSUMER",
-                      "BOTH",
-                      "BIDIRECTIONAL",
-                      "OTHER"
-                    ]
-                  },
-                  {
-                    "type": "string",
-                    "const": "INVALID"
-                  }
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "PRODUCER",
+                  "CONSUMER",
+                  "BOTH",
+                  "BIDIRECTIONAL",
+                  "OTHER"
                 ]
               }
             ],
@@ -2522,7 +2446,10 @@ The JSON response must follow this JSON schema:
       "type": "object",
       "properties": {
         "mechanism": {
-          "anyOf": [
+          "allOf": [
+            {
+              "type": "string"
+            },
             {
               "type": "string",
               "enum": [
@@ -2564,10 +2491,6 @@ The JSON response must follow this JSON schema:
                 "FUNCTION",
                 "OTHER"
               ]
-            },
-            {
-              "type": "string",
-              "const": "INVALID"
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
@@ -2625,29 +2548,23 @@ The JSON response must follow this JSON schema:
         },
         "queryPatternsNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SIMPLE CRUD",
-                    "COMPLEX JOINS",
-                    "AGGREGATIONS",
-                    "STORED PROCEDURES",
-                    "BATCH OPERATIONS",
-                    "MIGRATIONS",
-                    "INLINE SQL",
-                    "ORM QUERIES",
-                    "RAW DRIVER CALLS",
-                    "CACHE LOOKUPS",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SIMPLE CRUD",
+                "COMPLEX JOINS",
+                "AGGREGATIONS",
+                "STORED PROCEDURES",
+                "BATCH OPERATIONS",
+                "MIGRATIONS",
+                "INLINE SQL",
+                "ORM QUERIES",
+                "RAW DRIVER CALLS",
+                "CACHE LOOKUPS",
+                "OTHER"
               ]
             }
           ],
@@ -2659,29 +2576,23 @@ The JSON response must follow this JSON schema:
         },
         "transactionHandlingNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SPRING @TRANSACTIONAL",
-                    "MANUAL",
-                    "AUTO-COMMIT",
-                    "NONE",
-                    "JPA ENTITYTRANSACTION",
-                    "BATCH",
-                    "DB CONTEXT",
-                    "EXPLICIT BEGIN/COMMIT",
-                    "ROLLBACK ON ERROR",
-                    "UNKNOWN",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SPRING @TRANSACTIONAL",
+                "MANUAL",
+                "AUTO-COMMIT",
+                "NONE",
+                "JPA ENTITYTRANSACTION",
+                "BATCH",
+                "DB CONTEXT",
+                "EXPLICIT BEGIN/COMMIT",
+                "ROLLBACK ON ERROR",
+                "UNKNOWN",
+                "OTHER"
               ]
             }
           ],
@@ -2843,7 +2754,10 @@ The JSON response must follow this JSON schema:
       "description": "The name of the main public class or interface."
     },
     "kind": {
-      "anyOf": [
+      "allOf": [
+        {
+          "type": "string"
+        },
         {
           "type": "string",
           "enum": [
@@ -2857,10 +2771,6 @@ The JSON response must follow this JSON schema:
             "UNION",
             "FUNCTION"
           ]
-        },
-        {
-          "type": "string",
-          "const": "INVALID"
         }
       ],
       "description": "The kind of the main entity - only the listed values are valid."
@@ -3019,7 +2929,10 @@ The JSON response must follow this JSON schema:
       "type": "object",
       "properties": {
         "mechanism": {
-          "anyOf": [
+          "allOf": [
+            {
+              "type": "string"
+            },
             {
               "type": "string",
               "enum": [
@@ -3061,10 +2974,6 @@ The JSON response must follow this JSON schema:
                 "FUNCTION",
                 "OTHER"
               ]
-            },
-            {
-              "type": "string",
-              "const": "INVALID"
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
@@ -3122,29 +3031,23 @@ The JSON response must follow this JSON schema:
         },
         "queryPatternsNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SIMPLE CRUD",
-                    "COMPLEX JOINS",
-                    "AGGREGATIONS",
-                    "STORED PROCEDURES",
-                    "BATCH OPERATIONS",
-                    "MIGRATIONS",
-                    "INLINE SQL",
-                    "ORM QUERIES",
-                    "RAW DRIVER CALLS",
-                    "CACHE LOOKUPS",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SIMPLE CRUD",
+                "COMPLEX JOINS",
+                "AGGREGATIONS",
+                "STORED PROCEDURES",
+                "BATCH OPERATIONS",
+                "MIGRATIONS",
+                "INLINE SQL",
+                "ORM QUERIES",
+                "RAW DRIVER CALLS",
+                "CACHE LOOKUPS",
+                "OTHER"
               ]
             }
           ],
@@ -3156,29 +3059,23 @@ The JSON response must follow this JSON schema:
         },
         "transactionHandlingNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SPRING @TRANSACTIONAL",
-                    "MANUAL",
-                    "AUTO-COMMIT",
-                    "NONE",
-                    "JPA ENTITYTRANSACTION",
-                    "BATCH",
-                    "DB CONTEXT",
-                    "EXPLICIT BEGIN/COMMIT",
-                    "ROLLBACK ON ERROR",
-                    "UNKNOWN",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SPRING @TRANSACTIONAL",
+                "MANUAL",
+                "AUTO-COMMIT",
+                "NONE",
+                "JPA ENTITYTRANSACTION",
+                "BATCH",
+                "DB CONTEXT",
+                "EXPLICIT BEGIN/COMMIT",
+                "ROLLBACK ON ERROR",
+                "UNKNOWN",
+                "OTHER"
               ]
             }
           ],
@@ -3211,7 +3108,10 @@ The JSON response must follow this JSON schema:
         "type": "object",
         "properties": {
           "mechanism": {
-            "anyOf": [
+            "allOf": [
+              {
+                "type": "string"
+              },
               {
                 "type": "string",
                 "enum": [
@@ -3237,10 +3137,6 @@ The JSON response must follow this JSON schema:
                   "SSE",
                   "OTHER"
                 ]
-              },
-              {
-                "type": "string",
-                "const": "INVALID"
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
@@ -3271,23 +3167,17 @@ The JSON response must follow this JSON schema:
           },
           "direction": {
             "allOf": [
-              {},
               {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "enum": [
-                      "PRODUCER",
-                      "CONSUMER",
-                      "BOTH",
-                      "BIDIRECTIONAL",
-                      "OTHER"
-                    ]
-                  },
-                  {
-                    "type": "string",
-                    "const": "INVALID"
-                  }
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "PRODUCER",
+                  "CONSUMER",
+                  "BOTH",
+                  "BIDIRECTIONAL",
+                  "OTHER"
                 ]
               }
             ],
@@ -3518,7 +3408,10 @@ The JSON response must follow this JSON schema:
       "description": "The name of the main public class or interface."
     },
     "kind": {
-      "anyOf": [
+      "allOf": [
+        {
+          "type": "string"
+        },
         {
           "type": "string",
           "enum": [
@@ -3532,10 +3425,6 @@ The JSON response must follow this JSON schema:
             "UNION",
             "FUNCTION"
           ]
-        },
-        {
-          "type": "string",
-          "const": "INVALID"
         }
       ],
       "description": "The kind of the main entity - only the listed values are valid."
@@ -3694,7 +3583,10 @@ The JSON response must follow this JSON schema:
       "type": "object",
       "properties": {
         "mechanism": {
-          "anyOf": [
+          "allOf": [
+            {
+              "type": "string"
+            },
             {
               "type": "string",
               "enum": [
@@ -3736,10 +3628,6 @@ The JSON response must follow this JSON schema:
                 "FUNCTION",
                 "OTHER"
               ]
-            },
-            {
-              "type": "string",
-              "const": "INVALID"
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
@@ -3797,29 +3685,23 @@ The JSON response must follow this JSON schema:
         },
         "queryPatternsNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SIMPLE CRUD",
-                    "COMPLEX JOINS",
-                    "AGGREGATIONS",
-                    "STORED PROCEDURES",
-                    "BATCH OPERATIONS",
-                    "MIGRATIONS",
-                    "INLINE SQL",
-                    "ORM QUERIES",
-                    "RAW DRIVER CALLS",
-                    "CACHE LOOKUPS",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SIMPLE CRUD",
+                "COMPLEX JOINS",
+                "AGGREGATIONS",
+                "STORED PROCEDURES",
+                "BATCH OPERATIONS",
+                "MIGRATIONS",
+                "INLINE SQL",
+                "ORM QUERIES",
+                "RAW DRIVER CALLS",
+                "CACHE LOOKUPS",
+                "OTHER"
               ]
             }
           ],
@@ -3831,29 +3713,23 @@ The JSON response must follow this JSON schema:
         },
         "transactionHandlingNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SPRING @TRANSACTIONAL",
-                    "MANUAL",
-                    "AUTO-COMMIT",
-                    "NONE",
-                    "JPA ENTITYTRANSACTION",
-                    "BATCH",
-                    "DB CONTEXT",
-                    "EXPLICIT BEGIN/COMMIT",
-                    "ROLLBACK ON ERROR",
-                    "UNKNOWN",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SPRING @TRANSACTIONAL",
+                "MANUAL",
+                "AUTO-COMMIT",
+                "NONE",
+                "JPA ENTITYTRANSACTION",
+                "BATCH",
+                "DB CONTEXT",
+                "EXPLICIT BEGIN/COMMIT",
+                "ROLLBACK ON ERROR",
+                "UNKNOWN",
+                "OTHER"
               ]
             }
           ],
@@ -3886,7 +3762,10 @@ The JSON response must follow this JSON schema:
         "type": "object",
         "properties": {
           "mechanism": {
-            "anyOf": [
+            "allOf": [
+              {
+                "type": "string"
+              },
               {
                 "type": "string",
                 "enum": [
@@ -3912,10 +3791,6 @@ The JSON response must follow this JSON schema:
                   "SSE",
                   "OTHER"
                 ]
-              },
-              {
-                "type": "string",
-                "const": "INVALID"
               }
             ],
             "description": "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'."
@@ -3946,23 +3821,17 @@ The JSON response must follow this JSON schema:
           },
           "direction": {
             "allOf": [
-              {},
               {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "enum": [
-                      "PRODUCER",
-                      "CONSUMER",
-                      "BOTH",
-                      "BIDIRECTIONAL",
-                      "OTHER"
-                    ]
-                  },
-                  {
-                    "type": "string",
-                    "const": "INVALID"
-                  }
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "PRODUCER",
+                  "CONSUMER",
+                  "BOTH",
+                  "BIDIRECTIONAL",
+                  "OTHER"
                 ]
               }
             ],
@@ -4161,7 +4030,10 @@ The JSON response must follow this JSON schema:
             "description": "Detailed purpose in at least 3 sentences."
           },
           "complexity": {
-            "anyOf": [
+            "allOf": [
+              {
+                "type": "string"
+              },
               {
                 "type": "string",
                 "enum": [
@@ -4169,10 +4041,6 @@ The JSON response must follow this JSON schema:
                   "MEDIUM",
                   "HIGH"
                 ]
-              },
-              {
-                "type": "string",
-                "const": "INVALID"
               }
             ],
             "description": "Complexity score - only the listed values are valid; invalid becomes 'INVALID'."
@@ -4208,7 +4076,10 @@ The JSON response must follow this JSON schema:
       "type": "object",
       "properties": {
         "mechanism": {
-          "anyOf": [
+          "allOf": [
+            {
+              "type": "string"
+            },
             {
               "type": "string",
               "enum": [
@@ -4250,10 +4121,6 @@ The JSON response must follow this JSON schema:
                 "FUNCTION",
                 "OTHER"
               ]
-            },
-            {
-              "type": "string",
-              "const": "INVALID"
             }
           ],
           "description": "The database integration mechanism used - only the listed values are valid."
@@ -4311,29 +4178,23 @@ The JSON response must follow this JSON schema:
         },
         "queryPatternsNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SIMPLE CRUD",
-                    "COMPLEX JOINS",
-                    "AGGREGATIONS",
-                    "STORED PROCEDURES",
-                    "BATCH OPERATIONS",
-                    "MIGRATIONS",
-                    "INLINE SQL",
-                    "ORM QUERIES",
-                    "RAW DRIVER CALLS",
-                    "CACHE LOOKUPS",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SIMPLE CRUD",
+                "COMPLEX JOINS",
+                "AGGREGATIONS",
+                "STORED PROCEDURES",
+                "BATCH OPERATIONS",
+                "MIGRATIONS",
+                "INLINE SQL",
+                "ORM QUERIES",
+                "RAW DRIVER CALLS",
+                "CACHE LOOKUPS",
+                "OTHER"
               ]
             }
           ],
@@ -4345,29 +4206,23 @@ The JSON response must follow this JSON schema:
         },
         "transactionHandlingNormalized": {
           "allOf": [
-            {},
             {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "SPRING @TRANSACTIONAL",
-                    "MANUAL",
-                    "AUTO-COMMIT",
-                    "NONE",
-                    "JPA ENTITYTRANSACTION",
-                    "BATCH",
-                    "DB CONTEXT",
-                    "EXPLICIT BEGIN/COMMIT",
-                    "ROLLBACK ON ERROR",
-                    "UNKNOWN",
-                    "OTHER"
-                  ]
-                },
-                {
-                  "type": "string",
-                  "const": "INVALID"
-                }
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "SPRING @TRANSACTIONAL",
+                "MANUAL",
+                "AUTO-COMMIT",
+                "NONE",
+                "JPA ENTITYTRANSACTION",
+                "BATCH",
+                "DB CONTEXT",
+                "EXPLICIT BEGIN/COMMIT",
+                "ROLLBACK ON ERROR",
+                "UNKNOWN",
+                "OTHER"
               ]
             }
           ],
