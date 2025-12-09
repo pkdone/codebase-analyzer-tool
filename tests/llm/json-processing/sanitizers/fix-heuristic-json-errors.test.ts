@@ -1,6 +1,114 @@
 import { fixHeuristicJsonErrors } from "../../../../src/llm/json-processing/sanitizers/index.js";
 
 describe("fixHeuristicJsonErrors", () => {
+  describe("Pattern 0: Property name typos (trailing underscores)", () => {
+    it("should fix property names ending with single underscore", () => {
+      const input = `{
+  "publicMethods": [
+    {
+      "name": "testMethod",
+      "type_": "string",
+      "description": "Test method"
+    }
+  ]
+}`;
+
+      const result = fixHeuristicJsonErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"type": "string"');
+      expect(result.content).not.toContain('"type_":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+      const parsed = JSON.parse(result.content);
+      expect(parsed.publicMethods[0]).toHaveProperty("type");
+      expect(parsed.publicMethods[0]).not.toHaveProperty("type_");
+    });
+
+    it("should fix multiple property names with trailing underscores", () => {
+      const input = `{
+  "name_": "test",
+  "type_": "string",
+  "value_": 123
+}`;
+
+      const result = fixHeuristicJsonErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "test"');
+      expect(result.content).toContain('"type": "string"');
+      expect(result.content).toContain('"value": 123');
+      expect(result.content).not.toContain('_":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should fix property names with double underscores", () => {
+      const input = `{
+  "name__": "test"
+}`;
+
+      const result = fixHeuristicJsonErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "test"');
+      expect(result.content).not.toContain('"name__":');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should not modify property names without trailing underscores", () => {
+      const input = `{
+  "name": "test",
+  "type": "string"
+}`;
+
+      const result = fixHeuristicJsonErrors(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should not modify underscores in string values", () => {
+      const input = `{
+  "name": "test_value",
+  "type": "string_"
+}`;
+
+      const result = fixHeuristicJsonErrors(input);
+
+      expect(result.changed).toBe(false);
+      expect(result.content).toBe(input);
+    });
+
+    it("should handle nested objects with property name typos", () => {
+      const input = `{
+  "outer": {
+    "inner_": "value"
+  }
+}`;
+
+      const result = fixHeuristicJsonErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"inner": "value"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+
+    it("should handle arrays of objects with property name typos", () => {
+      const input = `{
+  "items": [
+    {"name_": "item1"},
+    {"name_": "item2"}
+  ]
+}`;
+
+      const result = fixHeuristicJsonErrors(input);
+
+      expect(result.changed).toBe(true);
+      expect(result.content).toContain('"name": "item1"');
+      expect(result.content).toContain('"name": "item2"');
+      expect(() => JSON.parse(result.content)).not.toThrow();
+    });
+  });
+
   describe("Pattern 3: Text appearing outside string values", () => {
     it("should remove descriptive text after string value with punctuation", () => {
       const input = `{

@@ -213,18 +213,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (input: string): SanitizerResul
             return match;
           }
 
-          let fixedName =
-            PROPERTY_NAME_MAPPINGS[propertyNameStr] || PROPERTY_NAME_MAPPINGS[lowerPropertyName];
-          if (!fixedName) {
-            if (lowerPropertyName.endsWith("_")) {
-              const withoutUnderscore = lowerPropertyName.slice(0, -1);
-              fixedName =
-                PROPERTY_NAME_MAPPINGS[withoutUnderscore] ||
-                PROPERTY_NAME_MAPPINGS[propertyNameStr.slice(0, -1)] ||
-                withoutUnderscore;
-            } else {
-              fixedName = propertyNameStr;
-            }
+          // Generic approach: use the property name as-is (schema-agnostic)
+          // Schema-specific mappings are kept as fallback only for better diagnostics
+          let fixedName: string;
+          if (lowerPropertyName.endsWith("_")) {
+            // Remove trailing underscore (generic fix)
+            const withoutUnderscore = propertyNameStr.slice(0, -1);
+            fixedName = withoutUnderscore;
+          } else {
+            // Try schema-specific mapping first (for better diagnostics), fallback to generic
+            fixedName =
+              PROPERTY_NAME_MAPPINGS[propertyNameStr] ||
+              PROPERTY_NAME_MAPPINGS[lowerPropertyName] ||
+              propertyNameStr;
           }
 
           hasChanges = true;

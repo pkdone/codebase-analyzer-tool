@@ -32,6 +32,78 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     let hasChanges = false;
     const diagnostics: string[] = [];
 
+    // ===== Pattern 0: Fix property name typos (trailing underscores) =====
+    // This MUST run early because property name typos prevent JSON parsing.
+    // This is schema-agnostic - it fixes any property name ending with underscore(s)
+
+    // Pattern 0a: Fix double underscores in property names FIRST (more specific)
+    // Pattern: "name__": -> "name":
+    const doubleUnderscorePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)__"\s*:/g;
+    sanitized = sanitized.replace(
+      doubleUnderscorePattern,
+      (match, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 150), offset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          /\[\s*$/.test(beforeMatch) ||
+          offset < 150;
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Fixed property name typo: "${propertyNameStr}__" -> "${propertyNameStr}"`,
+            );
+          }
+          return `"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 0b: Fix single trailing underscore in property names
+    // Pattern: "name_": or "type_": -> "name": or "type":
+    // Note: Double underscores are handled by Pattern 0a above, so this only matches single underscores
+    const trailingUnderscorePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)_"\s*:/g;
+    sanitized = sanitized.replace(
+      trailingUnderscorePattern,
+      (match, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        // Check if we're in a property context (after comma, brace, newline, or start)
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 150), offset);
+        const isPropertyContext =
+          /[{,]\s*$/.test(beforeMatch) ||
+          /}\s*,\s*\n\s*$/.test(beforeMatch) ||
+          /\n\s*$/.test(beforeMatch) ||
+          /\[\s*$/.test(beforeMatch) ||
+          offset < 150;
+
+        if (isPropertyContext) {
+          const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+          hasChanges = true;
+          if (diagnostics.length < 20) {
+            diagnostics.push(
+              `Fixed property name typo: "${propertyNameStr}_" -> "${propertyNameStr}"`,
+            );
+          }
+          return `"${propertyNameStr}":`;
+        }
+
+        return match;
+      },
+    );
+
     // ===== Pattern 1: Remove duplicate/corrupted array entries =====
     // Pattern: "valid.entry",\n    corrupted.entry", or "valid.entry",\n    extra.entry",
     // where corrupted/extra entry is missing opening quote
@@ -97,7 +169,8 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
     // ===== Pattern 2: Fix truncated property names =====
     // Pattern: 'se":' or similar property name fragments followed by colon and value
     // This handles cases where the property name got truncated (e.g., "purpose" -> "se", "codeSmells" -> "alues")
-    // Uses generic pattern: unquoted identifier before colon in property context, with schema-specific fallback
+    // Uses generic pattern: unquoted identifier before colon in property context
+    // Schema-agnostic approach: quote the identifier and let validation catch invalid names
     const truncatedPropertyPattern = /(\s*)([a-z]{2,10})"\s*:\s*/g;
 
     sanitized = sanitized.replace(
@@ -121,26 +194,25 @@ export const fixHeuristicJsonErrors: Sanitizer = (input: string): SanitizerResul
         const truncatedStr = typeof truncated === "string" ? truncated : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
 
-        // First try schema-specific mapping (fallback for known truncations)
+        // Generic approach: quote the truncated identifier
+        // This is schema-agnostic - the identifier will be quoted and validation will catch invalid names
+        // Schema-specific mappings are kept as fallback only for better diagnostics
         const fixedName = COMMON_PROPERTY_STARTS[truncatedStr];
 
-        // If no schema-specific mapping, use generic approach: quote the identifier
-        // This is schema-agnostic - the identifier will be quoted and validation will catch invalid names
-        if (!fixedName && isPropertyContext) {
-          // Generic fix: quote the truncated identifier
-          // This assumes it's a property name fragment that should be quoted
-          // The validation step will catch if it's not a valid property name
+        if (isPropertyContext) {
           hasChanges = true;
-          diagnostics.push(
-            `Fixed truncated property name (generic): "${truncatedStr}" -> quoted identifier`,
-          );
-          return `${whitespaceStr}"${truncatedStr}": `;
-        }
-
-        if (isPropertyContext && fixedName) {
-          hasChanges = true;
-          diagnostics.push(`Fixed truncated property name: "${truncatedStr}" -> "${fixedName}"`);
-          return `${whitespaceStr}"${fixedName}": `;
+          if (fixedName) {
+            // Use schema-specific mapping if available (better diagnostics)
+            diagnostics.push(`Fixed truncated property name: "${truncatedStr}" -> "${fixedName}"`);
+            return `${whitespaceStr}"${fixedName}": `;
+          } else {
+            // Generic fix: quote the truncated identifier
+            // The validation step will catch if it's not a valid property name
+            diagnostics.push(
+              `Fixed truncated property name (generic): "${truncatedStr}" -> quoted identifier`,
+            );
+            return `${whitespaceStr}"${truncatedStr}": `;
+          }
         }
 
         return match;
