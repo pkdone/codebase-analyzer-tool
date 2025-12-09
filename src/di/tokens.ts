@@ -12,7 +12,6 @@ export const coreTokens = {
   LLMModelFamily: Symbol("LLMModelFamily"),
   EnvVars: Symbol("EnvVars"),
   ProjectName: Symbol("ProjectName"),
-  FileTypeMappingsConfig: Symbol("FileTypeMappingsConfig"),
   DatabaseInitializer: Symbol("DatabaseInitializer"),
 } as const;
 

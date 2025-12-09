@@ -33,18 +33,14 @@ describe("llmConfig", () => {
 });
 
 describe("llmProviderConfig", () => {
-  it("should have provider manifest configuration defined", () => {
-    expect(llmProviderConfig.MANIFEST_FILE_SUFFIX).toBe(".manifest.js");
-    expect(llmProviderConfig.PROVIDER_MANIFEST_EXPORT_SUFFIX).toBe("ProviderManifest");
-    expect(llmProviderConfig.PROVIDERS_FOLDER_PATH).toBe("../providers");
-  });
-
   it("should have average chars per token defined", () => {
     expect(llmProviderConfig.AVERAGE_CHARS_PER_TOKEN).toBe(3.6);
   });
 
   it("should be typed as const", () => {
-    const suffix: ".manifest.js" = llmProviderConfig.MANIFEST_FILE_SUFFIX;
-    expect(suffix).toBe(".manifest.js");
+    // This test verifies that TypeScript treats the config as readonly
+    // The 'as const' assertion should make all properties readonly
+    const avgChars: 3.6 = llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
+    expect(avgChars).toBe(3.6);
   });
 });
