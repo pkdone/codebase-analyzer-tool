@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { BaseSvgGenerator } from "./base-svg-generator";
+import { escapeXml, wrapText, createSvgHeader, generateEmptyDiagram } from "./svg-utils";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -27,7 +27,7 @@ export interface FlowchartSvgOptions {
  * Creates sequential flow diagrams showing key business activities as connected nodes.
  */
 @injectable()
-export class FlowchartSvgGenerator extends BaseSvgGenerator {
+export class FlowchartSvgGenerator {
   private readonly defaultOptions: Required<FlowchartSvgOptions> = {
     width: 800,
     height: 400,
@@ -46,7 +46,7 @@ export class FlowchartSvgGenerator extends BaseSvgGenerator {
     const activities = process.keyBusinessActivities;
 
     if (activities.length === 0) {
-      return this.generateEmptyDiagram(
+      return generateEmptyDiagram(
         opts.width,
         opts.height,
         "No business activities defined",
@@ -115,7 +115,7 @@ export class FlowchartSvgGenerator extends BaseSvgGenerator {
     });
 
     // Combine all SVG elements
-    const svgElements = [this.createSvgHeader(width, height), ...connections, ...nodes, "</svg>"];
+    const svgElements = [createSvgHeader(width, height), ...connections, ...nodes, "</svg>"];
 
     return svgElements.join("\n");
   }
@@ -134,7 +134,7 @@ export class FlowchartSvgGenerator extends BaseSvgGenerator {
     const rectY = y - options.nodeHeight / 2;
 
     // Wrap text to fit within node width
-    const wrappedText = this.wrapText(text, options.nodeWidth, options.fontSize);
+    const wrappedText = wrapText(text, options.nodeWidth, options.fontSize);
     const lineHeight = options.fontSize * 1.2;
     const totalTextHeight = (wrappedText.length - 1) * lineHeight;
     const startY = y - totalTextHeight / 2 + options.fontSize * 0.3; // Better vertical centering
@@ -164,7 +164,7 @@ export class FlowchartSvgGenerator extends BaseSvgGenerator {
           font-weight="500"
           fill="#001e2b"
         >
-          ${this.escapeXml(line)}
+          ${escapeXml(line)}
         </text>`,
           )
           .join("")}

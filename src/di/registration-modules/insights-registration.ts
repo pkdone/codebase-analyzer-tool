@@ -1,5 +1,5 @@
+import { container } from "tsyringe";
 import { insightsTokens } from "../tokens";
-import { registerComponents } from "../registration-utils";
 
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
@@ -18,22 +18,15 @@ import { InsightsProcessorSelector } from "../../components/insights/insights-pr
  * All components are registered here since tsyringe uses lazy-loading.
  */
 export function registerInsightsComponents(): void {
-  registerComponents(
-    [
-      {
-        token: insightsTokens.PromptFileInsightsGenerator,
-        implementation: RawAnalyzerDrivenByReqsFiles,
-      },
-      { token: insightsTokens.InsightsFromDBGenerator, implementation: InsightsFromDBGenerator },
-      {
-        token: insightsTokens.InsightsFromRawCodeGenerator,
-        implementation: InsightsFromRawCodeGenerator,
-      },
-      {
-        token: insightsTokens.InsightsProcessorSelector,
-        implementation: InsightsProcessorSelector,
-      },
-    ],
-    "Insights components registered",
+  container.registerSingleton(
+    insightsTokens.PromptFileInsightsGenerator,
+    RawAnalyzerDrivenByReqsFiles,
   );
+  container.registerSingleton(insightsTokens.InsightsFromDBGenerator, InsightsFromDBGenerator);
+  container.registerSingleton(
+    insightsTokens.InsightsFromRawCodeGenerator,
+    InsightsFromRawCodeGenerator,
+  );
+  container.registerSingleton(insightsTokens.InsightsProcessorSelector, InsightsProcessorSelector);
+  console.log("Insights components registered");
 }

@@ -1,5 +1,5 @@
+import { container } from "tsyringe";
 import { captureTokens } from "../tokens";
-import { registerComponents } from "../registration-utils";
 
 // Capture component imports
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
@@ -15,8 +15,6 @@ import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
  * All components are registered here since tsyringe uses lazy-loading.
  */
 export function registerCaptureComponents(): void {
-  registerComponents(
-    [{ token: captureTokens.CodebaseToDBLoader, implementation: CodebaseToDBLoader }],
-    "Capture components registered",
-  );
+  container.registerSingleton(captureTokens.CodebaseToDBLoader, CodebaseToDBLoader);
+  console.log("Capture components registered");
 }

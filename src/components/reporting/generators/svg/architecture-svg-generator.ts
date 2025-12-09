@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { BaseSvgGenerator } from "./base-svg-generator";
+import { escapeXml, sanitizeId, createSvgHeader, generateEmptyDiagram } from "./svg-utils";
 import type { IntegrationPointInfo } from "../../report-gen.types";
 
 export interface Microservice {
@@ -36,7 +36,7 @@ export interface ArchitectureDiagramSvgOptions {
  * Creates component-style diagrams showing microservices and their integration points.
  */
 @injectable()
-export class ArchitectureSvgGenerator extends BaseSvgGenerator {
+export class ArchitectureSvgGenerator {
   private readonly defaultOptions: Required<ArchitectureDiagramSvgOptions> = {
     width: 1100,
     height: 900,
@@ -57,7 +57,7 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
     const opts = { ...this.defaultOptions, ...options };
 
     if (microservices.length === 0) {
-      return this.generateEmptyDiagram(
+      return generateEmptyDiagram(
         opts.width,
         opts.height,
         "No microservices architecture defined",
@@ -86,10 +86,10 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
   }
 
   /**
-   * Create SVG header with definitions
+   * Create SVG header with definitions (architecture-specific color)
    */
-  protected override createSvgHeader(width: number, height: number): string {
-    return super.createSvgHeader(width, height, "#00ED64");
+  private createArchitectureSvgHeader(width: number, height: number): string {
+    return createSvgHeader(width, height, "#00ED64");
   }
 
   /**
@@ -122,7 +122,11 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
     });
 
     // Combine all SVG elements
-    const svgElements = [this.createSvgHeader(width, height), ...serviceNodes, "</svg>"];
+    const svgElements = [
+      this.createArchitectureSvgHeader(width, height),
+      ...serviceNodes,
+      "</svg>",
+    ];
 
     return svgElements.join("\n");
   }
@@ -167,11 +171,11 @@ export class ArchitectureSvgGenerator extends BaseSvgGenerator {
         font-weight="700"
         fill="#001e2b"
       >
-        ${this.escapeXml(service.name)}
+        ${escapeXml(service.name)}
       </text>`;
 
     return `
-      <g id="service-${this.sanitizeId(service.name)}">
+      <g id="service-${sanitizeId(service.name)}">
         ${serviceBox}
         ${serviceTitle}
       </g>`;

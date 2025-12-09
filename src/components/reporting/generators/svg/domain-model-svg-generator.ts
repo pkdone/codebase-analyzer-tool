@@ -1,5 +1,11 @@
 import { injectable } from "tsyringe";
-import { BaseSvgGenerator } from "./base-svg-generator";
+import {
+  escapeXml,
+  sanitizeId,
+  wrapText,
+  createSvgHeader,
+  generateEmptyDiagram,
+} from "./svg-utils";
 import type {
   DomainBoundedContext,
   DomainAggregate,
@@ -20,7 +26,7 @@ export interface DomainDiagramSvgOptions {
  * Creates graph-style diagrams showing bounded contexts with their aggregates, entities, and repositories.
  */
 @injectable()
-export class DomainModelSvgGenerator extends BaseSvgGenerator {
+export class DomainModelSvgGenerator {
   private readonly defaultOptions: Required<DomainDiagramSvgOptions> = {
     width: 1600, // Further increased width to prevent side clipping
     height: 600,
@@ -40,7 +46,7 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
     const opts = { ...this.defaultOptions, ...options };
 
     if (context.aggregates.length === 0 && context.entities.length === 0) {
-      return this.generateEmptyDiagram(
+      return generateEmptyDiagram(
         opts.width,
         opts.height,
         "No domain model elements defined",
@@ -205,7 +211,7 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
 
     // Combine all SVG elements
     const svgElements = [
-      this.createSvgHeader(width, height),
+      createSvgHeader(width, height),
       ...connections,
       contextBox,
       ...aggregates,
@@ -232,7 +238,7 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
     const rectY = y - boxHeight / 2;
 
     return `
-      <g id="context-${this.sanitizeId(contextName)}">
+      <g id="context-${sanitizeId(contextName)}">
         <rect
           x="${rectX}"
           y="${rectY}"
@@ -253,7 +259,7 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
           font-weight="700"
           fill="#001e2b"
         >
-          ${this.escapeXml(contextName)}
+          ${escapeXml(contextName)}
         </text>
         <text
           x="${x}"
@@ -338,12 +344,12 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
     const rectY = y - nodeHeight / 2;
 
     // Wrap text to fit within node width
-    const wrappedText = this.wrapText(_aggregate.name, nodeWidth, options.fontSize);
+    const wrappedText = wrapText(_aggregate.name, nodeWidth, options.fontSize);
     const lineHeight = options.fontSize * 1.2;
     const startY = y - 8; // Position main text higher
 
     return `
-      <g id="aggregate-${this.sanitizeId(_aggregate.name)}">
+      <g id="aggregate-${sanitizeId(_aggregate.name)}">
         <rect
           x="${rectX}"
           y="${rectY}"
@@ -367,7 +373,7 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
           font-weight="600"
           fill="#001e2b"
         >
-          ${this.escapeXml(line)}
+          ${escapeXml(line)}
         </text>`,
           )
           .join("")}
@@ -400,12 +406,12 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
     const rectY = y - nodeHeight / 2;
 
     // Wrap text to fit within node width
-    const wrappedText = this.wrapText(_entity.name, nodeWidth, options.fontSize - 1);
+    const wrappedText = wrapText(_entity.name, nodeWidth, options.fontSize - 1);
     const lineHeight = (options.fontSize - 1) * 1.2;
     const startY = y - 8; // Position main text higher
 
     return `
-      <g id="entity-${this.sanitizeId(_entity.name)}">
+      <g id="entity-${sanitizeId(_entity.name)}">
         <rect
           x="${rectX}"
           y="${rectY}"
@@ -430,7 +436,7 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
           font-weight="500"
           fill="#001e2b"
         >
-          ${this.escapeXml(line)}
+          ${escapeXml(line)}
         </text>`;
           })
           .join("")}
@@ -462,12 +468,12 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
 
     // Wrap text to fit within elliptical node (use smaller effective width)
     const effectiveWidth = nodeWidth * 0.7; // Further reduced for elliptical shape
-    const wrappedText = this.wrapText(_repository.name, effectiveWidth, options.fontSize - 1);
+    const wrappedText = wrapText(_repository.name, effectiveWidth, options.fontSize - 1);
     const lineHeight = (options.fontSize - 1) * 1.2;
     const startY = y - 8; // Position main text higher
 
     return `
-      <g id="repository-${this.sanitizeId(_repository.name)}">
+      <g id="repository-${sanitizeId(_repository.name)}">
         <ellipse
           cx="${x}"
           cy="${y}"
@@ -490,7 +496,7 @@ export class DomainModelSvgGenerator extends BaseSvgGenerator {
           font-weight="500"
           fill="#001e2b"
         >
-          ${this.escapeXml(line)}
+          ${escapeXml(line)}
         </text>`;
           })
           .join("")}

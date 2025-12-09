@@ -24,3 +24,6 @@ Do NOT inlude any of the following topics in your recommendations:
  * Over-engineered Report Section Generation
  * Complex Application Shutdown Logic with `keepAliveInterval`
  * Over-engineered Data Aggregator Pattern for Insights
+ * Overly-Complex File Type Detection Logic
+ * Abstracted Prompt Construction Helpers
+ * Over-abstracted Prompt Definition Factory
