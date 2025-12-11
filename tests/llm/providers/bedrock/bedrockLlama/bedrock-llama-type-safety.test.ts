@@ -9,6 +9,7 @@ import {
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
 import { z } from "zod";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 /**
  * Unit tests for BedrockLlamaLLM - Type Safety Improvements
@@ -56,6 +57,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       },
 
       "BedrockLlama",
+      createMockErrorLogger(),
     );
 
     // Attach feature flags (normally done by provider manager)
@@ -108,6 +110,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       },
 
       "BedrockLlama",
+      createMockErrorLogger(),
     );
 
     // Attach feature flags so capping logic engages
@@ -169,6 +172,7 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       },
 
       "BedrockLlama",
+      createMockErrorLogger(),
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody("SOME_OTHER_MODEL", "test prompt");

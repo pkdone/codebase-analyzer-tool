@@ -11,6 +11,7 @@ import {
   LLMContext,
 } from "../../../../../src/llm/types/llm.types";
 import { z } from "zod";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 // Mock the Vertex AI SDK
 jest.mock("@google-cloud/vertexai");
@@ -106,8 +107,8 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
           maxRetryDelayMillis: 5000,
         },
       },
-
       "VertexGemini",
+      createMockErrorLogger(),
     );
   });
 

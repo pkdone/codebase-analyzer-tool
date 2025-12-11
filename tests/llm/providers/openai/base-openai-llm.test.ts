@@ -8,6 +8,7 @@ import {
 } from "../../../../src/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../src/llm/providers/llm-provider.types";
 import { OpenAI } from "openai";
+import { createMockErrorLogger } from "../../test-helpers/mock-error-logger";
 
 // Minimal fake client with only used methods
 class FakeEmbeddingsClient {
@@ -66,8 +67,8 @@ class TestOpenAILLM extends BaseOpenAILLM {
       metadata,
       errorPatterns,
       providerConfig,
-
       "openai-test",
+      createMockErrorLogger(),
     );
   }
   protected override getClient(): OpenAI {

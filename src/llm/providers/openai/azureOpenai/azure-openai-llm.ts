@@ -28,6 +28,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
     modelFamily: string,
+    errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
   ) {
     super(
@@ -36,6 +37,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
       errorPatterns,
       config.providerSpecificConfig,
       modelFamily,
+      errorLogger,
       llmFeatures,
     );
     const apiKey = getRequiredEnvVar(env, "AZURE_OPENAI_LLM_API_KEY");

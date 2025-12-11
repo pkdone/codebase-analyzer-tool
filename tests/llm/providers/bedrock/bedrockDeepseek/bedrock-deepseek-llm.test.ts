@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import BedrockDeepseekLLM from "../../../../../src/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek-llm";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 import {
   LLMModelKeysSet,
   ResolvedLLMModelMetadata,
@@ -53,6 +54,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: mockConfig },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       const testPrompt = "Analyze this code with reasoning";
@@ -87,6 +89,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: mockConfig },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -103,6 +106,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: { ...mockConfig, apiVersion: "bedrock-2023-05-31" } },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -122,6 +126,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: mockConfig },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       const testPrompt = "Direct content test";
@@ -146,6 +151,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: mockConfig },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       const complexPrompt = "Special chars: <>&\"'\nNewlines\tTabs";
@@ -174,6 +180,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -194,6 +201,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: mockConfig },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -215,6 +223,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: mockConfig },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -244,6 +253,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: mockConfig },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -264,6 +274,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         { providerSpecificConfig: mockConfig },
 
         "BedrockDeepseek",
+        createMockErrorLogger(),
       );
 
       expect(llm.getModelFamily()).toBe("BedrockDeepseek");

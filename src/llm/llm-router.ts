@@ -22,6 +22,7 @@ import {
 import { loadManifestForModelFamily } from "./utils/manifest-loader";
 import { logOneLineWarning } from "../common/utils/logging";
 import { isDefined } from "../common/utils/type-guards";
+import { LLMErrorLogger } from "./tracking/llm-error-logger";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -45,11 +46,13 @@ export default class LLMRouter {
    * @param modelFamily The LLM model family identifier
    * @param envVars Environment variables
    * @param executionPipeline The execution pipeline for orchestrating LLM calls
+   * @param errorLogger The error logger service for recording JSON processing errors
    */
   constructor(
     @inject(llmTokens.LLMModelFamily) private readonly modelFamily: string,
     @inject(coreTokens.EnvVars) private readonly envVars: EnvVars,
     private readonly executionPipeline: LLMExecutionPipeline,
+    @inject(llmTokens.LLMErrorLogger) private readonly errorLogger: LLMErrorLogger,
   ) {
     // Load manifest for the model family
     this.manifest = loadManifestForModelFamily(this.modelFamily);
@@ -68,6 +71,7 @@ export default class LLMRouter {
       this.manifest.errorPatterns,
       config,
       this.manifest.modelFamily,
+      this.errorLogger,
       this.manifest.features,
     );
 

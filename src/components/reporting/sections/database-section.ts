@@ -28,14 +28,12 @@ export class DatabaseSection implements ReportSection {
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {
-    const [integrationPoints, dbInteractions, procsAndTriggers] = await Promise.all([
-      this.databaseDataProvider.getIntegrationPoints(projectName),
+    const [dbInteractions, procsAndTriggers] = await Promise.all([
       this.databaseDataProvider.getDatabaseInteractions(projectName),
       this.databaseDataProvider.buildProceduresAndTriggersSummary(projectName),
     ]);
 
     return {
-      integrationPoints,
       dbInteractions,
       procsAndTriggers,
     };
@@ -48,15 +46,9 @@ export class DatabaseSection implements ReportSection {
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
     const data = sectionData as {
-      integrationPoints: ReportData["integrationPoints"];
       dbInteractions: ReportData["dbInteractions"];
       procsAndTriggers: ReportData["procsAndTriggers"];
     };
-
-    // Create view model for integration points
-    const integrationPointsTableViewModel = new TableViewModel(
-      data.integrationPoints as unknown as DisplayableTableRow[],
-    );
 
     // Create view model for database interactions
     const dbInteractionsTableViewModel = new TableViewModel(
@@ -73,27 +65,20 @@ export class DatabaseSection implements ReportSection {
     );
 
     return {
-      integrationPoints: data.integrationPoints,
       dbInteractions: data.dbInteractions,
       procsAndTriggers: data.procsAndTriggers,
       dbInteractionsTableViewModel,
       procsAndTriggersTableViewModel,
-      integrationPointsTableViewModel,
     };
   }
 
   prepareJsonData(_baseData: ReportData, sectionData: unknown): PreparedJsonData[] {
     const data = sectionData as {
-      integrationPoints: ReportData["integrationPoints"];
       dbInteractions: ReportData["dbInteractions"];
       procsAndTriggers: ReportData["procsAndTriggers"];
     };
 
     return [
-      {
-        filename: reportSectionsConfig.jsonDataFiles.integrationPoints,
-        data: data.integrationPoints,
-      },
       {
         filename: reportSectionsConfig.jsonDataFiles.dbInteractions,
         data: data.dbInteractions,

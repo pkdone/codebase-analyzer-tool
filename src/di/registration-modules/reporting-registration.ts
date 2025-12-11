@@ -10,6 +10,7 @@ import { FlowchartSvgGenerator } from "../../components/reporting/generators/svg
 import { DomainModelSvgGenerator } from "../../components/reporting/generators/svg/domain-model-svg-generator";
 import { ArchitectureSvgGenerator } from "../../components/reporting/generators/svg/architecture-svg-generator";
 import { DatabaseReportDataProvider } from "../../components/reporting/data-providers/database-report-data-provider";
+import { IntegrationPointsDataProvider } from "../../components/reporting/data-providers/integration-points-data-provider";
 import { CodeStructureDataProvider } from "../../components/reporting/data-providers/code-structure-data-provider";
 import { AppStatisticsDataProvider } from "../../components/reporting/data-providers/app-statistics-data-provider";
 import { AppSummaryCategoriesProvider } from "../../components/reporting/data-providers/categories-data-provider";
@@ -22,6 +23,7 @@ import { UiDataProvider } from "../../components/reporting/data-providers/ui-dat
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database-section";
+import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points-section";
 import { CodeStructureSection } from "../../components/reporting/sections/code-structure-section";
 import { EnhancedUiSection } from "../../components/reporting/sections/enhanced-ui-section";
 import { AdvancedDataSection } from "../../components/reporting/sections/advanced-data-section";
@@ -50,6 +52,10 @@ export function registerReportingComponents(): void {
     reportingTokens.DatabaseReportDataProvider,
     DatabaseReportDataProvider,
   );
+  container.registerSingleton(
+    reportingTokens.IntegrationPointsDataProvider,
+    IntegrationPointsDataProvider,
+  );
   container.registerSingleton(reportingTokens.CodeStructureDataProvider, CodeStructureDataProvider);
   container.registerSingleton(reportingTokens.AppStatisticsDataProvider, AppStatisticsDataProvider);
   container.registerSingleton(
@@ -71,6 +77,7 @@ export function registerReportingComponents(): void {
   // Register report sections (using multi-injection pattern - not supported by helper)
   container.registerSingleton("ReportSection", FileTypesSection);
   container.registerSingleton("ReportSection", DatabaseSection);
+  container.registerSingleton("ReportSection", IntegrationPointsSection);
   container.registerSingleton("ReportSection", CodeStructureSection);
   container.registerSingleton("ReportSection", EnhancedUiSection);
   container.registerSingleton("ReportSection", AdvancedDataSection);

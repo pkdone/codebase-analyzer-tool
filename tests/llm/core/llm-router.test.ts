@@ -11,6 +11,7 @@ import {
 
 import { z } from "zod";
 import LLMRouter from "../../../src/llm/llm-router";
+import { createMockErrorLogger } from "../test-helpers/mock-error-logger";
 import LLMStats from "../../../src/llm/tracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../../src/llm/strategies/prompt-adaptation-strategy";
 import { RetryStrategy } from "../../../src/llm/strategies/retry-strategy";
@@ -227,7 +228,13 @@ describe("LLM Router tests", () => {
       mockLLMStats,
     );
 
-    const router = new LLMRouter("openai", mockEnvVars as EnvVars, mockExecutionPipeline);
+    const mockErrorLogger = createMockErrorLogger();
+    const router = new LLMRouter(
+      "openai",
+      mockEnvVars as EnvVars,
+      mockExecutionPipeline,
+      mockErrorLogger,
+    );
     return { router, mockProvider, mockManifest };
   };
 

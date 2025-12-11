@@ -8,6 +8,7 @@ import {
   createBedrockTestData,
   type AdditionalTestModel,
 } from "../../../../helpers/llm/bedrock-test-helper";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 // Create mock environment and test data using helpers
 const mockBedrockLlamaEnv = createBedrockMockEnv(
@@ -88,8 +89,8 @@ describe("Bedrock Llama Provider Tests", () => {
         bedrockLlamaModelsMetadata,
         bedrockLlamaProviderManifest.errorPatterns,
         { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
-
         bedrockLlamaProviderManifest.modelFamily,
+        createMockErrorLogger(),
       );
       expect(llm.getModelFamily()).toBe("BedrockLlama");
     });
@@ -101,8 +102,8 @@ describe("Bedrock Llama Provider Tests", () => {
         bedrockLlamaModelsMetadata,
         bedrockLlamaProviderManifest.errorPatterns,
         { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
-
         bedrockLlamaProviderManifest.modelFamily,
+        createMockErrorLogger(),
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });

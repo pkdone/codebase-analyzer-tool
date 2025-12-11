@@ -73,6 +73,7 @@ export interface LLMProviderManifest {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
     modelFamily: string,
+    errorLogger: import("../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
   ) => LLMProvider;
 }

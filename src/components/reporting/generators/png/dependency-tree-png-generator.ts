@@ -5,6 +5,7 @@ import { writeBinaryFile } from "../../../../common/fs/file-operations";
 import type { HierarchicalJavaClassDependency } from "../../../../repositories/sources/sources.model";
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { dependencyTreePngConfig } from "../dependency-tree-png.config";
+import { CanvasDrawer } from "./canvas-drawer";
 
 interface HierarchicalTreeNode {
   classpath: string;
@@ -34,6 +35,12 @@ interface LayoutDimensions {
  */
 @injectable()
 export class DependencyTreePngGenerator {
+  private readonly canvasDrawer: CanvasDrawer;
+
+  constructor() {
+    this.canvasDrawer = new CanvasDrawer();
+  }
+
   /**
    * Generate a PNG file showing the hierarchical dependency tree for a specific Java class
    */
@@ -154,11 +161,17 @@ export class DependencyTreePngGenerator {
     mainClasspath: string,
     canvasWidth: number,
   ): void {
-    ctx.font = `${dependencyTreePngConfig.text.FONT_WEIGHT_BOLD}${dependencyTreePngConfig.layout.FONT_SIZE + dependencyTreePngConfig.numeric.FONT_SIZE_TITLE_OFFSET}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
-    ctx.fillStyle = dependencyTreePngConfig.colors.TEXT;
-    ctx.textAlign = "center";
     const titleText = `${dependencyTreePngConfig.text.TITLE_PREFIX}${mainClasspath}`;
-    ctx.fillText(titleText, canvasWidth / 2, dependencyTreePngConfig.numeric.TITLE_Y_POSITION);
+    const titleFont = `${dependencyTreePngConfig.text.FONT_WEIGHT_BOLD}${dependencyTreePngConfig.layout.FONT_SIZE + dependencyTreePngConfig.numeric.FONT_SIZE_TITLE_OFFSET}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
+    this.canvasDrawer.drawText(
+      ctx,
+      titleText,
+      canvasWidth / 2,
+      dependencyTreePngConfig.numeric.TITLE_Y_POSITION,
+      titleFont,
+      dependencyTreePngConfig.colors.TEXT,
+      "center",
+    );
   }
 
   /**
@@ -341,8 +354,6 @@ export class DependencyTreePngGenerator {
     ctx: CanvasRenderingContext2D,
     node: HierarchicalTreeNode,
   ): void {
-    ctx.strokeStyle = dependencyTreePngConfig.colors.CONNECTION;
-    ctx.lineWidth = dependencyTreePngConfig.numeric.CONNECTION_WIDTH;
     // Group connections by type to handle staggering
     const allTargets: HierarchicalTreeNode[] = [];
 
@@ -391,7 +402,12 @@ export class DependencyTreePngGenerator {
 
     // Draw vertical connections normally
     for (const target of verticalTargets) {
-      this.drawConnectionLine(ctx, sourceNode, target, dependencyTreePngConfig.colors.CONNECTION);
+      this.canvasDrawer.drawConnectionLine(
+        ctx,
+        sourceNode,
+        target,
+        dependencyTreePngConfig.colors.CONNECTION,
+      );
     }
 
     // Draw horizontal connections with staggering
@@ -401,7 +417,7 @@ export class DependencyTreePngGenerator {
 
       for (const [index, target] of horizontalTargets.entries()) {
         const yOffset = startOffset + index * staggerOffset;
-        this.drawConnectionLineWithYOffset(
+        this.canvasDrawer.drawConnectionLine(
           ctx,
           sourceNode,
           target,
@@ -411,149 +427,13 @@ export class DependencyTreePngGenerator {
       }
     } else if (horizontalTargets.length === 1) {
       // Single horizontal connection - no staggering needed
-      this.drawConnectionLine(
+      this.canvasDrawer.drawConnectionLine(
         ctx,
         sourceNode,
         horizontalTargets[0],
         dependencyTreePngConfig.colors.CONNECTION,
       );
     }
-  }
-
-  /**
-   * Draw a connection line with Y offset for staggering
-   */
-  private drawConnectionLineWithYOffset(
-    ctx: CanvasRenderingContext2D,
-    fromNode: HierarchicalTreeNode,
-    toNode: HierarchicalTreeNode,
-    color: string,
-    yOffset: number,
-  ): void {
-    // Only draw if target node is within canvas bounds
-    if (
-      toNode.x >= 0 &&
-      toNode.y >= 0 &&
-      toNode.x + toNode.width <= dependencyTreePngConfig.canvas.MAX_WIDTH &&
-      toNode.y + toNode.height <= dependencyTreePngConfig.canvas.MAX_HEIGHT
-    ) {
-      // Calculate connection points with Y offset for source
-      const { fromX, fromY, toX, toY } = this.calculateConnectionPoints(fromNode, toNode);
-
-      // Apply Y offset to the source point for horizontal staggering
-      const adjustedFromY = fromY + yOffset;
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = dependencyTreePngConfig.numeric.CONNECTION_WIDTH;
-
-      // Draw the line with staggered source Y
-      ctx.beginPath();
-      ctx.moveTo(fromX, adjustedFromY);
-      ctx.lineTo(toX, toY);
-      ctx.stroke();
-
-      // Draw arrow with staggered position
-      this.drawArrow(ctx, fromX, adjustedFromY, toX, toY, color);
-    }
-  }
-
-  /**
-   * Draw a connection line with arrow between two nodes using smart connection points.
-   * This is a thin wrapper around drawConnectionLineWithYOffset with zero offset.
-   */
-  private drawConnectionLine(
-    ctx: CanvasRenderingContext2D,
-    fromNode: HierarchicalTreeNode,
-    toNode: HierarchicalTreeNode,
-    color: string,
-  ): void {
-    this.drawConnectionLineWithYOffset(ctx, fromNode, toNode, color, 0);
-  }
-
-  /**
-   * Calculate smart connection points between two nodes
-   */
-  private calculateConnectionPoints(
-    fromNode: HierarchicalTreeNode,
-    toNode: HierarchicalTreeNode,
-  ): { fromX: number; fromY: number; toX: number; toY: number } {
-    const fromCenterX = fromNode.x + fromNode.width / 2;
-    const fromCenterY = fromNode.y + fromNode.height / 2;
-    const toCenterX = toNode.x + toNode.width / 2;
-    const toCenterY = toNode.y + toNode.height / 2;
-
-    // Determine relative position
-    const deltaX = toCenterX - fromCenterX;
-    const deltaY = toCenterY - fromCenterY;
-    let fromX: number, fromY: number, toX: number, toY: number;
-
-    // Determine best connection points - DOWNWARD connections take precedence
-    if (deltaY > 0) {
-      // Target is below - ALWAYS use vertical connection for downward lines
-      // This ensures arrows attach to top of target node and are visible
-      fromX = fromCenterX;
-      fromY = fromNode.y + fromNode.height;
-      toX = toCenterX;
-      toY = toNode.y;
-    } else if (deltaY < 0 && Math.abs(deltaY) > Math.abs(deltaX)) {
-      // Target is above and primarily vertical
-      fromX = fromCenterX;
-      fromY = fromNode.y;
-      toX = toCenterX;
-      toY = toNode.y + toNode.height;
-    } else if (deltaX > 0) {
-      // Primarily horizontal connection (or upward with significant horizontal component)
-      // Target is to the right - connect from right of source to left of target
-      fromX = fromNode.x + fromNode.width;
-      fromY = fromCenterY;
-      toX = toNode.x;
-      toY = toCenterY;
-    } else {
-      // Target is to the left - connect from left of source to right of target
-      fromX = fromNode.x;
-      fromY = fromCenterY;
-      toX = toNode.x + toNode.width;
-      toY = toCenterY;
-    }
-
-    return { fromX, fromY, toX, toY };
-  }
-
-  /**
-   * Draw an arrow head at the end of a line
-   */
-  private drawArrow(
-    ctx: CanvasRenderingContext2D,
-    fromX: number,
-    fromY: number,
-    toX: number,
-    toY: number,
-    color: string,
-  ): void {
-    // Consistent arrow size for all connections
-    const arrowLength = dependencyTreePngConfig.numeric.ARROW_LENGTH;
-
-    // Calculate angle of the line
-    const angle = Math.atan2(toY - fromY, toX - fromX);
-
-    // Calculate arrow points using predefined angle
-    const arrowX1 =
-      toX - arrowLength * Math.cos(angle - dependencyTreePngConfig.numeric.ARROW_ANGLE_RADIANS);
-    const arrowY1 =
-      toY - arrowLength * Math.sin(angle - dependencyTreePngConfig.numeric.ARROW_ANGLE_RADIANS);
-    const arrowX2 =
-      toX - arrowLength * Math.cos(angle + dependencyTreePngConfig.numeric.ARROW_ANGLE_RADIANS);
-    const arrowY2 =
-      toY - arrowLength * Math.sin(angle + dependencyTreePngConfig.numeric.ARROW_ANGLE_RADIANS);
-
-    // Draw the arrow head
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(toX, toY);
-    ctx.lineTo(arrowX1, arrowY1);
-    ctx.lineTo(arrowX2, arrowY2);
-    ctx.closePath();
-    ctx.fill();
   }
 
   /**
@@ -595,29 +475,30 @@ export class DependencyTreePngGenerator {
     const isCompactMode = layout.nodeWidth === dependencyTreePngConfig.compactLayout.NODE_WIDTH;
     const isRootLevel = node.level === 0;
 
-    // Draw node background
-    ctx.fillStyle = isRootLevel
+    // Draw node background and border
+    const fillColor = isRootLevel
       ? dependencyTreePngConfig.colors.ROOT_BACKGROUND
       : dependencyTreePngConfig.colors.NODE_BACKGROUND;
-    ctx.fillRect(node.x, node.y, node.width, node.height);
-
-    // Draw node border
-    ctx.strokeStyle = isRootLevel
+    const strokeColor = isRootLevel
       ? dependencyTreePngConfig.colors.ROOT_BORDER
       : dependencyTreePngConfig.colors.NODE_BORDER;
-    ctx.lineWidth = isRootLevel
+    const lineWidth = isRootLevel
       ? dependencyTreePngConfig.numeric.BORDER_WIDTH_ROOT
       : dependencyTreePngConfig.numeric.BORDER_WIDTH_NODE;
-    ctx.strokeRect(node.x, node.y, node.width, node.height);
+    this.canvasDrawer.drawRectangle(
+      ctx,
+      node.x,
+      node.y,
+      node.width,
+      node.height,
+      fillColor,
+      strokeColor,
+      lineWidth,
+    );
 
     // Draw class name - ALWAYS show full classpath without abbreviation or truncation
-    ctx.font = `${isRootLevel ? dependencyTreePngConfig.text.FONT_WEIGHT_BOLD : ""}${layout.fontSize}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
-    ctx.fillStyle = dependencyTreePngConfig.colors.TEXT;
-    ctx.textAlign = "left";
-
-    // Always use full classpath text - no abbreviation or truncation
     const displayText = node.classpath;
-
+    const classNameFont = `${isRootLevel ? dependencyTreePngConfig.text.FONT_WEIGHT_BOLD : ""}${layout.fontSize}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
     const textPadding = isCompactMode
       ? dependencyTreePngConfig.numeric.TEXT_PADDING_COMPACT
       : dependencyTreePngConfig.numeric.TEXT_PADDING_REGULAR;
@@ -626,25 +507,35 @@ export class DependencyTreePngGenerator {
       node.height / 2 +
       layout.fontSize / 2 -
       dependencyTreePngConfig.numeric.TEXT_BASELINE_ADJUSTMENT;
-    ctx.fillText(displayText, node.x + textPadding, textY);
+    this.canvasDrawer.drawText(
+      ctx,
+      displayText,
+      node.x + textPadding,
+      textY,
+      classNameFont,
+      dependencyTreePngConfig.colors.TEXT,
+      "left",
+    );
 
     // Draw level indicator (smaller in compact mode)
     const levelFontSize = isCompactMode
       ? layout.fontSize - dependencyTreePngConfig.numeric.FONT_SIZE_LEVEL_OFFSET_COMPACT
       : layout.fontSize - dependencyTreePngConfig.numeric.FONT_SIZE_LEVEL_OFFSET_REGULAR;
-    ctx.font = `${levelFontSize}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
-    ctx.fillStyle = dependencyTreePngConfig.colors.LEVEL_INDICATOR;
-    ctx.textAlign = "right";
+    const levelFont = `${levelFontSize}px ${dependencyTreePngConfig.text.FONT_FAMILY}`;
     const levelPadding = isCompactMode
       ? dependencyTreePngConfig.numeric.LEVEL_PADDING_COMPACT
       : dependencyTreePngConfig.numeric.LEVEL_PADDING_REGULAR;
     const levelY = isCompactMode
       ? node.y + dependencyTreePngConfig.numeric.LEVEL_Y_COMPACT
       : node.y + dependencyTreePngConfig.numeric.LEVEL_Y_REGULAR;
-    ctx.fillText(
+    this.canvasDrawer.drawText(
+      ctx,
       `${dependencyTreePngConfig.text.LEVEL_PREFIX}${node.level}`,
       node.x + node.width - levelPadding,
       levelY,
+      levelFont,
+      dependencyTreePngConfig.colors.LEVEL_INDICATOR,
+      "right",
     );
   }
 

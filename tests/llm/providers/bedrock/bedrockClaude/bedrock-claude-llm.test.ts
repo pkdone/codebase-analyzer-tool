@@ -8,6 +8,7 @@ import {
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
 import { llmConfig } from "../../../../../src/llm/llm.config";
 import { AWS_COMPLETIONS_CLAUDE_V40 } from "../../../../../src/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 // Define model keys used in tests (matching the manifest internal constants)
 const AWS_COMPLETIONS_CLAUDE_V37 = "AWS_COMPLETIONS_CLAUDE_V37";
@@ -62,6 +63,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         [],
         { providerSpecificConfig: mockConfig },
         "BedrockClaude",
+        createMockErrorLogger(),
       );
 
       const testPrompt = "Analyze this code";
@@ -101,6 +103,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         [],
         { providerSpecificConfig: mockConfig },
         "BedrockClaude",
+        createMockErrorLogger(),
       );
 
       const testPrompt = "Analyze large codebase";
@@ -135,6 +138,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         [],
         { providerSpecificConfig: minimalConfig },
         "BedrockClaude",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -153,6 +157,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         [],
         { providerSpecificConfig: mockConfig },
         "BedrockClaude",
+        createMockErrorLogger(),
       );
 
       const complexPrompt = "Line 1\nLine 2\nSpecial chars: <>&\"'";
@@ -175,6 +180,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         [],
         { providerSpecificConfig: mockConfig },
         "BedrockClaude",
+        createMockErrorLogger(),
       );
 
       // Test with Claude 3.7 (8192 max tokens)
@@ -196,6 +202,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         [],
         { providerSpecificConfig: mockConfig },
         "BedrockClaude",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -216,6 +223,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         [],
         { providerSpecificConfig: mockConfig },
         "BedrockClaude",
+        createMockErrorLogger(),
       );
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -245,6 +253,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         [],
         { providerSpecificConfig: mockConfig },
         "BedrockClaude",
+        createMockErrorLogger(),
       );
 
       expect(llm.getModelFamily()).toBe("BedrockClaude");

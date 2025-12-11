@@ -93,6 +93,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: BedrockConfig,
     modelFamily: string,
+    errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
   ) {
     if (!config.providerSpecificConfig) {
@@ -104,6 +105,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       errorPatterns,
       config.providerSpecificConfig,
       modelFamily,
+      errorLogger,
       llmFeatures,
     );
     const requestTimeoutMillis = config.providerSpecificConfig.requestTimeoutMillis;

@@ -65,6 +65,7 @@ export const llmTokens = {
   LLMExecutionPipeline: Symbol("LLMExecutionPipeline"),
   LLMRouter: Symbol("LLMRouter"),
   LLMModelFamily: Symbol("LLMModelFamily"),
+  LLMErrorLogger: Symbol("LLMErrorLogger"),
 } as const;
 
 export type LLMToken = keyof typeof llmTokens;
@@ -89,6 +90,7 @@ export const reportingTokens = {
   JobDataProvider: Symbol("JobDataProvider"),
   ModuleCouplingDataProvider: Symbol("ModuleCouplingDataProvider"),
   UiDataProvider: Symbol("UiDataProvider"),
+  IntegrationPointsDataProvider: Symbol("IntegrationPointsDataProvider"),
 } as const;
 
 export type ReportingToken = keyof typeof reportingTokens;

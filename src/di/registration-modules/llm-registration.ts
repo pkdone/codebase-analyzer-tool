@@ -3,6 +3,7 @@ import LLMRouter from "../../llm/llm-router";
 import LLMStats from "../../llm/tracking/llm-stats";
 import { LLMStatsReporter } from "../../llm/tracking/llm-stats-reporter";
 import { PromptAdaptationStrategy } from "../../llm/strategies/prompt-adaptation-strategy";
+import { LLMErrorLogger } from "../../llm/tracking/llm-error-logger";
 import { llmTokens } from "../tokens";
 
 /**
@@ -15,6 +16,7 @@ export function registerLLMProviders(): void {
   container.registerSingleton(llmTokens.LLMStats, LLMStats);
   container.registerSingleton(llmTokens.LLMStatsReporter, LLMStatsReporter);
   container.registerSingleton(llmTokens.PromptAdaptationStrategy, PromptAdaptationStrategy);
+  container.registerSingleton(llmTokens.LLMErrorLogger, LLMErrorLogger);
   // RetryStrategy, FallbackStrategy, and LLMExecutionPipeline are now registered in app-registration.ts
 
   console.log("LLM services registered");

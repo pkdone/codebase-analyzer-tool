@@ -1,4 +1,5 @@
 import { bedrockLlamaProviderManifest } from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 import BedrockLlamaLLM from "../../../../../src/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm";
 // Minimal mocks for metadata
 const mockModelsKeysSet = {
@@ -22,6 +23,7 @@ describe("Bedrock Llama Manifest Feature Flags", () => {
       bedrockLlamaProviderManifest.errorPatterns,
       { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
       bedrockLlamaProviderManifest.modelFamily,
+      createMockErrorLogger(),
     ) as unknown as {
       llmFeatures?: readonly string[];
       buildCompletionRequestBody: (modelKey: string, prompt: string) => any;
@@ -45,6 +47,7 @@ describe("Bedrock Llama Manifest Feature Flags", () => {
       bedrockLlamaProviderManifest.errorPatterns,
       { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
       bedrockLlamaProviderManifest.modelFamily,
+      createMockErrorLogger(),
     ) as unknown as {
       llmFeatures?: readonly string[];
       buildCompletionRequestBody: (modelKey: string, prompt: string) => any;

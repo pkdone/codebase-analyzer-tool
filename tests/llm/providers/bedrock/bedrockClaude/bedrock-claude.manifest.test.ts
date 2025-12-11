@@ -5,6 +5,7 @@ import {
   createBedrockTestData,
   type AdditionalTestModel,
 } from "../../../../helpers/llm/bedrock-test-helper";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 // Test-only constants
 const AWS_COMPLETIONS_CLAUDE_V35 = "AWS_COMPLETIONS_CLAUDE_V35";
@@ -94,6 +95,7 @@ describe("Bedrock Claude Provider Tests", () => {
         bedrockClaudeProviderManifest.errorPatterns,
         { providerSpecificConfig: bedrockClaudeProviderManifest.providerSpecificConfig },
         bedrockClaudeProviderManifest.modelFamily,
+        createMockErrorLogger(),
       );
       expect(llm.getModelFamily()).toBe("BedrockClaude");
     });
@@ -106,6 +108,7 @@ describe("Bedrock Claude Provider Tests", () => {
         bedrockClaudeProviderManifest.errorPatterns,
         { providerSpecificConfig: bedrockClaudeProviderManifest.providerSpecificConfig },
         bedrockClaudeProviderManifest.modelFamily,
+        createMockErrorLogger(),
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });

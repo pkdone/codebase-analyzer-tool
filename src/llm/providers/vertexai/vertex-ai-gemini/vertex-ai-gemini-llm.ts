@@ -66,6 +66,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
     modelFamily: string,
+    errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
   ) {
     super(
@@ -74,6 +75,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       errorPatterns,
       config.providerSpecificConfig,
       modelFamily,
+      errorLogger,
       llmFeatures,
     );
     const project = getRequiredEnvVar(env, "VERTEXAI_PROJECTID");

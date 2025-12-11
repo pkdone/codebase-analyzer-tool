@@ -14,15 +14,12 @@ import {
   LLMOutputFormat,
 } from "../types/llm.types";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
-import { formatError, formatErrorMessageAndDetail } from "../../common/utils/error-formatters";
-import { logOneLineWarning, logError } from "../../common/utils/logging";
+import { formatError } from "../../common/utils/error-formatters";
 import { processJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
-import { writeFile } from "../../common/fs/file-operations";
-import { ensureDirectoryExists } from "../../common/fs/directory-operations";
-import { loggingConfig } from "../tracking/logging.config";
+import { LLMErrorLogger } from "../tracking/llm-error-logger";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
@@ -36,8 +33,8 @@ export default abstract class AbstractLLM implements LLMProvider {
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
-  private hasLoggedJsonError = false;
   private readonly modelFamily: string;
+  private readonly errorLogger: LLMErrorLogger;
 
   /**
    * Constructor.
@@ -48,6 +45,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     providerSpecificConfig: LLMProviderSpecificConfig,
     modelFamily: string,
+    errorLogger: LLMErrorLogger,
     llmFeatures?: readonly string[],
   ) {
     this.modelsKeys = modelsKeys;
@@ -55,6 +53,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     this.errorPatterns = errorPatterns;
     this.providerSpecificConfig = providerSpecificConfig;
     this.modelFamily = modelFamily;
+    this.errorLogger = errorLogger;
     this.llmFeatures = llmFeatures;
   }
 
@@ -303,7 +302,7 @@ export default abstract class AbstractLLM implements LLMProvider {
           };
         } else {
           context.responseContentParseError = formatError(jsonProcessingResult.error);
-          await this.recordTestResponseToJSONErrorToFile(
+          await this.errorLogger.recordJsonProcessingError(
             jsonProcessingResult.error,
             responseContent,
             context,
@@ -319,48 +318,6 @@ export default abstract class AbstractLLM implements LLMProvider {
       }
     } else {
       return { ...skeletonResult, status: LLMResponseStatus.COMPLETED, generated: responseContent };
-    }
-  }
-
-  /**
-   * Logs response formatting/validation errors to individual files for debugging purposes.
-   */
-  private async recordTestResponseToJSONErrorToFile(
-    error: unknown,
-    responseContent: LLMGeneratedContent,
-    context: LLMContext,
-  ): Promise<void> {
-    if (typeof responseContent !== "string") return;
-
-    try {
-      // Use replaceAll for lint rule compliance (prefer replaceAll over replace with global regex)
-      const timestamp = new Date().toISOString().replaceAll(/[:.]/g, "-");
-      const filename = loggingConfig.ERROR_LOG_FILENAME_TEMPLATE.replace("{timestamp}", timestamp);
-      const errorDir = loggingConfig.ERROR_LOG_DIRECTORY;
-      const filepath = `${errorDir}/${filename}`;
-      await ensureDirectoryExists(errorDir);
-      const logContent =
-        "Resource: " +
-        context.resource +
-        "\n\n" +
-        "Error message:\n\n```\n" +
-        formatErrorMessageAndDetail(
-          "LLM response JSON processing error",
-          error instanceof Error && error.cause ? error.cause : error,
-        ) +
-        "\n```\n\n\nBad LLM JSON response: \n\n```\n" +
-        responseContent +
-        "\n```";
-      await writeFile(filepath, logContent);
-
-      if (!this.hasLoggedJsonError) {
-        logOneLineWarning(
-          `First of potentially numerous errors detected trying to convert an LLM response to JSON - details written to: ${filepath}`,
-        );
-        this.hasLoggedJsonError = true;
-      }
-    } catch (fileError: unknown) {
-      logError("Failed to write error log file:", fileError);
     }
   }
 

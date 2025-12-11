@@ -6,6 +6,7 @@ import {
 import { calculateTokenUsageFromError } from "../../../../../src/llm/utils/error-parser";
 import { azureOpenAIProviderManifest } from "../../../../../src/llm/providers/openai/azureOpenai/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../src/env/env";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4 = "GPT_COMPLETIONS_GPT4";
@@ -133,8 +134,8 @@ describe("Azure OpenAI Provider Tests", () => {
         azureOpenAIModelsMetadata,
         azureOpenAIProviderManifest.errorPatterns,
         { providerSpecificConfig: azureOpenAIProviderManifest.providerSpecificConfig },
-
         azureOpenAIProviderManifest.modelFamily,
+        createMockErrorLogger(),
       );
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });
@@ -146,8 +147,8 @@ describe("Azure OpenAI Provider Tests", () => {
         azureOpenAIModelsMetadata,
         azureOpenAIProviderManifest.errorPatterns,
         { providerSpecificConfig: azureOpenAIProviderManifest.providerSpecificConfig },
-
         azureOpenAIProviderManifest.modelFamily,
+        createMockErrorLogger(),
       );
       expect(llm.getModelFamily()).toBe("AzureOpenAI");
     });

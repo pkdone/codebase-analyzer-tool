@@ -7,4 +7,5 @@ export const SECTION_NAMES = {
   CODE_STRUCTURE: "code-structure",
   ADVANCED_DATA: "advanced-data",
   ENHANCED_UI: "enhanced-ui",
+  INTEGRATION_POINTS: "integration-points",
 } as const;

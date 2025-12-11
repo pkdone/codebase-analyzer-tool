@@ -9,7 +9,6 @@ describe("DatabaseSection", () => {
 
   beforeEach(() => {
     mockDatabaseDataProvider = {
-      getIntegrationPoints: jest.fn(),
       getDatabaseInteractions: jest.fn(),
       buildProceduresAndTriggersSummary: jest.fn(),
     } as unknown as jest.Mocked<DatabaseReportDataProvider>;
@@ -25,15 +24,6 @@ describe("DatabaseSection", () => {
 
   describe("getData", () => {
     it("should fetch database data from the provider", async () => {
-      const mockIntegrationPoints = [
-        {
-          namespace: "test",
-          filepath: "file",
-          mechanism: "REST" as const,
-          name: "test",
-          description: "test",
-        },
-      ] as any;
       const mockDbInteractions = [
         {
           path: "file",
@@ -47,7 +37,6 @@ describe("DatabaseSection", () => {
         trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
       };
 
-      mockDatabaseDataProvider.getIntegrationPoints.mockResolvedValue(mockIntegrationPoints);
       mockDatabaseDataProvider.getDatabaseInteractions.mockResolvedValue(mockDbInteractions);
       mockDatabaseDataProvider.buildProceduresAndTriggersSummary.mockResolvedValue(
         mockProcsAndTriggers,
@@ -56,7 +45,6 @@ describe("DatabaseSection", () => {
       const result = await section.getData("test-project");
 
       expect(result).toEqual({
-        integrationPoints: mockIntegrationPoints,
         dbInteractions: mockDbInteractions,
         procsAndTriggers: mockProcsAndTriggers,
       });
@@ -66,15 +54,6 @@ describe("DatabaseSection", () => {
   describe("prepareHtmlData", () => {
     it("should prepare HTML data with table view models", async () => {
       const mockSectionData = {
-        integrationPoints: [
-          {
-            namespace: "test",
-            filepath: "file",
-            mechanism: "REST" as const,
-            name: "test",
-            description: "test",
-          },
-        ] as any,
         dbInteractions: [
           {
             path: "file",
@@ -98,10 +77,8 @@ describe("DatabaseSection", () => {
       );
 
       expect(result).toBeDefined();
-      expect(result?.integrationPoints).toEqual(mockSectionData.integrationPoints);
       expect(result?.dbInteractions).toEqual(mockSectionData.dbInteractions);
       expect(result?.procsAndTriggers).toEqual(mockSectionData.procsAndTriggers);
-      expect(result?.integrationPointsTableViewModel).toBeDefined();
       expect(result?.dbInteractionsTableViewModel).toBeDefined();
       expect(result?.procsAndTriggersTableViewModel).toBeDefined();
     });
@@ -110,7 +87,6 @@ describe("DatabaseSection", () => {
   describe("prepareJsonData", () => {
     it("should prepare JSON data for all database sections", () => {
       const mockSectionData = {
-        integrationPoints: [{ namespace: "test" }],
         dbInteractions: [{ path: "file" }],
         procsAndTriggers: {
           procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
@@ -122,10 +98,9 @@ describe("DatabaseSection", () => {
 
       const result = section.prepareJsonData(mockReportData as ReportData, mockSectionData);
 
-      expect(result).toHaveLength(3);
-      expect(result[0].filename).toBe("integration-points.json");
-      expect(result[1].filename).toBe("db-interactions.json");
-      expect(result[2].filename).toBe("procs-and-triggers.json");
+      expect(result).toHaveLength(2);
+      expect(result[0].filename).toBe("db-interactions.json");
+      expect(result[1].filename).toBe("procs-and-triggers.json");
     });
   });
 });

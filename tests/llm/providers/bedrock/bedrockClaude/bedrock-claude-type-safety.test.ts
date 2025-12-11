@@ -8,6 +8,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../src/llm/types/llm.types";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 /**
  * Unit tests for BedrockClaudeLLM - Type Safety Improvements
@@ -65,6 +66,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         },
       },
       "BedrockClaude",
+      createMockErrorLogger(),
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
@@ -95,6 +97,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         },
       },
       "BedrockClaude",
+      createMockErrorLogger(),
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
@@ -129,6 +132,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         },
       },
       "BedrockClaude",
+      createMockErrorLogger(),
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody(
@@ -172,6 +176,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
         },
       },
       "BedrockClaude",
+      createMockErrorLogger(),
     );
 
     const requestBody = (llm as any).buildCompletionRequestBody(

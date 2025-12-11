@@ -8,6 +8,7 @@ import {
 import { LLMProviderSpecificConfig } from "../../../../../src/llm/providers/llm-provider.types";
 import { z } from "zod";
 import { ValidationException } from "@aws-sdk/client-bedrock-runtime";
+import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 /**
  * Test implementation of BaseBedrockLLM to verify JSON stringification
@@ -23,7 +24,15 @@ class TestBedrockLLM extends BaseBedrockLLM {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     config: { providerSpecificConfig: LLMProviderSpecificConfig },
   ) {
-    super(_env as any, modelsKeys, modelsMetadata, errorPatterns, config, "TEST_BEDROCK");
+    super(
+      _env as any,
+      modelsKeys,
+      modelsMetadata,
+      errorPatterns,
+      config,
+      "TEST_BEDROCK",
+      createMockErrorLogger(),
+    );
   }
 
   protected buildCompletionRequestBody(modelKey: string, prompt: string): Record<string, unknown> {
