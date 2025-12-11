@@ -122,45 +122,47 @@ export default abstract class AbstractLLM implements LLMProvider {
   };
 
   /**
-   * Execute the LLM function for the primary completion model.
-   * Uses arrow function to enable easier binding of `this` context.
+   * Execute the LLM function for the primary completion model with type-safe JSON validation.
+   * The generic type parameter T represents the expected return type, which should
+   * match the Zod schema provided in the completion options.
    */
-  executeCompletionPrimary = async (
+  async executeCompletionPrimary<T = LLMGeneratedContent>(
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse> => {
-    return this.executeProviderFunction(
+  ): Promise<LLMFunctionResponse<T>> {
+    return this.executeProviderFunction<T>(
       this.modelsKeys.primaryCompletionModelKey,
       LLMPurpose.COMPLETIONS,
       prompt,
       context,
       options,
     );
-  };
+  }
 
   /**
-   * Execute the LLM function for the secondary completion model.
-   * Uses arrow function to enable easier binding of `this` context.
+   * Execute the LLM function for the secondary completion model with type-safe JSON validation.
+   * The generic type parameter T represents the expected return type, which should
+   * match the Zod schema provided in the completion options.
    */
-  executeCompletionSecondary = async (
+  async executeCompletionSecondary<T = LLMGeneratedContent>(
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse> => {
+  ): Promise<LLMFunctionResponse<T>> {
     const secondaryCompletion = this.modelsKeys.secondaryCompletionModelKey;
     if (!secondaryCompletion)
       throw new BadConfigurationLLMError(
         `'Secondary' text model for ${this.constructor.name} was not defined`,
       );
-    return this.executeProviderFunction(
+    return this.executeProviderFunction<T>(
       secondaryCompletion,
       LLMPurpose.COMPLETIONS,
       prompt,
       context,
       options,
     );
-  };
+  }
 
   /**
    * Close the LLM client.
@@ -189,16 +191,21 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
-   * Executes the LLM function for the given model key and task type.
+   * Executes the LLM function for the given model key and task type with type-safe JSON validation.
+   * The generic type parameter T represents the expected return type, which should
+   * match the Zod schema provided in the completion options.
    */
-  private async executeProviderFunction(
+  private async executeProviderFunction<T = LLMGeneratedContent>(
     modelKey: string,
     taskType: LLMPurpose,
     request: string,
     context: LLMContext,
     completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse> {
-    const skeletonResponse = { status: LLMResponseStatus.UNKNOWN, request, context, modelKey };
+  ): Promise<LLMFunctionResponse<T>> {
+    const skeletonResponse: Omit<
+      LLMFunctionResponse<T>,
+      "generated" | "status" | "mutationSteps"
+    > = { request, context, modelKey };
     completionOptions ??= { outputFormat: LLMOutputFormat.TEXT };
 
     try {
@@ -220,9 +227,9 @@ export default abstract class AbstractLLM implements LLMProvider {
             this.llmModelsMetadata,
             request,
           ),
-        };
+        } as LLMFunctionResponse<T>;
       } else {
-        return await this.formatAndValidateResponse(
+        return await this.formatAndValidateResponse<T>(
           skeletonResponse,
           taskType,
           responseContent,
@@ -235,7 +242,10 @@ export default abstract class AbstractLLM implements LLMProvider {
       // OPTIONAL: this.debugUnhandledError(error, modelKey);
 
       if (this.isLLMOverloaded(error)) {
-        return { ...skeletonResponse, status: LLMResponseStatus.OVERLOADED };
+        return {
+          ...skeletonResponse,
+          status: LLMResponseStatus.OVERLOADED,
+        } as LLMFunctionResponse<T>;
       } else if (this.isTokenLimitExceeded(error)) {
         // Often occurs if the prompt on its own execeeds the max token limit (e.g. actual internal LLM completion generation was not even initiated by the LLM)
         return {
@@ -248,9 +258,13 @@ export default abstract class AbstractLLM implements LLMProvider {
             this.llmModelsMetadata,
             this.errorPatterns,
           ),
-        };
+        } as LLMFunctionResponse<T>;
       } else {
-        return { ...skeletonResponse, status: LLMResponseStatus.ERRORED, error };
+        return {
+          ...skeletonResponse,
+          status: LLMResponseStatus.ERRORED,
+          error,
+        } as LLMFunctionResponse<T>;
       }
     }
   }
@@ -280,44 +294,65 @@ export default abstract class AbstractLLM implements LLMProvider {
 
   /**
    * Post-process the LLM response, converting it to JSON if necessary, and build the
-   * response metadaat object.
+   * response metadata object with type-safe JSON validation.
+   * The generic type parameter T represents the expected return type, which is inferred
+   * from the Zod schema when JSON validation is used.
    */
-  private async formatAndValidateResponse(
-    skeletonResult: LLMFunctionResponse,
+  private async formatAndValidateResponse<T = LLMGeneratedContent>(
+    skeletonResult: Omit<LLMFunctionResponse<T>, "generated" | "status" | "mutationSteps">,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions,
     context: LLMContext,
-  ): Promise<LLMFunctionResponse> {
+  ): Promise<LLMFunctionResponse<T>> {
     if (taskType === LLMPurpose.COMPLETIONS) {
       if (completionOptions.outputFormat === LLMOutputFormat.JSON) {
-        const jsonProcessingResult = processJson(responseContent, context, completionOptions, true);
+        // Type inference: processJson will infer the type from the schema if provided
+        // Use type assertion to call the implementation directly, bypassing overload resolution
+        // The implementation handles both cases (with and without schema)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const jsonProcessingResult = (processJson as any)(
+          responseContent,
+          context,
+          completionOptions,
+          true,
+        );
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (jsonProcessingResult.success) {
           return {
             ...skeletonResult,
             status: LLMResponseStatus.COMPLETED,
-            generated: jsonProcessingResult.data,
+            // The type is now preserved and passed up - safe cast from inferred type to T
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            generated: jsonProcessingResult.data as T,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
             mutationSteps: jsonProcessingResult.mutationSteps,
           };
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
           context.responseContentParseError = formatError(jsonProcessingResult.error);
           await this.errorLogger.recordJsonProcessingError(
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
             jsonProcessingResult.error,
             responseContent,
             context,
           );
-          return { ...skeletonResult, status: LLMResponseStatus.INVALID };
+          return { ...skeletonResult, status: LLMResponseStatus.INVALID } as LLMFunctionResponse<T>;
         }
       } else {
         return {
           ...skeletonResult,
           status: LLMResponseStatus.COMPLETED,
-          generated: responseContent,
+          generated: responseContent as T,
         };
       }
     } else {
-      return { ...skeletonResult, status: LLMResponseStatus.COMPLETED, generated: responseContent };
+      return {
+        ...skeletonResult,
+        status: LLMResponseStatus.COMPLETED,
+        generated: responseContent as T,
+      };
     }
   }
 

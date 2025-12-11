@@ -1,6 +1,6 @@
-import { validateJsonWithTransforms } from "../../../src/llm/json-processing/core/json-validating";
 import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
 import { z } from "zod";
+import { validateJsonWithTransforms } from "../../../src/llm/json-processing/core/json-validating";
 
 describe("json-validator", () => {
   describe("validateJsonWithTransforms", () => {

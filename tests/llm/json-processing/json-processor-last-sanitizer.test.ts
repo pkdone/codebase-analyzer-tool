@@ -10,7 +10,8 @@ describe("JsonProcessor lastSanitizer tracking", () => {
 
   it("includes lastSanitizer in error when pipeline fails", () => {
     const malformed = "NOT_JSON@@";
-    const result = processJson(
+
+    const result = (processJson as any)(
       malformed,
       { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
       completionOptions,
@@ -19,7 +20,7 @@ describe("JsonProcessor lastSanitizer tracking", () => {
     if (!result.success) {
       // lastSanitizer may or may not be set depending on whether any sanitizer changed content
       if (result.error instanceof Error) {
-        const anyErr = result.error as any;
+        const anyErr = result.error;
         if (anyErr.lastSanitizer) {
           expect(typeof anyErr.lastSanitizer).toBe("string");
           if (Array.isArray(anyErr.appliedSanitizers)) {

@@ -3,18 +3,23 @@ import {
   LLMCandidateFunction,
   LLMFunction,
   LLMProvider,
+  LLMContext,
+  LLMCompletionOptions,
 } from "../types/llm.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 
 /**
  * Build completion candidates from the LLM provider.
+ * Uses wrapper functions instead of .bind() to support generic methods.
  */
 export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunction[] {
   const candidates: LLMCandidateFunction[] = [];
 
   // Add primary completion model as first candidate
+  // Wrapper function preserves generic type parameter
   candidates.push({
-    func: llm.executeCompletionPrimary.bind(llm),
+    func: async <T>(content: string, context: LLMContext, options?: LLMCompletionOptions) =>
+      llm.executeCompletionPrimary<T>(content, context, options),
     modelQuality: LLMModelQuality.PRIMARY,
     description: "Primary completion model",
   });
@@ -22,8 +27,10 @@ export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunctio
   // Add secondary completion model as fallback if available
   const availableQualities = llm.getAvailableCompletionModelQualities();
   if (availableQualities.includes(LLMModelQuality.SECONDARY)) {
+    // Wrapper function preserves generic type parameter
     candidates.push({
-      func: llm.executeCompletionSecondary.bind(llm),
+      func: async <T>(content: string, context: LLMContext, options?: LLMCompletionOptions) =>
+        llm.executeCompletionSecondary<T>(content, context, options),
       modelQuality: LLMModelQuality.SECONDARY,
       description: "Secondary completion model (fallback)",
     });

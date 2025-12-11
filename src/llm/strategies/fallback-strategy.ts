@@ -20,9 +20,10 @@ interface FallbackDecision {
 export class FallbackStrategy {
   /**
    * Determines the next action to take based on an unsuccessful LLM call.
+   * Accepts a generic LLMFunctionResponse to maintain type safety through the call chain.
    */
-  determineNextAction(
-    llmResponse: LLMFunctionResponse | null,
+  determineNextAction<T = unknown>(
+    llmResponse: LLMFunctionResponse<T> | null,
     currentLLMFunctionIndex: number,
     totalLLMCount: number,
     context: LLMContext,

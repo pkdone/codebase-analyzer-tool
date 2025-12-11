@@ -12,15 +12,16 @@ export class PromptAdaptationStrategy {
   /**
    * Adapts a prompt based on LLM response feedback (typically when token limits are exceeded).
    * Reduces prompt size based on token limit calculations.
+   * Accepts a generic LLMFunctionResponse to maintain type safety through the call chain.
    *
    * @param prompt The original prompt that needs to be adapted
    * @param llmResponse The LLM response containing token usage information
    * @param modelsMetadata Metadata about available LLM models
    * @returns The adapted prompt
    */
-  adaptPromptFromResponse(
+  adaptPromptFromResponse<T = unknown>(
     prompt: string,
-    llmResponse: LLMFunctionResponse,
+    llmResponse: LLMFunctionResponse<T>,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
   ): string {
     if (!llmResponse.tokensUsage) {

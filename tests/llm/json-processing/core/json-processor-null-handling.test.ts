@@ -52,10 +52,11 @@ describe("Null Handling Integration", () => {
         },
       ]);
 
-      const completionOptions: LLMCompletionOptions = {
+      const schema = z.array(bomDependencySchema);
+      const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: z.array(bomDependencySchema),
-      };
+        jsonSchema: schema,
+      } as LLMCompletionOptions & { jsonSchema: typeof schema };
 
       const result = processJson(
         llmResponse,
@@ -136,12 +137,14 @@ describe("Null Handling Integration", () => {
           .optional(),
       });
 
-      const completionOptions: LLMCompletionOptions = {
+      const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: appSummarySchema,
       };
 
-      const result = processJson(
+      // Use type assertion to help TypeScript match the overload
+
+      const result = (processJson as any)(
         llmResponse,
         { resource: "all-categories", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -194,12 +197,14 @@ describe("Null Handling Integration", () => {
         anotherTopLevel: z.string().optional(),
       });
 
-      const completionOptions: LLMCompletionOptions = {
+      const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
       };
 
-      const result = processJson(
+      // Use type assertion to help TypeScript match the overload
+
+      const result = (processJson as any)(
         llmResponse,
         { resource: "nested-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -236,12 +241,14 @@ describe("Null Handling Integration", () => {
         locations: ["build.gradle"], // required field
       });
 
-      const completionOptions: LLMCompletionOptions = {
+      const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: bomDependencySchema,
       };
 
-      const result = processJson(
+      // Use type assertion to help TypeScript match the overload
+
+      const result = (processJson as any)(
         problematicResponse,
         { resource: "single-dependency", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -271,12 +278,14 @@ describe("Null Handling Integration", () => {
         }),
       );
 
-      const completionOptions: LLMCompletionOptions = {
+      const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
       };
 
-      const result = processJson(
+      // Use type assertion to help TypeScript match the overload
+
+      const result = (processJson as any)(
         response,
         { resource: "multi-null-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -304,12 +313,14 @@ describe("Null Handling Integration", () => {
         locations: ["build.gradle"],
       });
 
-      const completionOptions: LLMCompletionOptions = {
+      const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: bomDependencySchema,
       };
 
-      const result = processJson(
+      // Use type assertion to help TypeScript match the overload
+
+      const result = (processJson as any)(
         response,
         { resource: "no-null-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -331,12 +342,14 @@ describe("Null Handling Integration", () => {
         locations: ["package.json"],
       });
 
-      const completionOptions: LLMCompletionOptions = {
+      const completionOptions = {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: bomDependencySchema,
       };
 
-      const result = processJson(
+      // Use type assertion to help TypeScript match the overload
+
+      const result = (processJson as any)(
         response,
         { resource: "omitted-test", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,

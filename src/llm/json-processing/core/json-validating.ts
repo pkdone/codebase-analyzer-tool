@@ -67,13 +67,14 @@ function createValidationFailureWithTransforms<T>(
  * @param jsonSchema - The Zod schema to validate against
  * @returns A result indicating success with validated data, or failure with validation issues
  */
-function attemptValidate<T>(
+function attemptValidate<S extends z.ZodType>(
   data: unknown,
-  jsonSchema: z.ZodType<T>,
-): { success: true; data: T } | { success: false; issues: z.ZodIssue[] } {
+  jsonSchema: S,
+): { success: true; data: z.infer<S> } | { success: false; issues: z.ZodIssue[] } {
   const validation = jsonSchema.safeParse(data);
 
   if (validation.success) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     return { success: true, data: validation.data };
   } else {
     const issues = validation.error.issues;
@@ -117,21 +118,24 @@ function applySchemaFixingTransforms(data: unknown): { data: unknown; steps: rea
  * This function encapsulates the test-fix-test pattern: it tries validation first, and if that fails,
  * applies transforms and tries validation again.
  *
+ * The return type is inferred from the provided schema using `z.infer<S>`, ensuring type safety
+ * without requiring the caller to explicitly specify the type parameter.
+ *
  * @param data - The parsed data to validate
  * @param jsonSchema - The Zod schema to validate against
  * @returns A ValidationWithTransformsResult indicating success with validated data and transform steps, or failure with validation issues and transform steps
  */
-export function validateJsonWithTransforms<T>(
+export function validateJsonWithTransforms<S extends z.ZodType>(
   data: unknown,
-  jsonSchema: z.ZodType<T>,
-): ValidationWithTransformsResult<T> {
+  jsonSchema: S,
+): ValidationWithTransformsResult<z.infer<S>> {
   // Fail validation early if not JSON
   if (
     !data ||
     (typeof data === "object" && !Array.isArray(data) && Object.keys(data).length === 0) ||
     (Array.isArray(data) && data.length === 0)
   ) {
-    return createValidationFailureWithTransforms<T>(
+    return createValidationFailureWithTransforms<z.infer<S>>(
       "Data is required for validation and cannot be empty",
     );
   }

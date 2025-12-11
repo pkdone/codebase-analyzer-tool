@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 import {
@@ -355,17 +356,21 @@ describe("processJson", () => {
   });
 
   describe("generic type support", () => {
-    interface TestType {
-      name: string;
-      value: number;
-    }
+    const testTypeSchema = z.object({
+      name: z.string(),
+      value: z.number(),
+    });
 
-    it("should support generic type parameter", () => {
+    it("should support schema-based type inference", () => {
       const json = '{"name": "Test", "value": 42}';
-      const result = processJson<TestType>(
+      const optionsWithSchema = {
+        ...completionOptions,
+        jsonSchema: testTypeSchema,
+      };
+      const result = processJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-        completionOptions,
+        optionsWithSchema,
       );
       expect(result.success).toBe(true);
       if (result.success) {
@@ -374,12 +379,17 @@ describe("processJson", () => {
       }
     });
 
-    it("should support array types", () => {
+    it("should support array types with schema", () => {
       const json = '[{"name": "A", "value": 1}, {"name": "B", "value": 2}]';
-      const result = processJson<TestType[]>(
+      const arraySchema = z.array(testTypeSchema);
+      const optionsWithSchema = {
+        ...completionOptions,
+        jsonSchema: arraySchema,
+      };
+      const result = processJson(
         json,
         { resource: "test", purpose: LLMPurpose.COMPLETIONS },
-        completionOptions,
+        optionsWithSchema,
       );
       expect(result.success).toBe(true);
       if (result.success) {

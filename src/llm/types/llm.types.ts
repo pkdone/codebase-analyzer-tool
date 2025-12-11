@@ -9,8 +9,26 @@ export interface LLMProvider {
   /** Optional feature flags indicating model-specific capabilities or constraints */
   readonly llmFeatures?: readonly string[];
   generateEmbeddings: LLMFunction;
-  executeCompletionPrimary: LLMFunction;
-  executeCompletionSecondary: LLMFunction;
+  /**
+   * Execute completion using the primary model with type-safe JSON validation.
+   * The generic type parameter T represents the expected return type, which should
+   * match the Zod schema provided in the completion options.
+   */
+  executeCompletionPrimary<T = LLMGeneratedContent>(
+    content: string,
+    context: LLMContext,
+    options?: LLMCompletionOptions,
+  ): Promise<LLMFunctionResponse<T>>;
+  /**
+   * Execute completion using the secondary model with type-safe JSON validation.
+   * The generic type parameter T represents the expected return type, which should
+   * match the Zod schema provided in the completion options.
+   */
+  executeCompletionSecondary<T = LLMGeneratedContent>(
+    content: string,
+    context: LLMContext,
+    options?: LLMCompletionOptions,
+  ): Promise<LLMFunctionResponse<T>>;
   getModelsNames(): {
     embeddings: string;
     primaryCompletion: string;
@@ -167,30 +185,39 @@ export interface LLMResponseTokensUsage {
 export type LLMGeneratedContent = string | Record<string, unknown> | number[] | null;
 
 /**
- * Type to define the LLM response
+ * Type to define the LLM response with type-safe generated content.
+ * The generic type parameter T represents the type of the generated content,
+ * which is inferred from the Zod schema when JSON validation is used.
+ *
+ * @template T - The type of the generated content. Defaults to LLMGeneratedContent for backward compatibility.
  */
-export interface LLMFunctionResponse {
+export interface LLMFunctionResponse<T = LLMGeneratedContent> {
   readonly status: LLMResponseStatus;
   readonly request: string;
   readonly modelKey: string;
   readonly context: LLMContext;
-  readonly generated?: LLMGeneratedContent;
+  readonly generated?: T;
   readonly tokensUsage?: LLMResponseTokensUsage;
   readonly error?: unknown;
   readonly mutationSteps?: readonly string[];
 }
 
 /**
- * Type to define the embedding or completion function
+ * Type to define the embedding or completion function with type-safe JSON validation.
+ * The generic type parameter T represents the expected return type, which should
+ * match the Zod schema provided in the completion options.
+ *
+ * @template T - The type of the generated content. Defaults to LLMGeneratedContent for backward compatibility.
  */
-export type LLMFunction = (
+export type LLMFunction<T = LLMGeneratedContent> = (
   content: string,
   context: LLMContext,
   options?: LLMCompletionOptions,
-) => Promise<LLMFunctionResponse>;
+) => Promise<LLMFunctionResponse<T>>;
 
 /**
- * Type to define a candidate LLM function with its associated metadata
+ * Type to define a candidate LLM function with its associated metadata.
+ * The function is generic to support type-safe JSON validation.
  */
 export interface LLMCandidateFunction {
   readonly func: LLMFunction;

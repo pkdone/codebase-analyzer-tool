@@ -87,18 +87,48 @@ function logProcessingSteps(
  * This is the high-level public API for JSON processing, orchestrating parsing and validation
  * with comprehensive logging.
  *
+ * When a schema is provided, the return type is inferred from the schema using `z.infer<S>`.
+ * When no schema is provided, the return type defaults to `Record<string, unknown>`.
+ *
  * @param content - The LLM-generated content to process
  * @param context - Context information about the LLM request
  * @param completionOptions - Options including output format and optional JSON schema
  * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
  * @returns A JsonProcessorResult indicating success with validated data and steps, or failure with an error
  */
-export function processJson<T = Record<string, unknown>>(
+
+// Overload for when a schema is provided - infers return type from schema
+// Extract schema type using a helper to avoid strict structural checking
+type ExtractSchemaType<T> = T extends { jsonSchema: infer S }
+  ? S extends z.ZodType
+    ? S
+    : never
+  : never;
+
+export function processJson<TOptions extends LLMCompletionOptions & { jsonSchema: z.ZodType }>(
+  content: LLMGeneratedContent,
+  context: LLMContext,
+  completionOptions: TOptions,
+  loggingEnabled?: boolean,
+): JsonProcessorResult<z.infer<ExtractSchemaType<TOptions>>>;
+
+// Overload for when no schema is provided - returns Record<string, unknown>
+export function processJson(
+  content: LLMGeneratedContent,
+  context: LLMContext,
+  completionOptions: LLMCompletionOptions & { jsonSchema?: undefined },
+  loggingEnabled?: boolean,
+): JsonProcessorResult<Record<string, unknown>>;
+
+// Implementation signature - uses any to satisfy both overloads
+// The implementation accepts the base LLMCompletionOptions type
+export function processJson(
   content: LLMGeneratedContent,
   context: LLMContext,
   completionOptions: LLMCompletionOptions,
   loggingEnabled = true,
-): JsonProcessorResult<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): JsonProcessorResult<any> {
   // Pre-check - ensure content is a string
   if (typeof content !== "string") {
     const contentText = JSON.stringify(content);
@@ -161,15 +191,16 @@ export function processJson<T = Record<string, unknown>>(
     logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
-      data: parseResult.data as T,
+      data: parseResult.data,
       mutationSteps: parseResult.steps,
     };
   }
 
   // Validate the parsed data (with transforms applied internally if needed)
-  const validationResult = validateJsonWithTransforms<T>(
+  // Type inference: validateJsonWithTransforms will infer the type from the schema
+  const validationResult = validateJsonWithTransforms(
     parseResult.data,
-    completionOptions.jsonSchema as z.ZodType<T>,
+    completionOptions.jsonSchema,
   );
 
   // Validation succeeded

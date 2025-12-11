@@ -1,20 +1,23 @@
+import { z } from "zod";
 import { processJson } from "../../../src/llm/json-processing/core/json-processing";
 import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
 
-// Test interfaces for generic type testing
-interface TestUser {
-  name: string;
-  age: number;
-  email: string;
-}
+// Test schemas for type inference testing
+const TestUserSchema = z.object({
+  name: z.string(),
+  age: z.number(),
+  email: z.string(),
+});
 
-interface TestConfig {
-  enabled: boolean;
-  settings: {
-    timeout: number;
-    retries: number;
-  };
-}
+const TestConfigSchema = z.object({
+  enabled: z.boolean(),
+  settings: z.object({
+    timeout: z.number(),
+    retries: z.number(),
+  }),
+});
+
+// Types are inferred from schemas automatically by processJson
 
 describe("JSON utilities", () => {
   describe("convertTextToJSON", () => {
@@ -88,11 +91,14 @@ describe("JSON utilities", () => {
       });
     });
 
-    test("returns typed result with generic type parameter", () => {
+    test("returns typed result with schema-based type inference", () => {
       const userJson =
         'Text before {"name": "John Doe", "age": 30, "email": "john@example.com"} text after';
-      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson<TestUser>(
+      const completionOptions = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: TestUserSchema,
+      };
+      const result = processJson(
         userJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
@@ -110,8 +116,11 @@ describe("JSON utilities", () => {
     test("returns complex typed result with nested objects", () => {
       const configJson =
         'Prefix {"enabled": true, "settings": {"timeout": 5000, "retries": 3}} suffix';
-      const completionOptions = { outputFormat: LLMOutputFormat.JSON };
-      const result = processJson<TestConfig>(
+      const completionOptions = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: TestConfigSchema,
+      };
+      const result = processJson(
         configJson,
         { resource: "content", purpose: LLMPurpose.COMPLETIONS },
         completionOptions,
