@@ -20,6 +20,7 @@ import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
 import { LLMErrorLogger } from "../tracking/llm-error-logger";
+import { z } from "zod";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
@@ -111,8 +112,8 @@ export default abstract class AbstractLLM implements LLMProvider {
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse> => {
-    return this.executeProviderFunction(
+  ): Promise<LLMFunctionResponse<number[]>> => {
+    return this.executeProviderFunction<number[]>(
       this.modelsKeys.embeddingsModelKey,
       LLMPurpose.EMBEDDINGS,
       content,
@@ -125,8 +126,9 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Execute the LLM function for the primary completion model with type-safe JSON validation.
    * The generic type parameter T represents the expected return type, which should
    * match the Zod schema provided in the completion options.
+   * Callers must explicitly provide the type parameter T.
    */
-  async executeCompletionPrimary<T = LLMGeneratedContent>(
+  async executeCompletionPrimary<T>(
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
@@ -144,8 +146,9 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Execute the LLM function for the secondary completion model with type-safe JSON validation.
    * The generic type parameter T represents the expected return type, which should
    * match the Zod schema provided in the completion options.
+   * Callers must explicitly provide the type parameter T.
    */
-  async executeCompletionSecondary<T = LLMGeneratedContent>(
+  async executeCompletionSecondary<T>(
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
@@ -194,8 +197,9 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Executes the LLM function for the given model key and task type with type-safe JSON validation.
    * The generic type parameter T represents the expected return type, which should
    * match the Zod schema provided in the completion options.
+   * Callers must explicitly provide the type parameter T.
    */
-  private async executeProviderFunction<T = LLMGeneratedContent>(
+  private async executeProviderFunction<T>(
     modelKey: string,
     taskType: LLMPurpose,
     request: string,
@@ -305,54 +309,64 @@ export default abstract class AbstractLLM implements LLMProvider {
     completionOptions: LLMCompletionOptions,
     context: LLMContext,
   ): Promise<LLMFunctionResponse<T>> {
-    if (taskType === LLMPurpose.COMPLETIONS) {
-      if (completionOptions.outputFormat === LLMOutputFormat.JSON) {
-        // Type inference: processJson will infer the type from the schema if provided
-        // Use type assertion to call the implementation directly, bypassing overload resolution
-        // The implementation handles both cases (with and without schema)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        const jsonProcessingResult = (processJson as any)(
-          responseContent,
-          context,
-          completionOptions,
-          true,
-        );
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (jsonProcessingResult.success) {
-          return {
-            ...skeletonResult,
-            status: LLMResponseStatus.COMPLETED,
-            // The type is now preserved and passed up - safe cast from inferred type to T
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            generated: jsonProcessingResult.data as T,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-            mutationSteps: jsonProcessingResult.mutationSteps,
-          };
-        } else {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
-          context.responseContentParseError = formatError(jsonProcessingResult.error);
-          await this.errorLogger.recordJsonProcessingError(
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-            jsonProcessingResult.error,
-            responseContent,
-            context,
-          );
-          return { ...skeletonResult, status: LLMResponseStatus.INVALID } as LLMFunctionResponse<T>;
-        }
-      } else {
-        return {
-          ...skeletonResult,
-          status: LLMResponseStatus.COMPLETED,
-          generated: responseContent as T,
-        };
-      }
-    } else {
+    // Early return for non-completion tasks
+    if (taskType !== LLMPurpose.COMPLETIONS) {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
         generated: responseContent as T,
       };
+    }
+
+    // Early return for non-JSON output format
+    if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
+      return {
+        ...skeletonResult,
+        status: LLMResponseStatus.COMPLETED,
+        generated: responseContent as T,
+      };
+    }
+
+    // Process JSON with type-safe overload resolution
+    // Use conditional logic to help TypeScript select the correct overload
+    // When jsonSchema is present, use the first overload; otherwise use the second
+    const jsonProcessingResult = completionOptions.jsonSchema
+      ? processJson(
+          responseContent,
+          context,
+          {
+            ...completionOptions,
+            jsonSchema: completionOptions.jsonSchema,
+          } as LLMCompletionOptions & { jsonSchema: z.ZodType },
+          true,
+        )
+      : processJson(
+          responseContent,
+          context,
+          { ...completionOptions, jsonSchema: undefined } as LLMCompletionOptions & {
+            jsonSchema?: undefined;
+          },
+          true,
+        );
+
+    if (jsonProcessingResult.success) {
+      // The data property is now strongly typed based on the schema provided
+      // in completionOptions. The cast to T is an assertion from the inferred type to T,
+      // which is what the caller expects.
+      return {
+        ...skeletonResult,
+        status: LLMResponseStatus.COMPLETED,
+        generated: jsonProcessingResult.data as T,
+        mutationSteps: jsonProcessingResult.mutationSteps,
+      };
+    } else {
+      context.responseContentParseError = formatError(jsonProcessingResult.error);
+      await this.errorLogger.recordJsonProcessingError(
+        jsonProcessingResult.error,
+        responseContent,
+        context,
+      );
+      return { ...skeletonResult, status: LLMResponseStatus.INVALID } as LLMFunctionResponse<T>;
     }
   }
 

@@ -118,11 +118,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         status: z.literal("active").describe("Status must be active"),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithConst,
-        hasComplexSchema: false,
-      });
+      await vertexAIGeminiLLM.executeCompletionPrimary<z.infer<typeof schemaWithConst>>(
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithConst,
+          hasComplexSchema: false,
+        },
+      );
 
       // Verify getGenerativeModel was called
       expect(mockVertexAI.getGenerativeModel).toHaveBeenCalled();
@@ -157,11 +161,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         }),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithNestedConst,
-        hasComplexSchema: false,
-      });
+      await vertexAIGeminiLLM.executeCompletionPrimary<z.infer<typeof schemaWithNestedConst>>(
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithNestedConst,
+          hasComplexSchema: false,
+        },
+      );
 
       expect(mockVertexAI.getGenerativeModel).toHaveBeenCalled();
       const callArgs = mockVertexAI.getGenerativeModel.mock.calls[0];
@@ -186,11 +194,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         items: z.array(z.literal("fixed-value")),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithArrayConst,
-        hasComplexSchema: false,
-      });
+      await vertexAIGeminiLLM.executeCompletionPrimary<z.infer<typeof schemaWithArrayConst>>(
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithArrayConst,
+          hasComplexSchema: false,
+        },
+      );
 
       expect(mockVertexAI.getGenerativeModel).toHaveBeenCalled();
       const callArgs = mockVertexAI.getGenerativeModel.mock.calls[0];
@@ -214,11 +226,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         value: z.union([z.string(), z.literal("specific-value")]),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithAnyOf,
-        hasComplexSchema: false,
-      });
+      await vertexAIGeminiLLM.executeCompletionPrimary<z.infer<typeof schemaWithAnyOf>>(
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithAnyOf,
+          hasComplexSchema: false,
+        },
+      );
 
       expect(mockVertexAI.getGenerativeModel).toHaveBeenCalled();
       const callArgs = mockVertexAI.getGenerativeModel.mock.calls[0];
@@ -248,11 +264,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         age: z.number(),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithMultipleFields,
-        hasComplexSchema: false,
-      });
+      await vertexAIGeminiLLM.executeCompletionPrimary<z.infer<typeof schemaWithMultipleFields>>(
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithMultipleFields,
+          hasComplexSchema: false,
+        },
+      );
 
       expect(mockVertexAI.getGenerativeModel).toHaveBeenCalled();
       const callArgs = mockVertexAI.getGenerativeModel.mock.calls[0];
@@ -289,11 +309,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         ),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: complexSchema,
-        hasComplexSchema: false,
-      });
+      await vertexAIGeminiLLM.executeCompletionPrimary<z.infer<typeof complexSchema>>(
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: complexSchema,
+          hasComplexSchema: false,
+        },
+      );
 
       expect(mockVertexAI.getGenerativeModel).toHaveBeenCalled();
       const callArgs = mockVertexAI.getGenerativeModel.mock.calls[0];
@@ -323,11 +347,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         status: z.literal("active"),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: originalSchema,
-        hasComplexSchema: false,
-      });
+      await vertexAIGeminiLLM.executeCompletionPrimary<z.infer<typeof originalSchema>>(
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: originalSchema,
+          hasComplexSchema: false,
+        },
+      );
 
       // The original schema object should not be mutated
       // (This is tested indirectly by ensuring the function works correctly)
@@ -340,11 +368,15 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         age: z.number(),
       });
 
-      await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schemaWithoutConst,
-        hasComplexSchema: false,
-      });
+      await vertexAIGeminiLLM.executeCompletionPrimary<z.infer<typeof schemaWithoutConst>>(
+        "test prompt",
+        mockContext,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithoutConst,
+          hasComplexSchema: false,
+        },
+      );
 
       expect(mockVertexAI.getGenerativeModel).toHaveBeenCalled();
       const callArgs = mockVertexAI.getGenerativeModel.mock.calls[0];
@@ -379,7 +411,9 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
         },
       });
 
-      const result = await vertexAIGeminiLLM.executeCompletionPrimary("test prompt", mockContext, {
+      const result = await vertexAIGeminiLLM.executeCompletionPrimary<
+        z.infer<typeof schemaWithConst>
+      >("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schemaWithConst,
         hasComplexSchema: false,

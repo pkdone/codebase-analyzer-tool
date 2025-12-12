@@ -13,8 +13,9 @@ export interface LLMProvider {
    * Execute completion using the primary model with type-safe JSON validation.
    * The generic type parameter T represents the expected return type, which should
    * match the Zod schema provided in the completion options.
+   * Callers must explicitly provide the type parameter T.
    */
-  executeCompletionPrimary<T = LLMGeneratedContent>(
+  executeCompletionPrimary<T>(
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
@@ -23,8 +24,9 @@ export interface LLMProvider {
    * Execute completion using the secondary model with type-safe JSON validation.
    * The generic type parameter T represents the expected return type, which should
    * match the Zod schema provided in the completion options.
+   * Callers must explicitly provide the type parameter T.
    */
-  executeCompletionSecondary<T = LLMGeneratedContent>(
+  executeCompletionSecondary<T>(
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
