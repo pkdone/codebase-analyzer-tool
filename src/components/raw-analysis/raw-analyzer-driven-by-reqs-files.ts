@@ -76,11 +76,11 @@ export class RawAnalyzerDrivenByReqsFiles {
         outputFormat: LLMOutputFormat.TEXT,
       });
 
-      if (!executionResult) {
+      if (executionResult === null) {
         response = "No response received from LLM.";
       } else {
-        response =
-          typeof executionResult === "object" ? JSON.stringify(executionResult) : executionResult;
+        // executionResult is guaranteed to be a string when outputFormat is TEXT
+        response = executionResult;
       }
     } catch (error: unknown) {
       logError("Problem introspecting and processing source files", error);

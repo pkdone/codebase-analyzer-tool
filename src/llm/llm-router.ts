@@ -1,4 +1,5 @@
 import { injectable, inject } from "tsyringe";
+import { z } from "zod";
 import {
   LLMContext,
   LLMModelQuality,
@@ -8,6 +9,7 @@ import {
   LLMCompletionOptions,
   LLMModelKeysSet,
   LLMModelMetadata,
+  LLMOutputFormat,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { BadConfigurationLLMError } from "./types/llm-errors.types";
@@ -203,17 +205,38 @@ export default class LLMRouter {
    * - Use native JSON mode capabilities where available
    * - Fall back to text parsing for providers that don't support structured output
    * - Validate the response against the provided Zod schema
-   * - Return the validated, typed result
+   * - Return the validated, typed result (inferred from the schema)
    *
    * If a particular LLM quality is not specified, will try to use the completion candidates
    * in the order they were configured during construction.
    */
-  async executeCompletion<T = LLMGeneratedContent>(
+
+  // Overload 1: For JSON with a schema - infers return type from schema
+  async executeCompletion<S extends z.ZodType<unknown, z.ZodTypeDef, unknown>>(
+    resourceName: string,
+    prompt: string,
+    options: Omit<LLMCompletionOptions, "jsonSchema"> & {
+      jsonSchema: S;
+      outputFormat: LLMOutputFormat.JSON;
+    },
+    modelQualityOverride?: LLMModelQuality | null,
+  ): Promise<z.infer<S> | null>;
+
+  // Overload 2: For plain text
+  async executeCompletion(
+    resourceName: string,
+    prompt: string,
+    options: LLMCompletionOptions & { outputFormat: LLMOutputFormat.TEXT; jsonSchema?: never },
+    modelQualityOverride?: LLMModelQuality | null,
+  ): Promise<string | null>;
+
+  // Implementation
+  async executeCompletion(
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions,
     modelQualityOverride: LLMModelQuality | null = null,
-  ): Promise<T | null> {
+  ): Promise<LLMGeneratedContent | null> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,
@@ -224,7 +247,7 @@ export default class LLMRouter {
       modelQuality: candidatesToUse[0].modelQuality,
       outputFormat: options.outputFormat,
     };
-    const result = await this.executionPipeline.execute<T>(
+    const result = await this.executionPipeline.execute(
       resourceName,
       prompt,
       context,

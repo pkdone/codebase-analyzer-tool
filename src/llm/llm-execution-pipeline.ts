@@ -41,7 +41,7 @@ export class LLMExecutionPipeline {
    * Context is just an optional object of key value pairs which will be retained with the LLM
    * request and subsequent response for convenient debugging and error logging context.
    */
-  async execute<T = LLMGeneratedContent>(
+  async execute(
     resourceName: string,
     prompt: string,
     context: LLMContext,
@@ -50,9 +50,9 @@ export class LLMExecutionPipeline {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMExecutionResult<T>> {
+  ): Promise<LLMExecutionResult<LLMGeneratedContent>> {
     try {
-      const result = await this.iterateOverLLMFunctions<T>(
+      const result = await this.iterateOverLLMFunctions(
         resourceName,
         prompt,
         context,
@@ -67,14 +67,27 @@ export class LLMExecutionPipeline {
         if (hasSignificantSanitizationSteps(result.mutationSteps)) {
           this.llmStats.recordJsonMutated();
         }
-        // result.generated is now correctly typed as T | undefined through the entire call chain.
-        // Type safety is guaranteed at compile time - no unsafe cast needed.
-        // The type T is inferred from the Zod schema provided in completionOptions,
-        // ensuring end-to-end type safety from validation to return.
+        // result.generated is now correctly typed as LLMGeneratedContent | undefined.
+        // Type safety is guaranteed at compile time through overload resolution in LLMRouter.
+        // The return type is inferred from the Zod schema provided in completionOptions at the call site.
         // We assert that generated is defined since COMPLETED status guarantees it.
+        if (result.generated === undefined) {
+          logOneLineWarning(
+            `LLM response has COMPLETED status but generated content is undefined for resource: '${resourceName}'`,
+            context,
+          );
+          return {
+            success: false,
+            error: new LLMExecutionError(
+              `LLM response has COMPLETED status but generated content is undefined for resource: '${resourceName}'`,
+              resourceName,
+              context as unknown as Record<string, unknown>,
+            ),
+          };
+        }
         return {
           success: true,
-          data: result.generated as T,
+          data: result.generated,
         };
       }
 
@@ -113,10 +126,9 @@ export class LLMExecutionPipeline {
 
   /**
    * Iterates through available LLM functions, attempting each until successful completion
-   * or all options are exhausted. The generic type parameter T is propagated through
-   * the retry strategy to maintain type safety.
+   * or all options are exhausted.
    */
-  private async iterateOverLLMFunctions<T = LLMGeneratedContent>(
+  private async iterateOverLLMFunctions(
     resourceName: string,
     initialPrompt: string,
     context: LLMContext,
@@ -125,15 +137,15 @@ export class LLMExecutionPipeline {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T> | null> {
+  ): Promise<LLMFunctionResponse | null> {
     let currentPrompt = initialPrompt;
     let llmFunctionIndex = 0;
 
     // Don't want to increment 'llmFuncIndex' before looping again, if going to crop prompt
     // (to enable us to try cropped prompt with same size LLM as last iteration)
     while (llmFunctionIndex < llmFunctions.length) {
-      const llmResponse = await this.retryStrategy.executeWithRetries<T>(
-        llmFunctions[llmFunctionIndex] as LLMFunction<T>,
+      const llmResponse = await this.retryStrategy.executeWithRetries(
+        llmFunctions[llmFunctionIndex],
         currentPrompt,
         context,
         providerRetryConfig,

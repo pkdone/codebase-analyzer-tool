@@ -145,15 +145,12 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const renderedPrompt = renderPrompt(reducePromptDefinition, { categoryKey, content });
 
     try {
-      return await this.llmRouter.executeCompletion<PartialAppSummaryRecord>(
-        `${category}-reduce`,
-        renderedPrompt,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.responseSchema,
-          hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-        },
-      );
+      const result = (await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: config.responseSchema,
+        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+      })) as PartialAppSummaryRecord | null;
+      return result;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,

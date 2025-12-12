@@ -46,15 +46,11 @@ export async function executeInsightCompletion(
     };
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
-    const llmResponse = await llmRouter.executeCompletion<PartialAppSummaryRecord>(
-      taskCategory,
-      renderedPrompt,
-      {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: config.responseSchema,
-        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-      },
-    );
+    const llmResponse = (await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
+      outputFormat: LLMOutputFormat.JSON,
+      jsonSchema: config.responseSchema,
+      hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+    })) as PartialAppSummaryRecord | null;
 
     return llmResponse;
   } catch (error: unknown) {

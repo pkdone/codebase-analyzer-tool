@@ -68,15 +68,11 @@ export async function summarizeFile(
     const canonicalFileType = getCanonicalFileType(filepath, type);
     const promptMetadata = fileTypePromptMetadata[canonicalFileType];
     const renderedPrompt = renderPrompt(promptMetadata, { content });
-    const llmResponse = await llmRouter.executeCompletion<SourceSummaryType>(
-      filepath,
-      renderedPrompt,
-      {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: promptMetadata.responseSchema,
-        hasComplexSchema: promptMetadata.hasComplexSchema,
-      },
-    );
+    const llmResponse = await llmRouter.executeCompletion(filepath, renderedPrompt, {
+      outputFormat: LLMOutputFormat.JSON,
+      jsonSchema: promptMetadata.responseSchema as typeof sourceSummarySchema,
+      hasComplexSchema: promptMetadata.hasComplexSchema,
+    });
     if (llmResponse === null) throw new BadResponseContentLLMError("LLM returned null response");
     return llmResponse;
   } catch (error: unknown) {

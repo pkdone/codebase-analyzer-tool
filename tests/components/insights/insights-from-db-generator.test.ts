@@ -95,7 +95,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const summaries = ["Summary 1", "Summary 2"];
       const mockResponse = { entities: [{ name: "Entity1", description: "Test entity" }] };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockResponse);
 
       await (generator as any).generateAndRecordDataForCategory("entities", summaries);
 
@@ -131,11 +131,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       };
 
       // Mock partial results for MAP phase and final result for REDUCE phase
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockPartialResult);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockPartialResult);
       // Override the last call to return the final result
-      mockLLMRouter.executeCompletion.mockResolvedValueOnce(mockPartialResult);
-      mockLLMRouter.executeCompletion.mockResolvedValueOnce(mockPartialResult);
-      mockLLMRouter.executeCompletion.mockResolvedValueOnce(mockFinalResult);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(mockPartialResult);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(mockPartialResult);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(mockFinalResult);
 
       await (generator as any).generateAndRecordDataForCategory("entities", summaries);
 
@@ -167,7 +167,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const summaries = [largeSummary, largeSummary];
 
       // First chunk returns valid result, second chunk returns null
-      mockLLMRouter.executeCompletion
+      (mockLLMRouter.executeCompletion as jest.Mock)
         .mockResolvedValueOnce({ entities: [{ name: "Entity1", description: "Test" }] })
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ entities: [{ name: "Entity1", description: "Final" }] });
@@ -188,7 +188,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const summaries = [largeSummary, largeSummary];
 
       // All chunks return null
-      mockLLMRouter.executeCompletion.mockResolvedValue(null);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(null);
 
       await (generator as any).generateAndRecordDataForCategory("entities", summaries);
 
@@ -206,7 +206,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const summaries = [largeSummary, largeSummary];
 
       // MAP phase succeeds, REDUCE phase fails
-      mockLLMRouter.executeCompletion
+      (mockLLMRouter.executeCompletion as jest.Mock)
         .mockResolvedValueOnce({ entities: [{ name: "Entity1", description: "Test" }] })
         .mockResolvedValueOnce({ entities: [{ name: "Entity2", description: "Test" }] })
         .mockResolvedValueOnce(null); // REDUCE fails
@@ -247,7 +247,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       ]);
 
       // Mock LLM responses for all categories
-      mockLLMRouter.executeCompletion.mockResolvedValue({
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue({
         entities: [{ name: "Entity1", description: "Test" }],
       });
 

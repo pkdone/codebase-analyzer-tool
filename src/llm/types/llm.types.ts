@@ -10,27 +10,23 @@ export interface LLMProvider {
   readonly llmFeatures?: readonly string[];
   generateEmbeddings: LLMFunction;
   /**
-   * Execute completion using the primary model with type-safe JSON validation.
-   * The generic type parameter T represents the expected return type, which should
-   * match the Zod schema provided in the completion options.
-   * Callers must explicitly provide the type parameter T.
+   * Execute completion using the primary model.
+   * Type safety is enforced through overload resolution in LLMRouter.
    */
-  executeCompletionPrimary<T>(
+  executeCompletionPrimary(
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>>;
+  ): Promise<LLMFunctionResponse>;
   /**
-   * Execute completion using the secondary model with type-safe JSON validation.
-   * The generic type parameter T represents the expected return type, which should
-   * match the Zod schema provided in the completion options.
-   * Callers must explicitly provide the type parameter T.
+   * Execute completion using the secondary model.
+   * Type safety is enforced through overload resolution in LLMRouter.
    */
-  executeCompletionSecondary<T>(
+  executeCompletionSecondary(
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>>;
+  ): Promise<LLMFunctionResponse>;
   getModelsNames(): {
     embeddings: string;
     primaryCompletion: string;
@@ -205,17 +201,14 @@ export interface LLMFunctionResponse<T = LLMGeneratedContent> {
 }
 
 /**
- * Type to define the embedding or completion function with type-safe JSON validation.
- * The generic type parameter T represents the expected return type, which should
- * match the Zod schema provided in the completion options.
- *
- * @template T - The type of the generated content. Defaults to LLMGeneratedContent for backward compatibility.
+ * Type to define the embedding or completion function.
+ * Type safety is enforced through overload resolution in LLMRouter.
  */
-export type LLMFunction<T = LLMGeneratedContent> = (
+export type LLMFunction = (
   content: string,
   context: LLMContext,
   options?: LLMCompletionOptions,
-) => Promise<LLMFunctionResponse<T>>;
+) => Promise<LLMFunctionResponse>;
 
 /**
  * Type to define a candidate LLM function with its associated metadata.

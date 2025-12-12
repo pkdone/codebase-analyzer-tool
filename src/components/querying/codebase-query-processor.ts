@@ -81,13 +81,14 @@ export async function queryCodebaseWithQuestion(
   const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
   const resourceName = `Codebase query`;
   const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
-  const response = await llmRouter.executeCompletion<string>(resourceName, prompt, {
+  const response = await llmRouter.executeCompletion(resourceName, prompt, {
     outputFormat: LLMOutputFormat.TEXT,
   });
 
   if (response) {
     const referencesText = bestMatchFiles.map((match) => ` * ${match.filepath}`).join("\n");
-    return `${typeof response === "string" ? response : JSON.stringify(response)}\n\nReferences:\n${referencesText}`;
+    // response is guaranteed to be a string when outputFormat is TEXT
+    return `${response}\n\nReferences:\n${referencesText}`;
   } else {
     console.log(
       "Called the LLN with some data returned by Vector Search but the LLM returned an empty response",

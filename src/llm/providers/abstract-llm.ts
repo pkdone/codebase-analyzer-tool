@@ -112,8 +112,8 @@ export default abstract class AbstractLLM implements LLMProvider {
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<number[]>> => {
-    return this.executeProviderFunction<number[]>(
+  ): Promise<LLMFunctionResponse> => {
+    return this.executeProviderFunction(
       this.modelsKeys.embeddingsModelKey,
       LLMPurpose.EMBEDDINGS,
       content,
@@ -123,17 +123,15 @@ export default abstract class AbstractLLM implements LLMProvider {
   };
 
   /**
-   * Execute the LLM function for the primary completion model with type-safe JSON validation.
-   * The generic type parameter T represents the expected return type, which should
-   * match the Zod schema provided in the completion options.
-   * Callers must explicitly provide the type parameter T.
+   * Execute the LLM function for the primary completion model.
+   * Type safety is enforced through overload resolution in LLMRouter.
    */
-  async executeCompletionPrimary<T>(
+  async executeCompletionPrimary(
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>> {
-    return this.executeProviderFunction<T>(
+  ): Promise<LLMFunctionResponse> {
+    return this.executeProviderFunction(
       this.modelsKeys.primaryCompletionModelKey,
       LLMPurpose.COMPLETIONS,
       prompt,
@@ -143,22 +141,20 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
-   * Execute the LLM function for the secondary completion model with type-safe JSON validation.
-   * The generic type parameter T represents the expected return type, which should
-   * match the Zod schema provided in the completion options.
-   * Callers must explicitly provide the type parameter T.
+   * Execute the LLM function for the secondary completion model.
+   * Type safety is enforced through overload resolution in LLMRouter.
    */
-  async executeCompletionSecondary<T>(
+  async executeCompletionSecondary(
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>> {
+  ): Promise<LLMFunctionResponse> {
     const secondaryCompletion = this.modelsKeys.secondaryCompletionModelKey;
     if (!secondaryCompletion)
       throw new BadConfigurationLLMError(
         `'Secondary' text model for ${this.constructor.name} was not defined`,
       );
-    return this.executeProviderFunction<T>(
+    return this.executeProviderFunction(
       secondaryCompletion,
       LLMPurpose.COMPLETIONS,
       prompt,
@@ -194,22 +190,21 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
-   * Executes the LLM function for the given model key and task type with type-safe JSON validation.
-   * The generic type parameter T represents the expected return type, which should
-   * match the Zod schema provided in the completion options.
-   * Callers must explicitly provide the type parameter T.
+   * Executes the LLM function for the given model key and task type.
+   * Type safety is enforced through overload resolution in LLMRouter.
    */
-  private async executeProviderFunction<T>(
+  private async executeProviderFunction(
     modelKey: string,
     taskType: LLMPurpose,
     request: string,
     context: LLMContext,
     completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>> {
-    const skeletonResponse: Omit<
-      LLMFunctionResponse<T>,
-      "generated" | "status" | "mutationSteps"
-    > = { request, context, modelKey };
+  ): Promise<LLMFunctionResponse> {
+    const skeletonResponse: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps"> = {
+      request,
+      context,
+      modelKey,
+    };
     completionOptions ??= { outputFormat: LLMOutputFormat.TEXT };
 
     try {
@@ -231,9 +226,9 @@ export default abstract class AbstractLLM implements LLMProvider {
             this.llmModelsMetadata,
             request,
           ),
-        } as LLMFunctionResponse<T>;
+        };
       } else {
-        return await this.formatAndValidateResponse<T>(
+        return await this.formatAndValidateResponse(
           skeletonResponse,
           taskType,
           responseContent,
@@ -249,7 +244,7 @@ export default abstract class AbstractLLM implements LLMProvider {
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.OVERLOADED,
-        } as LLMFunctionResponse<T>;
+        };
       } else if (this.isTokenLimitExceeded(error)) {
         // Often occurs if the prompt on its own execeeds the max token limit (e.g. actual internal LLM completion generation was not even initiated by the LLM)
         return {
@@ -262,13 +257,13 @@ export default abstract class AbstractLLM implements LLMProvider {
             this.llmModelsMetadata,
             this.errorPatterns,
           ),
-        } as LLMFunctionResponse<T>;
+        };
       } else {
         return {
           ...skeletonResponse,
           status: LLMResponseStatus.ERRORED,
           error,
-        } as LLMFunctionResponse<T>;
+        };
       }
     }
   }
@@ -299,22 +294,21 @@ export default abstract class AbstractLLM implements LLMProvider {
   /**
    * Post-process the LLM response, converting it to JSON if necessary, and build the
    * response metadata object with type-safe JSON validation.
-   * The generic type parameter T represents the expected return type, which is inferred
-   * from the Zod schema when JSON validation is used.
+   * Type safety is enforced through overload resolution in LLMRouter.
    */
-  private async formatAndValidateResponse<T = LLMGeneratedContent>(
-    skeletonResult: Omit<LLMFunctionResponse<T>, "generated" | "status" | "mutationSteps">,
+  private async formatAndValidateResponse(
+    skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions,
     context: LLMContext,
-  ): Promise<LLMFunctionResponse<T>> {
+  ): Promise<LLMFunctionResponse> {
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: responseContent as T,
+        generated: responseContent,
       };
     }
 
@@ -323,7 +317,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: responseContent as T,
+        generated: responseContent,
       };
     }
 
@@ -351,12 +345,12 @@ export default abstract class AbstractLLM implements LLMProvider {
 
     if (jsonProcessingResult.success) {
       // The data property is now strongly typed based on the schema provided
-      // in completionOptions. The cast to T is an assertion from the inferred type to T,
-      // which is what the caller expects.
+      // in completionOptions. Type safety is enforced through overload resolution in LLMRouter.
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: jsonProcessingResult.data as T,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        generated: jsonProcessingResult.data,
         mutationSteps: jsonProcessingResult.mutationSteps,
       };
     } else {
@@ -366,7 +360,7 @@ export default abstract class AbstractLLM implements LLMProvider {
         responseContent,
         context,
       );
-      return { ...skeletonResult, status: LLMResponseStatus.INVALID } as LLMFunctionResponse<T>;
+      return { ...skeletonResult, status: LLMResponseStatus.INVALID };
     }
   }
 

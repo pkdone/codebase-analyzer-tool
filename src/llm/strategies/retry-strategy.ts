@@ -39,16 +39,14 @@ export class RetryStrategy {
 
   /**
    * Execute an LLM function with retry logic for overloaded or invalid responses.
-   * The generic type parameter T represents the expected return type, which is preserved
-   * through the retry process to maintain type safety.
    */
-  async executeWithRetries<T>(
-    llmFunction: LLMFunction<T>,
+  async executeWithRetries(
+    llmFunction: LLMFunction,
     prompt: string,
     context: LLMContext,
     providerRetryConfig: LLMRetryConfig,
     completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T> | null> {
+  ): Promise<LLMFunctionResponse | null> {
     try {
       return await pRetry(
         async () => {

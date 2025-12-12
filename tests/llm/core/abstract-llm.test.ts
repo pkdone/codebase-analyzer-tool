@@ -7,7 +7,6 @@ import {
   LLMContext,
   LLMOutputFormat,
   LLMResponseStatus,
-  LLMGeneratedContent,
 } from "../../../src/llm/types/llm.types";
 import { SANITIZATION_STEP } from "../../../src/llm/json-processing/sanitizers";
 import {
@@ -122,10 +121,7 @@ describe("Abstract LLM Token Extraction", () => {
       };
       testLLM.setMockTokenUsage(tokenUsage);
 
-      const result = await testLLM.executeCompletionPrimary<LLMGeneratedContent>(
-        "test prompt",
-        testContext,
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext);
 
       expect(result.tokensUsage).toStrictEqual({
         completionTokens: 0,
@@ -142,10 +138,7 @@ describe("Abstract LLM Token Extraction", () => {
       };
       testLLM.setMockTokenUsage(tokenUsage);
 
-      const result = await testLLM.executeCompletionPrimary<LLMGeneratedContent>(
-        "test prompt",
-        testContext,
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext);
 
       expect(result.tokensUsage).toStrictEqual({
         completionTokens: 0,
@@ -162,10 +155,7 @@ describe("Abstract LLM Token Extraction", () => {
       };
       testLLM.setMockTokenUsage(tokenUsage);
 
-      const result = await testLLM.executeCompletionPrimary<LLMGeneratedContent>(
-        "test prompt",
-        testContext,
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext);
 
       expect(result.tokensUsage).toStrictEqual({
         completionTokens: 200,
@@ -235,10 +225,7 @@ describe("Abstract LLM Token Extraction", () => {
       };
       llamaLLM.setMockTokenUsage(tokenUsage);
 
-      const result = await llamaLLM.executeCompletionPrimary<LLMGeneratedContent>(
-        "test prompt",
-        testContext,
-      );
+      const result = await llamaLLM.executeCompletionPrimary("test prompt", testContext);
 
       expect(result.tokensUsage).toStrictEqual({
         completionTokens: 0,
@@ -320,13 +307,9 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       // JSON with leading/trailing whitespace is handled by JSON.parse naturally
       testLLM.setMockResponse('  {"name": "test", "value": 123}  ');
 
-      const result = await testLLM.executeCompletionPrimary<Record<string, unknown>>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.mutationSteps).toBeDefined();
@@ -337,13 +320,9 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       // JSON wrapped in markdown code fence requires sanitization
       testLLM.setMockResponse('```json\n{"name": "test", "value": 123}\n```');
 
-      const result = await testLLM.executeCompletionPrimary<Record<string, unknown>>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.mutationSteps).toBeDefined();
@@ -361,13 +340,9 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       // JSON with trailing comma (requires sanitization)
       testLLM.setMockResponse('{"name": "test", "value": 123,}');
 
-      const result = await testLLM.executeCompletionPrimary<Record<string, unknown>>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.mutationSteps).toBeDefined();
@@ -378,13 +353,9 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       // Clean JSON that doesn't need any sanitization
       testLLM.setMockResponse('{"name":"test","value":123}');
 
-      const result = await testLLM.executeCompletionPrimary<Record<string, unknown>>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.mutationSteps).toBeDefined();
@@ -395,13 +366,9 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       // When output format is TEXT, no sanitization steps should be recorded
       testLLM.setMockResponse("This is plain text");
 
-      const result = await testLLM.executeCompletionPrimary<LLMGeneratedContent>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.TEXT,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.mutationSteps).toBeUndefined();
@@ -411,13 +378,9 @@ describe("Abstract LLM Sanitization Steps Propagation", () => {
       // Invalid JSON that cannot be fixed
       testLLM.setMockResponse("This is not JSON at all");
 
-      const result = await testLLM.executeCompletionPrimary<Record<string, unknown>>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.INVALID);
       expect(result.mutationSteps).toBeUndefined();

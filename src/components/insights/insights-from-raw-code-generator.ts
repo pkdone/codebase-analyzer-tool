@@ -88,15 +88,11 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
         },
       );
       const prompt = this.createInsightsAllCategoriesPrompt(instructions, codeBlocksContent);
-      const llmResponse = await this.llmRouter.executeCompletion<AppSummaryRecordCategories>(
-        "all-categories",
-        prompt,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: appSummaryRecordCategoriesSchema,
-          hasComplexSchema: ALL_CATEGORIES_SCHEMA_IS_VERTEXAI_INCOMPATIBLE,
-        },
-      );
+      const llmResponse = await this.llmRouter.executeCompletion("all-categories", prompt, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: appSummaryRecordCategoriesSchema,
+        hasComplexSchema: ALL_CATEGORIES_SCHEMA_IS_VERTEXAI_INCOMPATIBLE,
+      });
       return llmResponse;
     } catch (error: unknown) {
       logOneLineWarning(

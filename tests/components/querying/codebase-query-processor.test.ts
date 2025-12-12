@@ -48,7 +48,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockLLMResponse);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockLLMResponse);
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -144,7 +144,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      mockLLMRouter.executeCompletion.mockResolvedValue(null);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(null);
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -169,11 +169,12 @@ describe("queryCodebaseWithQuestion", () => {
           content: "test content",
         },
       ];
-      const mockLLMResponse = { answer: "Authentication uses JWT" };
+      // With TEXT output format, executeCompletion returns a string
+      const mockLLMResponse = "Authentication uses JWT";
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockLLMResponse);
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockLLMResponse);
 
       // Act
       const result = await queryCodebaseWithQuestion(
@@ -184,7 +185,8 @@ describe("queryCodebaseWithQuestion", () => {
       );
 
       // Assert
-      expect(result).toContain(JSON.stringify(mockLLMResponse));
+      // With TEXT output format, the response is already a string
+      expect(result).toContain(mockLLMResponse);
       expect(result).toContain("References:");
     });
 
@@ -200,7 +202,7 @@ describe("queryCodebaseWithQuestion", () => {
           content: "content",
         },
       ]);
-      mockLLMRouter.executeCompletion.mockResolvedValue("response");
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue("response");
 
       // Act
       await queryCodebaseWithQuestion(
@@ -230,7 +232,7 @@ describe("queryCodebaseWithQuestion", () => {
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      mockLLMRouter.executeCompletion.mockResolvedValue("response");
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue("response");
 
       // Act
       await queryCodebaseWithQuestion(

@@ -277,7 +277,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "java";
         const content = "public class TestClass { }";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -298,7 +298,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "js";
         const content = "function test() { return true; }";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -310,7 +310,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "ts";
         const content = "interface Test { id: number; }";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -335,7 +335,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
           },
         };
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(ddlResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ddlResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -347,7 +347,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "md";
         const content = "# Project Title\n\nThis is a test project.";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -364,7 +364,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "xyz";
         const content = "unknown file content";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -404,7 +404,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const errorMessage = "LLM service unavailable";
         const llmError = new Error(errorMessage);
 
-        mockLLMRouter.executeCompletion.mockRejectedValue(llmError);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockRejectedValue(llmError);
 
         await expect(summarizeFile(mockLLMRouter, filepath, type, content)).rejects.toThrow(
           llmError,
@@ -421,7 +421,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "js";
         const content = "function test() { }";
 
-        mockLLMRouter.executeCompletion.mockRejectedValue("String error");
+        (mockLLMRouter.executeCompletion as jest.Mock).mockRejectedValue("String error");
 
         await expect(summarizeFile(mockLLMRouter, filepath, type, content)).rejects.toBe(
           "String error",
@@ -433,7 +433,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "js";
         const content = "function test() { }";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(null);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(null);
 
         await expect(summarizeFile(mockLLMRouter, filepath, type, content)).rejects.toThrow(
           BadResponseContentLLMError,
@@ -447,7 +447,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "java";
         const content = "public class Main { }";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -467,7 +467,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "typescript";
         const content = 'const test: string = "hello";';
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -487,7 +487,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "ddl";
         const content = "CREATE TABLE test (id INT);";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue({
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue({
           purpose: "Database schema",
           implementation: "Creates tables",
           tables: [],
@@ -518,7 +518,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "txt";
         const content = "# Project Documentation";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -539,7 +539,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "txt";
         const content = "MIT License\n\nCopyright (c) 2024";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -563,7 +563,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         ];
 
         for (const testCase of testCases) {
-          mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+          (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
           await summarizeFile(
             mockLLMRouter,
@@ -593,7 +593,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "js"; // JSX would map to JS handler
         const content = "const Component = () => <div>Hello</div>;";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -610,7 +610,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "yml";
         const content = "key: value";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -633,7 +633,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "js";
         const content = "function test() { }".repeat(1000);
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 
@@ -648,7 +648,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
           { filepath: "src/file3.js", type: "js", content: "function test3() { }" },
         ];
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const promises = files.map(
           async (file) =>
@@ -669,7 +669,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const type = "js";
         const content = "const x = 1;";
 
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockSuccessResponse);
+        (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
 
         const result = await summarizeFile(mockLLMRouter, filepath, type, content);
 

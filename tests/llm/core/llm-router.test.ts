@@ -567,6 +567,7 @@ describe("LLM Router tests", () => {
         "test prompt",
         {
           outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: z.record(z.unknown()),
         },
         null,
       );
@@ -575,9 +576,10 @@ describe("LLM Router tests", () => {
       expect(mockProvider.executeCompletionPrimary).toHaveBeenCalledWith(
         "test prompt",
         expect.any(Object),
-        {
+        expect.objectContaining({
           outputFormat: LLMOutputFormat.JSON,
-        },
+          jsonSchema: expect.any(z.ZodType),
+        }),
       );
     });
 
@@ -597,6 +599,7 @@ describe("LLM Router tests", () => {
         "test prompt",
         {
           outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: z.record(z.unknown()),
         },
         LLMModelQuality.SECONDARY,
       );

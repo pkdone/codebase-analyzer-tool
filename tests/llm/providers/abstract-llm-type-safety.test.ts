@@ -114,7 +114,7 @@ describe("Abstract LLM Type Safety", () => {
 
       testLLM.setMockResponse('{"name": "John Doe", "age": 30, "email": "john@example.com"}');
 
-      const result = await testLLM.executeCompletionPrimary<UserType>("test prompt", testContext, {
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: userSchema,
       });
@@ -125,12 +125,13 @@ describe("Abstract LLM Type Safety", () => {
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
         // TypeScript should infer that result.generated is UserType
         // These assertions verify the type is correct at runtime
-        expect(result.generated).toHaveProperty("name");
-        expect(result.generated).toHaveProperty("age");
-        expect(result.generated).toHaveProperty("email");
-        expect(typeof result.generated.name).toBe("string");
-        expect(typeof result.generated.age).toBe("number");
-        expect(typeof result.generated.email).toBe("string");
+        const generated = result.generated as UserType;
+        expect(generated).toHaveProperty("name");
+        expect(generated).toHaveProperty("age");
+        expect(generated).toHaveProperty("email");
+        expect(typeof generated.name).toBe("string");
+        expect(typeof generated.age).toBe("number");
+        expect(typeof generated.email).toBe("string");
       }
     });
 
@@ -141,7 +142,7 @@ describe("Abstract LLM Type Safety", () => {
 
       testLLM.setMockResponse('[{"id": 1, "value": "first"}, {"id": 2, "value": "second"}]');
 
-      const result = await testLLM.executeCompletionPrimary<ItemsType>("test prompt", testContext, {
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: itemsSchema,
       });
@@ -151,10 +152,11 @@ describe("Abstract LLM Type Safety", () => {
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
         // TypeScript should infer that result.generated is ItemsType (array)
-        expect(Array.isArray(result.generated)).toBe(true);
-        expect(result.generated.length).toBe(2);
-        expect(result.generated[0]).toHaveProperty("id");
-        expect(result.generated[0]).toHaveProperty("value");
+        const generated = result.generated as unknown as ItemsType;
+        expect(Array.isArray(generated)).toBe(true);
+        expect(generated.length).toBe(2);
+        expect(generated[0]).toHaveProperty("id");
+        expect(generated[0]).toHaveProperty("value");
       }
     });
 
@@ -168,7 +170,7 @@ describe("Abstract LLM Type Safety", () => {
 
       testLLM.setMockResponse('{"type": "success", "data": "operation completed"}');
 
-      const result = await testLLM.executeCompletionPrimary<UnionType>("test prompt", testContext, {
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: unionSchema,
       });
@@ -178,10 +180,11 @@ describe("Abstract LLM Type Safety", () => {
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
         // TypeScript should infer that result.generated is UnionType
-        expect(result.generated).toHaveProperty("type");
-        if ("data" in result.generated) {
-          expect(result.generated.type).toBe("success");
-          expect(typeof result.generated.data).toBe("string");
+        const generated = result.generated as UnionType;
+        expect(generated).toHaveProperty("type");
+        if ("data" in generated) {
+          expect(generated.type).toBe("success");
+          expect(typeof generated.data).toBe("string");
         }
       }
     });
@@ -207,39 +210,32 @@ describe("Abstract LLM Type Safety", () => {
         '{"user": {"id": 123, "profile": {"name": "Alice", "bio": "Developer"}}, "metadata": {"createdAt": "2024-01-01", "updatedAt": "2024-01-02"}}',
       );
 
-      const result = await testLLM.executeCompletionPrimary<NestedType>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: nestedSchema,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: nestedSchema,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
         // TypeScript should infer that result.generated is NestedType
-        expect(result.generated).toHaveProperty("user");
-        expect(result.generated.user).toHaveProperty("id");
-        expect(result.generated.user).toHaveProperty("profile");
-        expect(result.generated.user.profile).toHaveProperty("name");
-        expect(result.generated).toHaveProperty("metadata");
-        expect(result.generated.metadata).toHaveProperty("createdAt");
+        const generated = result.generated as NestedType;
+        expect(generated).toHaveProperty("user");
+        expect(generated.user).toHaveProperty("id");
+        expect(generated.user).toHaveProperty("profile");
+        expect(generated.user.profile).toHaveProperty("name");
+        expect(generated).toHaveProperty("metadata");
+        expect(generated.metadata).toHaveProperty("createdAt");
       }
     });
 
     test("should handle type inference without schema (defaults to Record<string, unknown>)", async () => {
       testLLM.setMockResponse('{"key1": "value1", "key2": 42, "key3": true}');
 
-      const result = await testLLM.executeCompletionPrimary<Record<string, unknown>>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       expect(result.generated).toBeDefined();
@@ -267,20 +263,16 @@ describe("Abstract LLM Type Safety", () => {
       testLLM.setMockResponse('{"id": 1, "name": "Widget", "price": 19.99, "inStock": true}');
 
       // Call through executeCompletionPrimary which should preserve the type
-      const result = await testLLM.executeCompletionPrimary<ProductType>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: productSchema,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: productSchema,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
         // Verify the type is preserved - all properties should be correctly typed
-        const product = result.generated;
+        const product = result.generated as ProductType;
         expect(typeof product.id).toBe("number");
         expect(typeof product.name).toBe("string");
         expect(typeof product.price).toBe("number");
@@ -296,29 +288,26 @@ describe("Abstract LLM Type Safety", () => {
         nullable: z.string().nullable(),
       });
 
-      type OptionalType = z.infer<typeof schemaWithOptional>;
+      // Type is inferred from schema - no need to declare it
 
       testLLM.setMockResponse(
         '{"required": "present", "optional": "also present", "nullable": null}',
       );
 
-      const result = await testLLM.executeCompletionPrimary<OptionalType>(
-        "test prompt",
-        testContext,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: schemaWithOptional,
-        },
-      );
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schemaWithOptional,
+      });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
-        expect(result.generated).toHaveProperty("required");
-        expect(result.generated.required).toBe("present");
+        const generated = result.generated as z.infer<typeof schemaWithOptional>;
+        expect(generated).toHaveProperty("required");
+        expect(generated.required).toBe("present");
         // Optional and nullable fields should be handled correctly
-        expect(result.generated.optional).toBe("also present");
-        expect(result.generated.nullable).toBeNull();
+        expect(generated.optional).toBe("also present");
+        expect(generated.nullable).toBeNull();
       }
     });
   });
