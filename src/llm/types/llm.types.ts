@@ -8,25 +8,29 @@ import { z } from "zod";
 export interface LLMProvider {
   /** Optional feature flags indicating model-specific capabilities or constraints */
   readonly llmFeatures?: readonly string[];
-  generateEmbeddings: LLMFunction;
+  generateEmbeddings: LLMFunction<number[]>;
   /**
    * Execute completion using the primary model.
-   * Type safety is enforced through overload resolution in LLMRouter.
+   * Type safety is enforced through generic type parameters.
+   *
+   * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
    */
-  executeCompletionPrimary(
+  executeCompletionPrimary<T = LLMGeneratedContent>(
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse>;
+  ): Promise<LLMFunctionResponse<T>>;
   /**
    * Execute completion using the secondary model.
-   * Type safety is enforced through overload resolution in LLMRouter.
+   * Type safety is enforced through generic type parameters.
+   *
+   * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
    */
-  executeCompletionSecondary(
+  executeCompletionSecondary<T = LLMGeneratedContent>(
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse>;
+  ): Promise<LLMFunctionResponse<T>>;
   getModelsNames(): {
     embeddings: string;
     primaryCompletion: string;
@@ -202,20 +206,24 @@ export interface LLMFunctionResponse<T = LLMGeneratedContent> {
 
 /**
  * Type to define the embedding or completion function.
- * Type safety is enforced through overload resolution in LLMRouter.
+ * Type safety is enforced through generic type parameters.
+ *
+ * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
  */
-export type LLMFunction = (
+export type LLMFunction<T = LLMGeneratedContent> = (
   content: string,
   context: LLMContext,
   options?: LLMCompletionOptions,
-) => Promise<LLMFunctionResponse>;
+) => Promise<LLMFunctionResponse<T>>;
 
 /**
  * Type to define a candidate LLM function with its associated metadata.
  * The function is generic to support type-safe JSON validation.
+ *
+ * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
  */
-export interface LLMCandidateFunction {
-  readonly func: LLMFunction;
+export interface LLMCandidateFunction<T = LLMGeneratedContent> {
+  readonly func: LLMFunction<T>;
   readonly modelQuality: LLMModelQuality;
   readonly description: string;
 }

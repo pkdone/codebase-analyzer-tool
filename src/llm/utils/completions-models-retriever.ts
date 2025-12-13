@@ -3,22 +3,19 @@ import {
   LLMCandidateFunction,
   LLMFunction,
   LLMProvider,
-  LLMContext,
-  LLMCompletionOptions,
 } from "../types/llm.types";
 import { BadConfigurationLLMError } from "../types/llm-errors.types";
 
 /**
  * Build completion candidates from the LLM provider.
- * Uses wrapper functions instead of .bind() for consistency.
+ * Uses .bind() to preserve generic signatures for type safety.
  */
 export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunction[] {
   const candidates: LLMCandidateFunction[] = [];
 
   // Add primary completion model as first candidate
   candidates.push({
-    func: async (content: string, context: LLMContext, options?: LLMCompletionOptions) =>
-      llm.executeCompletionPrimary(content, context, options),
+    func: llm.executeCompletionPrimary.bind(llm),
     modelQuality: LLMModelQuality.PRIMARY,
     description: "Primary completion model",
   });
@@ -27,8 +24,7 @@ export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunctio
   const availableQualities = llm.getAvailableCompletionModelQualities();
   if (availableQualities.includes(LLMModelQuality.SECONDARY)) {
     candidates.push({
-      func: async (content: string, context: LLMContext, options?: LLMCompletionOptions) =>
-        llm.executeCompletionSecondary(content, context, options),
+      func: llm.executeCompletionSecondary.bind(llm),
       modelQuality: LLMModelQuality.SECONDARY,
       description: "Secondary completion model (fallback)",
     });
@@ -60,6 +56,6 @@ export function getOverriddenCompletionCandidates(
     );
   }
 
-  const candidateFunctions = candidatesToUse.map((candidate) => candidate.func);
+  const candidateFunctions: LLMFunction[] = candidatesToUse.map((candidate) => candidate.func);
   return { candidatesToUse, candidateFunctions };
 }

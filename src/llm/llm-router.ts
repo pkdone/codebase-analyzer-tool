@@ -171,7 +171,7 @@ export default class LLMRouter {
       resource: resourceName,
       purpose: LLMPurpose.EMBEDDINGS,
     };
-    const contentResponse = await this.executionPipeline.execute(
+    const contentResponse = await this.executionPipeline.execute<number[]>(
       resourceName,
       content,
       context,
@@ -262,15 +262,13 @@ export default class LLMRouter {
         : LLMGeneratedContent;
 
     type ResponseType = ExtractCompletionType<typeof options>;
-    const result = await this.executionPipeline.execute(
+    // Type parameter is needed for type inference from options, not using default
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
+    const result = await this.executionPipeline.execute<ResponseType>(
       resourceName,
       prompt,
       context,
-      candidateFunctions as ((
-        content: string,
-        context: LLMContext,
-        options?: LLMCompletionOptions,
-      ) => Promise<import("./types/llm.types").LLMFunctionResponse<ResponseType>>)[],
+      candidateFunctions,
       this.providerRetryConfig,
       this.modelsMetadata,
       candidatesToUse,

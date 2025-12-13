@@ -53,14 +53,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
   describe("Significant mutation detection", () => {
     test("should record JSON mutation for significant sanitization steps", async () => {
-      const mockLLMFunction = jest.fn<LLMFunction>().mockResolvedValue({
+      const mockLLMFunction = jest.fn<LLMFunction<Record<string, unknown>>>().mockResolvedValue({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
         mutationSteps: [SANITIZATION_STEP.TRIMMED_WHITESPACE, "Fixed trailing commas"],
-      } as LLMFunctionResponse);
+      } as LLMFunctionResponse<Record<string, unknown>>);
 
       const context: LLMContext = {
         resource: "test-resource",

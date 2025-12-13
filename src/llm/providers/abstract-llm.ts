@@ -112,43 +112,47 @@ export default abstract class AbstractLLM implements LLMProvider {
     content: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse> => {
+  ): Promise<LLMFunctionResponse<number[]>> => {
     return this.executeProviderFunction(
       this.modelsKeys.embeddingsModelKey,
       LLMPurpose.EMBEDDINGS,
       content,
       context,
       options,
-    );
+    ) as Promise<LLMFunctionResponse<number[]>>;
   };
 
   /**
    * Execute the LLM function for the primary completion model.
-   * Type safety is enforced through overload resolution in LLMRouter.
+   * Type safety is enforced through generic type parameters.
+   *
+   * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
    */
-  async executeCompletionPrimary(
+  async executeCompletionPrimary<T = LLMGeneratedContent>(
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse> {
+  ): Promise<LLMFunctionResponse<T>> {
     return this.executeProviderFunction(
       this.modelsKeys.primaryCompletionModelKey,
       LLMPurpose.COMPLETIONS,
       prompt,
       context,
       options,
-    );
+    ) as Promise<LLMFunctionResponse<T>>;
   }
 
   /**
    * Execute the LLM function for the secondary completion model.
-   * Type safety is enforced through overload resolution in LLMRouter.
+   * Type safety is enforced through generic type parameters.
+   *
+   * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
    */
-  async executeCompletionSecondary(
+  async executeCompletionSecondary<T = LLMGeneratedContent>(
     prompt: string,
     context: LLMContext,
     options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse> {
+  ): Promise<LLMFunctionResponse<T>> {
     const secondaryCompletion = this.modelsKeys.secondaryCompletionModelKey;
     if (!secondaryCompletion)
       throw new BadConfigurationLLMError(
@@ -160,7 +164,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       prompt,
       context,
       options,
-    );
+    ) as Promise<LLMFunctionResponse<T>>;
   }
 
   /**

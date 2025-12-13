@@ -7,6 +7,7 @@ import {
   LLMCompletionOptions,
   LLMCandidateFunction,
   LLMFunctionResponse,
+  LLMFunction,
 } from "./types/llm.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
@@ -44,11 +45,7 @@ export class LLMExecutionPipeline {
     resourceName: string,
     prompt: string,
     context: LLMContext,
-    llmFunctions: ((
-      content: string,
-      context: LLMContext,
-      options?: LLMCompletionOptions,
-    ) => Promise<LLMFunctionResponse<T>>)[],
+    llmFunctions: LLMFunction<T>[],
     providerRetryConfig: LLMRetryConfig,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
@@ -71,7 +68,7 @@ export class LLMExecutionPipeline {
           this.llmStats.recordJsonMutated();
         }
         // result.generated is now correctly typed as T | undefined.
-        // Type safety is guaranteed at compile time through overload resolution in LLMRouter.
+        // Type safety is guaranteed at compile time through generic type parameters.
         // The return type is inferred from the Zod schema provided in completionOptions at the call site.
         // We assert that generated is defined since COMPLETED status guarantees it.
         if (result.generated === undefined) {
@@ -90,7 +87,7 @@ export class LLMExecutionPipeline {
         }
         return {
           success: true,
-          data: result.generated,
+          data: result.generated as T,
         };
       }
 
@@ -135,11 +132,7 @@ export class LLMExecutionPipeline {
     resourceName: string,
     initialPrompt: string,
     context: LLMContext,
-    llmFunctions: ((
-      content: string,
-      context: LLMContext,
-      options?: LLMCompletionOptions,
-    ) => Promise<LLMFunctionResponse<T>>)[],
+    llmFunctions: LLMFunction<T>[],
     providerRetryConfig: LLMRetryConfig,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
