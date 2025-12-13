@@ -9,8 +9,10 @@ describe("insight-completion.service", () => {
       expect(typeof executeInsightCompletion).toBe("function");
     });
 
-    it("should have correct function signature", () => {
+    it("should have correct function signature (no generic parameter)", () => {
       expect(executeInsightCompletion.length).toBe(3); // Takes 3 required parameters
+      // Note: The function no longer uses a generic type parameter.
+      // Return type is now inferred from the category's response schema.
     });
 
     describe("InsightCompletionOptions interface", () => {

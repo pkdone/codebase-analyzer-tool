@@ -11,8 +11,7 @@ import { insightsTuningConfig } from "./insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { IInsightsProcessor } from "./insights-processor.interface";
-import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "./insights.types";
-import { z } from "zod";
+import { AppSummaryCategoryEnum } from "./insights.types";
 import { ICompletionStrategy } from "./completion-strategies/completion-strategy.interface";
 import { SinglePassCompletionStrategy } from "./completion-strategies/single-pass-completion-strategy";
 import { MapReduceCompletionStrategy } from "./completion-strategies/map-reduce-completion-strategy";
@@ -139,25 +138,15 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
       }
 
       // Generate insights using the selected strategy
-      // Infer the type from the category's response schema
-      type CategoryResponseType = z.infer<
-        (typeof summaryCategoriesConfig)[typeof category]["responseSchema"]
-      >;
-      // Use unknown as intermediate type to avoid unsafe assignment warning
-      const categorySummaryData: unknown = await strategy.generateInsights<CategoryResponseType>(
-        category,
-        sourceFileSummaries,
-      );
+      // The strategy now returns PartialAppSummaryRecord | null directly
+      const categorySummaryData = await strategy.generateInsights(category, sourceFileSummaries);
 
       if (!categorySummaryData) {
         return;
       }
 
-      // Store the result - CategoryResponseType should be compatible with PartialAppSummaryRecord
-      await this.appSummariesRepository.updateAppSummary(
-        this.projectName,
-        categorySummaryData as CategoryResponseType as PartialAppSummaryRecord,
-      );
+      // Store the result - no casts needed, type is already PartialAppSummaryRecord
+      await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
       logOneLineWarning(`Unable to generate ${categoryLabel} details into database`, error);
