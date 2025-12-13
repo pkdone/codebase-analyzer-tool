@@ -1,4 +1,5 @@
-import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
+import { z } from "zod";
+import { AppSummaryCategoryEnum } from "../insights.types";
 
 /**
  * Strategy interface for generating insights from source file summaries.
@@ -7,15 +8,15 @@ import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.typ
 export interface ICompletionStrategy {
   /**
    * Generate insights for a specific category using source file summaries.
-   * The return type is PartialAppSummaryRecord, which is compatible with all category response schemas
-   * since they are all partial subsets of the appSummarySchema.
+   * The return type is inferred from the schema type S, preserving strong typing.
    *
+   * @template S - The Zod schema type for the category's response schema
    * @param category - The category of insights to generate
    * @param sourceFileSummaries - Array of formatted source file summaries
-   * @returns The generated insights for the category as PartialAppSummaryRecord, or null if generation fails
+   * @returns The generated insights for the category as z.infer<S>, or null if generation fails
    */
-  generateInsights(
+  generateInsights<S extends z.ZodType>(
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
-  ): Promise<PartialAppSummaryRecord | null>;
+  ): Promise<z.infer<S> | null>;
 }

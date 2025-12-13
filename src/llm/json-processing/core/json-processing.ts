@@ -120,15 +120,15 @@ export function processJson(
   loggingEnabled?: boolean,
 ): JsonProcessorResult<Record<string, unknown>>;
 
-// Implementation signature - uses any to satisfy both overloads
+// Implementation signature - generic to preserve types from validateJsonWithTransforms
 // The implementation accepts the base LLMCompletionOptions type
-export function processJson(
+// Type T is inferred from the schema when provided, or defaults to Record<string, unknown>
+export function processJson<T = Record<string, unknown>>(
   content: LLMGeneratedContent,
   context: LLMContext,
   completionOptions: LLMCompletionOptions,
   loggingEnabled = true,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): JsonProcessorResult<any> {
+): JsonProcessorResult<T> {
   // Pre-check - ensure content is a string
   if (typeof content !== "string") {
     const contentText = JSON.stringify(content);
@@ -191,16 +191,17 @@ export function processJson(
     logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
-      data: parseResult.data,
+      data: parseResult.data as T,
       mutationSteps: parseResult.steps,
     };
   }
 
   // Validate the parsed data (with transforms applied internally if needed)
   // Type inference: validateJsonWithTransforms will infer the type from the schema
+  // Cast the schema to ZodType<T> to ensure type safety
   const validationResult = validateJsonWithTransforms(
     parseResult.data,
-    completionOptions.jsonSchema,
+    completionOptions.jsonSchema as z.ZodType<T>,
   );
 
   // Validation succeeded
