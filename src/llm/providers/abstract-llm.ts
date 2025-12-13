@@ -193,26 +193,50 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Executes the LLM function for the given model key and task type.
    * Type safety is enforced through overload resolution in LLMRouter.
    */
-  private async executeProviderFunction(
+  private async executeProviderFunction<
+    TOptions extends LLMCompletionOptions = LLMCompletionOptions,
+  >(
     modelKey: string,
     taskType: LLMPurpose,
     request: string,
     context: LLMContext,
-    completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse> {
-    const skeletonResponse: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps"> = {
+    completionOptions?: TOptions,
+  ): Promise<
+    LLMFunctionResponse<
+      TOptions extends { jsonSchema: infer S }
+        ? S extends z.ZodType
+          ? z.infer<S>
+          : LLMGeneratedContent
+        : LLMGeneratedContent
+    >
+  > {
+    // Type helper to extract the inferred type from completion options
+    type ExtractResponseType<TOpt extends LLMCompletionOptions> = TOpt extends {
+      jsonSchema: infer S;
+    }
+      ? S extends z.ZodType
+        ? z.infer<S>
+        : LLMGeneratedContent
+      : LLMGeneratedContent;
+    type ResponseType = ExtractResponseType<TOptions>;
+    const skeletonResponse: Omit<
+      LLMFunctionResponse<ResponseType>,
+      "generated" | "status" | "mutationSteps"
+    > = {
       request,
       context,
       modelKey,
     };
-    completionOptions ??= { outputFormat: LLMOutputFormat.TEXT };
+    const finalOptions: TOptions = (completionOptions ?? {
+      outputFormat: LLMOutputFormat.TEXT,
+    }) as TOptions;
 
     try {
       const { isIncompleteResponse, responseContent, tokenUsage } = await this.invokeProvider(
         taskType,
         modelKey,
         request,
-        completionOptions,
+        finalOptions,
       );
 
       if (isIncompleteResponse) {
@@ -232,7 +256,7 @@ export default abstract class AbstractLLM implements LLMProvider {
           skeletonResponse,
           taskType,
           responseContent,
-          completionOptions,
+          finalOptions,
           context,
         );
       }
@@ -296,19 +320,46 @@ export default abstract class AbstractLLM implements LLMProvider {
    * response metadata object with type-safe JSON validation.
    * Type safety is enforced through overload resolution in LLMRouter.
    */
-  private async formatAndValidateResponse(
-    skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
+  private async formatAndValidateResponse<TOptions extends LLMCompletionOptions>(
+    skeletonResult: Omit<
+      LLMFunctionResponse<
+        TOptions extends { jsonSchema: infer S }
+          ? S extends z.ZodType
+            ? z.infer<S>
+            : LLMGeneratedContent
+          : LLMGeneratedContent
+      >,
+      "generated" | "status" | "mutationSteps"
+    >,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,
-    completionOptions: LLMCompletionOptions,
+    completionOptions: TOptions,
     context: LLMContext,
-  ): Promise<LLMFunctionResponse> {
+  ): Promise<
+    LLMFunctionResponse<
+      TOptions extends { jsonSchema: infer S }
+        ? S extends z.ZodType
+          ? z.infer<S>
+          : LLMGeneratedContent
+        : LLMGeneratedContent
+    >
+  > {
+    // Type helper to extract the inferred type from completion options
+    type ExtractResponseType<TOpt extends LLMCompletionOptions> = TOpt extends {
+      jsonSchema: infer S;
+    }
+      ? S extends z.ZodType
+        ? z.infer<S>
+        : LLMGeneratedContent
+      : LLMGeneratedContent;
+    type ResponseType = ExtractResponseType<TOptions>;
+
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: responseContent,
+        generated: responseContent as ResponseType,
       };
     }
 
@@ -317,50 +368,67 @@ export default abstract class AbstractLLM implements LLMProvider {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: responseContent,
+        generated: responseContent as ResponseType,
       };
     }
 
     // Process JSON with type-safe overload resolution
-    // Use conditional logic to help TypeScript select the correct overload
-    // When jsonSchema is present, use the first overload; otherwise use the second
-    const jsonProcessingResult = completionOptions.jsonSchema
-      ? processJson(
-          responseContent,
-          context,
-          {
-            ...completionOptions,
-            jsonSchema: completionOptions.jsonSchema,
-          } as LLMCompletionOptions & { jsonSchema: z.ZodType },
-          true,
-        )
-      : processJson(
-          responseContent,
-          context,
-          { ...completionOptions, jsonSchema: undefined } as LLMCompletionOptions & {
-            jsonSchema?: undefined;
-          },
-          true,
-        );
-
-    if (jsonProcessingResult.success) {
-      // The data property is now strongly typed based on the schema provided
-      // in completionOptions. Type safety is enforced through overload resolution in LLMRouter.
-      return {
-        ...skeletonResult,
-        status: LLMResponseStatus.COMPLETED,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        generated: jsonProcessingResult.data,
-        mutationSteps: jsonProcessingResult.mutationSteps,
-      };
-    } else {
-      context.responseContentParseError = formatError(jsonProcessingResult.error);
-      await this.errorLogger.recordJsonProcessingError(
-        jsonProcessingResult.error,
+    // Handle the two cases separately to ensure proper type inference
+    if (completionOptions.jsonSchema) {
+      const jsonProcessingResult = processJson(
         responseContent,
         context,
+        {
+          ...completionOptions,
+          jsonSchema: completionOptions.jsonSchema,
+        } as LLMCompletionOptions & { jsonSchema: z.ZodType },
+        true,
       );
-      return { ...skeletonResult, status: LLMResponseStatus.INVALID };
+
+      if (jsonProcessingResult.success) {
+        // The data property is now strongly typed based on the schema provided
+        // Type safety is enforced through overload resolution in processJson.
+        return {
+          ...skeletonResult,
+          status: LLMResponseStatus.COMPLETED,
+          generated: jsonProcessingResult.data as ResponseType,
+          mutationSteps: jsonProcessingResult.mutationSteps,
+        };
+      } else {
+        context.responseContentParseError = formatError(jsonProcessingResult.error);
+        await this.errorLogger.recordJsonProcessingError(
+          jsonProcessingResult.error,
+          responseContent,
+          context,
+        );
+        return { ...skeletonResult, status: LLMResponseStatus.INVALID };
+      }
+    } else {
+      const jsonProcessingResult = processJson(
+        responseContent,
+        context,
+        { ...completionOptions, jsonSchema: undefined } as LLMCompletionOptions & {
+          jsonSchema?: undefined;
+        },
+        true,
+      );
+
+      if (jsonProcessingResult.success) {
+        return {
+          ...skeletonResult,
+          status: LLMResponseStatus.COMPLETED,
+          generated: jsonProcessingResult.data as ResponseType,
+          mutationSteps: jsonProcessingResult.mutationSteps,
+        };
+      } else {
+        context.responseContentParseError = formatError(jsonProcessingResult.error);
+        await this.errorLogger.recordJsonProcessingError(
+          jsonProcessingResult.error,
+          responseContent,
+          context,
+        );
+        return { ...skeletonResult, status: LLMResponseStatus.INVALID };
+      }
     }
   }
 

@@ -11,7 +11,8 @@ import { insightsTuningConfig } from "./insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
 import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
 import type { IInsightsProcessor } from "./insights-processor.interface";
-import { AppSummaryCategoryEnum } from "./insights.types";
+import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "./insights.types";
+import { z } from "zod";
 import { ICompletionStrategy } from "./completion-strategies/completion-strategy.interface";
 import { SinglePassCompletionStrategy } from "./completion-strategies/single-pass-completion-strategy";
 import { MapReduceCompletionStrategy } from "./completion-strategies/map-reduce-completion-strategy";
@@ -138,14 +139,25 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
       }
 
       // Generate insights using the selected strategy
-      const categorySummaryData = await strategy.generateInsights(category, sourceFileSummaries);
+      // Infer the type from the category's response schema
+      type CategoryResponseType = z.infer<
+        (typeof summaryCategoriesConfig)[typeof category]["responseSchema"]
+      >;
+      // Use unknown as intermediate type to avoid unsafe assignment warning
+      const categorySummaryData: unknown = await strategy.generateInsights<CategoryResponseType>(
+        category,
+        sourceFileSummaries,
+      );
 
       if (!categorySummaryData) {
         return;
       }
 
-      // Store the result
-      await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
+      // Store the result - CategoryResponseType should be compatible with PartialAppSummaryRecord
+      await this.appSummariesRepository.updateAppSummary(
+        this.projectName,
+        categorySummaryData as CategoryResponseType as PartialAppSummaryRecord,
+      );
       console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
       logOneLineWarning(`Unable to generate ${categoryLabel} details into database`, error);

@@ -1,11 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import pRetry, { FailedAttemptError } from "p-retry";
-import type {
-  LLMFunction,
-  LLMFunctionResponse,
-  LLMContext,
-  LLMCompletionOptions,
-} from "../types/llm.types";
+import type { LLMFunctionResponse, LLMContext, LLMCompletionOptions } from "../types/llm.types";
 import { LLMResponseStatus } from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
 import LLMStats from "../tracking/llm-stats";
@@ -40,13 +35,17 @@ export class RetryStrategy {
   /**
    * Execute an LLM function with retry logic for overloaded or invalid responses.
    */
-  async executeWithRetries(
-    llmFunction: LLMFunction,
+  async executeWithRetries<T = unknown>(
+    llmFunction: (
+      content: string,
+      context: LLMContext,
+      options?: LLMCompletionOptions,
+    ) => Promise<LLMFunctionResponse<T>>,
     prompt: string,
     context: LLMContext,
     providerRetryConfig: LLMRetryConfig,
     completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse | null> {
+  ): Promise<LLMFunctionResponse<T> | null> {
     try {
       return await pRetry(
         async () => {

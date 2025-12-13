@@ -4,7 +4,7 @@ import { appSummaryPromptMetadata } from "../../../prompts/definitions/app-summa
 import { logOneLineWarning } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
-import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
+import { AppSummaryCategoryEnum } from "../insights.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -22,6 +22,7 @@ export interface InsightCompletionOptions {
 /**
  * Execute LLM completion for insight generation with standardized error handling.
  * This service centralizes the common pattern of creating a prompt and calling the LLM router.
+ * The return type is inferred from the response schema for the given category.
  *
  * @param llmRouter The LLM router instance
  * @param category The app summary category
@@ -29,12 +30,12 @@ export interface InsightCompletionOptions {
  * @param options Optional configuration for the completion
  * @returns The generated insights or null if generation failed
  */
-export async function executeInsightCompletion(
+export async function executeInsightCompletion<T = unknown>(
   llmRouter: LLMRouter,
   category: AppSummaryCategoryEnum,
   sourceFileSummaries: string[],
   options: InsightCompletionOptions = {},
-): Promise<PartialAppSummaryRecord | null> {
+): Promise<T | null> {
   const categoryLabel = appSummaryPromptMetadata[category].label ?? category;
   const taskCategory: string = options.taskCategory ?? category;
 
@@ -46,13 +47,15 @@ export async function executeInsightCompletion(
     };
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
-    const llmResponse = (await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
+    // Type is inferred from the schema via executeCompletion overloads
+    // Use unknown as intermediate type to avoid unsafe assignment warning
+    const llmResponse: unknown = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: config.responseSchema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-    })) as PartialAppSummaryRecord | null;
+    });
 
-    return llmResponse;
+    return llmResponse as T | null;
   } catch (error: unknown) {
     logOneLineWarning(
       `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,

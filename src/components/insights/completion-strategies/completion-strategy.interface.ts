@@ -1,4 +1,4 @@
-import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
+import { AppSummaryCategoryEnum } from "../insights.types";
 
 /**
  * Strategy interface for generating insights from source file summaries.
@@ -12,8 +12,8 @@ export interface ICompletionStrategy {
    * @param sourceFileSummaries - Array of formatted source file summaries
    * @returns The generated insights for the category, or null if generation fails
    */
-  generateInsights(
+  generateInsights<T>(
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
-  ): Promise<PartialAppSummaryRecord | null>;
+  ): Promise<T | null>;
 }

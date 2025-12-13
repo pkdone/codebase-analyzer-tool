@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../llm/llm-router";
 import { llmTokens } from "../../../di/tokens";
 import { ICompletionStrategy } from "./completion-strategy.interface";
-import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
+import { AppSummaryCategoryEnum } from "../insights.types";
 import { executeInsightCompletion } from "./completion-executor";
 
 /**
@@ -16,10 +16,10 @@ export class SinglePassCompletionStrategy implements ICompletionStrategy {
   /**
    * Generate insights for a category by processing all summaries in a single pass.
    */
-  async generateInsights(
+  async generateInsights<T>(
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
-  ): Promise<PartialAppSummaryRecord | null> {
-    return executeInsightCompletion(this.llmRouter, category, sourceFileSummaries);
+  ): Promise<T | null> {
+    return executeInsightCompletion<T>(this.llmRouter, category, sourceFileSummaries);
   }
 }

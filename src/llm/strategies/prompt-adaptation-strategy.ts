@@ -18,9 +18,9 @@ export class PromptAdaptationStrategy {
    * @param modelsMetadata Metadata about available LLM models
    * @returns The adapted prompt
    */
-  adaptPromptFromResponse(
+  adaptPromptFromResponse<T = unknown>(
     prompt: string,
-    llmResponse: LLMFunctionResponse,
+    llmResponse: LLMFunctionResponse<T>,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
   ): string {
     if (!llmResponse.tokensUsage) {

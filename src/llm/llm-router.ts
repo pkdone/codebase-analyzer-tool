@@ -7,8 +7,8 @@ import {
   LLMGeneratedContent,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
-  LLMModelKeysSet,
   LLMModelMetadata,
+  LLMModelKeysSet,
   LLMOutputFormat,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
@@ -247,11 +247,30 @@ export default class LLMRouter {
       modelQuality: candidatesToUse[0].modelQuality,
       outputFormat: options.outputFormat,
     };
+
+    // Extract the type from options and pass it to the pipeline
+    // Type helper to extract the inferred type from completion options
+    type ExtractCompletionType<TOptions extends LLMCompletionOptions> = TOptions extends {
+      jsonSchema: infer S;
+      outputFormat: LLMOutputFormat.JSON;
+    }
+      ? S extends z.ZodType
+        ? z.infer<S>
+        : LLMGeneratedContent
+      : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
+        ? string
+        : LLMGeneratedContent;
+
+    type ResponseType = ExtractCompletionType<typeof options>;
     const result = await this.executionPipeline.execute(
       resourceName,
       prompt,
       context,
-      candidateFunctions,
+      candidateFunctions as ((
+        content: string,
+        context: LLMContext,
+        options?: LLMCompletionOptions,
+      ) => Promise<import("./types/llm.types").LLMFunctionResponse<ResponseType>>)[],
       this.providerRetryConfig,
       this.modelsMetadata,
       candidatesToUse,

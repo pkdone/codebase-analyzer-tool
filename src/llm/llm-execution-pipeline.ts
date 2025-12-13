@@ -1,7 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import {
   LLMContext,
-  LLMFunction,
   LLMResponseStatus,
   LLMGeneratedContent,
   ResolvedLLMModelMetadata,
@@ -41,16 +40,20 @@ export class LLMExecutionPipeline {
    * Context is just an optional object of key value pairs which will be retained with the LLM
    * request and subsequent response for convenient debugging and error logging context.
    */
-  async execute(
+  async execute<T = LLMGeneratedContent>(
     resourceName: string,
     prompt: string,
     context: LLMContext,
-    llmFunctions: LLMFunction[],
+    llmFunctions: ((
+      content: string,
+      context: LLMContext,
+      options?: LLMCompletionOptions,
+    ) => Promise<LLMFunctionResponse<T>>)[],
     providerRetryConfig: LLMRetryConfig,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMExecutionResult<LLMGeneratedContent>> {
+  ): Promise<LLMExecutionResult<T>> {
     try {
       const result = await this.iterateOverLLMFunctions(
         resourceName,
@@ -67,7 +70,7 @@ export class LLMExecutionPipeline {
         if (hasSignificantSanitizationSteps(result.mutationSteps)) {
           this.llmStats.recordJsonMutated();
         }
-        // result.generated is now correctly typed as LLMGeneratedContent | undefined.
+        // result.generated is now correctly typed as T | undefined.
         // Type safety is guaranteed at compile time through overload resolution in LLMRouter.
         // The return type is inferred from the Zod schema provided in completionOptions at the call site.
         // We assert that generated is defined since COMPLETED status guarantees it.
@@ -128,23 +131,27 @@ export class LLMExecutionPipeline {
    * Iterates through available LLM functions, attempting each until successful completion
    * or all options are exhausted.
    */
-  private async iterateOverLLMFunctions(
+  private async iterateOverLLMFunctions<T = LLMGeneratedContent>(
     resourceName: string,
     initialPrompt: string,
     context: LLMContext,
-    llmFunctions: LLMFunction[],
+    llmFunctions: ((
+      content: string,
+      context: LLMContext,
+      options?: LLMCompletionOptions,
+    ) => Promise<LLMFunctionResponse<T>>)[],
     providerRetryConfig: LLMRetryConfig,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse | null> {
+  ): Promise<LLMFunctionResponse<T> | null> {
     let currentPrompt = initialPrompt;
     let llmFunctionIndex = 0;
 
     // Don't want to increment 'llmFuncIndex' before looping again, if going to crop prompt
     // (to enable us to try cropped prompt with same size LLM as last iteration)
     while (llmFunctionIndex < llmFunctions.length) {
-      const llmResponse = await this.retryStrategy.executeWithRetries(
+      const llmResponse = await this.retryStrategy.executeWithRetries<T>(
         llmFunctions[llmFunctionIndex],
         currentPrompt,
         context,
@@ -160,7 +167,7 @@ export class LLMExecutionPipeline {
         break;
       }
 
-      const nextAction = this.fallbackStrategy.determineNextAction(
+      const nextAction = this.fallbackStrategy.determineNextAction<T>(
         llmResponse,
         llmFunctionIndex,
         llmFunctions.length,
@@ -170,7 +177,7 @@ export class LLMExecutionPipeline {
       if (nextAction.shouldTerminate) break;
 
       if (nextAction.shouldCropPrompt && llmResponse) {
-        currentPrompt = this.promptAdaptationStrategy.adaptPromptFromResponse(
+        currentPrompt = this.promptAdaptationStrategy.adaptPromptFromResponse<T>(
           currentPrompt,
           llmResponse,
           modelsMetadata,

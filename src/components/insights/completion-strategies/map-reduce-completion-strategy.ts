@@ -8,7 +8,7 @@ import { logOneLineWarning } from "../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
 import { ICompletionStrategy } from "./completion-strategy.interface";
-import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
+import { AppSummaryCategoryEnum } from "../insights.types";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../llm/utils/text-chunking";
@@ -36,10 +36,10 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
    * 2. MAP: Generate partial insights for each chunk
    * 3. REDUCE: Consolidate partial insights into final result
    */
-  async generateInsights(
+  async generateInsights<T>(
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
-  ): Promise<PartialAppSummaryRecord | null> {
+  ): Promise<T | null> {
     const categoryLabel = summaryCategoriesConfig[category].label ?? category;
 
     try {
@@ -56,16 +56,17 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
       );
 
       // 2. MAP: Generate partial insights for each chunk
-      const partialResults = (
-        await Promise.all(
-          summaryChunks.map(async (chunk, index) => {
-            console.log(
-              `  - [MAP ${index + 1}/${summaryChunks.length}] Processing chunk for ${categoryLabel}...`,
-            );
-            return this.generatePartialInsightsForCategory(category, chunk);
-          }),
-        )
-      ).filter((result): result is PartialAppSummaryRecord => result !== null);
+      const partialResults: T[] = [];
+      for (const chunk of summaryChunks) {
+        const index = partialResults.length;
+        console.log(
+          `  - [MAP ${index + 1}/${summaryChunks.length}] Processing chunk for ${categoryLabel}...`,
+        );
+        const result = await this.generatePartialInsightsForCategory<T>(category, chunk);
+        if (result !== null) {
+          partialResults.push(result);
+        }
+      }
 
       if (partialResults.length === 0) {
         logOneLineWarning(
@@ -79,7 +80,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
       );
 
       // 3. REDUCE: Consolidate partial insights into a final summary
-      const finalSummaryData = await this.reducePartialInsights(category, partialResults);
+      const finalSummaryData = await this.reducePartialInsights<T>(category, partialResults);
 
       if (!finalSummaryData) {
         logOneLineWarning(`Failed to generate final consolidated summary for ${categoryLabel}.`);
@@ -99,14 +100,14 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
    * MAP step: Generates partial insights for a single chunk of summaries.
    * This method is called once per chunk in the map-reduce process.
    */
-  private async generatePartialInsightsForCategory(
+  private async generatePartialInsightsForCategory<T>(
     category: AppSummaryCategoryEnum,
     summaryChunk: string[],
-  ): Promise<PartialAppSummaryRecord | null> {
+  ): Promise<T | null> {
     const partialAnalysisNote =
       "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ";
 
-    return executeInsightCompletion(this.llmRouter, category, summaryChunk, {
+    return executeInsightCompletion<T>(this.llmRouter, category, summaryChunk, {
       partialAnalysisNote,
       taskCategory: `${category}-chunk`,
     });
@@ -116,10 +117,10 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
    * REDUCE step: Consolidates multiple partial insights into a single final result.
    * This method combines and de-duplicates results from all chunks.
    */
-  private async reducePartialInsights(
+  private async reducePartialInsights<T>(
     category: AppSummaryCategoryEnum,
-    partialResults: PartialAppSummaryRecord[],
-  ): Promise<PartialAppSummaryRecord | null> {
+    partialResults: T[],
+  ): Promise<T | null> {
     const config = summaryCategoriesConfig[category];
 
     // Get the key name for this category (e.g., "entities", "boundedContexts")
@@ -128,13 +129,15 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const categoryKey = Object.keys(schemaShape)[0];
 
     // Flatten the arrays from all partial results into a single combined list
+    // We need to access the category property, so we treat T as a record type
     const combinedData = partialResults.flatMap((result) => {
-      const categoryData = result[category];
+      const record = result as Record<string, unknown>;
+      const categoryData = record[category];
       // Type guard to ensure we're working with arrays
       if (Array.isArray(categoryData)) {
-        return categoryData;
+        return categoryData as unknown[];
       }
-      return [];
+      return [] as unknown[];
     });
 
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
@@ -145,12 +148,18 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const renderedPrompt = renderPrompt(reducePromptDefinition, { categoryKey, content });
 
     try {
-      const result = (await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: config.responseSchema,
-        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-      })) as PartialAppSummaryRecord | null;
-      return result;
+      // Type is inferred from the schema via executeCompletion overloads
+      // Use unknown as intermediate type to avoid unsafe assignment warning
+      const result: unknown = await this.llmRouter.executeCompletion(
+        `${category}-reduce`,
+        renderedPrompt,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: config.responseSchema,
+          hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+        },
+      );
+      return result as T | null;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,
