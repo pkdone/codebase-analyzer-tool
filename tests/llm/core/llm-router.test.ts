@@ -662,6 +662,70 @@ describe("LLM Router tests", () => {
       // Type guard now protects against invalid types, returning null instead
       expect(result).toBeNull();
     });
+
+    test("should infer return type from Zod schema (type safety verification)", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const testSchema = z.object({
+        name: z.string(),
+        age: z.number(),
+      });
+      const mockResponse = { name: "Test", age: 42 };
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      // Type inference: result should be z.infer<typeof testSchema> | null
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: testSchema,
+        },
+        null,
+      );
+
+      expect(result).toEqual(mockResponse);
+      // Verify type inference: result should match schema type
+      if (result) {
+        const typedResult: z.infer<typeof testSchema> = result;
+        expect(typedResult.name).toBe("Test");
+        expect(typedResult.age).toBe(42);
+      }
+    });
+
+    test("should return string type for TEXT format (overload resolution)", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const mockTextResponse = "This is a text response";
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockTextResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      // Type inference: result should be string | null for TEXT format
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        },
+        null,
+      );
+
+      expect(result).toBe(mockTextResponse);
+      // Verify type: result should be string | null
+      if (result !== null) {
+        const typedResult: string = result;
+        expect(typeof typedResult).toBe("string");
+      }
+    });
   });
 
   describe("Error handling and edge cases", () => {

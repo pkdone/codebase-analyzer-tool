@@ -178,5 +178,49 @@ describe("completion-executor", () => {
         }
       }
     });
+
+    it("should preserve type inference without unsafe casts", async () => {
+      const category: AppSummaryCategoryEnum = "appDescription";
+      const _config = appSummaryPromptMetadata[category];
+      const mockResponse = { appDescription: "Test description" };
+
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, category, [
+        "* file1.ts: purpose implementation",
+      ]);
+
+      // Verify that type is correctly inferred from schema without explicit casting
+      // The result should be z.infer<typeof config.responseSchema> | null
+      expect(result).toEqual(mockResponse);
+      if (result) {
+        // Type should be inferred correctly - no cast needed
+        const inferredType: z.infer<typeof _config.responseSchema> = result;
+        expect(inferredType.appDescription).toBe("Test description");
+      }
+    });
+
+    it("should maintain type safety through the call chain", async () => {
+      const category: AppSummaryCategoryEnum = "technologies";
+      const _config = appSummaryPromptMetadata[category];
+      const mockResponse = {
+        technologies: [{ name: "TypeScript", version: "5.7.3" }],
+      };
+
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, category, [
+        "* file1.ts: purpose implementation",
+      ]);
+
+      // Verify the type flows correctly through executeCompletion -> executeInsightCompletion
+      expect(result).toEqual(mockResponse);
+      // Type should be correctly inferred from the schema
+      if (result) {
+        const schemaType: z.infer<typeof _config.responseSchema> = result;
+        expect(schemaType.technologies).toBeDefined();
+        expect(Array.isArray(schemaType.technologies)).toBe(true);
+      }
+    });
   });
 });

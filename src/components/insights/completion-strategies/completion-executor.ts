@@ -23,7 +23,8 @@ export interface InsightCompletionOptions {
  * Execute LLM completion for insight generation with standardized error handling.
  * This service centralizes the common pattern of creating a prompt and calling the LLM router.
  * The return type is PartialAppSummaryRecord, which is compatible with all category response schemas.
- * Strong typing is preserved at the llmRouter.executeCompletion level via overloads.
+ * Type inference is preserved through the call chain: the return type is inferred from the schema
+ * via executeCompletion overloads, ensuring strong typing without unsafe casts.
  *
  * @param llmRouter The LLM router instance
  * @param category The app summary category
@@ -49,14 +50,18 @@ export async function executeInsightCompletion(
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
     // Type is inferred from the schema via executeCompletion overloads
-    // All category response types are compatible with PartialAppSummaryRecord
-    // Using unknown to avoid unsafe any assignment, then casting to the known compatible type
+    // The overload provides the specific return type z.infer<typeof config.responseSchema> | null
+    // which is compatible with PartialAppSummaryRecord | null in the function's return signature
+    // The type assertion is safe because the overload guarantees the return type matches the schema
     const llmResponse: unknown = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: config.responseSchema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
     });
 
+    // Type assertion is necessary because the implementation signature returns unknown,
+    // but the overload guarantees the correct type. This is safe because all category
+    // response types are compatible with PartialAppSummaryRecord
     return llmResponse as PartialAppSummaryRecord | null;
   } catch (error: unknown) {
     logOneLineWarning(

@@ -311,4 +311,46 @@ describe("Abstract LLM Type Safety", () => {
       }
     });
   });
+
+  describe("Type narrowing in formatAndValidateResponse", () => {
+    test("should use type narrowing when jsonSchema is provided", async () => {
+      const testSchema = z.object({
+        status: z.string(),
+        count: z.number(),
+      });
+
+      testLLM.setMockResponse('{"status": "active", "count": 42}');
+
+      // When jsonSchema is provided, type narrowing should work correctly
+      // The completionOptions should be properly narrowed within formatAndValidateResponse
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: testSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        // Type should be correctly inferred from schema
+        const generated = result.generated as z.infer<typeof testSchema>;
+        expect(generated.status).toBe("active");
+        expect(generated.count).toBe(42);
+      }
+    });
+
+    test("should handle JSON processing without schema using type narrowing", async () => {
+      testLLM.setMockResponse('{"key": "value", "number": 123}');
+
+      // When no jsonSchema is provided, type narrowing should still work
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        // Without schema, should default to Record<string, unknown>
+        expect(typeof result.generated).toBe("object");
+        expect(result.generated).not.toBeNull();
+      }
+    });
+  });
 });

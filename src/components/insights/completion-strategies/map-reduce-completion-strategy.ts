@@ -152,12 +152,21 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     try {
       // Type is inferred from the schema via executeCompletion overloads
       // All category response types are compatible with PartialAppSummaryRecord
-      const result = (await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: config.responseSchema,
-        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-      })) as PartialAppSummaryRecord | null;
-      return result;
+      // The type assertion is safe because the overload guarantees the return type matches the schema
+      const result: unknown = await this.llmRouter.executeCompletion(
+        `${category}-reduce`,
+        renderedPrompt,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: config.responseSchema,
+          hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+        },
+      );
+
+      // Type assertion is necessary because the implementation signature returns unknown,
+      // but the overload guarantees the correct type. This is safe because all category
+      // response types are compatible with PartialAppSummaryRecord
+      return result as PartialAppSummaryRecord | null;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,

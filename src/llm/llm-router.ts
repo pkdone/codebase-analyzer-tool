@@ -231,12 +231,14 @@ export default class LLMRouter {
   ): Promise<string | null>;
 
   // Implementation
+  // Return type uses unknown to allow overload resolution while satisfying the linter
+  // The overloads above provide the specific return types for callers
   async executeCompletion(
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions,
     modelQualityOverride: LLMModelQuality | null = null,
-  ): Promise<LLMGeneratedContent | null> {
+  ): Promise<unknown> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,
