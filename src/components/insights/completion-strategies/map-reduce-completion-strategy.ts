@@ -8,7 +8,11 @@ import { logOneLineWarning } from "../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
 import { ICompletionStrategy } from "./completion-strategy.interface";
-import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
+import {
+  AppSummaryCategoryEnum,
+  PartialAppSummaryRecord,
+  appSummaryCategorySchemas,
+} from "../insights.types";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../llm/utils/text-chunking";
@@ -117,7 +121,9 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
   /**
    * REDUCE step: Consolidates multiple partial insights into a single final result.
    * This method combines and de-duplicates results from all chunks.
-   * The return type is inferred from the category's response schema and is compatible with PartialAppSummaryRecord.
+   *
+   * Uses the strongly-typed `appSummaryCategorySchemas` mapping to enable proper type inference
+   * from the category parameter, eliminating the need for unsafe type casts.
    */
   private async reducePartialInsights(
     category: AppSummaryCategoryEnum,
@@ -125,9 +131,11 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
   ): Promise<PartialAppSummaryRecord | null> {
     const config = summaryCategoriesConfig[category];
 
+    // Use strongly-typed schema for type inference
+    const schema = appSummaryCategorySchemas[category];
+
     // Get the key name for this category (e.g., "entities", "boundedContexts")
-    // Type assertion needed because responseSchema is typed as ZodType, but we know app summaries are ZodObject
-    const schemaShape = (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape;
+    const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
     const categoryKey = Object.keys(schemaShape)[0];
 
     // Flatten the arrays from all partial results into a single combined list
@@ -145,20 +153,17 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
     const reducePromptDefinition = createReduceInsightsPromptDefinition(
       config.label ?? category,
-      config.responseSchema,
+      schema,
     );
     const renderedPrompt = renderPrompt(reducePromptDefinition, { categoryKey, content });
 
     try {
-      // Type assertion is needed because config.responseSchema is typed as ZodType<unknown> in the
-      // metadata interface, so the overload can't infer the specific schema type at compile time.
-      // The assertion is safe because all category response schemas produce types compatible with
-      // PartialAppSummaryRecord, and the LLM router validates the response against the actual schema.
-      const result = (await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
+      // Use strongly-typed schema lookup - enables correct return type inference
+      const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
         outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: config.responseSchema,
+        jsonSchema: schema,
         hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-      })) as PartialAppSummaryRecord | null;
+      });
 
       return result;
     } catch (error: unknown) {

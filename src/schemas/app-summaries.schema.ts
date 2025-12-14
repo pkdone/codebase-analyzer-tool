@@ -319,3 +319,28 @@ export const appSummarySchema = z
     potentialMicroservices: potentialMicroservicesSchema.shape.potentialMicroservices.optional(),
   })
   .passthrough();
+
+/**
+ * Strongly-typed mapping of app summary categories to their Zod schemas.
+ * This preserves type information for compile-time inference, unlike the
+ * PromptDefinition.responseSchema which is typed as z.ZodType.
+ *
+ * Use this mapping when you need TypeScript to infer the correct return type
+ * based on a category key, rather than getting a generic z.ZodType.
+ */
+export const appSummaryCategorySchemas = {
+  appDescription: appDescriptionSchema,
+  technologies: technologiesSchema,
+  businessProcesses: businessProcessesSchema,
+  boundedContexts: boundedContextsSchema,
+  aggregates: aggregatesSchema,
+  entities: entitiesSchema,
+  repositories: repositoriesSchema,
+  potentialMicroservices: potentialMicroservicesSchema,
+} as const;
+
+/**
+ * Type representing the strongly-typed category-to-schema mapping.
+ * Use with z.infer<AppSummaryCategorySchemas[C]> to get the inferred type for a category.
+ */
+export type AppSummaryCategorySchemas = typeof appSummaryCategorySchemas;

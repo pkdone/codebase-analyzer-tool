@@ -2,10 +2,14 @@ import "reflect-metadata";
 import { ICompletionStrategy } from "../../../../src/components/insights/completion-strategies/completion-strategy.interface";
 import { SinglePassCompletionStrategy } from "../../../../src/components/insights/completion-strategies/single-pass-completion-strategy";
 import { MapReduceCompletionStrategy } from "../../../../src/components/insights/completion-strategies/map-reduce-completion-strategy";
-import { PartialAppSummaryRecord } from "../../../../src/components/insights/insights.types";
-import { AppSummaryCategoryEnum } from "../../../../src/components/insights/insights.types";
+import { executeInsightCompletion } from "../../../../src/components/insights/completion-strategies/completion-executor";
+import {
+  PartialAppSummaryRecord,
+  AppSummaryCategoryEnum,
+  appSummaryCategorySchemas,
+  type AppSummaryCategorySchemas,
+} from "../../../../src/components/insights/insights.types";
 import LLMRouter from "../../../../src/llm/llm-router";
-import { appSummaryPromptMetadata } from "../../../../src/prompts/definitions/app-summaries";
 import { z } from "zod";
 
 describe("Type Safety Tests", () => {
@@ -156,13 +160,36 @@ describe("Type Safety Tests", () => {
 
       for (const _category of categories) {
         // Type check: verify that the inferred schema type is assignable to PartialAppSummaryRecord
-        // Using a sample category for the type check
-        type CategoryResponseType = z.infer<
-          (typeof appSummaryPromptMetadata)["appDescription"]["responseSchema"]
-        >;
+        // Using the strongly-typed appSummaryCategorySchemas for type check
+        type CategoryResponseType = z.infer<AppSummaryCategorySchemas["appDescription"]>;
         const testAssignment: PartialAppSummaryRecord = {} as CategoryResponseType;
         expect(testAssignment).toBeDefined();
       }
+    });
+
+    it("should verify appSummaryCategorySchemas provides correct types for each category", () => {
+      // Compile-time type assertions - these would fail to compile if types don't match
+      type AppDescType = z.infer<AppSummaryCategorySchemas["appDescription"]>;
+      type TechType = z.infer<AppSummaryCategorySchemas["technologies"]>;
+      type EntitiesType = z.infer<AppSummaryCategorySchemas["entities"]>;
+      type AggregatesType = z.infer<AppSummaryCategorySchemas["aggregates"]>;
+
+      // Runtime checks to verify the schemas exist and are valid
+      expect(appSummaryCategorySchemas.appDescription).toBeDefined();
+      expect(appSummaryCategorySchemas.technologies).toBeDefined();
+      expect(appSummaryCategorySchemas.entities).toBeDefined();
+      expect(appSummaryCategorySchemas.aggregates).toBeDefined();
+
+      // Type-level assertions (compile-time only)
+      const appDesc: AppDescType = { appDescription: "test" };
+      const tech: TechType = { technologies: [] };
+      const entities: EntitiesType = { entities: [] };
+      const aggregates: AggregatesType = { aggregates: [] };
+
+      expect(appDesc).toBeDefined();
+      expect(tech).toBeDefined();
+      expect(entities).toBeDefined();
+      expect(aggregates).toBeDefined();
     });
   });
 
@@ -187,6 +214,101 @@ describe("Type Safety Tests", () => {
       if (typedResult) {
         const recordForDB: PartialAppSummaryRecord = typedResult;
         expect(recordForDB).toBeDefined();
+      }
+    });
+  });
+
+  describe("executeInsightCompletion generic type inference", () => {
+    let mockLLMRouter: jest.Mocked<LLMRouter>;
+
+    beforeEach(() => {
+      mockLLMRouter = {
+        executeCompletion: jest.fn(),
+      } as unknown as jest.Mocked<LLMRouter>;
+    });
+
+    it("should infer correct return type for appDescription category", async () => {
+      const mockResponse = { appDescription: "Test description" };
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, "appDescription", [
+        "* file1.ts: purpose",
+      ]);
+
+      if (result) {
+        // TypeScript should infer this as z.infer<AppSummaryCategorySchemas["appDescription"]>
+        // The following assignment should compile without any cast
+        const typed: z.infer<AppSummaryCategorySchemas["appDescription"]> = result;
+        expect(typed.appDescription).toBe("Test description");
+      }
+    });
+
+    it("should infer correct return type for entities category", async () => {
+      const mockResponse = {
+        entities: [{ name: "User", description: "User entity" }],
+      };
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, "entities", [
+        "* file1.ts: purpose",
+      ]);
+
+      if (result) {
+        // TypeScript should infer this as z.infer<AppSummaryCategorySchemas["entities"]>
+        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
+        expect(typed.entities).toHaveLength(1);
+        expect(typed.entities[0].name).toBe("User");
+      }
+    });
+
+    it("should allow accessing category-specific properties without type narrowing", async () => {
+      const mockResponse = {
+        aggregates: [
+          {
+            name: "OrderAggregate",
+            description: "Order aggregate root",
+            entities: ["Order", "OrderItem"],
+            repository: "OrderRepository",
+          },
+        ],
+      };
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, "aggregates", [
+        "* file1.ts: purpose",
+      ]);
+
+      if (result) {
+        // Should be able to access aggregate-specific properties directly
+        const typed: z.infer<AppSummaryCategorySchemas["aggregates"]> = result;
+        expect(typed.aggregates[0].entities).toContain("Order");
+        expect(typed.aggregates[0].repository).toBe("OrderRepository");
+      }
+    });
+
+    it("should correctly type potentialMicroservices with nested structures", async () => {
+      const mockResponse = {
+        potentialMicroservices: [
+          {
+            name: "UserService",
+            description: "Handles user management",
+            entities: [{ name: "User", description: "User entity" }],
+            endpoints: [{ path: "/users", method: "GET", description: "Get users" }],
+            operations: [{ operation: "CreateUser", method: "POST", description: "Create user" }],
+          },
+        ],
+      };
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, "potentialMicroservices", [
+        "* file1.ts: purpose",
+      ]);
+
+      if (result) {
+        const typed: z.infer<AppSummaryCategorySchemas["potentialMicroservices"]> = result;
+        expect(typed.potentialMicroservices[0].entities).toHaveLength(1);
+        expect(typed.potentialMicroservices[0].endpoints[0].path).toBe("/users");
+        expect(typed.potentialMicroservices[0].operations[0].operation).toBe("CreateUser");
       }
     });
   });

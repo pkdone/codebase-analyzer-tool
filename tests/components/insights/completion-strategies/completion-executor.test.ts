@@ -4,8 +4,9 @@ import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
 import {
   AppSummaryCategoryEnum,
   PartialAppSummaryRecord,
+  appSummaryCategorySchemas,
+  type AppSummaryCategorySchemas,
 } from "../../../../src/components/insights/insights.types";
-import { appSummaryPromptMetadata } from "../../../../src/prompts/definitions/app-summaries";
 import { z } from "zod";
 
 describe("completion-executor", () => {
@@ -22,13 +23,33 @@ describe("completion-executor", () => {
       expect(typeof executeInsightCompletion).toBe("function");
     });
 
-    it("should have correct function signature (no generic parameter)", () => {
+    it("should have correct function signature (generic with 3 required parameters)", () => {
       expect(executeInsightCompletion.length).toBe(3); // Takes 3 required parameters
+    });
+
+    it("should use appSummaryCategorySchemas for type-safe schema lookup", async () => {
+      const category: AppSummaryCategoryEnum = "appDescription";
+      // Verify we're using the strongly-typed schema from appSummaryCategorySchemas
+      const schema = appSummaryCategorySchemas[category];
+      const mockResponse = { appDescription: "Test description" };
+
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      await executeInsightCompletion(mockLLMRouter, category, [
+        "* file1.ts: purpose implementation",
+      ]);
+
+      // Verify the strongly-typed schema is passed to executeCompletion
+      expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(category, expect.any(String), {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+        hasComplexSchema: false,
+      });
     });
 
     it("should infer return type from category schema for appDescription", async () => {
       const category: AppSummaryCategoryEnum = "appDescription";
-      const config = appSummaryPromptMetadata[category];
+      const schema = appSummaryCategorySchemas[category];
       const mockResponse = { appDescription: "Test description" };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
@@ -39,21 +60,22 @@ describe("completion-executor", () => {
 
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(category, expect.any(String), {
         outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: config.responseSchema,
+        jsonSchema: schema,
         hasComplexSchema: false,
       });
 
       expect(result).toEqual(mockResponse);
-      // Type check: result should be compatible with the schema type
+      // Type check: result should be compatible with the strongly-typed schema
       if (result) {
-        const schemaType: z.infer<typeof config.responseSchema> = result;
+        const schemaType: z.infer<AppSummaryCategorySchemas["appDescription"]> = result;
         expect(schemaType).toBeDefined();
+        expect(schemaType.appDescription).toBe("Test description");
       }
     });
 
     it("should infer return type from category schema for entities", async () => {
       const category: AppSummaryCategoryEnum = "entities";
-      const config = appSummaryPromptMetadata[category];
+      const schema = appSummaryCategorySchemas[category];
       const mockResponse = {
         entities: [{ name: "Entity1", description: "Description 1" }],
       };
@@ -66,15 +88,16 @@ describe("completion-executor", () => {
 
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(category, expect.any(String), {
         outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: config.responseSchema,
+        jsonSchema: schema,
         hasComplexSchema: false,
       });
 
       expect(result).toEqual(mockResponse);
-      // Type check: result should be compatible with the schema type
+      // Type check: result should be compatible with the strongly-typed schema
       if (result) {
-        const schemaType: z.infer<typeof config.responseSchema> = result;
+        const schemaType: z.infer<AppSummaryCategorySchemas["entities"]> = result;
         expect(schemaType).toBeDefined();
+        expect(schemaType.entities[0].name).toBe("Entity1");
       }
     });
 
@@ -105,7 +128,7 @@ describe("completion-executor", () => {
     it("should use custom taskCategory when provided in options", async () => {
       const category: AppSummaryCategoryEnum = "appDescription";
       const customTaskCategory = "custom-category";
-      const config = appSummaryPromptMetadata[category];
+      const schema = appSummaryCategorySchemas[category];
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue({
         appDescription: "Test",
@@ -120,7 +143,7 @@ describe("completion-executor", () => {
         expect.any(String),
         {
           outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.responseSchema,
+          jsonSchema: schema,
           hasComplexSchema: false,
         },
       );
@@ -158,7 +181,7 @@ describe("completion-executor", () => {
       ];
 
       for (const category of categories) {
-        const config = appSummaryPromptMetadata[category];
+        const schema = appSummaryCategorySchemas[category];
         const mockResponse = { [category]: [] };
 
         mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
@@ -169,22 +192,18 @@ describe("completion-executor", () => {
 
         expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(category, expect.any(String), {
           outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.responseSchema,
+          jsonSchema: schema,
           hasComplexSchema: false,
         });
 
         expect(result).toEqual(mockResponse);
         // Verify type inference works for each category
-        if (result) {
-          const schemaType: z.infer<typeof config.responseSchema> = result;
-          expect(schemaType).toBeDefined();
-        }
+        expect(result).toBeDefined();
       }
     });
 
     it("should preserve type inference without unsafe casts", async () => {
       const category: AppSummaryCategoryEnum = "appDescription";
-      const _config = appSummaryPromptMetadata[category];
       const mockResponse = { appDescription: "Test description" };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
@@ -194,20 +213,20 @@ describe("completion-executor", () => {
       ]);
 
       // Verify that type is correctly inferred from schema without explicit casting
-      // The result should be z.infer<typeof config.responseSchema> | null
+      // The result should be z.infer<AppSummaryCategorySchemas["appDescription"]> | null
       expect(result).toEqual(mockResponse);
       if (result) {
         // Type should be inferred correctly - no cast needed
-        const inferredType: z.infer<typeof _config.responseSchema> = result;
+        // Using the strongly-typed schema mapping for type inference
+        const inferredType: z.infer<AppSummaryCategorySchemas["appDescription"]> = result;
         expect(inferredType.appDescription).toBe("Test description");
       }
     });
 
     it("should maintain type safety through the call chain", async () => {
       const category: AppSummaryCategoryEnum = "technologies";
-      const _config = appSummaryPromptMetadata[category];
       const mockResponse = {
-        technologies: [{ name: "TypeScript", version: "5.7.3" }],
+        technologies: [{ name: "TypeScript", description: "A typed superset of JavaScript" }],
       };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
@@ -218,9 +237,9 @@ describe("completion-executor", () => {
 
       // Verify the type flows correctly through executeCompletion -> executeInsightCompletion
       expect(result).toEqual(mockResponse);
-      // Type should be correctly inferred from the schema
+      // Type should be correctly inferred from the strongly-typed schema
       if (result) {
-        const schemaType: z.infer<typeof _config.responseSchema> = result;
+        const schemaType: z.infer<AppSummaryCategorySchemas["technologies"]> = result;
         expect(schemaType.technologies).toBeDefined();
         expect(Array.isArray(schemaType.technologies)).toBe(true);
       }
@@ -254,7 +273,6 @@ describe("completion-executor", () => {
 
     it("should preserve specific schema type through the call chain", async () => {
       const category: AppSummaryCategoryEnum = "entities";
-      const _config = appSummaryPromptMetadata[category];
       const mockResponse = {
         entities: [{ name: "Entity1", description: "Description 1" }],
       };
@@ -265,9 +283,9 @@ describe("completion-executor", () => {
         "* file1.ts: implementation",
       ]);
 
-      // Type should be preserved through the call chain
+      // Type should be preserved through the call chain using strongly-typed schema
       if (result) {
-        const typed: z.infer<typeof _config.responseSchema> = result;
+        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
         expect(typed.entities).toBeDefined();
         expect(typed.entities[0].name).toBe("Entity1");
       }
@@ -286,7 +304,6 @@ describe("completion-executor", () => {
       ];
 
       for (const category of categories) {
-        const _config = appSummaryPromptMetadata[category];
         const mockResponse = { [category]: "test" };
 
         mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
@@ -295,12 +312,8 @@ describe("completion-executor", () => {
           "* file1.ts: implementation",
         ]);
 
-        // Should not throw and type should be assignable
+        // Should not throw and result should be defined
         expect(result).toBeDefined();
-        if (result) {
-          const typed: z.infer<typeof _config.responseSchema> = result;
-          expect(typed).toBeDefined();
-        }
       }
     });
 
