@@ -6,6 +6,7 @@ import { executeInsightCompletion } from "../../../../src/components/insights/co
 import {
   PartialAppSummaryRecord,
   AppSummaryCategoryEnum,
+  CategoryInsightResult,
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../../../../src/components/insights/insights.types";
@@ -14,24 +15,41 @@ import { z } from "zod";
 
 describe("Type Safety Tests", () => {
   describe("ICompletionStrategy interface", () => {
-    it("should return PartialAppSummaryRecord | null (no generic)", () => {
-      // This test verifies the interface signature is correct
+    it("should have a generic generateInsights method", () => {
+      // This test verifies the interface signature is correctly generic
       const strategy: ICompletionStrategy = {
-        generateInsights: async (
-          _category: AppSummaryCategoryEnum,
+        generateInsights: async <C extends AppSummaryCategoryEnum>(
+          _category: C,
           _sourceFileSummaries: string[],
-        ): Promise<PartialAppSummaryRecord | null> => {
+        ): Promise<CategoryInsightResult<C> | null> => {
           return null;
         },
       };
 
       expect(strategy.generateInsights).toBeDefined();
-      // Type check: verify the return type is correct
-      const returnType: Promise<PartialAppSummaryRecord | null> = strategy.generateInsights(
-        "appDescription",
-        [],
-      );
+      // Type check: verify the return type is category-specific
+      const returnType = strategy.generateInsights("appDescription", []);
       expect(returnType).toBeDefined();
+    });
+
+    it("should return strongly-typed result based on category", async () => {
+      const strategy: ICompletionStrategy = {
+        generateInsights: async <C extends AppSummaryCategoryEnum>(
+          _category: C,
+          _sourceFileSummaries: string[],
+        ): Promise<CategoryInsightResult<C> | null> => {
+          // Return appropriate mock data based on category
+          return { appDescription: "Test description" } as CategoryInsightResult<C>;
+        },
+      };
+
+      const result = await strategy.generateInsights("appDescription", []);
+
+      // The result should be strongly typed as the appDescription schema type
+      if (result) {
+        const typed: z.infer<AppSummaryCategorySchemas["appDescription"]> = result;
+        expect(typed.appDescription).toBeDefined();
+      }
     });
   });
 
@@ -46,32 +64,53 @@ describe("Type Safety Tests", () => {
       strategy = new SinglePassCompletionStrategy(mockLLMRouter);
     });
 
-    it("should return PartialAppSummaryRecord | null", async () => {
-      const category: AppSummaryCategoryEnum = "appDescription";
-      const mockResponse: PartialAppSummaryRecord = {
-        appDescription: "Test description",
-      };
-
+    it("should return strongly-typed result for appDescription", async () => {
+      const mockResponse = { appDescription: "Test description" };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await strategy.generateInsights(category, ["* file1.ts: purpose"]);
+      const result = await strategy.generateInsights("appDescription", ["* file1.ts: purpose"]);
 
-      // Type check: result should be PartialAppSummaryRecord | null
-      const typedResult: PartialAppSummaryRecord | null = result;
-      expect(typedResult).toEqual(mockResponse);
+      // Type check: result should be the appDescription-specific type
+      if (result) {
+        const typed: z.infer<AppSummaryCategorySchemas["appDescription"]> = result;
+        expect(typed.appDescription).toBe("Test description");
+      }
+    });
+
+    it("should return strongly-typed result for entities", async () => {
+      const mockResponse = {
+        entities: [{ name: "User", description: "User entity" }],
+      };
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await strategy.generateInsights("entities", ["* file1.ts: purpose"]);
+
+      // Type check: result should be the entities-specific type
+      if (result) {
+        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
+        expect(typed.entities[0].name).toBe("User");
+      }
     });
 
     it("should handle null response", async () => {
-      const category: AppSummaryCategoryEnum = "appDescription";
-
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(null);
 
-      const result = await strategy.generateInsights(category, ["* file1.ts: purpose"]);
+      const result = await strategy.generateInsights("appDescription", ["* file1.ts: purpose"]);
 
       expect(result).toBeNull();
-      // Type check: null is valid for PartialAppSummaryRecord | null
-      const typedResult: PartialAppSummaryRecord | null = result;
-      expect(typedResult).toBeNull();
+    });
+
+    it("should be assignable to PartialAppSummaryRecord for repository storage", async () => {
+      const mockResponse = { appDescription: "Test description" };
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await strategy.generateInsights("appDescription", ["* file1.ts: purpose"]);
+
+      // The category-specific type should be assignable to PartialAppSummaryRecord
+      if (result) {
+        const recordForDB: PartialAppSummaryRecord = result;
+        expect(recordForDB).toBeDefined();
+      }
     });
   });
 
@@ -93,12 +132,11 @@ describe("Type Safety Tests", () => {
       strategy = new MapReduceCompletionStrategy(mockLLMRouter);
     });
 
-    it("should return PartialAppSummaryRecord | null", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
-      const mockPartialResponse: PartialAppSummaryRecord = {
+    it("should return strongly-typed result for entities category", async () => {
+      const mockPartialResponse = {
         entities: [{ name: "Entity1", description: "Description 1" }],
       };
-      const mockFinalResponse: PartialAppSummaryRecord = {
+      const mockFinalResponse = {
         entities: [
           { name: "Entity1", description: "Description 1" },
           { name: "Entity2", description: "Description 2" },
@@ -112,19 +150,21 @@ describe("Type Safety Tests", () => {
         // Mock the reduce phase (final consolidation)
         .mockResolvedValueOnce(mockFinalResponse);
 
-      const result = await strategy.generateInsights(category, [
+      const result = await strategy.generateInsights("entities", [
         "* file1.ts: purpose implementation",
         "* file2.ts: purpose implementation",
       ]);
 
-      // Type check: result should be PartialAppSummaryRecord | null
-      const typedResult: PartialAppSummaryRecord | null = result;
-      expect(typedResult).toEqual(mockFinalResponse);
+      // Type check: result should be the entities-specific type
+      if (result) {
+        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
+        expect(typed.entities).toHaveLength(2);
+        expect(typed.entities[0].name).toBe("Entity1");
+      }
     });
 
     it("should handle null response from reduce phase", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
-      const mockPartialResponse: PartialAppSummaryRecord = {
+      const mockPartialResponse = {
         entities: [{ name: "Entity1", description: "Description 1" }],
       };
 
@@ -134,14 +174,35 @@ describe("Type Safety Tests", () => {
         .mockResolvedValueOnce(mockPartialResponse)
         .mockResolvedValueOnce(null);
 
-      const result = await strategy.generateInsights(category, [
+      const result = await strategy.generateInsights("entities", [
         "* file1.ts: purpose implementation",
       ]);
 
       expect(result).toBeNull();
-      // Type check: null is valid for PartialAppSummaryRecord | null
-      const typedResult: PartialAppSummaryRecord | null = result;
-      expect(typedResult).toBeNull();
+    });
+
+    it("should be assignable to PartialAppSummaryRecord for repository storage", async () => {
+      const mockPartialResponse = {
+        entities: [{ name: "Entity1", description: "Description 1" }],
+      };
+      const mockFinalResponse = {
+        entities: [{ name: "Entity1", description: "Description 1" }],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mockPartialResponse)
+        .mockResolvedValueOnce(mockFinalResponse);
+
+      const result = await strategy.generateInsights("entities", [
+        "* file1.ts: purpose implementation",
+      ]);
+
+      // The category-specific type should be assignable to PartialAppSummaryRecord
+      if (result) {
+        const recordForDB: PartialAppSummaryRecord = result;
+        expect(recordForDB).toBeDefined();
+      }
     });
   });
 

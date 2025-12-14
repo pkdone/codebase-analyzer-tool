@@ -114,6 +114,9 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
   /**
    * Generates insights for a specific category and saves them to the database.
    * Selects the appropriate strategy (single-pass vs map-reduce) based on codebase size.
+   *
+   * The strategy returns a strongly-typed result based on the category, which is
+   * compatible with PartialAppSummaryRecord for storage in the repository.
    */
   private async generateAndRecordDataForCategory(
     category: AppSummaryCategoryEnum,
@@ -138,14 +141,15 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
       }
 
       // Generate insights using the selected strategy
-      // The strategy now returns PartialAppSummaryRecord | null directly
+      // The strategy returns a strongly-typed result (CategoryInsightResult<typeof category>)
+      // which is assignable to PartialAppSummaryRecord for repository storage
       const categorySummaryData = await strategy.generateInsights(category, sourceFileSummaries);
 
       if (!categorySummaryData) {
         return;
       }
 
-      // Store the result - no casts needed, type is already PartialAppSummaryRecord
+      // Store the result - the category-specific type is compatible with PartialAppSummaryRecord
       await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {

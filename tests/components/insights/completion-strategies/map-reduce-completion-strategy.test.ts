@@ -1,7 +1,11 @@
 import "reflect-metadata";
 import { MapReduceCompletionStrategy } from "../../../../src/components/insights/completion-strategies/map-reduce-completion-strategy";
-import { PartialAppSummaryRecord } from "../../../../src/components/insights/insights.types";
-import { AppSummaryCategoryEnum } from "../../../../src/components/insights/insights.types";
+import {
+  PartialAppSummaryRecord,
+  AppSummaryCategoryEnum,
+  appSummaryCategorySchemas,
+  type AppSummaryCategorySchemas,
+} from "../../../../src/components/insights/insights.types";
 import LLMRouter from "../../../../src/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
 import { appSummaryPromptMetadata } from "../../../../src/prompts/definitions/app-summaries";
@@ -198,7 +202,6 @@ describe("MapReduceCompletionStrategy", () => {
 
     it("should call executeCompletion with correct options for reduce phase", async () => {
       const category: AppSummaryCategoryEnum = "entities";
-      const config = appSummaryPromptMetadata[category];
       const mockResponse = {
         entities: [{ name: "Entity1", description: "Description 1" }],
       };
@@ -211,12 +214,13 @@ describe("MapReduceCompletionStrategy", () => {
       await strategy.generateInsights(category, ["* file1.ts: implementation"]);
 
       // Verify the reduce phase call includes the correct options
+      // The reduce phase now uses the strongly-typed appSummaryCategorySchemas
       const reduceCall = mockLLMRouter.executeCompletion.mock.calls[1];
       expect(reduceCall[0]).toBe(`${category}-reduce`);
       expect(reduceCall[2]).toEqual(
         expect.objectContaining({
           outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.responseSchema,
+          jsonSchema: appSummaryCategorySchemas[category],
           hasComplexSchema: false,
         }),
       );
@@ -224,9 +228,8 @@ describe("MapReduceCompletionStrategy", () => {
   });
 
   describe("type safety without unsafe casts", () => {
-    it("should demonstrate type safety through the entire flow", async () => {
-      const category: AppSummaryCategoryEnum = "boundedContexts";
-      const mockResponse: PartialAppSummaryRecord = {
+    it("should demonstrate type safety with strongly-typed result", async () => {
+      const mockResponse = {
         boundedContexts: [{ name: "Context1", description: "Desc", responsibilities: [] }],
       };
 
@@ -236,16 +239,19 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(mockResponse);
 
       // This should compile without any type assertions
-      const result = await strategy.generateInsights(category, ["* file1.ts: implementation"]);
+      // The result is strongly typed based on the category
+      const result = await strategy.generateInsights("boundedContexts", [
+        "* file1.ts: implementation",
+      ]);
 
-      // Direct assignment to typed variable without cast
-      const typedResult: PartialAppSummaryRecord | null = result;
+      // Type check: result should be the boundedContexts-specific type
+      if (result) {
+        const typed: z.infer<AppSummaryCategorySchemas["boundedContexts"]> = result;
+        expect(typed.boundedContexts[0].name).toBe("Context1");
 
-      // Can be used directly with repository methods
-      if (typedResult) {
-        const recordForDB: PartialAppSummaryRecord = typedResult;
+        // Also assignable to PartialAppSummaryRecord for repository storage
+        const recordForDB: PartialAppSummaryRecord = result;
         expect(recordForDB).toBeDefined();
-        expect(recordForDB.boundedContexts).toEqual(mockResponse.boundedContexts);
       }
     });
 

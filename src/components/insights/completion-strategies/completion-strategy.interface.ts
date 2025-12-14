@@ -1,21 +1,26 @@
-import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
+import { AppSummaryCategoryEnum, CategoryInsightResult } from "../insights.types";
 
 /**
  * Strategy interface for generating insights from source file summaries.
  * Different implementations can handle small codebases (single-pass) vs large codebases (map-reduce).
+ *
+ * The interface uses a generic method to preserve strong typing through the call chain.
+ * Each category returns its specific type (e.g., `{ entities: [...] }` for "entities" category),
+ * which is inferred from the `appSummaryCategorySchemas` mapping.
  */
 export interface ICompletionStrategy {
   /**
    * Generate insights for a specific category using source file summaries.
-   * The return type is PartialAppSummaryRecord, which is compatible with all category response schemas
-   * since they are all partial subsets of the appSummarySchema.
+   * The return type is inferred from the category parameter using the strongly-typed
+   * `appSummaryCategorySchemas` mapping, preserving type safety through the call chain.
    *
+   * @template C - The specific category type (inferred from the category parameter)
    * @param category - The category of insights to generate
    * @param sourceFileSummaries - Array of formatted source file summaries
-   * @returns The generated insights for the category as PartialAppSummaryRecord, or null if generation fails
+   * @returns The generated insights with category-specific typing, or null if generation fails
    */
-  generateInsights(
-    category: AppSummaryCategoryEnum,
+  generateInsights<C extends AppSummaryCategoryEnum>(
+    category: C,
     sourceFileSummaries: string[],
-  ): Promise<PartialAppSummaryRecord | null>;
+  ): Promise<CategoryInsightResult<C> | null>;
 }

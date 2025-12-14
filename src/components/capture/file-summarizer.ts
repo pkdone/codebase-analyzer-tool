@@ -14,7 +14,10 @@ import {
 } from "../../config/file-types.config";
 
 /**
- * Type for source summary
+ * Type for source summary.
+ * Note: The prompt metadata uses picked subsets of sourceSummarySchema for validation,
+ * but all picks include the required fields (purpose, implementation), so the result
+ * is always compatible with the full SourceSummaryType.
  */
 export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
 
@@ -51,6 +54,11 @@ function getCanonicalFileType(filepath: string, type: string): keyof typeof file
  * Generate a strongly-typed summary for the given file content.
  * Throws an error if summarization fails.
  *
+ * Note: The prompt metadata uses picked subsets of sourceSummarySchema for validation,
+ * but all picks include the required fields (purpose, implementation), so the result
+ * is compatible with the full SourceSummaryType. The schema cast is necessary because
+ * TypeScript cannot infer this relationship statically.
+ *
  * @param llmRouter The LLM router instance
  * @param filepath The path to the file being summarized
  * @param type The file type/extension
@@ -68,11 +76,16 @@ export async function summarizeFile(
     const canonicalFileType = getCanonicalFileType(filepath, type);
     const promptMetadata = fileTypePromptMetadata[canonicalFileType];
     const renderedPrompt = renderPrompt(promptMetadata, { content });
+
+    // The prompt metadata uses a picked subset of sourceSummarySchema, but all picks
+    // include the required fields (purpose, implementation). The cast is safe because
+    // the picked schema is structurally compatible with the full schema's requirements.
     const llmResponse = await llmRouter.executeCompletion(filepath, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: promptMetadata.responseSchema as typeof sourceSummarySchema,
       hasComplexSchema: promptMetadata.hasComplexSchema,
     });
+
     if (llmResponse === null) throw new BadResponseContentLLMError("LLM returned null response");
     return llmResponse;
   } catch (error: unknown) {

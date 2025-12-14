@@ -11,7 +11,9 @@ import { ICompletionStrategy } from "./completion-strategy.interface";
 import {
   AppSummaryCategoryEnum,
   PartialAppSummaryRecord,
+  CategoryInsightResult,
   appSummaryCategorySchemas,
+  type AppSummaryCategorySchemas,
 } from "../insights.types";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
 import { executeInsightCompletion } from "./completion-executor";
@@ -39,11 +41,13 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
    * 1. Split summaries into chunks
    * 2. MAP: Generate partial insights for each chunk
    * 3. REDUCE: Consolidate partial insights into final result
+   *
+   * Returns the strongly-typed result inferred from the category's schema.
    */
-  async generateInsights(
-    category: AppSummaryCategoryEnum,
+  async generateInsights<C extends AppSummaryCategoryEnum>(
+    category: C,
     sourceFileSummaries: string[],
-  ): Promise<PartialAppSummaryRecord | null> {
+  ): Promise<CategoryInsightResult<C> | null> {
     const categoryLabel = summaryCategoriesConfig[category].label ?? category;
 
     try {
@@ -60,6 +64,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
       );
 
       // 2. MAP: Generate partial insights for each chunk
+      // Collect as PartialAppSummaryRecord since we're aggregating multiple chunk results
       const partialResults: PartialAppSummaryRecord[] = [];
       for (const chunk of summaryChunks) {
         const index = partialResults.length;
@@ -103,12 +108,12 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
   /**
    * MAP step: Generates partial insights for a single chunk of summaries.
    * This method is called once per chunk in the map-reduce process.
-   * The return type is inferred from the category's response schema and is compatible with PartialAppSummaryRecord.
+   * Returns the strongly-typed result inferred from the category's schema.
    */
-  private async generatePartialInsightsForCategory(
-    category: AppSummaryCategoryEnum,
+  private async generatePartialInsightsForCategory<C extends AppSummaryCategoryEnum>(
+    category: C,
     summaryChunk: string[],
-  ): Promise<PartialAppSummaryRecord | null> {
+  ): Promise<CategoryInsightResult<C> | null> {
     const partialAnalysisNote =
       "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ";
 
@@ -123,12 +128,12 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
    * This method combines and de-duplicates results from all chunks.
    *
    * Uses the strongly-typed `appSummaryCategorySchemas` mapping to enable proper type inference
-   * from the category parameter, eliminating the need for unsafe type casts.
+   * from the category parameter, returning the category-specific result type.
    */
-  private async reducePartialInsights(
-    category: AppSummaryCategoryEnum,
+  private async reducePartialInsights<C extends AppSummaryCategoryEnum>(
+    category: C,
     partialResults: PartialAppSummaryRecord[],
-  ): Promise<PartialAppSummaryRecord | null> {
+  ): Promise<CategoryInsightResult<C> | null> {
     const config = summaryCategoriesConfig[category];
 
     // Use strongly-typed schema for type inference
@@ -165,7 +170,10 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
         hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
       });
 
-      return result;
+      // Type assertion needed because TypeScript can't follow the generic type through
+      // the indexed access on appSummaryCategorySchemas. The assertion is safe because
+      // the schema used for validation matches the category parameter.
+      return result as z.infer<AppSummaryCategorySchemas[C]> | null;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,
