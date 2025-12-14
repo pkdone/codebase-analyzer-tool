@@ -81,6 +81,19 @@ function logProcessingSteps(
 }
 
 /**
+ * Helper type for processJson return type based on completion options.
+ * When a schema is provided, the data type is inferred from the schema using `z.infer<S>`.
+ * When no schema is provided, the data type defaults to `Record<string, unknown>`.
+ */
+type ProcessJsonDataType<TOptions extends LLMCompletionOptions> = TOptions extends {
+  jsonSchema: infer S;
+}
+  ? S extends z.ZodType
+    ? z.infer<S>
+    : Record<string, unknown>
+  : Record<string, unknown>;
+
+/**
  * Processes LLM-generated content through a multi-stage sanitization and repair pipeline,
  * then parses and validates it against a Zod schema. Returns a result object indicating success or failure.
  *
@@ -96,39 +109,12 @@ function logProcessingSteps(
  * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
  * @returns A JsonProcessorResult indicating success with validated data and steps, or failure with an error
  */
-
-// Overload for when a schema is provided - infers return type from schema
-// Extract schema type using a helper to avoid strict structural checking
-type ExtractSchemaType<T> = T extends { jsonSchema: infer S }
-  ? S extends z.ZodType
-    ? S
-    : never
-  : never;
-
-export function processJson<TOptions extends LLMCompletionOptions & { jsonSchema: z.ZodType }>(
+export function processJson<TOptions extends LLMCompletionOptions>(
   content: LLMGeneratedContent,
   context: LLMContext,
   completionOptions: TOptions,
-  loggingEnabled?: boolean,
-): JsonProcessorResult<z.infer<ExtractSchemaType<TOptions>>>;
-
-// Overload for when no schema is provided - returns Record<string, unknown>
-export function processJson(
-  content: LLMGeneratedContent,
-  context: LLMContext,
-  completionOptions: LLMCompletionOptions & { jsonSchema?: undefined },
-  loggingEnabled?: boolean,
-): JsonProcessorResult<Record<string, unknown>>;
-
-// Implementation signature - uses any to satisfy both overloads
-// The implementation accepts the base LLMCompletionOptions type
-export function processJson(
-  content: LLMGeneratedContent,
-  context: LLMContext,
-  completionOptions: LLMCompletionOptions,
   loggingEnabled = true,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): JsonProcessorResult<any> {
+): JsonProcessorResult<ProcessJsonDataType<TOptions>> {
   // Pre-check - ensure content is a string
   if (typeof content !== "string") {
     const contentText = JSON.stringify(content);
@@ -186,12 +172,14 @@ export function processJson(
     };
   }
 
-  // If no schema provided, return parsed data without validation
+  // If no schema provided, return parsed data without validation.
+  // Type assertion is safe: when no schema is provided, ProcessJsonDataType resolves to Record<string, unknown>
+  // and parseResult.data is the parsed JSON object.
   if (!completionOptions.jsonSchema) {
     logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
-      data: parseResult.data,
+      data: parseResult.data as ProcessJsonDataType<TOptions>,
       mutationSteps: parseResult.steps,
     };
   }
@@ -203,7 +191,9 @@ export function processJson(
     completionOptions.jsonSchema,
   );
 
-  // Validation succeeded
+  // Validation succeeded.
+  // Type assertion is safe: when schema is provided, ProcessJsonDataType resolves to z.infer<S>
+  // and validationResult.data is the validated data matching that schema.
   if (validationResult.success) {
     logProcessingSteps(
       parseResult.steps,
@@ -214,7 +204,7 @@ export function processJson(
     );
     return {
       success: true,
-      data: validationResult.data,
+      data: validationResult.data as ProcessJsonDataType<TOptions>,
       mutationSteps: [...parseResult.steps, ...validationResult.transformSteps],
     };
   }

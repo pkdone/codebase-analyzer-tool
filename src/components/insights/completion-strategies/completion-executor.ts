@@ -49,20 +49,17 @@ export async function executeInsightCompletion(
     };
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
-    // Type is inferred from the schema via executeCompletion overloads
-    // The overload provides the specific return type z.infer<typeof config.responseSchema> | null
-    // which is compatible with PartialAppSummaryRecord | null in the function's return signature
-    // The type assertion is safe because the overload guarantees the return type matches the schema
-    const llmResponse: unknown = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
+    // Type assertion is needed because config.responseSchema is typed as ZodType<unknown> in the
+    // metadata interface, so the overload can't infer the specific schema type at compile time.
+    // The assertion is safe because all category response schemas produce types compatible with
+    // PartialAppSummaryRecord, and the LLM router validates the response against the actual schema.
+    const llmResponse = (await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: config.responseSchema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-    });
+    })) as PartialAppSummaryRecord | null;
 
-    // Type assertion is necessary because the implementation signature returns unknown,
-    // but the overload guarantees the correct type. This is safe because all category
-    // response types are compatible with PartialAppSummaryRecord
-    return llmResponse as PartialAppSummaryRecord | null;
+    return llmResponse;
   } catch (error: unknown) {
     logOneLineWarning(
       `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,

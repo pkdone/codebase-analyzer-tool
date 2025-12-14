@@ -285,5 +285,163 @@ describe("json-processing", () => {
         }
       });
     });
+
+    describe("type inference", () => {
+      it("should infer return type from schema when schema is provided", () => {
+        const personSchema = z.object({
+          name: z.string(),
+          age: z.number(),
+        });
+        const json = '{"name": "Alice", "age": 25}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: personSchema,
+        };
+
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // Type should be inferred as { name: string; age: number }
+          const data: z.infer<typeof personSchema> = result.data;
+          expect(data.name).toBe("Alice");
+          expect(data.age).toBe(25);
+          // TypeScript should know about these properties
+          expect(typeof data.name).toBe("string");
+          expect(typeof data.age).toBe("number");
+        }
+      });
+
+      it("should return Record<string, unknown> when no schema is provided", () => {
+        const json = '{"key": "value", "number": 42}';
+        const completionOptions = { outputFormat: LLMOutputFormat.JSON };
+
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // Type should be Record<string, unknown>
+          const data: Record<string, unknown> = result.data;
+          expect(data.key).toBe("value");
+          expect(data.number).toBe(42);
+        }
+      });
+
+      it("should preserve complex schema types including arrays", () => {
+        const itemsSchema = z.object({
+          items: z.array(
+            z.object({
+              id: z.number(),
+              name: z.string(),
+            }),
+          ),
+        });
+        const json = '{"items": [{"id": 1, "name": "Item1"}, {"id": 2, "name": "Item2"}]}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: itemsSchema,
+        };
+
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          // Type should be inferred with array
+          const data: z.infer<typeof itemsSchema> = result.data;
+          expect(Array.isArray(data.items)).toBe(true);
+          expect(data.items.length).toBe(2);
+          expect(data.items[0].id).toBe(1);
+          expect(data.items[0].name).toBe("Item1");
+        }
+      });
+
+      it("should handle optional properties in schema", () => {
+        const optionalSchema = z.object({
+          required: z.string(),
+          optional: z.string().optional(),
+        });
+        const json = '{"required": "value"}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: optionalSchema,
+        };
+
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          const data: z.infer<typeof optionalSchema> = result.data;
+          expect(data.required).toBe("value");
+          expect(data.optional).toBeUndefined();
+        }
+      });
+
+      it("should infer nested object types from schema", () => {
+        const nestedSchema = z.object({
+          outer: z.object({
+            inner: z.object({
+              value: z.string(),
+            }),
+          }),
+        });
+        const json = '{"outer": {"inner": {"value": "deep"}}}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: nestedSchema,
+        };
+
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          const data: z.infer<typeof nestedSchema> = result.data;
+          expect(data.outer.inner.value).toBe("deep");
+        }
+      });
+
+      it("should correctly type discriminated union results", () => {
+        const unionSchema = z.discriminatedUnion("type", [
+          z.object({ type: z.literal("a"), aField: z.string() }),
+          z.object({ type: z.literal("b"), bField: z.number() }),
+        ]);
+        const json = '{"type": "a", "aField": "test"}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: unionSchema,
+        };
+
+        const result = processJson(json, context, completionOptions);
+
+        expect(result.success).toBe(true);
+        if (result.success) {
+          const data: z.infer<typeof unionSchema> = result.data;
+          expect(data.type).toBe("a");
+          if (data.type === "a") {
+            expect(data.aField).toBe("test");
+          }
+        }
+      });
+
+      it("should type the success case correctly through discriminated union", () => {
+        const schema = z.object({ value: z.string() });
+        const json = '{"value": "test"}';
+        const completionOptions = {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        };
+
+        const result = processJson(json, context, completionOptions);
+
+        // Using the discriminated union pattern
+        if (result.success) {
+          // result.data is available and typed
+          expect(result.data.value).toBe("test");
+          expect(result.mutationSteps).toBeDefined();
+        } else {
+          // result.error is available
+          expect(result.error).toBeDefined();
+        }
+      });
+    });
   });
 });

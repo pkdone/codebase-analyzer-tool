@@ -10,6 +10,7 @@ export const fileProcessingConfig = {
     ".vscode",
     "dist",
     "output",
+    "tests",
   ] as const satisfies readonly string[],
   FILENAME_PREFIX_IGNORE: "test-",
   BINARY_FILE_EXTENSION_IGNORE_LIST: [

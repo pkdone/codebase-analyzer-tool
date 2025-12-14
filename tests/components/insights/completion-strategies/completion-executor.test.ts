@@ -1,7 +1,10 @@
 import { executeInsightCompletion } from "../../../../src/components/insights/completion-strategies/completion-executor";
 import LLMRouter from "../../../../src/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
-import { AppSummaryCategoryEnum } from "../../../../src/components/insights/insights.types";
+import {
+  AppSummaryCategoryEnum,
+  PartialAppSummaryRecord,
+} from "../../../../src/components/insights/insights.types";
 import { appSummaryPromptMetadata } from "../../../../src/prompts/definitions/app-summaries";
 import { z } from "zod";
 
@@ -221,6 +224,118 @@ describe("completion-executor", () => {
         expect(schemaType.technologies).toBeDefined();
         expect(Array.isArray(schemaType.technologies)).toBe(true);
       }
+    });
+  });
+
+  describe("type inference validation", () => {
+    let mockLLMRouter: jest.Mocked<LLMRouter>;
+
+    beforeEach(() => {
+      mockLLMRouter = {
+        executeCompletion: jest.fn(),
+      } as unknown as jest.Mocked<LLMRouter>;
+    });
+
+    it("should allow direct assignment to PartialAppSummaryRecord without cast", async () => {
+      const category: AppSummaryCategoryEnum = "appDescription";
+      const mockResponse = { appDescription: "Test description" };
+
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      // The result type should be PartialAppSummaryRecord | null, assignable directly
+      const result = await executeInsightCompletion(mockLLMRouter, category, [
+        "* file1.ts: implementation",
+      ]);
+
+      // Direct assignment without explicit cast
+      const typedResult: PartialAppSummaryRecord | null = result;
+      expect(typedResult).toEqual(mockResponse);
+    });
+
+    it("should preserve specific schema type through the call chain", async () => {
+      const category: AppSummaryCategoryEnum = "entities";
+      const _config = appSummaryPromptMetadata[category];
+      const mockResponse = {
+        entities: [{ name: "Entity1", description: "Description 1" }],
+      };
+
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, category, [
+        "* file1.ts: implementation",
+      ]);
+
+      // Type should be preserved through the call chain
+      if (result) {
+        const typed: z.infer<typeof _config.responseSchema> = result;
+        expect(typed.entities).toBeDefined();
+        expect(typed.entities[0].name).toBe("Entity1");
+      }
+    });
+
+    it("should work with all category types without runtime errors", async () => {
+      const categories: AppSummaryCategoryEnum[] = [
+        "appDescription",
+        "technologies",
+        "businessProcesses",
+        "boundedContexts",
+        "aggregates",
+        "entities",
+        "repositories",
+        "potentialMicroservices",
+      ];
+
+      for (const category of categories) {
+        const _config = appSummaryPromptMetadata[category];
+        const mockResponse = { [category]: "test" };
+
+        mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+        const result = await executeInsightCompletion(mockLLMRouter, category, [
+          "* file1.ts: implementation",
+        ]);
+
+        // Should not throw and type should be assignable
+        expect(result).toBeDefined();
+        if (result) {
+          const typed: z.infer<typeof _config.responseSchema> = result;
+          expect(typed).toBeDefined();
+        }
+      }
+    });
+
+    it("should allow use in repository methods without additional casts", async () => {
+      const category: AppSummaryCategoryEnum = "boundedContexts";
+      const mockResponse = {
+        boundedContexts: [{ name: "Context1", description: "Desc", responsibilities: [] }],
+      };
+
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, category, [
+        "* file1.ts: implementation",
+      ]);
+
+      // Simulate using the result in a repository method
+      if (result) {
+        const recordForDB: PartialAppSummaryRecord = result;
+        // Should be usable directly
+        expect(recordForDB.boundedContexts).toEqual(mockResponse.boundedContexts);
+      }
+    });
+
+    it("should handle null response with correct type", async () => {
+      const category: AppSummaryCategoryEnum = "appDescription";
+
+      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(null);
+
+      const result = await executeInsightCompletion(mockLLMRouter, category, [
+        "* file1.ts: implementation",
+      ]);
+
+      // Null should be a valid value for the return type
+      const typedNull: PartialAppSummaryRecord | null = result;
+      expect(typedNull).toBeNull();
     });
   });
 });

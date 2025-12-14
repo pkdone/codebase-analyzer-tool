@@ -150,23 +150,17 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const renderedPrompt = renderPrompt(reducePromptDefinition, { categoryKey, content });
 
     try {
-      // Type is inferred from the schema via executeCompletion overloads
-      // All category response types are compatible with PartialAppSummaryRecord
-      // The type assertion is safe because the overload guarantees the return type matches the schema
-      const result: unknown = await this.llmRouter.executeCompletion(
-        `${category}-reduce`,
-        renderedPrompt,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: config.responseSchema,
-          hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-        },
-      );
+      // Type assertion is needed because config.responseSchema is typed as ZodType<unknown> in the
+      // metadata interface, so the overload can't infer the specific schema type at compile time.
+      // The assertion is safe because all category response schemas produce types compatible with
+      // PartialAppSummaryRecord, and the LLM router validates the response against the actual schema.
+      const result = (await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: config.responseSchema,
+        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+      })) as PartialAppSummaryRecord | null;
 
-      // Type assertion is necessary because the implementation signature returns unknown,
-      // but the overload guarantees the correct type. This is safe because all category
-      // response types are compatible with PartialAppSummaryRecord
-      return result as PartialAppSummaryRecord | null;
+      return result;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,
