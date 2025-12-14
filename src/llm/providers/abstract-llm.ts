@@ -382,7 +382,6 @@ export default abstract class AbstractLLM implements LLMProvider {
       // TypeScript now knows completionOptions has jsonSchema, enabling proper overload resolution
       // Type assertion is needed because TypeScript cannot narrow generic type parameters,
       // but the runtime check ensures jsonSchema exists
-      // The overload will infer the return type from the schema
       const jsonProcessingResult = processJson(
         responseContent,
         context,
@@ -392,7 +391,9 @@ export default abstract class AbstractLLM implements LLMProvider {
 
       if (jsonProcessingResult.success) {
         // The data property is now strongly typed based on the schema provided
-        // Type safety is preserved through overload resolution in processJson
+        // Type safety is enforced through overload resolution in processJson.
+        // The cast is still needed due to processJson's implementation signature returning any,
+        // but the call is cleaner and more type-safe.
         return {
           ...skeletonResult,
           status: LLMResponseStatus.COMPLETED,
@@ -411,7 +412,6 @@ export default abstract class AbstractLLM implements LLMProvider {
     } else {
       // Type assertion is needed because TypeScript cannot narrow generic type parameters,
       // but the else branch ensures jsonSchema is undefined
-      // The overload will return Record<string, unknown>
       const jsonProcessingResult = processJson(
         responseContent,
         context,

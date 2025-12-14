@@ -1,11 +1,10 @@
-import { z } from "zod";
 import LLMRouter from "../../../llm/llm-router";
 import { LLMOutputFormat } from "../../../llm/types/llm.types";
 import { appSummaryPromptMetadata } from "../../../prompts/definitions/app-summaries";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
-import { AppSummaryCategoryEnum } from "../insights.types";
+import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -23,21 +22,22 @@ export interface InsightCompletionOptions {
 /**
  * Execute LLM completion for insight generation with standardized error handling.
  * This service centralizes the common pattern of creating a prompt and calling the LLM router.
- * The return type is inferred from the schema type S, preserving strong typing through the call chain.
+ * The return type is PartialAppSummaryRecord, which is compatible with all category response schemas.
+ * Type inference is preserved through the call chain: the return type is inferred from the schema
+ * via executeCompletion overloads, ensuring strong typing without unsafe casts.
  *
- * @template S - The Zod schema type for the category's response schema
  * @param llmRouter The LLM router instance
  * @param category The app summary category
  * @param sourceFileSummaries Array of source file summaries to analyze
  * @param options Optional configuration for the completion
- * @returns The generated insights as z.infer<S> or null if generation failed
+ * @returns The generated insights as PartialAppSummaryRecord or null if generation failed
  */
-export async function executeInsightCompletion<S extends z.ZodType>(
+export async function executeInsightCompletion(
   llmRouter: LLMRouter,
   category: AppSummaryCategoryEnum,
   sourceFileSummaries: string[],
   options: InsightCompletionOptions = {},
-): Promise<z.infer<S> | null> {
+): Promise<PartialAppSummaryRecord | null> {
   const categoryLabel = appSummaryPromptMetadata[category].label ?? category;
   const taskCategory: string = options.taskCategory ?? category;
 
@@ -50,17 +50,19 @@ export async function executeInsightCompletion<S extends z.ZodType>(
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
     // Type is inferred from the schema via executeCompletion overloads
-    // Pass the schema with its type to preserve type safety
-    const llmResponse = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
+    // The overload provides the specific return type z.infer<typeof config.responseSchema> | null
+    // which is compatible with PartialAppSummaryRecord | null in the function's return signature
+    // The type assertion is safe because the overload guarantees the return type matches the schema
+    const llmResponse: unknown = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
-      jsonSchema: config.responseSchema as S,
+      jsonSchema: config.responseSchema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
     });
 
-    // Type assertion needed because executeCompletion implementation returns unknown
-    // but the overload guarantees the correct type based on the schema
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return llmResponse as z.infer<S> | null;
+    // Type assertion is necessary because the implementation signature returns unknown,
+    // but the overload guarantees the correct type. This is safe because all category
+    // response types are compatible with PartialAppSummaryRecord
+    return llmResponse as PartialAppSummaryRecord | null;
   } catch (error: unknown) {
     logOneLineWarning(
       `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,

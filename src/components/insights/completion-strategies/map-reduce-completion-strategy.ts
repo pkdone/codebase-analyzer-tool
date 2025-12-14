@@ -8,7 +8,7 @@ import { logOneLineWarning } from "../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
 import { ICompletionStrategy } from "./completion-strategy.interface";
-import { AppSummaryCategoryEnum } from "../insights.types";
+import { AppSummaryCategoryEnum, PartialAppSummaryRecord } from "../insights.types";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../llm/utils/text-chunking";
@@ -35,12 +35,11 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
    * 1. Split summaries into chunks
    * 2. MAP: Generate partial insights for each chunk
    * 3. REDUCE: Consolidate partial insights into final result
-   * The return type is inferred from the category's response schema.
    */
-  async generateInsights<S extends z.ZodType>(
+  async generateInsights(
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
-  ): Promise<z.infer<S> | null> {
+  ): Promise<PartialAppSummaryRecord | null> {
     const categoryLabel = summaryCategoriesConfig[category].label ?? category;
 
     try {
@@ -57,13 +56,13 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
       );
 
       // 2. MAP: Generate partial insights for each chunk
-      const partialResults: z.infer<S>[] = [];
+      const partialResults: PartialAppSummaryRecord[] = [];
       for (const chunk of summaryChunks) {
         const index = partialResults.length;
         console.log(
           `  - [MAP ${index + 1}/${summaryChunks.length}] Processing chunk for ${categoryLabel}...`,
         );
-        const result = await this.generatePartialInsightsForCategory<S>(category, chunk);
+        const result = await this.generatePartialInsightsForCategory(category, chunk);
         if (result !== null) {
           partialResults.push(result);
         }
@@ -81,15 +80,14 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
       );
 
       // 3. REDUCE: Consolidate partial insights into a final summary
-      const finalSummaryData = await this.reducePartialInsights<S>(category, partialResults);
+      const finalSummaryData = await this.reducePartialInsights(category, partialResults);
 
       if (!finalSummaryData) {
         logOneLineWarning(`Failed to generate final consolidated summary for ${categoryLabel}.`);
         return null;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return finalSummaryData as z.infer<S> | null;
+      return finalSummaryData;
     } catch (error: unknown) {
       logOneLineWarning(
         `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,
@@ -101,16 +99,16 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
   /**
    * MAP step: Generates partial insights for a single chunk of summaries.
    * This method is called once per chunk in the map-reduce process.
-   * The return type is inferred from the category's response schema.
+   * The return type is inferred from the category's response schema and is compatible with PartialAppSummaryRecord.
    */
-  private async generatePartialInsightsForCategory<S extends z.ZodType>(
+  private async generatePartialInsightsForCategory(
     category: AppSummaryCategoryEnum,
     summaryChunk: string[],
-  ): Promise<z.infer<S> | null> {
+  ): Promise<PartialAppSummaryRecord | null> {
     const partialAnalysisNote =
       "Note, this is a partial analysis of a larger codebase; focus on extracting insights from this subset of file summaries only. ";
 
-    return executeInsightCompletion<S>(this.llmRouter, category, summaryChunk, {
+    return executeInsightCompletion(this.llmRouter, category, summaryChunk, {
       partialAnalysisNote,
       taskCategory: `${category}-chunk`,
     });
@@ -119,12 +117,12 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
   /**
    * REDUCE step: Consolidates multiple partial insights into a single final result.
    * This method combines and de-duplicates results from all chunks.
-   * The return type is inferred from the category's response schema.
+   * The return type is inferred from the category's response schema and is compatible with PartialAppSummaryRecord.
    */
-  private async reducePartialInsights<S extends z.ZodType>(
+  private async reducePartialInsights(
     category: AppSummaryCategoryEnum,
-    partialResults: z.infer<S>[],
-  ): Promise<z.infer<S> | null> {
+    partialResults: PartialAppSummaryRecord[],
+  ): Promise<PartialAppSummaryRecord | null> {
     const config = summaryCategoriesConfig[category];
 
     // Get the key name for this category (e.g., "entities", "boundedContexts")
@@ -133,7 +131,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const categoryKey = Object.keys(schemaShape)[0];
 
     // Flatten the arrays from all partial results into a single combined list
-    // Access the category property from the typed result
+    // We need to access the category property from PartialAppSummaryRecord
     const combinedData = partialResults.flatMap((result) => {
       const record = result as Record<string, unknown>;
       const categoryData = record[category];
@@ -153,17 +151,22 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
 
     try {
       // Type is inferred from the schema via executeCompletion overloads
-      // Pass the schema with its type to preserve type safety
-      const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: config.responseSchema as S,
-        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-      });
+      // All category response types are compatible with PartialAppSummaryRecord
+      // The type assertion is safe because the overload guarantees the return type matches the schema
+      const result: unknown = await this.llmRouter.executeCompletion(
+        `${category}-reduce`,
+        renderedPrompt,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: config.responseSchema,
+          hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+        },
+      );
 
-      // Type assertion needed because executeCompletion implementation returns unknown
-      // but the overload guarantees the correct type based on the schema
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return result as z.infer<S> | null;
+      // Type assertion is necessary because the implementation signature returns unknown,
+      // but the overload guarantees the correct type. This is safe because all category
+      // response types are compatible with PartialAppSummaryRecord
+      return result as PartialAppSummaryRecord | null;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,

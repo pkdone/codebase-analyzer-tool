@@ -138,25 +138,15 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
       }
 
       // Generate insights using the selected strategy
-      // Extract the schema type from the category config to preserve type safety
-      const _config = summaryCategoriesConfig[category];
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const categorySummaryData = await strategy.generateInsights<typeof _config.responseSchema>(
-        category,
-        sourceFileSummaries,
-      );
+      // The strategy now returns PartialAppSummaryRecord | null directly
+      const categorySummaryData = await strategy.generateInsights(category, sourceFileSummaries);
 
       if (!categorySummaryData) {
         return;
       }
 
-      // Store the result - the type is strongly typed and compatible with PartialAppSummaryRecord
-      // Type assertion needed because updateAppSummary expects PartialAppSummaryRecord
-      // but the generic type is more specific
-      await this.appSummariesRepository.updateAppSummary(
-        this.projectName,
-        categorySummaryData as Partial<Record<string, unknown>>,
-      );
+      // Store the result - no casts needed, type is already PartialAppSummaryRecord
+      await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
       logOneLineWarning(`Unable to generate ${categoryLabel} details into database`, error);
