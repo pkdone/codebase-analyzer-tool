@@ -9,6 +9,7 @@ import {
   LLMModelQuality,
   LLMCandidateFunction,
   LLMFunction,
+  LLMEmbeddingFunction,
   LLMContext,
   LLMResponseStatus,
   LLMPurpose,
@@ -19,14 +20,10 @@ import {
 describe("completions-models-retriever", () => {
   describe("buildCompletionCandidates", () => {
     test("should build candidates with bound methods preserving generic signatures", () => {
-      const mockExecutePrimary = jest.fn() as jest.MockedFunction<
-        LLMProvider["executeCompletionPrimary"]
-      >;
-      const mockExecuteSecondary = jest.fn() as jest.MockedFunction<
-        LLMProvider["executeCompletionSecondary"]
-      >;
+      const mockExecutePrimary = jest.fn() as unknown as LLMFunction;
+      const mockExecuteSecondary = jest.fn() as unknown as LLMFunction;
       const mockLLM: LLMProvider = {
-        generateEmbeddings: jest.fn() as LLMFunction<number[]>,
+        generateEmbeddings: jest.fn() as unknown as LLMEmbeddingFunction,
         executeCompletionPrimary: mockExecutePrimary,
         executeCompletionSecondary: mockExecuteSecondary,
         getModelsNames: jest.fn(() => ({
@@ -61,13 +58,9 @@ describe("completions-models-retriever", () => {
 
     test("should only include primary candidate when secondary is not available", () => {
       const mockLLM: LLMProvider = {
-        generateEmbeddings: jest.fn() as LLMFunction<number[]>,
-        executeCompletionPrimary: jest.fn() as jest.MockedFunction<
-          LLMProvider["executeCompletionPrimary"]
-        >,
-        executeCompletionSecondary: jest.fn() as jest.MockedFunction<
-          LLMProvider["executeCompletionSecondary"]
-        >,
+        generateEmbeddings: jest.fn() as unknown as LLMEmbeddingFunction,
+        executeCompletionPrimary: jest.fn() as unknown as LLMFunction,
+        executeCompletionSecondary: jest.fn() as unknown as LLMFunction,
         getModelsNames: jest.fn(() => ({
           embeddings: "test-embeddings",
           primaryCompletion: "test-primary",
@@ -86,7 +79,7 @@ describe("completions-models-retriever", () => {
       expect(candidates[0].modelQuality).toBe(LLMModelQuality.PRIMARY);
     });
 
-    test("should preserve generic type information in bound methods", async () => {
+    test("should preserve type information in bound methods", async () => {
       const mockResponse: LLMFunctionResponse<string> = {
         status: LLMResponseStatus.COMPLETED,
         request: "test",
@@ -95,16 +88,17 @@ describe("completions-models-retriever", () => {
         generated: "test response",
       };
 
-      const mockExecutePrimary = jest.fn() as jest.MockedFunction<
-        LLMProvider["executeCompletionPrimary"]
-      >;
-      mockExecutePrimary.mockResolvedValue(mockResponse);
+      // Create a trackable mock by wrapping with jest.fn
+      let capturedArgs: unknown[] = [];
+      const mockExecutePrimaryTyped = (async (...args: unknown[]) => {
+        capturedArgs = args;
+        return mockResponse;
+      }) as unknown as LLMFunction;
+
       const mockLLM: LLMProvider = {
-        generateEmbeddings: jest.fn() as LLMFunction<number[]>,
-        executeCompletionPrimary: mockExecutePrimary,
-        executeCompletionSecondary: jest.fn() as jest.MockedFunction<
-          LLMProvider["executeCompletionSecondary"]
-        >,
+        generateEmbeddings: jest.fn() as unknown as LLMEmbeddingFunction,
+        executeCompletionPrimary: mockExecutePrimaryTyped,
+        executeCompletionSecondary: jest.fn() as unknown as LLMFunction,
         getModelsNames: jest.fn(() => ({
           embeddings: "test-embeddings",
           primaryCompletion: "test-primary",
@@ -128,9 +122,10 @@ describe("completions-models-retriever", () => {
       });
 
       expect(result).toEqual(mockResponse);
-      expect(mockExecutePrimary).toHaveBeenCalledWith("test prompt", context, {
-        outputFormat: LLMOutputFormat.TEXT,
-      });
+      // Verify the function was called with correct arguments
+      expect(capturedArgs[0]).toBe("test prompt");
+      expect(capturedArgs[1]).toEqual(context);
+      expect(capturedArgs[2]).toEqual({ outputFormat: LLMOutputFormat.TEXT });
     });
   });
 

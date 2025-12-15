@@ -3,34 +3,30 @@
 import { z } from "zod";
 
 /**
- * Interface for LLM implementation provider
+ * Interface for LLM implementation provider.
+ *
+ * The completion methods use the new LLMFunction type which infers return types
+ * from the options.jsonSchema at the call site, enabling end-to-end type safety.
  */
 export interface LLMProvider {
   /** Optional feature flags indicating model-specific capabilities or constraints */
   readonly llmFeatures?: readonly string[];
-  generateEmbeddings: LLMFunction<number[]>;
+
+  /** Generate embeddings for content. Returns a fixed number[] type. */
+  generateEmbeddings: LLMEmbeddingFunction;
+
   /**
    * Execute completion using the primary model.
-   * Type safety is enforced through generic type parameters.
-   *
-   * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
+   * Return type is inferred from options.jsonSchema when provided.
    */
-  executeCompletionPrimary<T = LLMGeneratedContent>(
-    content: string,
-    context: LLMContext,
-    options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>>;
+  executeCompletionPrimary: LLMFunction;
+
   /**
    * Execute completion using the secondary model.
-   * Type safety is enforced through generic type parameters.
-   *
-   * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
+   * Return type is inferred from options.jsonSchema when provided.
    */
-  executeCompletionSecondary<T = LLMGeneratedContent>(
-    content: string,
-    context: LLMContext,
-    options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>>;
+  executeCompletionSecondary: LLMFunction;
+
   getModelsNames(): {
     embeddings: string;
     primaryCompletion: string;
@@ -187,6 +183,22 @@ export interface LLMResponseTokensUsage {
 export type LLMGeneratedContent = string | Record<string, unknown> | number[] | null;
 
 /**
+ * Helper type to infer the response data type from LLMCompletionOptions.
+ * If options has a jsonSchema, infers the type from that schema.
+ * Otherwise, defaults to LLMGeneratedContent.
+ *
+ * This enables end-to-end type safety through the LLM call chain by allowing
+ * the return type to be inferred from the options passed at the call site.
+ */
+export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions extends {
+  jsonSchema: infer S;
+}
+  ? S extends z.ZodType
+    ? z.infer<S>
+    : LLMGeneratedContent
+  : LLMGeneratedContent;
+
+/**
  * Type to define the LLM response with type-safe generated content.
  * The generic type parameter T represents the type of the generated content,
  * which is inferred from the Zod schema when JSON validation is used.
@@ -206,24 +218,35 @@ export interface LLMFunctionResponse<T = LLMGeneratedContent> {
 
 /**
  * Type to define the embedding or completion function.
- * Type safety is enforced through generic type parameters.
  *
- * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
+ * This is a generic function type (not a generic type with a function).
+ * The return type is inferred from the `options.jsonSchema` at the call site,
+ * enabling type-safe responses without requiring explicit type parameters.
+ *
+ * For embeddings, use LLMEmbeddingFunction instead.
  */
-export type LLMFunction<T = LLMGeneratedContent> = (
+export type LLMFunction = <TOptions extends LLMCompletionOptions = LLMCompletionOptions>(
+  content: string,
+  context: LLMContext,
+  options?: TOptions,
+) => Promise<LLMFunctionResponse<InferResponseType<TOptions>>>;
+
+/**
+ * Type for embedding functions that always return number[].
+ * Embeddings don't use the schema-based type inference.
+ */
+export type LLMEmbeddingFunction = (
   content: string,
   context: LLMContext,
   options?: LLMCompletionOptions,
-) => Promise<LLMFunctionResponse<T>>;
+) => Promise<LLMFunctionResponse<number[]>>;
 
 /**
  * Type to define a candidate LLM function with its associated metadata.
- * The function is generic to support type-safe JSON validation.
- *
- * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
+ * The function uses call-site type inference from options.jsonSchema.
  */
-export interface LLMCandidateFunction<T = LLMGeneratedContent> {
-  readonly func: LLMFunction<T>;
+export interface LLMCandidateFunction {
+  readonly func: LLMFunction;
   readonly modelQuality: LLMModelQuality;
   readonly description: string;
 }

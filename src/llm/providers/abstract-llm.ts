@@ -12,6 +12,8 @@ import {
   LLMResponseTokensUsage,
   LLMGeneratedContent,
   LLMOutputFormat,
+  LLMFunction,
+  LLMEmbeddingFunction,
 } from "../types/llm.types";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
 import { formatError } from "../../common/utils/error-formatters";
@@ -108,11 +110,7 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Generate embeddings for the given content.
    * Uses arrow function to enable easier binding of `this` context.
    */
-  generateEmbeddings = async (
-    content: string,
-    context: LLMContext,
-    options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<number[]>> => {
+  generateEmbeddings: LLMEmbeddingFunction = async (content, context, options) => {
     return this.executeProviderFunction(
       this.modelsKeys.embeddingsModelKey,
       LLMPurpose.EMBEDDINGS,
@@ -124,35 +122,25 @@ export default abstract class AbstractLLM implements LLMProvider {
 
   /**
    * Execute the LLM function for the primary completion model.
-   * Type safety is enforced through generic type parameters.
-   *
-   * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
+   * Return type is inferred from options.jsonSchema at the call site.
+   * Implemented as arrow function to preserve `this` context when passed to pipeline.
    */
-  async executeCompletionPrimary<T = LLMGeneratedContent>(
-    prompt: string,
-    context: LLMContext,
-    options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>> {
+  executeCompletionPrimary: LLMFunction = async (prompt, context, options) => {
     return this.executeProviderFunction(
       this.modelsKeys.primaryCompletionModelKey,
       LLMPurpose.COMPLETIONS,
       prompt,
       context,
       options,
-    ) as Promise<LLMFunctionResponse<T>>;
-  }
+    );
+  };
 
   /**
    * Execute the LLM function for the secondary completion model.
-   * Type safety is enforced through generic type parameters.
-   *
-   * @template T - The type of the generated content. Defaults to LLMGeneratedContent.
+   * Return type is inferred from options.jsonSchema at the call site.
+   * Implemented as arrow function to preserve `this` context when passed to pipeline.
    */
-  async executeCompletionSecondary<T = LLMGeneratedContent>(
-    prompt: string,
-    context: LLMContext,
-    options?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T>> {
+  executeCompletionSecondary: LLMFunction = async (prompt, context, options) => {
     const secondaryCompletion = this.modelsKeys.secondaryCompletionModelKey;
     if (!secondaryCompletion)
       throw new BadConfigurationLLMError(
@@ -164,8 +152,8 @@ export default abstract class AbstractLLM implements LLMProvider {
       prompt,
       context,
       options,
-    ) as Promise<LLMFunctionResponse<T>>;
-  }
+    );
+  };
 
   /**
    * Close the LLM client.

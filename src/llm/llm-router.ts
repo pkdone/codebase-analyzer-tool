@@ -4,12 +4,12 @@ import {
   LLMContext,
   LLMModelQuality,
   LLMPurpose,
-  LLMGeneratedContent,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
   LLMModelMetadata,
   LLMModelKeysSet,
   LLMOutputFormat,
+  LLMEmbeddingFunction,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { BadConfigurationLLMError } from "./types/llm-errors.types";
@@ -165,37 +165,38 @@ export default class LLMRouter {
 
   /**
    * Send the content to the LLM for it to generate and return the content's embedding.
+   *
+   * Note: Embeddings use a separate function type (LLMEmbeddingFunction) that always returns
+   * number[], so we don't use the schema-based type inference here.
    */
   async generateEmbeddings(resourceName: string, content: string): Promise<number[] | null> {
     const context: LLMContext = {
       resource: resourceName,
       purpose: LLMPurpose.EMBEDDINGS,
     };
-    const contentResponse = await this.executionPipeline.execute<number[]>(
-      resourceName,
-      content,
-      context,
-      [this.llm.generateEmbeddings.bind(this.llm)],
-      this.providerRetryConfig,
-      this.modelsMetadata,
-    );
+    // Cast embedding function to LLMFunction for pipeline compatibility.
+    // This is safe because embeddings don't use schema-based inference and always return number[].
+    const embeddingFn = this.llm.generateEmbeddings.bind(
+      this.llm,
+    ) as unknown as LLMEmbeddingFunction;
+    const contentResponse = await embeddingFn(content, context);
 
-    if (!contentResponse.success) {
-      logOneLineWarning(`Failed to generate embeddings: ${contentResponse.error.message}`, context);
+    if (contentResponse.status !== "completed") {
+      logOneLineWarning(`Failed to generate embeddings: ${contentResponse.status}`, context);
       return null;
     }
 
     if (
       !(
-        Array.isArray(contentResponse.data) &&
-        contentResponse.data.every((item: unknown) => typeof item === "number")
+        Array.isArray(contentResponse.generated) &&
+        contentResponse.generated.every((item: unknown) => typeof item === "number")
       )
     ) {
       logOneLineWarning("LLM response for embeddings was not an array of numbers", context);
       return null;
     }
 
-    return contentResponse.data;
+    return contentResponse.generated;
   }
 
   /**
@@ -250,23 +251,9 @@ export default class LLMRouter {
       outputFormat: options.outputFormat,
     };
 
-    // Extract the type from options and pass it to the pipeline
-    // Type helper to extract the inferred type from completion options
-    type ExtractCompletionType<TOptions extends LLMCompletionOptions> = TOptions extends {
-      jsonSchema: infer S;
-      outputFormat: LLMOutputFormat.JSON;
-    }
-      ? S extends z.ZodType
-        ? z.infer<S>
-        : LLMGeneratedContent
-      : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
-        ? string
-        : LLMGeneratedContent;
-
-    type ResponseType = ExtractCompletionType<typeof options>;
-    // Type parameter is needed for type inference from options, not using default
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-    const result = await this.executionPipeline.execute<ResponseType>(
+    // The type now flows through the pipeline automatically via InferResponseType<TOptions>.
+    // No local type helpers needed - the pipeline infers the return type from options.
+    const result = await this.executionPipeline.execute(
       resourceName,
       prompt,
       context,

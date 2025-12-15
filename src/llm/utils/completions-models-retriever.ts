@@ -8,14 +8,15 @@ import { BadConfigurationLLMError } from "../types/llm-errors.types";
 
 /**
  * Build completion candidates from the LLM provider.
- * Uses .bind() to preserve generic signatures for type safety.
+ * The completion methods are arrow function properties that preserve `this` context,
+ * so no .bind() is needed. The LLMFunction type infers return types from options at the call site.
  */
 export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunction[] {
   const candidates: LLMCandidateFunction[] = [];
 
   // Add primary completion model as first candidate
   candidates.push({
-    func: llm.executeCompletionPrimary.bind(llm),
+    func: llm.executeCompletionPrimary,
     modelQuality: LLMModelQuality.PRIMARY,
     description: "Primary completion model",
   });
@@ -24,7 +25,7 @@ export function buildCompletionCandidates(llm: LLMProvider): LLMCandidateFunctio
   const availableQualities = llm.getAvailableCompletionModelQualities();
   if (availableQualities.includes(LLMModelQuality.SECONDARY)) {
     candidates.push({
-      func: llm.executeCompletionSecondary.bind(llm),
+      func: llm.executeCompletionSecondary,
       modelQuality: LLMModelQuality.SECONDARY,
       description: "Secondary completion model (fallback)",
     });

@@ -5,6 +5,7 @@ import type {
   LLMContext,
   LLMCompletionOptions,
   LLMFunction,
+  InferResponseType,
 } from "../types/llm.types";
 import { LLMResponseStatus } from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
@@ -39,17 +40,21 @@ export class RetryStrategy {
 
   /**
    * Execute an LLM function with retry logic for overloaded or invalid responses.
+   *
+   * The return type is inferred from the completionOptions.jsonSchema, enabling
+   * end-to-end type safety through the LLM call chain.
    */
-  async executeWithRetries<T = unknown>(
-    llmFunction: LLMFunction<T>,
+  async executeWithRetries<TOptions extends LLMCompletionOptions = LLMCompletionOptions>(
+    llmFunction: LLMFunction,
     prompt: string,
     context: LLMContext,
     providerRetryConfig: LLMRetryConfig,
-    completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T> | null> {
+    completionOptions?: TOptions,
+  ): Promise<LLMFunctionResponse<InferResponseType<TOptions>> | null> {
     try {
       return await pRetry(
         async () => {
+          // The result type is inferred from completionOptions
           const result = await llmFunction(prompt, context, completionOptions);
 
           if (result.status === LLMResponseStatus.OVERLOADED) {

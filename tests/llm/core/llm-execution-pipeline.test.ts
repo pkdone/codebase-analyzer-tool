@@ -15,6 +15,15 @@ import {
 } from "../../../src/llm/types/llm.types";
 import { SANITIZATION_STEP } from "../../../src/llm/json-processing/sanitizers";
 
+/**
+ * Helper to create a mock LLMFunction.
+ * Since LLMFunction is now a generic function type, we need to cast the mock.
+ */
+function createMockLLMFunction(response: LLMFunctionResponse): LLMFunction {
+  // Use explicit async function to avoid Jest mock type inference issues
+  return (async () => response) as unknown as LLMFunction;
+}
+
 describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
   let llmStats: LLMStats;
   let retryStrategy: RetryStrategy;
@@ -53,14 +62,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
   describe("Significant mutation detection", () => {
     test("should record JSON mutation for significant sanitization steps", async () => {
-      const mockLLMFunction = jest.fn<LLMFunction<Record<string, unknown>>>().mockResolvedValue({
+      const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
         mutationSteps: [SANITIZATION_STEP.TRIMMED_WHITESPACE, "Fixed trailing commas"],
-      } as LLMFunctionResponse<Record<string, unknown>>);
+      });
 
       const context: LLMContext = {
         resource: "test-resource",
@@ -87,14 +96,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should NOT record JSON mutation for only whitespace trimming", async () => {
-      const mockLLMFunction = jest.fn<LLMFunction>().mockResolvedValue({
+      const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
         mutationSteps: [SANITIZATION_STEP.TRIMMED_WHITESPACE],
-      } as LLMFunctionResponse);
+      });
 
       const context: LLMContext = {
         resource: "test-resource",
@@ -121,14 +130,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should NOT record JSON mutation for only code fence removal", async () => {
-      const mockLLMFunction = jest.fn<LLMFunction>().mockResolvedValue({
+      const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
         mutationSteps: [SANITIZATION_STEP.REMOVED_CODE_FENCES],
-      } as LLMFunctionResponse);
+      });
 
       const context: LLMContext = {
         resource: "test-resource",
@@ -155,7 +164,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should NOT record JSON mutation for both whitespace and code fence removal only", async () => {
-      const mockLLMFunction = jest.fn<LLMFunction>().mockResolvedValue({
+      const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -165,7 +174,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
           SANITIZATION_STEP.TRIMMED_WHITESPACE,
           SANITIZATION_STEP.REMOVED_CODE_FENCES,
         ],
-      } as LLMFunctionResponse);
+      });
 
       const context: LLMContext = {
         resource: "test-resource",
@@ -192,14 +201,14 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should NOT record JSON mutation when no sanitization steps", async () => {
-      const mockLLMFunction = jest.fn<LLMFunction>().mockResolvedValue({
+      const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
         mutationSteps: [],
-      } as LLMFunctionResponse);
+      });
 
       const context: LLMContext = {
         resource: "test-resource",
@@ -226,13 +235,13 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should NOT record JSON mutation when sanitizationSteps is undefined", async () => {
-      const mockLLMFunction = jest.fn<LLMFunction>().mockResolvedValue({
+      const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: { test: "value" },
-      } as LLMFunctionResponse);
+      });
 
       const context: LLMContext = {
         resource: "test-resource",
@@ -259,7 +268,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     });
 
     test("should record JSON mutation for multiple significant steps", async () => {
-      const mockLLMFunction = jest.fn<LLMFunction>().mockResolvedValue({
+      const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
         modelKey: "test-model",
@@ -271,7 +280,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
           "Fixed mismatched delimiters",
           "Added missing property commas",
         ],
-      } as LLMFunctionResponse);
+      });
 
       const context: LLMContext = {
         resource: "test-resource",

@@ -931,13 +931,13 @@ describe("LLM Router tests", () => {
       const result = await router.generateEmbeddings("test-resource", "test content");
 
       expect(result).toEqual(mockEmbeddings);
+      // Embeddings are now called directly without options since they don't use schema-based inference
       expect(mockProvider.generateEmbeddings).toHaveBeenCalledWith(
         "test content",
         expect.objectContaining({
           resource: "test-resource",
           purpose: LLMPurpose.EMBEDDINGS,
         }),
-        undefined,
       );
     });
   });

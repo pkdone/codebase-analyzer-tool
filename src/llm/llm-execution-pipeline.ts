@@ -2,12 +2,12 @@ import { injectable, inject } from "tsyringe";
 import {
   LLMContext,
   LLMResponseStatus,
-  LLMGeneratedContent,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
   LLMCandidateFunction,
   LLMFunctionResponse,
   LLMFunction,
+  InferResponseType,
 } from "./types/llm.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
@@ -40,17 +40,20 @@ export class LLMExecutionPipeline {
    *
    * Context is just an optional object of key value pairs which will be retained with the LLM
    * request and subsequent response for convenient debugging and error logging context.
+   *
+   * The return type is inferred from completionOptions.jsonSchema, enabling end-to-end
+   * type safety through the LLM call chain without requiring unsafe casts.
    */
-  async execute<T = LLMGeneratedContent>(
+  async execute<TOptions extends LLMCompletionOptions = LLMCompletionOptions>(
     resourceName: string,
     prompt: string,
     context: LLMContext,
-    llmFunctions: LLMFunction<T>[],
+    llmFunctions: LLMFunction[],
     providerRetryConfig: LLMRetryConfig,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
-    completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMExecutionResult<T>> {
+    completionOptions?: TOptions,
+  ): Promise<LLMExecutionResult<InferResponseType<TOptions>>> {
     try {
       const result = await this.iterateOverLLMFunctions(
         resourceName,
@@ -67,10 +70,9 @@ export class LLMExecutionPipeline {
         if (hasSignificantSanitizationSteps(result.mutationSteps)) {
           this.llmStats.recordJsonMutated();
         }
-        // result.generated is now correctly typed as T | undefined.
-        // Type safety is guaranteed at compile time through generic type parameters.
-        // The return type is inferred from the Zod schema provided in completionOptions at the call site.
-        // We assert that generated is defined since COMPLETED status guarantees it.
+        // result.generated is now correctly typed based on TOptions.
+        // Type safety is guaranteed at compile time through the InferResponseType helper.
+        // The return type is inferred from the Zod schema provided in completionOptions.
         if (result.generated === undefined) {
           logOneLineWarning(
             `LLM response has COMPLETED status but generated content is undefined for resource: '${resourceName}'`,
@@ -85,9 +87,10 @@ export class LLMExecutionPipeline {
             ),
           };
         }
+        // No unsafe cast needed - type flows through from TOptions
         return {
           success: true,
-          data: result.generated as T,
+          data: result.generated,
         };
       }
 
@@ -127,24 +130,28 @@ export class LLMExecutionPipeline {
   /**
    * Iterates through available LLM functions, attempting each until successful completion
    * or all options are exhausted.
+   *
+   * The return type is inferred from completionOptions.jsonSchema via TOptions.
    */
-  private async iterateOverLLMFunctions<T = LLMGeneratedContent>(
+  private async iterateOverLLMFunctions<
+    TOptions extends LLMCompletionOptions = LLMCompletionOptions,
+  >(
     resourceName: string,
     initialPrompt: string,
     context: LLMContext,
-    llmFunctions: LLMFunction<T>[],
+    llmFunctions: LLMFunction[],
     providerRetryConfig: LLMRetryConfig,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
-    completionOptions?: LLMCompletionOptions,
-  ): Promise<LLMFunctionResponse<T> | null> {
+    completionOptions?: TOptions,
+  ): Promise<LLMFunctionResponse<InferResponseType<TOptions>> | null> {
     let currentPrompt = initialPrompt;
     let llmFunctionIndex = 0;
 
     // Don't want to increment 'llmFuncIndex' before looping again, if going to crop prompt
     // (to enable us to try cropped prompt with same size LLM as last iteration)
     while (llmFunctionIndex < llmFunctions.length) {
-      const llmResponse = await this.retryStrategy.executeWithRetries<T>(
+      const llmResponse = await this.retryStrategy.executeWithRetries(
         llmFunctions[llmFunctionIndex],
         currentPrompt,
         context,
@@ -160,7 +167,7 @@ export class LLMExecutionPipeline {
         break;
       }
 
-      const nextAction = this.fallbackStrategy.determineNextAction<T>(
+      const nextAction = this.fallbackStrategy.determineNextAction(
         llmResponse,
         llmFunctionIndex,
         llmFunctions.length,
@@ -170,7 +177,7 @@ export class LLMExecutionPipeline {
       if (nextAction.shouldTerminate) break;
 
       if (nextAction.shouldCropPrompt && llmResponse) {
-        currentPrompt = this.promptAdaptationStrategy.adaptPromptFromResponse<T>(
+        currentPrompt = this.promptAdaptationStrategy.adaptPromptFromResponse(
           currentPrompt,
           llmResponse,
           modelsMetadata,

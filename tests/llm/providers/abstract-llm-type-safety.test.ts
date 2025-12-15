@@ -110,8 +110,6 @@ describe("Abstract LLM Type Safety", () => {
         email: z.string().email(),
       });
 
-      type UserType = z.infer<typeof userSchema>;
-
       testLLM.setMockResponse('{"name": "John Doe", "age": 30, "email": "john@example.com"}');
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
@@ -123,15 +121,14 @@ describe("Abstract LLM Type Safety", () => {
       expect(result.generated).toBeDefined();
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
-        // TypeScript should infer that result.generated is UserType
+        // TypeScript already knows result.generated is UserType through type inference
         // These assertions verify the type is correct at runtime
-        const generated = result.generated as UserType;
-        expect(generated).toHaveProperty("name");
-        expect(generated).toHaveProperty("age");
-        expect(generated).toHaveProperty("email");
-        expect(typeof generated.name).toBe("string");
-        expect(typeof generated.age).toBe("number");
-        expect(typeof generated.email).toBe("string");
+        expect(result.generated).toHaveProperty("name");
+        expect(result.generated).toHaveProperty("age");
+        expect(result.generated).toHaveProperty("email");
+        expect(typeof result.generated.name).toBe("string");
+        expect(typeof result.generated.age).toBe("number");
+        expect(typeof result.generated.email).toBe("string");
       }
     });
 
@@ -166,8 +163,6 @@ describe("Abstract LLM Type Safety", () => {
         z.object({ type: z.literal("error"), message: z.string() }),
       ]);
 
-      type UnionType = z.infer<typeof unionSchema>;
-
       testLLM.setMockResponse('{"type": "success", "data": "operation completed"}');
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
@@ -179,12 +174,11 @@ describe("Abstract LLM Type Safety", () => {
       expect(result.generated).toBeDefined();
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
-        // TypeScript should infer that result.generated is UnionType
-        const generated = result.generated as UnionType;
-        expect(generated).toHaveProperty("type");
-        if ("data" in generated) {
-          expect(generated.type).toBe("success");
-          expect(typeof generated.data).toBe("string");
+        // TypeScript already knows result.generated is UnionType through type inference
+        expect(result.generated).toHaveProperty("type");
+        if ("data" in result.generated) {
+          expect(result.generated.type).toBe("success");
+          expect(typeof result.generated.data).toBe("string");
         }
       }
     });
@@ -204,8 +198,6 @@ describe("Abstract LLM Type Safety", () => {
         }),
       });
 
-      type NestedType = z.infer<typeof nestedSchema>;
-
       testLLM.setMockResponse(
         '{"user": {"id": 123, "profile": {"name": "Alice", "bio": "Developer"}}, "metadata": {"createdAt": "2024-01-01", "updatedAt": "2024-01-02"}}',
       );
@@ -219,14 +211,13 @@ describe("Abstract LLM Type Safety", () => {
       expect(result.generated).toBeDefined();
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
-        // TypeScript should infer that result.generated is NestedType
-        const generated = result.generated as NestedType;
-        expect(generated).toHaveProperty("user");
-        expect(generated.user).toHaveProperty("id");
-        expect(generated.user).toHaveProperty("profile");
-        expect(generated.user.profile).toHaveProperty("name");
-        expect(generated).toHaveProperty("metadata");
-        expect(generated.metadata).toHaveProperty("createdAt");
+        // TypeScript already knows result.generated is NestedType through type inference
+        expect(result.generated).toHaveProperty("user");
+        expect(result.generated.user).toHaveProperty("id");
+        expect(result.generated.user).toHaveProperty("profile");
+        expect(result.generated.user.profile).toHaveProperty("name");
+        expect(result.generated).toHaveProperty("metadata");
+        expect(result.generated.metadata).toHaveProperty("createdAt");
       }
     });
 
@@ -258,8 +249,6 @@ describe("Abstract LLM Type Safety", () => {
         inStock: z.boolean(),
       });
 
-      type ProductType = z.infer<typeof productSchema>;
-
       testLLM.setMockResponse('{"id": 1, "name": "Widget", "price": 19.99, "inStock": true}');
 
       // Call through executeCompletionPrimary which should preserve the type
@@ -272,12 +261,11 @@ describe("Abstract LLM Type Safety", () => {
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
         // Verify the type is preserved - all properties should be correctly typed
-        const product = result.generated as ProductType;
-        expect(typeof product.id).toBe("number");
-        expect(typeof product.name).toBe("string");
-        expect(typeof product.price).toBe("number");
-        expect(typeof product.inStock).toBe("boolean");
-        expect(product.price).toBeGreaterThan(0);
+        expect(typeof result.generated.id).toBe("number");
+        expect(typeof result.generated.name).toBe("string");
+        expect(typeof result.generated.price).toBe("number");
+        expect(typeof result.generated.inStock).toBe("boolean");
+        expect(result.generated.price).toBeGreaterThan(0);
       }
     });
 
@@ -302,12 +290,12 @@ describe("Abstract LLM Type Safety", () => {
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
 
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
-        const generated = result.generated as z.infer<typeof schemaWithOptional>;
-        expect(generated).toHaveProperty("required");
-        expect(generated.required).toBe("present");
+        // TypeScript already knows the type from schema inference
+        expect(result.generated).toHaveProperty("required");
+        expect(result.generated.required).toBe("present");
         // Optional and nullable fields should be handled correctly
-        expect(generated.optional).toBe("also present");
-        expect(generated.nullable).toBeNull();
+        expect(result.generated.optional).toBe("also present");
+        expect(result.generated.nullable).toBeNull();
       }
     });
   });
@@ -330,10 +318,9 @@ describe("Abstract LLM Type Safety", () => {
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
       if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
-        // Type should be correctly inferred from schema
-        const generated = result.generated as z.infer<typeof testSchema>;
-        expect(generated.status).toBe("active");
-        expect(generated.count).toBe(42);
+        // Type is correctly inferred from schema - no cast needed
+        expect(result.generated.status).toBe("active");
+        expect(result.generated.count).toBe(42);
       }
     });
 
