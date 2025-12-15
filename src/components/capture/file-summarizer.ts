@@ -78,7 +78,11 @@ export async function summarizeFile(
     const renderedPrompt = renderPrompt(promptMetadata, { content });
 
     // Get the partial response from the LLM using the subset schema.
-    // We don't cast the schema here - let the LLM router infer the correct type.
+    // Note: The response schema is created dynamically via .pick() in the prompt factory,
+    // which causes TypeScript to lose the specific type information (treating it as `any`).
+    // We explicitly type as `unknown` here to maintain type safety discipline, then
+    // validate against the full sourceSummarySchema below to ensure type correctness.
+    // This is an improvement over blindly accepting `any` - it forces explicit validation.
     const partialResponse: unknown = await llmRouter.executeCompletion(filepath, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: promptMetadata.responseSchema,
