@@ -10,6 +10,7 @@ import {
   LLMModelKeysSet,
   LLMOutputFormat,
   LLMEmbeddingFunction,
+  InferResponseType,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { BadConfigurationLLMError } from "./types/llm-errors.types";
@@ -232,14 +233,14 @@ export default class LLMRouter {
   ): Promise<string | null>;
 
   // Implementation
-  // Return type uses unknown to allow overload resolution while satisfying the linter
-  // The overloads above provide the specific return types for callers
-  async executeCompletion(
+  // Make implementation generic to preserve type information from options through to return type.
+  // This ensures end-to-end type safety without relying solely on overload resolution.
+  async executeCompletion<TOptions extends LLMCompletionOptions>(
     resourceName: string,
     prompt: string,
-    options: LLMCompletionOptions,
+    options: TOptions,
     modelQualityOverride: LLMModelQuality | null = null,
-  ): Promise<unknown> {
+  ): Promise<InferResponseType<TOptions> | null> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,

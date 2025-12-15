@@ -58,10 +58,10 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     const renderedPrompt = renderPrompt(config, renderParams);
 
     // Use strongly-typed schema lookup for type-safe return type inference.
-    // The type assertion is required because TypeScript cannot follow the relationship between
-    // the generic parameter C and the indexed access type AppSummaryCategorySchemas[C].
-    // This is a safe assertion because appSummaryCategorySchemas maps each category to its
-    // corresponding schema, and executeCompletion validates against that schema at runtime.
+    // Type assertion is required because TypeScript cannot narrow the generic parameter C
+    // to prove that the schema from appSummaryCategorySchemas[category] matches
+    // AppSummaryCategorySchemas[C]. However, this is safe because appSummaryCategorySchemas
+    // is a correctly typed mapping and executeCompletion validates against the schema at runtime.
     const schema = appSummaryCategorySchemas[category];
     const llmResponse = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,

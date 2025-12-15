@@ -172,10 +172,13 @@ export function processJson<TOptions extends LLMCompletionOptions>(
     };
   }
 
+  // Extract schema for type narrowing
+  const { jsonSchema } = completionOptions;
+
   // If no schema provided, return parsed data without validation.
   // Type assertion is safe: when no schema is provided, ProcessJsonDataType resolves to Record<string, unknown>
   // and parseResult.data is the parsed JSON object.
-  if (!completionOptions.jsonSchema) {
+  if (!jsonSchema) {
     logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
@@ -184,16 +187,14 @@ export function processJson<TOptions extends LLMCompletionOptions>(
     };
   }
 
-  // Validate the parsed data (with transforms applied internally if needed)
-  // Type inference: validateJsonWithTransforms will infer the type from the schema
-  const validationResult = validateJsonWithTransforms(
-    parseResult.data,
-    completionOptions.jsonSchema,
-  );
+  // TypeScript now knows jsonSchema exists and is a z.ZodType.
+  // Validate the parsed data (with transforms applied internally if needed).
+  const validationResult = validateJsonWithTransforms(parseResult.data, jsonSchema);
 
   // Validation succeeded.
-  // Type assertion is safe: when schema is provided, ProcessJsonDataType resolves to z.infer<S>
-  // and validationResult.data is the validated data matching that schema.
+  // Type assertion is required because TypeScript cannot narrow the generic conditional type
+  // ProcessJsonDataType<TOptions> based on the runtime check. However, the underlying data
+  // is correctly typed by validateJsonWithTransforms's return type inference.
   if (validationResult.success) {
     logProcessingSteps(
       parseResult.steps,

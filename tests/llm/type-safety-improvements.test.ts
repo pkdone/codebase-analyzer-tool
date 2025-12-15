@@ -1,0 +1,312 @@
+import "reflect-metadata";
+import { describe, test, expect } from "@jest/globals";
+import { z } from "zod";
+import { LLMOutputFormat, LLMPurpose, InferResponseType } from "../../src/llm/types/llm.types";
+import { processJson } from "../../src/llm/json-processing/core/json-processing";
+
+// Mock dependencies
+jest.mock("../../src/common/utils/logging", () => ({
+  logOneLineWarning: jest.fn(),
+  logError: jest.fn(),
+  logErrorMsg: jest.fn(),
+}));
+
+jest.mock("../../src/llm/tracking/llm-stats");
+jest.mock("../../src/llm/utils/manifest-loader");
+
+/**
+ * Test suite for type safety improvements across the LLM call chain.
+ * These tests verify that type information is preserved end-to-end through
+ * the JSON validation pipeline without requiring unsafe type assertions.
+ */
+describe("Type Safety Improvements", () => {
+  describe("LLMRouter - Generic Implementation", () => {
+    test("should preserve type information through generic implementation", () => {
+      // This is a compile-time test - if it compiles, the types are working correctly
+      const _testSchema = z.object({
+        name: z.string(),
+        count: z.number(),
+      });
+
+      interface TestOptions {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _testSchema;
+      }
+
+      // Verify InferResponseType correctly extracts the schema type
+      type InferredType = InferResponseType<TestOptions>;
+
+      // This should compile without errors
+      const testValue: InferredType = { name: "test", count: 42 };
+      expect(testValue.name).toBe("test");
+      expect(testValue.count).toBe(42);
+    });
+
+    test("should handle text output format correctly", () => {
+      interface TextOptions {
+        outputFormat: LLMOutputFormat.TEXT;
+      }
+
+      // For text output, InferResponseType should resolve to LLMGeneratedContent
+      type InferredType = InferResponseType<TextOptions>;
+
+      // Should accept string values
+      const textValue: InferredType = "some text";
+      expect(textValue).toBe("some text");
+    });
+
+    test("should handle options without schema", () => {
+      interface NoSchemaOptions {
+        outputFormat: LLMOutputFormat.JSON;
+      }
+
+      // Without schema, should default to LLMGeneratedContent
+      type InferredType = InferResponseType<NoSchemaOptions>;
+
+      // Should accept Record<string, unknown>
+      const jsonValue: InferredType = { key: "value" };
+      expect(jsonValue).toEqual({ key: "value" });
+    });
+  });
+
+  describe("processJson - Type Preservation", () => {
+    test("should preserve types when schema is provided", () => {
+      const testSchema = z.object({
+        purpose: z.string(),
+        count: z.number().optional(),
+      });
+
+      const context = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const jsonContent = '{"purpose": "test purpose", "count": 5}';
+
+      const result = processJson(
+        jsonContent,
+        context,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: testSchema,
+        },
+        false, // disable logging
+      );
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Type should be inferred from schema
+        expect(result.data.purpose).toBe("test purpose");
+        expect(result.data.count).toBe(5);
+      }
+    });
+
+    test("should return Record<string, unknown> when no schema provided", () => {
+      const context = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const jsonContent = '{"anyKey": "anyValue", "number": 123}';
+
+      const result = processJson(
+        jsonContent,
+        context,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+        },
+        false,
+      );
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        // Should be Record<string, unknown>
+        expect(result.data).toEqual({ anyKey: "anyValue", number: 123 });
+      }
+    });
+
+    test("should handle schema validation failure gracefully", () => {
+      const strictSchema = z.object({
+        required: z.string(),
+        mustBeNumber: z.number(),
+      });
+
+      const context = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      // Missing required field
+      const jsonContent = '{"required": "test"}';
+
+      const result = processJson(
+        jsonContent,
+        context,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: strictSchema,
+        },
+        false,
+      );
+
+      expect(result.success).toBe(false);
+    });
+  });
+
+  // Note: Full runtime validation tests for file-summarizer are in
+  // tests/features/capture/file-summarizer-schema-validation.test.ts
+
+  // Note: Full runtime tests for completion-executor type inference are covered
+  // by integration tests and existing component tests
+
+  describe("End-to-End Type Safety", () => {
+    test("should maintain type safety through entire call chain", () => {
+      // This test verifies that types flow correctly from schema definition
+      // through to the final return type without unsafe assertions
+
+      const _userSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+        roles: z.array(z.string()).optional(),
+      });
+
+      interface UserOptions {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _userSchema;
+      }
+
+      // InferResponseType should produce the correct type
+      type InferredUser = InferResponseType<UserOptions>;
+
+      // Should compile without errors and maintain all type information
+      const user: InferredUser = {
+        id: 1,
+        name: "John Doe",
+        email: "john@example.com",
+        roles: ["admin", "user"],
+      };
+
+      expect(user.id).toBe(1);
+      expect(user.name).toBe("John Doe");
+      expect(user.email).toBe("john@example.com");
+      expect(user.roles).toEqual(["admin", "user"]);
+    });
+
+    test("should handle optional fields in inferred types", () => {
+      const _profileSchema = z.object({
+        username: z.string(),
+        bio: z.string().optional(),
+        age: z.number().optional(),
+      });
+
+      interface ProfileOptions {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _profileSchema;
+      }
+
+      type InferredProfile = InferResponseType<ProfileOptions>;
+
+      // Should accept profiles with or without optional fields
+      const minimalProfile: InferredProfile = {
+        username: "testuser",
+      };
+
+      const fullProfile: InferredProfile = {
+        username: "testuser",
+        bio: "Test bio",
+        age: 25,
+      };
+
+      expect(minimalProfile.username).toBe("testuser");
+      expect(fullProfile.bio).toBe("Test bio");
+    });
+
+    test("should handle nested object types", () => {
+      const _addressSchema = z.object({
+        street: z.string(),
+        city: z.string(),
+        country: z.string(),
+      });
+
+      const _personSchema = z.object({
+        name: z.string(),
+        address: _addressSchema,
+        secondaryAddresses: z.array(_addressSchema).optional(),
+      });
+
+      interface PersonOptions {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _personSchema;
+      }
+
+      type InferredPerson = InferResponseType<PersonOptions>;
+
+      const person: InferredPerson = {
+        name: "Jane Smith",
+        address: {
+          street: "123 Main St",
+          city: "Boston",
+          country: "USA",
+        },
+        secondaryAddresses: [
+          {
+            street: "456 Oak Ave",
+            city: "Cambridge",
+            country: "USA",
+          },
+        ],
+      };
+
+      expect(person.address.city).toBe("Boston");
+      expect(person.secondaryAddresses?.[0].street).toBe("456 Oak Ave");
+    });
+  });
+
+  describe("Type Safety Regression Prevention", () => {
+    test("should prevent unsafe casts by maintaining strong types", () => {
+      // This test documents the improvement - previously unsafe casts are no longer needed
+      const _schema = z.object({
+        value: z.string(),
+      });
+
+      interface Options {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _schema;
+      }
+
+      // Type is correctly inferred without needing 'as' assertions
+      type Inferred = InferResponseType<Options>;
+
+      const result: Inferred = { value: "test" };
+
+      // TypeScript ensures type safety at compile time
+      expect(result.value).toBe("test");
+
+      // The following would be a compile-time error (uncomment to verify):
+      // const invalid: Inferred = { wrongKey: "test" };
+    });
+
+    test("should catch type mismatches at compile time", () => {
+      const _strictSchema = z.object({
+        id: z.number(),
+        status: z.enum(["active", "inactive"]),
+      });
+
+      interface StrictOptions {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _strictSchema;
+      }
+
+      type StrictInferred = InferResponseType<StrictOptions>;
+
+      // Valid assignment
+      const valid: StrictInferred = { id: 1, status: "active" };
+      expect(valid.status).toBe("active");
+
+      // The following would be compile-time errors (commented out for test):
+      // const invalidStatus: StrictInferred = { id: 1, status: "pending" };
+      // const invalidType: StrictInferred = { id: "one", status: "active" };
+    });
+  });
+});

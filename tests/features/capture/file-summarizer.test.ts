@@ -325,7 +325,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         const ddlResponse = {
           purpose: "Database schema definition",
           implementation: "Creates user table",
-          tables: [{ name: "users", command: "CREATE TABLE users..." }],
+          tables: [{ name: "users", fields: "id, username, email" }],
           storedProcedures: [],
           triggers: [],
           databaseIntegration: {
@@ -490,9 +490,6 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue({
           purpose: "Database schema",
           implementation: "Creates tables",
-          tables: [],
-          storedProcedures: [],
-          triggers: [],
           databaseIntegration: {
             mechanism: "DDL",
             description: "Schema definition",

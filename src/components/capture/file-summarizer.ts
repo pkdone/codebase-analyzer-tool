@@ -54,10 +54,10 @@ function getCanonicalFileType(filepath: string, type: string): keyof typeof file
  * Generate a strongly-typed summary for the given file content.
  * Throws an error if summarization fails.
  *
- * Note: The prompt metadata uses picked subsets of sourceSummarySchema for validation,
- * but all picks include the required fields (purpose, implementation), so the result
- * is compatible with the full SourceSummaryType. The schema cast is necessary because
- * TypeScript cannot infer this relationship statically.
+ * Note: The prompt metadata uses picked subsets of sourceSummarySchema for validation.
+ * While the picked schemas include required fields (purpose, implementation), they may not
+ * include all fields of the full schema. This function validates the LLM response against
+ * the full schema to ensure type safety and catch any missing fields.
  *
  * @param llmRouter The LLM router instance
  * @param filepath The path to the file being summarized
@@ -77,17 +77,34 @@ export async function summarizeFile(
     const promptMetadata = fileTypePromptMetadata[canonicalFileType];
     const renderedPrompt = renderPrompt(promptMetadata, { content });
 
-    // The prompt metadata uses a picked subset of sourceSummarySchema, but all picks
-    // include the required fields (purpose, implementation). The cast is safe because
-    // the picked schema is structurally compatible with the full schema's requirements.
-    const llmResponse = await llmRouter.executeCompletion(filepath, renderedPrompt, {
+    // Get the partial response from the LLM using the subset schema.
+    // We don't cast the schema here - let the LLM router infer the correct type.
+    const partialResponse: unknown = await llmRouter.executeCompletion(filepath, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
-      jsonSchema: promptMetadata.responseSchema as typeof sourceSummarySchema,
+      jsonSchema: promptMetadata.responseSchema,
       hasComplexSchema: promptMetadata.hasComplexSchema,
     });
 
-    if (llmResponse === null) throw new BadResponseContentLLMError("LLM returned null response");
-    return llmResponse;
+    if (partialResponse === null) {
+      throw new BadResponseContentLLMError("LLM returned null response");
+    }
+
+    // Validate the (potentially partial) response against the full schema.
+    // This ensures the function's return type contract is met and catches any
+    // missing required fields that weren't included in the picked schema.
+    const finalValidation = sourceSummarySchema.safeParse(partialResponse);
+    if (!finalValidation.success) {
+      throw new BadResponseContentLLMError(
+        "LLM response did not conform to the full sourceSummarySchema",
+        {
+          issues: finalValidation.error.issues,
+          data: partialResponse as Record<string, unknown>,
+        },
+      );
+    }
+
+    // Return the fully validated data, now guaranteed to be SourceSummaryType
+    return finalValidation.data;
   } catch (error: unknown) {
     const errorMsg = `Failed to generate summary for '${filepath}'`;
     logOneLineWarning(errorMsg, error);

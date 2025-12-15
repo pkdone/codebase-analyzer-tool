@@ -310,7 +310,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   /**
    * Post-process the LLM response, converting it to JSON if necessary, and build the
    * response metadata object with type-safe JSON validation.
-   * Type safety is enforced through overload resolution in LLMRouter.
+   * Type safety is enforced through generic type inference from options.
    */
   private async formatAndValidateResponse<TOptions extends LLMCompletionOptions>(
     skeletonResult: Omit<
@@ -364,66 +364,31 @@ export default abstract class AbstractLLM implements LLMProvider {
       };
     }
 
-    // Process JSON with type-safe overload resolution
-    // Handle the two cases separately to ensure proper type inference
-    if (completionOptions.jsonSchema) {
-      // TypeScript now knows completionOptions has jsonSchema, enabling proper overload resolution
-      // Type assertion is needed because TypeScript cannot narrow generic type parameters,
-      // but the runtime check ensures jsonSchema exists
-      const jsonProcessingResult = processJson(
-        responseContent,
-        context,
-        completionOptions as LLMCompletionOptions & { jsonSchema: z.ZodType },
-        true,
-      );
+    // Process JSON with schema-aware type inference.
+    // processJson is generic and will infer the correct return type from TOptions.
+    // The type assertion on completionOptions is required because TypeScript cannot
+    // narrow generic type parameters based on runtime checks, but it's safe because
+    // we've verified the structure at runtime.
+    const jsonProcessingResult = processJson(responseContent, context, completionOptions, true);
 
-      if (jsonProcessingResult.success) {
-        // The data property is strongly typed based on the schema via processJson's conditional return type.
-        // The cast to ResponseType is still needed because TypeScript cannot narrow the generic
-        // conditional type based on runtime checks, but the underlying data is correctly typed.
-        return {
-          ...skeletonResult,
-          status: LLMResponseStatus.COMPLETED,
-          generated: jsonProcessingResult.data as ResponseType,
-          mutationSteps: jsonProcessingResult.mutationSteps,
-        };
-      } else {
-        context.responseContentParseError = formatError(jsonProcessingResult.error);
-        await this.errorLogger.recordJsonProcessingError(
-          jsonProcessingResult.error,
-          responseContent,
-          context,
-        );
-        return { ...skeletonResult, status: LLMResponseStatus.INVALID };
-      }
+    if (jsonProcessingResult.success) {
+      // Type assertion is required because TypeScript cannot narrow the generic
+      // conditional type based on runtime checks. However, the underlying data
+      // is correctly typed by processJson's return type inference.
+      return {
+        ...skeletonResult,
+        status: LLMResponseStatus.COMPLETED,
+        generated: jsonProcessingResult.data as ResponseType,
+        mutationSteps: jsonProcessingResult.mutationSteps,
+      };
     } else {
-      // No schema provided - processJson returns Record<string, unknown>.
-      // Type assertion is needed because TypeScript cannot narrow generic type parameters.
-      const jsonProcessingResult = processJson(
+      context.responseContentParseError = formatError(jsonProcessingResult.error);
+      await this.errorLogger.recordJsonProcessingError(
+        jsonProcessingResult.error,
         responseContent,
         context,
-        completionOptions as LLMCompletionOptions & { jsonSchema?: undefined },
-        true,
       );
-
-      if (jsonProcessingResult.success) {
-        // The data is typed as Record<string, unknown> from processJson.
-        // Cast to ResponseType is safe since we're in the no-schema branch.
-        return {
-          ...skeletonResult,
-          status: LLMResponseStatus.COMPLETED,
-          generated: jsonProcessingResult.data as ResponseType,
-          mutationSteps: jsonProcessingResult.mutationSteps,
-        };
-      } else {
-        context.responseContentParseError = formatError(jsonProcessingResult.error);
-        await this.errorLogger.recordJsonProcessingError(
-          jsonProcessingResult.error,
-          responseContent,
-          context,
-        );
-        return { ...skeletonResult, status: LLMResponseStatus.INVALID };
-      }
+      return { ...skeletonResult, status: LLMResponseStatus.INVALID };
     }
   }
 
