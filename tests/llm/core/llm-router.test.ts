@@ -720,9 +720,9 @@ describe("LLM Router tests", () => {
       );
 
       expect(result).toBe(mockTextResponse);
-      // Verify type: result should be string | null
+      // Verify type: result should be string | null when outputFormat is TEXT
       if (result !== null) {
-        const typedResult: string = result;
+        const typedResult: string = result as string;
         expect(typeof typedResult).toBe("string");
       }
     });

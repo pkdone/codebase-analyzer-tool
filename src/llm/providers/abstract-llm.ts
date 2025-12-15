@@ -310,7 +310,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   /**
    * Post-process the LLM response, converting it to JSON if necessary, and build the
    * response metadata object with type-safe JSON validation.
-   * Type safety is enforced through generic type inference from options.
+   * Type safety is enforced through explicit schema type parameter.
    */
   private async formatAndValidateResponse<TOptions extends LLMCompletionOptions>(
     skeletonResult: Omit<
@@ -372,9 +372,6 @@ export default abstract class AbstractLLM implements LLMProvider {
     const jsonProcessingResult = processJson(responseContent, context, completionOptions, true);
 
     if (jsonProcessingResult.success) {
-      // Type assertion is required because TypeScript cannot narrow the generic
-      // conditional type based on runtime checks. However, the underlying data
-      // is correctly typed by processJson's return type inference.
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,

@@ -49,7 +49,7 @@ interface CreatePromptMetadataOptions<TConfig extends BaseConfigEntry> {
  * @param configMap - The configuration map (e.g., sourceConfigMap, appSummaryConfigMap)
  * @param template - The template string to use for all prompts
  * @param options - Optional builders for schema, introTextTemplate, and instructions
- * @returns A record mapping keys to PromptDefinition objects
+ * @returns A record mapping keys to PromptDefinition objects with preserved schema types
  */
 export function createPromptMetadata<TKey extends string, TConfig extends BaseConfigEntry>(
   configMap: Record<TKey, TConfig>,

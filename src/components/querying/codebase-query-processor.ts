@@ -87,8 +87,8 @@ export async function queryCodebaseWithQuestion(
 
   if (response) {
     const referencesText = bestMatchFiles.map((match) => ` * ${match.filepath}`).join("\n");
-    // response is guaranteed to be a string when outputFormat is TEXT
-    return `${response}\n\nReferences:\n${referencesText}`;
+    // Safe: When outputFormat is TEXT, response is guaranteed to be string | null
+    return `${response as string}\n\nReferences:\n${referencesText}`;
   } else {
     console.log(
       "Called the LLN with some data returned by Vector Search but the LLM returned an empty response",

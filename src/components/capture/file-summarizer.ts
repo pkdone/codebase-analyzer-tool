@@ -77,12 +77,14 @@ export async function summarizeFile(
     const promptMetadata = fileTypePromptMetadata[canonicalFileType];
     const renderedPrompt = renderPrompt(promptMetadata, { content });
 
-    // Get the partial response from the LLM using the subset schema.
-    // Note: The response schema is created dynamically via .pick() in the prompt factory,
-    // which causes TypeScript to lose the specific type information (treating it as `any`).
-    // We explicitly type as `unknown` here to maintain type safety discipline, then
-    // validate against the full sourceSummarySchema below to ensure type correctness.
-    // This is an improvement over blindly accepting `any` - it forces explicit validation.
+    // Double validation is NECESSARY and INTENTIONAL here due to the .pick() optimization:
+    // 1. Each file type uses .pick() to request only relevant fields (improves token efficiency and prompt focus)
+    //    - Example: SQL files don't need 'publicMethods', markdown doesn't need 'namespace'
+    // 2. TypeScript cannot track picked schema types through the generic chain without extreme complexity
+    // 3. The LLM response is first validated against the picked schema (via executeCompletion)
+    // 4. Then validated against the full schema to guarantee this function's return type contract
+    // This is an acceptable trade-off: one isolated validation step in exchange for efficient
+    // prompting across 20+ file types, keeping prompts focused and reducing token costs.
     const partialResponse: unknown = await llmRouter.executeCompletion(filepath, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: promptMetadata.responseSchema,
@@ -93,9 +95,9 @@ export async function summarizeFile(
       throw new BadResponseContentLLMError("LLM returned null response");
     }
 
-    // Validate the (potentially partial) response against the full schema.
-    // This ensures the function's return type contract is met and catches any
-    // missing required fields that weren't included in the picked schema.
+    // Validate against full schema to ensure return type contract.
+    // The picked schema ensures LLM focuses on relevant fields; this validation ensures
+    // we return a complete SourceSummaryType with all required fields populated.
     const finalValidation = sourceSummarySchema.safeParse(partialResponse);
     if (!finalValidation.success) {
       throw new BadResponseContentLLMError(

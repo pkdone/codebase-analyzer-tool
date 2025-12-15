@@ -1,5 +1,4 @@
 import { injectable, inject } from "tsyringe";
-import { z } from "zod";
 import {
   LLMContext,
   LLMModelQuality,
@@ -8,7 +7,6 @@ import {
   LLMCompletionOptions,
   LLMModelMetadata,
   LLMModelKeysSet,
-  LLMOutputFormat,
   LLMEmbeddingFunction,
   InferResponseType,
 } from "./types/llm.types";
@@ -211,30 +209,12 @@ export default class LLMRouter {
    *
    * If a particular LLM quality is not specified, will try to use the completion candidates
    * in the order they were configured during construction.
+   *
+   * The return type is automatically inferred from the options parameter:
+   * - When jsonSchema is provided, returns z.infer<typeof schema> | null
+   * - When outputFormat is TEXT, returns string | null
+   * - Otherwise returns LLMGeneratedContent | null
    */
-
-  // Overload 1: For JSON with a schema - infers return type from schema
-  async executeCompletion<S extends z.ZodType<unknown, z.ZodTypeDef, unknown>>(
-    resourceName: string,
-    prompt: string,
-    options: Omit<LLMCompletionOptions, "jsonSchema"> & {
-      jsonSchema: S;
-      outputFormat: LLMOutputFormat.JSON;
-    },
-    modelQualityOverride?: LLMModelQuality | null,
-  ): Promise<z.infer<S> | null>;
-
-  // Overload 2: For plain text
-  async executeCompletion(
-    resourceName: string,
-    prompt: string,
-    options: LLMCompletionOptions & { outputFormat: LLMOutputFormat.TEXT; jsonSchema?: never },
-    modelQualityOverride?: LLMModelQuality | null,
-  ): Promise<string | null>;
-
-  // Implementation
-  // Make implementation generic to preserve type information from options through to return type.
-  // This ensures end-to-end type safety without relying solely on overload resolution.
   async executeCompletion<TOptions extends LLMCompletionOptions>(
     resourceName: string,
     prompt: string,

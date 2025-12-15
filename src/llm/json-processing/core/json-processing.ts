@@ -100,8 +100,9 @@ type ProcessJsonDataType<TOptions extends LLMCompletionOptions> = TOptions exten
  * This is the high-level public API for JSON processing, orchestrating parsing and validation
  * with comprehensive logging.
  *
- * When a schema is provided, the return type is inferred from the schema using `z.infer<S>`.
- * When no schema is provided, the return type defaults to `Record<string, unknown>`.
+ * The return type is automatically inferred from the jsonSchema in completionOptions:
+ * - When a schema is provided, returns z.infer<S> where S is the schema type
+ * - When no schema is provided, returns Record<string, unknown>
  *
  * @param content - The LLM-generated content to process
  * @param context - Context information about the LLM request
@@ -192,9 +193,6 @@ export function processJson<TOptions extends LLMCompletionOptions>(
   const validationResult = validateJsonWithTransforms(parseResult.data, jsonSchema);
 
   // Validation succeeded.
-  // Type assertion is required because TypeScript cannot narrow the generic conditional type
-  // ProcessJsonDataType<TOptions> based on the runtime check. However, the underlying data
-  // is correctly typed by validateJsonWithTransforms's return type inference.
   if (validationResult.success) {
     logProcessingSteps(
       parseResult.steps,

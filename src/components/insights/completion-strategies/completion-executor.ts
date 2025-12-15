@@ -72,7 +72,7 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
     });
 
-    return llmResponse as z.infer<AppSummaryCategorySchemas[C]> | null;
+    return llmResponse;
   } catch (error: unknown) {
     logOneLineWarning(
       `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,

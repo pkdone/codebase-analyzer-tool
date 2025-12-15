@@ -9,15 +9,17 @@ export type DataBlockHeader = "CODE" | "FILE_SUMMARIES" | "FRAGMENTED_DATA";
 /**
  * Formal prompt definition interface for consistent structure
  * This enforces a standard shape for prompt configurations across the application.
+ *
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface PromptDefinition {
+export interface PromptDefinition<S extends z.ZodType = z.ZodType> {
   /** Template for the introductory text with placeholders like {{contentDesc}} and {{categoryKey}} */
   introTextTemplate: string;
   /** Array of instruction strings for the LLM. Instructions can include section titles
    * formatted as "__TITLE__\n- Point 1" for better organization. */
   instructions: readonly string[];
   /** Zod schema for validating the LLM response */
-  responseSchema: z.ZodType;
+  responseSchema: S;
   /** Whether the schema is complex and incompatible with some LLM providers */
   hasComplexSchema?: boolean;
   /** Optional label for UI display and logging (e.g., "Aggregates", "Java Source") */

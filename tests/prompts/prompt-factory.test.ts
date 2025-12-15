@@ -156,5 +156,45 @@ describe("Prompt Factory", () => {
       const result = createPromptMetadata({}, testTemplate);
       expect(result).toEqual({});
     });
+
+    it("should preserve schema type information through generic type parameter", () => {
+      const stringSchema = z.string();
+      const numberSchema = z.number();
+      const objectSchema = z.object({
+        name: z.string(),
+        age: z.number(),
+      });
+
+      const testConfigMap = {
+        stringType: {
+          label: "String Type",
+          responseSchema: stringSchema,
+        },
+        numberType: {
+          label: "Number Type",
+          responseSchema: numberSchema,
+        },
+        objectType: {
+          label: "Object Type",
+          responseSchema: objectSchema,
+        },
+      };
+
+      const result = createPromptMetadata(testConfigMap, testTemplate);
+
+      // Verify runtime schema preservation
+      expect(result.stringType.responseSchema).toBe(stringSchema);
+      expect(result.numberType.responseSchema).toBe(numberSchema);
+      expect(result.objectType.responseSchema).toBe(objectSchema);
+
+      // Type-level test: These should compile without type errors if generics work correctly
+      const stringPromptDef = result.stringType;
+      const numberPromptDef = result.numberType;
+      const objectPromptDef = result.objectType;
+
+      expect(stringPromptDef.responseSchema).toBeDefined();
+      expect(numberPromptDef.responseSchema).toBeDefined();
+      expect(objectPromptDef.responseSchema).toBeDefined();
+    });
   });
 });
