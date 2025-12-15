@@ -37,22 +37,21 @@ describe("InferResponseType Helper Type", () => {
       expect(testValue).toEqual({ name: "test", age: 25 });
     });
 
-    test("should default to LLMGeneratedContent when no jsonSchema is provided", () => {
-      type OptionsWithoutSchema = LLMCompletionOptions & {
+    test("should infer string when outputFormat is TEXT", () => {
+      type OptionsWithTextFormat = LLMCompletionOptions & {
         outputFormat: LLMOutputFormat.TEXT;
       };
 
-      type InferredType = InferResponseType<OptionsWithoutSchema>;
+      type InferredType = InferResponseType<OptionsWithTextFormat>;
 
-      // InferredType should be LLMGeneratedContent
-      // Verify it accepts any LLMGeneratedContent value
+      // InferredType should be string (not LLMGeneratedContent)
       const stringValue: InferredType = "string value";
-      const recordValue: InferredType = { key: "value" };
-      const nullValue: InferredType = null;
 
       expect(stringValue).toBe("string value");
-      expect(recordValue).toEqual({ key: "value" });
-      expect(nullValue).toBeNull();
+
+      // The following would be compile-time errors (uncomment to verify):
+      // const recordValue: InferredType = { key: "value" };
+      // const nullValue: InferredType = null;
     });
   });
 

@@ -19,7 +19,7 @@ import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm
 import { formatError } from "../../common/utils/error-formatters";
 import { processJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
-import { BadConfigurationLLMError } from "../types/llm-errors.types";
+import { BadConfigurationLLMError, BadResponseContentLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
 import { LLMErrorLogger } from "../tracking/llm-error-logger";
 import { z } from "zod";
@@ -195,21 +195,26 @@ export default abstract class AbstractLLM implements LLMProvider {
     completionOptions?: TOptions,
   ): Promise<
     LLMFunctionResponse<
-      TOptions extends { jsonSchema: infer S }
+      TOptions extends { outputFormat: LLMOutputFormat.JSON; jsonSchema: infer S }
         ? S extends z.ZodType
           ? z.infer<S>
+          : Record<string, unknown>
+        : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
+          ? string
           : LLMGeneratedContent
-        : LLMGeneratedContent
     >
   > {
-    // Type helper to extract the inferred type from completion options
+    // Type helper to extract the inferred type from completion options (must match InferResponseType)
     type ExtractResponseType<TOpt extends LLMCompletionOptions> = TOpt extends {
+      outputFormat: LLMOutputFormat.JSON;
       jsonSchema: infer S;
     }
       ? S extends z.ZodType
         ? z.infer<S>
-        : LLMGeneratedContent
-      : LLMGeneratedContent;
+        : Record<string, unknown>
+      : TOpt extends { outputFormat: LLMOutputFormat.TEXT }
+        ? string
+        : LLMGeneratedContent;
     type ResponseType = ExtractResponseType<TOptions>;
     const skeletonResponse: Omit<
       LLMFunctionResponse<ResponseType>,
@@ -315,11 +320,13 @@ export default abstract class AbstractLLM implements LLMProvider {
   private async formatAndValidateResponse<TOptions extends LLMCompletionOptions>(
     skeletonResult: Omit<
       LLMFunctionResponse<
-        TOptions extends { jsonSchema: infer S }
+        TOptions extends { outputFormat: LLMOutputFormat.JSON; jsonSchema: infer S }
           ? S extends z.ZodType
             ? z.infer<S>
+            : Record<string, unknown>
+          : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
+            ? string
             : LLMGeneratedContent
-          : LLMGeneratedContent
       >,
       "generated" | "status" | "mutationSteps"
     >,
@@ -329,21 +336,26 @@ export default abstract class AbstractLLM implements LLMProvider {
     context: LLMContext,
   ): Promise<
     LLMFunctionResponse<
-      TOptions extends { jsonSchema: infer S }
+      TOptions extends { outputFormat: LLMOutputFormat.JSON; jsonSchema: infer S }
         ? S extends z.ZodType
           ? z.infer<S>
+          : Record<string, unknown>
+        : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
+          ? string
           : LLMGeneratedContent
-        : LLMGeneratedContent
     >
   > {
-    // Type helper to extract the inferred type from completion options
+    // Type helper to extract the inferred type from completion options (must match InferResponseType)
     type ExtractResponseType<TOpt extends LLMCompletionOptions> = TOpt extends {
+      outputFormat: LLMOutputFormat.JSON;
       jsonSchema: infer S;
     }
       ? S extends z.ZodType
         ? z.infer<S>
-        : LLMGeneratedContent
-      : LLMGeneratedContent;
+        : Record<string, unknown>
+      : TOpt extends { outputFormat: LLMOutputFormat.TEXT }
+        ? string
+        : LLMGeneratedContent;
     type ResponseType = ExtractResponseType<TOptions>;
 
     // Early return for non-completion tasks
@@ -357,10 +369,17 @@ export default abstract class AbstractLLM implements LLMProvider {
 
     // Early return for non-JSON output format
     if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
+      // Runtime validation: TEXT format must return string
+      if (typeof responseContent !== "string") {
+        throw new BadResponseContentLLMError(
+          `Expected string response for TEXT output format, but received ${typeof responseContent}`,
+          responseContent,
+        );
+      }
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: responseContent as ResponseType,
+        generated: responseContent as ResponseType, // Now safe: string to string
       };
     }
 
@@ -375,7 +394,9 @@ export default abstract class AbstractLLM implements LLMProvider {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: jsonProcessingResult.data as ResponseType,
+        // Safe cast: At this point we know outputFormat is JSON, so ResponseType
+        // is never string. The data has been validated against the schema.
+        generated: jsonProcessingResult.data as unknown as ResponseType,
         mutationSteps: jsonProcessingResult.mutationSteps,
       };
     } else {

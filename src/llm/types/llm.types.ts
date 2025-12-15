@@ -184,19 +184,25 @@ export type LLMGeneratedContent = string | Record<string, unknown> | number[] | 
 
 /**
  * Helper type to infer the response data type from LLMCompletionOptions.
- * If options has a jsonSchema, infers the type from that schema.
- * Otherwise, defaults to LLMGeneratedContent.
+ * This type is format-aware and provides stronger type safety:
+ * - When outputFormat is JSON with a schema, infers the type from that schema
+ * - When outputFormat is JSON without a schema, returns Record<string, unknown>
+ * - When outputFormat is TEXT, returns string
+ * - Otherwise, defaults to LLMGeneratedContent
  *
  * This enables end-to-end type safety through the LLM call chain by allowing
  * the return type to be inferred from the options passed at the call site.
  */
 export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions extends {
+  outputFormat: LLMOutputFormat.JSON;
   jsonSchema: infer S;
 }
   ? S extends z.ZodType
     ? z.infer<S>
-    : LLMGeneratedContent
-  : LLMGeneratedContent;
+    : Record<string, unknown>
+  : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
+    ? string
+    : LLMGeneratedContent;
 
 /**
  * Type to define the LLM response with type-safe generated content.

@@ -42,30 +42,74 @@ describe("Type Safety Improvements", () => {
       expect(testValue.count).toBe(42);
     });
 
-    test("should handle text output format correctly", () => {
+    test("should infer string type for TEXT output format", () => {
       interface TextOptions {
         outputFormat: LLMOutputFormat.TEXT;
       }
 
-      // For text output, InferResponseType should resolve to LLMGeneratedContent
+      // InferResponseType should now resolve to string (not LLMGeneratedContent)
       type InferredType = InferResponseType<TextOptions>;
 
-      // Should accept string values
+      // Should be string type, allowing direct string operations
       const textValue: InferredType = "some text";
       expect(textValue).toBe("some text");
+
+      // Verify it's actually typed as string (compile-time check)
+      const upperCased: string = textValue.toUpperCase();
+      expect(upperCased).toBe("SOME TEXT");
     });
 
-    test("should handle options without schema", () => {
+    test("should handle options without schema - JSON format", () => {
       interface NoSchemaOptions {
         outputFormat: LLMOutputFormat.JSON;
       }
 
-      // Without schema, should default to LLMGeneratedContent
+      // Without schema, should default to Record<string, unknown>
       type InferredType = InferResponseType<NoSchemaOptions>;
 
       // Should accept Record<string, unknown>
       const jsonValue: InferredType = { key: "value" };
       expect(jsonValue).toEqual({ key: "value" });
+    });
+
+    test("should differentiate TEXT from JSON format in type inference", () => {
+      interface TextOptions {
+        outputFormat: LLMOutputFormat.TEXT;
+      }
+
+      interface JsonOptions {
+        outputFormat: LLMOutputFormat.JSON;
+      }
+
+      type TextType = InferResponseType<TextOptions>;
+      type JsonType = InferResponseType<JsonOptions>;
+
+      // TEXT should be string
+      const textResult: TextType = "text response";
+      expect(typeof textResult).toBe("string");
+
+      // JSON should be Record<string, unknown>
+      const jsonResult: JsonType = { result: "data" };
+      expect(typeof jsonResult).toBe("object");
+
+      // These types should be different at compile time
+      // The following would be compile errors (uncomment to verify):
+      // const wrongAssignment1: TextType = { object: "value" };
+      // const wrongAssignment2: JsonType = "string value";
+    });
+
+    test("should work with template strings for TEXT format without casting", () => {
+      interface TextOptions {
+        outputFormat: LLMOutputFormat.TEXT;
+      }
+
+      type InferredType = InferResponseType<TextOptions>;
+
+      const response: InferredType = "LLM response";
+
+      // Should work in template strings without 'as string' cast
+      const formatted = `Result: ${response}`;
+      expect(formatted).toBe("Result: LLM response");
     });
   });
 

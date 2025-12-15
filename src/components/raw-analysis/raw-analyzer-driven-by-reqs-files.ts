@@ -79,8 +79,8 @@ export class RawAnalyzerDrivenByReqsFiles {
       if (executionResult === null) {
         response = "No response received from LLM.";
       } else {
-        // Safe: When outputFormat is TEXT, executionResult is guaranteed to be string | null
-        response = executionResult as string;
+        // Type-safe: InferResponseType correctly infers string for TEXT output format
+        response = executionResult;
       }
     } catch (error: unknown) {
       logError("Problem introspecting and processing source files", error);
