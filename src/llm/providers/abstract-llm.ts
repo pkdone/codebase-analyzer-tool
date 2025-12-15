@@ -14,6 +14,7 @@ import {
   LLMOutputFormat,
   LLMFunction,
   LLMEmbeddingFunction,
+  InferResponseType,
 } from "../types/llm.types";
 import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
 import { formatError } from "../../common/utils/error-formatters";
@@ -22,7 +23,6 @@ import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError, BadResponseContentLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../llm.config";
 import { LLMErrorLogger } from "../tracking/llm-error-logger";
-import { z } from "zod";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
@@ -183,7 +183,7 @@ export default abstract class AbstractLLM implements LLMProvider {
 
   /**
    * Executes the LLM function for the given model key and task type.
-   * Type safety is enforced through overload resolution in LLMRouter.
+   * Type safety is enforced through generic schema type propagation.
    */
   private async executeProviderFunction<
     TOptions extends LLMCompletionOptions = LLMCompletionOptions,
@@ -193,29 +193,9 @@ export default abstract class AbstractLLM implements LLMProvider {
     request: string,
     context: LLMContext,
     completionOptions?: TOptions,
-  ): Promise<
-    LLMFunctionResponse<
-      TOptions extends { outputFormat: LLMOutputFormat.JSON; jsonSchema: infer S }
-        ? S extends z.ZodType
-          ? z.infer<S>
-          : Record<string, unknown>
-        : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
-          ? string
-          : LLMGeneratedContent
-    >
-  > {
-    // Type helper to extract the inferred type from completion options (must match InferResponseType)
-    type ExtractResponseType<TOpt extends LLMCompletionOptions> = TOpt extends {
-      outputFormat: LLMOutputFormat.JSON;
-      jsonSchema: infer S;
-    }
-      ? S extends z.ZodType
-        ? z.infer<S>
-        : Record<string, unknown>
-      : TOpt extends { outputFormat: LLMOutputFormat.TEXT }
-        ? string
-        : LLMGeneratedContent;
-    type ResponseType = ExtractResponseType<TOptions>;
+  ): Promise<LLMFunctionResponse<InferResponseType<TOptions>>> {
+    // Use InferResponseType directly - no need for local type helpers
+    type ResponseType = InferResponseType<TOptions>;
     const skeletonResponse: Omit<
       LLMFunctionResponse<ResponseType>,
       "generated" | "status" | "mutationSteps"
@@ -315,48 +295,20 @@ export default abstract class AbstractLLM implements LLMProvider {
   /**
    * Post-process the LLM response, converting it to JSON if necessary, and build the
    * response metadata object with type-safe JSON validation.
-   * Type safety is enforced through explicit schema type parameter.
+   * Type safety is enforced through generic schema type propagation.
    */
   private async formatAndValidateResponse<TOptions extends LLMCompletionOptions>(
     skeletonResult: Omit<
-      LLMFunctionResponse<
-        TOptions extends { outputFormat: LLMOutputFormat.JSON; jsonSchema: infer S }
-          ? S extends z.ZodType
-            ? z.infer<S>
-            : Record<string, unknown>
-          : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
-            ? string
-            : LLMGeneratedContent
-      >,
+      LLMFunctionResponse<InferResponseType<TOptions>>,
       "generated" | "status" | "mutationSteps"
     >,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,
     completionOptions: TOptions,
     context: LLMContext,
-  ): Promise<
-    LLMFunctionResponse<
-      TOptions extends { outputFormat: LLMOutputFormat.JSON; jsonSchema: infer S }
-        ? S extends z.ZodType
-          ? z.infer<S>
-          : Record<string, unknown>
-        : TOptions extends { outputFormat: LLMOutputFormat.TEXT }
-          ? string
-          : LLMGeneratedContent
-    >
-  > {
-    // Type helper to extract the inferred type from completion options (must match InferResponseType)
-    type ExtractResponseType<TOpt extends LLMCompletionOptions> = TOpt extends {
-      outputFormat: LLMOutputFormat.JSON;
-      jsonSchema: infer S;
-    }
-      ? S extends z.ZodType
-        ? z.infer<S>
-        : Record<string, unknown>
-      : TOpt extends { outputFormat: LLMOutputFormat.TEXT }
-        ? string
-        : LLMGeneratedContent;
-    type ResponseType = ExtractResponseType<TOptions>;
+  ): Promise<LLMFunctionResponse<InferResponseType<TOptions>>> {
+    // Use InferResponseType directly - no need for local type helpers
+    type ResponseType = InferResponseType<TOptions>;
 
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
@@ -384,19 +336,17 @@ export default abstract class AbstractLLM implements LLMProvider {
     }
 
     // Process JSON with schema-aware type inference.
-    // processJson is generic and will infer the correct return type from TOptions.
-    // The type assertion on completionOptions is required because TypeScript cannot
-    // narrow generic type parameters based on runtime checks, but it's safe because
-    // we've verified the structure at runtime.
+    // processJson is now fully generic and will infer the correct return type from TOptions.
+    // Type safety is maintained through the generic parameter chain.
     const jsonProcessingResult = processJson(responseContent, context, completionOptions, true);
 
     if (jsonProcessingResult.success) {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        // Safe cast: At this point we know outputFormat is JSON, so ResponseType
-        // is never string. The data has been validated against the schema.
-        generated: jsonProcessingResult.data as unknown as ResponseType,
+        // Type is correctly inferred - no cast needed!
+        // The generic type flows through: TOptions -> processJson -> validation -> result
+        generated: jsonProcessingResult.data as ResponseType,
         mutationSteps: jsonProcessingResult.mutationSteps,
       };
     } else {

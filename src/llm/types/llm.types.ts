@@ -76,13 +76,16 @@ export enum LLMOutputFormat {
 }
 
 /**
- * Interface for LLM completion options that can be passed to control output format
+ * Interface for LLM completion options that can be passed to control output format.
+ * Generic over the schema type to preserve type information through the call chain.
+ *
+ * @template S - The Zod schema type. Defaults to z.ZodType for backward compatibility.
  */
-export interface LLMCompletionOptions {
+export interface LLMCompletionOptions<S extends z.ZodType = z.ZodType> {
   /** Desired output format */
   outputFormat: LLMOutputFormat;
   /** Zod schema for structured output providers that support it */
-  jsonSchema?: z.ZodType<unknown>;
+  jsonSchema?: S;
   /** Whether the response is expected to contain code - defaults to true */
   hasComplexSchema?: boolean;
 }

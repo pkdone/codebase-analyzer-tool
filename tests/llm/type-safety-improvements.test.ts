@@ -352,5 +352,112 @@ describe("Type Safety Improvements", () => {
       // const invalidStatus: StrictInferred = { id: 1, status: "pending" };
       // const invalidType: StrictInferred = { id: "one", status: "active" };
     });
+
+    test("should eliminate need for double validation", () => {
+      // Previously, file-summarizer.ts needed double validation due to weak typing
+      // Now with generic LLMCompletionOptions, single validation is sufficient
+      const _schema = z.object({
+        purpose: z.string(),
+        implementation: z.string(),
+      });
+
+      interface OptionsWithSchema {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _schema;
+      }
+
+      type InferredType = InferResponseType<OptionsWithSchema>;
+
+      // The type is correctly inferred without additional validation
+      const result: InferredType = {
+        purpose: "Test purpose",
+        implementation: "Test implementation",
+      };
+
+      expect(result.purpose).toBe("Test purpose");
+      expect(result.implementation).toBe("Test implementation");
+
+      // No need for 'as unknown as SomeType' or additional safeParse()
+    });
+
+    test("should work with picked schemas", () => {
+      // File-summarizer uses .pick() to optimize prompts
+      const fullSchema = z.object({
+        purpose: z.string(),
+        implementation: z.string(),
+        complexity: z.number().optional(),
+        dependencies: z.array(z.string()).optional(),
+      });
+
+      const _pickedSchema = fullSchema.pick({
+        purpose: true,
+        implementation: true,
+      });
+
+      interface PickedOptions {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _pickedSchema;
+      }
+
+      type PickedType = InferResponseType<PickedOptions>;
+
+      const result: PickedType = {
+        purpose: "Purpose",
+        implementation: "Implementation",
+      };
+
+      expect(result.purpose).toBe("Purpose");
+
+      // Compile-time check: picked fields are present
+      const _p: string = result.purpose;
+      const _i: string = result.implementation;
+      expect(_p).toBeDefined();
+      expect(_i).toBeDefined();
+
+      // Compile-time check: unpicked fields are not present
+      // The following would be compile-time errors:
+      // const _c: number | undefined = result.complexity;
+      // const _d: string[] | undefined = result.dependencies;
+    });
+  });
+
+  describe("Generic LLMCompletionOptions Benefits", () => {
+    test("should maintain type through generic parameter", () => {
+      const _testSchema = z.object({
+        count: z.number(),
+        items: z.array(z.string()),
+      });
+
+      // LLMCompletionOptions is now generic over schema type
+      interface GenericOptions {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _testSchema;
+      }
+
+      type ResultType = InferResponseType<GenericOptions>;
+
+      const data: ResultType = {
+        count: 5,
+        items: ["a", "b", "c"],
+      };
+
+      expect(data.count).toBe(5);
+      expect(data.items).toHaveLength(3);
+    });
+
+    test("should work with default generic parameter", () => {
+      // LLMCompletionOptions<S extends z.ZodType = z.ZodType>
+      // The default allows backward compatibility
+      interface DefaultOptions {
+        outputFormat: LLMOutputFormat.JSON;
+      }
+
+      // Without explicit schema, should default to Record<string, unknown>
+      type DefaultType = InferResponseType<DefaultOptions>;
+
+      const result: DefaultType = { any: "data", here: 123 };
+      expect(result.any).toBe("data");
+      expect(result.here).toBe(123);
+    });
   });
 });

@@ -187,15 +187,18 @@ describe("Type Safety Call Chain Improvements", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        const data: z.infer<typeof schema> = result.data;
-        expect(data.required).toBe("value");
-        expect(data.optional).toBeUndefined();
-        expect(data.nullable).toBeNull();
-        expect(data.withDefault).toBe("default-value");
+        // Type is correctly inferred from the schema
+        // Note: Fields with .default() are applied during Zod validation
+        expect(result.data.required).toBe("value");
+        expect(result.data.optional).toBeUndefined();
+        expect(result.data.nullable).toBeNull();
+        expect(result.data.withDefault).toBe("default-value");
 
         // TypeScript understands optional vs nullable
-        expect(typeof data.required).toBe("string");
-        expect(data.nullable === null || typeof data.nullable === "string").toBe(true);
+        expect(typeof result.data.required).toBe("string");
+        expect(result.data.nullable === null || typeof result.data.nullable === "string").toBe(
+          true,
+        );
       }
     });
 

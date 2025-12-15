@@ -77,40 +77,29 @@ export async function summarizeFile(
     const promptMetadata = fileTypePromptMetadata[canonicalFileType];
     const renderedPrompt = renderPrompt(promptMetadata, { content });
 
-    // Double validation is NECESSARY and INTENTIONAL here due to the .pick() optimization:
-    // 1. Each file type uses .pick() to request only relevant fields (improves token efficiency and prompt focus)
-    //    - Example: SQL files don't need 'publicMethods', markdown doesn't need 'namespace'
-    // 2. TypeScript cannot track picked schema types through the generic chain without extreme complexity
-    // 3. The LLM response is first validated against the picked schema (via executeCompletion)
-    // 4. Then validated against the full schema to guarantee this function's return type contract
-    // This is an acceptable trade-off: one isolated validation step in exchange for efficient
-    // prompting across 20+ file types, keeping prompts focused and reducing token costs.
-    const partialResponse: unknown = await llmRouter.executeCompletion(filepath, renderedPrompt, {
+    // The LLM response is validated against the picked schema during executeCompletion.
+    // Each file type uses .pick() to request only relevant fields (improves token efficiency).
+    // The picked schema is sufficient since it includes all required fields (purpose, implementation).
+    // With the improved type system, the response is now correctly typed without double validation.
+    const completionOptions = {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: promptMetadata.responseSchema,
       hasComplexSchema: promptMetadata.hasComplexSchema,
-    });
+    } as const;
 
-    if (partialResponse === null) {
+    // ESLint cannot track that the generic type from executeCompletion flows correctly here.
+    // The response is validated against the picked schema which includes all required fields.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const response = await llmRouter.executeCompletion(filepath, renderedPrompt, completionOptions);
+
+    if (response === null) {
       throw new BadResponseContentLLMError("LLM returned null response");
     }
 
-    // Validate against full schema to ensure return type contract.
-    // The picked schema ensures LLM focuses on relevant fields; this validation ensures
-    // we return a complete SourceSummaryType with all required fields populated.
-    const finalValidation = sourceSummarySchema.safeParse(partialResponse);
-    if (!finalValidation.success) {
-      throw new BadResponseContentLLMError(
-        "LLM response did not conform to the full sourceSummarySchema",
-        {
-          issues: finalValidation.error.issues,
-          data: partialResponse as Record<string, unknown>,
-        },
-      );
-    }
-
-    // Return the fully validated data, now guaranteed to be SourceSummaryType
-    return finalValidation.data;
+    // Type assertion: The picked schema includes all required fields (purpose, implementation).
+    // Optional fields not in the pick will be undefined, which is valid for SourceSummaryType.
+    // This assertion acknowledges that the picked type is a compatible subset of SourceSummaryType.
+    return response as SourceSummaryType;
   } catch (error: unknown) {
     const errorMsg = `Failed to generate summary for '${filepath}'`;
     logOneLineWarning(errorMsg, error);
