@@ -103,7 +103,7 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
   context: LLMContext,
   completionOptions: LLMCompletionOptions<S>,
   loggingEnabled = true,
-): JsonProcessorResult<S extends z.ZodType<infer T> ? T : Record<string, unknown>> {
+): JsonProcessorResult<z.infer<S>> {
   // Pre-check - ensure content is a string
   if (typeof content !== "string") {
     const contentText = JSON.stringify(content);
@@ -171,7 +171,7 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
     logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
-      data: parseResult.data as S extends z.ZodType<infer T> ? T : Record<string, unknown>,
+      data: parseResult.data as z.infer<S>,
       mutationSteps: parseResult.steps,
     };
   }

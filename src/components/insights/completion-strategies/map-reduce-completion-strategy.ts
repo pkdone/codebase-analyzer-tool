@@ -10,7 +10,6 @@ import { llmTokens } from "../../../di/tokens";
 import { ICompletionStrategy } from "./completion-strategy.interface";
 import {
   AppSummaryCategoryEnum,
-  PartialAppSummaryRecord,
   CategoryInsightResult,
   appSummaryCategorySchemas,
 } from "../insights.types";
@@ -63,8 +62,8 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
       );
 
       // 2. MAP: Generate partial insights for each chunk
-      // Collect as PartialAppSummaryRecord since we're aggregating multiple chunk results
-      const partialResults: PartialAppSummaryRecord[] = [];
+      // Collect with category-specific typing to preserve type safety through the pipeline
+      const partialResults: CategoryInsightResult<C>[] = [];
       for (const chunk of summaryChunks) {
         const index = partialResults.length;
         console.log(
@@ -131,7 +130,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
    */
   private async reducePartialInsights<C extends AppSummaryCategoryEnum>(
     category: C,
-    partialResults: PartialAppSummaryRecord[],
+    partialResults: CategoryInsightResult<C>[],
   ): Promise<CategoryInsightResult<C> | null> {
     const config = summaryCategoriesConfig[category];
 
@@ -143,11 +142,11 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const categoryKey = Object.keys(schemaShape)[0];
 
     // Flatten the arrays from all partial results into a single combined list
-    // We need to access the category property from PartialAppSummaryRecord
+    // result is now strongly typed as CategoryInsightResult<C>, which is the category-specific shape
     const combinedData = partialResults.flatMap((result) => {
-      const record = result as Record<string, unknown>;
-      const categoryData = record[category];
-      // Type guard to ensure we're working with arrays
+      // Dynamic key access still requires a cast since TypeScript cannot narrow generic keys at compile time,
+      // but this is justified: result is guaranteed to be CategoryInsightResult<C> and category is the key
+      const categoryData = (result as Record<string, unknown>)[categoryKey];
       if (Array.isArray(categoryData)) {
         return categoryData as unknown[];
       }

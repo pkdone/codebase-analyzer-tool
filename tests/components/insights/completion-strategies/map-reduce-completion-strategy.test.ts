@@ -42,10 +42,11 @@ describe("MapReduceCompletionStrategy", () => {
 
     it("should call executeCompletion for map and reduce phases", async () => {
       const category: AppSummaryCategoryEnum = "entities";
-      const mockMapResponse: PartialAppSummaryRecord = {
+      // Use category-specific type instead of PartialAppSummaryRecord for stronger typing
+      const mockMapResponse = {
         entities: [{ name: "Entity1", description: "Description 1" }],
       };
-      const mockReduceResponse: PartialAppSummaryRecord = {
+      const mockReduceResponse = {
         entities: [{ name: "Entity1", description: "Description 1" }],
       };
 
@@ -77,7 +78,8 @@ describe("MapReduceCompletionStrategy", () => {
 
     it("should return null when reduce phase returns null", async () => {
       const category: AppSummaryCategoryEnum = "entities";
-      const mockMapResponse: PartialAppSummaryRecord = {
+      // Use category-specific type for stronger typing
+      const mockMapResponse = {
         entities: [{ name: "Entity1", description: "Description 1" }],
       };
 
@@ -121,7 +123,7 @@ describe("MapReduceCompletionStrategy", () => {
         "* file1.ts: purpose implementation",
       ]);
 
-      // Type check: result should be compatible with PartialAppSummaryRecord
+      // Type check: result is category-specific but also compatible with PartialAppSummaryRecord
       expect(result).toEqual(mockResponse);
       if (result) {
         const schemaType: z.infer<typeof _config.responseSchema> = result;

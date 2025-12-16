@@ -337,17 +337,16 @@ export default abstract class AbstractLLM implements LLMProvider {
 
     // Process JSON with schema-aware type inference.
     // The jsonSchema from completionOptions carries the type information through the chain.
-    // While TypeScript's inference is strong, the complex conditional type InferResponseType
-    // combined with the generic flow requires an assertion to satisfy strict type checking.
+    // While the simplified processJson return type improves type safety, TypeScript's inference
+    // through this deep generic async pipeline still requires an assertion for strict type checking.
     const jsonProcessingResult = processJson(responseContent, context, completionOptions, true);
 
     if (jsonProcessingResult.success) {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        // See comment about assertion required above. So don't change using an assertion because
-        // this is justified for TypeScript 5.7.3 and later ones, unless you are sure you are runing
-        // newer TSC version that actuallysupports this.
+        // Type assertion is necessary due to TypeScript's limitations with deep generic inference.
+        // The runtime type is guaranteed correct by processJson's validation.
         generated: jsonProcessingResult.data as ResponseType,
         mutationSteps: jsonProcessingResult.mutationSteps,
       };

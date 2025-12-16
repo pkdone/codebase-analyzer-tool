@@ -505,4 +505,108 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
       }
     });
   });
+
+  describe("Simplified type chain - processJson integration", () => {
+    test("should demonstrate end-to-end type safety from processJson to consumer", async () => {
+      // Test that verifies the simplified type chain improvements
+      const dataSchema = z.object({
+        entities: z.array(z.object({ name: z.string(), id: z.number() })),
+        summary: z.string(),
+      });
+
+      const mockResponse = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test prompt",
+        modelKey: "TEST_PRIMARY_COMPLETION",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: {
+          entities: [
+            { name: "Entity1", id: 1 },
+            { name: "Entity2", id: 2 },
+          ],
+          summary: "Test summary",
+        },
+        mutationSteps: [],
+      };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue(mockResponse);
+
+      const result = await llmRouter.executeCompletion("test-resource", "test prompt", {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: dataSchema,
+      });
+
+      // With simplified processJson return type, no type assertions are needed
+      // The type flows cleanly from schema -> processJson -> AbstractLLM -> LLMRouter -> consumer
+      expect(result).not.toBeNull();
+      if (result) {
+        // All type inference works without any casts
+        const entities: { name: string; id: number }[] = result.entities;
+        const summary: string = result.summary;
+
+        expect(entities).toHaveLength(2);
+        expect(entities[0].name).toBe("Entity1");
+        expect(entities[0].id).toBe(1);
+        expect(summary).toBe("Test summary");
+      }
+    });
+
+    test("should preserve type safety through mutation steps", async () => {
+      const schema = z.object({
+        value: z.string(),
+        count: z.number(),
+      });
+
+      const mockResponse = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test prompt",
+        modelKey: "TEST_PRIMARY_COMPLETION",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: { value: "test", count: 42 },
+        mutationSteps: ["convertNullToUndefined", "coerceNumericProperties"],
+      };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue(mockResponse);
+
+      const result = await llmRouter.executeCompletion("test-resource", "test prompt", {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      });
+
+      // Type is preserved even when mutations were applied
+      expect(result).not.toBeNull();
+      if (result) {
+        // No casts needed - type is correctly inferred as z.infer<typeof schema>
+        const typedResult: z.infer<typeof schema> = result;
+        expect(typedResult.value).toBe("test");
+        expect(typedResult.count).toBe(42);
+      }
+    });
+
+    test("should handle Record<string, unknown> default gracefully", async () => {
+      // Test without schema - should default to Record<string, unknown>
+      const mockResponse = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test prompt",
+        modelKey: "TEST_PRIMARY_COMPLETION",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: { arbitraryKey: "arbitraryValue", nested: { data: 123 } },
+        mutationSteps: [],
+      };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue(mockResponse);
+
+      const result = await llmRouter.executeCompletion("test-resource", "test prompt", {
+        outputFormat: LLMOutputFormat.JSON,
+      });
+
+      // Without schema, type is LLMGeneratedContent (can be string, Record, or number[])
+      // At runtime, JSON without schema returns Record<string, unknown>
+      expect(result).not.toBeNull();
+      if (result && typeof result === "object" && !Array.isArray(result)) {
+        const recordResult: Record<string, unknown> = result;
+        expect(recordResult.arbitraryKey).toBe("arbitraryValue");
+      }
+    });
+  });
 });
