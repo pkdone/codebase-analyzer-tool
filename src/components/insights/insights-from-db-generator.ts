@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import LLMRouter from "../../llm/llm-router";
+import LLMRouter from "../../common/llm/llm-router";
 import { fileProcessingConfig } from "../../config/file-processing.config";
 import { logOneLineWarning } from "../../common/utils/logging";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
@@ -15,7 +15,7 @@ import { AppSummaryCategoryEnum } from "./insights.types";
 import { ICompletionStrategy } from "./completion-strategies/completion-strategy.interface";
 import { SinglePassCompletionStrategy } from "./completion-strategies/single-pass-completion-strategy";
 import { MapReduceCompletionStrategy } from "./completion-strategies/map-reduce-completion-strategy";
-import { chunkTextByTokenLimit } from "../../llm/utils/text-chunking";
+import { chunkTextByTokenLimit } from "../../common/llm/utils/text-chunking";
 
 /**
  * Generates metadata in database collections to capture application information,

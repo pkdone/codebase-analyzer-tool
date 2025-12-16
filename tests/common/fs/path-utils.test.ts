@@ -7,7 +7,7 @@ describe("Path utilities", () => {
       { input: "myfile.txt", expected: "txt", description: "normal file with extension" },
       { input: "myfile.", expected: "", description: "file with trailing dot" },
       { input: "myfile", expected: "", description: "file without extension" },
-      { input: "path/to/file.js", expected: "js", description: "file with path and extension" },
+      { input: "path/to/file.ts", expected: "ts", description: "file with path and extension" },
       { input: "file.test.ts", expected: "ts", description: "file with multiple dots" },
       { input: ".gitignore", expected: "", description: "hidden file without extension" },
       { input: ".env.local", expected: "local", description: "hidden file with extension" },

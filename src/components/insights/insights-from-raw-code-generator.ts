@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import LLMRouter from "../../llm/llm-router";
+import LLMRouter from "../../common/llm/llm-router";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import { repositoryTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
@@ -10,7 +10,7 @@ import { formatCodebaseAsMarkdown } from "../../common/utils/codebase-to-markdow
 import type { EnvVars } from "../../env/env.types";
 import { logOneLineWarning } from "../../common/utils/logging";
 import { renderPrompt } from "../../prompts/prompt-renderer";
-import { LLMOutputFormat } from "../../llm/types/llm.types";
+import { LLMOutputFormat } from "../../common/llm/types/llm.types";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
 import { BASE_PROMPT_TEMPLATE } from "../../prompts/templates";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";

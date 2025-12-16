@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { queryCodebaseWithQuestion } from "../../../src/components/querying/codebase-query-processor";
 import type { SourcesRepository } from "../../../src/repositories/sources/sources.repository.interface";
-import type LLMRouter from "../../../src/llm/llm-router";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import type LLMRouter from "../../../src/common/llm/llm-router";
+import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
 import type { ProjectedSourceMetataContentAndSummary } from "../../../src/repositories/sources/sources.model";
 
 describe("queryCodebaseWithQuestion", () => {

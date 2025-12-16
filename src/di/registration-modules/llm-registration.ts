@@ -1,25 +1,18 @@
 import { container } from "tsyringe";
-import LLMRouter from "../../llm/llm-router";
-import LLMStats from "../../llm/tracking/llm-stats";
-import { LLMStatsReporter } from "../../llm/tracking/llm-stats-reporter";
-import { PromptAdaptationStrategy } from "../../llm/strategies/prompt-adaptation-strategy";
-import { LLMErrorLogger } from "../../llm/tracking/llm-error-logger";
-import { llmTokens } from "../tokens";
+import { createLLMRouter, createLLMStatsReporter } from "../../common/llm/llm-factory";
+import { buildLLMModuleConfig } from "../../config/llm-config-builder";
+import { EnvVars } from "../../env/env.types";
+import { llmTokens, coreTokens } from "../tokens";
 
 /**
  * Register LLM provider management services in the DI container.
  *
  * This module handles the registration of LLM provider management services.
+ * The LLM module is now standalone and instantiated via factory functions.
  */
 export function registerLLMProviders(): void {
-  // Register LLM utility classes
-  container.registerSingleton(llmTokens.LLMStats, LLMStats);
-  container.registerSingleton(llmTokens.LLMStatsReporter, LLMStatsReporter);
-  container.registerSingleton(llmTokens.PromptAdaptationStrategy, PromptAdaptationStrategy);
-  container.registerSingleton(llmTokens.LLMErrorLogger, LLMErrorLogger);
-  // RetryStrategy, FallbackStrategy, and LLMExecutionPipeline are now registered in app-registration.ts
-
-  console.log("LLM services registered");
+  // LLM module is now instantiated via factory, no individual service registration needed
+  console.log("LLM services ready for initialization");
 }
 
 /**
@@ -38,8 +31,22 @@ export function initializeAndRegisterLLMComponents(): void {
     return;
   }
 
-  // Register LLMRouter as a singleton
-  // LLMRouter now directly creates the provider using modelFamily and JsonProcessor
-  container.registerSingleton(llmTokens.LLMRouter, LLMRouter);
+  // Get configuration from DI container
+  const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
+  const modelFamily = container.resolve<string>(llmTokens.LLMModelFamily);
+
+  // Build LLM module configuration
+  const llmConfig = buildLLMModuleConfig(envVars, modelFamily);
+
+  // Create LLM router using factory
+  const { router, stats } = createLLMRouter({ config: llmConfig });
+
+  // Register LLMRouter instance in DI container for application use
+  container.registerInstance(llmTokens.LLMRouter, router);
+
+  // Create and register stats reporter (optional, for displaying stats)
+  const llmStatsReporter = createLLMStatsReporter(stats);
+  container.registerInstance(llmTokens.LLMStatsReporter, llmStatsReporter);
+
   console.log("LLMRouter registered as singleton");
 }

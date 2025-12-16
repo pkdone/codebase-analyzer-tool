@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
 import { coreTokens } from "../../../src/di/tokens";
 import { databaseConfig } from "../../../src/config/database.config";
 import { registerAppDependencies } from "../../../src/di/registration-modules";
-import { loadManifestForModelFamily } from "../../../src/llm/utils/manifest-loader";
+import { loadManifestForModelFamily } from "../../../src/common/llm/utils/manifest-loader";
 
 // Store client and dbName to be accessible in teardown
 let testMongoClient: MongoClient | null = null;

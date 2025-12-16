@@ -1,5 +1,5 @@
-import LLMRouter from "../../llm/llm-router";
-import { LLMOutputFormat } from "../../llm/types/llm.types";
+import LLMRouter from "../../common/llm/llm-router";
+import { LLMOutputFormat } from "../../common/llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { ProjectedSourceMetataContentAndSummary } from "../../repositories/sources/sources.model";
 import { queryingInputConfig } from "./querying-input.config";

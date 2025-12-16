@@ -2,10 +2,10 @@ import "reflect-metadata";
 import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { z } from "zod";
 import InsightsFromRawCodeGenerator from "../../../src/components/insights/insights-from-raw-code-generator";
-import LLMRouter from "../../../src/llm/llm-router";
+import LLMRouter from "../../../src/common/llm/llm-router";
 import type { AppSummariesRepository } from "../../../src/repositories/app-summaries/app-summaries.repository.interface";
 import type { EnvVars } from "../../../src/env/env.types";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
+import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
 import { appSummaryRecordCategoriesSchema } from "../../../src/components/insights/insights.types";
 
 // Mock dependencies
@@ -110,7 +110,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
     test("should handle partial properties correctly (not double-partial)", async () => {
       // Test with only some categories present
       const partialResponse = {
-        technologies: [{ name: "Node.js", description: "Node.js runtime", version: "20.0.0" }],
+        technologies: [{ name: "Node.ts", description: "Node.ts runtime", version: "20.0.0" }],
         // Other categories intentionally omitted
       };
 

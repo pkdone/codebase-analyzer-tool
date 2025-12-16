@@ -51,7 +51,7 @@ describe("markdown-formatter", () => {
           content: "export const app = {};",
         },
         {
-          filepath: "src/app.js",
+          filepath: "src/app.ts",
           type: "js",
           content: "export const app = {};",
         },

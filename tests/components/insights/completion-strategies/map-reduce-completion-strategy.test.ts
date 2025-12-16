@@ -6,8 +6,8 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../../../../src/components/insights/insights.types";
-import LLMRouter from "../../../../src/llm/llm-router";
-import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
+import LLMRouter from "../../../../src/common/llm/llm-router";
+import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
 import { appSummaryPromptMetadata } from "../../../../src/prompts/definitions/app-summaries";
 import { z } from "zod";
 
@@ -318,7 +318,7 @@ describe("MapReduceCompletionStrategy", () => {
       const mockResponse = {
         technologies: [
           { name: "TypeScript", version: "5.7.3" },
-          { name: "Node.js", version: "20.0.0" },
+          { name: "Node.ts", version: "20.0.0" },
         ],
       };
 

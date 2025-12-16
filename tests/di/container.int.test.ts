@@ -10,7 +10,7 @@ import { MongoClient } from "mongodb";
 import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
 
 // Mock only the LLM parts to avoid real API calls and costs
-jest.mock("../../src/llm/llm-router");
+jest.mock("../../src/common/llm/llm-router");
 
 // Load environment variables for tests
 function ensureEnvLoaded(): void {

@@ -42,7 +42,7 @@ describe("AppSummaryRepository Integration Tests", () => {
         llmProvider: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
-          { name: "Node.js", description: "JavaScript runtime for server-side development" },
+          { name: "Node.ts", description: "JavaScript runtime for server-side development" },
           { name: "MongoDB", description: "NoSQL document database" },
         ],
         entities: [
@@ -164,7 +164,7 @@ describe("AppSummaryRepository Integration Tests", () => {
         appDescription: "Updated description via partial update",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
-          { name: "Express", description: "Web framework for Node.js" },
+          { name: "Express", description: "Web framework for Node.ts" },
         ],
       };
 
@@ -225,7 +225,7 @@ describe("AppSummaryRepository Integration Tests", () => {
         llmProvider: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
-          { name: "Node.js", description: "JavaScript runtime" },
+          { name: "Node.ts", description: "JavaScript runtime" },
           { name: "MongoDB", description: "NoSQL database" },
         ],
         entities: [

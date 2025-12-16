@@ -3,7 +3,7 @@ import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../config/output.config";
 import { clearDirectory } from "../common/fs/directory-operations";
 import { RawAnalyzerDrivenByReqsFiles } from "../components/raw-analysis/raw-analyzer-driven-by-reqs-files";
-import type { LLMStatsReporter } from "../llm/tracking/llm-stats-reporter";
+import type { LLMStatsReporter } from "../common/llm/tracking/llm-stats-reporter";
 import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";
 import { llmTokens } from "../di/tokens";

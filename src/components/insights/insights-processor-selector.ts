@@ -2,12 +2,12 @@ import { inject, injectable } from "tsyringe";
 import { coreTokens } from "../../di/tokens";
 import { insightsTokens } from "../../di/tokens";
 import { llmTokens } from "../../di/tokens";
-import LLMRouter from "../../llm/llm-router";
+import LLMRouter from "../../common/llm/llm-router";
 import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./insights-from-db-generator";
 import type InsightsFromRawCodeGenerator from "./insights-from-raw-code-generator";
 import { formatCodebaseAsMarkdown } from "../../common/utils/codebase-to-markdown";
-import { llmProviderConfig } from "../../llm/llm.config";
+import { llmProviderConfig } from "../../common/llm/llm.config";
 
 /**
  * Service to determine which insights processor to use based on LLM capabilities.

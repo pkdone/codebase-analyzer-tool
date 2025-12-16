@@ -46,7 +46,7 @@ describe("AppSummaryRepositoryImpl", () => {
         llmProvider: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
-          { name: "Node.js", description: "JavaScript runtime for server-side development" },
+          { name: "Node.ts", description: "JavaScript runtime for server-side development" },
         ],
         entities: [{ name: "User", description: "User management entity" }],
       };
@@ -232,7 +232,7 @@ describe("AppSummaryRepositoryImpl", () => {
         llmProvider: "openai",
         technologies: [
           { name: "TypeScript", description: "JavaScript with static types" },
-          { name: "Node.js", description: "JavaScript runtime" },
+          { name: "Node.ts", description: "JavaScript runtime" },
         ],
       };
 

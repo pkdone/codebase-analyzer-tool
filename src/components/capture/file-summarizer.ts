@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { logOneLineWarning } from "../../common/utils/logging";
-import type LLMRouter from "../../llm/llm-router";
-import { LLMOutputFormat } from "../../llm/types/llm.types";
-import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
+import type LLMRouter from "../../common/llm/llm-router";
+import { LLMOutputFormat } from "../../common/llm/types/llm.types";
+import { BadResponseContentLLMError } from "../../common/llm/types/llm-errors.types";
 import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
 import { sourcePromptSchemas } from "../../prompts/definitions/sources/sources.schemas";

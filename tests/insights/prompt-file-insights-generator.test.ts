@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { RawAnalyzerDrivenByReqsFiles } from "../../src/components/raw-analysis/raw-analyzer-driven-by-reqs-files";
-import LLMRouter from "../../src/llm/llm-router";
+import LLMRouter from "../../src/common/llm/llm-router";
 
 jest.mock("../../src/common/fs/directory-operations", () => ({
   ensureDirectoryExists: jest.fn().mockResolvedValue(undefined),
@@ -16,7 +16,7 @@ jest.mock("../../src/common/fs/file-operations", () => ({
 jest.mock("../../src/common/utils/codebase-to-markdown", () => ({
   formatCodebaseAsMarkdown: jest.fn(async () => "CODEBLOCK"),
 }));
-jest.mock("../../src/llm/llm-router");
+jest.mock("../../src/common/llm/llm-router");
 
 describe("PromptFileInsightsGenerator", () => {
   it("loads prompts filtering only .prompt files and generates insights", async () => {

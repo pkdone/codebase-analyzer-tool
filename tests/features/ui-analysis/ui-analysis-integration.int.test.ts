@@ -39,8 +39,8 @@ describe("UI Technology Analysis Integration Test", () => {
     // Arrange: Insert test JSP files and XML config files with UI data
     const testJspFile1: SourceRecord = {
       projectName,
-      filename: "home.jsp",
-      filepath: "webapp/pages/home.jsp",
+      filename: "home.ts",
+      filepath: "webapp/pages/home.ts",
       type: "jsp",
       linesCount: 50,
       content: "JSP content with scriptlets",
@@ -61,8 +61,8 @@ describe("UI Technology Analysis Integration Test", () => {
 
     const testJspFile2: SourceRecord = {
       projectName,
-      filename: "login.jsp",
-      filepath: "webapp/pages/login.jsp",
+      filename: "login.ts",
+      filepath: "webapp/pages/login.ts",
       type: "jsp",
       linesCount: 30,
       content: "Login JSP content",
@@ -80,8 +80,8 @@ describe("UI Technology Analysis Integration Test", () => {
 
     const testJspFile3: SourceRecord = {
       projectName,
-      filename: "admin.jsp",
-      filepath: "webapp/admin/admin.jsp",
+      filename: "admin.ts",
+      filepath: "webapp/admin/admin.ts",
       type: "jsp",
       linesCount: 80,
       content: "Admin panel JSP",
@@ -176,20 +176,20 @@ describe("UI Technology Analysis Integration Test", () => {
 
     const fmtTag = uiAnalysisResult.customTagLibraries.find((t) => t.prefix === "fmt");
     expect(fmtTag).toBeDefined();
-    expect(fmtTag?.usageCount).toBe(1); // Used only in home.jsp
+    expect(fmtTag?.usageCount).toBe(1); // Used only in home.tsp
 
     const customTag = uiAnalysisResult.customTagLibraries.find((t) => t.prefix === "custom");
     expect(customTag).toBeDefined();
-    expect(customTag?.usageCount).toBe(1); // Used only in admin.jsp
+    expect(customTag?.usageCount).toBe(1); // Used only in admin.tsp
 
     // Verify top scriptlet files
     expect(uiAnalysisResult.topScriptletFiles).toHaveLength(3);
     // Should be sorted by total blocks descending
-    expect(uiAnalysisResult.topScriptletFiles[0].filePath).toBe("webapp/admin/admin.jsp");
+    expect(uiAnalysisResult.topScriptletFiles[0].filePath).toBe("webapp/admin/admin.ts");
     expect(uiAnalysisResult.topScriptletFiles[0].totalScriptletBlocks).toBe(40); // 25 + 10 + 5
-    expect(uiAnalysisResult.topScriptletFiles[1].filePath).toBe("webapp/pages/home.jsp");
+    expect(uiAnalysisResult.topScriptletFiles[1].filePath).toBe("webapp/pages/home.ts");
     expect(uiAnalysisResult.topScriptletFiles[1].totalScriptletBlocks).toBe(25); // 8 + 15 + 2
-    expect(uiAnalysisResult.topScriptletFiles[2].filePath).toBe("webapp/pages/login.jsp");
+    expect(uiAnalysisResult.topScriptletFiles[2].filePath).toBe("webapp/pages/login.ts");
     expect(uiAnalysisResult.topScriptletFiles[2].totalScriptletBlocks).toBe(18); // 12 + 5 + 1
   });
 
@@ -275,8 +275,8 @@ describe("UI Technology Analysis Integration Test", () => {
     // Arrange: Insert test data
     const testJspFile: SourceRecord = {
       projectName,
-      filename: "test.jsp",
-      filepath: "test.jsp",
+      filename: "test.ts",
+      filepath: "test.ts",
       type: "jsp",
       linesCount: 20,
       content: "Test JSP",
@@ -309,6 +309,6 @@ describe("UI Technology Analysis Integration Test", () => {
     expect(uiData.totalScriptlets).toBe(5);
     expect(uiData.totalExpressions).toBe(3);
     expect(uiData.topScriptletFiles).toHaveLength(1);
-    expect(uiData.topScriptletFiles[0].filePath).toBe("test.jsp");
+    expect(uiData.topScriptletFiles[0].filePath).toBe("test.ts");
   });
 });

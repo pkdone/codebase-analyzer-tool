@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../components/capture/codebase-to-db-loader";
-import type { LLMStatsReporter } from "../llm/tracking/llm-stats-reporter";
+import type { LLMStatsReporter } from "../common/llm/tracking/llm-stats-reporter";
 import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";
 import { DatabaseInitializer } from "./database-initializer";

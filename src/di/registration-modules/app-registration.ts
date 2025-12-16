@@ -29,9 +29,9 @@ import { ReportGenerationTask } from "../../tasks/report-generation.task";
 import { databaseConfig } from "../../config/database.config";
 
 // LLM strategy and pipeline imports
-import { RetryStrategy } from "../../llm/strategies/retry-strategy";
-import { FallbackStrategy } from "../../llm/strategies/fallback-strategy";
-import { LLMExecutionPipeline } from "../../llm/llm-execution-pipeline";
+import { RetryStrategy } from "../../common/llm/strategies/retry-strategy";
+import { FallbackStrategy } from "../../common/llm/strategies/fallback-strategy";
+import { LLMExecutionPipeline } from "../../common/llm/llm-execution-pipeline";
 
 // Database component imports
 import { DatabaseInitializer } from "../../tasks/database-initializer";

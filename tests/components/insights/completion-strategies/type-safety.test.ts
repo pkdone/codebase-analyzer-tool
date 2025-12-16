@@ -10,7 +10,7 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../../../../src/components/insights/insights.types";
-import LLMRouter from "../../../../src/llm/llm-router";
+import LLMRouter from "../../../../src/common/llm/llm-router";
 import { z } from "zod";
 
 describe("Type Safety Tests", () => {

@@ -133,7 +133,7 @@ describe("AppSummaryRepositoryImpl - Partial Updates", () => {
       const partialRecord: PartialAppSummaryRecord = {
         projectName: "test-project",
         appDescription: "Updated description",
-        technologies: [{ name: "Node.js", description: "JavaScript runtime" }],
+        technologies: [{ name: "Node.ts", description: "JavaScript runtime" }],
         entities: [{ name: "User", description: "User entity" }],
         llmProvider: "openai",
       };

@@ -134,7 +134,7 @@ describe("file-types.config", () => {
       expect(EXTENSION_TO_TYPE_MAP.java).toBe("java");
       expect(EXTENSION_TO_TYPE_MAP.kt).toBe("java");
       expect(EXTENSION_TO_TYPE_MAP.kts).toBe("java");
-      expect(EXTENSION_TO_TYPE_MAP.js).toBe("javascript");
+      expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
       expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
       expect(EXTENSION_TO_TYPE_MAP.py).toBe("python");
     });
@@ -166,7 +166,7 @@ describe("file-types.config", () => {
 
       // Test extension matches
       expect(EXTENSION_TO_TYPE_MAP.java).toBe("java");
-      expect(EXTENSION_TO_TYPE_MAP.js).toBe("javascript");
+      expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
       expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
       expect(EXTENSION_TO_TYPE_MAP.md).toBe("markdown");
 

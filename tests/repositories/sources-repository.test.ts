@@ -469,7 +469,7 @@ describe("SourcesRepositoryImpl", () => {
         const projectName = "test-project";
         const mockCursor = {
           map: jest.fn().mockReturnValue({
-            toArray: jest.fn().mockResolvedValue(["src/test1.ts", "src/test2.js"]),
+            toArray: jest.fn().mockResolvedValue(["src/test1.ts", "src/test2.ts"]),
           }),
           toArray: jest.fn(),
         };
@@ -477,7 +477,7 @@ describe("SourcesRepositoryImpl", () => {
 
         const result = await repository.getProjectFilesPaths(projectName);
 
-        expect(result).toEqual(["src/test1.ts", "src/test2.js"]);
+        expect(result).toEqual(["src/test1.ts", "src/test2.ts"]);
         expect(mockCollection.find).toHaveBeenCalledWith(
           { projectName },
           { projection: { _id: 0, filepath: 1 } },

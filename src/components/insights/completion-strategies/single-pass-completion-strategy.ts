@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import LLMRouter from "../../../llm/llm-router";
+import LLMRouter from "../../../common/llm/llm-router";
 import { llmTokens } from "../../../di/tokens";
 import { ICompletionStrategy } from "./completion-strategy.interface";
 import { AppSummaryCategoryEnum, CategoryInsightResult } from "../insights.types";

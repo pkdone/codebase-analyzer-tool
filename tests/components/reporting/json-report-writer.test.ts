@@ -30,7 +30,7 @@ describe("JsonReportWriter", () => {
       data: { fileCount: 150, linesOfCode: 7500, lastUpdated: "2024-01-15" },
     },
     {
-      filename: "file-types.json",
+      filename: "file-types.tson",
       data: { typescript: 80, javascript: 45, json: 25, markdown: 10 },
     },
   ];
@@ -69,7 +69,7 @@ describe("JsonReportWriter", () => {
         JSON.stringify(mockPreparedDataList[1].data, null, 2),
       );
       expect(mockWriteFile).toHaveBeenCalledWith(
-        path.join(outputConfig.OUTPUT_DIR, "file-types.json"),
+        path.join(outputConfig.OUTPUT_DIR, "file-types.tson"),
         JSON.stringify(mockPreparedDataList[2].data, null, 2),
       );
 
@@ -77,7 +77,7 @@ describe("JsonReportWriter", () => {
       expect(mockConsoleLog).toHaveBeenCalledWith("Generating JSON files for all data sections...");
       expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: entities.json");
       expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: app-stats.json");
-      expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.json");
+      expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.tson");
       expect(mockConsoleLog).toHaveBeenCalledWith("Finished generating all JSON files");
       expect(mockConsoleError).not.toHaveBeenCalled();
     });
@@ -103,7 +103,7 @@ describe("JsonReportWriter", () => {
       expect(mockWriteFile).toHaveBeenCalledTimes(3);
       expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: entities.json");
       expect(mockConsoleError).toHaveBeenCalledWith("Failed to write a JSON file:", fileError);
-      expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.json");
+      expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.tson");
       expect(mockConsoleLog).toHaveBeenCalledWith("Finished generating all JSON files");
     });
 
@@ -120,7 +120,7 @@ describe("JsonReportWriter", () => {
 
       expect(mockConsoleError).toHaveBeenCalledWith("Failed to write a JSON file:", error1);
       expect(mockConsoleError).toHaveBeenCalledWith("Failed to write a JSON file:", error2);
-      expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.json");
+      expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: file-types.tson");
     });
 
     it("should handle all files failing", async () => {
@@ -144,7 +144,7 @@ describe("JsonReportWriter", () => {
     it("should format JSON with proper indentation", async () => {
       const complexData = [
         {
-          filename: "complex.json",
+          filename: "complex.tson",
           data: {
             nested: {
               object: {
@@ -162,7 +162,7 @@ describe("JsonReportWriter", () => {
 
       const expectedJson = JSON.stringify(complexData[0].data, null, 2);
       expect(mockWriteFile).toHaveBeenCalledWith(
-        path.join(outputConfig.OUTPUT_DIR, "complex.json"),
+        path.join(outputConfig.OUTPUT_DIR, "complex.tson"),
         expectedJson,
       );
 
@@ -174,7 +174,7 @@ describe("JsonReportWriter", () => {
     it("should handle special data types in JSON", async () => {
       const specialData = [
         {
-          filename: "special.json",
+          filename: "special.tson",
           data: {
             string: "text",
             number: 123,
@@ -208,44 +208,44 @@ describe("JsonReportWriter", () => {
 
   describe("file paths", () => {
     it("should use correct output directory from config", async () => {
-      const testData = [{ filename: "test.json", data: { test: true } }];
+      const testData = [{ filename: "test.tson", data: { test: true } }];
 
       await jsonReportWriter.writeAllJSONFiles(testData);
 
       expect(mockWriteFile).toHaveBeenCalledWith(
-        path.join(outputConfig.OUTPUT_DIR, "test.json"),
+        path.join(outputConfig.OUTPUT_DIR, "test.tson"),
         expect.any(String),
       );
     });
 
     it("should handle filenames with different extensions", async () => {
       const testData = [
-        { filename: "data.json", data: {} },
-        { filename: "config.json", data: {} },
-        { filename: "report.json", data: {} },
+        { filename: "data.tson", data: {} },
+        { filename: "config.tson", data: {} },
+        { filename: "report.tson", data: {} },
       ];
 
       await jsonReportWriter.writeAllJSONFiles(testData);
 
       expect(mockWriteFile).toHaveBeenCalledWith(
-        path.join(outputConfig.OUTPUT_DIR, "data.json"),
+        path.join(outputConfig.OUTPUT_DIR, "data.tson"),
         expect.any(String),
       );
       expect(mockWriteFile).toHaveBeenCalledWith(
-        path.join(outputConfig.OUTPUT_DIR, "config.json"),
+        path.join(outputConfig.OUTPUT_DIR, "config.tson"),
         expect.any(String),
       );
       expect(mockWriteFile).toHaveBeenCalledWith(
-        path.join(outputConfig.OUTPUT_DIR, "report.json"),
+        path.join(outputConfig.OUTPUT_DIR, "report.tson"),
         expect.any(String),
       );
     });
 
     it("should handle special characters in filenames", async () => {
       const testData = [
-        { filename: "file with spaces.json", data: {} },
-        { filename: "file-with-dashes.json", data: {} },
-        { filename: "file_with_underscores.json", data: {} },
+        { filename: "file with spaces.tson", data: {} },
+        { filename: "file-with-dashes.tson", data: {} },
+        { filename: "file_with_underscores.tson", data: {} },
       ];
 
       await jsonReportWriter.writeAllJSONFiles(testData);
@@ -261,17 +261,17 @@ describe("JsonReportWriter", () => {
 
   describe("edge cases", () => {
     it("should handle single file data", async () => {
-      const singleFile = [{ filename: "single.json", data: { single: true } }];
+      const singleFile = [{ filename: "single.tson", data: { single: true } }];
 
       await jsonReportWriter.writeAllJSONFiles(singleFile);
 
       expect(mockWriteFile).toHaveBeenCalledTimes(1);
-      expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: single.json");
+      expect(mockConsoleLog).toHaveBeenCalledWith("Generated JSON file: single.tson");
     });
 
     it("should handle large data objects", async () => {
       const largeArray = Array.from({ length: 1000 }, (_, i) => ({ id: i, value: `item-${i}` }));
-      const largeData = [{ filename: "large.json", data: { items: largeArray } }];
+      const largeData = [{ filename: "large.tson", data: { items: largeArray } }];
 
       await jsonReportWriter.writeAllJSONFiles(largeData);
 
@@ -282,12 +282,12 @@ describe("JsonReportWriter", () => {
     });
 
     it("should handle null data gracefully", async () => {
-      const nullData = [{ filename: "null.json", data: null }];
+      const nullData = [{ filename: "null.tson", data: null }];
 
       await jsonReportWriter.writeAllJSONFiles(nullData);
 
       expect(mockWriteFile).toHaveBeenCalledWith(
-        path.join(outputConfig.OUTPUT_DIR, "null.json"),
+        path.join(outputConfig.OUTPUT_DIR, "null.tson"),
         "null",
       );
     });

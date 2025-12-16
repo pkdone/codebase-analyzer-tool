@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import LLMRouter from "../../../llm/llm-router";
-import { LLMOutputFormat } from "../../../llm/types/llm.types";
+import LLMRouter from "../../../common/llm/llm-router";
+import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
 import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
 import { logOneLineWarning } from "../../../common/utils/logging";
@@ -15,7 +15,7 @@ import {
 } from "../insights.types";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
 import { executeInsightCompletion } from "./completion-executor";
-import { chunkTextByTokenLimit } from "../../../llm/utils/text-chunking";
+import { chunkTextByTokenLimit } from "../../../common/llm/utils/text-chunking";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;

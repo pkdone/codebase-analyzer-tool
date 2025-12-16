@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 import { z } from "zod";
-import LLMRouter from "../../../../src/llm/llm-router";
-import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
+import LLMRouter from "../../../../src/common/llm/llm-router";
+import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
 import {
   executeInsightCompletion,
   type InsightCompletionOptions,

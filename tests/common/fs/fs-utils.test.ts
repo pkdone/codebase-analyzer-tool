@@ -227,7 +227,7 @@ line3
       mockFs({
         "/project": {
           "file1.txt": "small content",
-          "file2.js": "medium content here",
+          "file2.ts": "medium content here",
           "large-file.md":
             "very large content with lots of text that makes this file bigger than others",
           ".hidden-file": "hidden content",
@@ -236,16 +236,16 @@ line3
             "component.tsx": "react component",
             "utils.ts": "utility functions",
             nested: {
-              "deep-file.js": "deep nested file",
+              "deep-file.ts": "deep nested file",
             },
           },
           node_modules: {
             package: {
-              "index.js": "package content",
+              "index.ts": "package content",
             },
           },
           dist: {
-            "build.js": "built content",
+            "build.ts": "built content",
           },
           ".git": {
             config: "git config",
@@ -265,11 +265,11 @@ line3
       expect(relativePaths).toEqual(
         [
           "file1.txt",
-          "file2.js",
+          "file2.ts",
           "ignored-prefix-file.txt", // Note: only files starting with prefix are ignored, not containing
           "large-file.md",
           "src/component.tsx",
-          "src/nested/deep-file.js",
+          "src/nested/deep-file.ts",
           "src/utils.ts",
         ].sort(),
       );
@@ -304,7 +304,7 @@ line3
 
       // Should still include root level files
       expect(relativePaths).toContain("file1.txt");
-      expect(relativePaths).toContain("file2.js");
+      expect(relativePaths).toContain("file2.ts");
     });
 
     test("should respect filename ignore prefix", async () => {
@@ -322,7 +322,7 @@ line3
 
       // Should still include other files
       expect(relativePaths).toContain("file1.txt");
-      expect(relativePaths).toContain("file2.js");
+      expect(relativePaths).toContain("file2.ts");
     });
 
     test("should handle empty directory", async () => {

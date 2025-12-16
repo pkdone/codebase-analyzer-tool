@@ -30,10 +30,10 @@ describe("codebase-to-markdown", () => {
   describe("formatCodebaseForPrompt", () => {
     it("should process a codebase directory and generate markdown code blocks", async () => {
       const codebasePath = "/test/project";
-      const mockFiles = ["/test/project/file1.ts", "/test/project/file2.js"];
+      const mockFiles = ["/test/project/file1.ts", "/test/project/file2.ts"];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
-      mockGetFileExtension.mockReturnValueOnce(".ts").mockReturnValueOnce(".js");
+      mockGetFileExtension.mockReturnValueOnce(".ts").mockReturnValueOnce(".ts");
       mockReadFile.mockResolvedValueOnce("const x = 1;").mockResolvedValueOnce("var y = 2;");
 
       const result = await formatCodebaseAsMarkdown(codebasePath);
@@ -46,7 +46,7 @@ describe("codebase-to-markdown", () => {
 
       expect(result).toContain("``` file1.ts");
       expect(result).toContain("const x = 1;");
-      expect(result).toContain("``` file2.js");
+      expect(result).toContain("``` file2.ts");
       expect(result).toContain("var y = 2;");
     });
 

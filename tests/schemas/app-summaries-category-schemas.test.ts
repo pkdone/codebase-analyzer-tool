@@ -160,7 +160,7 @@ describe("appSummaryCategorySchemas", () => {
     it("should validate valid technologies data", () => {
       const result = appSummaryCategorySchemas.technologies.safeParse({
         technologies: [
-          { name: "Node.js", description: "JavaScript runtime" },
+          { name: "Node.ts", description: "JavaScript runtime" },
           { name: "TypeScript", description: "Typed JavaScript" },
         ],
       });
@@ -169,7 +169,7 @@ describe("appSummaryCategorySchemas", () => {
 
     it("should reject technologies with missing required fields", () => {
       const result = appSummaryCategorySchemas.technologies.safeParse({
-        technologies: [{ name: "Node.js" }], // Missing description
+        technologies: [{ name: "Node.ts" }], // Missing description
       });
       expect(result.success).toBe(false);
     });

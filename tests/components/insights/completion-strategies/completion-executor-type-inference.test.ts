@@ -1,6 +1,6 @@
 import { executeInsightCompletion } from "../../../../src/components/insights/completion-strategies/completion-executor";
-import LLMRouter from "../../../../src/llm/llm-router";
-import { LLMOutputFormat } from "../../../../src/llm/types/llm.types";
+import LLMRouter from "../../../../src/common/llm/llm-router";
+import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
 import {
   AppSummaryCategoryEnum,
   appSummaryCategorySchemas,
@@ -215,7 +215,7 @@ describe("completion-executor type inference improvements", () => {
     it("should preserve type information from LLM router to caller", async () => {
       const category: AppSummaryCategoryEnum = "technologies";
       const mockResponse = {
-        technologies: [{ name: "Node.js", description: "JavaScript runtime" }],
+        technologies: [{ name: "Node.ts", description: "JavaScript runtime" }],
       };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
@@ -241,7 +241,7 @@ describe("completion-executor type inference improvements", () => {
       expect(result).not.toBeNull();
       if (result) {
         const typed: z.infer<AppSummaryCategorySchemas["technologies"]> = result;
-        expect(typed.technologies[0].name).toBe("Node.js");
+        expect(typed.technologies[0].name).toBe("Node.ts");
       }
     });
 

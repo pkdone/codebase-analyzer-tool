@@ -4,7 +4,7 @@ import { taskTokens } from "../../src/di/tokens";
 import { llmTokens } from "../../src/di/tokens";
 
 // Mock the LLM-related modules to avoid environment dependencies in tests
-jest.mock("../../src/llm/llm-router");
+jest.mock("../../src/common/llm/llm-router");
 jest.mock("../../src/common/mongodb/mdb-connection-manager", () => {
   return {
     MongoDBConnectionManager: jest.fn().mockImplementation(() => {

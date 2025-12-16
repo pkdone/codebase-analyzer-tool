@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { processJson } from "../../../src/llm/json-processing/core/json-processing";
-import { LLMOutputFormat, LLMPurpose } from "../../../src/llm/types/llm.types";
+import { processJson } from "../../../src/common/llm/json-processing/core/json-processing";
+import { LLMOutputFormat, LLMPurpose } from "../../../src/common/llm/types/llm.types";
 
 // Test schemas for type inference testing
 const TestUserSchema = z.object({

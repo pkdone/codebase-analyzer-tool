@@ -467,7 +467,7 @@ describe("DatabaseReportDataProvider", () => {
     test("should handle database integrations with only required fields", async () => {
       mockSourcesRepository.getProjectDatabaseIntegrations.mockResolvedValue([
         {
-          filepath: "/path/to/file.js",
+          filepath: "/path/to/file.ts",
           summary: {
             databaseIntegration: {
               mechanism: "DRIVER",
@@ -482,7 +482,7 @@ describe("DatabaseReportDataProvider", () => {
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
-        path: "/path/to/file.js",
+        path: "/path/to/file.ts",
         mechanism: "DRIVER",
         name: undefined,
         description: "Direct database driver usage",
@@ -535,7 +535,7 @@ describe("DatabaseReportDataProvider", () => {
           },
         },
         {
-          filepath: "/path/to/repo2.js",
+          filepath: "/path/to/repo2.ts",
           summary: {
             namespace: "models.User",
             databaseIntegration: {

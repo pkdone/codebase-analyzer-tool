@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { summarizeFile } from "../../../src/components/capture/file-summarizer";
-import type LLMRouter from "../../../src/llm/llm-router";
+import type LLMRouter from "../../../src/common/llm/llm-router";
 import { sourcePromptSchemas } from "../../../src/prompts/definitions/sources/sources.schemas";
 import type { CanonicalFileType } from "../../../src/config/file-types.config";
 

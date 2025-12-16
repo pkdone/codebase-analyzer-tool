@@ -4,7 +4,7 @@ import { Task } from "../tasks/task.types";
 import { formatDateForLogging } from "../common/utils/date-utils";
 import { coreTokens, llmTokens } from "../di/tokens";
 import type { MongoDBConnectionManager } from "../common/mongodb/mdb-connection-manager";
-import type LLMRouter from "../llm/llm-router";
+import type LLMRouter from "../common/llm/llm-router";
 
 /**
  * Simplified application entry point that orchestrates the application lifecycle:

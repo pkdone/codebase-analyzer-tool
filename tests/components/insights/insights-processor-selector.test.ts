@@ -1,17 +1,17 @@
 import "reflect-metadata";
 import { InsightsProcessorSelector } from "../../../src/components/insights/insights-processor-selector";
-import LLMRouter from "../../../src/llm/llm-router";
+import LLMRouter from "../../../src/common/llm/llm-router";
 import { EnvVars } from "../../../src/env/env.types";
 import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../../src/components/insights/insights-from-raw-code-generator";
 import { formatCodebaseAsMarkdown } from "../../../src/common/utils/codebase-to-markdown";
-import { llmProviderConfig } from "../../../src/llm/llm.config";
+import { llmProviderConfig } from "../../../src/common/llm/llm.config";
 import { z } from "zod";
-import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
+import { LLMProviderManifest } from "../../../src/common/llm/providers/llm-provider.types";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/codebase-to-markdown");
-jest.mock("../../../src/llm/llm.config", () => ({
+jest.mock("../../../src/common/llm/llm.config", () => ({
   llmConfig: {
     LLM_ROLE_USER: "user",
     LLM_ROLE_ASSISTANT: "assistant",

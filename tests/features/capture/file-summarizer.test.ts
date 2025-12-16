@@ -1,13 +1,13 @@
 import "reflect-metadata";
 import { z } from "zod";
 import { summarizeFile } from "../../../src/components/capture/file-summarizer";
-import LLMRouter from "../../../src/llm/llm-router";
-import { LLMOutputFormat } from "../../../src/llm/types/llm.types";
-import { BadResponseContentLLMError } from "../../../src/llm/types/llm-errors.types";
+import LLMRouter from "../../../src/common/llm/llm-router";
+import { LLMOutputFormat } from "../../../src/common/llm/types/llm.types";
+import { BadResponseContentLLMError } from "../../../src/common/llm/types/llm-errors.types";
 import * as logging from "../../../src/common/utils/logging";
 
 // Mock dependencies
-jest.mock("../../../src/llm/llm-router");
+jest.mock("../../../src/common/llm/llm-router");
 jest.mock("../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logError: jest.fn(),
@@ -255,7 +255,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
     metadata.javascript = createConfig("index.ts", "typescript");
     metadata.sql = createConfig("schema.sql", "sql");
     metadata.xml = createConfig("config.xml", "xml");
-    metadata.jsp = createConfig("view.jsp", "jsp");
+    metadata.tsp = createConfig("view.ts", "jsp");
     metadata.markdown = createConfig("README.md", "markdown");
     metadata.default = createConfig("generic.txt", "txt");
   });
@@ -294,7 +294,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
       });
 
       test("should return successful result for JavaScript file", async () => {
-        const filepath = "src/test.js";
+        const filepath = "src/test.ts";
         const type = "js";
         const content = "function test() { return true; }";
 
@@ -374,7 +374,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 
     describe("error handling", () => {
       test("should throw error for empty file content", async () => {
-        const filepath = "src/empty.js";
+        const filepath = "src/empty.ts";
         const type = "js";
         const content = "";
 
@@ -386,7 +386,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
       });
 
       test("should throw error for whitespace-only content", async () => {
-        const filepath = "src/whitespace.js";
+        const filepath = "src/whitespace.ts";
         const type = "js";
         const content = "   \n\t  \n  ";
 
@@ -398,7 +398,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
       });
 
       test("should handle LLM service errors gracefully", async () => {
-        const filepath = "src/error.js";
+        const filepath = "src/error.ts";
         const type = "js";
         const content = "function test() { }";
         const errorMessage = "LLM service unavailable";
@@ -417,7 +417,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
       });
 
       test("should handle non-Error exceptions", async () => {
-        const filepath = "src/string-error.js";
+        const filepath = "src/string-error.ts";
         const type = "js";
         const content = "function test() { }";
 
@@ -429,7 +429,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
       });
 
       test("should throw BadResponseContentLLMError for null LLM response", async () => {
-        const filepath = "src/null-response.js";
+        const filepath = "src/null-response.ts";
         const type = "js";
         const content = "function test() { }";
 
@@ -586,7 +586,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 
     describe("integration with file handler mappings", () => {
       test("should correctly integrate with file handler mappings", async () => {
-        const filepath = "src/component.jsx";
+        const filepath = "src/component.tsx";
         const type = "js"; // JSX would map to JS handler
         const content = "const Component = () => <div>Hello</div>;";
 
@@ -626,7 +626,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 
     describe("performance and resource usage", () => {
       test("should handle large content efficiently", async () => {
-        const filepath = "src/large-file.js";
+        const filepath = "src/large-file.ts";
         const type = "js";
         const content = "function test() { }".repeat(1000);
 
@@ -640,9 +640,9 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 
       test("should handle concurrent summarization requests", async () => {
         const files = [
-          { filepath: "src/file1.js", type: "js", content: "function test1() { }" },
-          { filepath: "src/file2.js", type: "js", content: "function test2() { }" },
-          { filepath: "src/file3.js", type: "js", content: "function test3() { }" },
+          { filepath: "src/file1.ts", type: "js", content: "function test1() { }" },
+          { filepath: "src/file2.ts", type: "js", content: "function test2() { }" },
+          { filepath: "src/file3.ts", type: "js", content: "function test3() { }" },
         ];
 
         (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockSuccessResponse);
@@ -662,7 +662,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
       });
 
       test("should handle memory efficiently for test setup", async () => {
-        const filepath = "memory-test.js";
+        const filepath = "memory-test.ts";
         const type = "js";
         const content = "const x = 1;";
 

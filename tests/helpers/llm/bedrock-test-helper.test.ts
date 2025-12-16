@@ -4,8 +4,8 @@ import {
   AdditionalTestModel,
   BedrockTestData,
 } from "./bedrock-test-helper";
-import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
-import { LLMPurpose } from "../../../src/llm/types/llm.types";
+import { LLMProviderManifest } from "../../../src/common/llm/providers/llm-provider.types";
+import { LLMPurpose } from "../../../src/common/llm/types/llm.types";
 import { loadBaseEnvVarsOnly } from "../../../src/env/env";
 
 // Mock the environment loader

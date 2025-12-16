@@ -31,7 +31,7 @@ describe("AppSummaryCategoriesProvider", () => {
       // Arrange
       const mockAppSummaryData: Partial<AppSummaryRecordWithId> = {
         technologies: [
-          { name: "Node.js", description: "JavaScript runtime" },
+          { name: "Node.ts", description: "JavaScript runtime" },
           { name: "MongoDB", description: "NoSQL database" },
         ],
         businessProcesses: [

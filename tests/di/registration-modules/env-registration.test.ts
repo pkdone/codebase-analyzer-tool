@@ -7,15 +7,15 @@ import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
 } from "../../../src/di/registration-modules/env-registration";
-import { loadManifestForModelFamily } from "../../../src/llm/utils/manifest-loader";
-import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
+import { loadManifestForModelFamily } from "../../../src/common/llm/utils/manifest-loader";
+import { LLMProviderManifest } from "../../../src/common/llm/providers/llm-provider.types";
 import { getProjectNameFromPath } from "../../../src/common/fs/path-utils";
 import { loadBaseEnvVarsOnly } from "../../../src/env/env";
-import { LLMPurpose } from "../../../src/llm/types/llm.types";
+import { LLMPurpose } from "../../../src/common/llm/types/llm.types";
 import dotenv from "dotenv";
 
 // Mock dependencies
-jest.mock("../../../src/llm/utils/manifest-loader");
+jest.mock("../../../src/common/llm/utils/manifest-loader");
 jest.mock("../../../src/env/env");
 jest.mock("../../../src/common/fs/path-utils");
 jest.mock("dotenv");

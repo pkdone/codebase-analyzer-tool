@@ -3,7 +3,7 @@ import {
   summarizeFile,
   type PartialSourceSummaryType,
 } from "../../../src/components/capture/file-summarizer";
-import type LLMRouter from "../../../src/llm/llm-router";
+import type LLMRouter from "../../../src/common/llm/llm-router";
 import { sourcePromptSchemas } from "../../../src/prompts/definitions/sources/sources.schemas";
 
 // Mock LLMRouter for testing
@@ -104,7 +104,7 @@ describe("file-summarizer Partial Types", () => {
       const mockRouter = createMockLLMRouter(mockJSResponse);
       const result = await summarizeFile(
         mockRouter,
-        "/path/to/module.js",
+        "/path/to/module.ts",
         "javascript",
         "function test() {}",
       );

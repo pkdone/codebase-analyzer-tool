@@ -2,8 +2,8 @@ import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
-} from "../../../src/llm/types/llm.types";
-import { LLMProviderManifest } from "../../../src/llm/providers/llm-provider.types";
+} from "../../../src/common/llm/types/llm.types";
+import { LLMProviderManifest } from "../../../src/common/llm/providers/llm-provider.types";
 import { loadBaseEnvVarsOnly } from "../../../src/env/env";
 
 /**

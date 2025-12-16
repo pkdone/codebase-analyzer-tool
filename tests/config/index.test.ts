@@ -3,7 +3,6 @@ import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
 import { EXTENSION_TO_TYPE_MAP } from "../../src/config/file-types.config";
 import { outputConfig } from "../../src/config/output.config";
-import { loggingConfig } from "../../src/llm/tracking/logging.config";
 
 describe("individual config modules", () => {
   it("appConfig should expose expected keys", () => {
@@ -32,10 +31,5 @@ describe("individual config modules", () => {
   it("outputConfig should expose output directory", () => {
     expect(outputConfig).toBeDefined();
     expect(outputConfig).toHaveProperty("OUTPUT_DIR");
-  });
-
-  it("logging config constants should be defined", () => {
-    expect(loggingConfig.ERROR_LOG_DIRECTORY).toBeDefined();
-    expect(loggingConfig.ERROR_LOG_FILENAME_TEMPLATE).toBeDefined();
   });
 });

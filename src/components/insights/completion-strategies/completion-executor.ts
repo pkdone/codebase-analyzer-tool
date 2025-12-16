@@ -1,6 +1,6 @@
 import { z } from "zod";
-import LLMRouter from "../../../llm/llm-router";
-import { LLMOutputFormat } from "../../../llm/types/llm.types";
+import LLMRouter from "../../../common/llm/llm-router";
+import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { appSummaryPromptMetadata } from "../../../prompts/definitions/app-summaries";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../common/utils/text-utils";
