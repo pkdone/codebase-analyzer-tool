@@ -344,8 +344,9 @@ export default abstract class AbstractLLM implements LLMProvider {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        // Type is correctly inferred - no cast needed!
-        // The generic type flows through: TOptions -> processJson -> validation -> result
+        // Type assertion needed because TypeScript cannot fully infer the conditional type resolution
+        // from processJson's return type through the generic parameter chain, even though the types
+        // are logically equivalent: both resolve to InferResponseType<TOptions>.
         generated: jsonProcessingResult.data as ResponseType,
         mutationSteps: jsonProcessingResult.mutationSteps,
       };

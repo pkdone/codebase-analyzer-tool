@@ -191,7 +191,7 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
     );
     return {
       success: true,
-      data: validationResult.data as S extends z.ZodType<infer T> ? T : Record<string, unknown>,
+      data: validationResult.data,
       mutationSteps: [...parseResult.steps, ...validationResult.transformSteps],
     };
   }

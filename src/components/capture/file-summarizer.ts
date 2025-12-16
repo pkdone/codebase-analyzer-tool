@@ -5,6 +5,7 @@ import { LLMOutputFormat } from "../../llm/types/llm.types";
 import { BadResponseContentLLMError } from "../../llm/types/llm-errors.types";
 import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
+import { sourcePromptSchemas } from "../../prompts/definitions/sources/sources.schemas";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import {
@@ -75,21 +76,20 @@ export async function summarizeFile(
     if (content.trim().length === 0) throw new Error("File is empty");
     const canonicalFileType = getCanonicalFileType(filepath, type);
     const promptMetadata = fileTypePromptMetadata[canonicalFileType];
+    const schema = sourcePromptSchemas[canonicalFileType];
     const renderedPrompt = renderPrompt(promptMetadata, { content });
 
-    // The LLM response is validated against the picked schema during executeCompletion.
+    // Use strongly-typed schema from the sourcePromptSchemas map.
+    // This ensures proper type inference throughout the call chain.
     // Each file type uses .pick() to request only relevant fields (improves token efficiency).
-    // The picked schema is sufficient since it includes all required fields (purpose, implementation).
-    // With the improved type system, the response is now correctly typed without double validation.
     const completionOptions = {
       outputFormat: LLMOutputFormat.JSON,
-      jsonSchema: promptMetadata.responseSchema,
+      jsonSchema: schema,
       hasComplexSchema: promptMetadata.hasComplexSchema,
     } as const;
 
-    // ESLint cannot track that the generic type from executeCompletion flows correctly here.
-    // The response is validated against the picked schema which includes all required fields.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // The response type is now correctly inferred from the strongly-typed schema.
+    // Type safety is maintained throughout the entire call chain.
     const response = await llmRouter.executeCompletion(filepath, renderedPrompt, completionOptions);
 
     if (response === null) {
@@ -98,7 +98,7 @@ export async function summarizeFile(
 
     // Type assertion: The picked schema includes all required fields (purpose, implementation).
     // Optional fields not in the pick will be undefined, which is valid for SourceSummaryType.
-    // This assertion acknowledges that the picked type is a compatible subset of SourceSummaryType.
+    // This is a pragmatic cast from a strongly-typed partial to the full type, not from 'any'.
     return response as SourceSummaryType;
   } catch (error: unknown) {
     const errorMsg = `Failed to generate summary for '${filepath}'`;
