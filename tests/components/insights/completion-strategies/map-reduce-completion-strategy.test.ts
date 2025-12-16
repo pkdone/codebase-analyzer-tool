@@ -287,4 +287,221 @@ describe("MapReduceCompletionStrategy", () => {
       }
     });
   });
+
+  describe("CategoryInsightResult type inference", () => {
+    it("should correctly infer CategoryInsightResult for entities category", async () => {
+      const mockResponse = {
+        entities: [
+          { name: "User", description: "User entity" },
+          { name: "Order", description: "Order entity" },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse)
+        .mockResolvedValueOnce(mockResponse);
+
+      const result = await strategy.generateInsights("entities", ["* file1.ts: implementation"]);
+
+      // Type should be inferred as CategoryInsightResult<"entities">
+      if (result) {
+        expect(result.entities).toBeDefined();
+        expect(Array.isArray(result.entities)).toBe(true);
+        expect(result.entities.length).toBe(2);
+      }
+    });
+
+    it("should correctly infer CategoryInsightResult for technologies category", async () => {
+      const mockResponse = {
+        technologies: [
+          { name: "TypeScript", version: "5.7.3" },
+          { name: "Node.js", version: "20.0.0" },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse)
+        .mockResolvedValueOnce(mockResponse);
+
+      const result = await strategy.generateInsights("technologies", [
+        "* file1.ts: implementation",
+      ]);
+
+      // Type should be inferred as CategoryInsightResult<"technologies">
+      if (result) {
+        expect(result.technologies).toBeDefined();
+        expect(result.technologies[0].name).toBe("TypeScript");
+      }
+    });
+
+    it("should correctly infer CategoryInsightResult for aggregates category", async () => {
+      const mockResponse = {
+        aggregates: [{ name: "OrderAggregate", description: "Order aggregate", entities: [] }],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse)
+        .mockResolvedValueOnce(mockResponse);
+
+      const result = await strategy.generateInsights("aggregates", ["* file1.ts: implementation"]);
+
+      // Type should be inferred as CategoryInsightResult<"aggregates">
+      if (result) {
+        expect(result.aggregates).toBeDefined();
+        expect(result.aggregates[0].name).toBe("OrderAggregate");
+      }
+    });
+  });
+
+  describe("reducePartialInsights type safety", () => {
+    it("should return correctly typed data without casts for entities", async () => {
+      const mapResponse = {
+        entities: [{ name: "User", description: "User entity" }],
+      };
+      const reduceResponse = {
+        entities: [
+          { name: "User", description: "User entity" },
+          { name: "Order", description: "Order entity" },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mapResponse)
+        .mockResolvedValueOnce(reduceResponse);
+
+      const result = await strategy.generateInsights("entities", ["* file1.ts: implementation"]);
+
+      // The reduce step should return correctly typed data
+      expect(result).toEqual(reduceResponse);
+      if (result) {
+        // No type assertion needed - type is inferred
+        expect(result.entities.length).toBe(2);
+      }
+    });
+
+    it("should handle indexed access type inference correctly", async () => {
+      // This test validates that appSummaryCategorySchemas[C] works correctly
+      const mockResponse = {
+        repositories: [{ name: "UserRepository", description: "User repo" }],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse)
+        .mockResolvedValueOnce(mockResponse);
+
+      const result = await strategy.generateInsights("repositories", [
+        "* file1.ts: implementation",
+      ]);
+
+      // Type should be correctly inferred from indexed access
+      if (result) {
+        expect(result.repositories).toBeDefined();
+        expect(result.repositories[0].name).toBe("UserRepository");
+      }
+    });
+  });
+
+  describe("type compatibility between partial and final results", () => {
+    it("should allow partial results to be combined into final result", async () => {
+      const partialResult1 = {
+        entities: [{ name: "User", description: "User entity" }],
+      };
+      const finalResult = {
+        entities: [
+          { name: "User", description: "User entity" },
+          { name: "Order", description: "Order entity" },
+        ],
+      };
+
+      // For this test, we'll use a single chunk to simplify
+      // The map phase returns partialResult1, then reduce combines and returns finalResult
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(partialResult1) // Map phase for chunk 1
+        .mockResolvedValueOnce(finalResult); // Reduce phase
+
+      const result = await strategy.generateInsights("entities", ["* file1.ts: implementation"]);
+
+      // Final result should be properly typed
+      expect(result).toEqual(finalResult);
+      if (result) {
+        expect(result.entities.length).toBe(2);
+      }
+    });
+
+    it("should maintain type safety when consolidating partial results", async () => {
+      const mockMapResponse = {
+        boundedContexts: [{ name: "Sales", description: "Sales context", responsibilities: [] }],
+      };
+      const mockReduceResponse = {
+        boundedContexts: [
+          { name: "Sales", description: "Sales context", responsibilities: ["Orders"] },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mockMapResponse)
+        .mockResolvedValueOnce(mockReduceResponse);
+
+      const result = await strategy.generateInsights("boundedContexts", [
+        "* file1.ts: implementation",
+      ]);
+
+      // Type should be correctly inferred throughout the map-reduce pipeline
+      if (result) {
+        expect(result.boundedContexts).toBeDefined();
+        expect(result.boundedContexts[0].responsibilities).toBeDefined();
+      }
+    });
+  });
+
+  describe("compile-time type safety demonstrations", () => {
+    it("should validate that result type matches category schema", async () => {
+      const mockResponse = {
+        businessProcesses: [{ name: "Order Processing", description: "Process orders" }],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mockResponse)
+        .mockResolvedValueOnce(mockResponse);
+
+      const result = await strategy.generateInsights("businessProcesses", [
+        "* file1.ts: implementation",
+      ]);
+
+      // This demonstrates compile-time type checking
+      if (result) {
+        // Should compile without any type assertions
+        const categoryData = result.businessProcesses;
+        expect(categoryData).toBeDefined();
+        expect(categoryData[0].name).toBe("Order Processing");
+      }
+    });
+
+    it("should demonstrate type inference works for all supported categories", () => {
+      // Compile-time validation that all categories have proper type support
+      type ValidCategories = AppSummaryCategoryEnum;
+
+      const allCategories: ValidCategories[] = [
+        "appDescription",
+        "technologies",
+        "businessProcesses",
+        "boundedContexts",
+        "aggregates",
+        "entities",
+        "repositories",
+        "potentialMicroservices",
+      ];
+
+      // This should compile, demonstrating that TypeScript understands all category types
+      expect(allCategories.length).toBe(8);
+    });
+  });
 });

@@ -13,7 +13,6 @@ import {
   PartialAppSummaryRecord,
   CategoryInsightResult,
   appSummaryCategorySchemas,
-  type AppSummaryCategorySchemas,
 } from "../insights.types";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
 import { executeInsightCompletion } from "./completion-executor";
@@ -170,10 +169,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
         hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
       });
 
-      // Type assertion needed because TypeScript can't follow the generic type through
-      // the indexed access on appSummaryCategorySchemas. The assertion is safe because
-      // the schema used for validation matches the category parameter.
-      return result as z.infer<AppSummaryCategorySchemas[C]> | null;
+      return result;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,

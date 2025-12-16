@@ -728,6 +728,283 @@ describe("LLM Router tests", () => {
     });
   });
 
+  describe("Advanced type inference validation", () => {
+    test("should infer complex nested schema types correctly", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const nestedSchema = z.object({
+        user: z.object({
+          name: z.string(),
+          age: z.number(),
+          address: z.object({
+            street: z.string(),
+            city: z.string(),
+          }),
+        }),
+        tags: z.array(z.string()),
+      });
+
+      const mockResponse = {
+        user: {
+          name: "John Doe",
+          age: 30,
+          address: {
+            street: "123 Main St",
+            city: "Springfield",
+          },
+        },
+        tags: ["developer", "typescript"],
+      };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: nestedSchema,
+        },
+        null,
+      );
+
+      // Type inference should work for nested objects
+      expect(result).toEqual(mockResponse);
+      if (result) {
+        const typedResult: z.infer<typeof nestedSchema> = result;
+        expect(typedResult.user.name).toBe("John Doe");
+        expect(typedResult.user.address.city).toBe("Springfield");
+        expect(typedResult.tags).toContain("developer");
+      }
+    });
+
+    test("should handle discriminated union type narrowing after success check", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const testSchema = z.object({
+        status: z.literal("success"),
+        data: z.string(),
+      });
+
+      const mockResponse = {
+        status: "success" as const,
+        data: "test data",
+      };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: testSchema,
+        },
+        null,
+      );
+
+      // After checking for null, TypeScript should narrow the type
+      expect(result).not.toBeNull();
+      if (result !== null) {
+        // Type should be fully inferred here without casts
+        const typedResult: z.infer<typeof testSchema> = result;
+        expect(typedResult.status).toBe("success");
+        expect(typedResult.data).toBe("test data");
+      }
+    });
+
+    test("should validate InferResponseType helper with various schema types", async () => {
+      const { router, mockProvider } = createLLMRouter();
+
+      // Test with array schema
+      const arraySchema = z.array(z.object({ id: z.number(), name: z.string() }));
+      const mockArrayResponse = [
+        { id: 1, name: "Item 1" },
+        { id: 2, name: "Item 2" },
+      ];
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockArrayResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: arraySchema,
+        },
+        null,
+      );
+
+      expect(result).toEqual(mockArrayResponse);
+      if (result) {
+        const typedResult: z.infer<typeof arraySchema> = result;
+        expect(Array.isArray(typedResult)).toBe(true);
+        expect(typedResult[0].name).toBe("Item 1");
+      }
+    });
+
+    test("should handle optional and nullable fields in schema", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const schemaWithOptionals = z.object({
+        required: z.string(),
+        optional: z.string().optional(),
+        nullable: z.string().nullable(),
+        optionalNullable: z.string().optional().nullable(),
+      });
+
+      const mockResponse = {
+        required: "always present",
+        optional: "sometimes present",
+        nullable: null,
+        // optionalNullable intentionally omitted
+      };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schemaWithOptionals,
+        },
+        null,
+      );
+
+      expect(result).toEqual(mockResponse);
+      if (result) {
+        const typedResult: z.infer<typeof schemaWithOptionals> = result;
+        expect(typedResult.required).toBe("always present");
+        expect(typedResult.optional).toBe("sometimes present");
+        expect(typedResult.nullable).toBeNull();
+      }
+    });
+
+    test("should demonstrate type safety without assertions after discriminated union check", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const schema = z.object({
+        count: z.number(),
+        items: z.array(z.string()),
+      });
+
+      const mockResponse = {
+        count: 3,
+        items: ["one", "two", "three"],
+      };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: schema,
+        },
+        null,
+      );
+
+      // This test demonstrates that after the null check, the type is correctly inferred
+      // without needing any type assertions
+      expect(result).not.toBeNull();
+      if (result !== null) {
+        // No 'as' cast needed - type is inferred from schema
+        expect(result.count).toBe(3);
+        expect(result.items).toHaveLength(3);
+        expect(result.items[0]).toBe("one");
+      }
+    });
+
+    test("should handle union types in schema", async () => {
+      const { router, mockProvider } = createLLMRouter();
+      const unionSchema = z.object({
+        value: z.union([z.string(), z.number(), z.boolean()]),
+      });
+
+      const mockResponse = {
+        value: "string value",
+      };
+
+      (mockProvider.executeCompletionPrimary as any).mockResolvedValue({
+        status: LLMResponseStatus.COMPLETED,
+        generated: mockResponse,
+        request: "test prompt",
+        modelKey: "GPT_COMPLETIONS_GPT4",
+        context: {},
+      });
+
+      const result = await router.executeCompletion(
+        "test-resource",
+        "test prompt",
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: unionSchema,
+        },
+        null,
+      );
+
+      expect(result).toEqual(mockResponse);
+      if (result) {
+        const typedResult: z.infer<typeof unionSchema> = result;
+        expect(typeof typedResult.value).toBe("string");
+      }
+    });
+
+    test("should validate compile-time type checking with schema inference", () => {
+      // This test validates compile-time behavior
+      const _schema = z.object({
+        id: z.string(),
+        count: z.number(),
+      });
+
+      type InferredType = z.infer<typeof _schema>;
+
+      // These should compile correctly
+      const validData: InferredType = {
+        id: "123",
+        count: 42,
+      };
+
+      expect(validData.id).toBe("123");
+      expect(validData.count).toBe(42);
+
+      // TypeScript should catch type errors at compile time
+      // Uncommenting the following would cause a compile error:
+      // const invalidData: InferredType = {
+      //   id: 123,  // Type error: should be string
+      //   count: "42"  // Type error: should be number
+      // };
+    });
+  });
+
   describe("Error handling and edge cases", () => {
     test("should handle LLM provider throwing unexpected errors", async () => {
       const { router, mockProvider } = createLLMRouter();

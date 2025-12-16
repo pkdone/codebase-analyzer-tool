@@ -250,10 +250,11 @@ export default class LLMRouter {
       return null;
     }
 
-    // Type assertion needed: TypeScript/ESLint cannot fully track generic types through
-    // discriminated unions in complex async call chains. The type is guaranteed correct
-    // by the generic parameter flow through the validation pipeline.
-    // This is a known limitation of TypeScript's type inference with deeply nested generics.
+    // Type assertion required: While the discriminated union check above narrows result.success
+    // to true, TypeScript's control flow analysis cannot propagate the generic type parameter
+    // TOptions through the complex async pipeline (LLMExecutionPipeline -> RetryStrategy ->
+    // validation layers). The type is guaranteed correct by the generic parameter flow through
+    // InferResponseType<TOptions>, which is validated at runtime via Zod schema validation.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result.data as InferResponseType<TOptions>;
   }
