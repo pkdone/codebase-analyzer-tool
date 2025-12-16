@@ -346,7 +346,7 @@ export default abstract class AbstractLLM implements LLMProvider {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
         // Type assertion is necessary due to TypeScript's limitations with deep generic inference.
-        // The runtime type is guaranteed correct by processJson's validation.
+        // The runtime type is guaranteed correct by processJson's validation, so don't change this.
         generated: jsonProcessingResult.data as ResponseType,
         mutationSteps: jsonProcessingResult.mutationSteps,
       };
