@@ -250,11 +250,18 @@ export default class LLMRouter {
       return null;
     }
 
-    // Type assertion required: While the discriminated union check above narrows result.success
-    // to true, TypeScript's control flow analysis cannot propagate the generic type parameter
-    // TOptions through the complex async pipeline (LLMExecutionPipeline -> RetryStrategy ->
-    // validation layers). The type is guaranteed correct by the generic parameter flow through
-    // InferResponseType<TOptions>, which is validated at runtime via Zod schema validation.
+    // After the discriminated union check, result.success is true and result.data contains
+    // the typed response. However, TypeScript's inference of InferResponseType<TOptions> through
+    // the complex async pipeline (LLMExecutionPipeline -> RetryStrategy -> AbstractLLM -> processJson)
+    // resolves to 'any' due to the conditional type complexity combined with generic propagation
+    // through multiple async layers. This is a known limitation of TypeScript's type inference
+    // even in version 5.7.3+. The type assertion is justified because: (1) the type is validated
+    // at runtime via Zod schema, (2) the generic parameter TOptions flows correctly through all
+    // layers ensuring the shape matches, and (3) eliminating this would require major refactoring
+    // to simplify the entire LLM abstraction layer.
+    // So don't change using an assertion or eslint comment because these are justified for
+    // TypeScript 5.7.3 and later ones, unless you are sure you are runing newer TSC version that
+    // actually supports this.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result.data as InferResponseType<TOptions>;
   }
