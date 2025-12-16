@@ -15,12 +15,17 @@ import {
 } from "../../config/file-types.config";
 
 /**
- * Type for source summary.
- * Note: The prompt metadata uses picked subsets of sourceSummarySchema for validation,
- * but all picks include the required fields (purpose, implementation), so the result
- * is always compatible with the full SourceSummaryType.
+ * Type for source summary (full schema).
  */
 export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
+
+/**
+ * Type for partial source summary.
+ * The prompt metadata uses picked subsets of sourceSummarySchema for validation,
+ * so the LLM may not return all optional fields. This type accurately represents
+ * the actual return type from the summarization process.
+ */
+export type PartialSourceSummaryType = Partial<SourceSummaryType>;
 
 /**
  * Derive the canonical file type for a given path and declared extension/suffix.
@@ -56,22 +61,22 @@ function getCanonicalFileType(filepath: string, type: string): keyof typeof file
  * Throws an error if summarization fails.
  *
  * Note: The prompt metadata uses picked subsets of sourceSummarySchema for validation.
- * While the picked schemas include required fields (purpose, implementation), they may not
- * include all fields of the full schema. This function validates the LLM response against
- * the full schema to ensure type safety and catch any missing fields.
+ * The picked schemas include only the fields relevant to each file type. This function
+ * returns a partial summary containing only the fields requested for that file type,
+ * ensuring type safety aligns with runtime behavior.
  *
  * @param llmRouter The LLM router instance
  * @param filepath The path to the file being summarized
  * @param type The file type/extension
  * @param content The file content to summarize
- * @returns The generated summary
+ * @returns A partial summary with fields specific to the file type
  */
 export async function summarizeFile(
   llmRouter: LLMRouter,
   filepath: string,
   type: string,
   content: string,
-): Promise<SourceSummaryType> {
+): Promise<PartialSourceSummaryType> {
   try {
     if (content.trim().length === 0) throw new Error("File is empty");
     const canonicalFileType = getCanonicalFileType(filepath, type);
@@ -96,10 +101,9 @@ export async function summarizeFile(
       throw new BadResponseContentLLMError("LLM returned null response");
     }
 
-    // Type assertion: The picked schema includes all required fields (purpose, implementation).
-    // Optional fields not in the pick will be undefined, which is valid for SourceSummaryType.
-    // This is a pragmatic cast from a strongly-typed partial to the full type, not from 'any'.
-    return response as SourceSummaryType;
+    // The response is correctly typed as a partial summary based on the picked schema.
+    // No type assertion needed - the return type accurately reflects the runtime data.
+    return response;
   } catch (error: unknown) {
     const errorMsg = `Failed to generate summary for '${filepath}'`;
     logOneLineWarning(errorMsg, error);

@@ -1,9 +1,5 @@
 import { AppSummariesRepository } from "./app-summaries.repository.interface";
-import {
-  AppSummaryRecordWithId,
-  PartialAppSummaryRecord,
-  AppSummaryRecord,
-} from "./app-summaries.model";
+import { AppSummaryRecordWithId, PartialAppSummaryRecord } from "./app-summaries.model";
 import { databaseConfig } from "../../config/database.config";
 import { logMongoValidationErrorIfPresent } from "../../common/mongodb/mdb-error-utils";
 import { MongoClient, Collection } from "mongodb";
@@ -31,13 +27,17 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
   }
 
   /**
-   * Create or replace an app summary record
+   * Create or replace an app summary record.
+   * Uses upsert with $set to safely update only the provided fields,
+   * preserving any existing fields not included in the partial record.
    */
-  async createOrReplaceAppSummary(record: AppSummaryRecord): Promise<void> {
+  async createOrReplaceAppSummary(record: PartialAppSummaryRecord): Promise<void> {
     try {
-      await this.collection.replaceOne({ projectName: record.projectName }, record, {
-        upsert: true,
-      });
+      await this.collection.updateOne(
+        { projectName: record.projectName },
+        { $set: record },
+        { upsert: true },
+      );
     } catch (error: unknown) {
       logMongoValidationErrorIfPresent(error);
       throw error;

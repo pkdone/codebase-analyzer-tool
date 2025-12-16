@@ -431,6 +431,7 @@ export const sourceSchema = z
     type: z.string().describe("The type of the source file (e.g., 'java', 'js', 'sql', etc.)."),
     linesCount: z.number().describe("The total number of lines in the source file."),
     summary: sourceSummarySchema
+      .partial()
       .optional()
       .describe(
         "A detailed summary of the source file, including purpose, implementation, and structure.",

@@ -1,17 +1,15 @@
-import {
-  AppSummaryRecordWithId,
-  PartialAppSummaryRecord,
-  AppSummaryRecord,
-} from "./app-summaries.model";
+import { AppSummaryRecordWithId, PartialAppSummaryRecord } from "./app-summaries.model";
 
 /**
  * Interface for the App Summary repository
  */
 export interface AppSummariesRepository {
   /**
-   * Create or replace an app summary record
+   * Create or replace an app summary record.
+   * Uses upsert with $set to safely update only the provided fields,
+   * preserving any existing fields not included in the partial record.
    */
-  createOrReplaceAppSummary(record: AppSummaryRecord): Promise<void>;
+  createOrReplaceAppSummary(record: PartialAppSummaryRecord): Promise<void>;
 
   /**
    * Update an existing app summary record

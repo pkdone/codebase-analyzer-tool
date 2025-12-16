@@ -365,13 +365,13 @@ describe("AppSummaryRepository Integration Tests", () => {
       expect(result!.technologies).toHaveLength(3);
       expect(result!.entities).toHaveLength(2);
 
-      // Should only contain the requested fields
-      expect(Object.keys(result!)).toEqual([
-        "appDescription",
-        "llmProvider",
-        "technologies",
-        "entities",
-      ]);
+      // Should only contain the requested fields (order not guaranteed by MongoDB)
+      const keys = Object.keys(result!);
+      expect(keys).toHaveLength(4);
+      expect(keys).toContain("appDescription");
+      expect(keys).toContain("llmProvider");
+      expect(keys).toContain("technologies");
+      expect(keys).toContain("entities");
     }, 30000);
 
     it("should return null for empty field names array", async () => {

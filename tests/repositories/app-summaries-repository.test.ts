@@ -23,7 +23,6 @@ describe("AppSummaryRepositoryImpl", () => {
 
     // Mock collection
     mockCollection = {
-      replaceOne: jest.fn(),
       updateOne: jest.fn(),
       findOne: jest.fn(),
     } as unknown as jest.Mocked<Collection>;
@@ -40,8 +39,8 @@ describe("AppSummaryRepositoryImpl", () => {
   });
 
   describe("createOrReplaceAppSummary", () => {
-    it("should replace an app summary record with upsert", async () => {
-      const mockRecord: AppSummaryRecord = {
+    it("should update an app summary record with upsert using $set", async () => {
+      const mockRecord: PartialAppSummaryRecord = {
         projectName: "test-project",
         appDescription: "Test application",
         llmProvider: "openai",
@@ -52,29 +51,46 @@ describe("AppSummaryRepositoryImpl", () => {
         entities: [{ name: "User", description: "User management entity" }],
       };
 
-      mockCollection.replaceOne.mockResolvedValue({} as any);
+      mockCollection.updateOne.mockResolvedValue({} as any);
 
       await repository.createOrReplaceAppSummary(mockRecord);
 
-      expect(mockCollection.replaceOne).toHaveBeenCalledWith(
+      expect(mockCollection.updateOne).toHaveBeenCalledWith(
         { projectName: mockRecord.projectName },
-        mockRecord,
+        { $set: mockRecord },
         { upsert: true },
       );
     });
 
-    it("should handle MongoDB validation errors during replace", async () => {
-      const mockRecord: AppSummaryRecord = {
+    it("should handle MongoDB validation errors during update", async () => {
+      const mockRecord: PartialAppSummaryRecord = {
         projectName: "test-project",
         appDescription: "Test application",
         llmProvider: "openai",
       };
 
       const mongoError = new Error("MongoDB validation error");
-      mockCollection.replaceOne.mockRejectedValue(mongoError);
+      mockCollection.updateOne.mockRejectedValue(mongoError);
 
       await expect(repository.createOrReplaceAppSummary(mockRecord)).rejects.toThrow(mongoError);
       expect(mockMdbErrorUtils.logMongoValidationErrorIfPresent).toHaveBeenCalledWith(mongoError);
+    });
+
+    it("should handle partial records with only required fields", async () => {
+      const mockRecord: PartialAppSummaryRecord = {
+        projectName: "test-project",
+        // Only projectName, all other fields are optional
+      };
+
+      mockCollection.updateOne.mockResolvedValue({} as any);
+
+      await repository.createOrReplaceAppSummary(mockRecord);
+
+      expect(mockCollection.updateOne).toHaveBeenCalledWith(
+        { projectName: mockRecord.projectName },
+        { $set: mockRecord },
+        { upsert: true },
+      );
     });
   });
 

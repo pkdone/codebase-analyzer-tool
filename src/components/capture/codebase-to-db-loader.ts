@@ -8,7 +8,7 @@ import { findFilesRecursively, sortFilesBySize } from "../../common/fs/directory
 import { getFileExtension } from "../../common/fs/path-utils";
 import { countLines } from "../../common/utils/text-utils";
 import { logOneLineWarning } from "../../common/utils/logging";
-import { summarizeFile, type SourceSummaryType } from "./file-summarizer";
+import { summarizeFile, type PartialSourceSummaryType } from "./file-summarizer";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
 import { repositoryTokens, llmTokens } from "../../di/tokens";
@@ -166,11 +166,11 @@ export default class CodebaseToDBLoader {
     type: string,
     content: string,
   ): Promise<{
-    summary: SourceSummaryType | undefined;
+    summary: PartialSourceSummaryType | undefined;
     summaryError: string | undefined;
     summaryVector: number[] | undefined;
   }> {
-    let summary: SourceSummaryType | undefined;
+    let summary: PartialSourceSummaryType | undefined;
     let summaryError: string | undefined;
     let summaryVector: number[] | undefined;
 
