@@ -140,18 +140,19 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
 
     // Get the key name for this category (e.g., "entities", "boundedContexts")
     const schemaShape = (schema as z.ZodObject<z.ZodRawShape>).shape;
-    const categoryKey = Object.keys(schemaShape)[0];
+    // Assert that the dynamically retrieved key is a valid key of the result type.
+    // This enables TypeScript to correctly infer the type of result[categoryKey] without unsafe casts.
+    const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
 
     // Flatten the arrays from all partial results into a single combined list
-    // result is now strongly typed as CategoryInsightResult<C>, which is the category-specific shape
+    // result is strongly typed as CategoryInsightResult<C>, which is the category-specific shape
     const combinedData = partialResults.flatMap((result) => {
-      // Dynamic key access still requires a cast since TypeScript cannot narrow generic keys at compile time,
-      // but this is justified: result is guaranteed to be CategoryInsightResult<C> and category is the key
-      const categoryData = (result as Record<string, unknown>)[categoryKey];
+      // TypeScript now correctly infers the type of categoryData based on the categoryKey assertion
+      const categoryData = result[categoryKey];
       if (Array.isArray(categoryData)) {
-        return categoryData as unknown[];
+        return categoryData;
       }
-      return [] as unknown[];
+      return [];
     });
 
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);

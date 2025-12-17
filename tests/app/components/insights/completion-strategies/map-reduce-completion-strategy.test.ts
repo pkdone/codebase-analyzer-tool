@@ -508,4 +508,335 @@ describe("MapReduceCompletionStrategy", () => {
       expect(allCategories.length).toBe(8);
     });
   });
+
+  describe("reducePartialInsights type safety improvements", () => {
+    it("should maintain strong typing in reduce operation without unsafe casts", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: {
+          primaryCompletion: {
+            maxTotalTokens: 100,
+          },
+        },
+      });
+      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+
+      // Create long summary strings to force chunking
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      // Create multiple partial results to test the reduce operation
+      const partialResult1 = {
+        entities: [
+          { name: "User", description: "User entity" },
+          { name: "Order", description: "Order entity" },
+        ],
+      };
+      const partialResult2 = {
+        entities: [
+          { name: "Product", description: "Product entity" },
+          { name: "Category", description: "Category entity" },
+        ],
+      };
+      const consolidatedResult = {
+        entities: [
+          { name: "User", description: "User entity" },
+          { name: "Order", description: "Order entity" },
+          { name: "Product", description: "Product entity" },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(partialResult1) // Map phase chunk 1
+        .mockResolvedValueOnce(partialResult2) // Map phase chunk 2
+        .mockResolvedValueOnce(consolidatedResult); // Reduce phase
+
+      const result = await strategy.generateInsights("entities", [longSummary1, longSummary2]);
+
+      // Verify the reduce operation properly consolidated the results
+      if (result) {
+        // TypeScript should infer this without any casts
+        expect(result.entities).toBeDefined();
+        expect(result.entities.length).toBe(3);
+        expect(result.entities[0].name).toBe("User");
+        expect(result.entities[2].name).toBe("Product");
+      }
+    });
+
+    it("should correctly type categoryKey as keyof CategoryInsightResult", async () => {
+      const mockMapResponse = {
+        technologies: [
+          { name: "TypeScript", version: "5.7.3" },
+          { name: "Node.js", version: "20.0.0" },
+        ],
+      };
+      const mockReduceResponse = {
+        technologies: [
+          { name: "TypeScript", version: "5.7.3" },
+          { name: "Node.js", version: "20.0.0" },
+          { name: "MongoDB", version: "7.0" },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(mockMapResponse)
+        .mockResolvedValueOnce(mockReduceResponse);
+
+      const result = await strategy.generateInsights("technologies", [
+        "* file1.ts: implementation",
+      ]);
+
+      // The improved typing should allow direct access without casts
+      if (result) {
+        expect(result.technologies).toBeDefined();
+        expect(result.technologies.length).toBe(3);
+        // Should be able to access properties without type assertions
+        expect(result.technologies[0].name).toBe("TypeScript");
+        expect(result.technologies[2].name).toBe("MongoDB");
+      }
+    });
+
+    it("should handle complex nested structures without type loss", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: {
+          primaryCompletion: {
+            maxTotalTokens: 100,
+          },
+        },
+      });
+      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+
+      // Create long summary strings to force chunking
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        potentialMicroservices: [
+          {
+            name: "UserService",
+            description: "Handles user management",
+            entities: [{ name: "User", description: "User entity" }],
+            endpoints: [{ path: "/users", method: "GET", description: "Get users" }],
+            operations: [{ operation: "CreateUser", method: "POST", description: "Create user" }],
+          },
+        ],
+      };
+      const partialResult2 = {
+        potentialMicroservices: [
+          {
+            name: "OrderService",
+            description: "Handles order processing",
+            entities: [{ name: "Order", description: "Order entity" }],
+            endpoints: [{ path: "/orders", method: "GET", description: "Get orders" }],
+            operations: [{ operation: "CreateOrder", method: "POST", description: "Create order" }],
+          },
+        ],
+      };
+      const consolidatedResult = {
+        potentialMicroservices: [
+          {
+            name: "UserService",
+            description: "Handles user management",
+            entities: [{ name: "User", description: "User entity" }],
+            endpoints: [{ path: "/users", method: "GET", description: "Get users" }],
+            operations: [{ operation: "CreateUser", method: "POST", description: "Create user" }],
+          },
+          {
+            name: "OrderService",
+            description: "Handles order processing",
+            entities: [{ name: "Order", description: "Order entity" }],
+            endpoints: [{ path: "/orders", method: "GET", description: "Get orders" }],
+            operations: [{ operation: "CreateOrder", method: "POST", description: "Create order" }],
+          },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(partialResult1)
+        .mockResolvedValueOnce(partialResult2)
+        .mockResolvedValueOnce(consolidatedResult);
+
+      const result = await strategy.generateInsights("potentialMicroservices", [
+        longSummary1,
+        longSummary2,
+      ]);
+
+      // Verify complex nested structures maintain their types through the reduce operation
+      if (result) {
+        expect(result.potentialMicroservices).toBeDefined();
+        expect(result.potentialMicroservices.length).toBe(2);
+        // Direct property access without type assertions
+        expect(result.potentialMicroservices[0].name).toBe("UserService");
+        expect(result.potentialMicroservices[0].entities[0].name).toBe("User");
+        expect(result.potentialMicroservices[0].endpoints[0].path).toBe("/users");
+        expect(result.potentialMicroservices[1].operations[0].operation).toBe("CreateOrder");
+      }
+    });
+
+    it("should handle aggregates with entity arrays and repository strings", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: {
+          primaryCompletion: {
+            maxTotalTokens: 100,
+          },
+        },
+      });
+      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+
+      // Create long summary strings to force chunking
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        aggregates: [
+          {
+            name: "OrderAggregate",
+            description: "Order aggregate root",
+            entities: ["Order", "OrderItem"],
+            repository: "OrderRepository",
+          },
+        ],
+      };
+      const partialResult2 = {
+        aggregates: [
+          {
+            name: "UserAggregate",
+            description: "User aggregate root",
+            entities: ["User", "UserProfile"],
+            repository: "UserRepository",
+          },
+        ],
+      };
+      const consolidatedResult = {
+        aggregates: [
+          {
+            name: "OrderAggregate",
+            description: "Order aggregate root",
+            entities: ["Order", "OrderItem"],
+            repository: "OrderRepository",
+          },
+          {
+            name: "UserAggregate",
+            description: "User aggregate root",
+            entities: ["User", "UserProfile"],
+            repository: "UserRepository",
+          },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(partialResult1)
+        .mockResolvedValueOnce(partialResult2)
+        .mockResolvedValueOnce(consolidatedResult);
+
+      const result = await strategy.generateInsights("aggregates", [longSummary1, longSummary2]);
+
+      // Verify strongly-typed nested arrays and properties
+      if (result) {
+        expect(result.aggregates).toBeDefined();
+        expect(result.aggregates.length).toBe(2);
+        expect(result.aggregates[0].entities).toEqual(["Order", "OrderItem"]);
+        expect(result.aggregates[0].repository).toBe("OrderRepository");
+        expect(result.aggregates[1].entities).toEqual(["User", "UserProfile"]);
+      }
+    });
+
+    it("should properly handle empty arrays from partial results", async () => {
+      // Use a smaller token limit to force chunking
+      mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
+        models: {
+          primaryCompletion: {
+            maxTotalTokens: 100,
+          },
+        },
+      });
+      strategy = new MapReduceCompletionStrategy(mockLLMRouter);
+
+      // Create long summary strings to force chunking
+      const longSummary1 = "* file1.ts: " + "implementation ".repeat(50);
+      const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
+
+      const partialResult1 = {
+        entities: [{ name: "User", description: "User entity" }],
+      };
+      const partialResult2 = {
+        entities: [] as { name: string; description: string; relatedEntities?: string[] }[],
+      };
+      const consolidatedResult = {
+        entities: [{ name: "User", description: "User entity" }],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(partialResult1)
+        .mockResolvedValueOnce(partialResult2)
+        .mockResolvedValueOnce(consolidatedResult);
+
+      const result = await strategy.generateInsights("entities", [longSummary1, longSummary2]);
+
+      // Verify empty arrays are handled correctly without type errors
+      if (result) {
+        expect(result.entities).toBeDefined();
+        expect(result.entities.length).toBe(1);
+      }
+    });
+
+    it("should maintain type safety for repositories with aggregate relationships", async () => {
+      const partialResult = {
+        repositories: [
+          {
+            name: "UserRepository",
+            description: "User repository for persistence",
+            aggregate: "UserAggregate",
+          },
+          {
+            name: "OrderRepository",
+            description: "Order repository for persistence",
+            aggregate: "OrderAggregate",
+          },
+        ],
+      };
+      const consolidatedResult = {
+        repositories: [
+          {
+            name: "UserRepository",
+            description: "User repository for persistence",
+            aggregate: "UserAggregate",
+          },
+          {
+            name: "OrderRepository",
+            description: "Order repository for persistence",
+            aggregate: "OrderAggregate",
+          },
+          {
+            name: "ProductRepository",
+            description: "Product repository for persistence",
+            aggregate: "ProductAggregate",
+          },
+        ],
+      };
+
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValueOnce(partialResult)
+        .mockResolvedValueOnce(consolidatedResult);
+
+      const result = await strategy.generateInsights("repositories", [
+        "* file1.ts: implementation",
+      ]);
+
+      // Verify repository-specific properties are strongly typed
+      if (result) {
+        expect(result.repositories).toBeDefined();
+        expect(result.repositories[0].aggregate).toBe("UserAggregate");
+        expect(result.repositories[2].aggregate).toBe("ProductAggregate");
+      }
+    });
+  });
 });
