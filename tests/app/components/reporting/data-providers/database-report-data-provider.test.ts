@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { DatabaseReportDataProvider } from "../../../src/app/components/reporting/data-providers/database-report-data-provider";
+import { DatabaseReportDataProvider } from "../../../../../src/app/components/reporting/data-providers/database-report-data-provider";
 
 describe("DatabaseReportDataProvider.buildProceduresAndTriggersSummary", () => {
   it("aggregates complexity counts correctly", async () => {

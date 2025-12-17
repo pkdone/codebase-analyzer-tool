@@ -1,5 +1,5 @@
 import { bedrockLlamaProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 import BedrockLlamaLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm";
 // Minimal mocks for metadata
 const mockModelsKeysSet = {

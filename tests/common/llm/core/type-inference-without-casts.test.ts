@@ -8,7 +8,7 @@ import {
 } from "../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
 import LLMRouter from "../../../../src/common/llm/llm-router";
-import { createMockErrorLogger } from "../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import LLMStats from "../../../../src/common/llm/tracking/llm-stats";
 import { PromptAdaptationStrategy } from "../../../../src/common/llm/strategies/prompt-adaptation-strategy";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";

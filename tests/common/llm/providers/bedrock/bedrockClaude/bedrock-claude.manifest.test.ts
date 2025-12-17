@@ -4,8 +4,8 @@ import {
   createBedrockMockEnv,
   createBedrockTestData,
   type AdditionalTestModel,
-} from "../../../../../app/helpers/llm/bedrock-test-helper";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+} from "../../../../helpers/llm/bedrock-test-helper";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Test-only constants
 const AWS_COMPLETIONS_CLAUDE_V35 = "AWS_COMPLETIONS_CLAUDE_V35";

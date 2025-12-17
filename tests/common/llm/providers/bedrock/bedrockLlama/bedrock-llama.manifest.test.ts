@@ -7,8 +7,8 @@ import {
   createBedrockMockEnv,
   createBedrockTestData,
   type AdditionalTestModel,
-} from "../../../../../app/helpers/llm/bedrock-test-helper";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+} from "../../../../helpers/llm/bedrock-test-helper";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Create mock environment and test data using helpers
 const mockBedrockLlamaEnv = createBedrockMockEnv(

@@ -8,7 +8,7 @@ import {
 import { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { z } from "zod";
 import { ValidationException } from "@aws-sdk/client-bedrock-runtime";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 /**
  * Test implementation of BaseBedrockLLM to verify JSON stringification

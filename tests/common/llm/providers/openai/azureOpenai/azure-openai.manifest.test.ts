@@ -6,7 +6,7 @@ import {
 import { calculateTokenUsageFromError } from "../../../../../../src/common/llm/utils/error-parser";
 import { azureOpenAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/azureOpenai/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../../src/app/env/env";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4 = "GPT_COMPLETIONS_GPT4";

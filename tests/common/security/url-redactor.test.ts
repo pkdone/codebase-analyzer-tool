@@ -70,5 +70,17 @@ describe("url-redactor", () => {
         expect.anything(),
       );
     });
+
+    test("gracefully handles malformed URL with invalid protocol", () => {
+      const malformed = "not a real protocol://user:pass@somehost";
+      const result = redactUrl(malformed);
+      // Should not throw and should return REDACTED_URL when parsing fails
+      expect(typeof result).toBe("string");
+      expect(result).toBe("REDACTED_URL");
+      expect(mockLogError).toHaveBeenCalledWith(
+        "Could not parse URL for redaction",
+        expect.anything(),
+      );
+    });
   });
 });

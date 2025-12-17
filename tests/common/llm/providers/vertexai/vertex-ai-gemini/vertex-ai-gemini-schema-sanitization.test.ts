@@ -11,7 +11,7 @@ import {
   LLMContext,
 } from "../../../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Mock the Vertex AI SDK
 jest.mock("@google-cloud/vertexai");

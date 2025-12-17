@@ -1,15 +1,15 @@
 import "reflect-metadata";
 import { MongoClient, Collection, AggregationCursor, FindCursor } from "mongodb";
 import { Double } from "bson";
-import SourcesRepositoryImpl from "../../../src/app/repositories/sources/sources.repository";
-import { SourceRecord } from "../../../src/app/repositories/sources/sources.model";
-import { databaseConfig } from "../../../src/app/config/database.config";
-import * as logging from "../../../src/common/utils/logging";
-import * as mdbErrorUtils from "../../../src/common/mongodb/mdb-error-utils";
+import SourcesRepositoryImpl from "../../../../src/app/repositories/sources/sources.repository";
+import { SourceRecord } from "../../../../src/app/repositories/sources/sources.model";
+import { databaseConfig } from "../../../../src/app/config/database.config";
+import * as logging from "../../../../src/common/utils/logging";
+import * as mdbErrorUtils from "../../../../src/common/mongodb/mdb-error-utils";
 
 // Mock dependencies
-jest.mock("../../../src/common/utils/logging");
-jest.mock("../../../src/common/mongodb/mdb-error-utils");
+jest.mock("../../../../src/common/utils/logging");
+jest.mock("../../../../src/common/mongodb/mdb-error-utils");
 
 const mockLogging = logging as jest.Mocked<typeof logging>;
 const mockMdbErrorUtils = mdbErrorUtils as jest.Mocked<typeof mdbErrorUtils>;

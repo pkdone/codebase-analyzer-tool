@@ -1,10 +1,13 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { repositoryTokens } from "../../../src/app/di/tokens";
-import { SourcesRepository } from "../../../src/app/repositories/sources/sources.repository.interface";
-import { SourceRecord } from "../../../src/app/repositories/sources/sources.model";
-import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
-import { loadManifestForModelFamily } from "../../../src/common/llm/utils/manifest-loader";
+import { repositoryTokens } from "../../../../src/app/di/tokens";
+import { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
+import { SourceRecord } from "../../../../src/app/repositories/sources/sources.model";
+import {
+  setupTestDatabase,
+  teardownTestDatabase,
+} from "../../../common/helpers/database/db-test-helper";
+import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/manifest-loader";
 
 // Helper function to get the vector dimensions from the configured LLM provider
 async function getEmbeddingDimensions(): Promise<number> {

@@ -9,7 +9,7 @@ import {
 } from "../../../../../../src/common/llm/types/llm.types";
 import OpenAILLM from "../../../../../../src/common/llm/providers/openai/openai/openai-llm";
 import { OPENAI } from "../../../../../../src/common/llm/providers/openai/openai/openai.manifest";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Helper functions to create properly typed mock responses
 // These provide type safety during mock creation while avoiding OpenAI SDK type complexity

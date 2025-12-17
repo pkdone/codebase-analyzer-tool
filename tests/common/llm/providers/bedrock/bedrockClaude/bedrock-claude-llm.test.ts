@@ -8,7 +8,7 @@ import {
 import { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
 import { AWS_COMPLETIONS_CLAUDE_V40 } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Define model keys used in tests (matching the manifest internal constants)
 const AWS_COMPLETIONS_CLAUDE_V37 = "AWS_COMPLETIONS_CLAUDE_V37";

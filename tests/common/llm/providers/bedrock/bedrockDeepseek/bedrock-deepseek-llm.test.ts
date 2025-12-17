@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import BedrockDeepseekLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek-llm";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 import {
   LLMModelKeysSet,
   ResolvedLLMModelMetadata,

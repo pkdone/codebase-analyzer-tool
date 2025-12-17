@@ -12,7 +12,7 @@ import {
   LLMProviderSpecificConfig,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
-import { createMockErrorLogger } from "../../../../tests/common/llm/test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import { z } from "zod";
 
 // Test-only constants

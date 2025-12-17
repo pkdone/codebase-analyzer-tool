@@ -6,7 +6,10 @@ import { SourcesRepository } from "../../../../src/app/repositories/sources/sour
 import { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import { UiDataProvider } from "../../../../src/app/components/reporting/data-providers/ui-data-provider";
 import { SourceRecord } from "../../../../src/app/repositories/sources/sources.model";
-import { setupTestDatabase, teardownTestDatabase } from "../../helpers/database/db-test-helper";
+import {
+  setupTestDatabase,
+  teardownTestDatabase,
+} from "../../../common/helpers/database/db-test-helper";
 
 describe("UI Technology Analysis Integration Test", () => {
   let sourcesRepository: SourcesRepository;

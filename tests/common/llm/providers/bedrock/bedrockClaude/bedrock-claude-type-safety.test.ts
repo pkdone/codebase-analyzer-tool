@@ -8,7 +8,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../../../src/common/llm/types/llm.types";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 /**
  * Unit tests for BedrockClaudeLLM - Type Safety Improvements

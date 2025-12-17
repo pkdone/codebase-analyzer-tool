@@ -15,7 +15,7 @@ import {
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
 import { AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT } from "../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
-import { createMockErrorLogger } from "../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4_32k = "GPT_COMPLETIONS_GPT4_32k";

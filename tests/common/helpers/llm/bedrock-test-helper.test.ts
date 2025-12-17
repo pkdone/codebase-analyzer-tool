@@ -3,7 +3,7 @@ import {
   createBedrockTestData,
   AdditionalTestModel,
   BedrockTestData,
-} from "../../helpers/llm/bedrock-test-helper";
+} from "./bedrock-test-helper";
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 import { loadBaseEnvVarsOnly } from "../../../../src/app/env/env";

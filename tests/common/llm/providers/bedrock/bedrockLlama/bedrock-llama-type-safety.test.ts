@@ -9,7 +9,7 @@ import {
   LLMModelKeysSet,
 } from "../../../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
-import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
+import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 /**
  * Unit tests for BedrockLlamaLLM - Type Safety Improvements

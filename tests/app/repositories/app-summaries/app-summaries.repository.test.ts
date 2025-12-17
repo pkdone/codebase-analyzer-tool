@@ -1,15 +1,15 @@
 import "reflect-metadata";
 import { MongoClient, Collection } from "mongodb";
-import AppSummaryRepositoryImpl from "../../../src/app/repositories/app-summaries/app-summaries.repository";
+import AppSummaryRepositoryImpl from "../../../../src/app/repositories/app-summaries/app-summaries.repository";
 import {
   AppSummaryRecord,
   PartialAppSummaryRecord,
-} from "../../../src/app/repositories/app-summaries/app-summaries.model";
-import { databaseConfig } from "../../../src/app/config/database.config";
-import * as mdbErrorUtils from "../../../src/common/mongodb/mdb-error-utils";
+} from "../../../../src/app/repositories/app-summaries/app-summaries.model";
+import { databaseConfig } from "../../../../src/app/config/database.config";
+import * as mdbErrorUtils from "../../../../src/common/mongodb/mdb-error-utils";
 
 // Mock dependencies
-jest.mock("../../../src/common/mongodb/mdb-error-utils");
+jest.mock("../../../../src/common/mongodb/mdb-error-utils");
 
 const mockMdbErrorUtils = mdbErrorUtils as jest.Mocked<typeof mdbErrorUtils>;
 

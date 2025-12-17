@@ -1,13 +1,16 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { repositoryTokens } from "../../../src/app/di/tokens";
-import { AppSummariesRepository } from "../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
+import { repositoryTokens } from "../../../../src/app/di/tokens";
+import { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import { MongoClient } from "mongodb";
 import {
   AppSummaryRecord,
   PartialAppSummaryRecord,
-} from "../../../src/app/repositories/app-summaries/app-summaries.model";
-import { setupTestDatabase, teardownTestDatabase } from "../helpers/database/db-test-helper";
+} from "../../../../src/app/repositories/app-summaries/app-summaries.model";
+import {
+  setupTestDatabase,
+  teardownTestDatabase,
+} from "../../../common/helpers/database/db-test-helper";
 
 describe("AppSummaryRepository Integration Tests", () => {
   let appSummariesRepository: AppSummariesRepository;
@@ -496,12 +499,10 @@ describe("AppSummaryRepository Integration Tests", () => {
 
   describe("Schema Validation", () => {
     it("should have access to schema via direct import", () => {
-      // Act - Import schema directly from model (using static import)
+      // Act - Import schema directly from model
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const {
-        getJSONSchema,
-      } = require("../../../src/app/repositories/app-summaries/app-summaries.model");
-      const schema = getJSONSchema();
+      const modelModule = require("../../../../src/app/repositories/app-summaries/app-summaries.model.js");
+      const schema = modelModule.getJSONSchema();
 
       // Assert
       expect(schema).toBeDefined();
