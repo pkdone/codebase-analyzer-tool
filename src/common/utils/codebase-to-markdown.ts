@@ -1,4 +1,4 @@
-import { fileProcessingConfig } from "../../config/file-processing.config";
+import { fileProcessingConfig } from "../../app/config/file-processing.config";
 import { findFilesRecursively } from "../fs/directory-operations";
 import { getFileExtension } from "../fs/path-utils";
 import { readFile } from "../fs/file-operations";

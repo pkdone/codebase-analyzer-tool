@@ -35,7 +35,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
 *   **Braces and Parentheses:**
     *   **Braces:** The opening brace (`{`) is placed on the **same line** as the corresponding statement or declaration (e.g., `class MyClass {`, `if (condition) {`). This is a variant of the K&R style.
         ```typescript
-        // From: src/lifecycle/application-runner.ts
+        // From: src/app/lifecycle/application-runner.ts
         export function runApplication(taskToken: symbol): void {
             // ...
         }
@@ -70,7 +70,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   The project is a **CLI toolkit** for code analysis, built on a **Layered Architecture**. This is evident from the clear separation of concerns into `repositories` (Data Access), `components` (Business Logic/Services), `llm` (External Service Abstraction), and `cli` (Presentation/Entry Points).
     *   **Dependency Injection (DI)** is a fundamental principle, implemented with `tsyringe`. This promotes loose coupling and testability by allowing components to declare their dependencies rather than creating them.
     *   A **Manifest-Driven** approach is used for LLM providers. Each provider is defined by a manifest file (`.manifest.ts`) that declaratively specifies its configuration, models, and factory function, making the system highly pluggable and extensible.
-*   **Directory Structure:**
+*   **Directory Structure:**  (TODO: not some folders have chanegd to go under `app1)
     *   `src/`: Contains all TypeScript source code.
         *   `cli/`: Entry points for each command-line tool.
         *   `common/`: Shared utilities, especially for MongoDB (`mdb/`) and general-purpose functions (`utils/`).
@@ -155,7 +155,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
 
 *   **Compiling/Building:**
     *   **Command:** `npm run build`
-    *   **Process:** The TypeScript Compiler (`tsc`) compiles `.ts` files into JavaScript, placing them in the `dist/` directory as configured in `tsconfig.json`. The build script also copies necessary template files via `scripts/copy-assets.js`.
+    *   **Process:** The TypeScript Compiler (`tsc`) compiles `.ts` files into JavaScript, placing them in the `dist/` directory as configured in `tsconfig.json`.
 *   **Linting:**
     *   **Command:** `npm run lint`
     *   **Tool:** ESLint, configured via `eslint.config.mjs`.

@@ -14,7 +14,7 @@ import { PromptAdaptationStrategy } from "../../../../src/common/llm/strategies/
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
 import { FallbackStrategy } from "../../../../src/common/llm/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
-import type { EnvVars } from "../../../../src/env/env.types";
+import type { EnvVars } from "../../../../src/app/env/env.types";
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import * as manifestLoader from "../../../../src/common/llm/utils/manifest-loader";

@@ -54,12 +54,12 @@ You can also [view an example of a full report generated](https://pkdone.github.
 There are various tools you need to run in a specific order (shown the next section). For each tool, you can easily debug using VS Code, by following these steps:
 
 1. Open the project in VS Code
-1. In the _Explorer_ select the "src/cli/*.ts" or "src/cli/tools/*.ts" file you want to run
+1. In the _Explorer_ select the "src/app/*.ts" or "src/app/tools/*.ts" file you want to run
 1. From the _Activity Bar_ (left panel), select the _Run and Debug_ view
 1. Execute the pre-configured task _Run and Debug TypeScript_
     - this will run the TypeScript compiler first, and then, if successful, it will run the program in debug mode, showing its output in the _Debug Console_ of the _Status Bar_ (bottom panel). 
 
-Alternatively, you also run the compiled JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. Main tools are located in `./dist/src/cli/` and optional tools are in `./dist/src/cli/tools/`. The command to run each tool is shown the next section.
+Alternatively, you also run the compiled JavaScript files (first compiled from TypeScript using the `npm build` command) from the terminal using the `node` command. Main tools are located in `./dist/src/app/` and optional tools are in `./dist/src/app/tools/`. The command to run each tool is shown the next section.
 
 
 ## How To Run Main Tasks
@@ -73,10 +73,10 @@ Alternatively, you also run the compiled JavaScript files (first compiled from T
     ```
 
 
-1. **CAPTURE SOURCES**: To capture LLM-generated metadata about every source file into the database, execute the the following commands from a terminal (or select the corresponding "src/cli/capture-codebase.ts" file in your VS Code IDE and choose to "Run and Debug).
+1. **CAPTURE SOURCES**: To capture LLM-generated metadata about every source file into the database, execute the the following commands from a terminal (or select the corresponding "src/app/capture-codebase.ts" file in your VS Code IDE and choose to "Run and Debug).
 
     ```console
-    node ./dist/src/cli/capture-codebase.js
+    node ./dist/src/app/capture-codebase.js
     ```
 
     Note 1. If you receive LLM provider authentication/authorisaton errors when you execute the task, see the section [LLM Authentication And URN Notes](#llm-authentication-and-urn-notes) for help on configuring LLM provider credentials correctly.
@@ -87,13 +87,13 @@ Alternatively, you also run the compiled JavaScript files (first compiled from T
 1. **GENERATE INSIGHTS**: Run the following command to generate insights (e.g. identifid technology stack, business processes, DDD aggregates, potential microserices, etc.) lveraging the previously database captured sources files metadata.
 
     ```console
-    node ./dist/src/cli/generate-insights-from-db.js
+    node ./dist/src/app/generate-insights-from-db.js
     ```
 
 1. **CREATE REPORT**: Run the following command to generate a static HTML-based report summarising the application from the previously captured source metadata and aggregated insights. 
 
     ```console
-    node ./dist/src/cli/produce-report.js
+    node ./dist/src/app/produce-report.js
     ```
 
 ## OPTIONAL: How To Run Optional Additional Tasks
@@ -101,10 +101,10 @@ Alternatively, you also run the compiled JavaScript files (first compiled from T
 1. **QUERY CODEBASE**: To adhoc query the codebase (i.e., to "talk to your code", which uses MongoDB's Vector Search capability to search the database-captured metadata), place your questions in the file `input/questions.prompts` and then run the following command to execute the queries. 
 
     ```console
-    node ./dist/src/cli/tools/query-codebase.js
+    node ./dist/src/app/tools/query-codebase.js
     ```
 
-1. **OTHER TOOLS**: Other optional tools are provided in the "src/cli/tools" subfolder which you can explore and run. These are currently undocumented and may disappear in the future. They are primarily intended for use by this project's developers or for specialized use cases.
+1. **OTHER TOOLS**: Other optional tools are provided in the "src/app/tools" subfolder which you can explore and run. These are currently undocumented and may disappear in the future. They are primarily intended for use by this project's developers or for specialized use cases.
 
 
 ## Running The Project's Full Build Process Including Unit And Integration Tests
@@ -202,7 +202,7 @@ The following table shows the results of using this project with various LLMs ag
 
 ## LLM Routing Abstraction
 
-The `LLMRouter` class (see `src/llm/core/llm-router.ts`) enables the LLMs you use to be pluggable, Ut performs various tasks to optimize the use of the configured LLMs and their APIs, It abstracts away many of the undesirable non-functional behaviours which occur when using LLMs. These non-functional features include:
+The `LLMRouter` class (see `src/common/llm/llm-router.ts`) enables the LLMs you use to be pluggable, Ut performs various tasks to optimize the use of the configured LLMs and their APIs, It abstracts away many of the undesirable non-functional behaviours which occur when using LLMs. These non-functional features include:
 
 * **Pluggable LLM**.  Routes to flavour of LLM (which may have a speciifc token size limit).
 * **Automatic LLM Timeouts**.  Proactively times out LLM invocations if the LLM is taking too long to respond.

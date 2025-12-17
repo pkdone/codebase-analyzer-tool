@@ -1,7 +1,7 @@
 import { LLMOutputFormat, LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { validateJsonWithTransforms } from "../../../../src/common/llm/json-processing/core/json-validating";
-import { sourceSummarySchema } from "../../../../src/schemas/sources.schema";
+import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 import { z } from "zod";
 
 describe("json-tools", () => {

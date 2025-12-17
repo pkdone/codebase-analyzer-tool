@@ -4,7 +4,7 @@ import {
   createBedrockMockEnv,
   createBedrockTestData,
   type AdditionalTestModel,
-} from "../../../../../helpers/llm/bedrock-test-helper";
+} from "../../../../../app/helpers/llm/bedrock-test-helper";
 import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 
 // Test-only constants

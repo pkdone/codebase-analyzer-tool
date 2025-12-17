@@ -1,5 +1,5 @@
-import { getRequiredEnvVar } from "../../../src/env/env-utils";
-import { EnvVars } from "../../../src/env/env.types";
+import { getRequiredEnvVar } from "../../../src/app/env/env-utils";
+import { EnvVars } from "../../../src/app/env/env.types";
 
 describe("getRequiredEnvVar", () => {
   it("should be importable from env", () => {
