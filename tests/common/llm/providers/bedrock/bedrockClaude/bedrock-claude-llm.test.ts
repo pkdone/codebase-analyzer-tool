@@ -6,7 +6,7 @@ import {
   LLMPurpose,
 } from "../../../../../../src/common/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
-import { llmConfig } from "../../../../../../src/common/llm/llm.config";
+import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
 import { AWS_COMPLETIONS_CLAUDE_V40 } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 import { createMockErrorLogger } from "../../../test-helpers/mock-error-logger";
 

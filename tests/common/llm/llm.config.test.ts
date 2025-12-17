@@ -1,4 +1,4 @@
-import { llmConfig, llmProviderConfig } from "../../../src/common/llm/llm.config";
+import { llmConfig, llmProviderConfig } from "../../../src/common/llm/config/llm.config";
 
 describe("llmConfig", () => {
   it("should have JSON_OUTPUT_TYPE defined", () => {
@@ -29,6 +29,40 @@ describe("llmConfig", () => {
     // The 'as const' assertion should make all properties readonly
     const jsonType: "json_object" = llmConfig.JSON_OUTPUT_TYPE;
     expect(jsonType).toBe("json_object");
+  });
+
+  describe("MIME type and encoding configuration", () => {
+    it("should have MIME_TYPE_JSON defined", () => {
+      expect(llmConfig.MIME_TYPE_JSON).toBeDefined();
+      expect(llmConfig.MIME_TYPE_JSON).toBe("application/json");
+    });
+
+    it("should have MIME_TYPE_ANY defined", () => {
+      expect(llmConfig.MIME_TYPE_ANY).toBeDefined();
+      expect(llmConfig.MIME_TYPE_ANY).toBe("*/*");
+    });
+
+    it("should have UTF8_ENCODING defined for LLM operations", () => {
+      expect(llmConfig.UTF8_ENCODING).toBeDefined();
+      expect(llmConfig.UTF8_ENCODING).toBe("utf8");
+    });
+
+    it("should have valid MIME type formats", () => {
+      expect(typeof llmConfig.MIME_TYPE_JSON).toBe("string");
+      expect(typeof llmConfig.MIME_TYPE_ANY).toBe("string");
+      expect(llmConfig.MIME_TYPE_JSON).toContain("/");
+      expect(llmConfig.MIME_TYPE_ANY).toContain("/");
+    });
+
+    it("should be typed as const for MIME and encoding constants", () => {
+      const mimeJson: "application/json" = llmConfig.MIME_TYPE_JSON;
+      const mimeAny: "*/*" = llmConfig.MIME_TYPE_ANY;
+      const encoding: "utf8" = llmConfig.UTF8_ENCODING;
+
+      expect(mimeJson).toBe("application/json");
+      expect(mimeAny).toBe("*/*");
+      expect(encoding).toBe("utf8");
+    });
   });
 });
 

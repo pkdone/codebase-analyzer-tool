@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { ignoreOverride } from "zod-to-json-schema";
-import type { JsonSchema7Type } from "zod-to-json-schema";
 import { ObjectId, Decimal128 } from "bson";
-import { toMongoJsonSchema } from "./utils/zod-to-mongodb-schema";
+import { ZodType, ZodTypeDef } from "zod";
+import { zodToJsonSchema, Options, JsonSchema7Type } from "zod-to-json-schema";
 import { isJsonObject } from "../utils/type-guards";
 
 /**
@@ -60,8 +60,17 @@ const mongoSchemaOptions = {
   },
 };
 
+function toMongoJsonSchema(
+  schema: ZodType<unknown, ZodTypeDef, unknown>,
+  options?: string | Partial<Options>,
+): Omit<JsonSchema7Type, "$schema"> {
+  const jsonSchema = zodToJsonSchema(schema, options);
+  const { $schema, ...remainingSchema } = jsonSchema;
+  void $schema;
+  return remainingSchema;
+}
+
 export function zodToJsonSchemaForMDB(schema: z.ZodObject<z.ZodRawShape>) {
   const raw = toMongoJsonSchema(schema, mongoSchemaOptions);
-  // Sanitize unsupported keywords before returning
   return sanitizeMongoUnsupportedKeywords(raw) as typeof raw;
 }

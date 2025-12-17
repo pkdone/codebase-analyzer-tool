@@ -7,7 +7,7 @@ import {
   LLMPurpose,
 } from "../../../../../../src/common/llm/types/llm.types";
 import { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
-import { llmConfig } from "../../../../../../src/common/llm/llm.config";
+import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
 
 // Define model key used in tests (matching the manifest internal constant)
 const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";

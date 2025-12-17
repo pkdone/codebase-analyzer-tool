@@ -1,4 +1,4 @@
-import { REQUIRED_STRING_PROPERTIES } from "../../../../prompts/config/schema-specific-sanitizer.config";
+import type { LLMSanitizerConfig } from "../../config/llm-module-config.types";
 
 /**
  * Schema fixing transformation that converts `undefined` values to empty strings
@@ -22,7 +22,11 @@ import { REQUIRED_STRING_PROPERTIES } from "../../../../prompts/config/schema-sp
  * - Handles circular references safely
  */
 
-export function convertUndefinedToString(value: unknown, visited = new WeakSet<object>()): unknown {
+export function convertUndefinedToString(
+  value: unknown,
+  config?: LLMSanitizerConfig,
+  visited = new WeakSet<object>(),
+): unknown {
   // Handle primitives and functions
   if (typeof value !== "object" || value === null) {
     return value;
@@ -36,7 +40,7 @@ export function convertUndefinedToString(value: unknown, visited = new WeakSet<o
 
   // Handle arrays
   if (Array.isArray(value)) {
-    return value.map((item) => convertUndefinedToString(item, visited));
+    return value.map((item) => convertUndefinedToString(item, config, visited));
   }
 
   // Preserve special built-in objects (Date, RegExp, etc.) as-is
@@ -47,17 +51,18 @@ export function convertUndefinedToString(value: unknown, visited = new WeakSet<o
 
   // Handle plain objects
   const result: Record<string | symbol, unknown> = {};
+  const requiredStringProperties = config?.requiredStringProperties ?? [];
 
   // Handle string keys
   for (const [key, val] of Object.entries(value)) {
     const lowerKey = key.toLowerCase();
 
     // If the property is undefined and it's a known required string property, convert to empty string
-    if (val === undefined && REQUIRED_STRING_PROPERTIES.includes(lowerKey)) {
+    if (val === undefined && requiredStringProperties.includes(lowerKey)) {
       result[key] = "";
     } else {
       // Recursively process nested objects and arrays
-      result[key] = convertUndefinedToString(val, visited);
+      result[key] = convertUndefinedToString(val, config, visited);
     }
   }
 
@@ -65,7 +70,7 @@ export function convertUndefinedToString(value: unknown, visited = new WeakSet<o
   const symbols = Object.getOwnPropertySymbols(value);
   for (const sym of symbols) {
     const val = (value as Record<symbol, unknown>)[sym];
-    result[sym] = convertUndefinedToString(val, visited);
+    result[sym] = convertUndefinedToString(val, config, visited);
   }
 
   return result;

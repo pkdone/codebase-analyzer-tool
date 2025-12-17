@@ -12,7 +12,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
 } from "../../../types/llm.types";
-import { appConfig } from "../../../../../config/app.config";
+import { llmConfig } from "../../../config/llm.config";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { formatError } from "../../../../utils/error-formatters";
 import { logError } from "../../../../utils/logging";
@@ -23,7 +23,6 @@ import {
   extractGenericCompletionResponse,
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
-import { EnvVars } from "../../../../../env/env.types";
 
 const TOKEN_LIMIT_ERROR_KEYWORDS = [
   "too many input tokens",
@@ -87,7 +86,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * Constructor.
    */
   constructor(
-    _env: EnvVars,
+    _providerParameters: Record<string, string>,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
@@ -95,6 +94,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     modelFamily: string,
     errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
+    sanitizerConfig?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     if (!config.providerSpecificConfig) {
       throw new Error("providerSpecificConfig is required but was not provided");
@@ -107,6 +107,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       modelFamily,
       errorLogger,
       llmFeatures,
+      sanitizerConfig,
     );
     const requestTimeoutMillis = config.providerSpecificConfig.requestTimeoutMillis;
     this.client = new BedrockRuntimeClient({
@@ -134,14 +135,14 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
       const parameters = this.buildEmbeddingParameters(modelKey, prompt);
       const command = new InvokeModelCommand(parameters);
       const rawResponse = await this.client.send(command);
-      const jsonString = new TextDecoder(appConfig.UTF8_ENCODING).decode(rawResponse.body);
+      const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
       const llmResponse: unknown = JSON.parse(jsonString);
       return this.extractEmbeddingModelSpecificResponse(llmResponse);
     } else {
       const parameters = this.buildCompletionParameters(modelKey, prompt);
       const command = new InvokeModelCommand(parameters);
       const rawResponse = await this.client.send(command);
-      const jsonString = new TextDecoder(appConfig.UTF8_ENCODING).decode(rawResponse.body);
+      const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
       const llmResponse: unknown = JSON.parse(jsonString);
       const config = this.getResponseExtractionConfig();
       return extractGenericCompletionResponse(
@@ -203,8 +204,8 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   private buildBedrockParameters(modelKey: string, bodyObj: Record<string, unknown>) {
     return {
       modelId: this.llmModelsMetadata[modelKey].urn,
-      contentType: appConfig.MIME_TYPE_JSON,
-      accept: appConfig.MIME_TYPE_ANY,
+      contentType: llmConfig.MIME_TYPE_JSON,
+      accept: llmConfig.MIME_TYPE_ANY,
       body: JSON.stringify(bodyObj),
     };
   }

@@ -7,8 +7,6 @@ import {
 import BaseOpenAILLM from "../common/base-openai-llm";
 import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { EnvVars } from "../../../../../env/env.types";
-import { getRequiredEnvVar } from "../../../../../env/env-utils";
 
 /**
  * Class for Azure's own managed version of the OpenAI service.
@@ -22,7 +20,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
    * Constructor.
    */
   constructor(
-    env: EnvVars,
+    providerParameters: Record<string, string>,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
@@ -30,6 +28,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     modelFamily: string,
     errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
+    sanitizerConfig?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     super(
       modelsKeys,
@@ -39,18 +38,15 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
       modelFamily,
       errorLogger,
       llmFeatures,
+      sanitizerConfig,
     );
-    const apiKey = getRequiredEnvVar(env, "AZURE_OPENAI_LLM_API_KEY");
-    const endpoint = getRequiredEnvVar(env, "AZURE_OPENAI_ENDPOINT");
-    const embeddingsDeployment = getRequiredEnvVar(env, "AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT");
-    const primaryCompletionsDeployment = getRequiredEnvVar(
-      env,
-      "AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY",
-    );
-    const secondaryCompletionsDeployment = getRequiredEnvVar(
-      env,
-      "AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY",
-    );
+    const apiKey = providerParameters.AZURE_OPENAI_LLM_API_KEY;
+    const endpoint = providerParameters.AZURE_OPENAI_ENDPOINT;
+    const embeddingsDeployment = providerParameters.AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT;
+    const primaryCompletionsDeployment =
+      providerParameters.AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY;
+    const secondaryCompletionsDeployment =
+      providerParameters.AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY;
     this.modelToDeploymentMappings = new Map();
     this.modelToDeploymentMappings.set(modelsKeys.embeddingsModelKey, embeddingsDeployment);
     this.modelToDeploymentMappings.set(

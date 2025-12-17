@@ -6,8 +6,6 @@ import {
 } from "../../../types/llm.types";
 import BaseOpenAILLM from "../common/base-openai-llm";
 import { LLMProviderSpecificConfig } from "../../llm-provider.types";
-import { EnvVars } from "../../../../../env/env.types";
-import { getRequiredEnvVar } from "../../../../../env/env-utils";
 
 /**
  * Class for the public OpenAI service.
@@ -20,7 +18,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
    * Constructor.
    */
   constructor(
-    env: EnvVars,
+    providerParameters: Record<string, string>,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
@@ -28,6 +26,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
     modelFamily: string,
     errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
+    sanitizerConfig?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     super(
       modelsKeys,
@@ -37,8 +36,9 @@ export default class OpenAILLM extends BaseOpenAILLM {
       modelFamily,
       errorLogger,
       llmFeatures,
+      sanitizerConfig,
     );
-    const apiKey = getRequiredEnvVar(env, "OPENAI_LLM_API_KEY");
+    const apiKey = providerParameters.OPENAI_LLM_API_KEY;
     this.client = new OpenAI({ apiKey });
   }
 

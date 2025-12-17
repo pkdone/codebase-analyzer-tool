@@ -1,4 +1,4 @@
-import { llmProviderConfig } from "../../../src/common/llm/llm.config";
+import { llmProviderConfig } from "../../../src/common/llm/config/llm.config";
 
 /**
  * Unit tests to verify that unused LLM provider config constants have been removed.

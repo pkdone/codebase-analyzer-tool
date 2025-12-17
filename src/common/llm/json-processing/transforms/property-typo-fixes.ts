@@ -19,6 +19,7 @@
  */
 export function fixCommonPropertyNameTypos(
   value: unknown,
+  _config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
   visited = new WeakSet<object>(),
 ): unknown {
   // Handle primitives and null
@@ -34,7 +35,7 @@ export function fixCommonPropertyNameTypos(
 
   // Handle arrays
   if (Array.isArray(value)) {
-    return value.map((item) => fixCommonPropertyNameTypos(item, visited));
+    return value.map((item) => fixCommonPropertyNameTypos(item, _config, visited));
   }
 
   // Preserve special built-in objects (Date, RegExp, etc.) as-is
@@ -62,7 +63,7 @@ export function fixCommonPropertyNameTypos(
     }
 
     // Recursively process nested objects and arrays
-    processedValue = fixCommonPropertyNameTypos(val, visited);
+    processedValue = fixCommonPropertyNameTypos(val, _config, visited);
 
     result[processedKey] = processedValue;
   }
@@ -72,7 +73,7 @@ export function fixCommonPropertyNameTypos(
   for (const sym of symbols) {
     const symObj = obj as Record<symbol, unknown>;
     const resultSym = result as Record<symbol, unknown>;
-    resultSym[sym] = fixCommonPropertyNameTypos(symObj[sym], visited);
+    resultSym[sym] = fixCommonPropertyNameTypos(symObj[sym], _config, visited);
   }
 
   return result;

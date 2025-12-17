@@ -27,4 +27,7 @@ export type Sanitizer = (
  * and are applied after successful JSON.parse when initial validation fails
  * to normalize and correct parsed data to help it pass schema validation.
  */
-export type SchemaFixingTransform = (data: unknown) => unknown;
+export type SchemaFixingTransform = (
+  data: unknown,
+  config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
+) => unknown;

@@ -7,7 +7,7 @@ import {
   BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
   AWS_EMBEDDINGS_TITAN_V1,
 } from "../common/bedrock-models.constants";
-import { llmConfig } from "../../../llm.config";
+import { llmConfig } from "../../../config/llm.config";
 import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
 
 // Model family constant - exported for use in provider registry

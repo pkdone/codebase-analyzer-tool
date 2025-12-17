@@ -8,7 +8,6 @@ import {
   LLMGeneratedContent,
   LLMResponseTokensUsage,
 } from "../types/llm.types";
-import { EnvVars } from "../../../env/env.types";
 
 /**
  * Interface for retry and timeout configuration used by LLMRouter
@@ -67,7 +66,7 @@ export interface LLMProviderManifest {
   providerSpecificConfig: LLMProviderSpecificConfig;
   /** Required implementation constructor (modern approach) */
   implementation: new (
-    env: EnvVars,
+    providerParameters: Record<string, string>,
     modelsKeysSet: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
@@ -75,6 +74,7 @@ export interface LLMProviderManifest {
     modelFamily: string,
     errorLogger: import("../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
+    sanitizerConfig?: import("../config/llm-module-config.types").LLMSanitizerConfig,
   ) => LLMProvider;
 }
 

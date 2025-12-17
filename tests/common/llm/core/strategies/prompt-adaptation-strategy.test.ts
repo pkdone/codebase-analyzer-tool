@@ -8,7 +8,7 @@ import {
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
 
 // Mock the LLM config
-jest.mock("../../../../../src/common/llm/llm.config", () => ({
+jest.mock("../../../../../src/common/llm/config/llm.config", () => ({
   llmConfig: {
     COMPLETION_MAX_TOKENS_LIMIT_BUFFER: 50,
     MAX_COMPLETION_REDUCTION_RATIO: 0.75,

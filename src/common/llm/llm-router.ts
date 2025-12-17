@@ -22,7 +22,6 @@ import { loadManifestForModelFamily } from "./utils/manifest-loader";
 import { logOneLineWarning } from "../utils/logging";
 import { isDefined } from "../utils/type-guards";
 import { LLMErrorLogger } from "./tracking/llm-error-logger";
-import { EnvVars } from "../../env/env.types";
 
 /**
  * Class for loading the required LLMs as specified by various environment settings and applying
@@ -61,10 +60,10 @@ export default class LLMRouter {
 
     // Create LLM provider instance
     const modelsKeysSet = this.buildModelsKeysSet(this.manifest);
-    const modelsMetadata = this.buildModelsMetadata(this.manifest, config.envVars);
+    const modelsMetadata = this.buildModelsMetadata(this.manifest, config.providerParameters);
     const providerConfig = { providerSpecificConfig: this.manifest.providerSpecificConfig };
     this.llm = new this.manifest.implementation(
-      config.envVars as unknown as EnvVars,
+      config.providerParameters,
       modelsKeysSet,
       modelsMetadata,
       this.manifest.errorPatterns,
@@ -72,6 +71,7 @@ export default class LLMRouter {
       this.manifest.modelFamily,
       this.errorLogger,
       this.manifest.features,
+      config.sanitizer,
     );
 
     this.modelsMetadata = this.llm.getModelsMetadata();
@@ -248,20 +248,10 @@ export default class LLMRouter {
       return null;
     }
 
-    // After the discriminated union check, result.success is true and result.data contains
-    // the typed response. However, TypeScript's inference of InferResponseType<TOptions> through
-    // the complex async pipeline (LLMExecutionPipeline -> RetryStrategy -> AbstractLLM -> processJson)
-    // resolves to 'any' due to the conditional type complexity combined with generic propagation
-    // through multiple async layers. This is a known limitation of TypeScript's type inference
-    // even in version 5.7.3+. The type assertion is justified because: (1) the type is validated
-    // at runtime via Zod schema, (2) the generic parameter TOptions flows correctly through all
-    // layers ensuring the shape matches, and (3) eliminating this would require major refactoring
-    // to simplify the entire LLM abstraction layer.
-    // So don't change using an assertion or eslint comment because these are justified for
-    // TypeScript 5.7.3 and later ones, unless you are sure you are runing newer TSC version that
-    // actually supports this.
+    // The type assertion occurs in AbstractLLM.formatAndValidateResponse where it's actually necessary.
+    // See the comment there for why the assertion is justified and required at that location.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return result.data as InferResponseType<TOptions>;
+    return result.data;
   }
 
   /**
@@ -278,14 +268,14 @@ export default class LLMRouter {
   }
 
   /**
-   * Build resolved model metadata from manifest and environment
+   * Build resolved model metadata from manifest and provider parameters
    */
   private buildModelsMetadata(
     manifest: LLMProviderManifest,
-    env: Record<string, string>,
+    providerParameters: Record<string, string>,
   ): Record<string, ResolvedLLMModelMetadata> {
     const resolveUrn = (model: LLMModelMetadata): string => {
-      const value = env[model.urnEnvKey];
+      const value = providerParameters[model.urnEnvKey];
 
       if (typeof value !== "string" || value.length === 0) {
         throw new BadConfigurationLLMError(

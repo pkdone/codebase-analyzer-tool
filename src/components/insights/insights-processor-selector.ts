@@ -7,7 +7,7 @@ import type { EnvVars } from "../../env/env.types";
 import type InsightsFromDBGenerator from "./insights-from-db-generator";
 import type InsightsFromRawCodeGenerator from "./insights-from-raw-code-generator";
 import { formatCodebaseAsMarkdown } from "../../common/utils/codebase-to-markdown";
-import { llmProviderConfig } from "../../common/llm/llm.config";
+import { llmProviderConfig } from "../../common/llm/config/llm.config";
 
 /**
  * Service to determine which insights processor to use based on LLM capabilities.

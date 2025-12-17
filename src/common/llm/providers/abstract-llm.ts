@@ -21,7 +21,7 @@ import { formatError } from "../../utils/error-formatters";
 import { processJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError, BadResponseContentLLMError } from "../types/llm-errors.types";
-import { llmProviderConfig } from "../llm.config";
+import { llmProviderConfig } from "../config/llm.config";
 import { LLMErrorLogger } from "../tracking/llm-error-logger";
 
 /**
@@ -38,6 +38,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private readonly modelFamily: string;
   private readonly errorLogger: LLMErrorLogger;
+  private readonly sanitizerConfig?: import("../config/llm-module-config.types").LLMSanitizerConfig;
 
   /**
    * Constructor.
@@ -50,6 +51,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     modelFamily: string,
     errorLogger: LLMErrorLogger,
     llmFeatures?: readonly string[],
+    sanitizerConfig?: import("../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     this.modelsKeys = modelsKeys;
     this.llmModelsMetadata = modelsMetadata;
@@ -58,6 +60,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     this.modelFamily = modelFamily;
     this.errorLogger = errorLogger;
     this.llmFeatures = llmFeatures;
+    this.sanitizerConfig = sanitizerConfig;
   }
 
   /**
@@ -339,14 +342,29 @@ export default abstract class AbstractLLM implements LLMProvider {
     // The jsonSchema from completionOptions carries the type information through the chain.
     // While the simplified processJson return type improves type safety, TypeScript's inference
     // through this deep generic async pipeline still requires an assertion for strict type checking.
-    const jsonProcessingResult = processJson(responseContent, context, completionOptions, true);
+    const jsonProcessingResult = processJson(
+      responseContent,
+      context,
+      completionOptions,
+      true,
+      this.sanitizerConfig,
+    );
 
     if (jsonProcessingResult.success) {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        // Type assertion is necessary due to TypeScript's limitations with deep generic inference.
-        // The runtime type is guaranteed correct by processJson's validation, so don't change this.
+        // Type assertion is necessary here due to TypeScript's limitations with deep generic inference.
+        // TypeScript's inference of InferResponseType<TOptions> through the complex async pipeline
+        // (LLMExecutionPipeline -> RetryStrategy -> AbstractLLM -> processJson) resolves to 'any'
+        // due to the conditional type complexity combined with generic propagation through multiple
+        // async layers. This is a known limitation of TypeScript's type inference even in version 5.7.3+.
+        // The type assertion is justified because: (1) the type is validated at runtime via Zod schema,
+        // (2) the generic parameter TOptions flows correctly through all layers ensuring the shape matches,
+        // and (3) eliminating this would require major refactoring to simplify the entire LLM abstraction layer.
+        // So don't change using an assertion or eslint comment because these are justified for
+        // TypeScript 5.7.3 and later ones, unless you are sure you are running newer TSC version that
+        // actually supports this.
         generated: jsonProcessingResult.data as ResponseType,
         mutationSteps: jsonProcessingResult.mutationSteps,
       };

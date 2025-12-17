@@ -19,6 +19,6 @@ export function buildLLMModuleConfig(envVars: EnvVars, modelFamily: string): LLM
       errorLogFilenameTemplate: "response-error-{timestamp}.log",
     },
     sanitizer: getSchemaSpecificSanitizerConfig(),
-    envVars: envVars as Record<string, string>,
+    providerParameters: envVars as Record<string, string>,
   };
 }

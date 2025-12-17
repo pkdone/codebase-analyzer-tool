@@ -10,8 +10,7 @@ import {
 } from "@google-cloud/vertexai";
 import * as aiplatform from "@google-cloud/aiplatform";
 const { helpers } = aiplatform;
-import { llmConfig } from "../../../llm.config";
-import { appConfig } from "../../../../../config/app.config";
+import { llmConfig } from "../../../config/llm.config";
 import {
   LLMModelKeysSet,
   LLMPurpose,
@@ -33,8 +32,6 @@ import {
   zodToJsonSchemaWithoutMeta,
   sanitizeSchemaForProvider,
 } from "../../../utils/schema-sanitizer";
-import { EnvVars } from "../../../../../env/env.types";
-import { getRequiredEnvVar } from "../../../../../env/env-utils";
 
 // Constant for the finish reasons that are considered terminal and should be rejected
 const VERTEXAI_TERMINAL_FINISH_REASONS = [
@@ -62,7 +59,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    * Constructor
    */
   constructor(
-    env: EnvVars,
+    providerParameters: Record<string, string>,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
@@ -70,6 +67,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     modelFamily: string,
     errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
     llmFeatures?: readonly string[],
+    sanitizerConfig?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     super(
       modelsKeys,
@@ -79,9 +77,10 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       modelFamily,
       errorLogger,
       llmFeatures,
+      sanitizerConfig,
     );
-    const project = getRequiredEnvVar(env, "VERTEXAI_PROJECTID");
-    const location = getRequiredEnvVar(env, "VERTEXAI_LOCATION");
+    const project = providerParameters.VERTEXAI_PROJECTID;
+    const location = providerParameters.VERTEXAI_LOCATION;
     this.vertexAiApiClient = new VertexAI({ project, location });
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
       apiEndpoint: `${location}-aiplatform.googleapis.com`,
@@ -268,7 +267,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     };
 
     if (options?.outputFormat === LLMOutputFormat.JSON) {
-      generationConfig.responseMimeType = appConfig.MIME_TYPE_JSON;
+      generationConfig.responseMimeType = llmConfig.MIME_TYPE_JSON;
 
       // Only force Vertex AI to use the JSON schema if the schema shape does not contain some
       // schema definiton elements that the Vertex AI API chokes on - otherwise VertexAI throws

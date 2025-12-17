@@ -1,15 +1,9 @@
-import { appConfig } from "../../src/config/app.config";
 import { databaseConfig } from "../../src/config/database.config";
 import { fileProcessingConfig } from "../../src/config/file-processing.config";
 import { EXTENSION_TO_TYPE_MAP } from "../../src/config/file-types.config";
 import { outputConfig } from "../../src/config/output.config";
 
 describe("individual config modules", () => {
-  it("appConfig should expose expected keys", () => {
-    expect(appConfig).toBeDefined();
-    expect(appConfig).toHaveProperty("MIME_TYPE_JSON");
-  });
-
   it("databaseConfig should expose collection names", () => {
     expect(databaseConfig).toBeDefined();
     expect(databaseConfig).toHaveProperty("SOURCES_COLLECTION_NAME");

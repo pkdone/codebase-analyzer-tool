@@ -26,7 +26,11 @@
  */
 const ARRAY_PROPERTY_NAMES = ["parameters", "dependencies", "references"] as const;
 
-export function coerceStringToArray(value: unknown, visited = new WeakSet<object>()): unknown {
+export function coerceStringToArray(
+  value: unknown,
+  _config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
+  visited = new WeakSet<object>(),
+): unknown {
   // Handle primitives and null
   if (value === null || typeof value !== "object") {
     return value;
@@ -40,7 +44,7 @@ export function coerceStringToArray(value: unknown, visited = new WeakSet<object
 
   // Handle arrays
   if (Array.isArray(value)) {
-    return value.map((item) => coerceStringToArray(item, visited));
+    return value.map((item) => coerceStringToArray(item, _config, visited));
   }
 
   // Preserve special built-in objects (Date, RegExp, etc.) as-is
@@ -66,7 +70,7 @@ export function coerceStringToArray(value: unknown, visited = new WeakSet<object
       processedValue = [];
     } else {
       // Recursively process nested objects and arrays
-      processedValue = coerceStringToArray(val, visited);
+      processedValue = coerceStringToArray(val, _config, visited);
     }
 
     result[key] = processedValue;
@@ -77,7 +81,7 @@ export function coerceStringToArray(value: unknown, visited = new WeakSet<object
   for (const sym of symbols) {
     const symObj = obj as Record<symbol, unknown>;
     const resultSym = result as Record<symbol, unknown>;
-    resultSym[sym] = coerceStringToArray(symObj[sym], visited);
+    resultSym[sym] = coerceStringToArray(symObj[sym], _config, visited);
   }
 
   return result;

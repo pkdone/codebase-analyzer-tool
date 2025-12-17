@@ -17,7 +17,11 @@
  * - Preserves all other values unchanged, including Date, RegExp, and other built-in objects
  * - Handles circular references safely
  */
-export function convertNullToUndefined(value: unknown, visited = new WeakSet<object>()): unknown {
+export function convertNullToUndefined(
+  value: unknown,
+  _config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
+  visited = new WeakSet<object>(),
+): unknown {
   // Handle primitive null
   if (value === null) {
     return undefined;
@@ -36,7 +40,7 @@ export function convertNullToUndefined(value: unknown, visited = new WeakSet<obj
 
   // Handle arrays
   if (Array.isArray(value)) {
-    return value.map((item) => convertNullToUndefined(item, visited));
+    return value.map((item) => convertNullToUndefined(item, _config, visited));
   }
 
   // Preserve special built-in objects (Date, RegExp, etc.) as-is
@@ -50,7 +54,7 @@ export function convertNullToUndefined(value: unknown, visited = new WeakSet<obj
 
   // Handle string keys
   for (const [key, val] of Object.entries(value)) {
-    const converted = convertNullToUndefined(val, visited);
+    const converted = convertNullToUndefined(val, _config, visited);
     // Only set the property if the converted value is not undefined
     // This ensures that null values are truly omitted from the object
     if (converted !== undefined) {
@@ -62,7 +66,7 @@ export function convertNullToUndefined(value: unknown, visited = new WeakSet<obj
   const symbols = Object.getOwnPropertySymbols(value);
   for (const sym of symbols) {
     const val = (value as Record<symbol, unknown>)[sym];
-    const converted = convertNullToUndefined(val, visited);
+    const converted = convertNullToUndefined(val, _config, visited);
     if (converted !== undefined) {
       result[sym] = converted;
     }

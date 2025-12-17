@@ -39,5 +39,5 @@ export interface LLMModuleConfig {
   readonly modelFamily: string;
   readonly errorLogging: LLMErrorLoggingConfig;
   readonly sanitizer?: LLMSanitizerConfig;
-  readonly envVars: Record<string, string>;
+  readonly providerParameters: Record<string, string>;
 }

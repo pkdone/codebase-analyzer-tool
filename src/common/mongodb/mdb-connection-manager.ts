@@ -1,14 +1,12 @@
 import { MongoClient, MongoClientOptions } from "mongodb";
-import { injectable } from "tsyringe";
 import { logError, logOneLineWarning } from "../utils/logging";
 import { redactUrl } from "../security/url-redactor";
 import { DatabaseConnectionError } from "./mdb-errors";
 
 /**
  * A connection manager for creating and managing MongoDB client connections.
- * This replaces the singleton pattern with dependency injection.
+ * Framework-agnostic - can be used with any DI system or standalone.
  */
-@injectable()
 export class MongoDBConnectionManager {
   private readonly clients = new Map<string, MongoClient>();
 

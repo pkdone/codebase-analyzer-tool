@@ -1,4 +1,21 @@
 import { convertUndefinedToString } from "../../../../../src/common/llm/json-processing/transforms/convert-undefined-to-string";
+import type { LLMSanitizerConfig } from "../../../../../src/common/llm/config/llm-module-config.types";
+
+// Mock sanitizer config for testing
+const mockConfig: LLMSanitizerConfig = {
+  requiredStringProperties: [
+    "name",
+    "type",
+    "purpose",
+    "description",
+    "path",
+    "method",
+    "namespace",
+    "kind",
+    "mechanism",
+    "value",
+  ],
+};
 
 describe("convertUndefinedToString", () => {
   it("should convert undefined to empty string for known required string properties", () => {
@@ -8,7 +25,7 @@ describe("convertUndefinedToString", () => {
       purpose: undefined,
     };
 
-    const result = convertUndefinedToString(input);
+    const result = convertUndefinedToString(input, mockConfig);
 
     expect(result).toEqual({
       name: "",
@@ -33,7 +50,7 @@ describe("convertUndefinedToString", () => {
       ],
     };
 
-    const result = convertUndefinedToString(input);
+    const result = convertUndefinedToString(input, mockConfig);
 
     expect(result).toEqual({
       publicMethods: [
@@ -57,7 +74,7 @@ describe("convertUndefinedToString", () => {
       someOtherProperty: undefined,
     };
 
-    const result = convertUndefinedToString(input);
+    const result = convertUndefinedToString(input, mockConfig);
 
     expect(result).toEqual({
       name: "TestClass",
@@ -72,7 +89,7 @@ describe("convertUndefinedToString", () => {
       Purpose: undefined,
     };
 
-    const result = convertUndefinedToString(input);
+    const result = convertUndefinedToString(input, mockConfig);
 
     expect(result).toEqual({
       Name: "",
@@ -87,7 +104,7 @@ describe("convertUndefinedToString", () => {
       { name: "test", type: undefined },
     ];
 
-    const result = convertUndefinedToString(input);
+    const result = convertUndefinedToString(input, mockConfig);
 
     expect(result).toEqual([
       { name: "", type: "METHOD" },
@@ -101,7 +118,7 @@ describe("convertUndefinedToString", () => {
       type: "CLASS",
     };
 
-    const result = convertUndefinedToString(input);
+    const result = convertUndefinedToString(input, mockConfig);
 
     expect(result).toEqual({
       name: null,
@@ -110,10 +127,10 @@ describe("convertUndefinedToString", () => {
   });
 
   it("should handle primitives", () => {
-    expect(convertUndefinedToString("string")).toBe("string");
-    expect(convertUndefinedToString(123)).toBe(123);
-    expect(convertUndefinedToString(true)).toBe(true);
-    expect(convertUndefinedToString(null)).toBeNull();
+    expect(convertUndefinedToString("string", mockConfig)).toBe("string");
+    expect(convertUndefinedToString(123, mockConfig)).toBe(123);
+    expect(convertUndefinedToString(true, mockConfig)).toBe(true);
+    expect(convertUndefinedToString(null, mockConfig)).toBeNull();
   });
 
   it("should handle circular references safely", () => {
@@ -123,7 +140,7 @@ describe("convertUndefinedToString", () => {
     };
     input.self = input;
 
-    const result = convertUndefinedToString(input);
+    const result = convertUndefinedToString(input, mockConfig);
 
     expect(result).toEqual({
       name: "",

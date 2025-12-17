@@ -12,6 +12,10 @@ export const llmConfig = {
   DEFAULT_TOP_P_LOWEST: 0,
   DEFAULT_TOP_K_LOWEST: 1,
   JSON_OUTPUT_TYPE: "json_object",
+  // HTTP/MIME constants for LLM provider interactions
+  MIME_TYPE_JSON: "application/json",
+  MIME_TYPE_ANY: "*/*",
+  UTF8_ENCODING: "utf8",
 } as const;
 
 /**

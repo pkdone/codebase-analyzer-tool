@@ -7,7 +7,7 @@ import {
   LLMModelFeature,
 } from "../../../types/llm.types";
 import AbstractLLM from "../../abstract-llm";
-import { llmConfig } from "../../../llm.config";
+import { llmConfig } from "../../../config/llm.config";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
 
 /**

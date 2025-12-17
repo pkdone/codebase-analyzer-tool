@@ -96,6 +96,7 @@ function logProcessingSteps(
  * @param context - Context information about the LLM request
  * @param completionOptions - Options including output format and optional JSON schema
  * @param loggingEnabled - Whether to enable sanitization step logging. Defaults to true.
+ * @param config - Optional sanitizer configuration to pass to transforms
  * @returns A JsonProcessorResult indicating success with validated data and steps, or failure with an error
  */
 export function processJson<S extends z.ZodType = z.ZodType<Record<string, unknown>>>(
@@ -103,6 +104,7 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
   context: LLMContext,
   completionOptions: LLMCompletionOptions<S>,
   loggingEnabled = true,
+  config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
 ): JsonProcessorResult<z.infer<S>> {
   // Pre-check - ensure content is a string
   if (typeof content !== "string") {
@@ -178,7 +180,7 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
 
   // TypeScript now knows jsonSchema exists and is a z.ZodType.
   // Validate the parsed data (with transforms applied internally if needed).
-  const validationResult = validateJsonWithTransforms(parseResult.data, jsonSchema);
+  const validationResult = validateJsonWithTransforms(parseResult.data, jsonSchema, config);
 
   // Validation succeeded.
   if (validationResult.success) {

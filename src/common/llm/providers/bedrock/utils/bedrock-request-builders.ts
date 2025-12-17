@@ -1,4 +1,4 @@
-import { llmConfig } from "../../../llm.config";
+import { llmConfig } from "../../../config/llm.config";
 import type { ResolvedLLMModelMetadata } from "../../../types/llm.types";
 
 /**

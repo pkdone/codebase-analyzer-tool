@@ -16,10 +16,10 @@ const GPT_COMPLETIONS_GPT4_32k = "GPT_COMPLETIONS_GPT4_32k";
 const baseEnv = loadBaseEnvVarsOnly();
 
 // Mock environment specific to Azure OpenAI
-const mockAzureOpenAIEnv = {
+const mockAzureOpenAIEnv: Record<string, string> = {
   MONGODB_URL: baseEnv.MONGODB_URL,
   CODEBASE_DIR_PATH: "/test/path",
-  SKIP_ALREADY_PROCESSED_FILES: false,
+  SKIP_ALREADY_PROCESSED_FILES: "false",
   LLM: "AzureOpenAI",
   AZURE_OPENAI_LLM_API_KEY: "test-key",
   AZURE_OPENAI_ENDPOINT: "https://test.openai.azure.com/",
@@ -33,7 +33,7 @@ const mockAzureOpenAIEnv = {
 
 // Helper function to resolve URN from environment variable key
 const resolveUrn = (urnEnvKey: string): string => {
-  return mockAzureOpenAIEnv[urnEnvKey as keyof typeof mockAzureOpenAIEnv] as string;
+  return mockAzureOpenAIEnv[urnEnvKey];
 };
 
 // Create test instance using Azure OpenAI provider manifest

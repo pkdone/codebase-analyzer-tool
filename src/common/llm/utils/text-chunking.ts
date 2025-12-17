@@ -1,4 +1,4 @@
-import { llmProviderConfig } from "../llm.config";
+import { llmProviderConfig } from "../config/llm.config";
 import { logOneLineWarning } from "../../utils/logging";
 
 /**

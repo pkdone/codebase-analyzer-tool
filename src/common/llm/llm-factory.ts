@@ -5,15 +5,7 @@ import { RetryStrategy } from "./strategies/retry-strategy";
 import { FallbackStrategy } from "./strategies/fallback-strategy";
 import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
 import LLMStats from "./tracking/llm-stats";
-import { LLMStatsReporter } from "./tracking/llm-stats-reporter";
 import { LLMErrorLogger } from "./tracking/llm-error-logger";
-
-/**
- * Options for creating an LLM Router instance.
- */
-export interface CreateLLMRouterOptions {
-  config: LLMModuleConfig;
-}
 
 /**
  * Result of creating an LLM Router, including the router and its stats instance.
@@ -28,7 +20,7 @@ export interface LLMRouterComponents {
  * This function instantiates all required dependencies and wires them together,
  * making the LLM module usable without a dependency injection framework.
  *
- * @param options Configuration options for the LLM module
+ * @param config Configuration for the LLM module
  * @returns An object containing the configured LLMRouter and LLMStats instances
  *
  * @example
@@ -40,17 +32,14 @@ export interface LLMRouterComponents {
  *     errorLogFilenameTemplate: "error-{timestamp}.log",
  *   },
  *   sanitizer: getSchemaSpecificSanitizerConfig(),
- *   envVars: process.env as Record<string, string>,
+ *   providerParameters: process.env as Record<string, string>,
  * };
  *
- * const { router, stats } = createLLMRouter({ config });
+ * const { router, stats } = createLLMRouter(config);
  * const result = await router.executeCompletion(...);
- * const statsReporter = createLLMStatsReporter(stats);
  * ```
  */
-export function createLLMRouter(options: CreateLLMRouterOptions): LLMRouterComponents {
-  const { config } = options;
-
+export function createLLMRouter(config: LLMModuleConfig): LLMRouterComponents {
   // Instantiate dependencies in correct order (no circular dependencies)
   const errorLogger = new LLMErrorLogger(config.errorLogging);
   const llmStats = new LLMStats();
@@ -68,22 +57,4 @@ export function createLLMRouter(options: CreateLLMRouterOptions): LLMRouterCompo
   const router = new LLMRouter(config, executionPipeline, errorLogger);
 
   return { router, stats: llmStats };
-}
-
-/**
- * Factory function to create an LLM Stats Reporter instance.
- * The stats reporter can display statistics about LLM invocations.
- *
- * @param llmStats The LLM stats instance to report on (typically obtained from a router)
- * @returns A configured LLMStatsReporter instance
- *
- * @example
- * ```typescript
- * const statsReporter = createLLMStatsReporter(llmStats);
- * statsReporter.displayLLMStatusSummary();
- * statsReporter.displayLLMStatusDetails();
- * ```
- */
-export function createLLMStatsReporter(llmStats: LLMStats): LLMStatsReporter {
-  return new LLMStatsReporter(llmStats);
 }

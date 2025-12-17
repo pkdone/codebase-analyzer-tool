@@ -1,3 +1,4 @@
+
 # Coding Standards and Architectural Conventions
 
 This document outlines the inferred coding standards, architectural patterns, and formatting conventions for the project. It is intended to help new developers contribute to the project with a consistent style and understanding of its structure.

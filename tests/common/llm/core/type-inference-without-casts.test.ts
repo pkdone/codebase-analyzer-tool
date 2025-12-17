@@ -147,7 +147,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
     // Create router
     const mockConfig: LLMModuleConfig = {
       modelFamily,
-      envVars: mockEnvVars as unknown as Record<string, string>,
+      providerParameters: mockEnvVars as unknown as Record<string, string>,
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
       sanitizer: {},
     };

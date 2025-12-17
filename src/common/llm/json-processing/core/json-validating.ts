@@ -89,15 +89,19 @@ function attemptValidate<S extends z.ZodType>(
  * Internal function used by validateJsonWithTransforms(). Not exported.
  *
  * @param data - The parsed JSON data to transform
+ * @param config - Optional sanitizer configuration to pass to transforms
  * @returns The transformed data and a list of transform function names that were applied
  */
-function applySchemaFixingTransforms(data: unknown): { data: unknown; steps: readonly string[] } {
+function applySchemaFixingTransforms(
+  data: unknown,
+  config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
+): { data: unknown; steps: readonly string[] } {
   const appliedTransforms: string[] = [];
   let transformedData = data;
 
   for (const transform of SCHEMA_FIXING_TRANSFORMS) {
     const before = JSON.stringify(transformedData);
-    transformedData = transform(transformedData);
+    transformedData = transform(transformedData, config);
     const after = JSON.stringify(transformedData);
 
     // Track if transform made changes (i.e., if JSON string changed)
@@ -123,11 +127,13 @@ function applySchemaFixingTransforms(data: unknown): { data: unknown; steps: rea
  *
  * @param data - The parsed data to validate
  * @param jsonSchema - The Zod schema to validate against
+ * @param config - Optional sanitizer configuration to pass to transforms
  * @returns A ValidationWithTransformsResult indicating success with validated data and transform steps, or failure with validation issues and transform steps
  */
 export function validateJsonWithTransforms<S extends z.ZodType>(
   data: unknown,
   jsonSchema: S,
+  config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
 ): ValidationWithTransformsResult<z.infer<S>> {
   // Fail validation early if not JSON
   if (
@@ -149,7 +155,7 @@ export function validateJsonWithTransforms<S extends z.ZodType>(
   }
 
   // Initial validation failed, so apply schema fixing transforms
-  const transformResult = applySchemaFixingTransforms(data);
+  const transformResult = applySchemaFixingTransforms(data, config);
   const validationAfterTransforms = attemptValidate(transformResult.data, jsonSchema);
 
   // Return result with transform steps included

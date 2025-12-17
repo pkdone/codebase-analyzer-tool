@@ -5,13 +5,13 @@ import { EnvVars } from "../../../src/env/env.types";
 import InsightsFromDBGenerator from "../../../src/components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../../src/components/insights/insights-from-raw-code-generator";
 import { formatCodebaseAsMarkdown } from "../../../src/common/utils/codebase-to-markdown";
-import { llmProviderConfig } from "../../../src/common/llm/llm.config";
+import { llmProviderConfig } from "../../../src/common/llm/config/llm.config";
 import { z } from "zod";
 import { LLMProviderManifest } from "../../../src/common/llm/providers/llm-provider.types";
 
 // Mock dependencies
 jest.mock("../../../src/common/utils/codebase-to-markdown");
-jest.mock("../../../src/common/llm/llm.config", () => ({
+jest.mock("../../../src/common/llm/config/llm.config", () => ({
   llmConfig: {
     LLM_ROLE_USER: "user",
     LLM_ROLE_ASSISTANT: "assistant",

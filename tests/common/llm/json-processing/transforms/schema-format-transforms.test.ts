@@ -2,6 +2,19 @@ import {
   unwrapJsonSchemaStructure,
   coerceNumericProperties,
 } from "../../../../../src/common/llm/json-processing/transforms/schema-format-transforms";
+import type { LLMSanitizerConfig } from "../../../../../src/common/llm/config/llm-module-config.types";
+
+// Mock sanitizer config for testing
+const mockConfig: LLMSanitizerConfig = {
+  numericProperties: [
+    "linesofcode",
+    "cyclomaticcomplexity",
+    "totalmethods",
+    "averagecomplexity",
+    "complexity",
+    "lines",
+  ],
+};
 
 describe("schema-format-transforms", () => {
   describe("unwrapJsonSchemaStructure", () => {
@@ -83,7 +96,7 @@ describe("schema-format-transforms", () => {
         name: "TestClass",
       };
 
-      const result = coerceNumericProperties(input);
+      const result = coerceNumericProperties(input, mockConfig);
 
       expect(result).toEqual({
         linesOfCode: 19,
@@ -103,7 +116,7 @@ describe("schema-format-transforms", () => {
         ],
       };
 
-      const result = coerceNumericProperties(input);
+      const result = coerceNumericProperties(input, mockConfig);
 
       expect(result).toEqual({
         publicMethods: [
@@ -122,7 +135,7 @@ describe("schema-format-transforms", () => {
         name: "TestClass",
       };
 
-      const result = coerceNumericProperties(input);
+      const result = coerceNumericProperties(input, mockConfig);
 
       expect(result).toEqual({
         linesOfCode: "not-a-number",
@@ -136,7 +149,7 @@ describe("schema-format-transforms", () => {
         name: "TestClass",
       };
 
-      const result = coerceNumericProperties(input);
+      const result = coerceNumericProperties(input, mockConfig);
 
       expect(result).toEqual({
         linesOfCode: "",
@@ -150,7 +163,7 @@ describe("schema-format-transforms", () => {
         cyclomaticComplexity: 5,
       };
 
-      const result = coerceNumericProperties(input);
+      const result = coerceNumericProperties(input, mockConfig);
 
       expect(result).toEqual({
         linesOfCode: 19,
@@ -161,7 +174,7 @@ describe("schema-format-transforms", () => {
     it("should handle arrays", () => {
       const input = [{ linesOfCode: "10" }, { linesOfCode: "20" }];
 
-      const result = coerceNumericProperties(input);
+      const result = coerceNumericProperties(input, mockConfig);
 
       expect(result).toEqual([{ linesOfCode: 10 }, { linesOfCode: 20 }]);
     });
