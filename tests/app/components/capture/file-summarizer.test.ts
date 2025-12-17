@@ -112,42 +112,49 @@ jest.mock("../../../../src/app/prompts/definitions/sources", () => ({
     java: {
       introTextTemplate: "Java code",
       hasComplexSchema: false,
+      sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["Java instructions"],
     },
     javascript: {
       introTextTemplate: "JavaScript/TypeScript code",
       hasComplexSchema: false,
+      sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["JavaScript instructions"],
     },
     default: {
       introTextTemplate: "project file content",
       hasComplexSchema: false,
+      sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["Default instructions"],
     },
     sql: {
       introTextTemplate: "database DDL/DML/SQL code",
       hasComplexSchema: false,
+      sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["SQL instructions"],
     },
     xml: {
       introTextTemplate: "XML code",
       hasComplexSchema: false,
+      sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["XML instructions"],
     },
     jsp: {
       introTextTemplate: "JSP code",
       hasComplexSchema: false,
+      sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["JSP instructions"],
     },
     markdown: {
       introTextTemplate: "Markdown content",
       hasComplexSchema: false,
+      sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["Markdown instructions"],
     },
@@ -211,6 +218,7 @@ describe("summarizeFile", () => {
       return {
         introTextTemplate: `Test intro template for ${contentDesc}`,
         hasComplexSchema: false,
+        sanitizerConfig: expect.any(Object),
         responseSchema: z.object({}),
         instructions: [`Instructions for ${contentDesc}`],
         template: `{{introText}}
@@ -289,6 +297,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
             hasComplexSchema: false,
+            sanitizerConfig: expect.any(Object),
           },
         );
       });
@@ -356,6 +365,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: expect.any(Object),
           hasComplexSchema: false,
+          sanitizerConfig: expect.any(Object),
         });
       });
 
@@ -458,6 +468,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
             hasComplexSchema: false,
+            sanitizerConfig: expect.any(Object),
           },
         );
       });
@@ -478,6 +489,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
             hasComplexSchema: false,
+            sanitizerConfig: expect.any(Object),
           },
         );
       });
@@ -506,6 +518,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
             hasComplexSchema: false,
+            sanitizerConfig: expect.any(Object),
           },
         );
       });
@@ -527,6 +540,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
             hasComplexSchema: false,
+            sanitizerConfig: expect.any(Object),
           },
         );
       });
@@ -548,6 +562,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
             hasComplexSchema: false,
+            sanitizerConfig: expect.any(Object),
           },
         );
       });
@@ -576,6 +591,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
               outputFormat: LLMOutputFormat.JSON,
               jsonSchema: expect.any(Object),
               hasComplexSchema: false,
+              sanitizerConfig: expect.any(Object),
             },
           );
 
@@ -599,6 +615,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: expect.any(Object),
           hasComplexSchema: false,
+          sanitizerConfig: expect.any(Object),
         });
       });
 
@@ -619,6 +636,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
             outputFormat: LLMOutputFormat.JSON,
             jsonSchema: expect.any(Object),
             hasComplexSchema: false,
+            sanitizerConfig: expect.any(Object),
           },
         );
       });
@@ -675,6 +693,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: expect.any(Object),
           hasComplexSchema: false,
+          sanitizerConfig: expect.any(Object),
         });
       });
     });

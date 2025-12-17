@@ -51,7 +51,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
 
         "BedrockDeepseek",
         createMockErrorLogger(),
@@ -86,7 +86,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
 
         "BedrockDeepseek",
         createMockErrorLogger(),
@@ -103,7 +103,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: { ...mockConfig, apiVersion: "bedrock-2023-05-31" } },
+        { ...mockConfig, apiVersion: "bedrock-2023-05-31" },
 
         "BedrockDeepseek",
         createMockErrorLogger(),
@@ -123,7 +123,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
 
         "BedrockDeepseek",
         createMockErrorLogger(),
@@ -148,7 +148,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
 
         "BedrockDeepseek",
         createMockErrorLogger(),
@@ -172,11 +172,9 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsMetadata,
         [],
         {
-          providerSpecificConfig: {
-            ...mockConfig,
-            temperature: 0.7, // This should be ignored
-            topP: 0.5, // This should be ignored
-          },
+          ...mockConfig,
+          temperature: 0.7, // This should be ignored
+          topP: 0.5, // This should be ignored
         },
 
         "BedrockDeepseek",
@@ -198,7 +196,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
 
         "BedrockDeepseek",
         createMockErrorLogger(),
@@ -220,7 +218,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
 
         "BedrockDeepseek",
         createMockErrorLogger(),
@@ -250,7 +248,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
 
         "BedrockDeepseek",
         createMockErrorLogger(),
@@ -271,7 +269,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
 
         "BedrockDeepseek",
         createMockErrorLogger(),

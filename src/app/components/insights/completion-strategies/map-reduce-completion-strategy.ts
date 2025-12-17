@@ -13,6 +13,7 @@ import {
   CategoryInsightResult,
   appSummaryCategorySchemas,
 } from "../insights.types";
+import { getSchemaSpecificSanitizerConfig } from "../../../config/sanitizer.config";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
@@ -166,6 +167,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
         hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+        sanitizerConfig: getSchemaSpecificSanitizerConfig(),
       });
 
       return result;

@@ -88,7 +88,7 @@ describe("Bedrock Llama Provider Tests", () => {
         bedrockLlamaModelKeysSet,
         bedrockLlamaModelsMetadata,
         bedrockLlamaProviderManifest.errorPatterns,
-        { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
+        bedrockLlamaProviderManifest.providerSpecificConfig,
         bedrockLlamaProviderManifest.modelFamily,
         createMockErrorLogger(),
       );
@@ -101,7 +101,7 @@ describe("Bedrock Llama Provider Tests", () => {
         bedrockLlamaModelKeysSet,
         bedrockLlamaModelsMetadata,
         bedrockLlamaProviderManifest.errorPatterns,
-        { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
+        bedrockLlamaProviderManifest.providerSpecificConfig,
         bedrockLlamaProviderManifest.modelFamily,
         createMockErrorLogger(),
       );

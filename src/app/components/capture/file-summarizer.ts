@@ -13,6 +13,7 @@ import {
   FILENAME_TO_TYPE_MAP,
   EXTENSION_TO_TYPE_MAP,
 } from "../../config/file-types.config";
+import { getSchemaSpecificSanitizerConfig } from "../../config/sanitizer.config";
 
 /**
  * Type for source summary (full schema).
@@ -91,6 +92,7 @@ export async function summarizeFile(
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: promptMetadata.hasComplexSchema,
+      sanitizerConfig: getSchemaSpecificSanitizerConfig(),
     } as const;
 
     // The response type is now correctly inferred from the strongly-typed schema.

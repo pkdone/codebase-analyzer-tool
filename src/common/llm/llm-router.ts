@@ -61,17 +61,15 @@ export default class LLMRouter {
     // Create LLM provider instance
     const modelsKeysSet = this.buildModelsKeysSet(this.manifest);
     const modelsMetadata = this.buildModelsMetadata(this.manifest, config.providerParameters);
-    const providerConfig = { providerSpecificConfig: this.manifest.providerSpecificConfig };
     this.llm = new this.manifest.implementation(
       config.providerParameters,
       modelsKeysSet,
       modelsMetadata,
       this.manifest.errorPatterns,
-      providerConfig,
+      this.manifest.providerSpecificConfig,
       this.manifest.modelFamily,
       this.errorLogger,
       this.manifest.features,
-      config.sanitizer,
     );
 
     this.modelsMetadata = this.llm.getModelsMetadata();
@@ -103,22 +101,22 @@ export default class LLMRouter {
 
   /**
    * Shutdown method for graceful shutdown.
-   * Closes the LLM provider and handles forced shutdown if needed.
+   * Closes the LLM provider.
+   *
+   * Note: After calling shutdown(), consumers should check `providerNeedsForcedShutdown()`
+   * and handle forced process termination if needed. This allows the consuming application
+   * to control process lifecycle rather than having the library terminate the process.
+   *
+   * Example:
+   * ```typescript
+   * await llmRouter.shutdown();
+   * if (llmRouter.providerNeedsForcedShutdown()) {
+   *   // Handle forced termination (e.g., call process.exit(0))
+   * }
+   * ```
    */
   async shutdown(): Promise<void> {
     await this.close();
-
-    // Handle provider-specific forced shutdown requirements
-    if (this.providerNeedsForcedShutdown()) {
-      // Known Google Cloud Node.js client limitation:
-      // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
-      // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
-      // Use timeout-based cleanup as the recommended workaround
-      void setTimeout(() => {
-        console.log("Forced exit because GCP client connections cannot be closed properly");
-        process.exit(0);
-      }, 1000); // 1 second should be enough for any pending operations
-    }
   }
 
   /**

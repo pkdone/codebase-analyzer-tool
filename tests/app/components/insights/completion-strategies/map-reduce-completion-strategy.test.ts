@@ -198,6 +198,7 @@ describe("MapReduceCompletionStrategy", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: config.responseSchema,
           hasComplexSchema: false,
+          sanitizerConfig: expect.any(Object),
         }),
       );
     });
@@ -224,6 +225,7 @@ describe("MapReduceCompletionStrategy", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: appSummaryCategorySchemas[category],
           hasComplexSchema: false,
+          sanitizerConfig: expect.any(Object),
         }),
       );
     });

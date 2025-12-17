@@ -234,6 +234,7 @@ describe("completion-executor type inference improvements", () => {
           outputFormat: LLMOutputFormat.JSON,
           jsonSchema: schema,
           hasComplexSchema: false,
+          sanitizerConfig: expect.any(Object),
         }),
       );
 

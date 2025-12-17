@@ -100,12 +100,10 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
       mockModelsMetadata,
       mockErrorPatterns,
       {
-        providerSpecificConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 5000,
-        },
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 5000,
       },
       "VertexGemini",
       createMockErrorLogger(),

@@ -24,21 +24,19 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    config: { providerSpecificConfig: LLMProviderSpecificConfig },
+    providerSpecificConfig: LLMProviderSpecificConfig,
     modelFamily: string,
-    errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
+    errorLogger: import("../../../tracking/llm-error-logger.interface").IErrorLogger,
     llmFeatures?: readonly string[],
-    sanitizerConfig?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     super(
       modelsKeys,
       modelsMetadata,
       errorPatterns,
-      config.providerSpecificConfig,
+      providerSpecificConfig,
       modelFamily,
       errorLogger,
       llmFeatures,
-      sanitizerConfig,
     );
     const apiKey = providerParameters.AZURE_OPENAI_LLM_API_KEY;
     const endpoint = providerParameters.AZURE_OPENAI_ENDPOINT;
@@ -56,7 +54,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
     const secondaryCompletion = modelsKeys.secondaryCompletionModelKey;
     if (secondaryCompletion)
       this.modelToDeploymentMappings.set(secondaryCompletion, secondaryCompletionsDeployment);
-    const apiVersion = config.providerSpecificConfig.apiVersion ?? "2025-01-01-preview";
+    const apiVersion = providerSpecificConfig.apiVersion ?? "2025-01-01-preview";
     this.client = new AzureOpenAI({ endpoint, apiKey, apiVersion });
   }
 

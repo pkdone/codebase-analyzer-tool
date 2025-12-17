@@ -22,21 +22,19 @@ export default class OpenAILLM extends BaseOpenAILLM {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    config: { providerSpecificConfig: LLMProviderSpecificConfig },
+    providerSpecificConfig: LLMProviderSpecificConfig,
     modelFamily: string,
-    errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
+    errorLogger: import("../../../tracking/llm-error-logger.interface").IErrorLogger,
     llmFeatures?: readonly string[],
-    sanitizerConfig?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     super(
       modelsKeys,
       modelsMetadata,
       errorPatterns,
-      config.providerSpecificConfig,
+      providerSpecificConfig,
       modelFamily,
       errorLogger,
       llmFeatures,
-      sanitizerConfig,
     );
     const apiKey = providerParameters.OPENAI_LLM_API_KEY;
     this.client = new OpenAI({ apiKey });

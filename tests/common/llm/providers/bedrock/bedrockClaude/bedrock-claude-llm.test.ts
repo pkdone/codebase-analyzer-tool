@@ -61,7 +61,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
         "BedrockClaude",
         createMockErrorLogger(),
       );
@@ -101,7 +101,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
         "BedrockClaude",
         createMockErrorLogger(),
       );
@@ -136,7 +136,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: minimalConfig },
+        minimalConfig,
         "BedrockClaude",
         createMockErrorLogger(),
       );
@@ -155,7 +155,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
         "BedrockClaude",
         createMockErrorLogger(),
       );
@@ -178,7 +178,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
         "BedrockClaude",
         createMockErrorLogger(),
       );
@@ -200,7 +200,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
         "BedrockClaude",
         createMockErrorLogger(),
       );
@@ -221,7 +221,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
         "BedrockClaude",
         createMockErrorLogger(),
       );
@@ -251,7 +251,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         mockModelsKeys,
         mockModelsMetadata,
         [],
-        { providerSpecificConfig: mockConfig },
+        mockConfig,
         "BedrockClaude",
         createMockErrorLogger(),
       );

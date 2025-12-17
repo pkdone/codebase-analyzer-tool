@@ -22,7 +22,7 @@ import { processJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError, BadResponseContentLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../config/llm.config";
-import { LLMErrorLogger } from "../tracking/llm-error-logger";
+import type { IErrorLogger } from "../tracking/llm-error-logger.interface";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
@@ -37,8 +37,7 @@ export default abstract class AbstractLLM implements LLMProvider {
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private readonly modelFamily: string;
-  private readonly errorLogger: LLMErrorLogger;
-  private readonly sanitizerConfig?: import("../config/llm-module-config.types").LLMSanitizerConfig;
+  private readonly errorLogger: IErrorLogger;
 
   /**
    * Constructor.
@@ -49,9 +48,8 @@ export default abstract class AbstractLLM implements LLMProvider {
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
     providerSpecificConfig: LLMProviderSpecificConfig,
     modelFamily: string,
-    errorLogger: LLMErrorLogger,
+    errorLogger: IErrorLogger,
     llmFeatures?: readonly string[],
-    sanitizerConfig?: import("../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     this.modelsKeys = modelsKeys;
     this.llmModelsMetadata = modelsMetadata;
@@ -60,7 +58,6 @@ export default abstract class AbstractLLM implements LLMProvider {
     this.modelFamily = modelFamily;
     this.errorLogger = errorLogger;
     this.llmFeatures = llmFeatures;
-    this.sanitizerConfig = sanitizerConfig;
   }
 
   /**
@@ -347,7 +344,7 @@ export default abstract class AbstractLLM implements LLMProvider {
       context,
       completionOptions,
       true,
-      this.sanitizerConfig,
+      completionOptions.sanitizerConfig,
     );
 
     if (jsonProcessingResult.success) {

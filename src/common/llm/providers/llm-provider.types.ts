@@ -70,11 +70,10 @@ export interface LLMProviderManifest {
     modelsKeysSet: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    config: { providerSpecificConfig: LLMProviderSpecificConfig },
+    providerSpecificConfig: LLMProviderSpecificConfig,
     modelFamily: string,
-    errorLogger: import("../tracking/llm-error-logger").LLMErrorLogger,
+    errorLogger: import("../tracking/llm-error-logger.interface").IErrorLogger,
     llmFeatures?: readonly string[],
-    sanitizerConfig?: import("../config/llm-module-config.types").LLMSanitizerConfig,
   ) => LLMProvider;
 }
 

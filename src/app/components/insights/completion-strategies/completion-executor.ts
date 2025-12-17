@@ -10,6 +10,7 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../insights.types";
+import { getSchemaSpecificSanitizerConfig } from "../../../config/sanitizer.config";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -70,6 +71,7 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+      sanitizerConfig: getSchemaSpecificSanitizerConfig(),
     });
 
     return llmResponse;

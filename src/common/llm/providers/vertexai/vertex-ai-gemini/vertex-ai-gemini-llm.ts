@@ -63,21 +63,19 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    config: { providerSpecificConfig: LLMProviderSpecificConfig },
+    providerSpecificConfig: LLMProviderSpecificConfig,
     modelFamily: string,
-    errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
+    errorLogger: import("../../../tracking/llm-error-logger.interface").IErrorLogger,
     llmFeatures?: readonly string[],
-    sanitizerConfig?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
     super(
       modelsKeys,
       modelsMetadata,
       errorPatterns,
-      config.providerSpecificConfig,
+      providerSpecificConfig,
       modelFamily,
       errorLogger,
       llmFeatures,
-      sanitizerConfig,
     );
     const project = providerParameters.VERTEXAI_PROJECTID;
     const location = providerParameters.VERTEXAI_LOCATION;

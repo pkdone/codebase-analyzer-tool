@@ -45,6 +45,15 @@ export async function runApplication(taskToken: symbol): Promise<void> {
       if (container.isRegistered(llmTokens.LLMRouter)) {
         const llmRouter = container.resolve<LLMRouter>(llmTokens.LLMRouter);
         await llmRouter.shutdown();
+
+        // Check if the LLM provider needs forced termination
+        // Known Google Cloud Node.js client limitation:
+        // VertexAI SDK doesn't have explicit close() method and HTTP connections may persist
+        // This is documented behavior - see: https://github.com/googleapis/nodejs-pubsub/issues/1190
+        if (llmRouter.providerNeedsForcedShutdown()) {
+          console.log("LLM provider requires forced exit - terminating process");
+          process.exit(0);
+        }
       }
     } catch (shutdownError: unknown) {
       console.error("Failed to perform graceful shutdown:", shutdownError);

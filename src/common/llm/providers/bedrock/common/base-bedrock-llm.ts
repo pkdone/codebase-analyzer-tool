@@ -34,14 +34,6 @@ const TOKEN_LIMIT_ERROR_KEYWORDS = [
 ] as const;
 
 /**
- * Configuration object for Bedrock LLM providers.
- * Encapsulates all Bedrock-specific configuration parameters.
- */
-export interface BedrockConfig {
-  providerSpecificConfig?: LLMProviderSpecificConfig;
-}
-
-/**
  * Complete configuration for response extraction including schema and provider information
  */
 interface ResponseExtractionConfig {
@@ -90,26 +82,21 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    config: BedrockConfig,
+    providerSpecificConfig: LLMProviderSpecificConfig,
     modelFamily: string,
-    errorLogger: import("../../../tracking/llm-error-logger").LLMErrorLogger,
+    errorLogger: import("../../../tracking/llm-error-logger.interface").IErrorLogger,
     llmFeatures?: readonly string[],
-    sanitizerConfig?: import("../../../config/llm-module-config.types").LLMSanitizerConfig,
   ) {
-    if (!config.providerSpecificConfig) {
-      throw new Error("providerSpecificConfig is required but was not provided");
-    }
     super(
       modelsKeys,
       modelsMetadata,
       errorPatterns,
-      config.providerSpecificConfig,
+      providerSpecificConfig,
       modelFamily,
       errorLogger,
       llmFeatures,
-      sanitizerConfig,
     );
-    const requestTimeoutMillis = config.providerSpecificConfig.requestTimeoutMillis;
+    const requestTimeoutMillis = providerSpecificConfig.requestTimeoutMillis;
     this.client = new BedrockRuntimeClient({
       requestHandler: { requestTimeout: requestTimeoutMillis },
     });

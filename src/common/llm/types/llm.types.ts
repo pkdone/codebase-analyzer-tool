@@ -88,6 +88,8 @@ export interface LLMCompletionOptions<S extends z.ZodType = z.ZodType> {
   jsonSchema?: S;
   /** Whether the response is expected to contain code - defaults to true */
   hasComplexSchema?: boolean;
+  /** Optional sanitizer configuration for JSON processing (domain-specific) */
+  sanitizerConfig?: import("../config/llm-module-config.types").LLMSanitizerConfig;
 }
 
 /**

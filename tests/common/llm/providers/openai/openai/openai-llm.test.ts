@@ -135,7 +135,7 @@ describe("OpenAI LLM Provider", () => {
       mockModelsKeys,
       mockModelsMetadata,
       mockErrorPatterns,
-      { providerSpecificConfig: config.providerSpecificConfig },
+      config.providerSpecificConfig,
       "OpenAI",
       createMockErrorLogger(),
     );

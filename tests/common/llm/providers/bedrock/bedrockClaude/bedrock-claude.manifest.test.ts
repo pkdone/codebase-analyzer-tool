@@ -93,7 +93,7 @@ describe("Bedrock Claude Provider Tests", () => {
         bedrockClaudeModelKeysSet,
         bedrockClaudeModelsMetadata,
         bedrockClaudeProviderManifest.errorPatterns,
-        { providerSpecificConfig: bedrockClaudeProviderManifest.providerSpecificConfig },
+        bedrockClaudeProviderManifest.providerSpecificConfig,
         bedrockClaudeProviderManifest.modelFamily,
         createMockErrorLogger(),
       );
@@ -106,7 +106,7 @@ describe("Bedrock Claude Provider Tests", () => {
         bedrockClaudeModelKeysSet,
         bedrockClaudeModelsMetadata,
         bedrockClaudeProviderManifest.errorPatterns,
-        { providerSpecificConfig: bedrockClaudeProviderManifest.providerSpecificConfig },
+        bedrockClaudeProviderManifest.providerSpecificConfig,
         bedrockClaudeProviderManifest.modelFamily,
         createMockErrorLogger(),
       );

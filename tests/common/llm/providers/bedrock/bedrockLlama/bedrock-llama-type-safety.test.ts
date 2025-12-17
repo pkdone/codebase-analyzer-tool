@@ -47,13 +47,11 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       mockModelsMetadata,
       [],
       {
-        providerSpecificConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 10000,
-          maxGenLenCap: 2048,
-        },
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: 2048,
       },
 
       "BedrockLlama",
@@ -100,13 +98,11 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       modelsMetadataWithLowMax,
       [],
       {
-        providerSpecificConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 10000,
-          maxGenLenCap: 2048,
-        },
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: 2048,
       },
 
       "BedrockLlama",
@@ -162,13 +158,11 @@ describe("BedrockLlamaLLM - Type Safety", () => {
       nonLlamaMetadata,
       [],
       {
-        providerSpecificConfig: {
-          requestTimeoutMillis: 60000,
-          maxRetryAttempts: 3,
-          minRetryDelayMillis: 1000,
-          maxRetryDelayMillis: 10000,
-          maxGenLenCap: 2048,
-        },
+        requestTimeoutMillis: 60000,
+        maxRetryAttempts: 3,
+        minRetryDelayMillis: 1000,
+        maxRetryDelayMillis: 10000,
+        maxGenLenCap: 2048,
       },
 
       "BedrockLlama",

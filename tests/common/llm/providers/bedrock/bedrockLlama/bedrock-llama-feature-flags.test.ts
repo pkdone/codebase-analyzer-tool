@@ -21,7 +21,7 @@ describe("Bedrock Llama Manifest Feature Flags", () => {
       mockModelsKeysSet,
       mockModelsMetadata,
       bedrockLlamaProviderManifest.errorPatterns,
-      { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
+      bedrockLlamaProviderManifest.providerSpecificConfig,
       bedrockLlamaProviderManifest.modelFamily,
       createMockErrorLogger(),
     ) as unknown as {
@@ -45,7 +45,7 @@ describe("Bedrock Llama Manifest Feature Flags", () => {
       mockModelsKeysSet,
       mockModelsMetadata,
       bedrockLlamaProviderManifest.errorPatterns,
-      { providerSpecificConfig: bedrockLlamaProviderManifest.providerSpecificConfig },
+      bedrockLlamaProviderManifest.providerSpecificConfig,
       bedrockLlamaProviderManifest.modelFamily,
       createMockErrorLogger(),
     ) as unknown as {

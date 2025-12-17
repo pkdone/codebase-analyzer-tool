@@ -133,7 +133,7 @@ describe("Azure OpenAI Provider Tests", () => {
         azureOpenAIModelKeysSet,
         azureOpenAIModelsMetadata,
         azureOpenAIProviderManifest.errorPatterns,
-        { providerSpecificConfig: azureOpenAIProviderManifest.providerSpecificConfig },
+        azureOpenAIProviderManifest.providerSpecificConfig,
         azureOpenAIProviderManifest.modelFamily,
         createMockErrorLogger(),
       );
@@ -146,7 +146,7 @@ describe("Azure OpenAI Provider Tests", () => {
         azureOpenAIModelKeysSet,
         azureOpenAIModelsMetadata,
         azureOpenAIProviderManifest.errorPatterns,
-        { providerSpecificConfig: azureOpenAIProviderManifest.providerSpecificConfig },
+        azureOpenAIProviderManifest.providerSpecificConfig,
         azureOpenAIProviderManifest.modelFamily,
         createMockErrorLogger(),
       );

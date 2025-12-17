@@ -233,7 +233,6 @@ describe("LLM Router tests", () => {
       modelFamily: "openai",
       providerParameters: mockEnvVars as unknown as Record<string, string>,
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
-      sanitizer: {},
     };
     const router = new LLMRouter(mockConfig, mockExecutionPipeline, mockErrorLogger);
     return { router, mockProvider, mockManifest };
