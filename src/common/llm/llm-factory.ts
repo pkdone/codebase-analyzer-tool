@@ -31,12 +31,12 @@ export interface LLMRouterComponents {
  *     errorLogDirectory: "output/errors",
  *     errorLogFilenameTemplate: "error-{timestamp}.log",
  *   },
- *   sanitizer: getSchemaSpecificSanitizerConfig(),
  *   providerParameters: process.env as Record<string, string>,
  * };
  *
  * const { router, stats } = createLLMRouter(config);
  * const result = await router.executeCompletion(...);
+ * stats.displayLLMStatusDetails();
  * ```
  */
 export function createLLMRouter(config: LLMModuleConfig): LLMRouterComponents {

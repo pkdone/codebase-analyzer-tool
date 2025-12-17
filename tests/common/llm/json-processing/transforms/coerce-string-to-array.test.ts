@@ -1,7 +1,99 @@
 import { coerceStringToArray } from "../../../../../src/common/llm/json-processing/transforms/coerce-string-to-array";
+import type { LLMSanitizerConfig } from "../../../../../src/common/llm/config/llm-module-config.types";
 
 describe("coerceStringToArray", () => {
+  describe("configuration-based behavior", () => {
+    it("should use configured arrayPropertyNames when provided", () => {
+      const config: LLMSanitizerConfig = {
+        arrayPropertyNames: ["items", "tags"],
+      };
+
+      const input = {
+        items: "some items",
+        tags: "some tags",
+        parameters: "should not be converted",
+      };
+
+      const result = coerceStringToArray(input, config);
+
+      expect(Array.isArray((result as any).items)).toBe(true);
+      expect((result as any).items).toEqual([]);
+      expect(Array.isArray((result as any).tags)).toBe(true);
+      expect((result as any).tags).toEqual([]);
+      expect((result as any).parameters).toBe("should not be converted");
+    });
+
+    it("should not convert anything when config has no arrayPropertyNames", () => {
+      const config: LLMSanitizerConfig = {};
+
+      const input = {
+        parameters: "should remain string",
+        dependencies: "should remain string",
+        references: "should remain string",
+      };
+
+      const result = coerceStringToArray(input, config);
+
+      expect((result as any).parameters).toBe("should remain string");
+      expect((result as any).dependencies).toBe("should remain string");
+      expect((result as any).references).toBe("should remain string");
+    });
+
+    it("should not convert anything when config is undefined", () => {
+      const input = {
+        parameters: "should remain string",
+        dependencies: "should remain string",
+        references: "should remain string",
+      };
+
+      const result = coerceStringToArray(input, undefined);
+
+      expect((result as any).parameters).toBe("should remain string");
+      expect((result as any).dependencies).toBe("should remain string");
+      expect((result as any).references).toBe("should remain string");
+    });
+
+    it("should handle empty arrayPropertyNames array", () => {
+      const config: LLMSanitizerConfig = {
+        arrayPropertyNames: [],
+      };
+
+      const input = {
+        parameters: "should remain string",
+      };
+
+      const result = coerceStringToArray(input, config);
+
+      expect((result as any).parameters).toBe("should remain string");
+    });
+
+    it("should work with default application config property names", () => {
+      const config: LLMSanitizerConfig = {
+        arrayPropertyNames: ["parameters", "dependencies", "references"],
+      };
+
+      const input = {
+        parameters: "some parameters",
+        dependencies: "some dependencies",
+        references: "some references",
+      };
+
+      const result = coerceStringToArray(input, config);
+
+      expect(Array.isArray((result as any).parameters)).toBe(true);
+      expect((result as any).parameters).toEqual([]);
+      expect(Array.isArray((result as any).dependencies)).toBe(true);
+      expect((result as any).dependencies).toEqual([]);
+      expect(Array.isArray((result as any).references)).toBe(true);
+      expect((result as any).references).toEqual([]);
+    });
+  });
+
   describe("converting parameters string to empty array", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should convert string parameters field to empty array", () => {
       const input = {
         name: "TestClass",
@@ -15,7 +107,7 @@ describe("coerceStringToArray", () => {
         ],
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).publicMethods[0].parameters)).toBe(true);
       expect((result as any).publicMethods[0].parameters).toEqual([]);
@@ -30,7 +122,7 @@ describe("coerceStringToArray", () => {
         },
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).nested.deep.parameters)).toBe(true);
       expect((result as any).nested.deep.parameters).toEqual([]);
@@ -38,6 +130,10 @@ describe("coerceStringToArray", () => {
   });
 
   describe("converting dependencies string to empty array", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should convert string dependencies field to empty array", () => {
       const input = {
         package: {
@@ -46,7 +142,7 @@ describe("coerceStringToArray", () => {
         },
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).package.dependencies)).toBe(true);
       expect((result as any).package.dependencies).toEqual([]);
@@ -54,6 +150,10 @@ describe("coerceStringToArray", () => {
   });
 
   describe("converting references string to empty array", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should convert string references field to empty array", () => {
       const input = {
         document: {
@@ -62,7 +162,7 @@ describe("coerceStringToArray", () => {
         },
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).document.references)).toBe(true);
       expect((result as any).document.references).toEqual([]);
@@ -70,6 +170,10 @@ describe("coerceStringToArray", () => {
   });
 
   describe("leaving array values unchanged", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should leave array parameters unchanged", () => {
       const input = {
         name: "TestClass",
@@ -85,7 +189,7 @@ describe("coerceStringToArray", () => {
         ],
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).publicMethods[0].parameters)).toBe(true);
       expect((result as any).publicMethods[0].parameters).toHaveLength(2);
@@ -99,7 +203,7 @@ describe("coerceStringToArray", () => {
         dependencies: [],
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).parameters)).toBe(true);
       expect((result as any).parameters).toEqual([]);
@@ -109,13 +213,17 @@ describe("coerceStringToArray", () => {
   });
 
   describe("working at any nesting level", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should work on top-level properties", () => {
       const input = {
         parameters: "top level parameters",
         other: "value",
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).parameters)).toBe(true);
       expect((result as any).parameters).toEqual([]);
@@ -133,7 +241,7 @@ describe("coerceStringToArray", () => {
         },
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).level1.level2.level3.parameters)).toBe(true);
       expect((result as any).level1.level2.level3.parameters).toEqual([]);
@@ -147,7 +255,7 @@ describe("coerceStringToArray", () => {
         ],
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).items[0].parameters)).toBe(true);
       expect((result as any).items[0].parameters).toEqual([]);
@@ -157,6 +265,10 @@ describe("coerceStringToArray", () => {
   });
 
   describe("recursive processing", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should recursively process nested objects", () => {
       const input = {
         outer: {
@@ -166,7 +278,7 @@ describe("coerceStringToArray", () => {
         },
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).outer.inner.parameters)).toBe(true);
       expect((result as any).outer.inner.parameters).toEqual([]);
@@ -179,7 +291,7 @@ describe("coerceStringToArray", () => {
         { nested: { parameters: "third" } },
       ];
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any)[0].parameters)).toBe(true);
       expect((result as any)[0].parameters).toEqual([]);
@@ -191,6 +303,10 @@ describe("coerceStringToArray", () => {
   });
 
   describe("handling non-string values", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should leave non-string parameters values unchanged", () => {
       const input = {
         parameters: 123,
@@ -198,7 +314,7 @@ describe("coerceStringToArray", () => {
         references: { nested: "object" },
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect((result as any).parameters).toBe(123);
       expect((result as any).dependencies).toBe(true);
@@ -211,7 +327,7 @@ describe("coerceStringToArray", () => {
         dependencies: undefined,
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect((result as any).parameters).toBeNull();
       expect((result as any).dependencies).toBeUndefined();
@@ -256,6 +372,10 @@ describe("coerceStringToArray", () => {
   });
 
   describe("complex mixed structures", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should handle multiple array properties in same object", () => {
       const input = {
         parameters: "some parameters",
@@ -264,7 +384,7 @@ describe("coerceStringToArray", () => {
         other: "other value",
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).parameters)).toBe(true);
       expect((result as any).parameters).toEqual([]);
@@ -285,7 +405,7 @@ describe("coerceStringToArray", () => {
         },
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect(Array.isArray((result as any).item1.parameters)).toBe(true);
       expect((result as any).item1.parameters).toEqual([]);
@@ -295,11 +415,15 @@ describe("coerceStringToArray", () => {
   });
 
   describe("circular references", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should handle circular references without infinite recursion", () => {
       const obj: Record<string, unknown> = { a: "value", parameters: "test" };
       obj.self = obj; // Create circular reference
 
-      const result = coerceStringToArray(obj) as Record<string, unknown>;
+      const result = coerceStringToArray(obj, config) as Record<string, unknown>;
 
       expect(result.a).toBe("value");
       expect(Array.isArray(result.parameters)).toBe(true);
@@ -310,11 +434,15 @@ describe("coerceStringToArray", () => {
   });
 
   describe("edge cases", () => {
+    const config: LLMSanitizerConfig = {
+      arrayPropertyNames: ["parameters", "dependencies", "references"],
+    };
+
     it("should handle Date objects", () => {
       const date = new Date("2025-01-01");
       const input = { timestamp: date, parameters: "test" };
 
-      const result = coerceStringToArray(input) as Record<string, unknown>;
+      const result = coerceStringToArray(input, config) as Record<string, unknown>;
 
       expect(result.timestamp).toBe(date);
       expect(Array.isArray(result.parameters)).toBe(true);
@@ -325,7 +453,7 @@ describe("coerceStringToArray", () => {
       const regex = /test/;
       const input = { pattern: regex, dependencies: "test" };
 
-      const result = coerceStringToArray(input) as Record<string, unknown>;
+      const result = coerceStringToArray(input, config) as Record<string, unknown>;
 
       expect(result.pattern).toBe(regex);
       expect(Array.isArray(result.dependencies)).toBe(true);
@@ -339,7 +467,7 @@ describe("coerceStringToArray", () => {
         parameters: "test",
       };
 
-      const result = coerceStringToArray(input) as Record<string | symbol, unknown>;
+      const result = coerceStringToArray(input, config) as Record<string | symbol, unknown>;
 
       expect(result[sym]).toBe("value");
       expect(Array.isArray(result.parameters)).toBe(true);
@@ -353,7 +481,7 @@ describe("coerceStringToArray", () => {
         array: "should remain string",
       };
 
-      const result = coerceStringToArray(input);
+      const result = coerceStringToArray(input, config);
 
       expect((result as any).items).toBe("should remain string");
       expect((result as any).list).toBe("should remain string");

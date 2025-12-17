@@ -84,9 +84,13 @@ describe("LLMRouter Shutdown Behavior", () => {
         errorLogDirectory: "test",
         errorLogFilenameTemplate: "test-{timestamp}.log",
       },
-      providerParameters: {
+      providerParams: {
         TEST_EMBED: "test-embed-model",
         TEST_PRIMARY: "test-primary-model",
+      },
+      resolvedModels: {
+        embeddings: "test-embed-model",
+        primaryCompletion: "test-primary-model",
       },
     };
 
@@ -169,9 +173,13 @@ describe("LLMRouter Shutdown Behavior", () => {
         errorLogDirectory: "test",
         errorLogFilenameTemplate: "test-{timestamp}.log",
       },
-      providerParameters: {
+      providerParams: {
         TEST_EMBED: "test-embed-model",
         TEST_PRIMARY: "test-primary-model",
+      },
+      resolvedModels: {
+        embeddings: "test-embed-model",
+        primaryCompletion: "test-primary-model",
       },
     };
 
@@ -256,9 +264,13 @@ describe("LLMRouter Shutdown Behavior", () => {
         errorLogDirectory: "test",
         errorLogFilenameTemplate: "test-{timestamp}.log",
       },
-      providerParameters: {
+      providerParams: {
         TEST_EMBED: "test-embed-model",
         TEST_PRIMARY: "test-primary-model",
+      },
+      resolvedModels: {
+        embeddings: "test-embed-model",
+        primaryCompletion: "test-primary-model",
       },
     };
 

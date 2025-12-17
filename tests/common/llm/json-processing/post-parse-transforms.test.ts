@@ -671,6 +671,8 @@ describe("Schema Fixing Transforms", () => {
         response,
         { resource: "TestResource", purpose: LLMPurpose.COMPLETIONS },
         { ...defaultOptions, jsonSchema: schema },
+        true,
+        { arrayPropertyNames: ["parameters"] },
       );
 
       expect(result.success).toBe(true);

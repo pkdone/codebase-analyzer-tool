@@ -366,6 +366,16 @@ export const PACKAGE_NAME_TYPO_PATTERNS: readonly PackageNameTypoPattern[] = [
 ] as const;
 
 /**
+ * Property names that are expected to be arrays.
+ * If any of these properties have a string value, they will be converted to an empty array.
+ */
+export const ARRAY_PROPERTY_NAMES: readonly string[] = [
+  "parameters",
+  "dependencies",
+  "references",
+] as const;
+
+/**
  * Returns the schema-specific sanitizer configuration for code analysis.
  * This provides the domain-specific constants used by the LLM sanitizers
  * when processing code analysis results.
@@ -379,5 +389,6 @@ export function getSchemaSpecificSanitizerConfig(): LLMSanitizerConfig {
     requiredStringProperties: REQUIRED_STRING_PROPERTIES,
     packageNamePrefixReplacements: PACKAGE_NAME_PREFIX_REPLACEMENTS,
     packageNameTypoPatterns: [...PACKAGE_NAME_TYPO_PATTERNS],
+    arrayPropertyNames: ARRAY_PROPERTY_NAMES,
   };
 }

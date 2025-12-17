@@ -294,4 +294,34 @@ describe("LLMStats", () => {
       expect(consoleSpy).toHaveBeenCalledTimes(3);
     });
   });
+
+  describe("displayLLMStatusSummary", () => {
+    test("should display LLM status summary", () => {
+      const mockLog = jest.fn();
+      const mockTable = jest.fn();
+      const consoleSpy = jest.spyOn(console, "log").mockImplementation(mockLog);
+      const consoleTableSpy = jest.spyOn(console, "table").mockImplementation(mockTable);
+
+      llmStats.displayLLMStatusSummary();
+
+      expect(consoleSpy).toHaveBeenCalledWith("LLM invocation event types that will be recorded:");
+      expect(consoleTableSpy).toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+      consoleTableSpy.mockRestore();
+    });
+  });
+
+  describe("displayLLMStatusDetails", () => {
+    test("should display LLM status details", () => {
+      const mockTable = jest.fn();
+      const consoleTableSpy = jest.spyOn(console, "table").mockImplementation(mockTable);
+
+      llmStats.displayLLMStatusDetails();
+
+      expect(consoleTableSpy).toHaveBeenCalledWith(expect.any(Object));
+
+      consoleTableSpy.mockRestore();
+    });
+  });
 });

@@ -28,15 +28,30 @@ export interface LLMSanitizerConfig {
     replacement: string;
     description: string;
   }[];
+  readonly arrayPropertyNames?: readonly string[];
+}
+
+/**
+ * Resolved model URNs (identifiers) for the LLM provider.
+ * These are the actual model identifiers that will be used by the provider.
+ */
+export interface ResolvedModels {
+  readonly embeddings: string;
+  readonly primaryCompletion: string;
+  readonly secondaryCompletion?: string;
 }
 
 /**
  * Main configuration object for the LLM module.
  * This is the primary interface that consuming applications use to configure
  * the LLM module for their specific needs.
+ *
+ * All environment-specific values should be resolved by the application layer
+ * before passing to the LLM module.
  */
 export interface LLMModuleConfig {
   readonly modelFamily: string;
   readonly errorLogging: LLMErrorLoggingConfig;
-  readonly providerParameters: Record<string, string>;
+  readonly providerParams: Record<string, unknown>;
+  readonly resolvedModels: ResolvedModels;
 }

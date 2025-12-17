@@ -66,7 +66,7 @@ export interface LLMProviderManifest {
   providerSpecificConfig: LLMProviderSpecificConfig;
   /** Required implementation constructor (modern approach) */
   implementation: new (
-    providerParameters: Record<string, string>,
+    providerParams: Record<string, unknown>,
     modelsKeysSet: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],

@@ -18,7 +18,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
    * Constructor.
    */
   constructor(
-    providerParameters: Record<string, string>,
+    providerParams: Record<string, unknown>,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
@@ -36,7 +36,7 @@ export default class OpenAILLM extends BaseOpenAILLM {
       errorLogger,
       llmFeatures,
     );
-    const apiKey = providerParameters.OPENAI_LLM_API_KEY;
+    const apiKey = providerParams.OPENAI_LLM_API_KEY as string;
     this.client = new OpenAI({ apiKey });
   }
 

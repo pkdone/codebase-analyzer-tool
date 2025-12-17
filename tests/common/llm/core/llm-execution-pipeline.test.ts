@@ -76,21 +76,21 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.execute(
-        "test-resource",
-        "test prompt",
+      await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
         context,
-        [mockLLMFunction],
-        {
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
           minRetryDelayMillis: 100,
           maxRetryDelayMillis: 1000,
         },
-        {},
-        undefined,
-        { outputFormat: LLMOutputFormat.JSON },
-      );
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
 
       expect(recordJsonMutatedSpy).toHaveBeenCalledTimes(1);
     });
@@ -110,21 +110,21 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.execute(
-        "test-resource",
-        "test prompt",
+      await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
         context,
-        [mockLLMFunction],
-        {
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
           minRetryDelayMillis: 100,
           maxRetryDelayMillis: 1000,
         },
-        {},
-        undefined,
-        { outputFormat: LLMOutputFormat.JSON },
-      );
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
@@ -144,21 +144,21 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.execute(
-        "test-resource",
-        "test prompt",
+      await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
         context,
-        [mockLLMFunction],
-        {
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
           minRetryDelayMillis: 100,
           maxRetryDelayMillis: 1000,
         },
-        {},
-        undefined,
-        { outputFormat: LLMOutputFormat.JSON },
-      );
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
@@ -181,21 +181,21 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.execute(
-        "test-resource",
-        "test prompt",
+      await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
         context,
-        [mockLLMFunction],
-        {
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
           minRetryDelayMillis: 100,
           maxRetryDelayMillis: 1000,
         },
-        {},
-        undefined,
-        { outputFormat: LLMOutputFormat.JSON },
-      );
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
@@ -215,21 +215,21 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.execute(
-        "test-resource",
-        "test prompt",
+      await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
         context,
-        [mockLLMFunction],
-        {
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
           minRetryDelayMillis: 100,
           maxRetryDelayMillis: 1000,
         },
-        {},
-        undefined,
-        { outputFormat: LLMOutputFormat.JSON },
-      );
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
@@ -248,21 +248,21 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.execute(
-        "test-resource",
-        "test prompt",
+      await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
         context,
-        [mockLLMFunction],
-        {
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
           minRetryDelayMillis: 100,
           maxRetryDelayMillis: 1000,
         },
-        {},
-        undefined,
-        { outputFormat: LLMOutputFormat.JSON },
-      );
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
     });
@@ -287,21 +287,21 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         purpose: LLMPurpose.COMPLETIONS,
       };
 
-      await pipeline.execute(
-        "test-resource",
-        "test prompt",
+      await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
         context,
-        [mockLLMFunction],
-        {
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
           minRetryDelayMillis: 100,
           maxRetryDelayMillis: 1000,
         },
-        {},
-        undefined,
-        { outputFormat: LLMOutputFormat.JSON },
-      );
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
 
       expect(recordJsonMutatedSpy).toHaveBeenCalledTimes(1);
     });

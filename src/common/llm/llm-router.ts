@@ -4,7 +4,6 @@ import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
-  LLMModelMetadata,
   LLMModelKeysSet,
   LLMEmbeddingFunction,
   InferResponseType,
@@ -20,7 +19,6 @@ import {
 } from "./utils/completions-models-retriever";
 import { loadManifestForModelFamily } from "./utils/manifest-loader";
 import { logOneLineWarning } from "../utils/logging";
-import { isDefined } from "../utils/type-guards";
 import { LLMErrorLogger } from "./tracking/llm-error-logger";
 
 /**
@@ -60,9 +58,12 @@ export default class LLMRouter {
 
     // Create LLM provider instance
     const modelsKeysSet = this.buildModelsKeysSet(this.manifest);
-    const modelsMetadata = this.buildModelsMetadata(this.manifest, config.providerParameters);
+    const modelsMetadata = this.buildModelsMetadataFromResolvedUrns(
+      this.manifest,
+      config.resolvedModels,
+    );
     this.llm = new this.manifest.implementation(
-      config.providerParameters,
+      config.providerParams,
       modelsKeysSet,
       modelsMetadata,
       this.manifest.errorPatterns,
@@ -230,16 +231,16 @@ export default class LLMRouter {
 
     // The type now flows through the pipeline automatically via InferResponseType<TOptions>.
     // No local type helpers needed - the pipeline infers the return type from options.
-    const result = await this.executionPipeline.execute<TOptions>(
+    const result = await this.executionPipeline.execute<TOptions>({
       resourceName,
       prompt,
       context,
-      candidateFunctions,
-      this.providerRetryConfig,
-      this.modelsMetadata,
-      candidatesToUse,
-      options,
-    );
+      llmFunctions: candidateFunctions,
+      providerRetryConfig: this.providerRetryConfig,
+      modelsMetadata: this.modelsMetadata,
+      candidateModels: candidatesToUse,
+      completionOptions: options,
+    });
 
     if (!result.success) {
       logOneLineWarning(`Failed to execute completion: ${result.error.message}`, context);
@@ -266,30 +267,24 @@ export default class LLMRouter {
   }
 
   /**
-   * Build resolved model metadata from manifest and provider parameters
+   * Build resolved model metadata from manifest and pre-resolved URNs.
+   * URNs are now resolved by the application layer, not by the LLM module.
    */
-  private buildModelsMetadata(
+  private buildModelsMetadataFromResolvedUrns(
     manifest: LLMProviderManifest,
-    providerParameters: Record<string, string>,
+    resolvedModels: import("./config/llm-module-config.types").ResolvedModels,
   ): Record<string, ResolvedLLMModelMetadata> {
-    const resolveUrn = (model: LLMModelMetadata): string => {
-      const value = providerParameters[model.urnEnvKey];
-
-      if (typeof value !== "string" || value.length === 0) {
-        throw new BadConfigurationLLMError(
-          `Required environment variable ${model.urnEnvKey} is not set, is empty, or is not a string. Found: ${value}`,
-        );
-      }
-
-      return value;
-    };
     const models = [
-      manifest.models.embeddings,
-      manifest.models.primaryCompletion,
-      manifest.models.secondaryCompletion,
-    ].filter(isDefined);
-    return Object.fromEntries(
-      models.map((model) => [model.modelKey, { ...model, urn: resolveUrn(model) }] as const),
-    ) as Record<string, ResolvedLLMModelMetadata>;
+      { ...manifest.models.embeddings, urn: resolvedModels.embeddings },
+      { ...manifest.models.primaryCompletion, urn: resolvedModels.primaryCompletion },
+      ...(manifest.models.secondaryCompletion && resolvedModels.secondaryCompletion
+        ? [{ ...manifest.models.secondaryCompletion, urn: resolvedModels.secondaryCompletion }]
+        : []),
+    ];
+
+    return Object.fromEntries(models.map((model) => [model.modelKey, model] as const)) as Record<
+      string,
+      ResolvedLLMModelMetadata
+    >;
   }
 }

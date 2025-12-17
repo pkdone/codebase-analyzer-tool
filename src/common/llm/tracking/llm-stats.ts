@@ -124,6 +124,21 @@ export default class LLMStats {
   }
 
   /**
+   * Print the accumulated statistics of LLM invocation result types.
+   */
+  displayLLMStatusSummary(): void {
+    console.log("LLM invocation event types that will be recorded:");
+    console.table(this.getStatusTypesStatistics(), ["description", "symbol"]);
+  }
+
+  /**
+   * Print the accumulated statistics of LLM invocation result types.
+   */
+  displayLLMStatusDetails(): void {
+    console.table(this.getStatusTypesStatistics(true));
+  }
+
+  /**
    * Log success event occurrence and print its symbol
    */
   private record(statusType: LLMStatsCategoryStatus) {

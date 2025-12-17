@@ -231,7 +231,11 @@ describe("LLM Router tests", () => {
     const mockErrorLogger = createMockErrorLogger();
     const mockConfig: LLMModuleConfig = {
       modelFamily: "openai",
-      providerParameters: mockEnvVars as unknown as Record<string, string>,
+      providerParams: mockEnvVars as unknown as Record<string, unknown>,
+      resolvedModels: {
+        embeddings: "text-embedding-3-large",
+        primaryCompletion: "gpt-4o",
+      },
       errorLogging: { errorLogDirectory: "/tmp", errorLogFilenameTemplate: "error.log" },
     };
     const router = new LLMRouter(mockConfig, mockExecutionPipeline, mockErrorLogger);

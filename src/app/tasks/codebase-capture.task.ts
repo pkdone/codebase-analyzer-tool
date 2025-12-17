@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../components/capture/codebase-to-db-loader";
-import type { LLMStatsReporter } from "../../common/llm/tracking/llm-stats-reporter";
+import type LLMStats from "../../common/llm/tracking/llm-stats";
 import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";
 import { DatabaseInitializer } from "./database-initializer";
@@ -20,7 +20,7 @@ export class CodebaseCaptureTask implements Task {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
+    @inject(llmTokens.LLMStats) private readonly llmStats: LLMStats,
     @inject(coreTokens.DatabaseInitializer)
     private readonly databaseInitializer: DatabaseInitializer,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
@@ -34,7 +34,7 @@ export class CodebaseCaptureTask implements Task {
    */
   async execute(): Promise<void> {
     console.log(`Processing source files for project: ${this.projectName}`);
-    this.llmStatsReporter.displayLLMStatusSummary();
+    this.llmStats.displayLLMStatusSummary();
     await clearDirectory(outputConfig.OUTPUT_DIR);
     await this.databaseInitializer.initializeDatabaseSchema(
       databaseConfig.DEFAULT_VECTOR_DIMENSIONS,
@@ -46,6 +46,6 @@ export class CodebaseCaptureTask implements Task {
     );
     console.log(`Finished processing source files for the project`);
     console.log("Summary of LLM invocations outcomes:");
-    this.llmStatsReporter.displayLLMStatusDetails();
+    this.llmStats.displayLLMStatusDetails();
   }
 }

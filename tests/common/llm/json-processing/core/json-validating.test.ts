@@ -243,7 +243,9 @@ describe("json-validating", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(data, options.jsonSchema);
+      const result = validateJsonWithTransforms(data, options.jsonSchema, {
+        arrayPropertyNames: ["parameters", "dependencies"],
+      });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -272,7 +274,9 @@ describe("json-validating", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(data, options.jsonSchema);
+      const result = validateJsonWithTransforms(data, options.jsonSchema, {
+        arrayPropertyNames: ["parameters"],
+      });
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -301,7 +305,9 @@ describe("json-validating", () => {
         jsonSchema: schema,
       };
 
-      const result = validateJsonWithTransforms(data, options.jsonSchema);
+      const result = validateJsonWithTransforms(data, options.jsonSchema, {
+        arrayPropertyNames: ["parameters"],
+      });
 
       expect(result.success).toBe(true);
       if (result.success) {

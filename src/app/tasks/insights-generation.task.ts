@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import type { InsightsProcessorSelector } from "../components/insights/insights-processor-selector";
-import type { LLMStatsReporter } from "../../common/llm/tracking/llm-stats-reporter";
+import type LLMStats from "../../common/llm/tracking/llm-stats";
 import { Task } from "./task.types";
 import { llmTokens } from "../di/tokens";
 import { coreTokens } from "../di/tokens";
@@ -18,7 +18,7 @@ export class InsightsGenerationTask implements Task {
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStatsReporter) private readonly llmStatsReporter: LLMStatsReporter,
+    @inject(llmTokens.LLMStats) private readonly llmStats: LLMStats,
     @inject(coreTokens.ProjectName) private readonly projectName: string,
     @inject(insightsTokens.InsightsProcessorSelector)
     private readonly insightsProcessorSelector: InsightsProcessorSelector,
@@ -29,12 +29,12 @@ export class InsightsGenerationTask implements Task {
    */
   async execute(): Promise<void> {
     console.log(`Generating insights for project: ${this.projectName}`);
-    this.llmStatsReporter.displayLLMStatusSummary();
+    this.llmStats.displayLLMStatusSummary();
     await clearDirectory(outputConfig.OUTPUT_DIR);
     const selectedProcessor = await this.insightsProcessorSelector.selectInsightsProcessor();
     await selectedProcessor.generateAndStoreInsights();
     console.log(`Finished generating insights for the project`);
     console.log("Summary of LLM invocations outcomes:");
-    this.llmStatsReporter.displayLLMStatusDetails();
+    this.llmStats.displayLLMStatusDetails();
   }
 }

@@ -4,8 +4,8 @@
  *
  * LLMs sometimes return descriptive strings for properties that should be arrays
  * (e.g., `"parameters": "59 parameters including id, accountNo, status, etc."`).
- * This transformation converts these string values to empty arrays for a predefined
- * list of property names that are expected to be arrays.
+ * This transformation converts these string values to empty arrays for property names
+ * specified in the configuration.
  *
  * Example:
  *   Input:  { parameters: "59 parameters...", dependencies: "several dependencies" }
@@ -13,22 +13,17 @@
  *
  * This transformation:
  * - Recursively processes all nested plain objects and arrays
- * - Converts string values to empty arrays for predefined property names
+ * - Converts string values to empty arrays for configured property names
  * - Works at any nesting level (not just specific paths)
  * - Leaves array values unchanged
  * - Preserves all other values unchanged
  * - Handles symbol keys and preserves them
+ * - Skips transformation if no arrayPropertyNames are configured
  */
-
-/**
- * List of property names that are expected to be arrays.
- * If any of these properties have a string value, they will be converted to an empty array.
- */
-const ARRAY_PROPERTY_NAMES = ["parameters", "dependencies", "references"] as const;
 
 export function coerceStringToArray(
   value: unknown,
-  _config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
+  config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
   visited = new WeakSet<object>(),
 ): unknown {
   // Handle primitives and null
@@ -44,7 +39,7 @@ export function coerceStringToArray(
 
   // Handle arrays
   if (Array.isArray(value)) {
-    return value.map((item) => coerceStringToArray(item, _config, visited));
+    return value.map((item) => coerceStringToArray(item, config, visited));
   }
 
   // Preserve special built-in objects (Date, RegExp, etc.) as-is
@@ -57,20 +52,19 @@ export function coerceStringToArray(
   const obj = value as Record<string | symbol, unknown>;
   const result: Record<string | symbol, unknown> = {};
 
+  // Get array property names from config, or use empty array if not configured
+  const arrayPropertyNames = config?.arrayPropertyNames ?? [];
+
   // Process string keys
   for (const [key, val] of Object.entries(obj)) {
     let processedValue = val;
 
-    // Convert string values to empty arrays for predefined property names
-    if (
-      typeof key === "string" &&
-      ARRAY_PROPERTY_NAMES.includes(key as (typeof ARRAY_PROPERTY_NAMES)[number]) &&
-      typeof val === "string"
-    ) {
+    // Convert string values to empty arrays for configured property names
+    if (typeof key === "string" && arrayPropertyNames.includes(key) && typeof val === "string") {
       processedValue = [];
     } else {
       // Recursively process nested objects and arrays
-      processedValue = coerceStringToArray(val, _config, visited);
+      processedValue = coerceStringToArray(val, config, visited);
     }
 
     result[key] = processedValue;
@@ -81,7 +75,7 @@ export function coerceStringToArray(
   for (const sym of symbols) {
     const symObj = obj as Record<symbol, unknown>;
     const resultSym = result as Record<symbol, unknown>;
-    resultSym[sym] = coerceStringToArray(symObj[sym], _config, visited);
+    resultSym[sym] = coerceStringToArray(symObj[sym], config, visited);
   }
 
   return result;

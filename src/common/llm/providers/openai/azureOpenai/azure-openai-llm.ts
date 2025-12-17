@@ -20,7 +20,7 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
    * Constructor.
    */
   constructor(
-    providerParameters: Record<string, string>,
+    providerParams: Record<string, unknown>,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
@@ -38,13 +38,13 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
       errorLogger,
       llmFeatures,
     );
-    const apiKey = providerParameters.AZURE_OPENAI_LLM_API_KEY;
-    const endpoint = providerParameters.AZURE_OPENAI_ENDPOINT;
-    const embeddingsDeployment = providerParameters.AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT;
+    const apiKey = providerParams.AZURE_OPENAI_LLM_API_KEY as string;
+    const endpoint = providerParams.AZURE_OPENAI_ENDPOINT as string;
+    const embeddingsDeployment = providerParams.AZURE_OPENAI_EMBEDDINGS_MODEL_DEPLOYMENT as string;
     const primaryCompletionsDeployment =
-      providerParameters.AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY;
+      providerParams.AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_PRIMARY as string;
     const secondaryCompletionsDeployment =
-      providerParameters.AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY;
+      providerParams.AZURE_OPENAI_COMPLETIONS_MODEL_DEPLOYMENT_SECONDARY as string;
     this.modelToDeploymentMappings = new Map();
     this.modelToDeploymentMappings.set(modelsKeys.embeddingsModelKey, embeddingsDeployment);
     this.modelToDeploymentMappings.set(

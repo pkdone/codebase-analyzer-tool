@@ -78,7 +78,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
    * Constructor.
    */
   constructor(
-    _providerParameters: Record<string, string>,
+    _providerParams: Record<string, unknown>,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],

@@ -1,6 +1,5 @@
 import { container } from "tsyringe";
 import { createLLMRouter } from "../../../common/llm/llm-factory";
-import { LLMStatsReporter } from "../../../common/llm/tracking/llm-stats-reporter";
 import { buildLLMModuleConfig } from "../../env/llm-config-builder";
 import { EnvVars } from "../../env/env.types";
 import { llmTokens, coreTokens } from "../tokens";
@@ -42,12 +41,9 @@ export function initializeAndRegisterLLMComponents(): void {
   // Create LLM router using factory
   const { router, stats } = createLLMRouter(llmConfig);
 
-  // Register LLMRouter instance in DI container for application use
+  // Register LLMRouter and LLMStats instances in DI container for application use
   container.registerInstance(llmTokens.LLMRouter, router);
-
-  // Create and register stats reporter (for displaying stats)
-  const llmStatsReporter = new LLMStatsReporter(stats);
-  container.registerInstance(llmTokens.LLMStatsReporter, llmStatsReporter);
+  container.registerInstance(llmTokens.LLMStats, stats);
 
   console.log("LLMRouter registered as singleton");
 }

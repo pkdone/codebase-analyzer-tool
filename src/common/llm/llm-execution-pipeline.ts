@@ -19,6 +19,21 @@ import { LLMExecutionError } from "./types/llm-execution-result.types";
 import { logOneLineWarning } from "../utils/logging";
 
 /**
+ * Parameters for executing an LLM function with the execution pipeline.
+ * Groups all execution parameters into a single object for better maintainability.
+ */
+export interface LLMExecutionParams<TOptions extends LLMCompletionOptions = LLMCompletionOptions> {
+  readonly resourceName: string;
+  readonly prompt: string;
+  readonly context: LLMContext;
+  readonly llmFunctions: LLMFunction[];
+  readonly providerRetryConfig: LLMRetryConfig;
+  readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
+  readonly candidateModels?: LLMCandidateFunction[];
+  readonly completionOptions?: TOptions;
+}
+
+/**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
  * fallbacks, and prompt adaptation. This class was extracted from LLMRouter to improve
  * separation of concerns and testability.
@@ -42,15 +57,19 @@ export class LLMExecutionPipeline {
    * type safety through the LLM call chain without requiring unsafe casts.
    */
   async execute<TOptions extends LLMCompletionOptions = LLMCompletionOptions>(
-    resourceName: string,
-    prompt: string,
-    context: LLMContext,
-    llmFunctions: LLMFunction[],
-    providerRetryConfig: LLMRetryConfig,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    candidateModels?: LLMCandidateFunction[],
-    completionOptions?: TOptions,
+    params: LLMExecutionParams<TOptions>,
   ): Promise<LLMExecutionResult<InferResponseType<TOptions>>> {
+    const {
+      resourceName,
+      prompt,
+      context,
+      llmFunctions,
+      providerRetryConfig,
+      modelsMetadata,
+      candidateModels,
+      completionOptions,
+    } = params;
+
     try {
       const result = await this.iterateOverLLMFunctions(
         resourceName,

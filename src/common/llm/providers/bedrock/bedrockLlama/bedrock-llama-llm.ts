@@ -1,7 +1,7 @@
 import { llmConfig } from "../../../config/llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { z } from "zod";
-import { BedrockLlamaProviderConfigSchema } from "./bedrock-llama.manifest";
+import { BedrockLlamaProviderConfigSchema } from "./bedrock-llama.types";
 
 /**
  * Configuration constants for AWS Bedrock Llama models.

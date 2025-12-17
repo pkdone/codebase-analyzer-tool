@@ -59,7 +59,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
    * Constructor
    */
   constructor(
-    providerParameters: Record<string, string>,
+    providerParams: Record<string, unknown>,
     modelsKeys: LLMModelKeysSet,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     errorPatterns: readonly LLMErrorMsgRegExPattern[],
@@ -77,8 +77,8 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       errorLogger,
       llmFeatures,
     );
-    const project = providerParameters.VERTEXAI_PROJECTID;
-    const location = providerParameters.VERTEXAI_LOCATION;
+    const project = providerParams.VERTEXAI_PROJECTID as string;
+    const location = providerParams.VERTEXAI_LOCATION as string;
     this.vertexAiApiClient = new VertexAI({ project, location });
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
       apiEndpoint: `${location}-aiplatform.googleapis.com`,
