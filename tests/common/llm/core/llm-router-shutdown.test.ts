@@ -72,9 +72,9 @@ describe("LLMRouter Shutdown Behavior", () => {
       } as any,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const {
       loadManifestForModelFamily,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
     loadManifestForModelFamily.mockReturnValue(mockManifest);
 
@@ -157,9 +157,9 @@ describe("LLMRouter Shutdown Behavior", () => {
       } as any,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const {
       loadManifestForModelFamily,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
     loadManifestForModelFamily.mockReturnValue(mockManifest);
 
@@ -244,9 +244,9 @@ describe("LLMRouter Shutdown Behavior", () => {
       } as any,
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const {
       loadManifestForModelFamily,
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
     } = require("../../../../src/common/llm/utils/manifest-loader");
     loadManifestForModelFamily.mockReturnValue(mockManifest);
 
