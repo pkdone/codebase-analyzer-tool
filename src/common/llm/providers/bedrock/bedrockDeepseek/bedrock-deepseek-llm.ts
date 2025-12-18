@@ -1,5 +1,4 @@
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { buildStandardMessagesArray } from "../utils/bedrock-request-builders";
 import { z } from "zod";
 
 /**
@@ -29,16 +28,9 @@ const DeepseekCompletionResponseSchema = z.object({
 
 /**
  * Class for the AWS Bedrock Deepseek LLMs.
+ * Uses the default buildCompletionRequestBody from BaseBedrockLLM.
  */
 export default class BedrockDeepseekLLM extends BaseBedrockLLM {
-  /**
-   * Build the request body object for completions using the standard messages array format.
-   */
-  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
-    // Bedrock providers don't support JSON mode options
-    return buildStandardMessagesArray(prompt, modelKey, this.llmModelsMetadata);
-  }
-
   /**
    * Get the provider-specific response extraction configuration.
    */

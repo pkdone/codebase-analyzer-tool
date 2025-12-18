@@ -1,14 +1,13 @@
 import BaseOpenAILLM from "../../../../../src/common/llm/providers/openai/common/base-openai-llm";
+import { LLMPurpose, LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import {
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-  LLMModelKeysSet,
-  LLMErrorMsgRegExPattern,
-  LLMOutputFormat,
-} from "../../../../../src/common/llm/types/llm.types";
-import { LLMProviderSpecificConfig } from "../../../../../src/common/llm/providers/llm-provider.types";
+  LLMProviderSpecificConfig,
+  LLMProviderManifest,
+  ProviderInit,
+} from "../../../../../src/common/llm/providers/llm-provider.types";
 import { OpenAI } from "openai";
 import { createMockErrorLogger } from "../../../helpers/llm/mock-error-logger";
+import { z } from "zod";
 
 // Minimal fake client with only used methods
 class FakeEmbeddingsClient {
@@ -34,42 +33,46 @@ class FakeOpenAI extends OpenAI {
 class TestOpenAILLM extends BaseOpenAILLM {
   private readonly clientInstance = new FakeOpenAI();
   constructor() {
-    const modelsKeys: LLMModelKeysSet = {
-      embeddingsModelKey: "EMBED",
-      primaryCompletionModelKey: "COMPLETE",
-    };
-    const errorPatterns: LLMErrorMsgRegExPattern[] = [];
     const providerConfig: LLMProviderSpecificConfig = {
       requestTimeoutMillis: 1000,
       maxRetryAttempts: 1,
       minRetryDelayMillis: 10,
       maxRetryDelayMillis: 100,
     };
-    const metadata: Record<string, ResolvedLLMModelMetadata> = {
-      EMBED: {
-        modelKey: "EMBED",
-        urn: "embed-model",
-        purpose: LLMPurpose.EMBEDDINGS,
-        maxCompletionTokens: 0,
-        maxTotalTokens: 8191,
-        dimensions: 1536,
+    const manifest: LLMProviderManifest = {
+      providerName: "Test OpenAI",
+      modelFamily: "openai-test",
+      envSchema: z.object({}),
+      models: {
+        embeddings: {
+          modelKey: "EMBED",
+          urnEnvKey: "EMBED_URN",
+          purpose: LLMPurpose.EMBEDDINGS,
+          maxTotalTokens: 8191,
+          dimensions: 1536,
+        },
+        primaryCompletion: {
+          modelKey: "COMPLETE",
+          urnEnvKey: "COMPLETE_URN",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: 32,
+          maxTotalTokens: 4096,
+        },
       },
-      COMPLETE: {
-        modelKey: "COMPLETE",
-        urn: "complete-model",
-        purpose: LLMPurpose.COMPLETIONS,
-        maxCompletionTokens: 32,
-        maxTotalTokens: 4096,
-      },
+      errorPatterns: [],
+      providerSpecificConfig: providerConfig,
+      implementation: TestOpenAILLM as any,
     };
-    super(
-      modelsKeys,
-      metadata,
-      errorPatterns,
-      providerConfig,
-      "openai-test",
-      createMockErrorLogger(),
-    );
+    const init: ProviderInit = {
+      manifest,
+      providerParams: {},
+      resolvedModels: {
+        embeddings: "embed-model",
+        primaryCompletion: "complete-model",
+      },
+      errorLogger: createMockErrorLogger(),
+    };
+    super(init);
   }
   protected override getClient(): OpenAI {
     return this.clientInstance;
@@ -92,12 +95,12 @@ describe("BaseOpenAILLM refactored invokeProvider", () => {
   });
 
   test("embeddings path uses embeddings client and returns embedding", async () => {
-    const result = await (llm as any).invokeProvider(LLMPurpose.EMBEDDINGS, "EMBED", "vector this");
+    const result = await (llm as any).invokeEmbeddingProvider("EMBED", "vector this");
     expect(result.responseContent).toEqual([0.1, 0.2, 0.3]);
   });
 
   test("completion path uses chat completions client and returns content", async () => {
-    const result = await (llm as any).invokeProvider(LLMPurpose.COMPLETIONS, "COMPLETE", "Say hi");
+    const result = await (llm as any).invokeCompletionProvider("COMPLETE", "Say hi");
     expect(result.responseContent).toBe("hello");
     expect(result.isIncompleteResponse).toBe(false);
     expect(result.tokenUsage.promptTokens).toBe(7);
@@ -106,7 +109,7 @@ describe("BaseOpenAILLM refactored invokeProvider", () => {
   test("JSON output option sets response_format", async () => {
     const fakeClient = (llm as any).getClient(); // Access fake client bypassing protected for test
     const spy = jest.spyOn(fakeClient.chat.completions, "create");
-    await (llm as any).invokeProvider(LLMPurpose.COMPLETIONS, "COMPLETE", "Return JSON", {
+    await (llm as any).invokeCompletionProvider("COMPLETE", "Return JSON", {
       outputFormat: LLMOutputFormat.JSON,
     });
     const callArg = spy.mock.calls[0][0] as { response_format?: { type: string } };
@@ -120,7 +123,7 @@ describe("BaseOpenAILLM refactored invokeProvider", () => {
       usage: { prompt_tokens: 5, completion_tokens: 0 },
     });
 
-    const result = await (llm as any).invokeProvider(LLMPurpose.COMPLETIONS, "COMPLETE", "test");
+    const result = await (llm as any).invokeCompletionProvider("COMPLETE", "test");
     expect(result.responseContent).toBe("");
     expect(result.isIncompleteResponse).toBe(false); // Empty string is valid, not incomplete
   });
@@ -132,7 +135,7 @@ describe("BaseOpenAILLM refactored invokeProvider", () => {
       usage: { prompt_tokens: 5, completion_tokens: 0 },
     });
 
-    const result = await (llm as any).invokeProvider(LLMPurpose.COMPLETIONS, "COMPLETE", "test");
+    const result = await (llm as any).invokeCompletionProvider("COMPLETE", "test");
     expect(result.responseContent).toBeNull();
     expect(result.isIncompleteResponse).toBe(true); // null is incomplete
   });
@@ -144,7 +147,7 @@ describe("BaseOpenAILLM refactored invokeProvider", () => {
       usage: { prompt_tokens: 5, completion_tokens: 0 },
     });
 
-    const result = await (llm as any).invokeProvider(LLMPurpose.COMPLETIONS, "COMPLETE", "test");
+    const result = await (llm as any).invokeCompletionProvider("COMPLETE", "test");
     expect(result.responseContent).toBeUndefined();
     expect(result.isIncompleteResponse).toBe(true); // undefined is incomplete
   });

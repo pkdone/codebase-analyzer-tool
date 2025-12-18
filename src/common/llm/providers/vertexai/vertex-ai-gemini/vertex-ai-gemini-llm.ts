@@ -11,14 +11,7 @@ import {
 import * as aiplatform from "@google-cloud/aiplatform";
 const { helpers } = aiplatform;
 import { llmConfig } from "../../../config/llm.config";
-import {
-  LLMModelKeysSet,
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-  LLMErrorMsgRegExPattern,
-  LLMCompletionOptions,
-  LLMOutputFormat,
-} from "../../../types/llm.types";
+import { LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm.types";
 import { logOneLineWarning, logError } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
 import AbstractLLM from "../../abstract-llm";
@@ -27,7 +20,6 @@ import {
   BadResponseContentLLMError,
   RejectionResponseLLMError,
 } from "../../../types/llm-errors.types";
-import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import {
   zodToJsonSchemaWithoutMeta,
   sanitizeSchemaForProvider,
@@ -58,27 +50,10 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   /**
    * Constructor
    */
-  constructor(
-    providerParams: Record<string, unknown>,
-    modelsKeys: LLMModelKeysSet,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig,
-    modelFamily: string,
-    errorLogger: import("../../../tracking/llm-error-logger.interface").IErrorLogger,
-    llmFeatures?: readonly string[],
-  ) {
-    super(
-      modelsKeys,
-      modelsMetadata,
-      errorPatterns,
-      providerSpecificConfig,
-      modelFamily,
-      errorLogger,
-      llmFeatures,
-    );
-    const project = providerParams.VERTEXAI_PROJECTID as string;
-    const location = providerParams.VERTEXAI_LOCATION as string;
+  constructor(init: import("../../llm-provider.types").ProviderInit) {
+    super(init);
+    const project = init.providerParams.VERTEXAI_PROJECTID as string;
+    const location = init.providerParams.VERTEXAI_LOCATION as string;
     this.vertexAiApiClient = new VertexAI({ project, location });
     this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
       apiEndpoint: `${location}-aiplatform.googleapis.com`,
@@ -112,19 +87,21 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   }
 
   /**
-   * Execute the prompt against the LLM and return the relevant sumamry of the LLM's answer.
+   * Execute the embedding prompt against the LLM and return the relevant summary.
    */
-  protected async invokeProvider(
-    taskType: LLMPurpose,
+  protected async invokeEmbeddingProvider(modelKey: string, prompt: string) {
+    return await this.invokeEmbeddingsLLM(modelKey, prompt);
+  }
+
+  /**
+   * Execute the completion prompt against the LLM and return the relevant summary.
+   */
+  protected async invokeCompletionProvider(
     modelKey: string,
     prompt: string,
     options?: LLMCompletionOptions,
   ) {
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      return await this.invokeEmbeddingsLLM(modelKey, prompt);
-    } else {
-      return this.invokeCompletionLLM(modelKey, prompt, options);
-    }
+    return this.invokeCompletionLLM(modelKey, prompt, options);
   }
 
   /**

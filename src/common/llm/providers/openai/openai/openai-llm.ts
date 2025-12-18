@@ -1,11 +1,6 @@
 import { OpenAI } from "openai";
-import {
-  LLMModelKeysSet,
-  ResolvedLLMModelMetadata,
-  LLMErrorMsgRegExPattern,
-} from "../../../types/llm.types";
 import BaseOpenAILLM from "../common/base-openai-llm";
-import { LLMProviderSpecificConfig } from "../../llm-provider.types";
+import type { ProviderInit } from "../../llm-provider.types";
 
 /**
  * Class for the public OpenAI service.
@@ -17,26 +12,9 @@ export default class OpenAILLM extends BaseOpenAILLM {
   /**
    * Constructor.
    */
-  constructor(
-    providerParams: Record<string, unknown>,
-    modelsKeys: LLMModelKeysSet,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig,
-    modelFamily: string,
-    errorLogger: import("../../../tracking/llm-error-logger.interface").IErrorLogger,
-    llmFeatures?: readonly string[],
-  ) {
-    super(
-      modelsKeys,
-      modelsMetadata,
-      errorPatterns,
-      providerSpecificConfig,
-      modelFamily,
-      errorLogger,
-      llmFeatures,
-    );
-    const apiKey = providerParams.OPENAI_LLM_API_KEY as string;
+  constructor(init: ProviderInit) {
+    super(init);
+    const apiKey = init.providerParams.OPENAI_LLM_API_KEY as string;
     this.client = new OpenAI({ apiKey });
   }
 

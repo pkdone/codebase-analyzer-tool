@@ -3,10 +3,9 @@ import { bedrockClaudeProviderManifest } from "../../../../../../src/common/llm/
 import {
   createBedrockMockEnv,
   createBedrockTestData,
+  createBedrockProviderInit,
   type AdditionalTestModel,
 } from "../../../../helpers/llm/bedrock-test-helper";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
-
 // Test-only constants
 const AWS_COMPLETIONS_CLAUDE_V35 = "AWS_COMPLETIONS_CLAUDE_V35";
 
@@ -27,8 +26,11 @@ const additionalTestModels: AdditionalTestModel[] = [
   },
 ];
 
-const { modelKeysSet: bedrockClaudeModelKeysSet, modelsMetadata: bedrockClaudeModelsMetadata } =
-  createBedrockTestData(bedrockClaudeProviderManifest, mockBedrockClaudeEnv, additionalTestModels);
+const { modelsMetadata: bedrockClaudeModelsMetadata } = createBedrockTestData(
+  bedrockClaudeProviderManifest,
+  mockBedrockClaudeEnv,
+  additionalTestModels,
+);
 
 describe("Bedrock Claude Provider Tests", () => {
   describe("Token extraction from error messages", () => {
@@ -88,28 +90,14 @@ describe("Bedrock Claude Provider Tests", () => {
 
   describe("Provider implementation", () => {
     test("verifies model family", () => {
-      const llm = new bedrockClaudeProviderManifest.implementation(
-        mockBedrockClaudeEnv as any,
-        bedrockClaudeModelKeysSet,
-        bedrockClaudeModelsMetadata,
-        bedrockClaudeProviderManifest.errorPatterns,
-        bedrockClaudeProviderManifest.providerSpecificConfig,
-        bedrockClaudeProviderManifest.modelFamily,
-        createMockErrorLogger(),
-      );
+      const init = createBedrockProviderInit(bedrockClaudeProviderManifest, mockBedrockClaudeEnv);
+      const llm = new bedrockClaudeProviderManifest.implementation(init);
       expect(llm.getModelFamily()).toBe("BedrockClaude");
     });
 
     test("counts available models", () => {
-      const llm = new bedrockClaudeProviderManifest.implementation(
-        mockBedrockClaudeEnv as any,
-        bedrockClaudeModelKeysSet,
-        bedrockClaudeModelsMetadata,
-        bedrockClaudeProviderManifest.errorPatterns,
-        bedrockClaudeProviderManifest.providerSpecificConfig,
-        bedrockClaudeProviderManifest.modelFamily,
-        createMockErrorLogger(),
-      );
+      const init = createBedrockProviderInit(bedrockClaudeProviderManifest, mockBedrockClaudeEnv);
+      const llm = new bedrockClaudeProviderManifest.implementation(init);
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });
   });

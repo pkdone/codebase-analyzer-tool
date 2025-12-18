@@ -2,27 +2,22 @@ import VertexAIGeminiLLM from "../../../../../../src/common/llm/providers/vertex
 import { VertexAI, FinishReason } from "@google-cloud/vertexai";
 import * as aiplatform from "@google-cloud/aiplatform";
 import {
-  LLMModelKeysSet,
   LLMPurpose,
   ResolvedLLMModelMetadata,
-  LLMErrorMsgRegExPattern,
   LLMOutputFormat,
   LLMResponseStatus,
   LLMContext,
 } from "../../../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
+import { vertexAIGeminiProviderManifest } from "../../../../../../src/common/llm/providers/vertexai/vertex-ai-gemini/vertex-ai-gemini.manifest";
 
 // Mock the Vertex AI SDK
 jest.mock("@google-cloud/vertexai");
 jest.mock("@google-cloud/aiplatform");
 
 describe("VertexAIGeminiLLM Schema Sanitization", () => {
-  const mockModelsKeys: LLMModelKeysSet = {
-    embeddingsModelKey: "GEMINI_EMBEDDINGS",
-    primaryCompletionModelKey: "GEMINI_COMPLETIONS",
-  };
-
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     GEMINI_EMBEDDINGS: {
       modelKey: "GEMINI_EMBEDDINGS",
@@ -40,7 +35,6 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
     },
   };
 
-  const mockErrorPatterns: LLMErrorMsgRegExPattern[] = [];
   const mockContext: LLMContext = {
     resource: "test-resource",
     purpose: LLMPurpose.COMPLETIONS,
@@ -94,20 +88,16 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
       } as unknown as aiplatform.PredictionServiceClient;
     });
 
-    vertexAIGeminiLLM = new VertexAIGeminiLLM(
-      { VERTEXAI_PROJECTID: "test-project", VERTEXAI_LOCATION: "us-central1" } as any,
-      mockModelsKeys,
-      mockModelsMetadata,
-      mockErrorPatterns,
-      {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 5000,
+    const init: ProviderInit = {
+      manifest: vertexAIGeminiProviderManifest,
+      providerParams: { VERTEXAI_PROJECTID: "test-project", VERTEXAI_LOCATION: "us-central1" },
+      resolvedModels: {
+        embeddings: mockModelsMetadata.GEMINI_EMBEDDINGS.urn,
+        primaryCompletion: mockModelsMetadata.GEMINI_COMPLETIONS.urn,
       },
-      "VertexGemini",
-      createMockErrorLogger(),
-    );
+      errorLogger: createMockErrorLogger(),
+    };
+    vertexAIGeminiLLM = new VertexAIGeminiLLM(init);
   });
 
   describe("const field removal from JSON schemas", () => {

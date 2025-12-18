@@ -24,8 +24,9 @@ describe("BedrockLlamaLLM", () => {
     expect(fileContent).toContain("providerSpecificConfig");
     expect(fileContent).toContain("maxGenLenCap");
 
-    // Verify it's used in the calculation
-    expect(fileContent).toContain("Math.min(maxCompletionTokens, maxGenLenCap)");
+    // Verify it's used in the calculation (now uses config.maxGenLenCap)
+    expect(fileContent).toContain("Math.min(maxCompletionTokens");
+    expect(fileContent).toContain("config.maxGenLenCap");
   });
 
   it("should not have a hardcoded BEDROCK_LLAMA_MAX_GEN_LEN_CAP constant", () => {
@@ -57,9 +58,9 @@ describe("BedrockLlamaLLM", () => {
     });
 
     it("should not have hardcoded template tokens in buildCompletionRequestBody", () => {
-      // Extract the buildCompletionRequestBody method
+      // Extract the buildCompletionRequestBody method (may have override keyword)
       // eslint-disable-next-line no-regex-spaces
-      const methodRegex = /protected buildCompletionRequestBody[\s\S]*?^  }/m;
+      const methodRegex = /protected\s+override\s+buildCompletionRequestBody[\s\S]*?^  }/m;
       const methodMatch = methodRegex.exec(fileContent);
       expect(methodMatch).toBeTruthy();
 

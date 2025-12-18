@@ -1,13 +1,13 @@
 import { z } from "zod";
 import {
-  LLMModelKeysSet,
   LLMProvider,
   LLMModelMetadata,
-  ResolvedLLMModelMetadata,
   LLMErrorMsgRegExPattern,
   LLMGeneratedContent,
   LLMResponseTokensUsage,
 } from "../types/llm.types";
+import type { ResolvedModels } from "../config/llm-module-config.types";
+import type { IErrorLogger } from "../tracking/llm-error-logger.interface";
 
 /**
  * Interface for retry and timeout configuration used by LLMRouter
@@ -43,6 +43,21 @@ export interface LLMProviderSpecificConfig extends LLMRetryConfig {
 }
 
 /**
+ * Initialization configuration object for LLM providers.
+ * Bundles all necessary data for provider instantiation.
+ */
+export interface ProviderInit {
+  /** The complete provider manifest */
+  manifest: LLMProviderManifest;
+  /** Provider-specific parameters (e.g., API keys, endpoints) */
+  providerParams: Record<string, unknown>;
+  /** Resolved model URNs for this provider */
+  resolvedModels: ResolvedModels;
+  /** Error logger for recording issues */
+  errorLogger: IErrorLogger;
+}
+
+/**
  * Complete manifest defining a provider's configuration
  */
 export interface LLMProviderManifest {
@@ -58,23 +73,12 @@ export interface LLMProviderManifest {
     primaryCompletion: LLMModelMetadata;
     secondaryCompletion?: LLMModelMetadata;
   };
-  /** Optional feature flags declaring special behaviors required for this provider (e.g., token caps) */
-  features?: readonly string[];
   /** Provider-specific error patterns for token limits/overload */
   errorPatterns: readonly LLMErrorMsgRegExPattern[];
   /** Provider-specific operational configuration */
   providerSpecificConfig: LLMProviderSpecificConfig;
   /** Required implementation constructor (modern approach) */
-  implementation: new (
-    providerParams: Record<string, unknown>,
-    modelsKeysSet: LLMModelKeysSet,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig,
-    modelFamily: string,
-    errorLogger: import("../tracking/llm-error-logger.interface").IErrorLogger,
-    llmFeatures?: readonly string[],
-  ) => LLMProvider;
+  implementation: new (init: ProviderInit) => LLMProvider;
 }
 
 /**

@@ -1,11 +1,6 @@
 import { OpenAI, RateLimitError, InternalServerError } from "openai";
 import { APIError } from "openai/error";
-import {
-  LLMPurpose,
-  LLMCompletionOptions,
-  LLMOutputFormat,
-  LLMModelFeature,
-} from "../../../types/llm.types";
+import { LLMCompletionOptions, LLMOutputFormat, LLMModelFeature } from "../../../types/llm.types";
 import AbstractLLM from "../../abstract-llm";
 import { llmConfig } from "../../../config/llm.config";
 import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
@@ -15,19 +10,21 @@ import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
  */
 export default abstract class BaseOpenAILLM extends AbstractLLM {
   /**
-   *
-   * Execute the prompt against the LLM and return the relevant sumamry of the LLM's answer.
+   * Execute the embedding prompt against the LLM and return the relevant summary.
    */
-  protected async invokeProvider(
-    taskType: LLMPurpose,
+  protected async invokeEmbeddingProvider(modelKey: string, prompt: string) {
+    const params = this.buildEmbeddingParams(modelKey, prompt);
+    return this.invokeEmbeddingsLLM(params);
+  }
+
+  /**
+   * Execute the completion prompt against the LLM and return the relevant summary.
+   */
+  protected async invokeCompletionProvider(
     modelKey: string,
     prompt: string,
     options?: LLMCompletionOptions,
   ) {
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      const params = this.buildEmbeddingParams(modelKey, prompt);
-      return this.invokeEmbeddingsLLM(params);
-    }
     const params = this.buildCompletionParams(modelKey, prompt, options);
     return this.invokeCompletionLLM(params);
   }

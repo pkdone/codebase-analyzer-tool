@@ -1,15 +1,14 @@
 import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
-  LLMModelKeysSet,
-  LLMErrorMsgRegExPattern,
   LLMContext,
   LLMOutputFormat,
   LLMResponseStatus,
 } from "../../../../src/common/llm/types/llm.types";
 import {
   LLMImplSpecificResponseSummary,
-  LLMProviderSpecificConfig,
+  LLMProviderManifest,
+  ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
@@ -38,38 +37,137 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
 };
 
+// Stub class for manifest implementation field (not actually used in tests)
+class StubLLM extends AbstractLLM {
+  constructor() {
+    super({
+      manifest: {
+        providerName: "Stub",
+        modelFamily: "stub",
+        envSchema: z.object({}),
+        models: {
+          embeddings: {
+            modelKey: GPT_EMBEDDINGS_GPT4,
+            urnEnvKey: "STUB_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: 8191,
+            dimensions: 1536,
+          },
+          primaryCompletion: {
+            modelKey: GPT_COMPLETIONS_GPT4_32k,
+            urnEnvKey: "STUB_COMPLETE",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 4096,
+            maxTotalTokens: 32768,
+          },
+        },
+        errorPatterns: [],
+        providerSpecificConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        implementation: StubLLM as any,
+      },
+      providerParams: {},
+      resolvedModels: {
+        embeddings: "stub-embed",
+        primaryCompletion: "stub-complete",
+      },
+      errorLogger: createMockErrorLogger(),
+    });
+  }
+  protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: [],
+      tokenUsage: { promptTokens: 0, completionTokens: 0, maxTotalTokens: 0 },
+    };
+  }
+  protected async invokeCompletionProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: "",
+      tokenUsage: { promptTokens: 0, completionTokens: 0, maxTotalTokens: 0 },
+    };
+  }
+  protected isLLMOverloaded(): boolean {
+    return false;
+  }
+  protected isTokenLimitExceeded(): boolean {
+    return false;
+  }
+}
+
+// Helper function to create ProviderInit for tests
+function createTestProviderInit(): ProviderInit {
+  const manifest: LLMProviderManifest = {
+    providerName: "Test Provider",
+    modelFamily: "test",
+    envSchema: z.object({}),
+    models: {
+      embeddings: {
+        modelKey: GPT_EMBEDDINGS_GPT4,
+        urnEnvKey: "TEST_EMBEDDINGS_MODEL",
+        purpose: LLMPurpose.EMBEDDINGS,
+        maxTotalTokens: testModelsMetadata[GPT_EMBEDDINGS_GPT4].maxTotalTokens,
+        dimensions: testModelsMetadata[GPT_EMBEDDINGS_GPT4].dimensions,
+      },
+      primaryCompletion: {
+        modelKey: GPT_COMPLETIONS_GPT4_32k,
+        urnEnvKey: "TEST_PRIMARY_MODEL",
+        purpose: LLMPurpose.COMPLETIONS,
+        maxCompletionTokens: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].maxCompletionTokens,
+        maxTotalTokens: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].maxTotalTokens,
+      },
+    },
+    errorPatterns: [],
+    providerSpecificConfig: {
+      requestTimeoutMillis: 60000,
+      maxRetryAttempts: 3,
+      minRetryDelayMillis: 1000,
+      maxRetryDelayMillis: 5000,
+    },
+    implementation: StubLLM as any,
+  };
+
+  return {
+    manifest,
+    providerParams: {},
+    resolvedModels: {
+      embeddings: testModelsMetadata[GPT_EMBEDDINGS_GPT4].urn,
+      primaryCompletion: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].urn,
+    },
+    errorLogger: createMockErrorLogger(),
+  };
+}
+
 // Test concrete class that extends AbstractLLM to test type safety
 class TypeSafetyTestLLM extends AbstractLLM {
   private mockResponseContent = "";
 
   constructor() {
-    const modelsKeys: LLMModelKeysSet = {
-      embeddingsModelKey: GPT_EMBEDDINGS_GPT4,
-      primaryCompletionModelKey: GPT_COMPLETIONS_GPT4_32k,
-    };
-    const errorPatterns: LLMErrorMsgRegExPattern[] = [];
-    const providerConfig: LLMProviderSpecificConfig = {
-      requestTimeoutMillis: 60000,
-      maxRetryAttempts: 3,
-      minRetryDelayMillis: 1000,
-      maxRetryDelayMillis: 5000,
-    };
-
-    super(
-      modelsKeys,
-      testModelsMetadata,
-      errorPatterns,
-      providerConfig,
-      "test",
-      createMockErrorLogger(),
-    );
+    super(createTestProviderInit());
   }
 
   setMockResponse(content: string) {
     this.mockResponseContent = content;
   }
 
-  protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
+  protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: [0.1, 0.2, 0.3],
+      tokenUsage: {
+        promptTokens: 10,
+        completionTokens: 0,
+        maxTotalTokens: 100,
+      },
+    };
+  }
+
+  protected async invokeCompletionProvider(): Promise<LLMImplSpecificResponseSummary> {
     return {
       isIncompleteResponse: false,
       responseContent: this.mockResponseContent,

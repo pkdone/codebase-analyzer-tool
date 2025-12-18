@@ -16,13 +16,21 @@ import {
   LLMEmbeddingFunction,
   InferResponseType,
 } from "../types/llm.types";
-import { LLMImplSpecificResponseSummary, LLMProviderSpecificConfig } from "./llm-provider.types";
+import {
+  LLMImplSpecificResponseSummary,
+  LLMProviderSpecificConfig,
+  ProviderInit,
+} from "./llm-provider.types";
 import { formatError } from "../../utils/error-formatters";
 import { processJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
 import { BadConfigurationLLMError, BadResponseContentLLMError } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../config/llm.config";
 import type { IErrorLogger } from "../tracking/llm-error-logger.interface";
+import {
+  buildModelsKeysSet,
+  buildModelsMetadataFromResolvedUrns,
+} from "../utils/provider-init-builder";
 
 /**
  * Abstract class for any LLM provider services - provides outline of abstract methods to be
@@ -30,34 +38,30 @@ import type { IErrorLogger } from "../tracking/llm-error-logger.interface";
  */
 export default abstract class AbstractLLM implements LLMProvider {
   // Fields
-  /** Optional feature flags propagated from manifest (if any) */
-  readonly llmFeatures?: readonly string[];
   protected readonly llmModelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   protected readonly providerSpecificConfig: LLMProviderSpecificConfig;
+  protected readonly providerParams: Record<string, unknown>;
   private readonly modelsKeys: LLMModelKeysSet;
   private readonly errorPatterns: readonly LLMErrorMsgRegExPattern[];
   private readonly modelFamily: string;
   private readonly errorLogger: IErrorLogger;
 
   /**
-   * Constructor.
+   * Constructor accepting a ProviderInit configuration object.
    */
-  constructor(
-    modelsKeys: LLMModelKeysSet,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig,
-    modelFamily: string,
-    errorLogger: IErrorLogger,
-    llmFeatures?: readonly string[],
-  ) {
-    this.modelsKeys = modelsKeys;
-    this.llmModelsMetadata = modelsMetadata;
-    this.errorPatterns = errorPatterns;
-    this.providerSpecificConfig = providerSpecificConfig;
-    this.modelFamily = modelFamily;
+  constructor(init: ProviderInit) {
+    const { manifest, providerParams, resolvedModels, errorLogger } = init;
+
+    // Build derived values from manifest and resolved models
+    this.modelsKeys = buildModelsKeysSet(manifest);
+    this.llmModelsMetadata = buildModelsMetadataFromResolvedUrns(manifest, resolvedModels);
+
+    // Assign configuration values
+    this.errorPatterns = manifest.errorPatterns;
+    this.providerSpecificConfig = manifest.providerSpecificConfig;
+    this.modelFamily = manifest.modelFamily;
     this.errorLogger = errorLogger;
-    this.llmFeatures = llmFeatures;
+    this.providerParams = providerParams;
   }
 
   /**
@@ -209,12 +213,10 @@ export default abstract class AbstractLLM implements LLMProvider {
     }) as TOptions;
 
     try {
-      const { isIncompleteResponse, responseContent, tokenUsage } = await this.invokeProvider(
-        taskType,
-        modelKey,
-        request,
-        finalOptions,
-      );
+      const { isIncompleteResponse, responseContent, tokenUsage } =
+        taskType === LLMPurpose.EMBEDDINGS
+          ? await this.invokeEmbeddingProvider(modelKey, request)
+          : await this.invokeCompletionProvider(modelKey, request, finalOptions);
 
       if (isIncompleteResponse) {
         // Often occurs if combination of prompt + generated completion execeed the max token limit (e.g. actual internal LLM completion has been executed and the completion has been cut short)
@@ -377,10 +379,17 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
-   * Invoke the implementation-specific LLM function.
+   * Invoke the implementation-specific LLM function for embeddings.
    */
-  protected abstract invokeProvider(
-    taskType: LLMPurpose,
+  protected abstract invokeEmbeddingProvider(
+    modelKey: string,
+    prompt: string,
+  ): Promise<LLMImplSpecificResponseSummary>;
+
+  /**
+   * Invoke the implementation-specific LLM function for completions.
+   */
+  protected abstract invokeCompletionProvider(
     modelKey: string,
     prompt: string,
     options?: LLMCompletionOptions,

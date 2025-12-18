@@ -1,14 +1,66 @@
 import BaseBedrockLLM from "../../../../../../src/common/llm/providers/bedrock/common/base-bedrock-llm";
 import {
-  LLMModelKeysSet,
   ResolvedLLMModelMetadata,
   LLMPurpose,
-  LLMErrorMsgRegExPattern,
+  type LLMCompletionOptions,
 } from "../../../../../../src/common/llm/types/llm.types";
-import { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
+import {
+  LLMProviderSpecificConfig,
+  ProviderInit,
+  LLMProviderManifest,
+  LLMImplSpecificResponseSummary,
+} from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { z } from "zod";
 import { ValidationException } from "@aws-sdk/client-bedrock-runtime";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+
+// Helper to create test provider init
+function createTestProviderInit(
+  modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
+  config: LLMProviderSpecificConfig,
+): ProviderInit {
+  const embeddingsKey = Object.keys(modelsMetadata).find(
+    (k) => modelsMetadata[k].purpose === LLMPurpose.EMBEDDINGS,
+  )!;
+  const completionKey = Object.keys(modelsMetadata).find(
+    (k) => modelsMetadata[k].purpose === LLMPurpose.COMPLETIONS,
+  )!;
+
+  const manifest: LLMProviderManifest = {
+    providerName: "Test Bedrock Provider",
+    modelFamily: "TEST_BEDROCK",
+    envSchema: z.object({}),
+    models: {
+      embeddings: {
+        modelKey: embeddingsKey,
+        urnEnvKey: "TEST_EMBED",
+        purpose: LLMPurpose.EMBEDDINGS,
+        maxTotalTokens: modelsMetadata[embeddingsKey].maxTotalTokens,
+        dimensions: modelsMetadata[embeddingsKey].dimensions,
+      },
+      primaryCompletion: {
+        modelKey: completionKey,
+        urnEnvKey: "TEST_COMPLETE",
+        purpose: LLMPurpose.COMPLETIONS,
+        maxCompletionTokens: modelsMetadata[completionKey].maxCompletionTokens,
+        maxTotalTokens: modelsMetadata[completionKey].maxTotalTokens,
+      },
+    },
+    errorPatterns: [],
+    providerSpecificConfig: config,
+    implementation: TestBedrockLLM as any,
+  };
+
+  return {
+    manifest,
+    providerParams: {},
+    resolvedModels: {
+      embeddings: modelsMetadata[embeddingsKey].urn,
+      primaryCompletion: modelsMetadata[completionKey].urn,
+    },
+    errorLogger: createMockErrorLogger(),
+  };
+}
 
 /**
  * Test implementation of BaseBedrockLLM to verify JSON stringification
@@ -17,25 +69,10 @@ import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger
 class TestBedrockLLM extends BaseBedrockLLM {
   lastBuiltBody: Record<string, unknown> | null = null;
 
-  constructor(
-    _env: Record<string, unknown>,
-    modelsKeys: LLMModelKeysSet,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig,
-  ) {
-    super(
-      _env as any,
-      modelsKeys,
-      modelsMetadata,
-      errorPatterns,
-      providerSpecificConfig,
-      "TEST_BEDROCK",
-      createMockErrorLogger(),
-    );
-  }
-
-  protected buildCompletionRequestBody(modelKey: string, prompt: string): Record<string, unknown> {
+  protected override buildCompletionRequestBody(
+    modelKey: string,
+    prompt: string,
+  ): Record<string, unknown> {
     const body = {
       messages: [
         {
@@ -48,6 +85,33 @@ class TestBedrockLLM extends BaseBedrockLLM {
     };
     this.lastBuiltBody = body;
     return body;
+  }
+
+  protected override async invokeEmbeddingProvider(
+    _modelKey: string,
+    _prompt: string,
+  ): Promise<{
+    isIncompleteResponse: boolean;
+    responseContent: number[];
+    tokenUsage: { promptTokens: number; completionTokens: number; maxTotalTokens: number };
+  }> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: [0.1, 0.2, 0.3],
+      tokenUsage: { promptTokens: 10, completionTokens: 0, maxTotalTokens: 1000 },
+    };
+  }
+
+  protected override async invokeCompletionProvider(
+    _modelKey: string,
+    _prompt: string,
+    _options?: LLMCompletionOptions,
+  ): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: "test",
+      tokenUsage: { promptTokens: 10, completionTokens: 20, maxTotalTokens: 1000 },
+    };
   }
 
   protected getResponseExtractionConfig() {
@@ -68,11 +132,6 @@ class TestBedrockLLM extends BaseBedrockLLM {
 }
 
 describe("BaseBedrockLLM - JSON stringification centralization", () => {
-  const mockModelsKeys: LLMModelKeysSet = {
-    embeddingsModelKey: "EMBEDDINGS",
-    primaryCompletionModelKey: "COMPLETION",
-  };
-
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
@@ -100,7 +159,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   };
 
   it("should return an object from buildCompletionRequestBody, not a string", () => {
-    const llm = new TestBedrockLLM({}, mockModelsKeys, mockModelsMetadata, [], mockConfig);
+    const llm = new TestBedrockLLM(createTestProviderInit(mockModelsMetadata, mockConfig));
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const result = llm["buildCompletionRequestBody"]("COMPLETION", "test prompt");
@@ -112,7 +171,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should build request body with correct structure", () => {
-    const llm = new TestBedrockLLM({}, mockModelsKeys, mockModelsMetadata, [], mockConfig);
+    const llm = new TestBedrockLLM(createTestProviderInit(mockModelsMetadata, mockConfig));
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const result = llm["buildCompletionRequestBody"]("COMPLETION", "hello world");
@@ -130,7 +189,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should verify base class handles JSON stringification internally for completions", () => {
-    const llm = new TestBedrockLLM({}, mockModelsKeys, mockModelsMetadata, [], mockConfig);
+    const llm = new TestBedrockLLM(createTestProviderInit(mockModelsMetadata, mockConfig));
 
     // Access the private method through bracket notation for testing
     // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -150,7 +209,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   it("should handle embeddings body as object and stringify it", () => {
-    const llm = new TestBedrockLLM({}, mockModelsKeys, mockModelsMetadata, [], mockConfig);
+    const llm = new TestBedrockLLM(createTestProviderInit(mockModelsMetadata, mockConfig));
 
     // eslint-disable-next-line @typescript-eslint/dot-notation
     const fullParams = llm["buildEmbeddingParameters"]("EMBEDDINGS", "embed this text");
@@ -165,11 +224,6 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   });
 
   describe("isTokenLimitExceeded - modern Set-based matching", () => {
-    const mockModelsKeys: LLMModelKeysSet = {
-      embeddingsModelKey: "EMBEDDINGS",
-      primaryCompletionModelKey: "COMPLETION",
-    };
-
     const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
       EMBEDDINGS: {
         modelKey: "EMBEDDINGS",
@@ -197,7 +251,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     };
 
     it("should detect token limit exceeded errors using Set-based keyword matching", () => {
-      const llm = new TestBedrockLLM({} as any, mockModelsKeys, mockModelsMetadata, [], mockConfig);
+      const llm = new TestBedrockLLM(createTestProviderInit(mockModelsMetadata, mockConfig));
 
       const mockError1 = new ValidationException({
         message: "Too many input tokens",

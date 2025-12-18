@@ -6,9 +6,9 @@ import {
 import {
   createBedrockMockEnv,
   createBedrockTestData,
+  createBedrockProviderInit,
   type AdditionalTestModel,
 } from "../../../../helpers/llm/bedrock-test-helper";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Create mock environment and test data using helpers
 const mockBedrockLlamaEnv = createBedrockMockEnv(
@@ -39,8 +39,11 @@ const additionalTestModels: AdditionalTestModel[] = [
   },
 ];
 
-const { modelKeysSet: bedrockLlamaModelKeysSet, modelsMetadata: bedrockLlamaModelsMetadata } =
-  createBedrockTestData(bedrockLlamaProviderManifest, mockBedrockLlamaEnv, additionalTestModels);
+const { modelsMetadata: bedrockLlamaModelsMetadata } = createBedrockTestData(
+  bedrockLlamaProviderManifest,
+  mockBedrockLlamaEnv,
+  additionalTestModels,
+);
 
 describe("Bedrock Llama Provider Tests", () => {
   describe("Token extraction from error messages", () => {
@@ -83,28 +86,14 @@ describe("Bedrock Llama Provider Tests", () => {
 
   describe("Provider implementation", () => {
     test("verifies model family", () => {
-      const llm = new bedrockLlamaProviderManifest.implementation(
-        mockBedrockLlamaEnv as any,
-        bedrockLlamaModelKeysSet,
-        bedrockLlamaModelsMetadata,
-        bedrockLlamaProviderManifest.errorPatterns,
-        bedrockLlamaProviderManifest.providerSpecificConfig,
-        bedrockLlamaProviderManifest.modelFamily,
-        createMockErrorLogger(),
-      );
+      const init = createBedrockProviderInit(bedrockLlamaProviderManifest, mockBedrockLlamaEnv);
+      const llm = new bedrockLlamaProviderManifest.implementation(init);
       expect(llm.getModelFamily()).toBe("BedrockLlama");
     });
 
     test("counts available models", () => {
-      const llm = new bedrockLlamaProviderManifest.implementation(
-        mockBedrockLlamaEnv as any,
-        bedrockLlamaModelKeysSet,
-        bedrockLlamaModelsMetadata,
-        bedrockLlamaProviderManifest.errorPatterns,
-        bedrockLlamaProviderManifest.providerSpecificConfig,
-        bedrockLlamaProviderManifest.modelFamily,
-        createMockErrorLogger(),
-      );
+      const init = createBedrockProviderInit(bedrockLlamaProviderManifest, mockBedrockLlamaEnv);
+      const llm = new bedrockLlamaProviderManifest.implementation(init);
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });
 

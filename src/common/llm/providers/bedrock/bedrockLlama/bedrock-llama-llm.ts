@@ -1,7 +1,7 @@
 import { llmConfig } from "../../../config/llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { z } from "zod";
-import { BedrockLlamaProviderConfigSchema } from "./bedrock-llama.types";
+import { BedrockLlamaProviderConfig } from "./bedrock-llama.types";
 
 /**
  * Configuration constants for AWS Bedrock Llama models.
@@ -32,7 +32,7 @@ export default class BedrockLlamaLLM extends BaseBedrockLLM {
   /**
    * Build the request body object for Llama completions.
    */
-  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
+  protected override buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     const formattedPrompt = `${LLAMA_BEGIN_TOKEN}${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_SYSTEM}${LLAMA_HEADER_END_TOKEN}
 ${LLAMA_SYSTEM_MESSAGE}${LLAMA_EOT_TOKEN}
@@ -44,15 +44,12 @@ ${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_USER}${LLAMA_HEADER_END_TOKEN}${
       top_p: llmConfig.DEFAULT_TOP_P_LOWEST,
     };
 
-    // Declarative cap based on manifest feature flag rather than brittle string checks.
-    const hasCapFeature = this.llmFeatures?.includes("CAP_MAX_GEN_LEN") ?? false;
-    if (hasCapFeature) {
-      // Validate and parse provider-specific config with Zod schema for type safety
-      const config = BedrockLlamaProviderConfigSchema.parse(this.providerSpecificConfig);
-      const maxGenLenCap = config.maxGenLenCap;
+    // Type-safe check for maxGenLenCap without features array
+    const config = this.providerSpecificConfig as BedrockLlamaProviderConfig;
+    if ("maxGenLenCap" in config && config.maxGenLenCap) {
       const maxCompletionTokens =
-        this.llmModelsMetadata[modelKey].maxCompletionTokens ?? maxGenLenCap;
-      bodyObj.max_gen_len = Math.min(maxCompletionTokens, maxGenLenCap);
+        this.llmModelsMetadata[modelKey].maxCompletionTokens ?? config.maxGenLenCap;
+      bodyObj.max_gen_len = Math.min(maxCompletionTokens, config.maxGenLenCap);
     }
 
     return bodyObj;

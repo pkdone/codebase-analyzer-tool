@@ -1,16 +1,15 @@
-import {
-  LLMModelKeysSet,
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-} from "../../../../src/common/llm/types/llm.types";
-import { LLMProviderSpecificConfig } from "../../../../src/common/llm/providers/llm-provider.types";
+import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
+import type {
+  LLMProviderSpecificConfig,
+  ProviderInit,
+} from "../../../../src/common/llm/providers/llm-provider.types";
 import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
-import { IErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger.interface";
+import type { IErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger.interface";
+import { z } from "zod";
 
 /**
- * Tests for simplified provider constructor signatures.
- * Verifies that providers can be instantiated with the direct providerSpecificConfig
- * parameter instead of the wrapped config object.
+ * Tests for provider constructor signatures using ProviderInit pattern.
+ * Verifies that providers can be instantiated with the ProviderInit configuration object.
  */
 describe("Provider Constructor Signatures", () => {
   // Mock error logger
@@ -20,7 +19,15 @@ describe("Provider Constructor Signatures", () => {
 
   // Test provider extending AbstractLLM
   class TestProvider extends AbstractLLM {
-    protected async invokeProvider() {
+    protected async invokeEmbeddingProvider() {
+      return {
+        isIncompleteResponse: false,
+        responseContent: [0.1, 0.2],
+        tokenUsage: { promptTokens: 10, completionTokens: 0, maxTotalTokens: 1000 },
+      };
+    }
+
+    protected async invokeCompletionProvider() {
       return {
         isIncompleteResponse: false,
         responseContent: "test",
@@ -37,29 +44,6 @@ describe("Provider Constructor Signatures", () => {
     }
   }
 
-  const modelsKeys: LLMModelKeysSet = {
-    embeddingsModelKey: "test-embed",
-    primaryCompletionModelKey: "test-primary",
-  };
-
-  const modelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
-    "test-embed": {
-      modelKey: "test-embed",
-      urn: "test-embed-urn",
-      purpose: LLMPurpose.EMBEDDINGS,
-      maxTotalTokens: 1000,
-    },
-    "test-primary": {
-      modelKey: "test-primary",
-      urn: "test-primary-urn",
-      purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 500,
-      maxTotalTokens: 2000,
-    },
-  };
-
-  const errorPatterns: readonly [] = [];
-
   const providerSpecificConfig: LLMProviderSpecificConfig = {
     requestTimeoutMillis: 5000,
     maxRetryAttempts: 3,
@@ -68,80 +52,85 @@ describe("Provider Constructor Signatures", () => {
     temperature: 0.0,
   };
 
-  const modelFamily = "test-family";
+  const createInit = (): ProviderInit => ({
+    manifest: {
+      providerName: "Test Provider",
+      modelFamily: "test-family",
+      envSchema: z.object({}),
+      models: {
+        embeddings: {
+          modelKey: "test-embed",
+          urnEnvKey: "TEST_EMBED",
+          purpose: LLMPurpose.EMBEDDINGS,
+          maxTotalTokens: 1000,
+        },
+        primaryCompletion: {
+          modelKey: "test-primary",
+          urnEnvKey: "TEST_PRIMARY",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: 500,
+          maxTotalTokens: 2000,
+        },
+      },
+      errorPatterns: [],
+      providerSpecificConfig,
+      implementation: TestProvider,
+    },
+    providerParams: {},
+    resolvedModels: {
+      embeddings: "test-embed-urn",
+      primaryCompletion: "test-primary-urn",
+    },
+    errorLogger: mockErrorLogger,
+  });
 
-  it("should accept providerSpecificConfig directly without wrapper object", () => {
+  it("should accept ProviderInit object", () => {
+    const init = createInit();
+
     expect(() => {
-      new TestProvider(
-        modelsKeys,
-        modelsMetadata,
-        errorPatterns,
-        providerSpecificConfig, // Direct parameter, not wrapped
-        modelFamily,
-        mockErrorLogger,
-      );
+      new TestProvider(init);
     }).not.toThrow();
   });
 
   it("should correctly propagate providerSpecificConfig to the provider", () => {
-    const provider = new TestProvider(
-      modelsKeys,
-      modelsMetadata,
-      errorPatterns,
-      providerSpecificConfig,
-      modelFamily,
-      mockErrorLogger,
-    );
+    const init = createInit();
+    const provider = new TestProvider(init);
 
     // Access protected field via type assertion for testing
     const config = (provider as any).providerSpecificConfig;
-    expect(config).toBe(providerSpecificConfig);
     expect(config.temperature).toBe(0.0);
     expect(config.requestTimeoutMillis).toBe(5000);
   });
 
-  it("should work with optional llmFeatures parameter", () => {
-    const llmFeatures = ["fixed_temperature", "max_completion_tokens"] as const;
+  it("should correctly propagate providerParams to the provider", () => {
+    const init = createInit();
+    init.providerParams = { API_KEY: "test-key" };
+    const provider = new TestProvider(init);
 
-    expect(() => {
-      new TestProvider(
-        modelsKeys,
-        modelsMetadata,
-        errorPatterns,
-        providerSpecificConfig,
-        modelFamily,
-        mockErrorLogger,
-        llmFeatures,
-      );
-    }).not.toThrow();
+    // Access protected field via type assertion for testing
+    const params = (provider as any).providerParams;
+    expect(params.API_KEY).toBe("test-key");
   });
 
-  it("should correctly store optional features", () => {
-    const llmFeatures = ["fixed_temperature"] as const;
+  it("should build models metadata from init", () => {
+    const init = createInit();
+    const provider = new TestProvider(init);
 
-    const provider = new TestProvider(
-      modelsKeys,
-      modelsMetadata,
-      errorPatterns,
-      providerSpecificConfig,
-      modelFamily,
-      mockErrorLogger,
-      llmFeatures,
-    );
-
-    expect(provider.llmFeatures).toEqual(llmFeatures);
+    const metadata = provider.getModelsMetadata();
+    expect(metadata["test-embed"]).toBeDefined();
+    expect(metadata["test-embed"].urn).toBe("test-embed-urn");
+    expect(metadata["test-primary"]).toBeDefined();
+    expect(metadata["test-primary"].urn).toBe("test-primary-urn");
   });
 
-  it("should work without optional llmFeatures parameter", () => {
-    const provider = new TestProvider(
-      modelsKeys,
-      modelsMetadata,
-      errorPatterns,
-      providerSpecificConfig,
-      modelFamily,
-      mockErrorLogger,
-    );
+  it("should handle manifest without features array", () => {
+    const init = createInit();
+    // Features array no longer exists
+    expect((init.manifest as any).features).toBeUndefined();
 
-    expect(provider.llmFeatures).toBeUndefined();
+    const provider = new TestProvider(init);
+
+    // llmFeatures field no longer exists on provider
+    expect((provider as any).llmFeatures).toBeUndefined();
   });
 });

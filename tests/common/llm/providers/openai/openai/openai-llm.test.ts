@@ -1,15 +1,17 @@
 import { OpenAI } from "openai";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 import {
-  LLMModelKeysSet,
   ResolvedLLMModelMetadata,
-  LLMErrorMsgRegExPattern,
   LLMPurpose,
   LLMOutputFormat,
 } from "../../../../../../src/common/llm/types/llm.types";
 import OpenAILLM from "../../../../../../src/common/llm/providers/openai/openai/openai-llm";
-import { OPENAI } from "../../../../../../src/common/llm/providers/openai/openai/openai.manifest";
+import {
+  OPENAI,
+  openAIProviderManifest,
+} from "../../../../../../src/common/llm/providers/openai/openai/openai.manifest";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
 // Helper functions to create properly typed mock responses
 // These provide type safety during mock creation while avoiding OpenAI SDK type complexity
@@ -67,12 +69,6 @@ function createMockCompletionResponse(data: {
 jest.mock("openai");
 
 describe("OpenAI LLM Provider", () => {
-  const mockModelsKeys: LLMModelKeysSet = {
-    embeddingsModelKey: "GPT_EMBEDDINGS_ADA002",
-    primaryCompletionModelKey: "GPT_COMPLETIONS_GPT4",
-    secondaryCompletionModelKey: "GPT_COMPLETIONS_GPT3_5",
-  };
-
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     GPT_EMBEDDINGS_ADA002: {
       modelKey: "GPT_EMBEDDINGS_ADA002",
@@ -95,9 +91,15 @@ describe("OpenAI LLM Provider", () => {
       maxCompletionTokens: 2048,
       maxTotalTokens: 4096,
     },
+    GPT_COMPLETIONS_GPT35_TURBO: {
+      modelKey: "GPT_COMPLETIONS_GPT35_TURBO",
+      urn: "gpt-3.5-turbo",
+      purpose: LLMPurpose.COMPLETIONS,
+      maxCompletionTokens: 2048,
+      maxTotalTokens: 4096,
+    },
   };
 
-  const mockErrorPatterns: LLMErrorMsgRegExPattern[] = [];
   const mockApiKey = "test-api-key";
 
   let openAILLM: OpenAILLM;
@@ -121,24 +123,39 @@ describe("OpenAI LLM Provider", () => {
     // Mock OpenAI constructor
     (OpenAI as jest.MockedClass<typeof OpenAI>).mockImplementation(() => mockOpenAIClient);
 
-    const config = {
-      apiKey: mockApiKey,
-      providerSpecificConfig: {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 5000,
+    // Create custom manifest that includes test models
+    const customManifest = {
+      ...openAIProviderManifest,
+      models: {
+        ...openAIProviderManifest.models,
+        embeddings: {
+          ...openAIProviderManifest.models.embeddings,
+          modelKey: "GPT_EMBEDDINGS_ADA002",
+        },
+        primaryCompletion: {
+          ...openAIProviderManifest.models.primaryCompletion,
+          modelKey: "GPT_COMPLETIONS_GPT4",
+          maxCompletionTokens: mockModelsMetadata.GPT_COMPLETIONS_GPT4.maxCompletionTokens,
+          maxTotalTokens: mockModelsMetadata.GPT_COMPLETIONS_GPT4.maxTotalTokens,
+          features: [], // Remove features to use max_tokens instead of max_completion_tokens
+        },
+        secondaryCompletion: {
+          ...openAIProviderManifest.models.secondaryCompletion,
+          modelKey: "GPT_COMPLETIONS_GPT35_TURBO",
+        },
       },
     };
-    openAILLM = new OpenAILLM(
-      { OPENAI_LLM_API_KEY: mockApiKey } as any,
-      mockModelsKeys,
-      mockModelsMetadata,
-      mockErrorPatterns,
-      config.providerSpecificConfig,
-      "OpenAI",
-      createMockErrorLogger(),
-    );
+    const init: ProviderInit = {
+      manifest: customManifest as any,
+      providerParams: { OPENAI_LLM_API_KEY: mockApiKey },
+      resolvedModels: {
+        embeddings: mockModelsMetadata.GPT_EMBEDDINGS_ADA002.urn,
+        primaryCompletion: mockModelsMetadata.GPT_COMPLETIONS_GPT4.urn,
+        secondaryCompletion: mockModelsMetadata.GPT_COMPLETIONS_GPT35_TURBO.urn,
+      },
+      errorLogger: createMockErrorLogger(),
+    };
+    openAILLM = new OpenAILLM(init);
   });
 
   describe("Basic Provider Info", () => {

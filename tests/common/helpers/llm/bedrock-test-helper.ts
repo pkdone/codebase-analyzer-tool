@@ -3,8 +3,12 @@ import {
   ResolvedLLMModelMetadata,
   LLMModelKeysSet,
 } from "../../../../src/common/llm/types/llm.types";
-import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
+import {
+  LLMProviderManifest,
+  ProviderInit,
+} from "../../../../src/common/llm/providers/llm-provider.types";
 import { loadBaseEnvVarsOnly } from "../../../../src/app/env/env";
+import { createMockErrorLogger } from "./mock-error-logger";
 
 /**
  * Configuration for additional test models that may be used in tests
@@ -137,5 +141,38 @@ export function createBedrockTestData(
     mockEnv,
     modelKeysSet,
     modelsMetadata,
+  };
+}
+
+/**
+ * Creates a ProviderInit object for testing Bedrock providers.
+ * This is the modern approach for provider instantiation using the refactored ProviderInit pattern.
+ *
+ * @param manifest - The provider manifest
+ * @param mockEnv - Mock environment object with URNs
+ * @param additionalModels - Optional array of additional test models to include
+ * @returns ProviderInit object ready for provider instantiation
+ */
+export function createBedrockProviderInit(
+  manifest: LLMProviderManifest,
+  mockEnv: Record<string, string | boolean>,
+): ProviderInit {
+  // Helper to resolve URN from environment
+  const resolveUrn = (urnEnvKey: string): string => {
+    const value = mockEnv[urnEnvKey];
+    return typeof value === "string" ? value : String(value);
+  };
+
+  return {
+    manifest,
+    providerParams: mockEnv,
+    resolvedModels: {
+      embeddings: resolveUrn(manifest.models.embeddings.urnEnvKey),
+      primaryCompletion: resolveUrn(manifest.models.primaryCompletion.urnEnvKey),
+      ...(manifest.models.secondaryCompletion && {
+        secondaryCompletion: resolveUrn(manifest.models.secondaryCompletion.urnEnvKey),
+      }),
+    },
+    errorLogger: createMockErrorLogger(),
   };
 }

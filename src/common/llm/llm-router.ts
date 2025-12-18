@@ -4,13 +4,16 @@ import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
-  LLMModelKeysSet,
   LLMEmbeddingFunction,
   InferResponseType,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { BadConfigurationLLMError } from "./types/llm-errors.types";
-import type { LLMRetryConfig, LLMProviderManifest } from "./providers/llm-provider.types";
+import type {
+  LLMRetryConfig,
+  LLMProviderManifest,
+  ProviderInit,
+} from "./providers/llm-provider.types";
 import { LLMModuleConfig } from "./config/llm-module-config.types";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import {
@@ -56,22 +59,14 @@ export default class LLMRouter {
       `LLMRouter: Loaded provider for model family '${this.modelFamily}': ${this.manifest.providerName}`,
     );
 
-    // Create LLM provider instance
-    const modelsKeysSet = this.buildModelsKeysSet(this.manifest);
-    const modelsMetadata = this.buildModelsMetadataFromResolvedUrns(
-      this.manifest,
-      config.resolvedModels,
-    );
-    this.llm = new this.manifest.implementation(
-      config.providerParams,
-      modelsKeysSet,
-      modelsMetadata,
-      this.manifest.errorPatterns,
-      this.manifest.providerSpecificConfig,
-      this.manifest.modelFamily,
-      this.errorLogger,
-      this.manifest.features,
-    );
+    // Create LLM provider instance using ProviderInit pattern
+    const init: ProviderInit = {
+      manifest: this.manifest,
+      providerParams: config.providerParams,
+      resolvedModels: config.resolvedModels,
+      errorLogger: this.errorLogger,
+    };
+    this.llm = new this.manifest.implementation(init);
 
     this.modelsMetadata = this.llm.getModelsMetadata();
     this.providerRetryConfig = this.manifest.providerSpecificConfig;
@@ -251,40 +246,5 @@ export default class LLMRouter {
     // See the comment there for why the assertion is justified and required at that location.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result.data;
-  }
-
-  /**
-   * Build LLMModelKeysSet from manifest
-   */
-  private buildModelsKeysSet(manifest: LLMProviderManifest): LLMModelKeysSet {
-    return {
-      embeddingsModelKey: manifest.models.embeddings.modelKey,
-      primaryCompletionModelKey: manifest.models.primaryCompletion.modelKey,
-      ...(manifest.models.secondaryCompletion && {
-        secondaryCompletionModelKey: manifest.models.secondaryCompletion.modelKey,
-      }),
-    };
-  }
-
-  /**
-   * Build resolved model metadata from manifest and pre-resolved URNs.
-   * URNs are now resolved by the application layer, not by the LLM module.
-   */
-  private buildModelsMetadataFromResolvedUrns(
-    manifest: LLMProviderManifest,
-    resolvedModels: import("./config/llm-module-config.types").ResolvedModels,
-  ): Record<string, ResolvedLLMModelMetadata> {
-    const models = [
-      { ...manifest.models.embeddings, urn: resolvedModels.embeddings },
-      { ...manifest.models.primaryCompletion, urn: resolvedModels.primaryCompletion },
-      ...(manifest.models.secondaryCompletion && resolvedModels.secondaryCompletion
-        ? [{ ...manifest.models.secondaryCompletion, urn: resolvedModels.secondaryCompletion }]
-        : []),
-    ];
-
-    return Object.fromEntries(models.map((model) => [model.modelKey, model] as const)) as Record<
-      string,
-      ResolvedLLMModelMetadata
-    >;
   }
 }

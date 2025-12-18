@@ -5,8 +5,8 @@ This document outlines the inferred coding standards, architectural patterns, an
 
 ## 1. Language(s) and Framework(s) Identification
 
-*   **Primary Language:** TypeScript (v5.7.3 or higher, as per `package.json` and `tsconfig.json`)
-*   **Runtime Environment:** Node.js (v20.0.0 or higher, as per `package.json` `engines` field)
+*   **Primary Language:** TypeScript (`^5.7.3` or higher, as per `package.json` and `tsconfig.json`)
+*   **Runtime Environment:** Node.js (`>=20.0.0`, as per `package.json` `engines` field)
 *   **Package Manager:** npm
 *   **Major Libraries & Frameworks:**
     *   **LLM Interaction:**
@@ -36,7 +36,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   **Braces:** The opening brace (`{`) is placed on the **same line** as the corresponding statement or declaration (e.g., `class MyClass {`, `if (condition) {`). This is a variant of the K&R style.
         ```typescript
         // From: src/app/lifecycle/application-runner.ts
-        export function runApplication(taskToken: symbol): void {
+        export async function runApplication(taskToken: symbol): Promise<void> {
             // ...
         }
         ```
@@ -62,28 +62,33 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   **TypeScript Files:** `kebab-case.ts` (e.g., `application-runner.ts`, `llm-router.ts`).
     *   **Specialized Files:** Suffixes are used to denote purpose, such as `*.config.ts`, `*.types.ts`, `*.test.ts`, and `*.int.test.ts`.
     *   **Prompt Files:** `kebab-case.prompt` or `questions.prompts`.
-    *   **Directories:** `kebab-case` is used for directories containing multiple files (e.g., `src/components/reporting/data-providers`), while standard names (`src`, `tests`, `input`) are used for top-level folders.
+    *   **Directories:** `kebab-case` is used for directories containing multiple files (e.g., `src/app/components/reporting/data-providers`), while standard names (`src`, `tests`, `input`) are used for top-level folders.
 
 ## 4. Architectural Patterns and Code Structure
 
 *   **Overall Architecture:**
-    *   The project is a **CLI toolkit** for code analysis, built on a **Layered Architecture**. This is evident from the clear separation of concerns into `repositories` (Data Access), `components` (Business Logic/Services), `llm` (External Service Abstraction), and `cli` (Presentation/Entry Points).
+    *   The project is a **CLI toolkit** for code analysis, built on a **Layered Architecture**. This is evident from the clear separation of concerns into `repositories` (Data Access), `components` (Business Logic/Services), `llm` (External Service Abstraction), and entry points (`src/app/*.ts`).
     *   **Dependency Injection (DI)** is a fundamental principle, implemented with `tsyringe`. This promotes loose coupling and testability by allowing components to declare their dependencies rather than creating them.
     *   A **Manifest-Driven** approach is used for LLM providers. Each provider is defined by a manifest file (`.manifest.ts`) that declaratively specifies its configuration, models, and factory function, making the system highly pluggable and extensible.
-*   **Directory Structure:**  (TODO: not some folders have chanegd to go under `app1)
+*   **Directory Structure:**
     *   `src/`: Contains all TypeScript source code.
-        *   `cli/`: Entry points for each command-line tool.
-        *   `common/`: Shared utilities, especially for MongoDB (`mdb/`) and general-purpose functions (`utils/`).
-        *   `components/`: The core business logic, organized by feature (e.g., `capture`, `insights`, `reporting`).
-        *   `config/`: Application-wide, static configuration constants.
-        *   `di/`: Dependency Injection setup, including tokens and registration modules.
-        *   `env/`: Environment variable loading, validation (with Zod), and bootstrapping.
-        *   `lifecycle/`: Manages the application's execution flow, including startup and graceful shutdown.
-        *   `llm/`: The LLM abstraction layer, containing the `LLMRouter`, provider implementations, and strategies for retry/fallback.
-        *   `repositories/`: The Data Access Layer, abstracting MongoDB interactions.
-        *   `schemas/`: Centralized Zod schemas for data validation.
-        *   `tasks/`: High-level, injectable classes that orchestrate the work for each CLI command.
-    *   `input/`: Contains input files like prompt templates.
+        *   `app/`: Contains the core application-specific logic.
+            *   `capture-codebase.ts`, `generate-insights-from-db.ts`, etc.: Entry points for each command-line tool.
+            *   `components/`: The core business logic, organized by feature (e.g., `capture`, `insights`, `reporting`).
+            *   `config/`: Application-wide, static configuration constants.
+            *   `di/`: Dependency Injection setup, including tokens and registration modules.
+            *   `env/`: Environment variable loading, validation (with Zod), and bootstrapping.
+            *   `lifecycle/`: Manages the application's execution flow, including startup and graceful shutdown.
+            *   `prompts/`: Contains prompt definitions, templates, and related configuration.
+            *   `repositories/`: The Data Access Layer, abstracting MongoDB interactions.
+            *   `schemas/`: Centralized Zod schemas for data validation.
+            *   `tasks/`: High-level, injectable classes that orchestrate the work for each CLI command.
+            *   `tools/`: Optional, undocumented tools for developers.
+        *   `common/`: Contains shared, reusable, and framework-agnostic utilities.
+            *   `errors/`, `fs/`, `security/`, `utils/`: General-purpose utilities.
+            *   `llm/`: The generic LLM abstraction layer, containing the `LLMRouter`, provider implementations, and strategies for retry/fallback.
+            *   `mongodb/`: Reusable MongoDB utilities like the connection manager.
+    *   `input/`: Contains input files like prompt templates (`.prompt`, `.prompts`).
     *   `dist/`: Output directory for compiled JavaScript.
     *   `docs/`: Contains example output files and documentation assets.
     *   `tests/`: Contains all unit (`.test.ts`) and integration (`.int.test.ts`) tests.
@@ -91,12 +96,12 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   **Database:** MongoDB, specifically leveraging MongoDB Atlas for its Vector Search capabilities.
     *   **Interaction Pattern:**
         *   The native `mongodb` driver is used.
-        *   A `MongoDBClientFactory` is managed via DI to handle connections.
+        *   A `MongoDBConnectionManager` is managed via DI to handle connections.
         *   The **Repository Pattern** is strictly followed to abstract data access logic (e.g., `SourcesRepository`, `AppSummariesRepository`).
         *   The `DatabaseInitializer` task is responsible for setting up collections and indexes, including vector search indexes on `contentVector` and `summaryVector` fields.
         *   Queries consist of standard MongoDB operations and `$vectorSearch` aggregation pipelines for semantic search.
 *   **Data Fetching & API Interaction:**
-    *   **LLM APIs:** All interactions with external LLM APIs are centralized and abstracted through the `LLMRouter`. Specific provider implementations in `src/llm/providers/` use the official SDKs for each service (e.g., `openai`, `@aws-sdk/client-bedrock-runtime`).
+    *   **LLM APIs:** All interactions with external LLM APIs are centralized and abstracted through the `LLMRouter`. Specific provider implementations in `src/common/llm/providers/` use the official SDKs for each service (e.g., `openai`, `@aws-sdk/client-bedrock-runtime`).
 
 ## 5. Language-Specific Idioms and Best Practices (TypeScript)
 
@@ -110,8 +115,8 @@ The project uses a combination of Prettier for automated formatting and ESLint f
     *   **Functional:** Utility modules (`src/common/utils/`) favor pure or near-pure functions. Immutability is encouraged through `readonly` properties and `as const` assertions, especially in configuration files.
 *   **Error Handling:**
     *   **`try...catch` blocks** are used for handling synchronous and asynchronous errors, particularly around I/O and API calls.
-    *   **Custom Error Classes** (e.g., `BadResponseContentLLMError`) are defined to provide specific, typed error information.
-    *   The `LLMRouter` and its associated strategies (`RetryStrategy`, `FallbackStrategy`) implement a sophisticated, resilient error-handling mechanism for LLM API calls, including retries with backoff and model failover.
+    *   **Custom Error Classes** (e.g., `BadResponseContentLLMError`, `ConfigurationError`) are defined to provide specific, typed error information.
+    *   The `LLMRouter` and its associated strategies (`RetryStrategy`, `fallback-strategy.ts`) implement a sophisticated, resilient error-handling mechanism for LLM API calls, including retries with backoff and model failover.
 *   **Asynchronous Programming:**
     *   **`async/await`** is the exclusive and preferred idiom for managing asynchronous code, making it clean and readable.
     *   **`p-limit`** is used to manage concurrency and prevent overwhelming external APIs with too many parallel requests (e.g., in `CodebaseToDBLoader`).
@@ -131,7 +136,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
 *   **Configuration:**
     *   **Environment Variables:** Configuration is primarily managed through a `.env` file, loaded by `dotenv`. `EXAMPLE.env` serves as a template.
     *   **Schema Validation:** Environment variables are validated at runtime using `zod`. The base schema is extended dynamically by LLM provider manifests, ensuring that only the necessary variables for the selected provider are required and validated.
-    *   **Static Configuration:** Immutable, static configuration is defined in `*.config.ts` files within `src/config/`.
+    *   **Static Configuration:** Immutable, static configuration is defined in `*.config.ts` files within `src/app/config/`.
     *   **LLM Provider Manifests:** A key pattern where each LLM provider defines its models, required environment variables, and factory function in a `.manifest.ts` file, making the system highly pluggable.
 
 ## 7. Testing and Documentation
@@ -155,7 +160,7 @@ The project uses a combination of Prettier for automated formatting and ESLint f
 
 *   **Compiling/Building:**
     *   **Command:** `npm run build`
-    *   **Process:** The TypeScript Compiler (`tsc`) compiles `.ts` files into JavaScript, placing them in the `dist/` directory as configured in `tsconfig.json`.
+    *   **Process:** The TypeScript Compiler (`tsc`) compiles `.ts` files into JavaScript, placing them in the `dist/` directory as configured in `tsconfig.json`. The `copy-templates` script is also run to move `ejs` templates.
 *   **Linting:**
     *   **Command:** `npm run lint`
     *   **Tool:** ESLint, configured via `eslint.config.mjs`.

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 
 /**
  * Zod schema for Bedrock Llama provider-specific configuration.
@@ -12,3 +13,11 @@ export const BedrockLlamaProviderConfigSchema = z.object({
   maxRetryDelayMillis: z.number().int().nonnegative(),
   maxGenLenCap: z.number().int().positive(),
 });
+
+/**
+ * Type-safe configuration interface for Bedrock Llama provider.
+ * Extends base config with Llama-specific maxGenLenCap property.
+ */
+export interface BedrockLlamaProviderConfig extends LLMProviderSpecificConfig {
+  maxGenLenCap: number;
+}

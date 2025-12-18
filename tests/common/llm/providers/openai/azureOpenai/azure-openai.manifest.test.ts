@@ -1,12 +1,12 @@
 import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
-  LLMModelKeysSet,
 } from "../../../../../../src/common/llm/types/llm.types";
 import { calculateTokenUsageFromError } from "../../../../../../src/common/llm/utils/error-parser";
 import { azureOpenAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/azureOpenai/azure-openai.manifest";
 import { loadBaseEnvVarsOnly } from "../../../../../../src/app/env/env";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4 = "GPT_COMPLETIONS_GPT4";
@@ -37,12 +37,6 @@ const resolveUrn = (urnEnvKey: string): string => {
 };
 
 // Create test instance using Azure OpenAI provider manifest
-const azureOpenAIModelKeysSet: LLMModelKeysSet = {
-  embeddingsModelKey: azureOpenAIProviderManifest.models.embeddings.modelKey,
-  primaryCompletionModelKey: azureOpenAIProviderManifest.models.primaryCompletion.modelKey,
-  secondaryCompletionModelKey: azureOpenAIProviderManifest.models.secondaryCompletion?.modelKey,
-};
-
 const azureOpenAIModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [azureOpenAIProviderManifest.models.embeddings.modelKey]: {
     modelKey: azureOpenAIProviderManifest.models.embeddings.modelKey,
@@ -87,6 +81,27 @@ if (azureOpenAIProviderManifest.models.secondaryCompletion) {
   };
 }
 
+// Helper function to create ProviderInit for tests
+function createTestProviderInit(): ProviderInit {
+  return {
+    manifest: azureOpenAIProviderManifest,
+    providerParams: mockAzureOpenAIEnv,
+    resolvedModels: {
+      embeddings:
+        azureOpenAIModelsMetadata[azureOpenAIProviderManifest.models.embeddings.modelKey].urn,
+      primaryCompletion:
+        azureOpenAIModelsMetadata[azureOpenAIProviderManifest.models.primaryCompletion.modelKey]
+          .urn,
+      ...(azureOpenAIProviderManifest.models.secondaryCompletion && {
+        secondaryCompletion:
+          azureOpenAIModelsMetadata[azureOpenAIProviderManifest.models.secondaryCompletion.modelKey]
+            .urn,
+      }),
+    },
+    errorLogger: createMockErrorLogger(),
+  };
+}
+
 describe("Azure OpenAI Provider Tests", () => {
   describe("Token extraction from error messages", () => {
     test("extracts tokens from error message with completion tokens", () => {
@@ -128,28 +143,14 @@ describe("Azure OpenAI Provider Tests", () => {
 
   describe("Provider implementation", () => {
     test("counts available models", () => {
-      const llm = new azureOpenAIProviderManifest.implementation(
-        mockAzureOpenAIEnv,
-        azureOpenAIModelKeysSet,
-        azureOpenAIModelsMetadata,
-        azureOpenAIProviderManifest.errorPatterns,
-        azureOpenAIProviderManifest.providerSpecificConfig,
-        azureOpenAIProviderManifest.modelFamily,
-        createMockErrorLogger(),
-      );
+      const init = createTestProviderInit();
+      const llm = new azureOpenAIProviderManifest.implementation(init);
       expect(Object.keys(llm.getModelsNames()).length).toBe(3);
     });
 
     test("verifies model family", () => {
-      const llm = new azureOpenAIProviderManifest.implementation(
-        mockAzureOpenAIEnv,
-        azureOpenAIModelKeysSet,
-        azureOpenAIModelsMetadata,
-        azureOpenAIProviderManifest.errorPatterns,
-        azureOpenAIProviderManifest.providerSpecificConfig,
-        azureOpenAIProviderManifest.modelFamily,
-        createMockErrorLogger(),
-      );
+      const init = createTestProviderInit();
+      const llm = new azureOpenAIProviderManifest.implementation(init);
       expect(llm.getModelFamily()).toBe("AzureOpenAI");
     });
   });

@@ -3,117 +3,61 @@ import {
   bedrockLlamaProviderManifest,
   BedrockLlamaProviderConfigSchema,
 } from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
-import {
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-  LLMModelKeysSet,
-} from "../../../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+import {
+  createBedrockProviderInit,
+  createBedrockMockEnv,
+} from "../../../../helpers/llm/bedrock-test-helper";
 
 /**
  * Unit tests for BedrockLlamaLLM - Type Safety Improvements
  *
- * These tests verify that the provider-specific configuration is accessed
- * in a type-safe manner without unsafe double type assertions.
+ * These tests verify that the provider-specific configuration (including maxGenLenCap)
+ * is accessed in a type-safe manner through the typed config interface.
  */
 describe("BedrockLlamaLLM - Type Safety", () => {
-  const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
-    AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT: {
-      modelKey: "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
-      urn: "meta.llama3-3-70b-instruct-v1:0",
-      purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 8192,
-      maxTotalTokens: 128000,
-    },
-    AWS_EMBEDDINGS_TITAN_V1: {
-      modelKey: "AWS_EMBEDDINGS_TITAN_V1",
-      urn: "amazon.titan-embed-text-v1",
-      purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 1536,
-      maxTotalTokens: 8192,
-    },
-  };
+  const mockEnv = createBedrockMockEnv(
+    "BedrockLlama",
+    "amazon.titan-embed-text-v1",
+    "meta.llama3-3-70b-instruct-v1:0",
+    "meta.llama3-2-90b-instruct-v1:0",
+  );
 
-  const mockModelKeysSet: LLMModelKeysSet = {
-    embeddingsModelKey: "AWS_EMBEDDINGS_TITAN_V1",
-    primaryCompletionModelKey: "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
-  };
-
-  it("should apply maxGenLenCap when CAP_MAX_GEN_LEN feature present", () => {
-    const llm = new BedrockLlamaLLM(
-      {} as any,
-      mockModelKeysSet,
-      mockModelsMetadata,
-      [],
-      {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 10000,
-        maxGenLenCap: 2048,
-      },
-
-      "BedrockLlama",
-      createMockErrorLogger(),
-    );
-
-    // Attach feature flags (normally done by provider manager)
-    (llm as any).llmFeatures = bedrockLlamaProviderManifest.features;
+  it("should apply maxGenLenCap from typed config", () => {
+    const init = createBedrockProviderInit(bedrockLlamaProviderManifest, mockEnv);
+    const llm = new BedrockLlamaLLM(init);
 
     // Access the protected method via type assertion to test it
     const requestBody = (llm as any).buildCompletionRequestBody(
-      "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
+      bedrockLlamaProviderManifest.models.primaryCompletion.modelKey,
       "test prompt",
     );
 
-    // Verify that max_gen_len is properly capped
+    // Verify that max_gen_len is properly capped using the config value
     expect(requestBody.max_gen_len).toBe(2048);
     expect(requestBody.prompt).toContain("test prompt");
     expect(requestBody.temperature).toBeDefined();
     expect(requestBody.top_p).toBeDefined();
   });
 
-  it("should use maxCompletionTokens when it is less than maxGenLenCap (feature present)", () => {
-    const modelsMetadataWithLowMax: Record<string, ResolvedLLMModelMetadata> = {
-      AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT: {
-        modelKey: "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
-        urn: "meta.llama3-3-70b-instruct-v1:0",
-        purpose: LLMPurpose.COMPLETIONS,
-        maxCompletionTokens: 1024, // Less than maxGenLenCap
-        maxTotalTokens: 128000,
-      },
-      AWS_EMBEDDINGS_TITAN_V1: {
-        modelKey: "AWS_EMBEDDINGS_TITAN_V1",
-        urn: "amazon.titan-embed-text-v1",
-        purpose: LLMPurpose.EMBEDDINGS,
-        dimensions: 1536,
-        maxTotalTokens: 8192,
+  it("should use maxCompletionTokens when it is less than maxGenLenCap", () => {
+    // Create a manifest with a lower maxCompletionTokens
+    const modifiedManifest = {
+      ...bedrockLlamaProviderManifest,
+      models: {
+        ...bedrockLlamaProviderManifest.models,
+        primaryCompletion: {
+          ...bedrockLlamaProviderManifest.models.primaryCompletion,
+          maxCompletionTokens: 1024, // Lower than maxGenLenCap (2048)
+        },
       },
     };
 
-    const llm = new BedrockLlamaLLM(
-      {} as any,
-      mockModelKeysSet,
-      modelsMetadataWithLowMax,
-      [],
-      {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 10000,
-        maxGenLenCap: 2048,
-      },
-
-      "BedrockLlama",
-      createMockErrorLogger(),
-    );
-
-    // Attach feature flags so capping logic engages
-    (llm as any).llmFeatures = bedrockLlamaProviderManifest.features;
+    const init = createBedrockProviderInit(modifiedManifest, mockEnv);
+    const llm = new BedrockLlamaLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      "AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT",
+      bedrockLlamaProviderManifest.models.primaryCompletion.modelKey,
       "test prompt",
     );
 
@@ -124,55 +68,10 @@ describe("BedrockLlamaLLM - Type Safety", () => {
   it("should verify maxGenLenCap is in provider manifest config", () => {
     // Verify that the manifest contains the maxGenLenCap configuration
     expect(bedrockLlamaProviderManifest.providerSpecificConfig).toHaveProperty("maxGenLenCap");
-    expect(typeof bedrockLlamaProviderManifest.providerSpecificConfig.maxGenLenCap).toBe("number");
-    expect(bedrockLlamaProviderManifest.providerSpecificConfig.maxGenLenCap).toBe(2048);
-  });
-
-  it("should not cap when feature flag absent (regardless of model key)", () => {
-    // Create a non-LLAMA model key to verify the cap is not applied
-    const nonLlamaMetadata: Record<string, ResolvedLLMModelMetadata> = {
-      SOME_OTHER_MODEL: {
-        modelKey: "SOME_OTHER_MODEL",
-        urn: "some.other.model",
-        purpose: LLMPurpose.COMPLETIONS,
-        maxCompletionTokens: 8192,
-        maxTotalTokens: 128000,
-      },
-      AWS_EMBEDDINGS_TITAN_V1: {
-        modelKey: "AWS_EMBEDDINGS_TITAN_V1",
-        urn: "amazon.titan-embed-text-v1",
-        purpose: LLMPurpose.EMBEDDINGS,
-        dimensions: 1536,
-        maxTotalTokens: 8192,
-      },
-    };
-
-    const nonLlamaKeysSet: LLMModelKeysSet = {
-      embeddingsModelKey: "AWS_EMBEDDINGS_TITAN_V1",
-      primaryCompletionModelKey: "SOME_OTHER_MODEL",
-    };
-
-    const llm = new BedrockLlamaLLM(
-      {} as any,
-      nonLlamaKeysSet,
-      nonLlamaMetadata,
-      [],
-      {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 10000,
-        maxGenLenCap: 2048,
-      },
-
-      "BedrockLlama",
-      createMockErrorLogger(),
+    expect(typeof (bedrockLlamaProviderManifest.providerSpecificConfig as any).maxGenLenCap).toBe(
+      "number",
     );
-
-    const requestBody = (llm as any).buildCompletionRequestBody("SOME_OTHER_MODEL", "test prompt");
-
-    // max_gen_len should not be set because feature flag was not assigned
-    expect(requestBody.max_gen_len).toBeUndefined();
+    expect((bedrockLlamaProviderManifest.providerSpecificConfig as any).maxGenLenCap).toBe(2048);
   });
 
   describe("Zod schema validation", () => {

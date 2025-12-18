@@ -35,7 +35,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
   /**
    * Build the request body object for Claude completions.
    */
-  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
+  protected override buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     const config = this.providerSpecificConfig as ClaudeProviderConfig;
 

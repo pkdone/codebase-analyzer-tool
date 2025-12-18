@@ -1,62 +1,55 @@
 import { bedrockLlamaProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 import BedrockLlamaLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama-llm";
-// Minimal mocks for metadata
-const mockModelsKeysSet = {
-  embeddingsModelKey: bedrockLlamaProviderManifest.models.embeddings.modelKey,
-  primaryCompletionModelKey: bedrockLlamaProviderManifest.models.primaryCompletion.modelKey,
-};
+import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
-const mockModelsMetadata: Record<string, any> = {
-  [bedrockLlamaProviderManifest.models.primaryCompletion.modelKey]: {
-    ...bedrockLlamaProviderManifest.models.primaryCompletion,
-    urn: "llama-primary-urn",
-  },
-};
+/**
+ * Tests for Bedrock Llama type-safe configuration (replacing feature flags).
+ */
+describe("Bedrock Llama Type-Safe Configuration", () => {
+  const createInit = (): ProviderInit => ({
+    manifest: bedrockLlamaProviderManifest,
+    providerParams: {},
+    resolvedModels: {
+      embeddings: "llama-embed-urn",
+      primaryCompletion: "llama-primary-urn",
+      secondaryCompletion: "llama-secondary-urn",
+    },
+    errorLogger: createMockErrorLogger(),
+  });
 
-describe("Bedrock Llama Manifest Feature Flags", () => {
-  test("CAP_MAX_GEN_LEN feature triggers max_gen_len capping", () => {
-    const instance = new BedrockLlamaLLM(
-      {} as any,
-      mockModelsKeysSet,
-      mockModelsMetadata,
-      bedrockLlamaProviderManifest.errorPatterns,
-      bedrockLlamaProviderManifest.providerSpecificConfig,
-      bedrockLlamaProviderManifest.modelFamily,
-      createMockErrorLogger(),
-    ) as unknown as {
-      llmFeatures?: readonly string[];
-      buildCompletionRequestBody: (modelKey: string, prompt: string) => any;
-    };
-    // Attach features manually (provider manager normally does this)
-    instance.llmFeatures = bedrockLlamaProviderManifest.features;
-    const body = instance.buildCompletionRequestBody(
+  test("maxGenLenCap property in config triggers max_gen_len capping", () => {
+    const init = createInit();
+    const instance = new BedrockLlamaLLM(init);
+
+    const body = (instance as any).buildCompletionRequestBody(
       bedrockLlamaProviderManifest.models.primaryCompletion.modelKey,
       "Test prompt",
     );
+
     expect(body.max_gen_len).toBeDefined();
-    const maxGenLenCap = bedrockLlamaProviderManifest.providerSpecificConfig.maxGenLenCap as number;
+    const maxGenLenCap = (bedrockLlamaProviderManifest.providerSpecificConfig as any).maxGenLenCap;
     expect(body.max_gen_len).toBeLessThanOrEqual(maxGenLenCap);
   });
 
-  test("Removing CAP_MAX_GEN_LEN feature results in no explicit max_gen_len", () => {
-    const instance = new BedrockLlamaLLM(
-      {} as any,
-      mockModelsKeysSet,
-      mockModelsMetadata,
-      bedrockLlamaProviderManifest.errorPatterns,
-      bedrockLlamaProviderManifest.providerSpecificConfig,
-      bedrockLlamaProviderManifest.modelFamily,
-      createMockErrorLogger(),
-    ) as unknown as {
-      llmFeatures?: readonly string[];
-      buildCompletionRequestBody: (modelKey: string, prompt: string) => any;
-    };
-    instance.llmFeatures = []; // No features
-    const body = instance.buildCompletionRequestBody(
-      bedrockLlamaProviderManifest.models.primaryCompletion.modelKey,
-      "Test prompt",
-    );
-    expect(body.max_gen_len).toBeUndefined();
+  test("manifest no longer has features array", () => {
+    expect((bedrockLlamaProviderManifest as any).features).toBeUndefined();
+  });
+
+  test("provider instance no longer has llmFeatures field", () => {
+    const init = createInit();
+    const instance = new BedrockLlamaLLM(init);
+
+    // llmFeatures field should not exist
+    expect((instance as any).llmFeatures).toBeUndefined();
+  });
+
+  test("type-safe config check works with 'in' operator", () => {
+    const init = createInit();
+    const instance = new BedrockLlamaLLM(init);
+
+    const config = (instance as any).providerSpecificConfig;
+    expect("maxGenLenCap" in config).toBe(true);
+    expect(config.maxGenLenCap).toBeDefined();
   });
 });

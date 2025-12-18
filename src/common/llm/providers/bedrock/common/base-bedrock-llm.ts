@@ -6,14 +6,7 @@ import {
   ModelTimeoutException,
   ValidationException,
 } from "@aws-sdk/client-bedrock-runtime";
-import {
-  LLMModelKeysSet,
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-  LLMErrorMsgRegExPattern,
-} from "../../../types/llm.types";
 import { llmConfig } from "../../../config/llm.config";
-import { LLMProviderSpecificConfig } from "../../llm-provider.types";
 import { formatError } from "../../../../utils/error-formatters";
 import { logError } from "../../../../utils/logging";
 import AbstractLLM from "../../abstract-llm";
@@ -23,6 +16,7 @@ import {
   extractGenericCompletionResponse,
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
+import { buildStandardMessagesArray } from "../utils/bedrock-request-builders";
 
 const TOKEN_LIMIT_ERROR_KEYWORDS = [
   "too many input tokens",
@@ -77,26 +71,9 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   /**
    * Constructor.
    */
-  constructor(
-    _providerParams: Record<string, unknown>,
-    modelsKeys: LLMModelKeysSet,
-    modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
-    errorPatterns: readonly LLMErrorMsgRegExPattern[],
-    providerSpecificConfig: LLMProviderSpecificConfig,
-    modelFamily: string,
-    errorLogger: import("../../../tracking/llm-error-logger.interface").IErrorLogger,
-    llmFeatures?: readonly string[],
-  ) {
-    super(
-      modelsKeys,
-      modelsMetadata,
-      errorPatterns,
-      providerSpecificConfig,
-      modelFamily,
-      errorLogger,
-      llmFeatures,
-    );
-    const requestTimeoutMillis = providerSpecificConfig.requestTimeoutMillis;
+  constructor(init: import("../../llm-provider.types").ProviderInit) {
+    super(init);
+    const requestTimeoutMillis = init.manifest.providerSpecificConfig.requestTimeoutMillis;
     this.client = new BedrockRuntimeClient({
       requestHandler: { requestTimeout: requestTimeoutMillis },
     });
@@ -115,30 +92,33 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
-   * Execute the prompt against the LLM and return the relevant summary of the LLM's answer.
+   * Execute the embedding prompt against the LLM and return the relevant summary.
    */
-  protected async invokeProvider(taskType: LLMPurpose, modelKey: string, prompt: string) {
-    if (taskType === LLMPurpose.EMBEDDINGS) {
-      const parameters = this.buildEmbeddingParameters(modelKey, prompt);
-      const command = new InvokeModelCommand(parameters);
-      const rawResponse = await this.client.send(command);
-      const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
-      const llmResponse: unknown = JSON.parse(jsonString);
-      return this.extractEmbeddingModelSpecificResponse(llmResponse);
-    } else {
-      const parameters = this.buildCompletionParameters(modelKey, prompt);
-      const command = new InvokeModelCommand(parameters);
-      const rawResponse = await this.client.send(command);
-      const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
-      const llmResponse: unknown = JSON.parse(jsonString);
-      const config = this.getResponseExtractionConfig();
-      return extractGenericCompletionResponse(
-        llmResponse,
-        config.schema,
-        config.pathConfig,
-        config.providerName,
-      );
-    }
+  protected async invokeEmbeddingProvider(modelKey: string, prompt: string) {
+    const parameters = this.buildEmbeddingParameters(modelKey, prompt);
+    const command = new InvokeModelCommand(parameters);
+    const rawResponse = await this.client.send(command);
+    const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
+    const llmResponse: unknown = JSON.parse(jsonString);
+    return this.extractEmbeddingModelSpecificResponse(llmResponse);
+  }
+
+  /**
+   * Execute the completion prompt against the LLM and return the relevant summary.
+   */
+  protected async invokeCompletionProvider(modelKey: string, prompt: string) {
+    const parameters = this.buildCompletionParameters(modelKey, prompt);
+    const command = new InvokeModelCommand(parameters);
+    const rawResponse = await this.client.send(command);
+    const jsonString = new TextDecoder(llmConfig.UTF8_ENCODING).decode(rawResponse.body);
+    const llmResponse: unknown = JSON.parse(jsonString);
+    const config = this.getResponseExtractionConfig();
+    return extractGenericCompletionResponse(
+      llmResponse,
+      config.schema,
+      config.pathConfig,
+      config.providerName,
+    );
   }
 
   /**
@@ -162,6 +142,14 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
 
     const lowercaseContent = formatError(error).toLowerCase();
     return TOKEN_LIMIT_ERROR_KEYWORDS.some((keyword) => lowercaseContent.includes(keyword));
+  }
+
+  /**
+   * Build the request body object for completions using the standard messages array format.
+   * This default implementation can be overridden by subclasses that require custom formatting.
+   */
+  protected buildCompletionRequestBody(modelKey: string, prompt: string): Record<string, unknown> {
+    return buildStandardMessagesArray(prompt, modelKey, this.llmModelsMetadata);
   }
 
   /**
@@ -212,15 +200,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const bodyObj = this.buildCompletionRequestBody(modelKey, prompt);
     return this.buildBedrockParameters(modelKey, bodyObj);
   }
-
-  /**
-   * Abstract method to be overriden. Build the request body object for the specific
-   * completions model hosted on Bedrock. The base class will handle JSON stringification.
-   */
-  protected abstract buildCompletionRequestBody(
-    modelKey: string,
-    prompt: string,
-  ): Record<string, unknown>;
 
   /**
    * Abstract method to get the provider-specific response extraction configuration.

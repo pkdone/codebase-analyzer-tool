@@ -33,7 +33,7 @@ export default class BedrockNovaLLM extends BaseBedrockLLM {
   /**
    * Build the request body object for Nova completions.
    */
-  protected buildCompletionRequestBody(modelKey: string, prompt: string) {
+  protected override buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
     return {
       inferenceConfig: {

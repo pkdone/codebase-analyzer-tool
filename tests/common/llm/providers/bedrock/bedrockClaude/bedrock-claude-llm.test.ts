@@ -1,24 +1,25 @@
 import "reflect-metadata";
 import BedrockClaudeLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude-llm";
 import {
-  LLMModelKeysSet,
   ResolvedLLMModelMetadata,
   LLMPurpose,
 } from "../../../../../../src/common/llm/types/llm.types";
-import { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
+import {
+  LLMProviderSpecificConfig,
+  LLMProviderManifest,
+  ProviderInit,
+} from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
-import { AWS_COMPLETIONS_CLAUDE_V40 } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
+import {
+  AWS_COMPLETIONS_CLAUDE_V40,
+  bedrockClaudeProviderManifest,
+} from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 
 // Define model keys used in tests (matching the manifest internal constants)
 const AWS_COMPLETIONS_CLAUDE_V37 = "AWS_COMPLETIONS_CLAUDE_V37";
 
 describe("BedrockClaudeLLM - Request Body Building", () => {
-  const mockModelsKeys: LLMModelKeysSet = {
-    embeddingsModelKey: "EMBEDDINGS",
-    primaryCompletionModelKey: AWS_COMPLETIONS_CLAUDE_V37,
-  };
-
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
@@ -54,17 +55,44 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     anthropicBetaFlags: ["context-1m-2025-08-07"],
   };
 
+  // Helper function to create ProviderInit for tests
+  function createTestProviderInit(): ProviderInit {
+    const manifest: LLMProviderManifest = {
+      ...bedrockClaudeProviderManifest,
+      providerSpecificConfig: mockConfig,
+      models: {
+        ...bedrockClaudeProviderManifest.models,
+        primaryCompletion: {
+          ...bedrockClaudeProviderManifest.models.primaryCompletion,
+          modelKey: AWS_COMPLETIONS_CLAUDE_V37,
+          maxCompletionTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxCompletionTokens,
+          maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxTotalTokens,
+        },
+        secondaryCompletion: {
+          modelKey: AWS_COMPLETIONS_CLAUDE_V40,
+          urnEnvKey: "TEST_V40_MODEL",
+          purpose: LLMPurpose.COMPLETIONS,
+          maxCompletionTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V40].maxCompletionTokens,
+          maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V40].maxTotalTokens,
+        },
+      },
+    };
+
+    return {
+      manifest,
+      providerParams: {},
+      resolvedModels: {
+        embeddings: mockModelsMetadata.EMBEDDINGS.urn,
+        primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].urn,
+        secondaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V40].urn,
+      },
+      errorLogger: createMockErrorLogger(),
+    };
+  }
+
   describe("buildCompletionRequestBody", () => {
     it("should build correct request body for Claude 3.7", () => {
-      const llm = new BedrockClaudeLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-        "BedrockClaude",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockClaudeLLM(createTestProviderInit());
 
       const testPrompt = "Analyze this code";
       // Access private method for testing
@@ -96,15 +124,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     });
 
     it("should include anthropic_beta for Claude 4.0 model", () => {
-      const llm = new BedrockClaudeLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-        "BedrockClaude",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockClaudeLLM(createTestProviderInit());
 
       const testPrompt = "Analyze large codebase";
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -131,15 +151,30 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         // temperature, topK intentionally omitted
       };
 
-      const llm = new BedrockClaudeLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        minimalConfig,
-        "BedrockClaude",
-        createMockErrorLogger(),
-      );
+      const minimalManifest = {
+        ...bedrockClaudeProviderManifest,
+        providerSpecificConfig: minimalConfig,
+        models: {
+          ...bedrockClaudeProviderManifest.models,
+          primaryCompletion: {
+            ...bedrockClaudeProviderManifest.models.primaryCompletion,
+            modelKey: AWS_COMPLETIONS_CLAUDE_V37,
+            maxCompletionTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxCompletionTokens,
+            maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxTotalTokens,
+          },
+        },
+      };
+      const minimalInit: ProviderInit = {
+        manifest: minimalManifest as any,
+        providerParams: {},
+        resolvedModels: {
+          embeddings: mockModelsMetadata.EMBEDDINGS.urn,
+          primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].urn,
+        },
+        errorLogger: createMockErrorLogger(),
+      };
+
+      const llm = new BedrockClaudeLLM(minimalInit);
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_CLAUDE_V37, "test");
@@ -150,15 +185,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     });
 
     it("should properly embed prompt in messages content array", () => {
-      const llm = new BedrockClaudeLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-        "BedrockClaude",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockClaudeLLM(createTestProviderInit());
 
       const complexPrompt = "Line 1\nLine 2\nSpecial chars: <>&\"'";
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -173,15 +200,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     });
 
     it("should use correct maxCompletionTokens from model metadata", () => {
-      const llm = new BedrockClaudeLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-        "BedrockClaude",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockClaudeLLM(createTestProviderInit());
 
       // Test with Claude 3.7 (8192 max tokens)
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -195,15 +214,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     });
 
     it("should return an object, not a string", () => {
-      const llm = new BedrockClaudeLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-        "BedrockClaude",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockClaudeLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_CLAUDE_V37, "test");
@@ -216,15 +227,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
   describe("getResponseExtractionConfig", () => {
     it("should return correct extraction configuration", () => {
-      const llm = new BedrockClaudeLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-        "BedrockClaude",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockClaudeLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const config = llm["getResponseExtractionConfig"]();
@@ -246,15 +249,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
   describe("getModelFamily", () => {
     it("should return correct model family", () => {
-      const llm = new BedrockClaudeLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-        "BedrockClaude",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockClaudeLLM(createTestProviderInit());
 
       expect(llm.getModelFamily()).toBe("BedrockClaude");
     });

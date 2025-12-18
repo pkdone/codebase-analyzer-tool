@@ -1,8 +1,6 @@
 import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
-  LLMModelKeysSet,
-  LLMErrorMsgRegExPattern,
   LLMResponseTokensUsage,
   LLMContext,
   LLMOutputFormat,
@@ -11,11 +9,13 @@ import {
 import { SANITIZATION_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 import {
   LLMImplSpecificResponseSummary,
-  LLMProviderSpecificConfig,
+  LLMProviderManifest,
+  ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
 import { AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT } from "../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
+import { z } from "zod";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4_32k = "GPT_COMPLETIONS_GPT4_32k";
@@ -47,6 +47,115 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
 };
 
+// Stub class for manifest implementation field (not actually used in tests)
+class StubLLM extends AbstractLLM {
+  constructor() {
+    super({
+      manifest: {
+        providerName: "Stub",
+        modelFamily: "stub",
+        envSchema: z.object({}),
+        models: {
+          embeddings: {
+            modelKey: GPT_EMBEDDINGS_GPT4,
+            urnEnvKey: "STUB_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: 8191,
+            dimensions: 1536,
+          },
+          primaryCompletion: {
+            modelKey: GPT_COMPLETIONS_GPT4_32k,
+            urnEnvKey: "STUB_COMPLETE",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 4096,
+            maxTotalTokens: 32768,
+          },
+        },
+        errorPatterns: [],
+        providerSpecificConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        implementation: StubLLM as any,
+      },
+      providerParams: {},
+      resolvedModels: {
+        embeddings: "stub-embed",
+        primaryCompletion: "stub-complete",
+      },
+      errorLogger: createMockErrorLogger(),
+    });
+  }
+  protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: [],
+      tokenUsage: { promptTokens: 0, completionTokens: 0, maxTotalTokens: 0 },
+    };
+  }
+  protected async invokeCompletionProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: "",
+      tokenUsage: { promptTokens: 0, completionTokens: 0, maxTotalTokens: 0 },
+    };
+  }
+  protected isLLMOverloaded(): boolean {
+    return false;
+  }
+  protected isTokenLimitExceeded(): boolean {
+    return false;
+  }
+}
+
+// Helper function to create ProviderInit for tests
+function createTestProviderInit(
+  primaryCompletionKey: string,
+  embeddingsKey: string = GPT_EMBEDDINGS_GPT4,
+): ProviderInit {
+  const manifest: LLMProviderManifest = {
+    providerName: "Test Provider",
+    modelFamily: "test",
+    envSchema: z.object({}),
+    models: {
+      embeddings: {
+        modelKey: embeddingsKey,
+        urnEnvKey: "TEST_EMBEDDINGS_MODEL",
+        purpose: LLMPurpose.EMBEDDINGS,
+        maxTotalTokens: testModelsMetadata[embeddingsKey].maxTotalTokens,
+        dimensions: testModelsMetadata[embeddingsKey].dimensions,
+      },
+      primaryCompletion: {
+        modelKey: primaryCompletionKey,
+        urnEnvKey: "TEST_PRIMARY_MODEL",
+        purpose: LLMPurpose.COMPLETIONS,
+        maxCompletionTokens: testModelsMetadata[primaryCompletionKey].maxCompletionTokens,
+        maxTotalTokens: testModelsMetadata[primaryCompletionKey].maxTotalTokens,
+      },
+    },
+    errorPatterns: [],
+    providerSpecificConfig: {
+      requestTimeoutMillis: 60000,
+      maxRetryAttempts: 3,
+      minRetryDelayMillis: 1000,
+      maxRetryDelayMillis: 5000,
+    },
+    implementation: StubLLM as any,
+  };
+
+  return {
+    manifest,
+    providerParams: {},
+    resolvedModels: {
+      embeddings: testModelsMetadata[embeddingsKey].urn,
+      primaryCompletion: testModelsMetadata[primaryCompletionKey].urn,
+    },
+    errorLogger: createMockErrorLogger(),
+  };
+}
+
 // Test concrete class that extends AbstractLLM to test token extraction functionality
 class TestLLM extends AbstractLLM {
   private mockTokenUsage: LLMResponseTokensUsage = {
@@ -56,26 +165,7 @@ class TestLLM extends AbstractLLM {
   };
 
   constructor() {
-    const modelsKeys: LLMModelKeysSet = {
-      embeddingsModelKey: GPT_EMBEDDINGS_GPT4,
-      primaryCompletionModelKey: GPT_COMPLETIONS_GPT4_32k,
-    };
-    const errorPatterns: LLMErrorMsgRegExPattern[] = [];
-    const providerConfig: LLMProviderSpecificConfig = {
-      requestTimeoutMillis: 60000,
-      maxRetryAttempts: 3,
-      minRetryDelayMillis: 1000,
-      maxRetryDelayMillis: 5000,
-    };
-
-    super(
-      modelsKeys,
-      testModelsMetadata,
-      errorPatterns,
-      providerConfig,
-      "test",
-      createMockErrorLogger(),
-    );
+    super(createTestProviderInit(GPT_COMPLETIONS_GPT4_32k));
   }
 
   // Method to set mock token usage for testing
@@ -83,7 +173,15 @@ class TestLLM extends AbstractLLM {
     this.mockTokenUsage = tokenUsage;
   }
 
-  protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
+  protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: [0.1, 0.2, 0.3],
+      tokenUsage: this.mockTokenUsage,
+    };
+  }
+
+  protected async invokeCompletionProvider(): Promise<LLMImplSpecificResponseSummary> {
     return {
       isIncompleteResponse: true, // This triggers the private method we want to test
       responseContent: "test response",
@@ -166,18 +264,6 @@ describe("Abstract LLM Token Extraction", () => {
 
     test("extracts tokens for different model", async () => {
       // Create a TestLLM that uses the Llama model as primary
-      const modelsKeys: LLMModelKeysSet = {
-        embeddingsModelKey: GPT_EMBEDDINGS_GPT4,
-        primaryCompletionModelKey: AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT,
-      };
-      const errorPatterns: LLMErrorMsgRegExPattern[] = [];
-      const providerConfig: LLMProviderSpecificConfig = {
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 3,
-        minRetryDelayMillis: 1000,
-        maxRetryDelayMillis: 5000,
-      };
-
       class TestLlamaLLM extends AbstractLLM {
         private mockTokenUsage: LLMResponseTokensUsage = {
           promptTokens: 10,
@@ -186,21 +272,22 @@ describe("Abstract LLM Token Extraction", () => {
         };
 
         constructor() {
-          super(
-            modelsKeys,
-            testModelsMetadata,
-            errorPatterns,
-            providerConfig,
-            "test",
-            createMockErrorLogger(),
-          );
+          super(createTestProviderInit(AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT));
         }
 
         setMockTokenUsage(tokenUsage: LLMResponseTokensUsage) {
           this.mockTokenUsage = tokenUsage;
         }
 
-        protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
+        protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
+          return {
+            isIncompleteResponse: false,
+            responseContent: [0.1, 0.2, 0.3],
+            tokenUsage: this.mockTokenUsage,
+          };
+        }
+
+        protected async invokeCompletionProvider(): Promise<LLMImplSpecificResponseSummary> {
           return {
             isIncompleteResponse: true,
             responseContent: "test response",
@@ -242,26 +329,7 @@ class TestJSONLLM extends AbstractLLM {
   private mockIsIncomplete = false;
 
   constructor() {
-    const modelsKeys: LLMModelKeysSet = {
-      embeddingsModelKey: GPT_EMBEDDINGS_GPT4,
-      primaryCompletionModelKey: GPT_COMPLETIONS_GPT4_32k,
-    };
-    const errorPatterns: LLMErrorMsgRegExPattern[] = [];
-    const providerConfig: LLMProviderSpecificConfig = {
-      requestTimeoutMillis: 60000,
-      maxRetryAttempts: 3,
-      minRetryDelayMillis: 1000,
-      maxRetryDelayMillis: 5000,
-    };
-
-    super(
-      modelsKeys,
-      testModelsMetadata,
-      errorPatterns,
-      providerConfig,
-      "test",
-      createMockErrorLogger(),
-    );
+    super(createTestProviderInit(GPT_COMPLETIONS_GPT4_32k));
   }
 
   setMockResponse(content: string, isIncomplete = false) {
@@ -269,7 +337,19 @@ class TestJSONLLM extends AbstractLLM {
     this.mockIsIncomplete = isIncomplete;
   }
 
-  protected async invokeProvider(): Promise<LLMImplSpecificResponseSummary> {
+  protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: [0.1, 0.2, 0.3],
+      tokenUsage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        maxTotalTokens: 100,
+      },
+    };
+  }
+
+  protected async invokeCompletionProvider(): Promise<LLMImplSpecificResponseSummary> {
     return {
       isIncompleteResponse: this.mockIsIncomplete,
       responseContent: this.mockResponseContent,

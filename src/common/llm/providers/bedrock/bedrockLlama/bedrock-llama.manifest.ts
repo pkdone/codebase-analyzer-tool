@@ -60,8 +60,6 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
       maxTotalTokens: 128000,
     },
   },
-  // Feature flags documenting special behaviors; CAP_MAX_GEN_LEN instructs implementation to cap max_gen_len
-  features: ["CAP_MAX_GEN_LEN"] as const,
   errorPatterns: BEDROCK_COMMON_ERROR_PATTERNS,
   providerSpecificConfig: {
     ...defaultBedrockProviderConfig,

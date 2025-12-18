@@ -2,22 +2,21 @@ import "reflect-metadata";
 import BedrockDeepseekLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek-llm";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 import {
-  LLMModelKeysSet,
   ResolvedLLMModelMetadata,
   LLMPurpose,
 } from "../../../../../../src/common/llm/types/llm.types";
-import { LLMProviderSpecificConfig } from "../../../../../../src/common/llm/providers/llm-provider.types";
+import {
+  LLMProviderSpecificConfig,
+  LLMProviderManifest,
+  ProviderInit,
+} from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
+import { bedrockDeepseekProviderManifest } from "../../../../../../src/common/llm/providers/bedrock/bedrockDeepseek/bedrock-deepseek.manifest";
 
 // Define model key used in tests (matching the manifest internal constant)
 const AWS_COMPLETIONS_DEEPSEEK_R1 = "AWS_COMPLETIONS_DEEPSEEK_R1";
 
 describe("BedrockDeepseekLLM - Request Body Building", () => {
-  const mockModelsKeys: LLMModelKeysSet = {
-    embeddingsModelKey: "EMBEDDINGS",
-    primaryCompletionModelKey: AWS_COMPLETIONS_DEEPSEEK_R1,
-  };
-
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
@@ -44,18 +43,27 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     topP: 0.95,
   };
 
+  // Helper function to create ProviderInit for tests
+  function createTestProviderInit(): ProviderInit {
+    const manifest: LLMProviderManifest = {
+      ...bedrockDeepseekProviderManifest,
+      providerSpecificConfig: mockConfig,
+    };
+
+    return {
+      manifest,
+      providerParams: {},
+      resolvedModels: {
+        embeddings: mockModelsMetadata.EMBEDDINGS.urn,
+        primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_DEEPSEEK_R1].urn,
+      },
+      errorLogger: createMockErrorLogger(),
+    };
+  }
+
   describe("buildCompletionRequestBody", () => {
     it("should build correct request body for Deepseek R1", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       const testPrompt = "Analyze this code with reasoning";
       // Access private method for testing
@@ -69,7 +77,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
       expect(requestBody).toHaveProperty("messages");
       expect(requestBody).toHaveProperty("temperature", llmConfig.DEFAULT_ZERO_TEMP);
       expect(requestBody).toHaveProperty("top_p", llmConfig.DEFAULT_TOP_P_LOWEST);
-      expect(requestBody).toHaveProperty("max_tokens", 8192);
+      expect(requestBody).toHaveProperty("max_tokens", 16384);
 
       // Verify messages structure (Deepseek uses simpler format)
       const body = requestBody as any;
@@ -81,33 +89,15 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should use correct maxCompletionTokens from model metadata", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
-      expect((requestBody as any).max_tokens).toBe(8192);
+      expect((requestBody as any).max_tokens).toBe(16384);
     });
 
     it("should not include apiVersion like Claude does", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        { ...mockConfig, apiVersion: "bedrock-2023-05-31" },
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
@@ -118,16 +108,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should not wrap content in array like Claude does", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       const testPrompt = "Direct content test";
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -143,16 +124,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should handle prompts with special characters", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       const complexPrompt = "Special chars: <>&\"'\nNewlines\tTabs";
       // eslint-disable-next-line @typescript-eslint/dot-notation
@@ -166,20 +138,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should use hardcoded default temperature and top_p", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        {
-          ...mockConfig,
-          temperature: 0.7, // This should be ignored
-          topP: 0.5, // This should be ignored
-        },
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
@@ -191,16 +150,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should return an object, not a string", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_DEEPSEEK_R1, "test");
@@ -213,16 +163,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
 
   describe("getResponseExtractionConfig", () => {
     it("should return correct extraction configuration with alternative paths", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const config = llm["getResponseExtractionConfig"]();
@@ -243,16 +184,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     });
 
     it("should have alternative content path for reasoning content", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       // eslint-disable-next-line @typescript-eslint/dot-notation
       const config = llm["getResponseExtractionConfig"]();
@@ -264,16 +196,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
 
   describe("getModelFamily", () => {
     it("should return correct model family", () => {
-      const llm = new BedrockDeepseekLLM(
-        {} as any,
-        mockModelsKeys,
-        mockModelsMetadata,
-        [],
-        mockConfig,
-
-        "BedrockDeepseek",
-        createMockErrorLogger(),
-      );
+      const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
       expect(llm.getModelFamily()).toBe("BedrockDeepseek");
     });

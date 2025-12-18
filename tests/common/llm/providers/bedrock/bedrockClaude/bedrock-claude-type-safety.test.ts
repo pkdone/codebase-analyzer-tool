@@ -4,11 +4,9 @@ import {
   AWS_COMPLETIONS_CLAUDE_V40,
 } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 import {
-  LLMPurpose,
-  ResolvedLLMModelMetadata,
-  LLMModelKeysSet,
-} from "../../../../../../src/common/llm/types/llm.types";
-import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
+  createBedrockMockEnv,
+  createBedrockProviderInit,
+} from "../../../../helpers/llm/bedrock-test-helper";
 
 /**
  * Unit tests for BedrockClaudeLLM - Type Safety Improvements
@@ -17,55 +15,23 @@ import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger
  * in a type-safe manner, particularly for the anthropicBetaFlags property.
  */
 describe("BedrockClaudeLLM - Type Safety", () => {
-  const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
-    [AWS_COMPLETIONS_CLAUDE_V40]: {
-      modelKey: AWS_COMPLETIONS_CLAUDE_V40,
-      urn: "anthropic.claude-3-5-sonnet-20250620-v4:0",
-      purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 64000,
-      maxTotalTokens: 1000000,
-    },
-    AWS_COMPLETIONS_CLAUDE_V37: {
-      modelKey: "AWS_COMPLETIONS_CLAUDE_V37",
-      urn: "anthropic.claude-3-7-sonnet-20250219-v1:0",
-      purpose: LLMPurpose.COMPLETIONS,
-      maxCompletionTokens: 65536,
-      maxTotalTokens: 200000,
-    },
-    AWS_EMBEDDINGS_TITAN_V1: {
-      modelKey: "AWS_EMBEDDINGS_TITAN_V1",
-      urn: "amazon.titan-embed-text-v1",
-      purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 1024,
-      maxTotalTokens: 8192,
-    },
-  };
-
-  const mockModelKeysSet: LLMModelKeysSet = {
-    embeddingsModelKey: "AWS_EMBEDDINGS_TITAN_V1",
-    primaryCompletionModelKey: AWS_COMPLETIONS_CLAUDE_V40,
-    secondaryCompletionModelKey: "AWS_COMPLETIONS_CLAUDE_V37",
-  };
+  const mockEnv = createBedrockMockEnv(
+    "BedrockClaude",
+    "amazon.titan-embed-text-v1",
+    "anthropic.claude-3-5-sonnet-20250620-v4:0",
+    "anthropic.claude-3-7-sonnet-20250219-v1:0",
+  );
 
   it("should safely access anthropicBetaFlags from provider config for Claude V40", () => {
-    const llm = new BedrockClaudeLLM(
-      {} as any,
-      mockModelKeysSet,
-      mockModelsMetadata,
-      [],
-      {
-        apiVersion: "bedrock-2023-05-31",
-        temperature: 0,
-        topK: 1,
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 6,
-        minRetryDelayMillis: 40000,
-        maxRetryDelayMillis: 360000,
+    const customManifest = {
+      ...bedrockClaudeProviderManifest,
+      providerSpecificConfig: {
+        ...bedrockClaudeProviderManifest.providerSpecificConfig,
         anthropicBetaFlags: ["context-1m-2025-08-07"],
       },
-      "BedrockClaude",
-      createMockErrorLogger(),
-    );
+    };
+    const init = createBedrockProviderInit(customManifest as any, mockEnv);
+    const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       AWS_COMPLETIONS_CLAUDE_V40,
@@ -80,21 +46,14 @@ describe("BedrockClaudeLLM - Type Safety", () => {
   });
 
   it("should work without anthropicBetaFlags for Claude V40", () => {
-    const llm = new BedrockClaudeLLM(
-      {} as any,
-      mockModelKeysSet,
-      mockModelsMetadata,
-      [],
-      {
-        apiVersion: "bedrock-2023-05-31",
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 6,
-        minRetryDelayMillis: 40000,
-        maxRetryDelayMillis: 360000,
-      },
-      "BedrockClaude",
-      createMockErrorLogger(),
-    );
+    const { anthropicBetaFlags: _anthropicBetaFlags, ...configWithoutBeta } =
+      bedrockClaudeProviderManifest.providerSpecificConfig as any;
+    const manifestWithoutBeta = {
+      ...bedrockClaudeProviderManifest,
+      providerSpecificConfig: configWithoutBeta,
+    };
+    const init = createBedrockProviderInit(manifestWithoutBeta as any, mockEnv);
+    const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       AWS_COMPLETIONS_CLAUDE_V40,
@@ -107,27 +66,26 @@ describe("BedrockClaudeLLM - Type Safety", () => {
   });
 
   it("should not include anthropicBetaFlags for non-V40 Claude models", () => {
-    const v37KeysSet: LLMModelKeysSet = {
-      embeddingsModelKey: "AWS_EMBEDDINGS_TITAN_V1",
-      primaryCompletionModelKey: "AWS_COMPLETIONS_CLAUDE_V37",
-    };
-
-    const llm = new BedrockClaudeLLM(
-      {} as any,
-      v37KeysSet,
-      mockModelsMetadata,
-      [],
-      {
-        apiVersion: "bedrock-2023-05-31",
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 6,
-        minRetryDelayMillis: 40000,
-        maxRetryDelayMillis: 360000,
+    const customManifest = {
+      ...bedrockClaudeProviderManifest,
+      models: {
+        ...bedrockClaudeProviderManifest.models,
+        primaryCompletion: {
+          ...bedrockClaudeProviderManifest.models.primaryCompletion,
+          modelKey: "AWS_COMPLETIONS_CLAUDE_V37",
+        },
+      },
+      providerSpecificConfig: {
+        ...bedrockClaudeProviderManifest.providerSpecificConfig,
         anthropicBetaFlags: ["context-1m-2025-08-07"],
       },
-      "BedrockClaude",
-      createMockErrorLogger(),
-    );
+    };
+    const customEnv = {
+      ...mockEnv,
+      BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY: "anthropic.claude-3-7-sonnet-20250219-v1:0",
+    };
+    const init = createBedrockProviderInit(customManifest as any, customEnv);
+    const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       "AWS_COMPLETIONS_CLAUDE_V37",
@@ -153,23 +111,16 @@ describe("BedrockClaudeLLM - Type Safety", () => {
   });
 
   it("should properly use temperature and topK from config", () => {
-    const llm = new BedrockClaudeLLM(
-      {} as any,
-      mockModelKeysSet,
-      mockModelsMetadata,
-      [],
-      {
-        apiVersion: "bedrock-2023-05-31",
+    const customManifest = {
+      ...bedrockClaudeProviderManifest,
+      providerSpecificConfig: {
+        ...bedrockClaudeProviderManifest.providerSpecificConfig,
         temperature: 0.5,
         topK: 50,
-        requestTimeoutMillis: 60000,
-        maxRetryAttempts: 6,
-        minRetryDelayMillis: 40000,
-        maxRetryDelayMillis: 360000,
       },
-      "BedrockClaude",
-      createMockErrorLogger(),
-    );
+    };
+    const init = createBedrockProviderInit(customManifest as any, mockEnv);
+    const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
       AWS_COMPLETIONS_CLAUDE_V40,
