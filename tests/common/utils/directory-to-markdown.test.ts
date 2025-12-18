@@ -1,6 +1,5 @@
 import {
   formatDirectoryAsMarkdown,
-  adaptFileProcessingConfig,
   type DirectoryFormattingConfig,
 } from "../../../src/common/utils/directory-to-markdown";
 import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
@@ -33,7 +32,11 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("ts").mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("const x = 1;").mockResolvedValueOnce("var y = 2;");
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
@@ -52,7 +55,11 @@ describe("directory-to-markdown", () => {
       const dirPath = "/test/project/";
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
@@ -70,7 +77,11 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("png").mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("const x = 1;"); // Only called for .ts file
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(mockReadFile).toHaveBeenCalledTimes(1);
@@ -85,7 +96,11 @@ describe("directory-to-markdown", () => {
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
       mockGetFileExtension.mockReturnValueOnce("PNG");
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).not.toContain("image.PNG");
@@ -100,7 +115,11 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("  \n\nconst x = 1;\n\n  ");
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toContain("const x = 1;");
@@ -116,7 +135,11 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("export function helper() {}");
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toContain("``` src/utils/helper.ts");
@@ -127,7 +150,11 @@ describe("directory-to-markdown", () => {
       const dirPath = "/test/empty-project";
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toBe("");
@@ -149,7 +176,11 @@ describe("directory-to-markdown", () => {
         .mockResolvedValueOnce("content2")
         .mockResolvedValueOnce("content3");
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       await formatDirectoryAsMarkdown(dirPath, config);
 
       // All files should be read in parallel
@@ -171,7 +202,11 @@ describe("directory-to-markdown", () => {
         .mockReturnValueOnce("pdf");
       mockReadFile.mockResolvedValueOnce("const x = 1;");
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       // Should only contain one code block
@@ -187,7 +222,11 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("");
       mockReadFile.mockResolvedValueOnce("all: build");
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toContain("``` Makefile");
@@ -202,7 +241,11 @@ describe("directory-to-markdown", () => {
       mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("line1\n\n\nline2");
 
-      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const config: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toContain("line1\n\n\nline2");

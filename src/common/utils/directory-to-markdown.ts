@@ -13,22 +13,6 @@ export interface DirectoryFormattingConfig {
 }
 
 /**
- * Helper function to convert fileProcessingConfig to DirectoryFormattingConfig.
- * This allows the common utility to work with the application-specific config structure.
- */
-export function adaptFileProcessingConfig(config: {
-  readonly FOLDER_IGNORE_LIST: readonly string[];
-  readonly FILENAME_PREFIX_IGNORE: string;
-  readonly BINARY_FILE_EXTENSION_IGNORE_LIST: readonly string[];
-}): DirectoryFormattingConfig {
-  return {
-    folderIgnoreList: config.FOLDER_IGNORE_LIST,
-    filenameIgnorePrefix: config.FILENAME_PREFIX_IGNORE,
-    binaryFileExtensionIgnoreList: config.BINARY_FILE_EXTENSION_IGNORE_LIST,
-  };
-}
-
-/**
  * Regex pattern to match trailing slash at end of string
  */
 const TRAILING_SLASH_PATTERN = /\/$/;

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { z } from "zod";
-import InsightsFromRawCodeGenerator from "../../../../src/app/components/insights/insights-from-raw-code-generator";
+import InsightsFromRawCodeGenerator from "../../../../src/app/components/insights/generators/raw-code-insights-generator";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import type { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
 import type { EnvVars } from "../../../../src/app/env/env.types";
@@ -19,17 +19,6 @@ jest.mock("../../../../src/common/utils/directory-to-markdown", () => ({
   formatDirectoryAsMarkdown: jest
     .fn<() => Promise<string>>()
     .mockResolvedValue("mock codebase content"),
-  adaptFileProcessingConfig: jest.fn(
-    (config: {
-      FOLDER_IGNORE_LIST: readonly string[];
-      FILENAME_PREFIX_IGNORE: string;
-      BINARY_FILE_EXTENSION_IGNORE_LIST: readonly string[];
-    }) => ({
-      folderIgnoreList: config.FOLDER_IGNORE_LIST,
-      filenameIgnorePrefix: config.FILENAME_PREFIX_IGNORE,
-      binaryFileExtensionIgnoreList: config.BINARY_FILE_EXTENSION_IGNORE_LIST,
-    }),
-  ),
 }));
 
 jest.mock("../../../../src/app/prompts/prompt-renderer", () => ({

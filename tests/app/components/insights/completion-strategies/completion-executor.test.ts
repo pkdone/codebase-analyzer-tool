@@ -6,7 +6,7 @@ import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import {
   executeInsightCompletion,
   type InsightCompletionOptions,
-} from "../../../../../src/app/components/insights/utils/completion-executor";
+} from "../../../../../src/app/components/insights/completion-strategies/completion-executor";
 import {
   AppSummaryCategoryEnum,
   appSummaryCategorySchemas,

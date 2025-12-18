@@ -17,13 +17,13 @@ import { registerReportingComponents } from "./reporting-registration";
 import { registerQueryingComponents } from "./querying-registration";
 
 // Task imports (these are top-level orchestrators for CLI commands)
-import { CodebaseCaptureTask } from "../../tasks/codebase-capture.task";
-import { CodebaseQueryTask } from "../../tasks/code-query.task";
-import { InsightsGenerationTask } from "../../tasks/insights-generation.task";
-import { DirectInsightsGenerationTask } from "../../tasks/direct-insights-generation.task";
-import { MongoConnectionTestTask } from "../../tasks/mdb-connection-test.task";
-import { PluggableLLMsTestTask } from "../../tasks/test-pluggable-llms.task";
-import { ReportGenerationTask } from "../../tasks/report-generation.task";
+import { CodebaseCaptureTask } from "../../tasks/main/codebase-capture.task";
+import { CodebaseQueryTask } from "../../tasks/main/code-query.task";
+import { InsightsGenerationTask } from "../../tasks/main/insights-generation.task";
+import { DirectInsightsGenerationTask } from "../../tasks/main/direct-insights-generation.task";
+import { MongoConnectionTestTask } from "../../tasks/dev/mdb-connection-test.task";
+import { PluggableLLMsTestTask } from "../../tasks/dev/test-pluggable-llms.task";
+import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 
 // Configuration import
 import { databaseConfig } from "../../repositories/config/database.config";

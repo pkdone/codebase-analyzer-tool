@@ -2,11 +2,11 @@ import "reflect-metadata";
 import { InsightsProcessorSelector } from "../../../../src/app/components/insights/insights-processor-selector";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { EnvVars } from "../../../../src/app/env/env.types";
-import InsightsFromDBGenerator from "../../../../src/app/components/insights/insights-from-db-generator";
-import InsightsFromRawCodeGenerator from "../../../../src/app/components/insights/insights-from-raw-code-generator";
+import InsightsFromDBGenerator from "../../../../src/app/components/insights/generators/db-insights-generator";
+import InsightsFromRawCodeGenerator from "../../../../src/app/components/insights/generators/raw-code-insights-generator";
 import {
   formatDirectoryAsMarkdown,
-  adaptFileProcessingConfig,
+  type DirectoryFormattingConfig,
 } from "../../../../src/common/utils/directory-to-markdown";
 import { fileProcessingConfig } from "../../../../src/app/components/capture/config/file-processing.config";
 import { llmProviderConfig } from "../../../../src/common/llm/config/llm.config";
@@ -119,10 +119,12 @@ describe("InsightsProcessorSelector", () => {
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockRawCodeGenerator);
-      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith(
-        "/test/path",
-        adaptFileProcessingConfig(fileProcessingConfig),
-      );
+      const expectedConfig: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
+      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith("/test/path", expectedConfig);
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining("Codebase chars length: 500"),
       );
@@ -138,10 +140,12 @@ describe("InsightsProcessorSelector", () => {
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockDbGenerator);
-      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith(
-        "/test/path",
-        adaptFileProcessingConfig(fileProcessingConfig),
-      );
+      const expectedConfig: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
+      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith("/test/path", expectedConfig);
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining("Codebase chars length: 5000"),
       );
@@ -199,10 +203,12 @@ describe("InsightsProcessorSelector", () => {
       await expect(selector.selectInsightsProcessor()).rejects.toThrow("Failed to bundle codebase");
 
       expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
-      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith(
-        "/test/path",
-        adaptFileProcessingConfig(fileProcessingConfig),
-      );
+      const expectedConfig: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
+      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith("/test/path", expectedConfig);
     });
 
     it("should propagate errors from getLLMManifest", async () => {
@@ -249,9 +255,14 @@ describe("InsightsProcessorSelector", () => {
 
       expect(result).toBe(mockRawCodeGenerator);
       expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
+      const expectedConfig: DirectoryFormattingConfig = {
+        folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+        filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+      };
       expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith(
         mockEnvVars.CODEBASE_DIR_PATH,
-        adaptFileProcessingConfig(fileProcessingConfig),
+        expectedConfig,
       );
     });
   });

@@ -1,23 +1,23 @@
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import LLMRouter from "../../../common/llm/llm-router";
-import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
-import { repositoryTokens } from "../../di/tokens";
-import { llmTokens } from "../../di/tokens";
-import { coreTokens } from "../../di/tokens";
-import type { IInsightsProcessor } from "./insights-processor.interface";
+import LLMRouter from "../../../../common/llm/llm-router";
+import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
+import { repositoryTokens } from "../../../di/tokens";
+import { llmTokens } from "../../../di/tokens";
+import { coreTokens } from "../../../di/tokens";
+import type { IInsightsProcessor } from "../insights-processor.interface";
 import {
   formatDirectoryAsMarkdown,
   type DirectoryFormattingConfig,
-} from "../../../common/utils/directory-to-markdown";
-import { fileProcessingConfig } from "../../components/capture/config/file-processing.config";
-import type { EnvVars } from "../../env/env.types";
-import { logOneLineWarning } from "../../../common/utils/logging";
-import { renderPrompt } from "../../prompts/prompt-renderer";
-import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
-import { BASE_PROMPT_TEMPLATE } from "../../prompts/templates";
-import { appSummaryRecordCategoriesSchema } from "./insights.types";
+} from "../../../../common/utils/directory-to-markdown";
+import { fileProcessingConfig } from "../../../components/capture/config/file-processing.config";
+import type { EnvVars } from "../../../env/env.types";
+import { logOneLineWarning } from "../../../../common/utils/logging";
+import { renderPrompt } from "../../../prompts/prompt-renderer";
+import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
+import { BASE_PROMPT_TEMPLATE } from "../../../prompts/templates";
+import { appSummaryRecordCategoriesSchema } from "../insights.types";
 
 // Type for validating the LLM response for all categories
 type AppSummaryRecordCategories = z.infer<typeof appSummaryRecordCategoriesSchema>;

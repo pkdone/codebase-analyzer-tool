@@ -2,9 +2,9 @@ import { container } from "tsyringe";
 import { insightsTokens } from "../tokens";
 
 // Insights component imports
-import InsightsFromDBGenerator from "../../components/insights/insights-from-db-generator";
-import InsightsFromRawCodeGenerator from "../../components/insights/insights-from-raw-code-generator";
-import { RawAnalyzerDrivenByReqsFiles } from "../../components/insights/file-driven/raw-analyzer-driven-by-reqs-files";
+import InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
+import InsightsFromRawCodeGenerator from "../../components/insights/generators/raw-code-insights-generator";
+import { RawAnalyzerDrivenByReqsFiles } from "../../components/insights/generators/file-driven-insights-generator";
 import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 
 /**

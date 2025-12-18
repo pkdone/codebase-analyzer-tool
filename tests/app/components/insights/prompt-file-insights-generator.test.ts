@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { RawAnalyzerDrivenByReqsFiles } from "../../../../src/app/components/insights/file-driven/raw-analyzer-driven-by-reqs-files";
+import { RawAnalyzerDrivenByReqsFiles } from "../../../../src/app/components/insights/generators/file-driven-insights-generator";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 
 jest.mock("../../../../src/common/fs/directory-operations", () => ({
@@ -15,17 +15,6 @@ jest.mock("../../../../src/common/fs/file-operations", () => ({
 }));
 jest.mock("../../../../src/common/utils/directory-to-markdown", () => ({
   formatDirectoryAsMarkdown: jest.fn(async () => "CODEBLOCK"),
-  adaptFileProcessingConfig: jest.fn(
-    (config: {
-      FOLDER_IGNORE_LIST: readonly string[];
-      FILENAME_PREFIX_IGNORE: string;
-      BINARY_FILE_EXTENSION_IGNORE_LIST: readonly string[];
-    }) => ({
-      folderIgnoreList: config.FOLDER_IGNORE_LIST,
-      filenameIgnorePrefix: config.FILENAME_PREFIX_IGNORE,
-      binaryFileExtensionIgnoreList: config.BINARY_FILE_EXTENSION_IGNORE_LIST,
-    }),
-  ),
 }));
 jest.mock("../../../../src/common/llm/llm-router");
 

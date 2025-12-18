@@ -1,13 +1,13 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import type { InsightsProcessorSelector } from "../components/insights/insights-processor-selector";
-import type LLMStats from "../../common/llm/tracking/llm-stats";
-import { Task } from "./task.types";
-import { llmTokens } from "../di/tokens";
-import { coreTokens } from "../di/tokens";
-import { insightsTokens } from "../di/tokens";
-import { outputConfig } from "../components/reporting/config/output.config";
-import { clearDirectory } from "../../common/fs/directory-operations";
+import type { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
+import type LLMStats from "../../../common/llm/tracking/llm-stats";
+import { Task } from "../task.types";
+import { llmTokens } from "../../di/tokens";
+import { coreTokens } from "../../di/tokens";
+import { insightsTokens } from "../../di/tokens";
+import { outputConfig } from "../../components/reporting/config/output.config";
+import { clearDirectory } from "../../../common/fs/directory-operations";
 
 /**
  * Task to generate insights.

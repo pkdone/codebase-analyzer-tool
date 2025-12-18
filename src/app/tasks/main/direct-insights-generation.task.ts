@@ -1,14 +1,14 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { outputConfig } from "../components/reporting/config/output.config";
-import { clearDirectory } from "../../common/fs/directory-operations";
-import { RawAnalyzerDrivenByReqsFiles } from "../components/insights/generators/file-driven-insights-generator";
-import type LLMStats from "../../common/llm/tracking/llm-stats";
-import { Task } from "./task.types";
-import type { EnvVars } from "../env/env.types";
-import { llmTokens } from "../di/tokens";
-import { insightsTokens } from "../di/tokens";
-import { coreTokens } from "../di/tokens";
+import { outputConfig } from "../../components/reporting/config/output.config";
+import { clearDirectory } from "../../../common/fs/directory-operations";
+import { RawAnalyzerDrivenByReqsFiles } from "../../components/insights/generators/file-driven-insights-generator";
+import type LLMStats from "../../../common/llm/tracking/llm-stats";
+import { Task } from "../task.types";
+import type { EnvVars } from "../../env/env.types";
+import { llmTokens } from "../../di/tokens";
+import { insightsTokens } from "../../di/tokens";
+import { coreTokens } from "../../di/tokens";
 
 /**
  * Task to generate inline insights.

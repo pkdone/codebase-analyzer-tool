@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { z } from "zod";
-import { readFile } from "../../common/fs/file-operations";
-import { LLMModelQuality, LLMOutputFormat } from "../../common/llm/types/llm.types";
-import LLMRouter from "../../common/llm/llm-router";
-import { Task } from "./task.types";
-import { llmTokens } from "../di/tokens";
+import { readFile } from "../../../common/fs/file-operations";
+import { LLMModelQuality, LLMOutputFormat } from "../../../common/llm/types/llm.types";
+import LLMRouter from "../../../common/llm/llm-router";
+import { Task } from "../task.types";
+import { llmTokens } from "../../di/tokens";
 
 /**
  * File path to the sample prompt file

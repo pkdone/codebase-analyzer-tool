@@ -18,7 +18,7 @@ import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import {
   formatDirectoryAsMarkdown,
-  adaptFileProcessingConfig,
+  type DirectoryFormattingConfig,
 } from "../../../common/utils/directory-to-markdown";
 import { formatDateForFilename } from "../../../common/utils/date-utils";
 import { inputConfig } from "../../prompts/config/input.config";
@@ -48,10 +48,12 @@ export class RawAnalyzerDrivenByReqsFiles {
    */
   async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<string[]> {
     const prompts = await this.loadPrompts();
-    const codeBlocksContent = await formatDirectoryAsMarkdown(
-      srcDirPath,
-      adaptFileProcessingConfig(fileProcessingConfig),
-    );
+    const config: DirectoryFormattingConfig = {
+      folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
+      filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+      binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+    };
+    const codeBlocksContent = await formatDirectoryAsMarkdown(srcDirPath, config);
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {

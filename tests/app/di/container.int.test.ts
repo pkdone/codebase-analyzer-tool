@@ -4,8 +4,8 @@ import { coreTokens } from "../../../src/app/di/tokens";
 import { taskTokens } from "../../../src/app/di/tokens";
 import { repositoryTokens } from "../../../src/app/di/tokens";
 import { MongoDBConnectionManager } from "../../../src/common/mongodb/mdb-connection-manager";
-import { MongoConnectionTestTask } from "../../../src/app/tasks/mdb-connection-test.task";
-import { ReportGenerationTask } from "../../../src/app/tasks/report-generation.task";
+import { MongoConnectionTestTask } from "../../../src/app/tasks/dev/mdb-connection-test.task";
+import { ReportGenerationTask } from "../../../src/app/tasks/main/report-generation.task";
 import { MongoClient } from "mongodb";
 import {
   setupTestDatabase,

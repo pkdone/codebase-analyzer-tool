@@ -1,21 +1,21 @@
 import { injectable, inject } from "tsyringe";
-import LLMRouter from "../../../common/llm/llm-router";
-import { fileProcessingConfig } from "../../components/capture/config/file-processing.config";
-import { logOneLineWarning } from "../../../common/utils/logging";
-import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
-import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../di/tokens";
-import { llmTokens } from "../../di/tokens";
-import { coreTokens } from "../../di/tokens";
-import { insightsTuningConfig } from "./insights.config";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
-import { AppSummaryCategories } from "../../schemas/app-summaries.schema";
-import type { IInsightsProcessor } from "./insights-processor.interface";
-import { AppSummaryCategoryEnum } from "./insights.types";
-import { ICompletionStrategy } from "./completion-strategies/completion-strategy.interface";
-import { SinglePassCompletionStrategy } from "./completion-strategies/single-pass-completion-strategy";
-import { MapReduceCompletionStrategy } from "./completion-strategies/map-reduce-completion-strategy";
-import { chunkTextByTokenLimit } from "../../../common/llm/utils/text-chunking";
+import LLMRouter from "../../../../common/llm/llm-router";
+import { fileProcessingConfig } from "../../../components/capture/config/file-processing.config";
+import { logOneLineWarning } from "../../../../common/utils/logging";
+import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
+import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
+import { repositoryTokens } from "../../../di/tokens";
+import { llmTokens } from "../../../di/tokens";
+import { coreTokens } from "../../../di/tokens";
+import { insightsTuningConfig } from "../insights.config";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
+import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
+import type { IInsightsProcessor } from "../insights-processor.interface";
+import { AppSummaryCategoryEnum } from "../insights.types";
+import { ICompletionStrategy } from "../completion-strategies/completion-strategy.interface";
+import { SinglePassCompletionStrategy } from "../completion-strategies/single-pass-completion-strategy";
+import { MapReduceCompletionStrategy } from "../completion-strategies/map-reduce-completion-strategy";
+import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 
 /**
  * Generates metadata in database collections to capture application information,
