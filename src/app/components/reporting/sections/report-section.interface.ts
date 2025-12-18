@@ -41,7 +41,7 @@ export interface ReportSection {
    */
   prepareHtmlData(
     baseData: ReportData,
-    sectionData: unknown,
+    sectionData: Partial<ReportData>,
     htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null>;
 
@@ -52,5 +52,5 @@ export interface ReportSection {
    * @param sectionData The data returned by getData() for this section
    * @returns Array of filename/data pairs for JSON output, or empty array if no JSON files are needed
    */
-  prepareJsonData(baseData: ReportData, sectionData: unknown): PreparedJsonData[];
+  prepareJsonData(baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[];
 }

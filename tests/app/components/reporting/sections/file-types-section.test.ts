@@ -53,13 +53,12 @@ describe("FileTypesSection", () => {
         { fileType: "", files: 5, lines: 500 }, // Empty file type should become "unknown"
       ];
 
-      const mockReportData: Partial<ReportData> = {
-        fileTypesData: mockFileTypesData,
-      } as ReportData;
+      const mockReportData: Partial<ReportData> = {} as ReportData;
+      const mockSectionData: Partial<ReportData> = { fileTypesData: mockFileTypesData };
 
       const result = await section.prepareHtmlData(
         mockReportData as ReportData,
-        mockFileTypesData,
+        mockSectionData,
         "/output",
       );
 
@@ -78,8 +77,9 @@ describe("FileTypesSection", () => {
       ];
 
       const mockReportData: Partial<ReportData> = {} as ReportData;
+      const mockSectionData: Partial<ReportData> = { fileTypesData: mockFileTypesData };
 
-      const result = section.prepareJsonData(mockReportData as ReportData, mockFileTypesData);
+      const result = section.prepareJsonData(mockReportData as ReportData, mockSectionData);
 
       expect(result).toHaveLength(1);
       expect(result[0].filename).toBe("file-types.json");

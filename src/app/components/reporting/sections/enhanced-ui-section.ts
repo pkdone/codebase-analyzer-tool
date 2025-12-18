@@ -70,7 +70,7 @@ export class EnhancedUiSection implements ReportSection {
   // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     baseData: ReportData,
-    _sectionData: unknown,
+    _sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
     // Generate business processes flowcharts
@@ -102,7 +102,7 @@ export class EnhancedUiSection implements ReportSection {
     };
   }
 
-  prepareJsonData(_baseData: ReportData, _sectionData: unknown): PreparedJsonData[] {
+  prepareJsonData(_baseData: ReportData, _sectionData: Partial<ReportData>): PreparedJsonData[] {
     // This section doesn't generate separate JSON files
     return [];
   }

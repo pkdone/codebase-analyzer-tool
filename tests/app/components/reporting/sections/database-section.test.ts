@@ -86,8 +86,15 @@ describe("DatabaseSection", () => {
 
   describe("prepareJsonData", () => {
     it("should prepare JSON data for all database sections", () => {
-      const mockSectionData = {
-        dbInteractions: [{ path: "file" }],
+      const mockSectionData: Partial<ReportData> = {
+        dbInteractions: [
+          {
+            path: "file",
+            mechanism: "JDBC",
+            description: "test",
+            codeExample: "test",
+          },
+        ],
         procsAndTriggers: {
           procs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
           trigs: { total: 0, low: 0, medium: 0, high: 0, list: [] },
@@ -101,6 +108,30 @@ describe("DatabaseSection", () => {
       expect(result).toHaveLength(2);
       expect(result[0].filename).toBe("db-interactions.json");
       expect(result[1].filename).toBe("procs-and-triggers.json");
+    });
+
+    it("should return empty array when required fields are missing", () => {
+      const mockSectionData: Partial<ReportData> = {};
+
+      const mockReportData: Partial<ReportData> = {} as ReportData;
+
+      const result = section.prepareJsonData(mockReportData as ReportData, mockSectionData);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("should return null when required fields are missing in prepareHtmlData", async () => {
+      const mockSectionData: Partial<ReportData> = {};
+
+      const mockReportData: Partial<ReportData> = {} as ReportData;
+
+      const result = await section.prepareHtmlData(
+        mockReportData as ReportData,
+        mockSectionData,
+        "/output",
+      );
+
+      expect(result).toBeNull();
     });
   });
 });

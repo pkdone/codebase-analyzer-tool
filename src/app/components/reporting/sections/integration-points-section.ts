@@ -36,32 +36,36 @@ export class IntegrationPointsSection implements ReportSection {
   // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     _baseData: ReportData,
-    sectionData: unknown,
+    sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    const data = sectionData as {
-      integrationPoints: ReportData["integrationPoints"];
-    };
+    const { integrationPoints } = sectionData;
+
+    if (!integrationPoints) {
+      return null;
+    }
 
     const integrationPointsTableViewModel = new TableViewModel(
-      data.integrationPoints as unknown as DisplayableTableRow[],
+      integrationPoints as unknown as DisplayableTableRow[],
     );
 
     return {
-      integrationPoints: data.integrationPoints,
+      integrationPoints,
       integrationPointsTableViewModel,
     };
   }
 
-  prepareJsonData(_baseData: ReportData, sectionData: unknown): PreparedJsonData[] {
-    const data = sectionData as {
-      integrationPoints: ReportData["integrationPoints"];
-    };
+  prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
+    const { integrationPoints } = sectionData;
+
+    if (!integrationPoints) {
+      return [];
+    }
 
     return [
       {
         filename: reportSectionsConfig.jsonDataFiles.integrationPoints,
-        data: data.integrationPoints,
+        data: integrationPoints,
       },
     ];
   }

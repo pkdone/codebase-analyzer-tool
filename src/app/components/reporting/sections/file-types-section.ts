@@ -10,7 +10,6 @@ import { TableViewModel } from "../view-models/table-view-model";
 import type { PreparedHtmlReportData } from "../html-report-writer";
 import type { PreparedJsonData } from "../json-report-writer";
 import type { ReportData } from "../report-gen.types";
-import type { ProjectedFileTypesCountAndLines } from "../../../repositories/sources/sources.model";
 import { SECTION_NAMES } from "../reporting.constants";
 import path from "path";
 
@@ -55,17 +54,10 @@ export class FileTypesSection implements ReportSection {
   // eslint-disable-next-line @typescript-eslint/member-ordering
   async prepareHtmlData(
     _baseData: ReportData,
-    sectionData: unknown,
+    sectionData: Partial<ReportData>,
     htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    // Extract fileTypesData from sectionData, handling both object and array formats
-    let fileTypesData: ProjectedFileTypesCountAndLines[];
-    if (Array.isArray(sectionData)) {
-      fileTypesData = sectionData as ProjectedFileTypesCountAndLines[];
-    } else {
-      const partialData = sectionData as Partial<ReportData>;
-      fileTypesData = partialData.fileTypesData ?? [];
-    }
+    const fileTypesData = sectionData.fileTypesData ?? [];
     const processedFileTypesData = this.processFileTypesData(fileTypesData);
 
     // Generate pie chart
@@ -91,15 +83,8 @@ export class FileTypesSection implements ReportSection {
   }
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
-  prepareJsonData(_baseData: ReportData, sectionData: unknown): PreparedJsonData[] {
-    // Extract fileTypesData from sectionData, handling both object and array formats
-    let fileTypesData: ProjectedFileTypesCountAndLines[];
-    if (Array.isArray(sectionData)) {
-      fileTypesData = sectionData as ProjectedFileTypesCountAndLines[];
-    } else {
-      const partialData = sectionData as Partial<ReportData>;
-      fileTypesData = partialData.fileTypesData ?? [];
-    }
+  prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
+    const fileTypesData = sectionData.fileTypesData ?? [];
 
     return [
       {

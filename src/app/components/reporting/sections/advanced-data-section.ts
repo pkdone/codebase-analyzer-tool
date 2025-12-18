@@ -61,70 +61,86 @@ export class AdvancedDataSection implements ReportSection {
   // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     _baseData: ReportData,
-    sectionData: unknown,
+    sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    const data = sectionData as {
-      billOfMaterials: ReportData["billOfMaterials"];
-      codeQualitySummary: ReportData["codeQualitySummary"];
-      scheduledJobsSummary: ReportData["scheduledJobsSummary"];
-      moduleCoupling: ReportData["moduleCoupling"];
-      uiTechnologyAnalysis: ReportData["uiTechnologyAnalysis"];
-    };
+    const {
+      billOfMaterials,
+      codeQualitySummary,
+      scheduledJobsSummary,
+      moduleCoupling,
+      uiTechnologyAnalysis,
+    } = sectionData;
+
+    if (!billOfMaterials) {
+      return null;
+    }
 
     // Calculate BOM statistics
     const bomStatistics = {
-      total: data.billOfMaterials.length,
-      conflicts: data.billOfMaterials.filter((d) => d.hasConflict).length,
-      buildFiles: new Set(data.billOfMaterials.flatMap((d) => d.locations)).size,
+      total: billOfMaterials.length,
+      conflicts: billOfMaterials.filter((d) => d.hasConflict).length,
+      buildFiles: new Set(billOfMaterials.flatMap((d) => d.locations)).size,
     };
 
     // Calculate Scheduled Jobs statistics
-    const jobsStatistics = data.scheduledJobsSummary
+    const jobsStatistics = scheduledJobsSummary
       ? {
-          total: data.scheduledJobsSummary.totalJobs,
-          triggerTypesCount: data.scheduledJobsSummary.triggerTypes.length,
-          jobFilesCount: data.scheduledJobsSummary.jobFiles.length,
+          total: scheduledJobsSummary.totalJobs,
+          triggerTypesCount: scheduledJobsSummary.triggerTypes.length,
+          jobFilesCount: scheduledJobsSummary.jobFiles.length,
         }
       : null;
 
     // Calculate Module Coupling statistics
-    const couplingStatistics = data.moduleCoupling
+    const couplingStatistics = moduleCoupling
       ? {
-          totalModules: data.moduleCoupling.totalModules,
-          totalCouplings: data.moduleCoupling.totalCouplings,
-          highestCouplingCount: data.moduleCoupling.highestCouplingCount,
-          moduleDepth: data.moduleCoupling.moduleDepth,
+          totalModules: moduleCoupling.totalModules,
+          totalCouplings: moduleCoupling.totalCouplings,
+          highestCouplingCount: moduleCoupling.highestCouplingCount,
+          moduleDepth: moduleCoupling.moduleDepth,
         }
       : null;
 
     return {
-      billOfMaterials: data.billOfMaterials,
+      billOfMaterials,
       bomStatistics,
-      codeQualitySummary: data.codeQualitySummary,
-      scheduledJobsSummary: data.scheduledJobsSummary,
+      codeQualitySummary: codeQualitySummary ?? null,
+      scheduledJobsSummary: scheduledJobsSummary ?? null,
       jobsStatistics,
-      moduleCoupling: data.moduleCoupling,
+      moduleCoupling: moduleCoupling ?? null,
       couplingStatistics,
-      uiTechnologyAnalysis: data.uiTechnologyAnalysis,
+      uiTechnologyAnalysis: uiTechnologyAnalysis ?? null,
     };
   }
 
-  prepareJsonData(_baseData: ReportData, sectionData: unknown): PreparedJsonData[] {
-    const data = sectionData as {
-      billOfMaterials: ReportData["billOfMaterials"];
-      codeQualitySummary: ReportData["codeQualitySummary"];
-      scheduledJobsSummary: ReportData["scheduledJobsSummary"];
-      moduleCoupling: ReportData["moduleCoupling"];
-      uiTechnologyAnalysis: ReportData["uiTechnologyAnalysis"];
-    };
+  prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
+    const {
+      billOfMaterials,
+      codeQualitySummary,
+      scheduledJobsSummary,
+      moduleCoupling,
+      uiTechnologyAnalysis,
+    } = sectionData;
 
-    return [
-      { filename: "bill-of-materials.json", data: data.billOfMaterials },
-      { filename: "code-quality-summary.json", data: data.codeQualitySummary },
-      { filename: "scheduled-jobs-summary.json", data: data.scheduledJobsSummary },
-      { filename: "module-coupling.json", data: data.moduleCoupling },
-      { filename: "ui-technology-analysis.json", data: data.uiTechnologyAnalysis },
-    ];
+    const result: PreparedJsonData[] = [];
+
+    if (billOfMaterials) {
+      result.push({ filename: "bill-of-materials.json", data: billOfMaterials });
+    }
+    if (codeQualitySummary !== undefined) {
+      result.push({ filename: "code-quality-summary.json", data: codeQualitySummary });
+    }
+    if (scheduledJobsSummary !== undefined) {
+      result.push({ filename: "scheduled-jobs-summary.json", data: scheduledJobsSummary });
+    }
+    if (moduleCoupling !== undefined) {
+      result.push({ filename: "module-coupling.json", data: moduleCoupling });
+    }
+    if (uiTechnologyAnalysis !== undefined) {
+      result.push({ filename: "ui-technology-analysis.json", data: uiTechnologyAnalysis });
+    }
+
+    return result;
   }
 }

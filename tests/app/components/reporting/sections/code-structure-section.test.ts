@@ -57,10 +57,11 @@ describe("CodeStructureSection", () => {
       ];
 
       const mockReportData: Partial<ReportData> = {} as ReportData;
+      const mockSectionData: Partial<ReportData> = { topLevelJavaClasses: mockClasses };
 
       const result = await section.prepareHtmlData(
         mockReportData as ReportData,
-        mockClasses,
+        mockSectionData,
         "/output",
       );
 
@@ -81,8 +82,9 @@ describe("CodeStructureSection", () => {
       ];
 
       const mockReportData: Partial<ReportData> = {} as ReportData;
+      const mockSectionData: Partial<ReportData> = { topLevelJavaClasses: mockClasses };
 
-      const result = section.prepareJsonData(mockReportData as ReportData, mockClasses);
+      const result = section.prepareJsonData(mockReportData as ReportData, mockSectionData);
 
       expect(result).toHaveLength(1);
       expect(result[0].filename).toBe("top-level-java-classes.json");

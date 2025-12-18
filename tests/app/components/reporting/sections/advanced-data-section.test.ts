@@ -175,5 +175,29 @@ describe("AdvancedDataSection", () => {
       expect(result[3].filename).toBe("module-coupling.json");
       expect(result[4].filename).toBe("ui-technology-analysis.json");
     });
+
+    it("should return empty array when billOfMaterials is missing", () => {
+      const mockSectionData: Partial<ReportData> = {};
+
+      const mockReportData: Partial<ReportData> = {} as ReportData;
+
+      const result = section.prepareJsonData(mockReportData as ReportData, mockSectionData);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("should return null when billOfMaterials is missing in prepareHtmlData", async () => {
+      const mockSectionData: Partial<ReportData> = {};
+
+      const mockReportData: Partial<ReportData> = {} as ReportData;
+
+      const result = await section.prepareHtmlData(
+        mockReportData as ReportData,
+        mockSectionData,
+        "/output",
+      );
+
+      expect(result).toBeNull();
+    });
   });
 });

@@ -42,50 +42,49 @@ export class DatabaseSection implements ReportSection {
   // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     _baseData: ReportData,
-    sectionData: unknown,
+    sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
-    const data = sectionData as {
-      dbInteractions: ReportData["dbInteractions"];
-      procsAndTriggers: ReportData["procsAndTriggers"];
-    };
+    const { dbInteractions, procsAndTriggers } = sectionData;
+
+    if (!dbInteractions || !procsAndTriggers) {
+      return null;
+    }
 
     // Create view model for database interactions
     const dbInteractionsTableViewModel = new TableViewModel(
-      data.dbInteractions as unknown as DisplayableTableRow[],
+      dbInteractions as unknown as DisplayableTableRow[],
     );
 
     // Create view model for stored procedures and triggers
-    const combinedProcsTrigsList = [
-      ...data.procsAndTriggers.procs.list,
-      ...data.procsAndTriggers.trigs.list,
-    ];
+    const combinedProcsTrigsList = [...procsAndTriggers.procs.list, ...procsAndTriggers.trigs.list];
     const procsAndTriggersTableViewModel = new TableViewModel(
       combinedProcsTrigsList as unknown as DisplayableTableRow[],
     );
 
     return {
-      dbInteractions: data.dbInteractions,
-      procsAndTriggers: data.procsAndTriggers,
+      dbInteractions,
+      procsAndTriggers,
       dbInteractionsTableViewModel,
       procsAndTriggersTableViewModel,
     };
   }
 
-  prepareJsonData(_baseData: ReportData, sectionData: unknown): PreparedJsonData[] {
-    const data = sectionData as {
-      dbInteractions: ReportData["dbInteractions"];
-      procsAndTriggers: ReportData["procsAndTriggers"];
-    };
+  prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
+    const { dbInteractions, procsAndTriggers } = sectionData;
+
+    if (!dbInteractions || !procsAndTriggers) {
+      return [];
+    }
 
     return [
       {
         filename: reportSectionsConfig.jsonDataFiles.dbInteractions,
-        data: data.dbInteractions,
+        data: dbInteractions,
       },
       {
         filename: reportSectionsConfig.jsonDataFiles.procsAndTriggers,
-        data: data.procsAndTriggers,
+        data: procsAndTriggers,
       },
     ];
   }

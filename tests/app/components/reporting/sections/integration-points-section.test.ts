@@ -86,13 +86,14 @@ describe("IntegrationPointsSection", () => {
 
   describe("prepareJsonData", () => {
     it("should prepare JSON data for integration points", () => {
-      const mockSectionData = {
+      const mockSectionData: Partial<ReportData> = {
         integrationPoints: [
           {
             namespace: "com.example.api",
             filepath: "src/api/controller.ts",
             mechanism: "REST" as const,
             name: "UserController",
+            description: "REST API for users",
           },
         ],
       };
@@ -104,6 +105,30 @@ describe("IntegrationPointsSection", () => {
       expect(result).toHaveLength(1);
       expect(result[0].filename).toBe("integration-points.json");
       expect(result[0].data).toEqual(mockSectionData.integrationPoints);
+    });
+
+    it("should return empty array when integrationPoints is missing", () => {
+      const mockSectionData: Partial<ReportData> = {};
+
+      const mockReportData: Partial<ReportData> = {} as ReportData;
+
+      const result = section.prepareJsonData(mockReportData as ReportData, mockSectionData);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("should return null when integrationPoints is missing in prepareHtmlData", async () => {
+      const mockSectionData: Partial<ReportData> = {};
+
+      const mockReportData: Partial<ReportData> = {} as ReportData;
+
+      const result = await section.prepareHtmlData(
+        mockReportData as ReportData,
+        mockSectionData,
+        "/output",
+      );
+
+      expect(result).toBeNull();
     });
   });
 });
