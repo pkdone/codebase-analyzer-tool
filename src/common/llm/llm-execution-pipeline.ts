@@ -10,8 +10,8 @@ import {
 } from "./types/llm.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
-import { FallbackStrategy } from "./strategies/fallback-strategy";
-import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
+import { determineNextAction } from "./strategies/fallback-strategy";
+import { adaptPromptFromResponse } from "./strategies/prompt-adaptation-strategy";
 import LLMStats from "./tracking/llm-stats";
 import { hasSignificantSanitizationSteps } from "./json-processing/sanitizers";
 import type { LLMExecutionResult } from "./types/llm-execution-result.types";
@@ -41,8 +41,6 @@ export interface LLMExecutionParams<TOptions extends LLMCompletionOptions = LLMC
 export class LLMExecutionPipeline {
   constructor(
     private readonly retryStrategy: RetryStrategy,
-    private readonly fallbackStrategy: FallbackStrategy,
-    private readonly promptAdaptationStrategy: PromptAdaptationStrategy,
     private readonly llmStats: LLMStats,
   ) {}
 
@@ -183,7 +181,7 @@ export class LLMExecutionPipeline {
         break;
       }
 
-      const nextAction = this.fallbackStrategy.determineNextAction(
+      const nextAction = determineNextAction(
         llmResponse,
         llmFunctionIndex,
         llmFunctions.length,
@@ -193,11 +191,7 @@ export class LLMExecutionPipeline {
       if (nextAction.shouldTerminate) break;
 
       if (nextAction.shouldCropPrompt && llmResponse) {
-        currentPrompt = this.promptAdaptationStrategy.adaptPromptFromResponse(
-          currentPrompt,
-          llmResponse,
-          modelsMetadata,
-        );
+        currentPrompt = adaptPromptFromResponse(currentPrompt, llmResponse, modelsMetadata);
         this.llmStats.recordCrop();
 
         if (currentPrompt.trim() === "") {

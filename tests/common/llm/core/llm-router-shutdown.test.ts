@@ -95,15 +95,9 @@ describe("LLMRouter Shutdown Behavior", () => {
     };
 
     const mockRetryStrategy = {} as any;
-    const mockFallbackStrategy = {} as any;
-    const mockPromptAdaptationStrategy = {} as any;
     const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
-    const pipeline = new LLMExecutionPipeline(
-      mockRetryStrategy,
-      mockFallbackStrategy,
-      mockPromptAdaptationStrategy,
-      mockStats,
-    );
+    // Strategies are now pure functions, not classes
+    const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
     const errorLogger = new LLMErrorLogger(config.errorLogging);
     const router = new LLMRouter(config, pipeline, errorLogger);
 
@@ -184,15 +178,9 @@ describe("LLMRouter Shutdown Behavior", () => {
     };
 
     const mockRetryStrategy = {} as any;
-    const mockFallbackStrategy = {} as any;
-    const mockPromptAdaptationStrategy = {} as any;
     const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
-    const pipeline = new LLMExecutionPipeline(
-      mockRetryStrategy,
-      mockFallbackStrategy,
-      mockPromptAdaptationStrategy,
-      mockStats,
-    );
+    // Strategies are now pure functions, not classes
+    const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
     const errorLogger = new LLMErrorLogger(config.errorLogging);
     const router = new LLMRouter(config, pipeline, errorLogger);
 
@@ -275,15 +263,9 @@ describe("LLMRouter Shutdown Behavior", () => {
     };
 
     const mockRetryStrategy = {} as any;
-    const mockFallbackStrategy = {} as any;
-    const mockPromptAdaptationStrategy = {} as any;
     const mockStats = { recordSuccess: jest.fn(), recordFailure: jest.fn() } as any;
-    const pipeline = new LLMExecutionPipeline(
-      mockRetryStrategy,
-      mockFallbackStrategy,
-      mockPromptAdaptationStrategy,
-      mockStats,
-    );
+    // Strategies are now pure functions, not classes
+    const pipeline = new LLMExecutionPipeline(mockRetryStrategy, mockStats);
     const errorLogger = new LLMErrorLogger(config.errorLogging);
     const router = new LLMRouter(config, pipeline, errorLogger);
 

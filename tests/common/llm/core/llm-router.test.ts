@@ -12,9 +12,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import LLMStats from "../../../../src/common/llm/tracking/llm-stats";
-import { PromptAdaptationStrategy } from "../../../../src/common/llm/strategies/prompt-adaptation-strategy";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
-import { FallbackStrategy } from "../../../../src/common/llm/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import type { EnvVars } from "../../../../src/app/env/env.types";
 import { describe, test, expect, jest } from "@jest/globals";
@@ -217,16 +215,9 @@ describe("LLM Router tests", () => {
 
     // Create real instances for dependency injection testing
     const mockLLMStats = new LLMStats();
-    const mockPromptAdaptationStrategy = new PromptAdaptationStrategy();
     const mockRetryStrategy = new RetryStrategy(mockLLMStats);
-    const mockFallbackStrategy = new FallbackStrategy();
-    // Create execution pipeline with strategies
-    const mockExecutionPipeline = new LLMExecutionPipeline(
-      mockRetryStrategy,
-      mockFallbackStrategy,
-      mockPromptAdaptationStrategy,
-      mockLLMStats,
-    );
+    // Create execution pipeline (strategies are now pure functions, not classes)
+    const mockExecutionPipeline = new LLMExecutionPipeline(mockRetryStrategy, mockLLMStats);
 
     const mockErrorLogger = createMockErrorLogger();
     const mockConfig: LLMModuleConfig = {

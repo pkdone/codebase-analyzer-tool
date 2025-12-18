@@ -1,4 +1,4 @@
-import { PromptAdaptationStrategy } from "../../../../../src/common/llm/strategies/prompt-adaptation-strategy";
+import { adaptPromptFromResponse } from "../../../../../src/common/llm/strategies/prompt-adaptation-strategy";
 import {
   LLMFunctionResponse,
   LLMResponseStatus,
@@ -16,12 +16,10 @@ jest.mock("../../../../../src/common/llm/config/llm.config", () => ({
   },
 }));
 
-describe("PromptAdaptationStrategy", () => {
-  let strategy: PromptAdaptationStrategy;
+describe("adaptPromptFromResponse", () => {
   let modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
 
   beforeEach(() => {
-    strategy = new PromptAdaptationStrategy();
     modelsMetadata = {
       GPT_COMPLETIONS_GPT4: {
         modelKey: "GPT_COMPLETIONS_GPT4",
@@ -47,7 +45,7 @@ describe("PromptAdaptationStrategy", () => {
       },
     };
 
-    const result = strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
     expect(result.length).toBeLessThan(prompt.length);
     expect(result).toBe(prompt.substring(0, result.length));
   });
@@ -62,7 +60,7 @@ describe("PromptAdaptationStrategy", () => {
       // tokensUsage is missing
     };
 
-    expect(() => strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata)).toThrow(
+    expect(() => adaptPromptFromResponse(prompt, llmResponse, modelsMetadata)).toThrow(
       "LLM response indicated token limit exceeded but `tokensUsage` is not present",
     );
   });
@@ -81,7 +79,7 @@ describe("PromptAdaptationStrategy", () => {
       },
     };
 
-    const result = strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
     expect(result).toBe("");
   });
 
@@ -99,7 +97,7 @@ describe("PromptAdaptationStrategy", () => {
       },
     };
 
-    const result = strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
     expect(result).toBe("   ");
   });
 
@@ -117,7 +115,7 @@ describe("PromptAdaptationStrategy", () => {
       },
     };
 
-    const result = strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
     expect(result.length).toBeLessThan(prompt.length);
     expect(result).toBe(prompt.substring(0, result.length));
   });
@@ -137,7 +135,7 @@ describe("PromptAdaptationStrategy", () => {
       },
     };
 
-    const result = strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
     expect(result.length).toBeLessThan(prompt.length);
     expect(result).toBe(prompt.substring(0, result.length));
   });
@@ -156,7 +154,7 @@ describe("PromptAdaptationStrategy", () => {
       },
     };
 
-    const result = strategy.adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
+    const result = adaptPromptFromResponse(prompt, llmResponse, modelsMetadata);
     // The algorithm applies the maximum reduction ratio (0.85) when total tokens check is triggered
     // Expected reduction: 8192 / (100 + 50 + 1) = ~54.2, but capped at 0.85 maximum
     const expectedLength = Math.floor(prompt.length * 0.85);

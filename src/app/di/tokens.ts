@@ -58,9 +58,7 @@ export type InsightsToken = keyof typeof insightsTokens;
 // LLM module tokens
 export const llmTokens = {
   LLMStats: Symbol("LLMStats"),
-  PromptAdaptationStrategy: Symbol("PromptAdaptationStrategy"),
   RetryStrategy: Symbol("RetryStrategy"),
-  FallbackStrategy: Symbol("FallbackStrategy"),
   LLMExecutionPipeline: Symbol("LLMExecutionPipeline"),
   LLMRouter: Symbol("LLMRouter"),
   LLMModelFamily: Symbol("LLMModelFamily"),

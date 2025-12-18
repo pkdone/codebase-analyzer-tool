@@ -30,7 +30,6 @@ import { databaseConfig } from "../../config/database.config";
 
 // LLM strategy and pipeline imports
 import { RetryStrategy } from "../../../common/llm/strategies/retry-strategy";
-import { FallbackStrategy } from "../../../common/llm/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../../common/llm/llm-execution-pipeline";
 
 // Database component imports
@@ -75,8 +74,9 @@ function registerRepositories(): void {
  */
 function registerComponents(): void {
   // Register LLM strategies and pipeline components (always register since they may be needed)
+  // Note: FallbackStrategy and PromptAdaptationStrategy are now pure functions, not classes,
+  // so they don't need to be registered in the DI container
   container.registerSingleton(llmTokens.RetryStrategy, RetryStrategy);
-  container.registerSingleton(llmTokens.FallbackStrategy, FallbackStrategy);
   container.registerSingleton(llmTokens.LLMExecutionPipeline, LLMExecutionPipeline);
 
   // Register database components

@@ -1,10 +1,8 @@
 import "reflect-metadata";
-import { jest, describe, test, expect, beforeEach } from "@jest/globals";
+import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMStats from "../../../../src/common/llm/tracking/llm-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
-import { FallbackStrategy } from "../../../../src/common/llm/strategies/fallback-strategy";
-import { PromptAdaptationStrategy } from "../../../../src/common/llm/strategies/prompt-adaptation-strategy";
 import {
   LLMContext,
   LLMPurpose,
@@ -27,8 +25,6 @@ function createMockLLMFunction(response: LLMFunctionResponse): LLMFunction {
 describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
   let llmStats: LLMStats;
   let retryStrategy: RetryStrategy;
-  let fallbackStrategy: FallbackStrategy;
-  let promptAdaptationStrategy: PromptAdaptationStrategy;
   let pipeline: LLMExecutionPipeline;
   let recordJsonMutatedSpy: jest.SpiedFunction<() => void>;
 
@@ -41,16 +37,9 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
     // Create real instances
     llmStats = new LLMStats();
     retryStrategy = new RetryStrategy(llmStats);
-    fallbackStrategy = new FallbackStrategy();
-    promptAdaptationStrategy = new PromptAdaptationStrategy();
 
-    // Create the pipeline
-    pipeline = new LLMExecutionPipeline(
-      retryStrategy,
-      fallbackStrategy,
-      promptAdaptationStrategy,
-      llmStats,
-    );
+    // Create the pipeline (strategies are now pure functions, not classes)
+    pipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
 
     // Spy on the recordJsonMutated method
     recordJsonMutatedSpy = jest.spyOn(llmStats, "recordJsonMutated");

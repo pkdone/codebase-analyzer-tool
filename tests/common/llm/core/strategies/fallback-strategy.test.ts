@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { FallbackStrategy } from "../../../../../src/common/llm/strategies/fallback-strategy";
+import { determineNextAction } from "../../../../../src/common/llm/strategies/fallback-strategy";
 import {
   LLMFunctionResponse,
   LLMContext,
@@ -7,21 +7,15 @@ import {
   LLMPurpose,
   LLMResponseTokensUsage,
 } from "../../../../../src/common/llm/types/llm.types";
-import { describe, test, expect, jest, beforeEach } from "@jest/globals";
+import { describe, test, expect, jest } from "@jest/globals";
 
 // Mock the logging module
 jest.mock("../../../../../src/common/utils/logging", () => ({
   logOneLineWarning: jest.fn(),
 }));
 
-describe("FallbackStrategy", () => {
-  let fallbackStrategy: FallbackStrategy;
-
-  beforeEach(() => {
-    fallbackStrategy = new FallbackStrategy();
-  });
-
-  describe("determineNextAction", () => {
+describe("determineNextAction", () => {
+  describe("fallback decision logic", () => {
     const context: LLMContext = {
       resource: "test-resource",
       purpose: LLMPurpose.COMPLETIONS,
@@ -166,7 +160,7 @@ describe("FallbackStrategy", () => {
     test.each(testCases)(
       "$description",
       ({ llmResponse, currentLLMIndex, totalLLMCount, expected }) => {
-        const result = fallbackStrategy.determineNextAction(
+        const result = determineNextAction(
           llmResponse,
           currentLLMIndex,
           totalLLMCount,

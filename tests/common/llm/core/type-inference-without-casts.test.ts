@@ -10,9 +10,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import LLMStats from "../../../../src/common/llm/tracking/llm-stats";
-import { PromptAdaptationStrategy } from "../../../../src/common/llm/strategies/prompt-adaptation-strategy";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
-import { FallbackStrategy } from "../../../../src/common/llm/strategies/fallback-strategy";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import type { EnvVars } from "../../../../src/app/env/env.types";
 import { describe, test, expect, jest, beforeEach } from "@jest/globals";
@@ -135,14 +133,8 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
     // Create dependencies
     mockStats = new LLMStats();
     const retryStrategy = new RetryStrategy(mockStats);
-    const fallbackStrategy = new FallbackStrategy();
-    const promptAdaptationStrategy = new PromptAdaptationStrategy();
-    executionPipeline = new LLMExecutionPipeline(
-      retryStrategy,
-      fallbackStrategy,
-      promptAdaptationStrategy,
-      mockStats,
-    );
+    // Strategies are now pure functions, not classes
+    executionPipeline = new LLMExecutionPipeline(retryStrategy, mockStats);
 
     // Create router
     const mockConfig: LLMModuleConfig = {

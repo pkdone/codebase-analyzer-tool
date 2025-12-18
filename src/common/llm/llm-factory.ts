@@ -2,8 +2,6 @@ import { LLMModuleConfig } from "./config/llm-module-config.types";
 import LLMRouter from "./llm-router";
 import { LLMExecutionPipeline } from "./llm-execution-pipeline";
 import { RetryStrategy } from "./strategies/retry-strategy";
-import { FallbackStrategy } from "./strategies/fallback-strategy";
-import { PromptAdaptationStrategy } from "./strategies/prompt-adaptation-strategy";
 import LLMStats from "./tracking/llm-stats";
 import { LLMErrorLogger } from "./tracking/llm-error-logger";
 
@@ -44,15 +42,8 @@ export function createLLMRouter(config: LLMModuleConfig): LLMRouterComponents {
   const errorLogger = new LLMErrorLogger(config.errorLogging);
   const llmStats = new LLMStats();
   const retryStrategy = new RetryStrategy(llmStats);
-  const fallbackStrategy = new FallbackStrategy();
-  const promptAdaptationStrategy = new PromptAdaptationStrategy();
 
-  const executionPipeline = new LLMExecutionPipeline(
-    retryStrategy,
-    fallbackStrategy,
-    promptAdaptationStrategy,
-    llmStats,
-  );
+  const executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
 
   const router = new LLMRouter(config, executionPipeline, errorLogger);
 
