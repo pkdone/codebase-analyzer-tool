@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { fileTypePromptMetadata } from "../../../../src/app/prompts/definitions/sources";
 import { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
-import { FILE_TYPE_MAPPING_RULES } from "../../../../src/app/config/file-types.config";
+import { FILE_TYPE_MAPPING_RULES } from "../../../../src/app/components/capture/config/file-types.config";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer";
 
@@ -144,7 +144,7 @@ describe("File Handler Configuration", () => {
     test("should have corresponding prompt templates for all canonical types", () => {
       // Get all unique canonical types from the mapping rules
       const canonicalTypes = new Set<
-        import("../../../../src/app/config/file-types.config").CanonicalFileType
+        import("../../../../src/app/components/capture/config/file-types.config").CanonicalFileType
       >(FILE_TYPE_MAPPING_RULES.map((rule) => rule.type));
 
       for (const canonicalType of canonicalTypes) {

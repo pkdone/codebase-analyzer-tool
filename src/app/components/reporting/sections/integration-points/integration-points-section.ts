@@ -1,13 +1,13 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../../../di/tokens";
-import { IntegrationPointsDataProvider } from "../data-providers/integration-points-data-provider";
-import { TableViewModel, type DisplayableTableRow } from "../view-models/table-view-model";
-import { reportSectionsConfig } from "../report-sections.config";
-import type { PreparedHtmlReportData } from "../html-report-writer";
-import type { PreparedJsonData } from "../json-report-writer";
-import type { ReportData } from "../report-gen.types";
-import { SECTION_NAMES } from "../reporting.constants";
+import type { ReportSection } from "../report-section.interface";
+import { reportingTokens } from "../../../../di/tokens";
+import { IntegrationPointsDataProvider } from "./integration-points-data-provider";
+import { TableViewModel, type DisplayableTableRow } from "../../view-models/table-view-model";
+import { reportSectionsConfig } from "../../report-sections.config";
+import type { PreparedHtmlReportData } from "../../html-report-writer";
+import type { PreparedJsonData } from "../../json-report-writer";
+import type { ReportData } from "../../report-gen.types";
+import { SECTION_NAMES } from "../../reporting.constants";
 
 /**
  * Report section for integration points (APIs, queues, topics, SOAP services).

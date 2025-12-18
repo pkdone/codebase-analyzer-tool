@@ -9,7 +9,7 @@ import {
   technologiesSchema,
 } from "../../../schemas/app-summaries.schema";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
-import { buildInstructionBlock } from "../../prompt-utils";
+import { buildInstructionBlock } from "../../utils/prompt-utils";
 import { z } from "zod";
 
 /**

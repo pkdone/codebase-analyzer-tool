@@ -1,4 +1,4 @@
-import { zodToJsonSchemaForMDB } from "../../../src/common/mongodb/zod-to-mdb-json-schema";
+import { zodToJsonSchemaForMDB } from "../../../src/common/schema/zod-to-mdb-json-schema";
 import { z } from "zod";
 
 describe("zod-to-mdb-json-schema - immutability", () => {

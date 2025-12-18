@@ -1,7 +1,7 @@
 import { injectable } from "tsyringe";
 import path from "path";
 import ejs from "ejs";
-import { outputConfig } from "../../config/output.config";
+import { outputConfig } from "./config/output.config";
 import { writeFile } from "../../../common/fs/file-operations";
 import type {
   AppStatistics,

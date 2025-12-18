@@ -3,7 +3,7 @@ import { MongoClient, Collection, AggregationCursor, FindCursor } from "mongodb"
 import { Double } from "bson";
 import SourcesRepositoryImpl from "../../../../src/app/repositories/sources/sources.repository";
 import { SourceRecord } from "../../../../src/app/repositories/sources/sources.model";
-import { databaseConfig } from "../../../../src/app/config/database.config";
+import { databaseConfig } from "../../../../src/app/repositories/config/database.config";
 import * as logging from "../../../../src/common/utils/logging";
 import * as mdbErrorUtils from "../../../../src/common/mongodb/mdb-error-utils";
 

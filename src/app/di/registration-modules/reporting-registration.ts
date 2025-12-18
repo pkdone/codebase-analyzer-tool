@@ -9,24 +9,24 @@ import { PieChartGenerator } from "../../components/reporting/generators/png/pie
 import { FlowchartSvgGenerator } from "../../components/reporting/generators/svg/flowchart-svg-generator";
 import { DomainModelSvgGenerator } from "../../components/reporting/generators/svg/domain-model-svg-generator";
 import { ArchitectureSvgGenerator } from "../../components/reporting/generators/svg/architecture-svg-generator";
-import { DatabaseReportDataProvider } from "../../components/reporting/data-providers/database-report-data-provider";
-import { IntegrationPointsDataProvider } from "../../components/reporting/data-providers/integration-points-data-provider";
-import { CodeStructureDataProvider } from "../../components/reporting/data-providers/code-structure-data-provider";
-import { AppStatisticsDataProvider } from "../../components/reporting/data-providers/app-statistics-data-provider";
-import { AppSummaryCategoriesProvider } from "../../components/reporting/data-providers/categories-data-provider";
-import { DomainModelDataProvider } from "../../components/reporting/data-providers/domain-model-data-provider";
-import { BomDataProvider } from "../../components/reporting/data-providers/bom-data-provider";
-import { CodeQualityDataProvider } from "../../components/reporting/data-providers/code-quality-data-provider";
-import { JobDataProvider } from "../../components/reporting/data-providers/job-data-provider";
-import { ModuleCouplingDataProvider } from "../../components/reporting/data-providers/module-coupling-data-provider";
-import { UiDataProvider } from "../../components/reporting/data-providers/ui-data-provider";
+import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
+import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
+import { CodeStructureDataProvider } from "../../components/reporting/sections/code-structure/code-structure-data-provider";
+import { AppStatisticsDataProvider } from "../../components/reporting/sections/advanced-data/app-statistics-data-provider";
+import { AppSummaryCategoriesProvider } from "../../components/reporting/sections/file-types/categories-data-provider";
+import { DomainModelDataProvider } from "../../components/reporting/sections/advanced-data/domain-model-data-provider";
+import { BomDataProvider } from "../../components/reporting/sections/advanced-data/bom-data-provider";
+import { CodeQualityDataProvider } from "../../components/reporting/sections/advanced-data/code-quality-data-provider";
+import { JobDataProvider } from "../../components/reporting/sections/advanced-data/job-data-provider";
+import { ModuleCouplingDataProvider } from "../../components/reporting/sections/advanced-data/module-coupling-data-provider";
+import { UiDataProvider } from "../../components/reporting/sections/advanced-data/ui-data-provider";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
-import { FileTypesSection } from "../../components/reporting/sections/file-types-section";
-import { DatabaseSection } from "../../components/reporting/sections/database-section";
-import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points-section";
-import { CodeStructureSection } from "../../components/reporting/sections/code-structure-section";
-import { EnhancedUiSection } from "../../components/reporting/sections/enhanced-ui-section";
-import { AdvancedDataSection } from "../../components/reporting/sections/advanced-data-section";
+import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
+import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
+import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
+import { CodeStructureSection } from "../../components/reporting/sections/code-structure/code-structure-section";
+import { EnhancedUiSection } from "../../components/reporting/sections/enhanced-ui/enhanced-ui-section";
+import { AdvancedDataSection } from "../../components/reporting/sections/advanced-data/advanced-data-section";
 
 /**
  * Register reporting-related components in the DI container.

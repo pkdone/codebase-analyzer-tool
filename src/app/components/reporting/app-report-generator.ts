@@ -2,8 +2,8 @@ import { injectable, inject, injectAll } from "tsyringe";
 import { reportingTokens, repositoryTokens } from "../../di/tokens";
 import { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-writer";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
-import { AppStatisticsDataProvider } from "./data-providers/app-statistics-data-provider";
-import { AppSummaryCategoriesProvider } from "./data-providers/categories-data-provider";
+import { AppStatisticsDataProvider } from "./sections/advanced-data/app-statistics-data-provider";
+import { AppSummaryCategoriesProvider } from "./sections/file-types/categories-data-provider";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { ReportData } from "./report-gen.types";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
@@ -12,7 +12,7 @@ import { reportSectionsConfig } from "./report-sections.config";
 import type { ReportSection } from "./sections/report-section.interface";
 import path from "path";
 import { promises as fs } from "fs";
-import { outputConfig } from "../../config/output.config";
+import { outputConfig } from "./config/output.config";
 
 /**
  * Class responsible for orchestrating report generation using a modular section-based architecture.

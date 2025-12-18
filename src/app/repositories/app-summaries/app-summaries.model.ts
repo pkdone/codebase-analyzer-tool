@@ -8,7 +8,7 @@ import { nameDescSchema, appSummarySchema } from "../../schemas/app-summaries.sc
 import {
   zBsonObjectId,
   zodToJsonSchemaForMDB,
-} from "../../../common/mongodb/zod-to-mdb-json-schema";
+} from "../../../common/schema/zod-to-mdb-json-schema";
 
 /**
  * Type for app summary record without _id

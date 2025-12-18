@@ -6,7 +6,7 @@ import {
   HtmlReportWriter,
   PreparedHtmlReportData,
 } from "../../../../src/app/components/reporting/html-report-writer";
-import { outputConfig } from "../../../../src/app/config/output.config";
+import { outputConfig } from "../../../../src/app/components/reporting/config/output.config";
 import { writeFile } from "../../../../src/common/fs/file-operations";
 
 // Mock dependencies

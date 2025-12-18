@@ -5,7 +5,7 @@ import {
   FILENAME_TO_TYPE_MAP,
   EXTENSION_TO_TYPE_MAP,
   type CanonicalFileType,
-} from "../../../src/app/config/file-types.config";
+} from "../../../src/app/components/capture/config/file-types.config";
 
 describe("file-types.config", () => {
   describe("CANONICAL_FILE_TYPES", () => {

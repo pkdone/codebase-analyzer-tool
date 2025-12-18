@@ -17,7 +17,7 @@ import {
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
 } from "./sources.model";
-import { databaseConfig } from "../../config/database.config";
+import { databaseConfig } from "../config/database.config";
 import { logError } from "../../../common/utils/logging";
 import { logMongoValidationErrorIfPresent } from "../../../common/mongodb/mdb-error-utils";
 import { coreTokens } from "../../di/tokens";

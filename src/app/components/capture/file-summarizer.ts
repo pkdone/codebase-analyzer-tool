@@ -12,8 +12,8 @@ import {
   FILE_TYPE_MAPPING_RULES,
   FILENAME_TO_TYPE_MAP,
   EXTENSION_TO_TYPE_MAP,
-} from "../../config/file-types.config";
-import { getSchemaSpecificSanitizerConfig } from "../../config/sanitizer.config";
+} from "./config/file-types.config";
+import { getSchemaSpecificSanitizerConfig } from "../../prompts/config/schema-specific-sanitizer.config";
 
 /**
  * Type for source summary (full schema).

@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { IntegrationPointsDataProvider } from "../../../../../src/app/components/reporting/data-providers/integration-points-data-provider";
+import { IntegrationPointsDataProvider } from "../../../../../src/app/components/reporting/sections/integration-points/integration-points-data-provider";
 import type { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 
 describe("IntegrationPointsDataProvider", () => {

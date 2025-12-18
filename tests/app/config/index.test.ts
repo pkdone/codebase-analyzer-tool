@@ -1,7 +1,7 @@
-import { databaseConfig } from "../../../src/app/config/database.config";
-import { fileProcessingConfig } from "../../../src/app/config/file-processing.config";
-import { EXTENSION_TO_TYPE_MAP } from "../../../src/app/config/file-types.config";
-import { outputConfig } from "../../../src/app/config/output.config";
+import { databaseConfig } from "../../../src/app/repositories/config/database.config";
+import { fileProcessingConfig } from "../../../src/app/components/capture/config/file-processing.config";
+import { EXTENSION_TO_TYPE_MAP } from "../../../src/app/components/capture/config/file-types.config";
+import { outputConfig } from "../../../src/app/components/reporting/config/output.config";
 
 describe("individual config modules", () => {
   it("databaseConfig should expose collection names", () => {

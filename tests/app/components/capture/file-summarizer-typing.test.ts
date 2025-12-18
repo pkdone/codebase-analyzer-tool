@@ -2,7 +2,7 @@ import { z } from "zod";
 import { summarizeFile } from "../../../../src/app/components/capture/file-summarizer";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
 import { sourcePromptSchemas } from "../../../../src/app/prompts/definitions/sources/sources.schemas";
-import type { CanonicalFileType } from "../../../../src/app/config/file-types.config";
+import type { CanonicalFileType } from "../../../../src/app/components/capture/config/file-types.config";
 
 // Mock LLMRouter for testing
 const createMockLLMRouter = (mockResponse: unknown): LLMRouter => {

@@ -3,8 +3,8 @@ import type {
   HierarchicalTopLevelJavaClassDependencies,
   HierarchicalJavaClassDependency,
   JavaClassDependency,
-} from "../../../repositories/sources/sources.model";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+} from "../../../../repositories/sources/sources.model";
+import { logOneLineWarning } from "../../../../../common/utils/logging";
 
 /**
  * Utility functions for transforming flat dependency structures into hierarchical trees.

@@ -2,7 +2,7 @@ import { sourceConfigMap, type SourceConfigEntry } from "./sources.config";
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
 import { BASE_PROMPT_TEMPLATE } from "../../templates";
 import { createPromptMetadata } from "../prompt-factory";
-import { createIntroTextTemplate } from "../../prompt-utils";
+import { createIntroTextTemplate } from "../../utils/prompt-utils";
 
 /**
  * Data-driven mapping of prompt types to their templates and schemas.

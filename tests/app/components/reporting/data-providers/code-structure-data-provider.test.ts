@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { CodeStructureDataProvider } from "../../../../../src/app/components/reporting/data-providers/code-structure-data-provider";
+import { CodeStructureDataProvider } from "../../../../../src/app/components/reporting/sections/code-structure/code-structure-data-provider";
 import type { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type {
   ProjectedTopLevelJavaClassDependencies,

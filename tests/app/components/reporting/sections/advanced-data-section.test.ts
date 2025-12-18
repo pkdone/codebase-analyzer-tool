@@ -1,10 +1,10 @@
 import "reflect-metadata";
-import { AdvancedDataSection } from "../../../../../src/app/components/reporting/sections/advanced-data-section";
-import { BomDataProvider } from "../../../../../src/app/components/reporting/data-providers/bom-data-provider";
-import { CodeQualityDataProvider } from "../../../../../src/app/components/reporting/data-providers/code-quality-data-provider";
-import { JobDataProvider } from "../../../../../src/app/components/reporting/data-providers/job-data-provider";
-import { ModuleCouplingDataProvider } from "../../../../../src/app/components/reporting/data-providers/module-coupling-data-provider";
-import { UiDataProvider } from "../../../../../src/app/components/reporting/data-providers/ui-data-provider";
+import { AdvancedDataSection } from "../../../../../src/app/components/reporting/sections/advanced-data/advanced-data-section";
+import { BomDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/bom-data-provider";
+import { CodeQualityDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/code-quality-data-provider";
+import { JobDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/job-data-provider";
+import { ModuleCouplingDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/module-coupling-data-provider";
+import { UiDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/ui-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
 
 describe("AdvancedDataSection", () => {

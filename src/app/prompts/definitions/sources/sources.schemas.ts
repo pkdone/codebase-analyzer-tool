@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { sourceConfigMap } from "./sources.config";
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
-import type { CanonicalFileType } from "../../../config/file-types.config";
+import type { CanonicalFileType } from "../../../components/capture/config/file-types.config";
 
 /**
  * Helper function to create a picked schema for a given config entry.

@@ -1,16 +1,16 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../../../di/tokens";
-import { repositoryTokens } from "../../../di/tokens";
-import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { PieChartGenerator } from "../generators/png/pie-chart-generator";
-import { htmlReportConstants } from "../html-report.constants";
-import { reportSectionsConfig } from "../report-sections.config";
-import { TableViewModel } from "../view-models/table-view-model";
-import type { PreparedHtmlReportData } from "../html-report-writer";
-import type { PreparedJsonData } from "../json-report-writer";
-import type { ReportData } from "../report-gen.types";
-import { SECTION_NAMES } from "../reporting.constants";
+import type { ReportSection } from "../report-section.interface";
+import { reportingTokens } from "../../../../di/tokens";
+import { repositoryTokens } from "../../../../di/tokens";
+import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
+import { PieChartGenerator } from "../../generators/png/pie-chart-generator";
+import { htmlReportConstants } from "../../html-report.constants";
+import { reportSectionsConfig } from "../../report-sections.config";
+import { TableViewModel } from "../../view-models/table-view-model";
+import type { PreparedHtmlReportData } from "../../html-report-writer";
+import type { PreparedJsonData } from "../../json-report-writer";
+import type { ReportData } from "../../report-gen.types";
+import { SECTION_NAMES } from "../../reporting.constants";
 import path from "path";
 
 /**

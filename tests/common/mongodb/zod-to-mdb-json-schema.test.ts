@@ -5,7 +5,7 @@ import {
   zBsonObjectId,
   zBsonDecimal128,
   zBsonDate,
-} from "../../../src/common/mongodb/zod-to-mdb-json-schema";
+} from "../../../src/common/schema/zod-to-mdb-json-schema";
 
 describe("zod-to-mdb-json-schema", () => {
   describe("generateMDBJSONSchema", () => {

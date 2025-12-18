@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../di/tokens";
-import type { BomDependency } from "../report-gen.types";
+import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
+import { repositoryTokens } from "../../../../di/tokens";
+import type { BomDependency } from "../../report-gen.types";
 
 interface AggregatedDependency {
   name: string;

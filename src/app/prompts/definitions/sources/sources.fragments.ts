@@ -1,4 +1,4 @@
-import { createDbMechanismInstructions } from "../../prompt-utils";
+import { createDbMechanismInstructions } from "../../utils/prompt-utils";
 
 /**
  * Common instruction fragments used across multiple sources templates

@@ -1,15 +1,15 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../../../di/tokens";
-import { BomDataProvider } from "../data-providers/bom-data-provider";
-import { CodeQualityDataProvider } from "../data-providers/code-quality-data-provider";
-import { JobDataProvider } from "../data-providers/job-data-provider";
-import { ModuleCouplingDataProvider } from "../data-providers/module-coupling-data-provider";
-import { UiDataProvider } from "../data-providers/ui-data-provider";
-import type { PreparedHtmlReportData } from "../html-report-writer";
-import type { PreparedJsonData } from "../json-report-writer";
-import type { ReportData } from "../report-gen.types";
-import { SECTION_NAMES } from "../reporting.constants";
+import type { ReportSection } from "../report-section.interface";
+import { reportingTokens } from "../../../../di/tokens";
+import { BomDataProvider } from "./bom-data-provider";
+import { CodeQualityDataProvider } from "./code-quality-data-provider";
+import { JobDataProvider } from "./job-data-provider";
+import { ModuleCouplingDataProvider } from "./module-coupling-data-provider";
+import { UiDataProvider } from "./ui-data-provider";
+import type { PreparedHtmlReportData } from "../../html-report-writer";
+import type { PreparedJsonData } from "../../json-report-writer";
+import type { ReportData } from "../../report-gen.types";
+import { SECTION_NAMES } from "../../reporting.constants";
 
 /**
  * Report section for advanced/optional data (BOM, code quality, scheduled jobs, module coupling, UI analysis).

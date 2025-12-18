@@ -1,7 +1,7 @@
 import {
   executeInsightCompletion,
   InsightCompletionOptions,
-} from "../../../../../src/app/components/insights/completion-strategies/completion-executor";
+} from "../../../../../src/app/components/insights/utils/completion-executor";
 
 describe("insight-completion.service", () => {
   describe("executeInsightCompletion", () => {

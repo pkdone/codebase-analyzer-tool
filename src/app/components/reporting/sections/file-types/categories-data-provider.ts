@@ -1,13 +1,13 @@
 import { injectable, injectAll } from "tsyringe";
 import { z } from "zod";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
-import { AppSummaryCategories, nameDescSchema } from "../../../schemas/app-summaries.schema";
-import type { AppSummaryCategoryType } from "../../insights/insights.types";
+import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../../prompts/definitions/app-summaries";
+import { AppSummaryCategories, nameDescSchema } from "../../../../schemas/app-summaries.schema";
+import type { AppSummaryCategoryType } from "../../../insights/insights.types";
 import type {
   AppSummaryNameDescArray,
   AppSummaryRecordWithId,
-} from "../../../repositories/app-summaries/app-summaries.model";
-import type { ReportSection } from "../sections/report-section.interface";
+} from "../../../../repositories/app-summaries/app-summaries.model";
+import type { ReportSection } from "../report-section.interface";
 
 // Zod schema for validating AppSummaryNameDescArray
 const appSummaryNameDescArraySchema = z.array(nameDescSchema);

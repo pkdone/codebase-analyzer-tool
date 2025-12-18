@@ -1,6 +1,6 @@
 import "reflect-metadata";
-import { CodeStructureSection } from "../../../../../src/app/components/reporting/sections/code-structure-section";
-import { CodeStructureDataProvider } from "../../../../../src/app/components/reporting/data-providers/code-structure-data-provider";
+import { CodeStructureSection } from "../../../../../src/app/components/reporting/sections/code-structure/code-structure-section";
+import { CodeStructureDataProvider } from "../../../../../src/app/components/reporting/sections/code-structure/code-structure-data-provider";
 import { DependencyTreePngGenerator } from "../../../../../src/app/components/reporting/generators/png/dependency-tree-png-generator";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
 

@@ -6,7 +6,7 @@ import { Task } from "./task.types";
 import { llmTokens } from "../di/tokens";
 import { coreTokens } from "../di/tokens";
 import { insightsTokens } from "../di/tokens";
-import { outputConfig } from "../config/output.config";
+import { outputConfig } from "../components/reporting/config/output.config";
 import { clearDirectory } from "../../common/fs/directory-operations";
 
 /**

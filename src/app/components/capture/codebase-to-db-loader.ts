@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type LLMRouter from "../../../common/llm/llm-router";
 import path from "path";
 import pLimit from "p-limit";
-import { fileProcessingConfig } from "../../config/file-processing.config";
+import { fileProcessingConfig } from "./config/file-processing.config";
 import { readFile } from "../../../common/fs/file-operations";
 import { findFilesRecursively, sortFilesBySize } from "../../../common/fs/directory-operations";
 import { getFileExtension } from "../../../common/fs/path-utils";

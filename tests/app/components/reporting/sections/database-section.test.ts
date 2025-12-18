@@ -1,6 +1,6 @@
 import "reflect-metadata";
-import { DatabaseSection } from "../../../../../src/app/components/reporting/sections/database-section";
-import { DatabaseReportDataProvider } from "../../../../../src/app/components/reporting/data-providers/database-report-data-provider";
+import { DatabaseSection } from "../../../../../src/app/components/reporting/sections/database/database-section";
+import { DatabaseReportDataProvider } from "../../../../../src/app/components/reporting/sections/database/database-report-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
 
 describe("DatabaseSection", () => {

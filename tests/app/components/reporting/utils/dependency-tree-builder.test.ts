@@ -1,4 +1,4 @@
-import { convertToHierarchical } from "../../../../../src/app/components/reporting/utils/dependency-tree-builder";
+import { convertToHierarchical } from "../../../../../src/app/components/reporting/sections/code-structure/dependency-tree-builder";
 import type {
   ProjectedTopLevelJavaClassDependencies,
   JavaClassDependency,

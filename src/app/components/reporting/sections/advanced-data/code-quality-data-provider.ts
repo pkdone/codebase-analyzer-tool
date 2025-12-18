@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../di/tokens";
-import type { CodeQualitySummary } from "../report-gen.types";
+import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
+import { repositoryTokens } from "../../../../di/tokens";
+import type { CodeQualitySummary } from "../../report-gen.types";
 
 /**
  * Type for the code quality aggregation result

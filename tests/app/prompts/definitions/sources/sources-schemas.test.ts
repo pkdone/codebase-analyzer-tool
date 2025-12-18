@@ -5,7 +5,7 @@ import { sourceSummarySchema } from "../../../../../src/app/schemas/sources.sche
 import {
   CANONICAL_FILE_TYPES,
   type CanonicalFileType,
-} from "../../../../../src/app/config/file-types.config";
+} from "../../../../../src/app/components/capture/config/file-types.config";
 
 describe("sourcePromptSchemas", () => {
   describe("Schema Map Completeness", () => {

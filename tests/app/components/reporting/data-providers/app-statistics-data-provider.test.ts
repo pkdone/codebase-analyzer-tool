@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { AppStatisticsDataProvider } from "../../../../../src/app/components/reporting/data-providers/app-statistics-data-provider";
+import { AppStatisticsDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/app-statistics-data-provider";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import type { AppSummaryRecordWithId } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 

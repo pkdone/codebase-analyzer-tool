@@ -1,4 +1,4 @@
-import { CANONICAL_FILE_TYPES } from "../../../src/app/config/file-types.config";
+import { CANONICAL_FILE_TYPES } from "../../../src/app/components/capture/config/file-types.config";
 
 describe("prompt.types individual exports", () => {
   describe("CANONICAL_FILE_TYPES", () => {

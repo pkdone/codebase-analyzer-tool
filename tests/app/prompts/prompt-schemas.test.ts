@@ -1,7 +1,7 @@
 import {
   canonicalFileTypeSchema,
   CANONICAL_FILE_TYPES,
-} from "../../../src/app/config/file-types.config";
+} from "../../../src/app/components/capture/config/file-types.config";
 
 describe("prompt.schemas", () => {
   describe("CANONICAL_FILE_TYPES", () => {

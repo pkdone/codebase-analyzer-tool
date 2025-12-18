@@ -1,7 +1,7 @@
 import {
   buildInstructionBlock,
   createIntroTextTemplate,
-} from "../../../src/app/prompts/prompt-utils";
+} from "../../../src/app/prompts/utils/prompt-utils";
 
 describe("buildInstructionBlock", () => {
   describe("basic functionality", () => {

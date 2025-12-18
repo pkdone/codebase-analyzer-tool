@@ -14,9 +14,9 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../insights.types";
-import { getSchemaSpecificSanitizerConfig } from "../../../config/sanitizer.config";
+import { getSchemaSpecificSanitizerConfig } from "../../../prompts/config/schema-specific-sanitizer.config";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
-import { executeInsightCompletion } from "./completion-executor";
+import { executeInsightCompletion } from "../utils/completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI

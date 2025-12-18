@@ -1,8 +1,8 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../di/tokens";
-import type { ScheduledJobsSummary } from "../report-gen.types";
-import { extractTriggerType } from "../utils/job-trigger-parser";
+import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
+import { repositoryTokens } from "../../../../di/tokens";
+import type { ScheduledJobsSummary } from "../../report-gen.types";
+import { extractTriggerType } from "./job-trigger-parser";
 
 /**
  * Type for the scheduled jobs aggregation result

@@ -8,7 +8,7 @@ import {
   formatDirectoryAsMarkdown,
   adaptFileProcessingConfig,
 } from "../../../../src/common/utils/directory-to-markdown";
-import { fileProcessingConfig } from "../../../../src/app/config/file-processing.config";
+import { fileProcessingConfig } from "../../../../src/app/components/capture/config/file-processing.config";
 import { llmProviderConfig } from "../../../../src/common/llm/config/llm.config";
 import { z } from "zod";
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";

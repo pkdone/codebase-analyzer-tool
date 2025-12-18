@@ -1,27 +1,27 @@
 import path from "path";
 import os from "os";
 import { injectable } from "tsyringe";
-import { fileProcessingConfig } from "../../components/capture/config/file-processing.config";
-import { outputConfig } from "../../components/reporting/config/output.config";
-import { readFile, writeFile } from "../../../common/fs/file-operations";
+import { fileProcessingConfig } from "../../../components/capture/config/file-processing.config";
+import { outputConfig } from "../../../components/reporting/config/output.config";
+import { readFile, writeFile } from "../../../../common/fs/file-operations";
 import {
   listDirectoryEntries,
   ensureDirectoryExists,
-} from "../../../common/fs/directory-operations";
+} from "../../../../common/fs/directory-operations";
 import pLimit from "p-limit";
-import { logError } from "../../../common/utils/logging";
-import { formatError } from "../../../common/utils/error-formatters";
+import { logError } from "../../../../common/utils/logging";
+import { formatError } from "../../../../common/utils/error-formatters";
 import { inject } from "tsyringe";
 import { z } from "zod";
-import { llmTokens } from "../../di/tokens";
-import LLMRouter from "../../../common/llm/llm-router";
-import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
+import { llmTokens } from "../../../di/tokens";
+import LLMRouter from "../../../../common/llm/llm-router";
+import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import {
   formatDirectoryAsMarkdown,
   adaptFileProcessingConfig,
-} from "../../../common/utils/directory-to-markdown";
-import { formatDateForFilename } from "../../../common/utils/date-utils";
-import { inputConfig } from "../../prompts/config/input.config";
+} from "../../../../common/utils/directory-to-markdown";
+import { formatDateForFilename } from "../../../../common/utils/date-utils";
+import { inputConfig } from "../../../prompts/config/input.config";
 
 /**
  * Interface to define the filename and question of a file requirement prompt

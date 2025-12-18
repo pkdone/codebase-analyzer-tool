@@ -1,4 +1,4 @@
-import { outputConfig } from "../../config/output.config";
+import { outputConfig } from "./config/output.config";
 
 /**
  * Configuration for report generation sections.

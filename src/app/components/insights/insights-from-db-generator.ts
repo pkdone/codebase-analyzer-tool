@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../common/llm/llm-router";
-import { fileProcessingConfig } from "../../config/file-processing.config";
+import { fileProcessingConfig } from "../../components/capture/config/file-processing.config";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";

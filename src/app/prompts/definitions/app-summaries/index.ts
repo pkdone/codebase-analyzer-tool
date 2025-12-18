@@ -1,7 +1,7 @@
 import { appSummaryConfigMap, type AppSummaryConfigEntry } from "./app-summaries.config";
 import { BASE_PROMPT_TEMPLATE } from "../../templates";
 import { createPromptMetadata } from "../prompt-factory";
-import { createIntroTextTemplate } from "../../prompt-utils";
+import { createIntroTextTemplate } from "../../utils/prompt-utils";
 
 /**
  * Data-driven mapping of app summary categories to their templates and schemas.

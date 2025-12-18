@@ -3,7 +3,7 @@ import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
 import type { JsonSchema7Type } from "zod-to-json-schema";
 import { coreTokens } from "../di/tokens";
-import { databaseConfig } from "../config/database.config";
+import { databaseConfig } from "../repositories/config/database.config";
 import { logError } from "../../common/utils/logging";
 import { getJSONSchema as getSourcesJSONSchema } from "../repositories/sources/sources.model";
 import { getJSONSchema as getAppSummariesJSONSchema } from "../repositories/app-summaries/app-summaries.model";

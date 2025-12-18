@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { FileTypesSection } from "../../../../../src/app/components/reporting/sections/file-types-section";
+import { FileTypesSection } from "../../../../../src/app/components/reporting/sections/file-types/file-types-section";
 import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
 import { PieChartGenerator } from "../../../../../src/app/components/reporting/generators/png/pie-chart-generator";
 import type { ProjectedFileTypesCountAndLines } from "../../../../../src/app/repositories/sources/sources.model";

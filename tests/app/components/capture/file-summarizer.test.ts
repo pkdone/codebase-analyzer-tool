@@ -16,7 +16,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
 
 jest.unmock("../../../../src/app/prompts/definitions/sources");
 
-jest.mock("../../../../src/app/config/file-types.config", () => {
+jest.mock("../../../../src/app/components/capture/config/file-types.config", () => {
   // Create rules that match the test expectations
   const createRules = () => [
     // Filename rules first

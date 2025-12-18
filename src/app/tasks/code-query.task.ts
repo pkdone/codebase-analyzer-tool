@@ -5,7 +5,7 @@ import { formatError } from "../../common/utils/error-formatters";
 import { queryCodebaseWithQuestion } from "../components/querying/codebase-query-processor";
 import { Task } from "./task.types";
 import { coreTokens, repositoryTokens, llmTokens } from "../di/tokens";
-import { inputConfig } from "../config/input.config";
+import { inputConfig } from "../prompts/config/input.config";
 import type { SourcesRepository } from "../repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../common/llm/llm-router";
 

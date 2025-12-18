@@ -1,11 +1,11 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../di/tokens";
-import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../report-gen.types";
-import { Complexity, isComplexityLevel } from "../report-gen.types";
-import { procedureTriggerSchema } from "../../../schemas/sources.schema";
+import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
+import { repositoryTokens } from "../../../../di/tokens";
+import type { ProcsAndTriggers, DatabaseIntegrationInfo } from "../../report-gen.types";
+import { Complexity, isComplexityLevel } from "../../report-gen.types";
+import { procedureTriggerSchema } from "../../../../schemas/sources.schema";
 import type { z } from "zod";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { logOneLineWarning } from "../../../../../common/utils/logging";
 
 // Constants for stored procedures and triggers
 const STORED_PROCEDURE_TYPE = "STORED PROCEDURE" as const;

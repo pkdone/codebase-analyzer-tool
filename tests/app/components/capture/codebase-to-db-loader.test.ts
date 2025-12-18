@@ -8,7 +8,7 @@ import * as fileOperations from "../../../../src/common/fs/file-operations";
 import * as directoryOperations from "../../../../src/common/fs/directory-operations";
 import * as pathUtils from "../../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../../src/common/utils/text-utils";
-import { fileProcessingConfig } from "../../../../src/app/config/file-processing.config";
+import { fileProcessingConfig } from "../../../../src/app/components/capture/config/file-processing.config";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
@@ -23,7 +23,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineWarning: jest.fn(),
 }));
 
-jest.mock("../../../../src/app/config/file-processing.config", () => ({
+jest.mock("../../../../src/app/components/capture/config/file-processing.config", () => ({
   fileProcessingConfig: {
     FOLDER_IGNORE_LIST: [".git", "node_modules"],
     FILENAME_PREFIX_IGNORE: [".", "_"],

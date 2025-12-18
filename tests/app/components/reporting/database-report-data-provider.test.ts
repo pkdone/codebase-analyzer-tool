@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { DatabaseReportDataProvider } from "../../../../src/app/components/reporting/data-providers/database-report-data-provider";
+import { DatabaseReportDataProvider } from "../../../../src/app/components/reporting/sections/database/database-report-data-provider";
 import type { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 
 describe("DatabaseReportDataProvider", () => {

@@ -3,7 +3,7 @@ import {
   CANONICAL_FILE_TYPES,
   canonicalFileTypeSchema,
   type CanonicalFileType,
-} from "../../../src/app/config/file-types.config";
+} from "../../../src/app/components/capture/config/file-types.config";
 import type { AppSummaryCategoryType } from "../../../src/app/components/insights/insights.types";
 import { z } from "zod";
 

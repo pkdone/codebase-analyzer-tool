@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { AppSummaryCategoriesProvider } from "../../../../../src/app/components/reporting/data-providers/categories-data-provider";
+import { AppSummaryCategoriesProvider } from "../../../../../src/app/components/reporting/sections/file-types/categories-data-provider";
 import { AppSummaryCategories } from "../../../../../src/app/schemas/app-summaries.schema";
 import type { AppSummaryRecordWithId } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 

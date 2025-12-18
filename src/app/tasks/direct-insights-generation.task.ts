@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { outputConfig } from "../config/output.config";
+import { outputConfig } from "../components/reporting/config/output.config";
 import { clearDirectory } from "../../common/fs/directory-operations";
-import { RawAnalyzerDrivenByReqsFiles } from "../components/raw-analysis/raw-analyzer-driven-by-reqs-files";
+import { RawAnalyzerDrivenByReqsFiles } from "../components/insights/file-driven/raw-analyzer-driven-by-reqs-files";
 import type LLMStats from "../../common/llm/tracking/llm-stats";
 import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";

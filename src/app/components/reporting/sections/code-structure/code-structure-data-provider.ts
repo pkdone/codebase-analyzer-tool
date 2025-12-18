@@ -1,11 +1,11 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
+import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
 import type {
   ProjectedTopLevelJavaClassDependencies,
   HierarchicalTopLevelJavaClassDependencies,
-} from "../../../repositories/sources/sources.model";
-import { repositoryTokens } from "../../../di/tokens";
-import { convertToHierarchical } from "../utils/dependency-tree-builder";
+} from "../../../../repositories/sources/sources.model";
+import { repositoryTokens } from "../../../../di/tokens";
+import { convertToHierarchical } from "./dependency-tree-builder";
 
 /**
  * Data provider responsible for aggregating code structure information for reports.

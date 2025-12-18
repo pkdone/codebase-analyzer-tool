@@ -1,8 +1,8 @@
 import { injectable, inject } from "tsyringe";
-import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
-import { repositoryTokens } from "../../../di/tokens";
-import type { UiTechnologyAnalysis } from "../report-gen.types";
-import { uiAnalysisConfig } from "../config/ui-analysis.config";
+import type { SourcesRepository } from "../../../../repositories/sources/sources.repository.interface";
+import { repositoryTokens } from "../../../../di/tokens";
+import type { UiTechnologyAnalysis } from "../../report-gen.types";
+import { uiAnalysisConfig } from "../../config/ui-analysis.config";
 
 /**
  * Type for UI analysis summary

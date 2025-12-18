@@ -3,7 +3,7 @@ import { container } from "tsyringe";
 import { MongoClient } from "mongodb";
 import { randomUUID } from "crypto";
 import { coreTokens } from "../../../../src/app/di/tokens";
-import { databaseConfig } from "../../../../src/app/config/database.config";
+import { databaseConfig } from "../../../../src/app/repositories/config/database.config";
 import { registerAppDependencies } from "../../../../src/app/di/registration-modules";
 import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/manifest-loader";
 

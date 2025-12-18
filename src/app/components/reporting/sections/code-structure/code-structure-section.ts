@@ -1,16 +1,16 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../../../di/tokens";
-import { CodeStructureDataProvider } from "../data-providers/code-structure-data-provider";
-import { DependencyTreePngGenerator } from "../generators/png/dependency-tree-png-generator";
-import { TableViewModel } from "../view-models/table-view-model";
-import { htmlReportConstants } from "../html-report.constants";
-import { reportSectionsConfig } from "../report-sections.config";
-import type { HierarchicalJavaClassDependency } from "../../../repositories/sources/sources.model";
-import type { PreparedHtmlReportData } from "../html-report-writer";
-import type { PreparedJsonData } from "../json-report-writer";
-import type { ReportData } from "../report-gen.types";
-import { SECTION_NAMES } from "../reporting.constants";
+import type { ReportSection } from "../report-section.interface";
+import { reportingTokens } from "../../../../di/tokens";
+import { CodeStructureDataProvider } from "./code-structure-data-provider";
+import { DependencyTreePngGenerator } from "../../generators/png/dependency-tree-png-generator";
+import { TableViewModel } from "../../view-models/table-view-model";
+import { htmlReportConstants } from "../../html-report.constants";
+import { reportSectionsConfig } from "../../report-sections.config";
+import type { HierarchicalJavaClassDependency } from "../../../../repositories/sources/sources.model";
+import type { PreparedHtmlReportData } from "../../html-report-writer";
+import type { PreparedJsonData } from "../../json-report-writer";
+import type { ReportData } from "../../report-gen.types";
+import { SECTION_NAMES } from "../../reporting.constants";
 import path from "path";
 
 /**

@@ -26,7 +26,7 @@ import { PluggableLLMsTestTask } from "../../tasks/test-pluggable-llms.task";
 import { ReportGenerationTask } from "../../tasks/report-generation.task";
 
 // Configuration import
-import { databaseConfig } from "../../config/database.config";
+import { databaseConfig } from "../../repositories/config/database.config";
 
 // LLM strategy and pipeline imports
 import { RetryStrategy } from "../../../common/llm/strategies/retry-strategy";

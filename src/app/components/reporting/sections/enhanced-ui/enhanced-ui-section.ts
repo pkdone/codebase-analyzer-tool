@@ -1,15 +1,15 @@
 import { injectable, inject } from "tsyringe";
-import type { ReportSection } from "./report-section.interface";
-import { reportingTokens } from "../../../di/tokens";
-import { DomainModelDataProvider } from "../data-providers/domain-model-data-provider";
-import { FlowchartSvgGenerator } from "../generators/svg/flowchart-svg-generator";
-import { DomainModelSvgGenerator } from "../generators/svg/domain-model-svg-generator";
-import { ArchitectureSvgGenerator } from "../generators/svg/architecture-svg-generator";
-import type { AppSummaryNameDescArray } from "../../../repositories/app-summaries/app-summaries.model";
-import type { PreparedHtmlReportData } from "../html-report-writer";
-import type { PreparedJsonData } from "../json-report-writer";
-import type { ReportData } from "../report-gen.types";
-import { SECTION_NAMES } from "../reporting.constants";
+import type { ReportSection } from "../report-section.interface";
+import { reportingTokens } from "../../../../di/tokens";
+import { DomainModelDataProvider } from "../advanced-data/domain-model-data-provider";
+import { FlowchartSvgGenerator } from "../../generators/svg/flowchart-svg-generator";
+import { DomainModelSvgGenerator } from "../../generators/svg/domain-model-svg-generator";
+import { ArchitectureSvgGenerator } from "../../generators/svg/architecture-svg-generator";
+import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
+import type { PreparedHtmlReportData } from "../../html-report-writer";
+import type { PreparedJsonData } from "../../json-report-writer";
+import type { ReportData } from "../../report-gen.types";
+import { SECTION_NAMES } from "../../reporting.constants";
 
 // Extended interfaces for business process and microservice data
 type BusinessProcessData = AppSummaryNameDescArray[0] & {

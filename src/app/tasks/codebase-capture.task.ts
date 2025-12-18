@@ -5,11 +5,11 @@ import type LLMStats from "../../common/llm/tracking/llm-stats";
 import { Task } from "./task.types";
 import type { EnvVars } from "../env/env.types";
 import { DatabaseInitializer } from "./database-initializer";
-import { databaseConfig } from "../config/database.config";
+import { databaseConfig } from "../repositories/config/database.config";
 import { llmTokens, coreTokens } from "../di/tokens";
 import { captureTokens } from "../di/tokens";
 import { clearDirectory } from "../../common/fs/directory-operations";
-import { outputConfig } from "../config/output.config";
+import { outputConfig } from "../components/reporting/config/output.config";
 
 /**
  * Task to capture the codebase.

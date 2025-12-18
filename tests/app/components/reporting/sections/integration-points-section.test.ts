@@ -1,6 +1,6 @@
 import "reflect-metadata";
-import { IntegrationPointsSection } from "../../../../../src/app/components/reporting/sections/integration-points-section";
-import { IntegrationPointsDataProvider } from "../../../../../src/app/components/reporting/data-providers/integration-points-data-provider";
+import { IntegrationPointsSection } from "../../../../../src/app/components/reporting/sections/integration-points/integration-points-section";
+import { IntegrationPointsDataProvider } from "../../../../../src/app/components/reporting/sections/integration-points/integration-points-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
 
 describe("IntegrationPointsSection", () => {
