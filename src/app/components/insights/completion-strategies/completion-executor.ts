@@ -61,12 +61,13 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     // Use strongly-typed schema lookup for type-safe return type inference.
     // TypeScript cannot narrow the generic indexed type appSummaryCategorySchemas[category]
     // to match the specific category type C at compile time. While the schema is correctly
-    // typed and executeCompletion validates it at runtime, we need a type assertion on the
-    // return value to satisfy TypeScript's type checker. This is safe because:
+    // typed and executeCompletion validates it at runtime, we need to help TypeScript
+    // infer the type. The type assertion on jsonSchema is safe because:
     // 1. appSummaryCategorySchemas is correctly typed
     // 2. executeCompletion performs runtime validation with Zod
     // 3. The category parameter ensures type consistency
     const schema = appSummaryCategorySchemas[category];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const llmResponse = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
@@ -74,6 +75,7 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
       sanitizerConfig: getSchemaSpecificSanitizerConfig(),
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return llmResponse;
   } catch (error: unknown) {
     logOneLineWarning(

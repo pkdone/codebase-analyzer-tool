@@ -170,9 +170,22 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
   // Type is safe: when no schema is provided, the return type defaults to Record<string, unknown>
   // and parseResult.data is the parsed JSON object.
   if (!jsonSchema) {
+    // Add a type guard to ensure the data is an object or array before casting.
+    // This prevents unsafe casts when the parsed data is a primitive type or null.
+    // Arrays are valid JSON and should be allowed.
+    if (typeof parseResult.data !== "object" || parseResult.data === null) {
+      return {
+        success: false,
+        error: createParseError(
+          "expected a JSON object or array but received a primitive type or null",
+          context,
+        ),
+      };
+    }
     logProcessingSteps(parseResult.steps, parseResult.diagnostics, [], context, loggingEnabled);
     return {
       success: true,
+      // The cast is now safer as we've confirmed the type is an object or array.
       data: parseResult.data as z.infer<S>,
       mutationSteps: parseResult.steps,
     };

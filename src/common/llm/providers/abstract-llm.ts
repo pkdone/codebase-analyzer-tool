@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   LLMModelQuality,
   LLMContext,
@@ -14,7 +15,6 @@ import {
   LLMOutputFormat,
   LLMFunction,
   LLMEmbeddingFunction,
-  InferResponseType,
 } from "../types/llm.types";
 import {
   LLMImplSpecificResponseSummary,
@@ -115,13 +115,13 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Uses arrow function to enable easier binding of `this` context.
    */
   generateEmbeddings: LLMEmbeddingFunction = async (content, context, options) => {
-    return this.executeProviderFunction(
+    return this.executeProviderFunction<z.ZodType<number[]>>(
       this.modelsKeys.embeddingsModelKey,
       LLMPurpose.EMBEDDINGS,
       content,
       context,
-      options,
-    ) as Promise<LLMFunctionResponse<number[]>>;
+      options as LLMCompletionOptions<z.ZodType<number[]>>,
+    );
   };
 
   /**
@@ -188,29 +188,28 @@ export default abstract class AbstractLLM implements LLMProvider {
   /**
    * Executes the LLM function for the given model key and task type.
    * Type safety is enforced through generic schema type propagation.
+   * Generic over the schema type S directly to simplify type inference.
    */
-  private async executeProviderFunction<
-    TOptions extends LLMCompletionOptions = LLMCompletionOptions,
-  >(
+  private async executeProviderFunction<S extends z.ZodType = z.ZodType>(
     modelKey: string,
     taskType: LLMPurpose,
     request: string,
     context: LLMContext,
-    completionOptions?: TOptions,
-  ): Promise<LLMFunctionResponse<InferResponseType<TOptions>>> {
-    // Use InferResponseType directly - no need for local type helpers
-    type ResponseType = InferResponseType<TOptions>;
+    completionOptions?: LLMCompletionOptions<S>,
+  ): Promise<LLMFunctionResponse<z.infer<S>>> {
     const skeletonResponse: Omit<
-      LLMFunctionResponse<ResponseType>,
+      LLMFunctionResponse<z.infer<S>>,
       "generated" | "status" | "mutationSteps"
     > = {
       request,
       context,
       modelKey,
     };
-    const finalOptions: TOptions = (completionOptions ?? {
-      outputFormat: LLMOutputFormat.TEXT,
-    }) as TOptions;
+    const finalOptions: LLMCompletionOptions<S> =
+      completionOptions ??
+      ({
+        outputFormat: LLMOutputFormat.TEXT,
+      } as LLMCompletionOptions<S>);
 
     try {
       const { isIncompleteResponse, responseContent, tokenUsage } =
@@ -298,26 +297,21 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Post-process the LLM response, converting it to JSON if necessary, and build the
    * response metadata object with type-safe JSON validation.
    * Type safety is enforced through generic schema type propagation.
+   * Generic over the schema type S directly to simplify type inference.
    */
-  private async formatAndValidateResponse<TOptions extends LLMCompletionOptions>(
-    skeletonResult: Omit<
-      LLMFunctionResponse<InferResponseType<TOptions>>,
-      "generated" | "status" | "mutationSteps"
-    >,
+  private async formatAndValidateResponse<S extends z.ZodType>(
+    skeletonResult: Omit<LLMFunctionResponse<z.infer<S>>, "generated" | "status" | "mutationSteps">,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,
-    completionOptions: TOptions,
+    completionOptions: LLMCompletionOptions<S>,
     context: LLMContext,
-  ): Promise<LLMFunctionResponse<InferResponseType<TOptions>>> {
-    // Use InferResponseType directly - no need for local type helpers
-    type ResponseType = InferResponseType<TOptions>;
-
+  ): Promise<LLMFunctionResponse<z.infer<S>>> {
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: responseContent as ResponseType,
+        generated: responseContent as z.infer<S>,
       };
     }
 
@@ -333,14 +327,13 @@ export default abstract class AbstractLLM implements LLMProvider {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        generated: responseContent as ResponseType, // Now safe: string to string
+        generated: responseContent as z.infer<S>, // Type assertion needed for TEXT format
       };
     }
 
     // Process JSON with schema-aware type inference.
     // The jsonSchema from completionOptions carries the type information through the chain.
-    // While the simplified processJson return type improves type safety, TypeScript's inference
-    // through this deep generic async pipeline still requires an assertion for strict type checking.
+    // With the simplified generic approach using S directly, type inference should work correctly.
     const jsonProcessingResult = processJson(
       responseContent,
       context,
@@ -353,18 +346,8 @@ export default abstract class AbstractLLM implements LLMProvider {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
-        // Type assertion is necessary here due to TypeScript's limitations with deep generic inference.
-        // TypeScript's inference of InferResponseType<TOptions> through the complex async pipeline
-        // (LLMExecutionPipeline -> RetryStrategy -> AbstractLLM -> processJson) resolves to 'any'
-        // due to the conditional type complexity combined with generic propagation through multiple
-        // async layers. This is a known limitation of TypeScript's type inference even in version 5.7.3+.
-        // The type assertion is justified because: (1) the type is validated at runtime via Zod schema,
-        // (2) the generic parameter TOptions flows correctly through all layers ensuring the shape matches,
-        // and (3) eliminating this would require major refactoring to simplify the entire LLM abstraction layer.
-        // So don't change using an assertion or eslint comment because these are justified for
-        // TypeScript 5.7.3 and later ones, unless you are sure you are running newer TSC version that
-        // actually supports this.
-        generated: jsonProcessingResult.data as ResponseType,
+        // No type assertion needed! The type is now correctly inferred through the simplified generic chain.
+        generated: jsonProcessingResult.data,
         mutationSteps: jsonProcessingResult.mutationSteps,
       };
     } else {

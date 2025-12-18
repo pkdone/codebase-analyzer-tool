@@ -234,13 +234,16 @@ export interface LLMFunctionResponse<T = LLMGeneratedContent> {
  * The return type is inferred from the `options.jsonSchema` at the call site,
  * enabling type-safe responses without requiring explicit type parameters.
  *
+ * Generic over the schema type S directly to simplify type inference through
+ * the async call chain, avoiding the need for conditional type extraction.
+ *
  * For embeddings, use LLMEmbeddingFunction instead.
  */
-export type LLMFunction = <TOptions extends LLMCompletionOptions = LLMCompletionOptions>(
+export type LLMFunction = <S extends z.ZodType = z.ZodType>(
   content: string,
   context: LLMContext,
-  options?: TOptions,
-) => Promise<LLMFunctionResponse<InferResponseType<TOptions>>>;
+  options?: LLMCompletionOptions<S>,
+) => Promise<LLMFunctionResponse<z.infer<S>>>;
 
 /**
  * Type for embedding functions that always return number[].

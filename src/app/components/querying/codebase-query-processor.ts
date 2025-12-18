@@ -1,3 +1,4 @@
+import { z } from "zod";
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
@@ -81,13 +82,13 @@ export async function queryCodebaseWithQuestion(
   const codeBlocksAsText = formatSourcesForPrompt(bestMatchFiles);
   const resourceName = `Codebase query`;
   const prompt = createCodebaseQueryPrompt(question, codeBlocksAsText);
-  const response = await llmRouter.executeCompletion(resourceName, prompt, {
+  const response = await llmRouter.executeCompletion<z.ZodType<string>>(resourceName, prompt, {
     outputFormat: LLMOutputFormat.TEXT,
   });
 
   if (response) {
     const referencesText = bestMatchFiles.map((match) => ` * ${match.filepath}`).join("\n");
-    // Type-safe: InferResponseType correctly infers string for TEXT output format
+    // Type-safe: return type correctly infers string for TEXT output format
     return `${response}\n\nReferences:\n${referencesText}`;
   } else {
     console.log(

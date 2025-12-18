@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   LLMContext,
   LLMModelQuality,
@@ -5,7 +6,6 @@ import {
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
   LLMEmbeddingFunction,
-  InferResponseType,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { BadConfigurationLLMError } from "./types/llm-errors.types";
@@ -206,13 +206,15 @@ export default class LLMRouter {
    * - When jsonSchema is provided, returns z.infer<typeof schema> | null
    * - When outputFormat is TEXT, returns string | null
    * - Otherwise returns LLMGeneratedContent | null
+   *
+   * Generic over the schema type S directly to simplify type inference through the call chain.
    */
-  async executeCompletion<TOptions extends LLMCompletionOptions>(
+  async executeCompletion<S extends z.ZodType = z.ZodType>(
     resourceName: string,
     prompt: string,
-    options: TOptions,
+    options: LLMCompletionOptions<S>,
     modelQualityOverride: LLMModelQuality | null = null,
-  ): Promise<InferResponseType<TOptions> | null> {
+  ): Promise<z.infer<S> | null> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,
@@ -224,9 +226,9 @@ export default class LLMRouter {
       outputFormat: options.outputFormat,
     };
 
-    // The type now flows through the pipeline automatically via InferResponseType<TOptions>.
-    // No local type helpers needed - the pipeline infers the return type from options.
-    const result = await this.executionPipeline.execute<TOptions>({
+    // The type now flows through the pipeline automatically via the simplified generic approach.
+    // No local type helpers needed - the pipeline infers the return type from the schema.
+    const result = await this.executionPipeline.execute<S>({
       resourceName,
       prompt,
       context,
@@ -242,8 +244,11 @@ export default class LLMRouter {
       return null;
     }
 
-    // The type assertion occurs in AbstractLLM.formatAndValidateResponse where it's actually necessary.
-    // See the comment there for why the assertion is justified and required at that location.
+    // Type assertion needed because TypeScript's type inference through async generic chains
+    // still struggles even with the simplified approach. The type is guaranteed to be correct because:
+    // 1. The type S is inferred from options.jsonSchema at the call site
+    // 2. The execution pipeline preserves the type through the chain
+    // 3. result.data is validated at runtime via Zod schema
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result.data;
   }

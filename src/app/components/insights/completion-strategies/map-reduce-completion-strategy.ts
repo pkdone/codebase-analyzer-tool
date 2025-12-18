@@ -12,6 +12,7 @@ import {
   AppSummaryCategoryEnum,
   CategoryInsightResult,
   appSummaryCategorySchemas,
+  type AppSummaryCategorySchemas,
 } from "../insights.types";
 import { getSchemaSpecificSanitizerConfig } from "../../../config/sanitizer.config";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
@@ -123,6 +124,25 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
   }
 
   /**
+   * Helper method to execute completion with a schema, properly typed to help TypeScript inference.
+   */
+  private async executeCompletionWithSchema<C extends AppSummaryCategoryEnum>(
+    resourceName: string,
+    prompt: string,
+    schema: AppSummaryCategorySchemas[C],
+  ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
+    // TypeScript cannot infer the exact schema type from the indexed access type,
+    // but the type is guaranteed to be correct at runtime via Zod validation.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return this.llmRouter.executeCompletion(resourceName, prompt, {
+      outputFormat: LLMOutputFormat.JSON,
+      jsonSchema: schema,
+      hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+      sanitizerConfig: getSchemaSpecificSanitizerConfig(),
+    });
+  }
+
+  /**
    * REDUCE step: Consolidates multiple partial insights into a single final result.
    * This method combines and de-duplicates results from all chunks.
    *
@@ -164,12 +184,12 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
 
     try {
       // Use strongly-typed schema lookup - enables correct return type inference
-      const result = await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
-        outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: schema,
-        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-        sanitizerConfig: getSchemaSpecificSanitizerConfig(),
-      });
+      // Helper function call with explicit type parameter to help TypeScript infer types
+      const result = await this.executeCompletionWithSchema<C>(
+        `${category}-reduce`,
+        renderedPrompt,
+        schema,
+      );
 
       return result;
     } catch (error: unknown) {

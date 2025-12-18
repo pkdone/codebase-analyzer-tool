@@ -1,10 +1,10 @@
 import pRetry, { FailedAttemptError } from "p-retry";
+import { z } from "zod";
 import type {
   LLMFunctionResponse,
   LLMContext,
   LLMCompletionOptions,
   LLMFunction,
-  InferResponseType,
 } from "../types/llm.types";
 import { LLMResponseStatus } from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
@@ -40,14 +40,15 @@ export class RetryStrategy {
    *
    * The return type is inferred from the completionOptions.jsonSchema, enabling
    * end-to-end type safety through the LLM call chain.
+   * Generic over the schema type S directly to simplify type inference.
    */
-  async executeWithRetries<TOptions extends LLMCompletionOptions = LLMCompletionOptions>(
+  async executeWithRetries<S extends z.ZodType = z.ZodType>(
     llmFunction: LLMFunction,
     prompt: string,
     context: LLMContext,
     providerRetryConfig: LLMRetryConfig,
-    completionOptions?: TOptions,
-  ): Promise<LLMFunctionResponse<InferResponseType<TOptions>> | null> {
+    completionOptions?: LLMCompletionOptions<S>,
+  ): Promise<LLMFunctionResponse<z.infer<S>> | null> {
     try {
       return await pRetry(
         async () => {

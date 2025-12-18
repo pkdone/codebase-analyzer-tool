@@ -12,6 +12,7 @@ import pLimit from "p-limit";
 import { logError } from "../../../common/utils/logging";
 import { formatError } from "../../../common/utils/error-formatters";
 import { inject } from "tsyringe";
+import { z } from "zod";
 import { llmTokens } from "../../di/tokens";
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
@@ -81,14 +82,18 @@ export class RawAnalyzerDrivenByReqsFiles {
     let response = "";
 
     try {
-      const executionResult = await this.llmRouter.executeCompletion(resource, fullPrompt, {
-        outputFormat: LLMOutputFormat.TEXT,
-      });
+      const executionResult = await this.llmRouter.executeCompletion<z.ZodType<string>>(
+        resource,
+        fullPrompt,
+        {
+          outputFormat: LLMOutputFormat.TEXT,
+        },
+      );
 
       if (executionResult === null) {
         response = "No response received from LLM.";
       } else {
-        // Type-safe: InferResponseType correctly infers string for TEXT output format
+        // Type-safe: return type correctly infers string for TEXT output format
         response = executionResult;
       }
     } catch (error: unknown) {
