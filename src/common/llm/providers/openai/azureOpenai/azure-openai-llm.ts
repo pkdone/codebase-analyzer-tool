@@ -1,6 +1,6 @@
 import { AzureOpenAI, OpenAI } from "openai";
 import BaseOpenAILLM from "../common/base-openai-llm";
-import { BadConfigurationLLMError } from "../../../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import type { ProviderInit } from "../../llm-provider.types";
 import { buildModelsKeysSet } from "../../../utils/provider-init-builder";
 
@@ -54,7 +54,8 @@ export default class AzureOpenAILLM extends BaseOpenAILLM {
   protected getModelIdentifier(modelKey: string): string {
     const deployment = this.modelToDeploymentMappings.get(modelKey);
     if (!deployment)
-      throw new BadConfigurationLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
         `Model key ${modelKey} not found for ${this.constructor.name}`,
       );
     return deployment;

@@ -3,7 +3,7 @@ import { APIError } from "openai/error";
 import { LLMCompletionOptions, LLMOutputFormat, LLMModelFeature } from "../../../types/llm.types";
 import AbstractLLM from "../../abstract-llm";
 import { llmConfig } from "../../../config/llm.config";
-import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 
 /**
  * Abstract base class for all OpenAI-based LLM providers.
@@ -123,7 +123,8 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
     const llmResponse = llmResponses.data.at(0);
 
     if (!llmResponse) {
-      throw new BadResponseContentLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_RESPONSE_CONTENT,
         "No embedding data returned from OpenAI API",
         llmResponses,
       );
@@ -150,14 +151,16 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
     // Invoke LLM
     const llmResponses = await this.getClient().chat.completions.create(params);
     if (!this.isChatCompletion(llmResponses))
-      throw new BadResponseContentLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_RESPONSE_CONTENT,
         "Received an unexpected response type from OpenAI completions API",
         llmResponses,
       );
     const llmResponse = llmResponses.choices.at(0);
 
     if (!llmResponse) {
-      throw new BadResponseContentLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_RESPONSE_CONTENT,
         "No completion choices returned from OpenAI API",
         llmResponses,
       );

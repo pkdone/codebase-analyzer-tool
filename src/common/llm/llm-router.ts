@@ -8,7 +8,7 @@ import {
   LLMEmbeddingFunction,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
-import { BadConfigurationLLMError } from "./types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
 import type {
   LLMRetryConfig,
   LLMProviderManifest,
@@ -73,19 +73,13 @@ export default class LLMRouter {
     this.completionCandidates = buildCompletionCandidates(this.llm);
 
     if (this.completionCandidates.length === 0) {
-      throw new BadConfigurationLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
         "At least one completion candidate function must be provided",
       );
     }
 
     console.log(`Router LLMs to be used: ${this.getModelsUsedDescription()}`);
-  }
-
-  /**
-   * Call close on LLM implementation to release resources.
-   */
-  async close(): Promise<void> {
-    await this.llm.close();
   }
 
   /**
@@ -112,7 +106,7 @@ export default class LLMRouter {
    * ```
    */
   async shutdown(): Promise<void> {
-    await this.close();
+    await this.llm.close();
   }
 
   /**

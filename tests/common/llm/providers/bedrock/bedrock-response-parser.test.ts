@@ -1,6 +1,6 @@
 import { extractGenericCompletionResponse } from "../../../../../src/common/llm/providers/bedrock/common/bedrock-response-parser";
 import { z } from "zod";
-import { BadResponseContentLLMError } from "../../../../../src/common/llm/types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../../../src/common/llm/types/llm-errors.types";
 
 // Minimal schema for tests
 const schema = z
@@ -90,7 +90,7 @@ describe("bedrock-response-parser", () => {
 
   it("throws for invalid structure", () => {
     const badResponse = { content: "wrong" };
-    expect(() =>
+    const errorFn = () =>
       extractGenericCompletionResponse(
         badResponse,
         schema,
@@ -102,8 +102,15 @@ describe("bedrock-response-parser", () => {
           stopReasonValueForLength: "x",
         },
         "TestProvider",
-      ),
-    ).toThrow(BadResponseContentLLMError);
+      );
+    expect(errorFn).toThrow(LLMError);
+    try {
+      errorFn();
+      fail("Should have thrown an error");
+    } catch (error) {
+      expect(error).toBeInstanceOf(LLMError);
+      expect((error as LLMError).code).toBe(LLMErrorCode.BAD_RESPONSE_CONTENT);
+    }
   });
 
   it("safely handles undefined content - converts to null", () => {

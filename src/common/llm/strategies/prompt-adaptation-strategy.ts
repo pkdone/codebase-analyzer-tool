@@ -1,6 +1,6 @@
 import { llmConfig } from "../config/llm.config";
 import { LLMFunctionResponse, ResolvedLLMModelMetadata } from "../types/llm.types";
-import { BadResponseMetadataLLMError } from "../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
 /**
  * Adapts a prompt based on LLM response feedback (typically when token limits are exceeded).
@@ -18,7 +18,8 @@ export function adaptPromptFromResponse(
   modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
 ): string {
   if (!llmResponse.tokensUsage) {
-    throw new BadResponseMetadataLLMError(
+    throw new LLMError(
+      LLMErrorCode.BAD_RESPONSE_METADATA,
       "LLM response indicated token limit exceeded but `tokensUsage` is not present",
       llmResponse,
     );

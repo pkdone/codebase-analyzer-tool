@@ -4,7 +4,7 @@ import {
   LLMFunction,
   LLMProvider,
 } from "../types/llm.types";
-import { BadConfigurationLLMError } from "../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 
 /**
  * Build completion candidates from the LLM provider.
@@ -50,7 +50,8 @@ export function getOverriddenCompletionCandidates(
     : completionCandidates;
 
   if (candidatesToUse.length === 0) {
-    throw new BadConfigurationLLMError(
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
       modelQualityOverride
         ? `No completion candidates found for model quality: ${modelQualityOverride}`
         : "No completion candidates available",

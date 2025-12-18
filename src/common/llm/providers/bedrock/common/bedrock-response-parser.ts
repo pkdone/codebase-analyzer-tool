@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { getNestedValue, getNestedValueWithFallbacks } from "../../../../utils/object-utils";
 import { isDefined } from "../../../../utils/type-guards";
-import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import { LLMGeneratedContent } from "../../../types/llm.types";
 import { LLMImplSpecificResponseSummary } from "../../llm-provider.types";
 
@@ -50,7 +50,11 @@ export function extractGenericCompletionResponse(
 ): LLMImplSpecificResponseSummary {
   const validation = schema.safeParse(llmResponse);
   if (!validation.success)
-    throw new BadResponseContentLLMError(`Invalid ${providerName} response structure`, llmResponse);
+    throw new LLMError(
+      LLMErrorCode.BAD_RESPONSE_CONTENT,
+      `Invalid ${providerName} response structure`,
+      llmResponse,
+    );
   const response = validation.data as Record<string, unknown>;
   const contentPaths = [pathConfig.contentPath, pathConfig.alternativeContentPath].filter(
     isDefined,

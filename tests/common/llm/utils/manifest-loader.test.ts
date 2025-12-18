@@ -1,14 +1,20 @@
 import "reflect-metadata";
 import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/manifest-loader";
-import { BadConfigurationLLMError } from "../../../../src/common/llm/types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 
 describe("manifest-loader", () => {
   describe("loadManifestForModelFamily", () => {
     it("should throw error for unknown model family", () => {
-      expect(() => loadManifestForModelFamily("unknownFamily")).toThrow(BadConfigurationLLMError);
-      expect(() => loadManifestForModelFamily("unknownFamily")).toThrow(
-        /No provider manifest found for model family: unknownFamily/,
-      );
+      expect(() => loadManifestForModelFamily("unknownFamily")).toThrow(LLMError);
+      const errorFn = () => loadManifestForModelFamily("unknownFamily");
+      expect(errorFn).toThrow(/No provider manifest found for model family: unknownFamily/);
+      try {
+        errorFn();
+        fail("Should have thrown an error");
+      } catch (error) {
+        expect(error).toBeInstanceOf(LLMError);
+        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
+      }
     });
 
     it("should load manifest for valid model family (case-insensitive)", () => {
@@ -30,7 +36,8 @@ describe("manifest-loader", () => {
         loadManifestForModelFamily("unknownFamily");
         fail("Should have thrown an error");
       } catch (error) {
-        expect(error).toBeInstanceOf(BadConfigurationLLMError);
+        expect(error).toBeInstanceOf(LLMError);
+        expect((error as LLMError).code).toBe(LLMErrorCode.BAD_CONFIGURATION);
         const errorMessage = (error as Error).message;
         expect(errorMessage).toContain("Available families:");
         // Should list some known providers

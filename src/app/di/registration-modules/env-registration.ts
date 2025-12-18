@@ -5,7 +5,7 @@ import { EnvVars, baseEnvVarsSchema } from "../../env/env.types";
 import { loadManifestForModelFamily } from "../../../common/llm/utils/manifest-loader";
 import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
-import { BadConfigurationLLMError } from "../../../common/llm/types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
 import { getErrorStack } from "../../../common/utils/error-formatters";
 import { getBaseNameFromPath } from "../../../common/fs/path-utils";
 import dotenv from "dotenv";
@@ -77,7 +77,8 @@ function loadEnvIncludingLLMVars(): EnvVars {
 
     const llmValue = String(parsedEnv.LLM);
     if (llmValue.toLowerCase() !== manifest.modelFamily.toLowerCase()) {
-      throw new BadConfigurationLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
         `Warning: LLM environment variable ('${llmValue}') does not precisely match ` +
           `modelFamily ('${manifest.modelFamily}') in the manifest for ${manifest.providerName}. `,
       );
@@ -85,7 +86,7 @@ function loadEnvIncludingLLMVars(): EnvVars {
 
     return parsedEnv as EnvVars;
   } catch (error: unknown) {
-    if (error instanceof BadConfigurationLLMError) throw error;
+    if (error instanceof LLMError && error.code === LLMErrorCode.BAD_CONFIGURATION) throw error;
 
     if (error instanceof z.ZodError) {
       const missingEnvVars = error.issues
@@ -94,14 +95,16 @@ function loadEnvIncludingLLMVars(): EnvVars {
 
       if (missingEnvVars.length > 0) {
         const selectedLlmModelFamily = process.env.LLM ?? "unknown";
-        throw new BadConfigurationLLMError(
+        throw new LLMError(
+          LLMErrorCode.BAD_CONFIGURATION,
           `Missing required environment variables for ${selectedLlmModelFamily} provider: ${missingEnvVars.join(", ")}. ` +
             `Please add these variables to your .env file. See EXAMPLE.env for guidance on provider-specific variables.`,
         );
       }
     }
 
-    throw new BadConfigurationLLMError(
+    throw new LLMError(
+      LLMErrorCode.BAD_CONFIGURATION,
       "Failed to load and validate environment variables for LLM configuration",
       getErrorStack(error),
     );

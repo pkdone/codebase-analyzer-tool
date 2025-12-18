@@ -24,7 +24,7 @@ import {
 import { formatError } from "../../utils/error-formatters";
 import { processJson } from "../json-processing/core/json-processing";
 import { calculateTokenUsageFromError } from "../utils/error-parser";
-import { BadConfigurationLLMError, BadResponseContentLLMError } from "../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../types/llm-errors.types";
 import { llmProviderConfig } from "../config/llm.config";
 import type { IErrorLogger } from "../tracking/llm-error-logger.interface";
 import {
@@ -147,7 +147,8 @@ export default abstract class AbstractLLM implements LLMProvider {
   executeCompletionSecondary: LLMFunction = async (prompt, context, options) => {
     const secondaryCompletion = this.modelsKeys.secondaryCompletionModelKey;
     if (!secondaryCompletion)
-      throw new BadConfigurationLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
         `'Secondary' text model for ${this.constructor.name} was not defined`,
       );
     return this.executeProviderFunction(
@@ -319,7 +320,8 @@ export default abstract class AbstractLLM implements LLMProvider {
     if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
       // Runtime validation: TEXT format must return string
       if (typeof responseContent !== "string") {
-        throw new BadResponseContentLLMError(
+        throw new LLMError(
+          LLMErrorCode.BAD_RESPONSE_CONTENT,
           `Expected string response for TEXT output format, but received ${typeof responseContent}`,
           responseContent,
         );

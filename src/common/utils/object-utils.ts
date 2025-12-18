@@ -1,6 +1,5 @@
 /**
  * Helper function to safely get a nested property value from an object using a dot-notation path.
- * Uses modern JavaScript features for cleaner implementation.
  * Returns unknown to force callers to validate the type with a type guard.
  * @param obj The object to extract the value from (must be an object or array)
  * @param path The dot-notation path (e.g., "response.choices[0].message.content")
@@ -8,21 +7,24 @@
  */
 export function getNestedValue(obj: unknown, path: string): unknown {
   if (path === "") return undefined;
-  if (path.includes("][")) return undefined; // Double bracket notation not supported
 
   // Validate that obj is an object type that can have nested properties
   if (obj === null || obj === undefined || typeof obj !== "object") {
     return undefined;
   }
 
-  // Split on dot, open bracket, or close bracket - handles 'a.b', 'a[0].b', and 'a[0][1]' (though double bracket not supported)
+  // Split on dot, open bracket, or close bracket - handles 'a.b', 'a[0].b', and 'a[0][1]'
   const keys = path.split(/\.|\[|\]/).filter(Boolean);
-  return keys.reduce<unknown>((current, key) => {
+  let current: unknown = obj;
+
+  for (const key of keys) {
     if (current === null || typeof current !== "object") {
       return undefined;
     }
-    return (current as Record<string, unknown>)[key];
-  }, obj);
+    current = (current as Record<string, unknown>)[key];
+  }
+
+  return current;
 }
 
 /**

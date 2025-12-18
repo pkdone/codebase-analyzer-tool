@@ -117,8 +117,9 @@ describe("Object Utils", () => {
           ],
         };
 
-        expect(getNestedValue(obj, "matrix[0][1]")).toBeUndefined(); // Double bracket not supported
+        expect(getNestedValue(obj, "matrix[0][1]")).toBe(2); // Nested array access now supported
         expect(getNestedValue(obj, "matrix[1]")).toEqual([4, 5, 6]);
+        expect(getNestedValue(obj, "matrix[1][2]")).toBe(6);
       });
     });
 

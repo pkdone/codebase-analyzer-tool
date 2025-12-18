@@ -276,7 +276,7 @@ describe("LLM Router tests", () => {
     test("should call close on provider", async () => {
       const { router, mockProvider } = createLLMRouter();
 
-      await router.close();
+      await router.shutdown();
       expect(mockProvider.close).toHaveBeenCalled();
     });
   });

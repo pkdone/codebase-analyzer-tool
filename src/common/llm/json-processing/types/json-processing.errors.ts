@@ -5,7 +5,7 @@
  * Rich contextual information (original content, sanitization steps, etc.) is logged
  * when the error is created rather than stored in the error object.
  */
-import { LLMError } from "../../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../types/llm-errors.types";
 
 /**
  * Enum defining the types of errors that can occur during JSON processing.
@@ -28,7 +28,8 @@ export class JsonProcessingError extends LLMError {
    * Constructor.
    */
   constructor(type: JsonProcessingErrorType, message: string, cause?: Error) {
-    super(JsonProcessingError.name, message, { cause });
+    super(LLMErrorCode.BAD_RESPONSE_CONTENT, message, undefined, { cause });
+    this.name = "JsonProcessingError";
     this.type = type;
   }
 }

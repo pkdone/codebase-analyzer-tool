@@ -15,11 +15,7 @@ import { LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm.types"
 import { logOneLineWarning, logError } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
 import AbstractLLM from "../../abstract-llm";
-import {
-  BadConfigurationLLMError,
-  BadResponseContentLLMError,
-  RejectionResponseLLMError,
-} from "../../../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import {
   zodToJsonSchemaWithoutMeta,
   sanitizeSchemaForProvider,
@@ -188,7 +184,8 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     const llmResponses = await llm.generateContent(prompt);
     const usageMetadata = llmResponses.response.usageMetadata;
     const llmResponse = llmResponses.response.candidates?.[0];
-    if (!llmResponse) throw new BadResponseContentLLMError("LLM response was completely empty");
+    if (!llmResponse)
+      throw new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "LLM response was completely empty");
 
     // Capture response content
     // Using extra checking because even though Vertex AI types say these should exists they may not
@@ -201,7 +198,8 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     // Capture finish reason
     const finishReason = llmResponse.finishReason ?? FinishReason.OTHER;
     if (VERTEXAI_TERMINAL_FINISH_REASONS.includes(finishReason))
-      throw new RejectionResponseLLMError(
+      throw new LLMError(
+        LLMErrorCode.REJECTION_RESPONSE,
         `LLM response was not safely completed - reason given: ${finishReason}`,
         finishReason,
       );
@@ -223,7 +221,8 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     const endpoint = `${this.apiEndpointPrefix}${model}`;
     // For Gemini models, we don't use task_type parameter
     const instance = helpers.toValue({ content: prompt });
-    if (!instance) throw new BadConfigurationLLMError("Failed to convert prompt to IValue");
+    if (!instance)
+      throw new LLMError(LLMErrorCode.BAD_CONFIGURATION, "Failed to convert prompt to IValue");
     const parameters = helpers.toValue({});
     return { endpoint, instances: [instance], parameters };
   }

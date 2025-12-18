@@ -3,7 +3,7 @@ import { z } from "zod";
 import { summarizeFile } from "../../../../src/app/components/capture/file-summarizer";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
-import { BadResponseContentLLMError } from "../../../../src/common/llm/types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
 import * as logging from "../../../../src/common/utils/logging";
 
 // Mock dependencies
@@ -438,7 +438,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         );
       });
 
-      test("should throw BadResponseContentLLMError for null LLM response", async () => {
+      test("should throw LLMError for null LLM response", async () => {
         const filepath = "src/null-response.ts";
         const type = "js";
         const content = "function test() { }";
@@ -446,8 +446,11 @@ CRITICAL JSON FORMAT REQUIREMENTS:
         (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(null);
 
         await expect(summarizeFile(mockLLMRouter, filepath, type, content)).rejects.toThrow(
-          BadResponseContentLLMError,
+          LLMError,
         );
+        await expect(summarizeFile(mockLLMRouter, filepath, type, content)).rejects.toMatchObject({
+          code: LLMErrorCode.BAD_RESPONSE_CONTENT,
+        });
       });
     });
 

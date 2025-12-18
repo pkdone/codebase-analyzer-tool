@@ -11,7 +11,7 @@ import { formatError } from "../../../../utils/error-formatters";
 import { logError } from "../../../../utils/logging";
 import AbstractLLM from "../../abstract-llm";
 import { z } from "zod";
-import { BadResponseContentLLMError } from "../../../types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 import {
   extractGenericCompletionResponse,
   type ResponsePathConfig,
@@ -158,7 +158,8 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   private extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
     const validation = BedrockEmbeddingsResponseSchema.safeParse(llmResponse);
     if (!validation.success)
-      throw new BadResponseContentLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_RESPONSE_CONTENT,
         "Invalid Bedrock embeddings response structure",
         llmResponse,
       );

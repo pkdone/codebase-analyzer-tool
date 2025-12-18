@@ -1,7 +1,7 @@
 import { LLMModuleConfig } from "../../common/llm/config/llm-module-config.types";
 import { EnvVars } from "../env/env.types";
 import { loadManifestForModelFamily } from "../../common/llm/utils/manifest-loader";
-import { BadConfigurationLLMError } from "../../common/llm/types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../common/llm/types/llm-errors.types";
 
 /**
  * Builds the LLM module configuration from application environment variables.
@@ -29,7 +29,8 @@ export function buildLLMModuleConfig(envVars: EnvVars, modelFamily: string): LLM
     const value = (envVars as Record<string, unknown>)[urnEnvKey];
 
     if (typeof value !== "string" || value.length === 0) {
-      throw new BadConfigurationLLMError(
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
         `Required environment variable ${urnEnvKey} is not set, is empty, or is not a string. Found: ${String(value)}`,
       );
     }

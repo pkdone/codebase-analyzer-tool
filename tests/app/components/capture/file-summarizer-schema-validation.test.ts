@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { summarizeFile } from "../../../../src/app/components/capture/file-summarizer";
 import LLMRouter from "../../../../src/common/llm/llm-router";
-import { BadResponseContentLLMError } from "../../../../src/common/llm/types/llm-errors.types";
+import { LLMError } from "../../../../src/common/llm/types/llm-errors.types";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
 
 // Mock dependencies
@@ -63,7 +63,7 @@ describe("File Summarizer - Schema Validation Improvements", () => {
 
       await expect(
         summarizeFile(mockLLMRouter, "TestFile.java", "java", "public class TestFile {}"),
-      ).rejects.toThrow(BadResponseContentLLMError);
+      ).rejects.toThrow(LLMError);
     });
 
     test("should reject response missing required implementation field", async () => {
@@ -73,7 +73,7 @@ describe("File Summarizer - Schema Validation Improvements", () => {
 
       await expect(
         summarizeFile(mockLLMRouter, "TestFile.java", "java", "public class TestFile {}"),
-      ).rejects.toThrow(BadResponseContentLLMError);
+      ).rejects.toThrow(LLMError);
     });
 
     test("should accept response with optional fields", async () => {
@@ -207,7 +207,7 @@ describe("File Summarizer - Schema Validation Improvements", () => {
 
       await expect(
         summarizeFile(mockLLMRouter, "TestFile.java", "java", "public class TestFile {}"),
-      ).rejects.toThrow(BadResponseContentLLMError);
+      ).rejects.toThrow(LLMError);
     });
   });
 
@@ -328,7 +328,7 @@ describe("File Summarizer - Schema Validation Improvements", () => {
 
       await expect(
         summarizeFile(mockLLMRouter, "TestFile.java", "java", "public class TestFile {}"),
-      ).rejects.toThrow(BadResponseContentLLMError);
+      ).rejects.toThrow(LLMError);
     });
   });
 });

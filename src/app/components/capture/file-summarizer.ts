@@ -2,7 +2,7 @@ import { z } from "zod";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
-import { BadResponseContentLLMError } from "../../../common/llm/types/llm-errors.types";
+import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
 import path from "node:path";
 import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
 import { sourcePromptSchemas } from "../../prompts/definitions/sources/sources.schemas";
@@ -100,7 +100,7 @@ export async function summarizeFile(
     const response = await llmRouter.executeCompletion(filepath, renderedPrompt, completionOptions);
 
     if (response === null) {
-      throw new BadResponseContentLLMError("LLM returned null response");
+      throw new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "LLM returned null response");
     }
 
     // The response is correctly typed as a partial summary based on the picked schema.
