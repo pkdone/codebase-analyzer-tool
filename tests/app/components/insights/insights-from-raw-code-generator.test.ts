@@ -15,10 +15,21 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
 }));
 
-jest.mock("../../../../src/common/utils/codebase-to-markdown", () => ({
-  formatCodebaseAsMarkdown: jest
+jest.mock("../../../../src/common/utils/directory-to-markdown", () => ({
+  formatDirectoryAsMarkdown: jest
     .fn<() => Promise<string>>()
     .mockResolvedValue("mock codebase content"),
+  adaptFileProcessingConfig: jest.fn(
+    (config: {
+      FOLDER_IGNORE_LIST: readonly string[];
+      FILENAME_PREFIX_IGNORE: string;
+      BINARY_FILE_EXTENSION_IGNORE_LIST: readonly string[];
+    }) => ({
+      folderIgnoreList: config.FOLDER_IGNORE_LIST,
+      filenameIgnorePrefix: config.FILENAME_PREFIX_IGNORE,
+      binaryFileExtensionIgnoreList: config.BINARY_FILE_EXTENSION_IGNORE_LIST,
+    }),
+  ),
 }));
 
 jest.mock("../../../../src/app/prompts/prompt-renderer", () => ({

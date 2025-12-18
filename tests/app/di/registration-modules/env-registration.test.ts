@@ -9,7 +9,7 @@ import {
 } from "../../../../src/app/di/registration-modules/env-registration";
 import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/manifest-loader";
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
-import { getProjectNameFromPath } from "../../../../src/common/fs/path-utils";
+import { getBaseNameFromPath } from "../../../../src/common/fs/path-utils";
 import { loadBaseEnvVarsOnly } from "../../../../src/app/env/env";
 import { LLMPurpose } from "../../../../src/common/llm/types/llm.types";
 import dotenv from "dotenv";
@@ -76,7 +76,7 @@ describe("Environment Registration Module", () => {
     // Mock default implementations
     (dotenv.config as jest.Mock).mockReturnValue({ parsed: {} });
     (loadBaseEnvVarsOnly as jest.Mock).mockReturnValue(mockBaseEnvVars);
-    (getProjectNameFromPath as jest.Mock).mockReturnValue("test-project");
+    (getBaseNameFromPath as jest.Mock).mockReturnValue("test-project");
   });
 
   describe("registerBaseEnvDependencies", () => {
@@ -110,7 +110,7 @@ describe("Environment Registration Module", () => {
 
       registerBaseEnvDependencies();
 
-      expect(getProjectNameFromPath).not.toHaveBeenCalled();
+      expect(getBaseNameFromPath).not.toHaveBeenCalled();
       const projectName = container.resolve(coreTokens.ProjectName);
       expect(projectName).toBe("existing-project");
     });

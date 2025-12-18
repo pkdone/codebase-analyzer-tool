@@ -1,4 +1,4 @@
-import { getFileExtension, getProjectNameFromPath } from "../../../src/common/fs/path-utils";
+import { getFileExtension, getBaseNameFromPath } from "../../../src/common/fs/path-utils";
 
 describe("Path utilities", () => {
   describe("getFileExtension", () => {
@@ -18,7 +18,7 @@ describe("Path utilities", () => {
     });
   });
 
-  describe("getProjectNameFromPath", () => {
+  describe("getBaseNameFromPath", () => {
     const projectNameTestData = [
       {
         input: "/home/user/projects/my-awesome-project",
@@ -79,16 +79,16 @@ describe("Path utilities", () => {
       },
     ];
 
-    test.each(projectNameTestData)("getProjectNameFromPath $description", ({ input, expected }) => {
-      expect(getProjectNameFromPath(input)).toBe(expected);
+    test.each(projectNameTestData)("getBaseNameFromPath $description", ({ input, expected }) => {
+      expect(getBaseNameFromPath(input)).toBe(expected);
     });
 
     test("should handle paths with multiple consecutive slashes", () => {
-      expect(getProjectNameFromPath("/path//to///project")).toBe("project");
+      expect(getBaseNameFromPath("/path//to///project")).toBe("project");
     });
 
     test("should handle Unix-style paths correctly", () => {
-      expect(getProjectNameFromPath("/Users/user/projects/my-project")).toBe("my-project");
+      expect(getBaseNameFromPath("/Users/user/projects/my-project")).toBe("my-project");
     });
 
     test("should be consistent with normalized and non-normalized paths", () => {
@@ -101,7 +101,7 @@ describe("Path utilities", () => {
       ];
 
       paths.forEach((path) => {
-        expect(getProjectNameFromPath(path)).toBe(projectName);
+        expect(getBaseNameFromPath(path)).toBe(projectName);
       });
     });
   });

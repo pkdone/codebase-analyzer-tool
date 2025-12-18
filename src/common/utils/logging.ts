@@ -29,20 +29,16 @@ export function logError(msg: string, error: unknown): void {
  * @param context Optional additional data to log, will be stringified.
  */
 export function logOneLineWarning(message: string, context?: unknown): void {
-  let logMessage = message.replace(/(\r\n|\n|\r)/gm, " ");
+  // Helper to sanitize a string for single-line logging
+  const toSingleLine = (str: string) => str.replace(/(\r\n|\n|\r|\\n|\\r|\\r\\n)/gm, " ");
+
+  let logMessage = toSingleLine(message);
 
   if (context) {
     // Use formatError for all objects (handles Error instances, plain objects, and circular references safely)
     // Use String() for primitives
     const contextString = isPrimitive(context) ? String(context) : formatError(context);
-
-    // Replace newlines in the details string as well
-    const singleLineContext = contextString
-      .replace(/(\r\n|\n|\r)/gm, " ")
-      .replace(/\\n/g, " ")
-      .replace(/\\r/g, " ")
-      .replace(/\\r\\n/g, " ");
-    logMessage += ` | Context: ${singleLineContext}`;
+    logMessage += ` | Context: ${toSingleLine(contextString)}`;
   }
   console.warn(logMessage);
 }

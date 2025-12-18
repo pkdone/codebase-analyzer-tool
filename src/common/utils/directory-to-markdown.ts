@@ -1,8 +1,32 @@
-import { fileProcessingConfig } from "../../app/config/file-processing.config";
 import { findFilesRecursively } from "../fs/directory-operations";
 import { getFileExtension } from "../fs/path-utils";
 import { readFile } from "../fs/file-operations";
 import { formatFilesAsMarkdownCodeBlocksWithPath, type FileLike } from "./markdown-formatter";
+
+/**
+ * Configuration interface for directory formatting operations.
+ */
+export interface DirectoryFormattingConfig {
+  readonly folderIgnoreList: readonly string[];
+  readonly filenameIgnorePrefix: string;
+  readonly binaryFileExtensionIgnoreList: readonly string[];
+}
+
+/**
+ * Helper function to convert fileProcessingConfig to DirectoryFormattingConfig.
+ * This allows the common utility to work with the application-specific config structure.
+ */
+export function adaptFileProcessingConfig(config: {
+  readonly FOLDER_IGNORE_LIST: readonly string[];
+  readonly FILENAME_PREFIX_IGNORE: string;
+  readonly BINARY_FILE_EXTENSION_IGNORE_LIST: readonly string[];
+}): DirectoryFormattingConfig {
+  return {
+    folderIgnoreList: config.FOLDER_IGNORE_LIST,
+    filenameIgnorePrefix: config.FILENAME_PREFIX_IGNORE,
+    binaryFileExtensionIgnoreList: config.BINARY_FILE_EXTENSION_IGNORE_LIST,
+  };
+}
 
 /**
  * Regex pattern to match trailing slash at end of string
@@ -10,26 +34,30 @@ import { formatFilesAsMarkdownCodeBlocksWithPath, type FileLike } from "./markdo
 const TRAILING_SLASH_PATTERN = /\/$/;
 
 /**
- * Format the codebase in the given directory as markdown code blocks
- * @param codebaseDirPath - The path to the codebase directory
+ * Format the directory contents as markdown code blocks
+ * @param dirPath - The path to the directory
+ * @param config - Configuration for directory formatting (ignore lists, etc.)
  * @returns Promise resolving to formatted content containing all source files as markdown code blocks
  */
-export async function formatCodebaseAsMarkdown(codebaseDirPath: string): Promise<string> {
+export async function formatDirectoryAsMarkdown(
+  dirPath: string,
+  config: DirectoryFormattingConfig,
+): Promise<string> {
   // Remove trailing slashes from the directory path
-  const srcDirPath = codebaseDirPath.replace(TRAILING_SLASH_PATTERN, "");
+  const srcDirPath = dirPath.replace(TRAILING_SLASH_PATTERN, "");
 
   // Find all source files recursively with ignore rules applied
   const srcFilepaths = await findFilesRecursively(
     srcDirPath,
-    fileProcessingConfig.FOLDER_IGNORE_LIST,
-    fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+    config.folderIgnoreList,
+    config.filenameIgnorePrefix,
   );
 
   // Merge all source files into markdown code blocks
   const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(
     srcFilepaths,
     srcDirPath,
-    fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+    config.binaryFileExtensionIgnoreList,
   );
 
   return codeBlocksContent;

@@ -1,22 +1,19 @@
-import { formatCodebaseAsMarkdown } from "../../../../../src/common/utils/codebase-to-markdown";
-import { findFilesRecursively } from "../../../../../src/common/fs/directory-operations";
-import { getFileExtension } from "../../../../../src/common/fs/path-utils";
-import { readFile } from "../../../../../src/common/fs/file-operations";
-import { fileProcessingConfig } from "../../../../../src/app/config/file-processing.config";
+import {
+  formatDirectoryAsMarkdown,
+  adaptFileProcessingConfig,
+  type DirectoryFormattingConfig,
+} from "../../../src/common/utils/directory-to-markdown";
+import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
+import { getFileExtension } from "../../../src/common/fs/path-utils";
+import { readFile } from "../../../src/common/fs/file-operations";
+import { fileProcessingConfig } from "../../../src/app/config/file-processing.config";
 
 // Mock dependencies
-jest.mock("../../../../../src/common/fs/directory-operations");
-jest.mock("../../../../../src/common/fs/path-utils");
-jest.mock("../../../../../src/common/fs/file-operations");
-jest.mock("../../../../../src/app/config/file-processing.config", () => ({
-  fileProcessingConfig: {
-    FOLDER_IGNORE_LIST: ["node_modules", "dist"],
-    FILENAME_PREFIX_IGNORE: ["."],
-    BINARY_FILE_EXTENSION_IGNORE_LIST: [".jpg", ".png", ".gif", ".pdf"],
-  },
-}));
+jest.mock("../../../src/common/fs/directory-operations");
+jest.mock("../../../src/common/fs/path-utils");
+jest.mock("../../../src/common/fs/file-operations");
 
-describe("codebase-to-markdown", () => {
+describe("directory-to-markdown", () => {
   const mockFindFilesRecursively = findFilesRecursively as jest.MockedFunction<
     typeof findFilesRecursively
   >;
@@ -27,21 +24,22 @@ describe("codebase-to-markdown", () => {
     jest.clearAllMocks();
   });
 
-  describe("formatCodebaseForPrompt", () => {
-    it("should process a codebase directory and generate markdown code blocks", async () => {
-      const codebasePath = "/test/project";
+  describe("formatDirectoryAsMarkdown", () => {
+    it("should process a directory and generate markdown code blocks", async () => {
+      const dirPath = "/test/project";
       const mockFiles = ["/test/project/file1.ts", "/test/project/file2.ts"];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
-      mockGetFileExtension.mockReturnValueOnce(".ts").mockReturnValueOnce(".ts");
+      mockGetFileExtension.mockReturnValueOnce("ts").mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("const x = 1;").mockResolvedValueOnce("var y = 2;");
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
-        codebasePath,
-        fileProcessingConfig.FOLDER_IGNORE_LIST,
-        fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        dirPath,
+        config.folderIgnoreList,
+        config.filenameIgnorePrefix,
       );
 
       expect(result).toContain("``` file1.ts");
@@ -51,27 +49,29 @@ describe("codebase-to-markdown", () => {
     });
 
     it("should remove trailing slashes from the directory path", async () => {
-      const codebasePath = "/test/project/";
+      const dirPath = "/test/project/";
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(mockFindFilesRecursively).toHaveBeenCalledWith(
         "/test/project",
-        fileProcessingConfig.FOLDER_IGNORE_LIST,
-        fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        config.folderIgnoreList,
+        config.filenameIgnorePrefix,
       );
     });
 
     it("should skip binary files based on ignore list", async () => {
-      const codebasePath = "/test/project";
+      const dirPath = "/test/project";
       const mockFiles = ["/test/project/image.png", "/test/project/code.ts"];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
-      mockGetFileExtension.mockReturnValueOnce(".png").mockReturnValueOnce(".ts");
+      mockGetFileExtension.mockReturnValueOnce("png").mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("const x = 1;"); // Only called for .ts file
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(mockReadFile).toHaveBeenCalledTimes(1);
       expect(result).not.toContain("image.png");
@@ -79,27 +79,29 @@ describe("codebase-to-markdown", () => {
     });
 
     it("should handle uppercase file extensions", async () => {
-      const codebasePath = "/test/project";
+      const dirPath = "/test/project";
       const mockFiles = ["/test/project/image.PNG"];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
-      mockGetFileExtension.mockReturnValueOnce(".PNG");
+      mockGetFileExtension.mockReturnValueOnce("PNG");
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).not.toContain("image.PNG");
       expect(mockReadFile).not.toHaveBeenCalled();
     });
 
     it("should trim file content in markdown blocks", async () => {
-      const codebasePath = "/test/project";
+      const dirPath = "/test/project";
       const mockFiles = ["/test/project/file.ts"];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
-      mockGetFileExtension.mockReturnValueOnce(".ts");
+      mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("  \n\nconst x = 1;\n\n  ");
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toContain("const x = 1;");
       expect(result).not.toMatch(/^\s+const x = 1;/);
@@ -107,31 +109,33 @@ describe("codebase-to-markdown", () => {
     });
 
     it("should use relative file paths in markdown blocks", async () => {
-      const codebasePath = "/test/project";
+      const dirPath = "/test/project";
       const mockFiles = ["/test/project/src/utils/helper.ts"];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
-      mockGetFileExtension.mockReturnValueOnce(".ts");
+      mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("export function helper() {}");
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toContain("``` src/utils/helper.ts");
       expect(result).not.toContain("/test/project");
     });
 
-    it("should handle empty codebase directory", async () => {
-      const codebasePath = "/test/empty-project";
+    it("should handle empty directory", async () => {
+      const dirPath = "/test/empty-project";
       mockFindFilesRecursively.mockResolvedValue([]);
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toBe("");
       expect(mockReadFile).not.toHaveBeenCalled();
     });
 
     it("should process multiple files in parallel", async () => {
-      const codebasePath = "/test/project";
+      const dirPath = "/test/project";
       const mockFiles = [
         "/test/project/file1.ts",
         "/test/project/file2.ts",
@@ -139,20 +143,21 @@ describe("codebase-to-markdown", () => {
       ];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
-      mockGetFileExtension.mockReturnValue(".ts");
+      mockGetFileExtension.mockReturnValue("ts");
       mockReadFile
         .mockResolvedValueOnce("content1")
         .mockResolvedValueOnce("content2")
         .mockResolvedValueOnce("content3");
 
-      await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      await formatDirectoryAsMarkdown(dirPath, config);
 
       // All files should be read in parallel
       expect(mockReadFile).toHaveBeenCalledTimes(3);
     });
 
     it("should filter out empty blocks from skipped binary files", async () => {
-      const codebasePath = "/test/project";
+      const dirPath = "/test/project";
       const mockFiles = [
         "/test/project/image.jpg",
         "/test/project/code.ts",
@@ -161,12 +166,13 @@ describe("codebase-to-markdown", () => {
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
       mockGetFileExtension
-        .mockReturnValueOnce(".jpg")
-        .mockReturnValueOnce(".ts")
-        .mockReturnValueOnce(".pdf");
+        .mockReturnValueOnce("jpg")
+        .mockReturnValueOnce("ts")
+        .mockReturnValueOnce("pdf");
       mockReadFile.mockResolvedValueOnce("const x = 1;");
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       // Should only contain one code block
       const codeBlockCount = (result.match(/```/g) ?? []).length;
@@ -174,30 +180,50 @@ describe("codebase-to-markdown", () => {
     });
 
     it("should handle files with no extension", async () => {
-      const codebasePath = "/test/project";
+      const dirPath = "/test/project";
       const mockFiles = ["/test/project/Makefile"];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
       mockGetFileExtension.mockReturnValueOnce("");
       mockReadFile.mockResolvedValueOnce("all: build");
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toContain("``` Makefile");
       expect(result).toContain("all: build");
     });
 
     it("should preserve multiple trailing/leading newlines after trim", async () => {
-      const codebasePath = "/test/project";
+      const dirPath = "/test/project";
       const mockFiles = ["/test/project/file.ts"];
 
       mockFindFilesRecursively.mockResolvedValue(mockFiles);
-      mockGetFileExtension.mockReturnValueOnce(".ts");
+      mockGetFileExtension.mockReturnValueOnce("ts");
       mockReadFile.mockResolvedValueOnce("line1\n\n\nline2");
 
-      const result = await formatCodebaseAsMarkdown(codebasePath);
+      const config = adaptFileProcessingConfig(fileProcessingConfig);
+      const result = await formatDirectoryAsMarkdown(dirPath, config);
 
       expect(result).toContain("line1\n\n\nline2");
+    });
+
+    it("should use config parameter correctly", async () => {
+      const dirPath = "/test/project";
+      const customConfig: DirectoryFormattingConfig = {
+        folderIgnoreList: ["custom-ignore"] as readonly string[],
+        filenameIgnorePrefix: "custom-",
+        binaryFileExtensionIgnoreList: ["custom-ext"] as readonly string[],
+      };
+      mockFindFilesRecursively.mockResolvedValue([]);
+
+      await formatDirectoryAsMarkdown(dirPath, customConfig);
+
+      expect(mockFindFilesRecursively).toHaveBeenCalledWith(
+        dirPath,
+        customConfig.folderIgnoreList,
+        customConfig.filenameIgnorePrefix,
+      );
     });
   });
 });

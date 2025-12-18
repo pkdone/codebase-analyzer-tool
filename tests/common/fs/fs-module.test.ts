@@ -67,9 +67,9 @@ describe("fs module barrel exports", () => {
       expect(typeof fs.getFileExtension).toBe("function");
     });
 
-    it("should export getProjectNameFromPath", () => {
-      expect(fs.getProjectNameFromPath).toBeDefined();
-      expect(typeof fs.getProjectNameFromPath).toBe("function");
+    it("should export getBaseNameFromPath", () => {
+      expect(fs.getBaseNameFromPath).toBeDefined();
+      expect(typeof fs.getBaseNameFromPath).toBe("function");
     });
   });
 

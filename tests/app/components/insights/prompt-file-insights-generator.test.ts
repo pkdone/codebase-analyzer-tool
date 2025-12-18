@@ -13,8 +13,19 @@ jest.mock("../../../../src/common/fs/file-operations", () => ({
   readFile: jest.fn(async () => "Question?"),
   writeFile: jest.fn(async () => undefined),
 }));
-jest.mock("../../../../src/common/utils/codebase-to-markdown", () => ({
-  formatCodebaseAsMarkdown: jest.fn(async () => "CODEBLOCK"),
+jest.mock("../../../../src/common/utils/directory-to-markdown", () => ({
+  formatDirectoryAsMarkdown: jest.fn(async () => "CODEBLOCK"),
+  adaptFileProcessingConfig: jest.fn(
+    (config: {
+      FOLDER_IGNORE_LIST: readonly string[];
+      FILENAME_PREFIX_IGNORE: string;
+      BINARY_FILE_EXTENSION_IGNORE_LIST: readonly string[];
+    }) => ({
+      folderIgnoreList: config.FOLDER_IGNORE_LIST,
+      filenameIgnorePrefix: config.FILENAME_PREFIX_IGNORE,
+      binaryFileExtensionIgnoreList: config.BINARY_FILE_EXTENSION_IGNORE_LIST,
+    }),
+  ),
 }));
 jest.mock("../../../../src/common/llm/llm-router");
 

@@ -4,13 +4,17 @@ import LLMRouter from "../../../../src/common/llm/llm-router";
 import { EnvVars } from "../../../../src/app/env/env.types";
 import InsightsFromDBGenerator from "../../../../src/app/components/insights/insights-from-db-generator";
 import InsightsFromRawCodeGenerator from "../../../../src/app/components/insights/insights-from-raw-code-generator";
-import { formatCodebaseAsMarkdown } from "../../../../src/common/utils/codebase-to-markdown";
+import {
+  formatDirectoryAsMarkdown,
+  adaptFileProcessingConfig,
+} from "../../../../src/common/utils/directory-to-markdown";
+import { fileProcessingConfig } from "../../../../src/app/config/file-processing.config";
 import { llmProviderConfig } from "../../../../src/common/llm/config/llm.config";
 import { z } from "zod";
 import { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 
 // Mock dependencies
-jest.mock("../../../../src/common/utils/codebase-to-markdown");
+jest.mock("../../../../src/common/utils/directory-to-markdown");
 jest.mock("../../../../src/common/llm/config/llm.config", () => ({
   llmConfig: {
     LLM_ROLE_USER: "user",
@@ -100,7 +104,7 @@ describe("InsightsProcessorSelector", () => {
 
   describe("selectInsightsProcessor", () => {
     it("should use LLMRouter to get manifest", async () => {
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue("test code");
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue("test code");
 
       await selector.selectInsightsProcessor();
 
@@ -110,12 +114,15 @@ describe("InsightsProcessorSelector", () => {
 
     it("should select raw code generator when codebase fits within token limit", async () => {
       const smallCodebase = "a".repeat(500); // 500 chars / 4 = 125 tokens
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue(smallCodebase);
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue(smallCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockRawCodeGenerator);
-      expect(formatCodebaseAsMarkdown).toHaveBeenCalledWith("/test/path");
+      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith(
+        "/test/path",
+        adaptFileProcessingConfig(fileProcessingConfig),
+      );
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining("Codebase chars length: 500"),
       );
@@ -126,12 +133,15 @@ describe("InsightsProcessorSelector", () => {
 
     it("should select db generator when codebase exceeds token limit", async () => {
       const largeCodebase = "a".repeat(5000); // 5000 chars / 4 = 1250 tokens (exceeds 1000)
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue(largeCodebase);
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue(largeCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockDbGenerator);
-      expect(formatCodebaseAsMarkdown).toHaveBeenCalledWith("/test/path");
+      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith(
+        "/test/path",
+        adaptFileProcessingConfig(fileProcessingConfig),
+      );
       expect(mockConsoleLog).toHaveBeenCalledWith(
         expect.stringContaining("Codebase chars length: 5000"),
       );
@@ -142,7 +152,7 @@ describe("InsightsProcessorSelector", () => {
 
     it("should select raw code generator when tokens exactly equal limit", async () => {
       const exactCodebase = "a".repeat(4000); // 4000 chars / 4 = 1000 tokens (exactly at limit)
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue(exactCodebase);
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue(exactCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
@@ -152,7 +162,7 @@ describe("InsightsProcessorSelector", () => {
 
     it("should select raw code generator when tokens are just below limit", async () => {
       const justBelowCodebase = "a".repeat(3996); // 3996 chars / 4 = 999 tokens (just below limit)
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue(justBelowCodebase);
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue(justBelowCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
@@ -160,7 +170,7 @@ describe("InsightsProcessorSelector", () => {
     });
 
     it("should handle empty codebase", async () => {
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue("");
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue("");
 
       const result = await selector.selectInsightsProcessor();
 
@@ -172,7 +182,7 @@ describe("InsightsProcessorSelector", () => {
 
     it("should use correct token calculation formula", async () => {
       const codebase = "test code";
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue(codebase);
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue(codebase);
 
       await selector.selectInsightsProcessor();
 
@@ -184,12 +194,15 @@ describe("InsightsProcessorSelector", () => {
 
     it("should propagate errors from bundleCodebaseIntoMarkdown", async () => {
       const bundleError = new Error("Failed to bundle codebase");
-      (formatCodebaseAsMarkdown as jest.Mock).mockRejectedValue(bundleError);
+      (formatDirectoryAsMarkdown as jest.Mock).mockRejectedValue(bundleError);
 
       await expect(selector.selectInsightsProcessor()).rejects.toThrow("Failed to bundle codebase");
 
       expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
-      expect(formatCodebaseAsMarkdown).toHaveBeenCalledWith("/test/path");
+      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith(
+        "/test/path",
+        adaptFileProcessingConfig(fileProcessingConfig),
+      );
     });
 
     it("should propagate errors from getLLMManifest", async () => {
@@ -201,7 +214,7 @@ describe("InsightsProcessorSelector", () => {
       await expect(selector.selectInsightsProcessor()).rejects.toThrow("Failed to get manifest");
 
       expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
-      expect(formatCodebaseAsMarkdown).not.toHaveBeenCalled();
+      expect(formatDirectoryAsMarkdown).not.toHaveBeenCalled();
     });
 
     it("should use manifest from injected router", async () => {
@@ -218,7 +231,7 @@ describe("InsightsProcessorSelector", () => {
       mockLLMRouter.getLLMManifest.mockReturnValue(customManifest);
 
       const mediumCodebase = "a".repeat(6000); // 6000 chars / 4 = 1500 tokens
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue(mediumCodebase);
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue(mediumCodebase);
 
       const result = await selector.selectInsightsProcessor();
 
@@ -230,13 +243,16 @@ describe("InsightsProcessorSelector", () => {
 
   describe("dependency injection", () => {
     it("should use injected dependencies correctly", async () => {
-      (formatCodebaseAsMarkdown as jest.Mock).mockResolvedValue("small");
+      (formatDirectoryAsMarkdown as jest.Mock).mockResolvedValue("small");
 
       const result = await selector.selectInsightsProcessor();
 
       expect(result).toBe(mockRawCodeGenerator);
       expect(mockLLMRouter.getLLMManifest).toHaveBeenCalled();
-      expect(formatCodebaseAsMarkdown).toHaveBeenCalledWith(mockEnvVars.CODEBASE_DIR_PATH);
+      expect(formatDirectoryAsMarkdown).toHaveBeenCalledWith(
+        mockEnvVars.CODEBASE_DIR_PATH,
+        adaptFileProcessingConfig(fileProcessingConfig),
+      );
     });
   });
 });

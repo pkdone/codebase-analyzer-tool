@@ -15,7 +15,10 @@ import { inject } from "tsyringe";
 import { llmTokens } from "../../di/tokens";
 import LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
-import { formatCodebaseAsMarkdown } from "../../../common/utils/codebase-to-markdown";
+import {
+  formatDirectoryAsMarkdown,
+  adaptFileProcessingConfig,
+} from "../../../common/utils/directory-to-markdown";
 import { formatDateForFilename } from "../../../common/utils/date-utils";
 import { inputConfig } from "../../config/input.config";
 
@@ -44,7 +47,10 @@ export class RawAnalyzerDrivenByReqsFiles {
    */
   async generateInsightsToFiles(srcDirPath: string, llmName: string): Promise<string[]> {
     const prompts = await this.loadPrompts();
-    const codeBlocksContent = await formatCodebaseAsMarkdown(srcDirPath);
+    const codeBlocksContent = await formatDirectoryAsMarkdown(
+      srcDirPath,
+      adaptFileProcessingConfig(fileProcessingConfig),
+    );
     await this.dumpCodeBlocksToTempFile(codeBlocksContent);
     const limit = pLimit(fileProcessingConfig.MAX_CONCURRENCY);
     const tasks = prompts.map(async (prompt) => {

@@ -7,7 +7,7 @@ import { loadBaseEnvVarsOnly } from "../../env/env";
 import { z } from "zod";
 import { BadConfigurationLLMError } from "../../../common/llm/types/llm-errors.types";
 import { getErrorStack } from "../../../common/utils/error-formatters";
-import { getProjectNameFromPath } from "../../../common/fs/path-utils";
+import { getBaseNameFromPath } from "../../../common/fs/path-utils";
 import dotenv from "dotenv";
 
 /**
@@ -44,7 +44,7 @@ export function registerLlmEnvDependencies(): void {
 function registerProjectName(): void {
   if (!container.isRegistered(coreTokens.ProjectName)) {
     const envVars = container.resolve<EnvVars>(coreTokens.EnvVars);
-    const projectName = getProjectNameFromPath(envVars.CODEBASE_DIR_PATH);
+    const projectName = getBaseNameFromPath(envVars.CODEBASE_DIR_PATH);
     container.registerInstance(coreTokens.ProjectName, projectName);
     console.log(`Project name '${projectName}' derived and registered.`);
   }

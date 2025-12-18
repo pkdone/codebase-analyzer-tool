@@ -1,9 +1,10 @@
 import path from "path";
 
 /**
- * Get the name of a project from its path.
+ * Get the base name from a file or directory path.
+ * Returns the last segment of the path, which could be a file or directory name.
  */
-export function getProjectNameFromPath(filePath: string): string {
+export function getBaseNameFromPath(filePath: string): string {
   const normalisedPath = filePath.endsWith("/") ? filePath.slice(0, -1) : filePath;
   return path.basename(normalisedPath);
 }
