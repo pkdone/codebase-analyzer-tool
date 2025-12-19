@@ -159,14 +159,12 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
 
     try {
       // Use strongly-typed schema lookup - enables correct return type inference.
-      // The indexed access type requires runtime casts to satisfy TypeScript's generic constraints.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
+      return (await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
         hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
         sanitizerConfig: getSchemaSpecificSanitizerConfig(),
-      });
+      })) as CategoryInsightResult<C> | null;
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,

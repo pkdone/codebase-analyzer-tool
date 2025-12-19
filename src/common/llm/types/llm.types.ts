@@ -246,8 +246,7 @@ export type LLMFunction = <S extends z.ZodType>(
   content: string,
   context: LLMContext,
   options?: LLMCompletionOptions<S>,
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-) => Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions>>>;
+) => Promise<LLMFunctionResponse>;
 
 /**
  * Type for embedding functions that always return number[].

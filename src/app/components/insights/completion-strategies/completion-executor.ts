@@ -59,15 +59,13 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     const renderedPrompt = renderPrompt(config, renderParams);
 
     // Schema lookup preserves category-specific typing through the call chain.
-    // The indexed access type requires a runtime cast to satisfy TypeScript's generic constraints.
     const schema = appSummaryCategorySchemas[category];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
+    return (await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
       sanitizerConfig: getSchemaSpecificSanitizerConfig(),
-    });
+    })) as z.infer<AppSummaryCategorySchemas[C]> | null;
   } catch (error: unknown) {
     logOneLineWarning(
       `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,

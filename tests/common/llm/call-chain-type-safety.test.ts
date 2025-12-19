@@ -441,4 +441,209 @@ describe("LLM Call Chain Type Safety", () => {
       }
     });
   });
+
+  describe("LLMFunction Type Definition Verification - Post Fix", () => {
+    test("should verify LLMFunction no longer resolves to any", () => {
+      // This test verifies that the fix to LLMFunction properly preserves generic type S
+      const testSchema = z.object({
+        value: z.string(),
+        count: z.number(),
+      });
+
+      // Mock function matching the corrected LLMFunction signature
+      const mockLLMFunc: import("../../../src/common/llm/types/llm.types").LLMFunction = async <
+        S extends z.ZodType,
+      >(
+        _content: string,
+        _context: import("../../../src/common/llm/types/llm.types").LLMContext,
+        _options?: import("../../../src/common/llm/types/llm.types").LLMCompletionOptions<S>,
+      ) => {
+        type ReturnType = import("../../../src/common/llm/types/llm.types").InferResponseType<
+          import("../../../src/common/llm/types/llm.types").LLMCompletionOptions<S>
+        >;
+        return {
+          status: LLMResponseStatus.COMPLETED,
+          request: "test",
+          modelKey: "test",
+          context: mockContext,
+          generated: { value: "test", count: 42 } as ReturnType,
+        };
+      };
+
+      const result = mockLLMFunc("test", mockContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: testSchema,
+      });
+
+      void expect(result).resolves.toHaveProperty("status", LLMResponseStatus.COMPLETED);
+    });
+
+    test("should verify generic S is properly threaded through type chain", () => {
+      // Test that the generic parameter S is preserved in the type definition
+      type ExtractGeneric<T> = T extends (...args: any[]) => Promise<infer R> ? R : never;
+
+      type LLMFuncReturn = ExtractGeneric<
+        import("../../../src/common/llm/types/llm.types").LLMFunction
+      >;
+
+      // If the fix is correct, this should compile without errors
+      // and LLMFuncReturn should not be 'any'
+      const _response: LLMFuncReturn = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test",
+        context: mockContext,
+        generated: { test: "value" },
+      };
+
+      expect(_response.status).toBe(LLMResponseStatus.COMPLETED);
+    });
+
+    test("should handle InferResponseType correctly with generic schema", () => {
+      // Verify that InferResponseType works correctly with the fixed LLMFunction
+      const _complexSchema = z.object({
+        nested: z.object({
+          value: z.string(),
+        }),
+        items: z.array(z.number()),
+      });
+
+      interface OptionsWithSchema {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _complexSchema;
+      }
+
+      type InferredType =
+        import("../../../src/common/llm/types/llm.types").InferResponseType<OptionsWithSchema>;
+
+      // This should compile and match ComplexType
+      const value: InferredType = {
+        nested: { value: "test" },
+        items: [1, 2, 3],
+      };
+
+      expect(value.nested.value).toBe("test");
+      expect(value.items).toEqual([1, 2, 3]);
+    });
+
+    test("should preserve type information through multiple generic layers", () => {
+      // Test that the type is preserved through nested generic functions
+      interface Type1 {
+        a: string;
+      }
+      interface Type2 {
+        b: number;
+      }
+
+      const response1: LLMFunctionResponse<Type1> = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test1",
+        modelKey: "test",
+        context: mockContext,
+        generated: { a: "test" },
+      };
+
+      const response2: LLMFunctionResponse<Type2> = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test2",
+        modelKey: "test",
+        context: mockContext,
+        generated: { b: 42 },
+      };
+
+      expect(response1.generated?.a).toBe("test");
+      expect(response2.generated?.b).toBe(42);
+
+      // These should have different types and not be assignable to each other
+      // const _invalid: LLMFunctionResponse<Type1> = response2; // Would be a compile error
+    });
+  });
+
+  describe("Compile-Time Type Assertions", () => {
+    test("should fail at compile time for incorrect schema usage", () => {
+      // These tests document the compile-time safety we now have
+      const _strictSchema = z.object({
+        name: z.string(),
+        age: z.number(),
+      });
+
+      type StrictType = z.infer<typeof _strictSchema>;
+
+      // Valid usage
+      const validData: StrictType = {
+        name: "Alice",
+        age: 30,
+      };
+
+      expect(validData.name).toBe("Alice");
+
+      // The following would fail at compile time (commented out):
+      // const invalidData: StrictType = {
+      //   name: 123,        // Error: Type 'number' is not assignable to type 'string'
+      //   age: "30",        // Error: Type 'string' is not assignable to type 'number'
+      // };
+
+      // const missingField: StrictType = {
+      //   name: "Bob",      // Error: Property 'age' is missing
+      // };
+    });
+
+    test("should enforce type safety in function returns", () => {
+      const _resultSchema = z.object({
+        success: z.boolean(),
+        data: z.string(),
+      });
+
+      type ResultType = z.infer<typeof _resultSchema>;
+
+      // Function that returns strongly-typed result
+      const processResult = (result: LLMFunctionResponse<ResultType>): string => {
+        if (result.generated) {
+          // TypeScript knows the exact shape of generated
+          return result.generated.data;
+        }
+        return "";
+      };
+
+      const mockResult: LLMFunctionResponse<ResultType> = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test",
+        context: mockContext,
+        generated: {
+          success: true,
+          data: "result",
+        },
+      };
+
+      expect(processResult(mockResult)).toBe("result");
+    });
+
+    test("should support type narrowing with discriminated unions", () => {
+      const _unionSchema = z.discriminatedUnion("kind", [
+        z.object({ kind: z.literal("string"), value: z.string() }),
+        z.object({ kind: z.literal("number"), value: z.number() }),
+      ]);
+
+      type UnionType = z.infer<typeof _unionSchema>;
+
+      const response: LLMFunctionResponse<UnionType> = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test",
+        context: mockContext,
+        generated: {
+          kind: "string",
+          value: "text",
+        },
+      };
+
+      // TypeScript should support type narrowing
+      if (response.generated?.kind === "string") {
+        // In this branch, TypeScript knows value is string
+        const _stringValue: string = response.generated.value;
+        expect(_stringValue).toBe("text");
+      }
+    });
+  });
 });

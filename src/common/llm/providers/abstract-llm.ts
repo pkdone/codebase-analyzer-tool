@@ -15,7 +15,6 @@ import {
   LLMOutputFormat,
   LLMFunction,
   LLMEmbeddingFunction,
-  InferResponseType,
 } from "../types/llm.types";
 import {
   LLMImplSpecificResponseSummary,
@@ -201,13 +200,8 @@ export default abstract class AbstractLLM implements LLMProvider {
     request: string,
     context: LLMContext,
     completionOptions?: LLMCompletionOptions<S>,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>>> {
-    const skeletonResponse: Omit<
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-      LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>>,
-      "generated" | "status" | "mutationSteps"
-    > = {
+  ): Promise<LLMFunctionResponse> {
+    const skeletonResponse: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps"> = {
       request,
       context,
       modelKey,
@@ -313,8 +307,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions<S>,
     context: LLMContext,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>>> {
+  ): Promise<LLMFunctionResponse> {
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
       return {

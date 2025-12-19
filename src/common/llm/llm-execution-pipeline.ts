@@ -160,8 +160,7 @@ export class LLMExecutionPipeline {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions<S>,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>> | null> {
+  ): Promise<LLMFunctionResponse | null> {
     let currentPrompt = initialPrompt;
     let llmFunctionIndex = 0;
 

@@ -5,7 +5,6 @@ import type {
   LLMContext,
   LLMCompletionOptions,
   LLMFunction,
-  InferResponseType,
 } from "../types/llm.types";
 import { LLMResponseStatus } from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
@@ -50,8 +49,7 @@ export class RetryStrategy {
     context: LLMContext,
     providerRetryConfig: LLMRetryConfig,
     completionOptions?: LLMCompletionOptions<S>,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>> | null> {
+  ): Promise<LLMFunctionResponse | null> {
     try {
       return await pRetry(
         async () => {

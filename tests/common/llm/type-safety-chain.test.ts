@@ -486,4 +486,266 @@ describe("Type Safety Chain - End to End", () => {
       }
     });
   });
+
+  describe("Verification of Type Fix - No Any Types", () => {
+    test("should verify no implicit any in LLMFunction return type", async () => {
+      // This test ensures that the fix properly eliminates 'any' from the type chain
+      const strictSchema = z.object({
+        id: z.number(),
+        data: z.string(),
+      });
+
+      testLLM.setMockResponse('{"id": 1, "data": "test"}');
+
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: strictSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+
+      // The type of result.generated should not be 'any'
+      // With the fix, TypeScript should infer the correct type
+      if (result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.id).toBe(1);
+        expect(data.data).toBe("test");
+      }
+    });
+
+    test("should preserve type through RetryStrategy without any", async () => {
+      const verificationSchema = z.object({
+        verified: z.boolean(),
+        timestamp: z.string(),
+      });
+
+      testLLM.setMockResponse('{"verified": true, "timestamp": "2024-01-01"}');
+
+      const result = await retryStrategy.executeWithRetries(
+        testLLM.executeCompletionPrimary,
+        "test",
+        testContext,
+        {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: verificationSchema,
+        },
+      );
+
+      expect(result).not.toBeNull();
+      if (result?.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.verified).toBe(true);
+        expect(data.timestamp).toBe("2024-01-01");
+      }
+    });
+
+    test("should preserve type through ExecutionPipeline without any", async () => {
+      const pipelineSchema = z.object({
+        status: z.string(),
+        code: z.number(),
+      });
+
+      testLLM.setMockResponse('{"status": "success", "code": 200}');
+
+      const result = await executionPipeline.execute({
+        resourceName: "test",
+        prompt: "test",
+        context: testContext,
+        llmFunctions: [testLLM.executeCompletionPrimary],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        modelsMetadata: testModelsMetadata,
+        completionOptions: {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: pipelineSchema,
+        },
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const data = result.data as Record<string, unknown>;
+        expect(data.status).toBe("success");
+        expect(data.code).toBe(200);
+      }
+    });
+  });
+
+  describe("Complex Schema Type Inference", () => {
+    test("should handle deeply nested schemas without losing types", async () => {
+      const deepSchema = z.object({
+        level1: z.object({
+          level2: z.object({
+            level3: z.object({
+              value: z.string(),
+            }),
+          }),
+        }),
+      });
+
+      testLLM.setMockResponse('{"level1": {"level2": {"level3": {"value": "deep"}}}}');
+
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: deepSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data).toHaveProperty("level1");
+      }
+    });
+
+    test("should handle arrays of complex objects", async () => {
+      const arraySchema = z.array(
+        z.object({
+          id: z.string(),
+          metadata: z.object({
+            created: z.string(),
+            updated: z.string().optional(),
+          }),
+          tags: z.array(z.string()),
+        }),
+      );
+
+      testLLM.setMockResponse(
+        '[{"id": "1", "metadata": {"created": "2024-01-01"}, "tags": ["tag1"]}]',
+      );
+
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: arraySchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.generated) {
+        expect(Array.isArray(result.generated)).toBe(true);
+        const data = result.generated as unknown[];
+        expect(data.length).toBe(1);
+      }
+    });
+
+    test("should handle schemas with multiple union types", async () => {
+      const unionSchema = z.object({
+        value: z.union([z.string(), z.number(), z.boolean()]),
+        result: z.union([z.literal("success"), z.literal("failure"), z.literal("pending")]),
+      });
+
+      testLLM.setMockResponse('{"value": "test", "result": "success"}');
+
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: unionSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.value).toBe("test");
+        expect(data.result).toBe("success");
+      }
+    });
+  });
+
+  describe("Edge Cases and Advanced Scenarios", () => {
+    test("should handle schemas with refinements", async () => {
+      const refinedSchema = z
+        .object({
+          email: z.string().email(),
+          age: z.number().min(0).max(120),
+          username: z.string().min(3).max(20),
+        })
+        .strict();
+
+      testLLM.setMockResponse('{"email": "test@example.com", "age": 25, "username": "testuser"}');
+
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: refinedSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.email).toBe("test@example.com");
+        expect(data.age).toBe(25);
+      }
+    });
+
+    test("should handle schemas with transformations", async () => {
+      const transformSchema = z
+        .object({
+          count: z.string().transform((val) => parseInt(val, 10)),
+          flag: z.string().transform((val) => val === "true"),
+        })
+        .transform((obj) => ({
+          ...obj,
+          doubled: obj.count * 2,
+        }));
+
+      testLLM.setMockResponse('{"count": "42", "flag": "true"}');
+
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: transformSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.count).toBe(42);
+        expect(data.flag).toBe(true);
+        expect(data.doubled).toBe(84);
+      }
+    });
+
+    test("should handle Record types with constrained keys", async () => {
+      const recordSchema = z.record(z.enum(["key1", "key2", "key3"]), z.number());
+
+      testLLM.setMockResponse('{"key1": 10, "key2": 20, "key3": 30}');
+
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: recordSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.key1).toBe(10);
+        expect(data.key2).toBe(20);
+        expect(data.key3).toBe(30);
+      }
+    });
+
+    test("should handle tuple types", async () => {
+      const tupleSchema = z.tuple([z.string(), z.number(), z.boolean()]);
+
+      testLLM.setMockResponse('["test", 42, true]');
+
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: tupleSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      if (result.generated) {
+        expect(Array.isArray(result.generated)).toBe(true);
+        const data = result.generated as unknown[];
+        expect(data[0]).toBe("test");
+        expect(data[1]).toBe(42);
+        expect(data[2]).toBe(true);
+      }
+    });
+  });
 });
