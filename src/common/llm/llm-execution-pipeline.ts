@@ -99,7 +99,7 @@ export class LLMExecutionPipeline {
             error: new LLMExecutionError(
               `LLM response has COMPLETED status but generated content is undefined for resource: '${resourceName}'`,
               resourceName,
-              context as unknown as Record<string, unknown>,
+              context,
             ),
           };
         }
@@ -121,7 +121,7 @@ export class LLMExecutionPipeline {
         error: new LLMExecutionError(
           `Failed to fulfill prompt for resource: '${resourceName}' after exhausting all retry and fallback strategies`,
           resourceName,
-          context as unknown as Record<string, unknown>,
+          context,
         ),
       };
     } catch (error: unknown) {
@@ -136,7 +136,7 @@ export class LLMExecutionPipeline {
         error: new LLMExecutionError(
           `Non-recoverable error while processing resource: '${resourceName}'`,
           resourceName,
-          context as unknown as Record<string, unknown>,
+          context,
           error,
         ),
       };

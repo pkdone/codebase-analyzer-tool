@@ -10,6 +10,7 @@ import {
   LLMOutputFormat,
   LLMFunctionResponse,
   LLMFunction,
+  LLMModelQuality,
 } from "../../../../src/common/llm/types/llm.types";
 import { SANITIZATION_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 
@@ -293,6 +294,221 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       });
 
       expect(recordJsonMutatedSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Error Context Handling", () => {
+    test("should return LLMExecutionError with typed context when generated is undefined", async () => {
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: undefined, // Explicitly undefined
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+        modelQuality: LLMModelQuality.PRIMARY,
+        outputFormat: LLMOutputFormat.JSON,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.resourceName).toBe("test-resource");
+        expect(result.error.context).toEqual(context);
+        expect(result.error.context?.resource).toBe("test-resource");
+        expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
+        expect(result.error.context?.modelQuality).toBe(LLMModelQuality.PRIMARY);
+        expect(result.error.context?.outputFormat).toBe(LLMOutputFormat.JSON);
+      }
+    });
+
+    test("should return LLMExecutionError with typed context when all functions fail", async () => {
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.INVALID,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+      });
+
+      const context: LLMContext = {
+        resource: "failed-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+        modelQuality: LLMModelQuality.SECONDARY,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "failed-resource",
+        prompt: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.TEXT },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.resourceName).toBe("failed-resource");
+        expect(result.error.context).toEqual(context);
+        expect(result.error.context?.resource).toBe("failed-resource");
+        expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
+        expect(result.error.context?.modelQuality).toBe(LLMModelQuality.SECONDARY);
+      }
+    });
+
+    test("should return LLMExecutionError with typed context when LLM function throws", async () => {
+      const thrownError = new Error("Unexpected error");
+      const mockLLMFunction = (async () => {
+        throw thrownError;
+      }) as unknown as LLMFunction;
+
+      const context: LLMContext = {
+        resource: "exception-resource",
+        purpose: LLMPurpose.EMBEDDINGS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "exception-resource",
+        prompt: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
+
+      // When LLM function throws, retry strategy catches it and returns null,
+      // which causes the pipeline to return a failure result
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.resourceName).toBe("exception-resource");
+        expect(result.error.context).toEqual(context);
+        expect(result.error.context?.resource).toBe("exception-resource");
+        expect(result.error.context?.purpose).toBe(LLMPurpose.EMBEDDINGS);
+        // errorCause is undefined because the error was caught by retry strategy
+        expect(result.error.errorCause).toBeUndefined();
+      }
+    });
+
+    test("should return LLMExecutionError with typed context and cause when iterateOverLLMFunctions throws", async () => {
+      const context: LLMContext = {
+        resource: "direct-exception-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      // Create a pipeline with a mocked retryStrategy that throws
+      const testLlmStats = new LLMStats();
+      const mockRetryStrategy = {
+        executeWithRetries: async () => {
+          throw new Error("Direct exception");
+        },
+      };
+      const testPipeline = new LLMExecutionPipeline(
+        mockRetryStrategy as unknown as RetryStrategy,
+        testLlmStats,
+      );
+
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: { test: "value" },
+      });
+
+      const result = await testPipeline.execute({
+        resourceName: "direct-exception-resource",
+        prompt: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.resourceName).toBe("direct-exception-resource");
+        expect(result.error.context).toEqual(context);
+        expect(result.error.context?.resource).toBe("direct-exception-resource");
+        expect(result.error.context?.purpose).toBe(LLMPurpose.COMPLETIONS);
+        expect(result.error.errorCause).toBeInstanceOf(Error);
+        expect((result.error.errorCause as Error).message).toBe("Direct exception");
+      }
+    });
+
+    test("should preserve context with responseContentParseError", async () => {
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: undefined,
+      });
+
+      const context: LLMContext = {
+        resource: "parse-error-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+        responseContentParseError: "Invalid JSON structure",
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "parse-error-resource",
+        prompt: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+        candidateModels: undefined,
+        completionOptions: { outputFormat: LLMOutputFormat.JSON },
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.context?.responseContentParseError).toBe("Invalid JSON structure");
+      }
     });
   });
 });
