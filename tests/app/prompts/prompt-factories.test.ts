@@ -6,7 +6,7 @@ import { BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 describe("Prompt Constructor and Templates", () => {
   const sourceDefinition: PromptDefinition = {
     label: "Test",
-    introTextTemplate:
+    contentDesc:
       "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below...",
     instructions: ["instruction 1"],
     responseSchema: z.string(),
@@ -17,7 +17,7 @@ describe("Prompt Constructor and Templates", () => {
 
   const appSummaryDefinition: PromptDefinition = {
     label: "Test",
-    introTextTemplate:
+    contentDesc:
       "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below...",
     instructions: ["instruction 1"],
     responseSchema: z.string(),
@@ -64,7 +64,8 @@ describe("Prompt Constructor and Templates", () => {
 
     it("should have consistent template structure", () => {
       // All prompts now use the unified BASE_PROMPT_TEMPLATE structure
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{introText}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{content}}");
@@ -75,7 +76,7 @@ describe("Prompt Constructor and Templates", () => {
       const categoryKey = "entities";
       const reduceDefinition = {
         ...sourceDefinition,
-        introTextTemplate:
+        contentDesc:
           "Act as a senior developer. You've been provided with data containing '{{categoryKey}}'...",
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FRAGMENTED_DATA" as const,

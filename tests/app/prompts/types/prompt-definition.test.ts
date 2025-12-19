@@ -3,7 +3,7 @@ import { z } from "zod";
 
 describe("PromptDefinition", () => {
   const createMockPromptDefinition = (overrides?: Partial<PromptDefinition>): PromptDefinition => ({
-    introTextTemplate: "Test intro text template with {{placeholder}}",
+    contentDesc: "Test intro text template with {{placeholder}}",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
     hasComplexSchema: false,
@@ -16,7 +16,7 @@ describe("PromptDefinition", () => {
   describe("structure", () => {
     it("should have required fields", () => {
       const definition: PromptDefinition = {
-        introTextTemplate: "Test intro text template",
+        contentDesc: "Test intro text template",
         instructions: ["test"],
         responseSchema: z.string(),
         template: "Test template",
@@ -24,7 +24,7 @@ describe("PromptDefinition", () => {
         wrapInCodeBlock: false,
       };
 
-      expect(definition.introTextTemplate).toBe("Test intro text template");
+      expect(definition.contentDesc).toBe("Test intro text template");
       expect(definition.instructions).toEqual(["test"]);
       expect(definition.responseSchema).toBeDefined();
     });
@@ -45,7 +45,7 @@ describe("PromptDefinition", () => {
   describe("compatibility", () => {
     it("should accept readonly string arrays for instructions", () => {
       const definition: PromptDefinition = {
-        introTextTemplate: "Test intro text template",
+        contentDesc: "Test intro text template",
         instructions: ["a", "b", "c"],
         responseSchema: z.string(),
         template: "Test template",
@@ -74,7 +74,7 @@ describe("PromptDefinition", () => {
   describe("usage examples", () => {
     it("should work with source file prompting", () => {
       const sourceFileDefinition: PromptDefinition = {
-        introTextTemplate:
+        contentDesc:
           "Act as a senior developer analyzing the code in a legacy application. Based on the JVM code shown below...",
         instructions: [
           "Extract the class name",
@@ -92,14 +92,14 @@ describe("PromptDefinition", () => {
         wrapInCodeBlock: true,
       };
 
-      expect(sourceFileDefinition.introTextTemplate).toContain("JVM code");
+      expect(sourceFileDefinition.contentDesc).toContain("JVM code");
       expect(sourceFileDefinition.instructions).toHaveLength(3);
       expect(sourceFileDefinition.hasComplexSchema).toBe(true);
     });
 
     it("should work with app summary prompting", () => {
       const appSummaryDefinition: PromptDefinition = {
-        introTextTemplate:
+        contentDesc:
           "Act as a senior developer analyzing the code in a legacy application. Based on the source files shown below...",
         instructions: ["Extract entities", "Extract bounded contexts"],
         responseSchema: z.object({
@@ -112,7 +112,7 @@ describe("PromptDefinition", () => {
         wrapInCodeBlock: false,
       };
 
-      expect(appSummaryDefinition.introTextTemplate).toContain("source files");
+      expect(appSummaryDefinition.contentDesc).toContain("source files");
       expect(appSummaryDefinition.instructions).toHaveLength(2);
       expect(appSummaryDefinition.instructions[0]).toBe("Extract entities");
       expect(appSummaryDefinition.instructions[1]).toBe("Extract bounded contexts");
@@ -125,7 +125,7 @@ describe("PromptDefinition", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
       const definition: PromptDefinition = {
-        introTextTemplate: "Test intro text template",
+        contentDesc: "Test intro text template",
         instructions: readonlyInstructions,
         responseSchema: z.string(),
         template: "Test template",

@@ -176,7 +176,7 @@ describe("Prompt Refactoring Improvements", () => {
     test("codebaseQueryPromptDefinition should be self-contained", () => {
       // All required properties should be present
       expect(codebaseQueryPromptDefinition.label).toBeDefined();
-      expect(codebaseQueryPromptDefinition.introTextTemplate).toBeDefined();
+      expect(codebaseQueryPromptDefinition.contentDesc).toBeDefined();
       expect(codebaseQueryPromptDefinition.instructions).toBeDefined();
       expect(codebaseQueryPromptDefinition.responseSchema).toBeDefined();
       expect(codebaseQueryPromptDefinition.template).toBeDefined();

@@ -10,8 +10,9 @@ describe("Template Consolidation", () => {
     });
 
     it("should contain expected placeholders for unified template", () => {
-      // Unified template uses introText, dataBlockHeader, and contentWrapper
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{introText}}");
+      // Unified template now uses contentDesc and instructionsText directly
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{forceJSON}}");
@@ -22,7 +23,7 @@ describe("Template Consolidation", () => {
 
     it("should render correctly with sources configuration", () => {
       const definition = {
-        introTextTemplate:
+        contentDesc:
           "Act as a senior developer analyzing the code in a legacy application. Based on JVM code shown below...",
         instructions: ["Extract class name"] as const,
         responseSchema: z.string(),
@@ -38,7 +39,7 @@ describe("Template Consolidation", () => {
 
     it("should render correctly with app summary configuration", () => {
       const definition = {
-        introTextTemplate:
+        contentDesc:
           "Act as a senior developer analyzing the code in a legacy application. Based on source file summaries shown below...",
         instructions: ["Extract entities"] as const,
         responseSchema: z.string(),
@@ -63,7 +64,8 @@ describe("Template Consolidation", () => {
       const placeholders = BASE_PROMPT_TEMPLATE.match(placeholderRegex) ?? [];
 
       const expectedPlaceholders = [
-        "{{introText}}",
+        "{{contentDesc}}",
+        "{{instructionsText}}",
         "{{dataBlockHeader}}",
         "{{jsonSchema}}",
         "{{forceJSON}}",
@@ -85,7 +87,7 @@ describe("Template Consolidation", () => {
 
     it("should render correctly with reduce configuration", () => {
       const definition = {
-        introTextTemplate:
+        contentDesc:
           "Act as a senior developer analyzing the code in a legacy application. You've been provided with several JSON objects containing '{{categoryKey}}'. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object.",
         instructions: ["a consolidated list"] as const,
         responseSchema: z.string(),
@@ -116,7 +118,7 @@ describe("Template Consolidation", () => {
   describe("Template Usage", () => {
     it("should be usable in Prompt class", () => {
       const mockDefinition = {
-        introTextTemplate: "Test intro template with test content",
+        contentDesc: "Test intro template with test content",
         instructions: ["test instruction"],
         responseSchema: z.string(),
         template: BASE_PROMPT_TEMPLATE,

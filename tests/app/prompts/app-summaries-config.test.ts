@@ -56,7 +56,7 @@ describe("App Summaries Config", () => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         expect(metadata).toBeDefined();
         expect(metadata.label).toBe(config.label);
-        expect(metadata.introTextTemplate).toContain("a set of source file summaries"); // Generic contentDesc
+        expect(metadata.contentDesc).toContain("a set of source file summaries"); // Generic contentDesc
         expect(metadata.responseSchema).toBe(config.responseSchema);
       });
     });
@@ -73,7 +73,7 @@ describe("App Summaries Config", () => {
       Object.entries(appSummaryConfigMap).forEach(([key, config]) => {
         const metadata = appSummaryPromptMetadata[key as AppSummaryCategoryType];
         // introTextTemplate should contain the generic content description
-        expect(metadata.introTextTemplate).toContain("a set of source file summaries");
+        expect(metadata.contentDesc).toContain("a set of source file summaries");
         // instructions should contain the specific instructions from config
         expect(metadata.instructions).toEqual(config.instructions);
       });

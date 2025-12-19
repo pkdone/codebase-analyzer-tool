@@ -12,7 +12,7 @@ describe("Prompt Types", () => {
     const createMockPromptDefinition = (
       overrides?: Partial<PromptDefinition>,
     ): PromptDefinition => ({
-      introTextTemplate: "Test intro text template with {{placeholder}}",
+      contentDesc: "Test intro text template with {{placeholder}}",
       instructions: ["instruction 1", "instruction 2"],
       responseSchema: z.string(),
       hasComplexSchema: false,
@@ -24,7 +24,7 @@ describe("Prompt Types", () => {
 
     it("should have required fields", () => {
       const definition: PromptDefinition = {
-        introTextTemplate: "Test intro text template",
+        contentDesc: "Test intro text template",
         instructions: ["test"],
         responseSchema: z.string(),
         template: "Test template",
@@ -32,7 +32,7 @@ describe("Prompt Types", () => {
         wrapInCodeBlock: false,
       };
 
-      expect(definition.introTextTemplate).toBe("Test intro text template");
+      expect(definition.contentDesc).toBe("Test intro text template");
       expect(definition.instructions).toEqual(["test"]);
       expect(definition.responseSchema).toBeDefined();
       expect(definition.template).toBe("Test template");
@@ -52,7 +52,7 @@ describe("Prompt Types", () => {
       const readonlyInstructions: readonly string[] = ["instruction 1", "instruction 2"];
 
       const definition: PromptDefinition = {
-        introTextTemplate: "Test intro text template",
+        contentDesc: "Test intro text template",
         instructions: readonlyInstructions,
         responseSchema: z.string(),
         template: "Test template",

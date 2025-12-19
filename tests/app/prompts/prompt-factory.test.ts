@@ -28,7 +28,7 @@ describe("Prompt Factory", () => {
 
       expect(result.test1).toBeDefined();
       expect(result.test1.label).toBe("Test 1");
-      expect(result.test1.introTextTemplate).toContain("{{contentDesc}}");
+      expect(result.test1.contentDesc).toBe("content"); // Default value when no builder provided
       expect(result.test1.responseSchema).toBe(testConfigMap.test1.responseSchema);
       expect(result.test1.template).toBe(testTemplate);
       expect(result.test1.instructions).toEqual([]);
@@ -62,7 +62,7 @@ describe("Prompt Factory", () => {
       expect(pickedSchema.shape.field2).toBeUndefined();
     });
 
-    it("should use introTextTemplateBuilder when provided", () => {
+    it("should use contentDescBuilder when provided", () => {
       const testConfigMap: Record<string, TestConfig> = {
         test1: {
           label: "Test 1",
@@ -72,11 +72,11 @@ describe("Prompt Factory", () => {
       };
 
       const result = createPromptMetadata(testConfigMap, testTemplate, {
-        introTextTemplateBuilder: (config) =>
+        contentDescBuilder: (config) =>
           `Custom intro with ${config.contentDesc ?? "default"}`,
       });
 
-      expect(result.test1.introTextTemplate).toBe("Custom intro with custom content description");
+      expect(result.test1.contentDesc).toBe("Custom intro with custom content description");
     });
 
     it("should use instructionsBuilder when provided", () => {
@@ -139,13 +139,13 @@ describe("Prompt Factory", () => {
         schemaBuilder: (config) => {
           return (config.responseSchema as z.ZodObject<z.ZodRawShape>).pick({ field1: true });
         },
-        introTextTemplateBuilder: (config) =>
+        contentDescBuilder: (config) =>
           `Intro template with ${config.contentDesc ?? "default"}`,
         instructionsBuilder: (config) => [`Instruction for ${config.label ?? "unknown"}`],
       });
 
       expect(result.test1.label).toBe("Test 1");
-      expect(result.test1.introTextTemplate).toBe("Intro template with custom desc");
+      expect(result.test1.contentDesc).toBe("Intro template with custom desc");
       expect(result.test1.instructions[0]).toBe("Instruction for Test 1");
       const pickedSchema = result.test1.responseSchema as z.ZodObject<z.ZodRawShape>;
       expect(pickedSchema.shape.field1).toBeDefined();

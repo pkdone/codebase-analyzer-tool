@@ -13,8 +13,8 @@ export type DataBlockHeader = "CODE" | "FILE_SUMMARIES" | "FRAGMENTED_DATA";
  * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
 export interface PromptDefinition<S extends z.ZodType = z.ZodType> {
-  /** Template for the introductory text with placeholders like {{contentDesc}} and {{categoryKey}} */
-  introTextTemplate: string;
+  /** Description of the content being analyzed (e.g., "JVM code", "a set of source file summaries") */
+  contentDesc: string;
   /** Array of instruction strings for the LLM. Instructions can include section titles
    * formatted as "__TITLE__\n- Point 1" for better organization. */
   instructions: readonly string[];

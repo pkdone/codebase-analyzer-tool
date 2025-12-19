@@ -110,49 +110,49 @@ jest.mock("../../../../src/app/components/capture/config/file-types.config", () 
 jest.mock("../../../../src/app/prompts/definitions/sources", () => ({
   fileTypePromptMetadata: {
     java: {
-      introTextTemplate: "Java code",
+      contentDesc: "Java code",
       hasComplexSchema: false,
       sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["Java instructions"],
     },
     javascript: {
-      introTextTemplate: "JavaScript/TypeScript code",
+      contentDesc: "JavaScript/TypeScript code",
       hasComplexSchema: false,
       sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["JavaScript instructions"],
     },
     default: {
-      introTextTemplate: "project file content",
+      contentDesc: "project file content",
       hasComplexSchema: false,
       sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["Default instructions"],
     },
     sql: {
-      introTextTemplate: "database DDL/DML/SQL code",
+      contentDesc: "database DDL/DML/SQL code",
       hasComplexSchema: false,
       sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["SQL instructions"],
     },
     xml: {
-      introTextTemplate: "XML code",
+      contentDesc: "XML code",
       hasComplexSchema: false,
       sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["XML instructions"],
     },
     jsp: {
-      introTextTemplate: "JSP code",
+      contentDesc: "JSP code",
       hasComplexSchema: false,
       sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
       instructions: ["JSP instructions"],
     },
     markdown: {
-      introTextTemplate: "Markdown content",
+      contentDesc: "Markdown content",
       hasComplexSchema: false,
       sanitizerConfig: expect.any(Object),
       responseSchema: z.object({}),
@@ -216,12 +216,12 @@ describe("summarizeFile", () => {
       }
 
       return {
-        introTextTemplate: `Test intro template for ${contentDesc}`,
+        contentDesc: contentDesc,
         hasComplexSchema: false,
         sanitizerConfig: expect.any(Object),
         responseSchema: z.object({}),
         instructions: [`Instructions for ${contentDesc}`],
-        template: `{{introText}}
+        template: `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.
 
 {{partialAnalysisNote}}The JSON response must follow this JSON schema:
 \`\`\`json

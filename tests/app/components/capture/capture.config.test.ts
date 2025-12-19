@@ -18,7 +18,7 @@ describe("fileTypeMetadataConfig", () => {
 
       for (const type of expectedTypes) {
         expect(fileTypePromptMetadata[type]).toBeDefined();
-        expect(fileTypePromptMetadata[type]).toHaveProperty("introTextTemplate");
+        expect(fileTypePromptMetadata[type]).toHaveProperty("contentDesc");
         expect(fileTypePromptMetadata[type]).toHaveProperty("instructions");
         expect(fileTypePromptMetadata[type]).toHaveProperty("responseSchema");
         expect(fileTypePromptMetadata[type]).toHaveProperty("hasComplexSchema");
@@ -28,7 +28,7 @@ describe("fileTypeMetadataConfig", () => {
     it("should always have a default configuration", () => {
       const defaultConfig = fileTypePromptMetadata.default;
       expect(defaultConfig).toBeDefined();
-      expect(defaultConfig.introTextTemplate).toContain("source files");
+      expect(defaultConfig.contentDesc).toContain("source files");
       expect(typeof defaultConfig.instructions).toBe("object");
       expect(Array.isArray(defaultConfig.instructions)).toBe(true);
       expect(defaultConfig.responseSchema).toBeDefined();
@@ -41,7 +41,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("java configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.java.introTextTemplate).toContain("JVM code");
+      expect(fileTypePromptMetadata.java.contentDesc).toContain("JVM code");
     });
 
     it("should be marked as complex schema", () => {
@@ -67,7 +67,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("javascript configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.javascript.introTextTemplate).toContain(
+      expect(fileTypePromptMetadata.javascript.contentDesc).toContain(
         "JavaScript/TypeScript code",
       );
     });
@@ -88,7 +88,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("sql configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.sql.introTextTemplate).toContain("database DDL/DML/SQL code");
+      expect(fileTypePromptMetadata.sql.contentDesc).toContain("database DDL/DML/SQL code");
     });
 
     it("should be marked as complex schema", () => {
@@ -112,7 +112,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("csharp configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.csharp.introTextTemplate).toContain("C# code");
+      expect(fileTypePromptMetadata.csharp.contentDesc).toContain("C# code");
     });
 
     it("should be marked as complex schema", () => {
@@ -131,7 +131,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("ruby configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.ruby.introTextTemplate).toContain("Ruby code");
+      expect(fileTypePromptMetadata.ruby.contentDesc).toContain("Ruby code");
     });
 
     it("should be marked as complex schema", () => {
@@ -149,7 +149,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("maven configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.maven.introTextTemplate).toContain(
+      expect(fileTypePromptMetadata.maven.contentDesc).toContain(
         "Maven POM (Project Object Model) build file",
       );
     });
@@ -179,7 +179,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("gradle configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.gradle.introTextTemplate).toContain(
+      expect(fileTypePromptMetadata.gradle.contentDesc).toContain(
         "Gradle build configuration file",
       );
     });
@@ -203,7 +203,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("npm configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.npm.introTextTemplate).toContain(
+      expect(fileTypePromptMetadata.npm.contentDesc).toContain(
         "npm package.json or lock file",
       );
     });
@@ -227,7 +227,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("python-pip configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata["python-pip"].introTextTemplate).toContain(
+      expect(fileTypePromptMetadata["python-pip"].contentDesc).toContain(
         "Python requirements.txt or Pipfile",
       );
     });
@@ -253,7 +253,7 @@ describe("fileTypeMetadataConfig", () => {
     it("should have all configurations with required properties", () => {
       for (const config of Object.values(fileTypePromptMetadata)) {
         expect(config).toBeDefined();
-        expect(typeof config.introTextTemplate).toContain("string");
+        expect(typeof config.contentDesc).toContain("string");
         expect(typeof config.instructions).toBe("object");
         expect(Array.isArray(config.instructions)).toBe(true);
         expect(config.responseSchema).toBeDefined();
@@ -280,8 +280,8 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should maintain configuration integrity", () => {
       // Verify configurations maintain their expected values
-      expect(fileTypePromptMetadata.java.introTextTemplate).toContain("JVM code");
-      expect(fileTypePromptMetadata.default.introTextTemplate).toContain("source files");
+      expect(fileTypePromptMetadata.java.contentDesc).toContain("JVM code");
+      expect(fileTypePromptMetadata.default.contentDesc).toContain("source files");
       expect(fileTypePromptMetadata.sql.hasComplexSchema).toBe(true);
     });
   });

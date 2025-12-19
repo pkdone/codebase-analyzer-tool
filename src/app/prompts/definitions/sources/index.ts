@@ -2,7 +2,6 @@ import { sourceConfigMap, type SourceConfigEntry } from "./sources.config";
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
 import { BASE_PROMPT_TEMPLATE } from "../../templates";
 import { createPromptMetadata } from "../prompt-factory";
-import { createIntroTextTemplate } from "../../utils/prompt-utils";
 
 /**
  * Data-driven mapping of prompt types to their templates and schemas.
@@ -22,12 +21,7 @@ export const fileTypePromptMetadata = createPromptMetadata(
         schemaFields as Parameters<typeof sourceSummarySchema.pick>[0],
       );
     },
-    introTextTemplateBuilder: (config) =>
-      createIntroTextTemplate({
-        contentDescription: config.contentDesc,
-        responseDescription:
-          "the following metadata about the source file:\n\n{{instructionsText}}.",
-      }),
+    contentDescBuilder: (config) => `the ${config.contentDesc}`,
     instructionsBuilder: (config) => config.instructions,
     dataBlockHeaderBuilder: () => "CODE",
     wrapInCodeBlockBuilder: () => true,

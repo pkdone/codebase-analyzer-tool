@@ -1,7 +1,7 @@
 import type { CanonicalFileType } from "../../../components/capture/config/file-types.config";
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "./sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
-import { buildInstructionBlock } from "../../utils/prompt-utils";
+import { buildInstructionBlock } from "../prompt-factory";
 
 /**
  * Configuration entry for a source prompt definition

@@ -29,11 +29,12 @@ export const FORCE_JSON_FORMAT = `The response MUST be valid JSON and meet the f
  * Unified base template for all prompt types (sources, app summaries, reduce insights).
  * This consolidates the common structure and eliminates duplication across templates.
  * The template uses placeholders for customization:
+ * - {{contentDesc}}: Description of the content being analyzed (e.g., "JVM code", "a set of source file summaries")
  * - {{dataBlockHeader}}: The section header (e.g., "CODE", "FILE_SUMMARIES", "FRAGMENTED_DATA")
- * - {{introText}}: The introduction text that varies by prompt type
+ * - {{instructionsText}}: The joined instruction strings from the PromptDefinition
  * - {{contentWrapper}}: Optional code block markers (```) if wrapInCodeBlock is true
  */
-export const BASE_PROMPT_TEMPLATE = `{{introText}}
+export const BASE_PROMPT_TEMPLATE = `Act as a senior developer analyzing the code in a legacy application. Based on the {{contentDesc}} shown below in the section marked '{{dataBlockHeader}}', return a JSON response that contains {{instructionsText}}.
 
 {{partialAnalysisNote}}The JSON response must follow this JSON schema:
 \`\`\`json

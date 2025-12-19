@@ -8,7 +8,8 @@ describe("prompts/templates", () => {
     });
 
     it("should contain expected placeholders", () => {
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{introText}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{forceJSON}}");

@@ -19,7 +19,7 @@ describe("Data-driven Prompt System", () => {
       Object.entries(sourceConfigMap).forEach(([fileType, config]) => {
         const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
 
-        expect(metadata.introTextTemplate).toContain(config.contentDesc); // Check that contentDesc is used in intro template
+        expect(metadata.contentDesc).toContain(config.contentDesc); // Check that contentDesc is used in intro template
         expect(metadata.hasComplexSchema).toBe(config.hasComplexSchema ?? true);
         expect(metadata.template).toBeDefined(); // Template is assigned in generatePromptMetadata
         expect(metadata.instructions).toEqual(config.instructions);
@@ -68,7 +68,7 @@ describe("Data-driven Prompt System", () => {
         const metadata = appSummaryPromptMetadata[category];
 
         expect(metadata.label).toBe(config.label);
-        expect(metadata.introTextTemplate).toContain("a set of source file summaries"); // Generic description
+        expect(metadata.contentDesc).toContain("a set of source file summaries"); // Generic description
         expect(metadata.template).toBeDefined();
         expect(metadata.responseSchema).toBe(config.responseSchema);
         // Instructions should be built from config.instructions

@@ -7,14 +7,14 @@ describe("App Summaries Refactoring", () => {
     it("should have generic contentDesc and specific instructions for all app summary categories", () => {
       Object.entries(appSummaryPromptMetadata).forEach(([, config]) => {
         // Verify that contentDesc is generic
-        expect(config.introTextTemplate).toContain("a set of source file summaries");
+        expect(config.contentDesc).toContain("a set of source file summaries");
         // Verify that instructions contain the specific instruction text
         expect(config.instructions).toBeDefined();
         expect(config.instructions.length).toBeGreaterThan(0);
         // Instructions should contain specific text
         expect(config.instructions[0].length).toBeGreaterThan(0);
         // introTextTemplate should contain generic description
-        expect(config.introTextTemplate).toContain("a set of source file summaries");
+        expect(config.contentDesc).toContain("a set of source file summaries");
       });
     });
 
@@ -25,9 +25,9 @@ describe("App Summaries Refactoring", () => {
       const entitiesConfig = appSummaryPromptMetadata.entities;
 
       // Verify that contentDesc is generic
-      expect(technologiesConfig.introTextTemplate).toContain("a set of source file summaries");
-      expect(aggregatesConfig.introTextTemplate).toContain("a set of source file summaries");
-      expect(entitiesConfig.introTextTemplate).toContain("a set of source file summaries");
+      expect(technologiesConfig.contentDesc).toContain("a set of source file summaries");
+      expect(aggregatesConfig.contentDesc).toContain("a set of source file summaries");
+      expect(entitiesConfig.contentDesc).toContain("a set of source file summaries");
 
       // Verify instructions contain the specific instruction text
       expect(technologiesConfig.instructions[0]).toContain(
@@ -101,7 +101,8 @@ describe("App Summaries Refactoring", () => {
   describe("Template consolidation", () => {
     it("should use BASE_PROMPT_TEMPLATE that replaces both SINGLE_PASS and PARTIAL templates", () => {
       // Verify the unified template contains the essential elements
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{introText}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");

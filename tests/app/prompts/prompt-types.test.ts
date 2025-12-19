@@ -12,7 +12,7 @@ describe("PromptDefinition Generic Type", () => {
 
     // Type-level test: These should compile without errors
     const stringPromptDef: PromptDefinition<typeof stringSchema> = {
-      introTextTemplate: "Test intro",
+      contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: stringSchema,
       template: "Test template",
@@ -20,7 +20,7 @@ describe("PromptDefinition Generic Type", () => {
     };
 
     const numberPromptDef: PromptDefinition<typeof numberSchema> = {
-      introTextTemplate: "Test intro",
+      contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: numberSchema,
       template: "Test template",
@@ -28,7 +28,7 @@ describe("PromptDefinition Generic Type", () => {
     };
 
     const objectPromptDef: PromptDefinition<typeof objectSchema> = {
-      introTextTemplate: "Test intro",
+      contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: objectSchema,
       template: "Test template",
@@ -46,7 +46,7 @@ describe("PromptDefinition Generic Type", () => {
 
     // Type-level test: Should compile without explicit generic parameter
     const genericPromptDef: PromptDefinition = {
-      introTextTemplate: "Test intro",
+      contentDesc: "Test intro",
       instructions: ["Instruction 1"],
       responseSchema: genericSchema,
       template: "Test template",
@@ -67,7 +67,7 @@ describe("PromptDefinition Generic Type", () => {
     type UserPromptDef = PromptDefinition<typeof userSchema>;
 
     const userPromptDef: UserPromptDef = {
-      introTextTemplate: "User data analysis",
+      contentDesc: "User data analysis",
       instructions: ["Extract user information"],
       responseSchema: userSchema,
       template: "User template",
@@ -104,7 +104,7 @@ describe("PromptDefinition Generic Type", () => {
     });
 
     const promptDef: PromptDefinition<typeof schema> = {
-      introTextTemplate: "Test",
+      contentDesc: "Test",
       instructions: [],
       responseSchema: schema,
       template: "Template",

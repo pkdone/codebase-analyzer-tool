@@ -6,7 +6,7 @@ import { BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 describe("Prompt Refactoring", () => {
   const testDefinition: PromptDefinition = {
     label: "Test",
-    introTextTemplate:
+    contentDesc:
       "Act as a senior developer analyzing the code in a legacy application. Based on test content shown below, return:\n\n{{instructionsText}}.",
     instructions: ["instruction 1", "instruction 2"],
     responseSchema: z.string(),
@@ -45,7 +45,7 @@ describe("Prompt Refactoring", () => {
       const categoryKey = "entities";
       const reduceDefinition = {
         ...testDefinition,
-        introTextTemplate: "Consolidate {{categoryKey}} from the data below.",
+        contentDesc: "Consolidate {{categoryKey}} from the data below.",
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FRAGMENTED_DATA" as const,
         wrapInCodeBlock: false,
@@ -106,7 +106,8 @@ describe("Prompt Refactoring", () => {
     });
 
     it("should have consistent template structure", () => {
-      expect(BASE_PROMPT_TEMPLATE).toContain("{{introText}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{contentDesc}}");
+      expect(BASE_PROMPT_TEMPLATE).toContain("{{instructionsText}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{dataBlockHeader}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{jsonSchema}}");
       expect(BASE_PROMPT_TEMPLATE).toContain("{{content}}");

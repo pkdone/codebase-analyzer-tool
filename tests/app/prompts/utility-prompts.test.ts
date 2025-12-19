@@ -10,7 +10,7 @@ describe("Utility Prompts", () => {
   describe("codebaseQueryPromptDefinition", () => {
     it("should have correct structure", () => {
       expect(codebaseQueryPromptDefinition.label).toBe("Codebase Query");
-      expect(codebaseQueryPromptDefinition.introTextTemplate).toContain("source code files");
+      expect(codebaseQueryPromptDefinition.contentDesc).toContain("source code files");
       expect(codebaseQueryPromptDefinition.template).toBe(CODEBASE_QUERY_TEMPLATE);
       expect(codebaseQueryPromptDefinition.responseSchema).toBeDefined();
     });
@@ -22,15 +22,15 @@ describe("Utility Prompts", () => {
       expect(codebaseQueryPromptDefinition.instructions).toHaveLength(0);
     });
 
-    it("introTextTemplate should contain the complete instruction", () => {
-      // The intro text should contain all the necessary instructions since
-      // the template doesn't use a separate instructions section
-      const intro = codebaseQueryPromptDefinition.introTextTemplate;
-      expect(intro).toContain("Act as a senior developer");
-      expect(intro).toContain("source code files");
-      expect(intro).toContain("QUESTION");
-      expect(intro).toContain("CODE");
-      expect(intro).toContain("specific evidence in the provided code");
+    it("template should contain the complete instruction", () => {
+      // The codebase query uses a custom template that contains all instructions
+      // since it doesn't follow the standard BASE_PROMPT_TEMPLATE structure
+      const template = codebaseQueryPromptDefinition.template;
+      expect(template).toContain("Act as a senior developer");
+      expect(template).toContain("source code files");
+      expect(template).toContain("QUESTION");
+      expect(template).toContain("CODE");
+      expect(template).toContain("specific evidence in the provided code");
     });
 
     it("should render correctly with renderPrompt function", () => {
@@ -69,7 +69,7 @@ describe("Utility Prompts", () => {
       const definition = createReduceInsightsPromptDefinition(categoryLabel, responseSchema);
 
       expect(definition.label).toBe("Reduce Entities");
-      expect(definition.introTextTemplate).toContain("several JSON objects");
+      expect(definition.contentDesc).toContain("several JSON objects");
       expect(definition.template).toBe(BASE_PROMPT_TEMPLATE);
       expect(definition.responseSchema).toBe(responseSchema);
       expect(definition.instructions).toHaveLength(1);

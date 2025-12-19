@@ -5,8 +5,8 @@ import { type PromptDefinition } from "./prompt.types";
 
 /**
  * Renders a prompt by filling template placeholders with the provided values.
- * This function handles all prompt formatting, including joining instruction strings,
- * rendering the introTextTemplate, and generating the JSON schema string from the response schema.
+ * This function handles all prompt formatting, including joining instruction strings
+ * and generating the JSON schema string from the response schema.
  *
  * @param definition - The prompt definition containing all configuration including template
  * @param data - All template variables needed to fill the template, including content
@@ -20,16 +20,13 @@ export function renderPrompt(definition: PromptDefinition, data: Record<string, 
   // Join instructions for templates that need it
   const instructionsText = definition.instructions.join("\n\n");
 
-  // Render the introTextTemplate with the provided data
-  const introText = fillPrompt(definition.introTextTemplate, {
-    ...data,
-    instructionsText,
-    dataBlockHeader: definition.dataBlockHeader,
-  });
+  // Resolve any placeholders in contentDesc first (e.g., {{categoryKey}} for reduce prompts)
+  const resolvedContentDesc = fillPrompt(definition.contentDesc, data);
 
   const templateData = {
     ...data, // All template variables are passed in one object
-    introText,
+    contentDesc: resolvedContentDesc,
+    instructionsText,
     forceJSON: FORCE_JSON_FORMAT,
     jsonSchema: jsonSchemaString,
     dataBlockHeader: definition.dataBlockHeader,

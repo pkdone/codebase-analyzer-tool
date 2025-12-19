@@ -1,6 +1,6 @@
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { fileTypePromptMetadata } from "../../../src/app/prompts/definitions/sources";
-import { FORCE_JSON_FORMAT } from "../../../src/app/prompts/templates";
+import { FORCE_JSON_FORMAT, BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-titles";
 
@@ -179,27 +179,17 @@ public abstract class AddressEJB implements EntityBean {
       // Use BASE_PROMPT_TEMPLATE which supports additional parameters
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
-        introTextTemplate: "Test intro text template with {{dataBlockHeader}}",
+        contentDesc: "test code with {{dataBlockHeader}} reference",
         instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
-        template: `{{introText}}
-
-{{partialAnalysisNote}}The JSON response must follow this JSON schema:
-\`\`\`json
-{{jsonSchema}}
-\`\`\`
-
-{{forceJSON}}
-
-{{dataBlockHeader}}:
-{{contentWrapper}}{{content}}{{contentWrapper}}`,
+        template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FILE_SUMMARIES" as const,
         wrapInCodeBlock: false,
       };
 
       const renderedPrompt = renderPrompt(config, {
         content: javaCodeSample,
-        partialAnalysisNote: "This is a custom note for testing",
+        partialAnalysisNote: "This is a custom note for testing.\n\n",
       });
 
       // Verify additional parameters are included
@@ -212,7 +202,7 @@ public abstract class AddressEJB implements EntityBean {
     it("should use nullish coalescing for partialAnalysisNote (allows empty string)", () => {
       const javaMetadata = fileTypePromptMetadata.java;
       const config = {
-        introTextTemplate: "Test intro text template",
+        contentDesc: "Test intro text template",
         instructions: ["test instruction"],
         responseSchema: javaMetadata.responseSchema,
         template: `{{partialAnalysisNote}}Test template`,
