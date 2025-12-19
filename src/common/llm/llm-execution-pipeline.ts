@@ -86,9 +86,7 @@ export class LLMExecutionPipeline {
         if (hasSignificantSanitizationSteps(result.mutationSteps)) {
           this.llmStats.recordJsonMutated();
         }
-        // result.generated is now correctly typed based on the schema type S.
-        // Type safety is guaranteed at compile time through the simplified generic approach.
-        // The return type is inferred from the Zod schema provided in completionOptions.
+        
         if (result.generated === undefined) {
           logOneLineWarning(
             `LLM response has COMPLETED status but generated content is undefined for resource: '${resourceName}'`,
@@ -103,11 +101,10 @@ export class LLMExecutionPipeline {
             ),
           };
         }
-        // Type flows through correctly - result.generated is typed as z.infer<S>
-        // because the LLMFunction preserves the schema type through the call chain.
+
         return {
           success: true,
-          data: result.generated as z.infer<S>,
+          data: result.generated,
         };
       }
 

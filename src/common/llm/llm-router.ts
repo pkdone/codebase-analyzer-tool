@@ -198,17 +198,33 @@ export default class LLMRouter {
    *
    * The return type is automatically inferred from the options parameter:
    * - When jsonSchema is provided, returns z.infer<typeof schema> | null
-   * - When outputFormat is TEXT, returns string | null
-   * - Otherwise returns LLMGeneratedContent | null
+   * - When jsonSchema is not provided (TEXT mode), returns string | null
    *
-   * Generic over the schema type S directly to simplify type inference through the call chain.
+   * Function overloads provide compile-time type safety based on output format.
    */
-  async executeCompletion<S extends z.ZodType = z.ZodType>(
+  // Overload for JSON with a specific schema
+  async executeCompletion<S extends z.ZodType>(
+    resourceName: string,
+    prompt: string,
+    options: LLMCompletionOptions<S> & { jsonSchema: S },
+    modelQualityOverride?: LLMModelQuality | null,
+  ): Promise<z.infer<S> | null>;
+
+  // Overload for plain TEXT (without jsonSchema)
+  async executeCompletion(
+    resourceName: string,
+    prompt: string,
+    options: Omit<LLMCompletionOptions, "jsonSchema">,
+    modelQualityOverride?: LLMModelQuality | null,
+  ): Promise<string | null>;
+
+  // Implementation with a union return type
+  async executeCompletion<S extends z.ZodType>(
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions<S>,
     modelQualityOverride: LLMModelQuality | null = null,
-  ): Promise<z.infer<S> | null> {
+  ): Promise<z.infer<S> | string | null> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,
@@ -220,8 +236,6 @@ export default class LLMRouter {
       outputFormat: options.outputFormat,
     };
 
-    // The type now flows through the pipeline automatically via the simplified generic approach.
-    // No local type helpers needed - the pipeline infers the return type from the schema.
     const result = await this.executionPipeline.execute<S>({
       resourceName,
       prompt,
@@ -238,12 +252,11 @@ export default class LLMRouter {
       return null;
     }
 
-    // Type assertion needed because TypeScript's type inference through async generic chains
-    // still struggles even with the simplified approach. The type is guaranteed to be correct because:
-    // 1. The type S is inferred from options.jsonSchema at the call site
-    // 2. The execution pipeline preserves the type through the chain
-    // 3. result.data is validated at runtime via Zod schema
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return result.data;
+    // The function overloads provide compile-time type safety to callers based on outputFormat.
+    // Runtime type safety is guaranteed by Zod schema validation in the execution pipeline.
+    // This assertion is required because TypeScript cannot fully verify the union return type
+    // through the async generic chain, despite the overloads ensuring correct types at call sites.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- Type safety guaranteed by function overloads and runtime Zod validation
+    return result.data as z.infer<S> | string | null;
   }
 }

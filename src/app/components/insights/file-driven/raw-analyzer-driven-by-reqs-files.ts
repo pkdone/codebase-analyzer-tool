@@ -12,7 +12,6 @@ import pLimit from "p-limit";
 import { logError } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
 import { inject } from "tsyringe";
-import { z } from "zod";
 import { llmTokens } from "../../../di/tokens";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
@@ -84,7 +83,7 @@ export class RawAnalyzerDrivenByReqsFiles {
     let response = "";
 
     try {
-      const executionResult = await this.llmRouter.executeCompletion<z.ZodType<string>>(
+      const executionResult = await this.llmRouter.executeCompletion(
         resource,
         fullPrompt,
         {

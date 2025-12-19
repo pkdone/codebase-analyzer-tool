@@ -81,7 +81,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         entities: [{ name: "User", description: "User entity" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       await generator.generateAndStoreInsights();
 
@@ -114,7 +114,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         // Other categories intentionally omitted
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(partialResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(partialResponse);
 
       await generator.generateAndStoreInsights();
 
@@ -135,7 +135,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         technologies: [{ name: "TypeScript", description: "TypeScript language" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       await generator.generateAndStoreInsights();
 
@@ -173,7 +173,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         technologies: [{ name: "TypeScript", description: "TypeScript language" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       await generator.generateAndStoreInsights();
 
@@ -222,7 +222,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       await generator.generateAndStoreInsights();
 
@@ -240,7 +240,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         entities: [],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       await generator.generateAndStoreInsights();
 
@@ -261,7 +261,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
         technologies: [{ name: "TypeScript", description: "TypeScript language" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       await generator.generateAndStoreInsights();
 
@@ -270,7 +270,7 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
       expect(executeCompletionCalls.length).toBe(1);
 
       const [_resourceName, _prompt, options] = executeCompletionCalls[0];
-      expect(options.jsonSchema).toBe(appSummaryRecordCategoriesSchema);
+      expect((options as any).jsonSchema).toBe(appSummaryRecordCategoriesSchema);
 
       // The return type should be inferred as z.infer<typeof appSummaryRecordCategoriesSchema> | null
       // This is validated at compile-time

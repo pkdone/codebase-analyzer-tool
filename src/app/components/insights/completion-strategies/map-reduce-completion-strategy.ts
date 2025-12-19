@@ -131,15 +131,14 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     prompt: string,
     schema: AppSummaryCategorySchemas[C],
   ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
-    // TypeScript cannot infer the exact schema type from the indexed access type,
-    // but the type is guaranteed to be correct at runtime via Zod validation.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.llmRouter.executeCompletion(resourceName, prompt, {
+    // The function overloads in LLMRouter.executeCompletion() ensure proper type inference.
+    // TypeScript's limitations with generic indexed access types require explicit typing.
+    return (await this.llmRouter.executeCompletion(resourceName, prompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
       sanitizerConfig: getSchemaSpecificSanitizerConfig(),
-    });
+    })) as z.infer<AppSummaryCategorySchemas[C]> | null;
   }
 
   /**

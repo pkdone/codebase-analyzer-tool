@@ -53,7 +53,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, "entities", [
         "* file1.ts: implementation",
@@ -76,7 +76,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, "technologies", [
         "* file1.ts: implementation",
@@ -95,7 +95,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         appDescription: "This is a test application description",
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, "appDescription", [
         "* file1.ts: implementation",
@@ -118,7 +118,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, "boundedContexts", [
         "* file1.ts: implementation",
@@ -142,7 +142,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, "aggregates", [
         "* file1.ts: implementation",
@@ -163,7 +163,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         entities: [{ name: "User", description: "User entity" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       // Type should be inferred from the category parameter
       const result = await executeInsightCompletion(mockLLMRouter, category, [
@@ -187,7 +187,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       for (const category of categories) {
         const mockResponse = { [category]: [] };
-        mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+        (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
         const result = await executeInsightCompletion(mockLLMRouter, category, [
           "* file1.ts: implementation",
@@ -207,7 +207,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, "repositories", [
         "* file1.ts: implementation",
@@ -249,7 +249,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         businessProcesses: [{ name: "Order Processing", description: "Process orders" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"]);
 
@@ -290,7 +290,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, "potentialMicroservices", [
         "* file1.ts: implementation",
@@ -309,7 +309,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         entities: [{ name: "User", description: "User entity" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const options: InsightCompletionOptions = {
         partialAnalysisNote: "This is a partial analysis",
@@ -368,7 +368,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         entities: [{ name: "User", description: "User entity" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, "entities", [
         "* file1.ts: implementation",
@@ -391,7 +391,7 @@ describe("executeInsightCompletion - Type Inference", () => {
         technologies: [{ name: "TypeScript" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockResponse);
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
       await executeInsightCompletion(mockLLMRouter, category, ["* file1.ts: implementation"]);
 

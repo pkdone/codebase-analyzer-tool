@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
-import { z } from "zod";
 import { readFile } from "../../../common/fs/file-operations";
 import { LLMModelQuality, LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import LLMRouter from "../../../common/llm/llm-router";
@@ -47,7 +46,7 @@ export class PluggableLLMsTestTask implements Task {
 
     // Test primary LLM completion
     console.log("\n\n---COMPLETION (Primary LLM)---");
-    const completionPrimaryResult = await this.llmRouter.executeCompletion<z.ZodType<string>>(
+    const completionPrimaryResult = await this.llmRouter.executeCompletion(
       "hard-coded-test-input",
       prompt,
       {
@@ -59,7 +58,7 @@ export class PluggableLLMsTestTask implements Task {
 
     // Test fallback LLM completion
     console.log("\n\n---COMPLETION (Secondary LLM)---");
-    const completionSecondaryResult = await this.llmRouter.executeCompletion<z.ZodType<string>>(
+    const completionSecondaryResult = await this.llmRouter.executeCompletion(
       "hard-coded-test-input",
       prompt,
       {
