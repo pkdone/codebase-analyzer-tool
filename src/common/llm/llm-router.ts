@@ -6,6 +6,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
   LLMEmbeddingFunction,
+  InferResponseType,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
@@ -224,7 +225,7 @@ export default class LLMRouter {
     prompt: string,
     options: LLMCompletionOptions<S>,
     modelQualityOverride: LLMModelQuality | null = null,
-  ): Promise<z.infer<S> | string | null> {
+  ): Promise<InferResponseType<LLMCompletionOptions<S>> | null> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,
@@ -252,10 +253,6 @@ export default class LLMRouter {
       return null;
     }
 
-    // With improved type flow, result.data is now InferResponseType<LLMCompletionOptions<S>>.
-    // The overloads ensure compile-time type safety for callers.
-    // This cast is necessary for TypeScript's overload implementation but is safe due to runtime validation.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
-    return result.data as any;
+    return result.data;
   }
 }

@@ -51,7 +51,7 @@ export class RetryStrategy {
     providerRetryConfig: LLMRetryConfig,
     completionOptions?: LLMCompletionOptions<S>,
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions>> | null> {
+  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>> | null> {
     try {
       return await pRetry(
         async () => {

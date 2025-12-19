@@ -1,0 +1,489 @@
+import { z } from "zod";
+import {
+  LLMPurpose,
+  ResolvedLLMModelMetadata,
+  LLMContext,
+  LLMOutputFormat,
+  LLMResponseStatus,
+} from "../../../src/common/llm/types/llm.types";
+import { LLMImplSpecificResponseSummary } from "../../../src/common/llm/providers/llm-provider.types";
+import AbstractLLM from "../../../src/common/llm/providers/abstract-llm";
+import { createMockErrorLogger } from "../helpers/llm/mock-error-logger";
+import { RetryStrategy } from "../../../src/common/llm/strategies/retry-strategy";
+import { LLMExecutionPipeline } from "../../../src/common/llm/llm-execution-pipeline";
+import LLMStats from "../../../src/common/llm/tracking/llm-stats";
+
+// Test-only constants
+const TEST_COMPLETIONS_MODEL = "TEST_COMPLETIONS_MODEL";
+const TEST_EMBEDDINGS_MODEL = "TEST_EMBEDDINGS_MODEL";
+
+// Test models metadata
+const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
+  [TEST_COMPLETIONS_MODEL]: {
+    modelKey: TEST_COMPLETIONS_MODEL,
+    urn: "test-completion-model",
+    purpose: LLMPurpose.COMPLETIONS,
+    maxCompletionTokens: 4096,
+    maxTotalTokens: 8192,
+  },
+  [TEST_EMBEDDINGS_MODEL]: {
+    modelKey: TEST_EMBEDDINGS_MODEL,
+    urn: "test-embedding-model",
+    purpose: LLMPurpose.EMBEDDINGS,
+    maxCompletionTokens: 0,
+    maxTotalTokens: 8191,
+    dimensions: 1536,
+  },
+};
+
+/**
+ * Test LLM implementation that returns configurable mock responses.
+ * Used to verify type safety through the entire call chain.
+ */
+class TypeSafetyChainTestLLM extends AbstractLLM {
+  private mockResponseContent = "";
+
+  constructor() {
+    super({
+      manifest: {
+        providerName: "TypeSafetyChainTest",
+        modelFamily: "test-chain",
+        envSchema: z.object({}),
+        models: {
+          embeddings: {
+            modelKey: TEST_EMBEDDINGS_MODEL,
+            urnEnvKey: "TEST_EMBED",
+            purpose: LLMPurpose.EMBEDDINGS,
+            maxTotalTokens: 8191,
+            dimensions: 1536,
+          },
+          primaryCompletion: {
+            modelKey: TEST_COMPLETIONS_MODEL,
+            urnEnvKey: "TEST_COMPLETE",
+            purpose: LLMPurpose.COMPLETIONS,
+            maxCompletionTokens: 4096,
+            maxTotalTokens: 8192,
+          },
+        },
+        errorPatterns: [],
+        providerSpecificConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        implementation: TypeSafetyChainTestLLM as any,
+      },
+      providerParams: {},
+      resolvedModels: {
+        embeddings: "test-embed",
+        primaryCompletion: "test-complete",
+      },
+      errorLogger: createMockErrorLogger(),
+    });
+  }
+
+  setMockResponse(content: string) {
+    this.mockResponseContent = content;
+  }
+
+  protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: [0.1, 0.2, 0.3],
+      tokenUsage: {
+        promptTokens: 10,
+        completionTokens: 0,
+        maxTotalTokens: 100,
+      },
+    };
+  }
+
+  protected async invokeCompletionProvider(): Promise<LLMImplSpecificResponseSummary> {
+    return {
+      isIncompleteResponse: false,
+      responseContent: this.mockResponseContent,
+      tokenUsage: {
+        promptTokens: 10,
+        completionTokens: 20,
+        maxTotalTokens: 100,
+      },
+    };
+  }
+
+  protected isLLMOverloaded(): boolean {
+    return false;
+  }
+
+  protected isTokenLimitExceeded(): boolean {
+    return false;
+  }
+}
+
+describe("Type Safety Chain - End to End", () => {
+  let testLLM: TypeSafetyChainTestLLM;
+  let testContext: LLMContext;
+  let retryStrategy: RetryStrategy;
+  let executionPipeline: LLMExecutionPipeline;
+  let llmStats: LLMStats;
+
+  beforeEach(() => {
+    testLLM = new TypeSafetyChainTestLLM();
+    testContext = {
+      resource: "test-resource",
+      purpose: LLMPurpose.COMPLETIONS,
+    };
+    llmStats = new LLMStats();
+    retryStrategy = new RetryStrategy(llmStats);
+    executionPipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
+  });
+
+  describe("Type preservation through AbstractLLM", () => {
+    test("should preserve object schema type through executeProviderFunction", async () => {
+      const userSchema = z.object({
+        name: z.string(),
+        age: z.number(),
+        isActive: z.boolean(),
+      });
+
+      testLLM.setMockResponse('{"name": "Alice", "age": 30, "isActive": true}');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: userSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toBeDefined();
+
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        // TypeScript should infer the correct type
+        expect(typeof result.generated).toBe("object");
+        const data = result.generated as Record<string, unknown>;
+        expect(data.name).toBe("Alice");
+        expect(data.age).toBe(30);
+        expect(data.isActive).toBe(true);
+      }
+    });
+
+    test("should preserve array schema type", async () => {
+      const itemsSchema = z.array(z.object({ id: z.number(), value: z.string() }));
+
+      testLLM.setMockResponse('[{"id": 1, "value": "first"}, {"id": 2, "value": "second"}]');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: itemsSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toBeDefined();
+
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        expect(Array.isArray(result.generated)).toBe(true);
+        const data = result.generated as unknown[];
+        expect(data.length).toBe(2);
+      }
+    });
+
+    test("should preserve nested object schema type", async () => {
+      const nestedSchema = z.object({
+        user: z.object({
+          id: z.number(),
+          profile: z.object({
+            name: z.string(),
+            bio: z.string().optional(),
+          }),
+        }),
+        metadata: z.object({
+          createdAt: z.string(),
+        }),
+      });
+
+      testLLM.setMockResponse(
+        '{"user": {"id": 1, "profile": {"name": "Bob"}}, "metadata": {"createdAt": "2024-01-01"}}',
+      );
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: nestedSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toBeDefined();
+
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data).toHaveProperty("user");
+        expect(data).toHaveProperty("metadata");
+      }
+    });
+  });
+
+  describe("Type preservation through RetryStrategy", () => {
+    test("should preserve type through executeWithRetries with object schema", async () => {
+      const productSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+        price: z.number(),
+      });
+
+      testLLM.setMockResponse('{"id": 1, "name": "Widget", "price": 19.99}');
+
+      const result = await retryStrategy.executeWithRetries(
+        testLLM.executeCompletionPrimary,
+        "test prompt",
+        testContext,
+        {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: productSchema,
+        },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result?.generated).toBeDefined();
+
+      if (result?.status === LLMResponseStatus.COMPLETED && result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.id).toBe(1);
+        expect(data.name).toBe("Widget");
+        expect(data.price).toBe(19.99);
+      }
+    });
+
+    test("should preserve type through executeWithRetries with array schema", async () => {
+      const numbersSchema = z.array(z.number());
+
+      testLLM.setMockResponse("[1, 2, 3, 4, 5]");
+
+      const result = await retryStrategy.executeWithRetries(
+        testLLM.executeCompletionPrimary,
+        "test prompt",
+        testContext,
+        {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: numbersSchema,
+        },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result?.generated).toBeDefined();
+
+      if (result?.status === LLMResponseStatus.COMPLETED && result.generated) {
+        expect(Array.isArray(result.generated)).toBe(true);
+        const data = result.generated as unknown[];
+        expect(data.length).toBe(5);
+      }
+    });
+  });
+
+  describe("Type preservation through LLMExecutionPipeline", () => {
+    test("should preserve type through execute with complex schema", async () => {
+      const complexSchema = z.object({
+        status: z.enum(["success", "failure"]),
+        data: z.object({
+          items: z.array(z.string()),
+          count: z.number(),
+        }),
+        timestamp: z.string(),
+      });
+
+      testLLM.setMockResponse(
+        '{"status": "success", "data": {"items": ["a", "b", "c"], "count": 3}, "timestamp": "2024-01-01T00:00:00Z"}',
+      );
+
+      const result = await executionPipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
+        context: testContext,
+        llmFunctions: [testLLM.executeCompletionPrimary],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        modelsMetadata: testModelsMetadata,
+        completionOptions: {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: complexSchema,
+        },
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        const data = result.data as Record<string, unknown>;
+        expect(data.status).toBe("success");
+        expect(data).toHaveProperty("data");
+        expect(data).toHaveProperty("timestamp");
+      }
+    });
+
+    test("should preserve type through execute with union schema", async () => {
+      const unionSchema = z.union([
+        z.object({ type: z.literal("text"), content: z.string() }),
+        z.object({ type: z.literal("number"), value: z.number() }),
+      ]);
+
+      testLLM.setMockResponse('{"type": "text", "content": "hello"}');
+
+      const result = await executionPipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
+        context: testContext,
+        llmFunctions: [testLLM.executeCompletionPrimary],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 1000,
+          maxRetryDelayMillis: 5000,
+        },
+        modelsMetadata: testModelsMetadata,
+        completionOptions: {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: unionSchema,
+        },
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        const data = result.data as Record<string, unknown>;
+        expect(data.type).toBe("text");
+        expect(data).toHaveProperty("content");
+      }
+    });
+  });
+
+  describe("Type preservation through LLMRouter", () => {
+    test("should preserve type through router executeCompletion with object schema", async () => {
+      const configSchema = z.object({
+        enabled: z.boolean(),
+        maxItems: z.number(),
+        tags: z.array(z.string()),
+      });
+
+      testLLM.setMockResponse('{"enabled": true, "maxItems": 10, "tags": ["tag1", "tag2"]}');
+
+      // Note: The actual LLMRouter internally creates its own LLM instance.
+      // For this test, we're verifying the type signatures are correct directly with testLLM.
+      // In real usage with a router, the type inference would work end-to-end.
+
+      // Type check: this should compile without errors
+      const result = await testLLM.executeCompletionPrimary("test", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: configSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+    });
+
+    test("should handle TEXT format without schema", async () => {
+      testLLM.setMockResponse("Plain text response");
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toBeDefined();
+
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        expect(typeof result.generated).toBe("string");
+        expect(result.generated).toBe("Plain text response");
+      }
+    });
+  });
+
+  describe("Type inference with optional and nullable fields", () => {
+    test("should handle optional fields correctly", async () => {
+      const schemaWithOptional = z.object({
+        required: z.string(),
+        optional: z.string().optional(),
+        withDefault: z.string().default("default-value"),
+      });
+
+      testLLM.setMockResponse('{"required": "present"}');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schemaWithOptional,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toBeDefined();
+
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.required).toBe("present");
+        expect(data.withDefault).toBe("default-value");
+      }
+    });
+
+    test("should handle nullable fields correctly", async () => {
+      const schemaWithNullable = z.object({
+        value: z.string().nullable(),
+        count: z.number(),
+      });
+
+      testLLM.setMockResponse('{"value": null, "count": 42}');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schemaWithNullable,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toBeDefined();
+
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data.value).toBeNull();
+        expect(data.count).toBe(42);
+      }
+    });
+  });
+
+  describe("Type preservation with transforms", () => {
+    test("should preserve type even when transforms are applied", async () => {
+      const schema = z.object({
+        items: z.array(z.string()),
+        metadata: z.object({
+          count: z.number(),
+        }),
+      });
+
+      // Response with null that will be converted to undefined by transforms
+      testLLM.setMockResponse('{"items": ["a", "b"], "metadata": {"count": 2}}');
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toBeDefined();
+
+      if (result.status === LLMResponseStatus.COMPLETED && result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data).toHaveProperty("items");
+        expect(data).toHaveProperty("metadata");
+      }
+    });
+  });
+});

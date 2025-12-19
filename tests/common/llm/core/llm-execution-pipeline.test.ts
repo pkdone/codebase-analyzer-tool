@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
+import { z } from "zod";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMStats from "../../../../src/common/llm/tracking/llm-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
@@ -508,6 +509,189 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.context?.responseContentParseError).toBe("Invalid JSON structure");
+      }
+    });
+  });
+
+  describe("Type Safety with Schemas", () => {
+    let llmStats: LLMStats;
+    let retryStrategy: RetryStrategy;
+    let pipeline: LLMExecutionPipeline;
+
+    beforeEach(() => {
+      jest.spyOn(console, "log").mockImplementation(() => {
+        // Mock implementation
+      });
+      llmStats = new LLMStats();
+      retryStrategy = new RetryStrategy(llmStats);
+      pipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
+    });
+
+    test("should preserve object schema type through pipeline execution", async () => {
+      const configSchema = z.object({
+        enabled: z.boolean(),
+        maxItems: z.number(),
+        tags: z.array(z.string()),
+      });
+
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: { enabled: true, maxItems: 10, tags: ["tag1", "tag2"] },
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+        completionOptions: {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: configSchema,
+        },
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        const data = result.data as Record<string, unknown>;
+        expect(data.enabled).toBe(true);
+        expect(data.maxItems).toBe(10);
+        expect(Array.isArray(data.tags)).toBe(true);
+      }
+    });
+
+    test("should preserve array schema type through pipeline execution", async () => {
+      const itemsSchema = z.array(
+        z.object({
+          id: z.number(),
+          name: z.string(),
+        }),
+      );
+
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: [
+          { id: 1, name: "Item 1" },
+          { id: 2, name: "Item 2" },
+        ] as any,
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+        completionOptions: {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: itemsSchema,
+        },
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        expect(Array.isArray(result.data)).toBe(true);
+        const data = result.data as unknown[];
+        expect(data.length).toBe(2);
+      }
+    });
+
+    test("should preserve complex nested schema type", async () => {
+      const complexSchema = z.object({
+        user: z.object({
+          id: z.number(),
+          profile: z.object({
+            name: z.string(),
+            settings: z.object({
+              theme: z.string(),
+            }),
+          }),
+        }),
+        metadata: z.object({
+          version: z.string(),
+        }),
+      });
+
+      const mockLLMFunction = createMockLLMFunction({
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
+        generated: {
+          user: {
+            id: 42,
+            profile: {
+              name: "Charlie",
+              settings: {
+                theme: "dark",
+              },
+            },
+          },
+          metadata: {
+            version: "1.0.0",
+          },
+        },
+      });
+
+      const context: LLMContext = {
+        resource: "test-resource",
+        purpose: LLMPurpose.COMPLETIONS,
+      };
+
+      const result = await pipeline.execute({
+        resourceName: "test-resource",
+        prompt: "test prompt",
+        context,
+        llmFunctions: [mockLLMFunction],
+        providerRetryConfig: {
+          requestTimeoutMillis: 60000,
+          maxRetryAttempts: 3,
+          minRetryDelayMillis: 100,
+          maxRetryDelayMillis: 1000,
+        },
+        modelsMetadata: {},
+        completionOptions: {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: complexSchema,
+        },
+      });
+
+      expect(result.success).toBe(true);
+
+      if (result.success) {
+        const data = result.data as Record<string, unknown>;
+        expect(data).toHaveProperty("user");
+        expect(data).toHaveProperty("metadata");
       }
     });
   });

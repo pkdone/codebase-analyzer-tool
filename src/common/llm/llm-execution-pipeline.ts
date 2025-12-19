@@ -60,7 +60,7 @@ export class LLMExecutionPipeline {
    */
   async execute<S extends z.ZodType>(
     params: LLMExecutionParams<S>,
-  ): Promise<LLMExecutionResult<InferResponseType<LLMCompletionOptions>>> {
+  ): Promise<LLMExecutionResult<InferResponseType<LLMCompletionOptions<S>>>> {
     const {
       resourceName,
       prompt,
@@ -161,7 +161,7 @@ export class LLMExecutionPipeline {
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions<S>,
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions>> | null> {
+  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>> | null> {
     let currentPrompt = initialPrompt;
     let llmFunctionIndex = 0;
 

@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
+import { z } from "zod";
 import { RetryStrategy } from "../../../../../src/common/llm/strategies/retry-strategy";
 import LLMStats from "../../../../../src/common/llm/tracking/llm-stats";
 import {
@@ -282,6 +283,136 @@ describe("RetryStrategy", () => {
       );
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("Type Safety with Schemas", () => {
+    test("should preserve object schema type through retry", async () => {
+      const userSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+      });
+
+      const typedResponse: LLMFunctionResponse<z.infer<typeof userSchema>> = {
+        status: LLMResponseStatus.COMPLETED,
+        generated: { id: 1, name: "Alice" },
+        request: "test prompt",
+        modelKey: "test-model",
+        context: mockContext,
+      };
+
+      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(typedResponse);
+      (mockPRetry as any).mockImplementation(async (fn: any) => await fn());
+
+      const result = await retryStrategy.executeWithRetries(
+        mockLLMFunction,
+        "test prompt",
+        mockContext,
+        mockProviderRetryConfig,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: userSchema,
+        },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
+
+      if (result?.status === LLMResponseStatus.COMPLETED && result.generated) {
+        // Type should be inferred as the schema type
+        const data = result.generated as Record<string, unknown>;
+        expect(data.id).toBe(1);
+        expect(data.name).toBe("Alice");
+      }
+    });
+
+    test("should preserve array schema type through retry", async () => {
+      const arraySchema = z.array(z.number());
+
+      const typedResponse: LLMFunctionResponse<z.infer<typeof arraySchema>> = {
+        status: LLMResponseStatus.COMPLETED,
+        generated: [1, 2, 3, 4, 5],
+        request: "test prompt",
+        modelKey: "test-model",
+        context: mockContext,
+      };
+
+      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(typedResponse);
+      (mockPRetry as any).mockImplementation(async (fn: any) => await fn());
+
+      const result = await retryStrategy.executeWithRetries(
+        mockLLMFunction,
+        "test prompt",
+        mockContext,
+        mockProviderRetryConfig,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: arraySchema,
+        },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
+
+      if (result?.status === LLMResponseStatus.COMPLETED && result.generated) {
+        expect(Array.isArray(result.generated)).toBe(true);
+        const data = result.generated as unknown[];
+        expect(data.length).toBe(5);
+      }
+    });
+
+    test("should preserve nested schema type through retry with overload recovery", async () => {
+      const nestedSchema = z.object({
+        user: z.object({
+          id: z.number(),
+          profile: z.object({
+            name: z.string(),
+          }),
+        }),
+      });
+
+      const overloadedResponse: LLMFunctionResponse = {
+        status: LLMResponseStatus.OVERLOADED,
+        request: "test prompt",
+        modelKey: "test-model",
+        context: mockContext,
+      };
+
+      const successResponse: LLMFunctionResponse<z.infer<typeof nestedSchema>> = {
+        status: LLMResponseStatus.COMPLETED,
+        generated: { user: { id: 1, profile: { name: "Bob" } } },
+        request: "test prompt",
+        modelKey: "test-model",
+        context: mockContext,
+      };
+
+      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      (mockLLMFunction as jest.MockedFunction<LLMFunction>)
+        .mockResolvedValueOnce(overloadedResponse)
+        .mockResolvedValueOnce(successResponse);
+
+      (mockPRetry as jest.MockedFunction<typeof mockPRetry>).mockResolvedValue(successResponse);
+
+      const result = await retryStrategy.executeWithRetries(
+        mockLLMFunction,
+        "test prompt",
+        mockContext,
+        mockProviderRetryConfig,
+        {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: nestedSchema,
+        },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
+
+      if (result?.status === LLMResponseStatus.COMPLETED && result.generated) {
+        const data = result.generated as Record<string, unknown>;
+        expect(data).toHaveProperty("user");
+      }
     });
   });
 });

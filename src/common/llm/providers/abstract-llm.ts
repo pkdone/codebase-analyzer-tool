@@ -116,13 +116,15 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Uses arrow function to enable easier binding of `this` context.
    */
   generateEmbeddings: LLMEmbeddingFunction = async (content, context, options) => {
-    return this.executeProviderFunction<z.ZodType<number[]>>(
+    const result = await this.executeProviderFunction<z.ZodType<number[]>>(
       this.modelsKeys.embeddingsModelKey,
       LLMPurpose.EMBEDDINGS,
       content,
       context,
       options as LLMCompletionOptions<z.ZodType<number[]>>,
-    ) as Promise<LLMFunctionResponse<number[]>>;
+    );
+    // Cast is safe for embeddings as we know the response type is always number[]
+    return result as LLMFunctionResponse<number[]>;
   };
 
   /**
@@ -200,10 +202,10 @@ export default abstract class AbstractLLM implements LLMProvider {
     context: LLMContext,
     completionOptions?: LLMCompletionOptions<S>,
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions>>> {
+  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>>> {
     const skeletonResponse: Omit<
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-      LLMFunctionResponse<InferResponseType<LLMCompletionOptions>>,
+      LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>>,
       "generated" | "status" | "mutationSteps"
     > = {
       request,
@@ -311,15 +313,15 @@ export default abstract class AbstractLLM implements LLMProvider {
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions<S>,
     context: LLMContext,
-  ): Promise<LLMFunctionResponse> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
+  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions<S>>>> {
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
         generated: responseContent,
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-      } as LLMFunctionResponse<InferResponseType<LLMCompletionOptions>>;
+      };
     }
 
     // Early return for non-JSON output format
@@ -336,8 +338,7 @@ export default abstract class AbstractLLM implements LLMProvider {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,
         generated: responseContent,
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-      } as LLMFunctionResponse<InferResponseType<LLMCompletionOptions>>;
+      };
     }
 
     // Process JSON with schema-aware type inference.
@@ -358,8 +359,7 @@ export default abstract class AbstractLLM implements LLMProvider {
         // Type is correctly inferred through InferResponseType helper
         generated: jsonProcessingResult.data,
         mutationSteps: jsonProcessingResult.mutationSteps,
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-      } as LLMFunctionResponse<InferResponseType<LLMCompletionOptions>>;
+      };
     } else {
       context.responseContentParseError = formatError(jsonProcessingResult.error);
       await this.errorLogger.recordJsonProcessingError(
