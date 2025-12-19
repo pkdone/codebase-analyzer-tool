@@ -58,20 +58,16 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
 
-    // Use strongly-typed schema lookup for type-safe return type inference.
-    // The function overloads in LLMRouter.executeCompletion() ensure proper type inference.
-    // TypeScript's limitation with generic indexed access types (AppSummaryCategorySchemas[C])
-    // prevents full compile-time verification, but runtime type safety is guaranteed by Zod
-    // schema validation in the LLM pipeline.
-    const schema: z.ZodType = appSummaryCategorySchemas[category];
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TypeScript cannot fully narrow generic indexed access types at compile time; runtime safety guaranteed by Zod validation
-    const result = await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
+    // Schema lookup preserves category-specific typing through the call chain.
+    // The indexed access type requires a runtime cast to satisfy TypeScript's generic constraints.
+    const schema = appSummaryCategorySchemas[category];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
       jsonSchema: schema,
       hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
       sanitizerConfig: getSchemaSpecificSanitizerConfig(),
     });
-    return result as z.infer<AppSummaryCategorySchemas[C]> | null;
   } catch (error: unknown) {
     logOneLineWarning(
       `${error instanceof Error ? error.message : "Unknown error"} for ${categoryLabel}`,

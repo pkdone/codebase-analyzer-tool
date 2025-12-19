@@ -366,4 +366,79 @@ describe("LLM Call Chain Type Safety", () => {
       expect(Array.isArray(response.generated)).toBe(true);
     });
   });
+
+  describe("InferResponseType Type Flow", () => {
+    test("should correctly infer string type for TEXT format without schema", () => {
+      // Test that InferResponseType returns string for TEXT mode
+      interface TextOptions {
+        outputFormat: LLMOutputFormat.TEXT;
+      }
+      type InferredType =
+        import("../../../src/common/llm/types/llm.types").InferResponseType<TextOptions>;
+
+      const textValue: InferredType = "test string";
+      expect(typeof textValue).toBe("string");
+    });
+
+    test("should correctly infer schema type for JSON format with schema", () => {
+      const _userSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+      });
+
+      interface JsonOptions {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _userSchema;
+      }
+      type InferredType =
+        import("../../../src/common/llm/types/llm.types").InferResponseType<JsonOptions>;
+
+      const jsonValue: InferredType = { id: 1, name: "test" };
+      expect(jsonValue.id).toBe(1);
+    });
+
+    test("should correctly infer Record<string, unknown> for JSON without schema", () => {
+      interface JsonOptionsNoSchema {
+        outputFormat: LLMOutputFormat.JSON;
+      }
+      type InferredType =
+        import("../../../src/common/llm/types/llm.types").InferResponseType<JsonOptionsNoSchema>;
+
+      const jsonValue: InferredType = { any: "value" };
+      expect(jsonValue.any).toBe("value");
+    });
+
+    test("should maintain type safety through LLMFunctionResponse", () => {
+      const _schema = z.object({
+        count: z.number(),
+        items: z.array(z.string()),
+      });
+
+      interface Options {
+        outputFormat: LLMOutputFormat.JSON;
+        jsonSchema: typeof _schema;
+      }
+      type InferredType =
+        import("../../../src/common/llm/types/llm.types").InferResponseType<Options>;
+
+      const response: LLMFunctionResponse<InferredType> = {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: mockContext,
+        generated: {
+          count: 5,
+          items: ["a", "b", "c"],
+        },
+      };
+
+      // TypeScript should infer correct types
+      if (response.generated) {
+        const count: number = response.generated.count;
+        const items: string[] = response.generated.items;
+        expect(count).toBe(5);
+        expect(items).toHaveLength(3);
+      }
+    });
+  });
 });

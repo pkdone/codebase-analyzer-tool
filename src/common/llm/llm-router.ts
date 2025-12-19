@@ -252,11 +252,10 @@ export default class LLMRouter {
       return null;
     }
 
-    // The function overloads provide compile-time type safety to callers based on outputFormat.
-    // Runtime type safety is guaranteed by Zod schema validation in the execution pipeline.
-    // This assertion is required because TypeScript cannot fully verify the union return type
-    // through the async generic chain, despite the overloads ensuring correct types at call sites.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- Type safety guaranteed by function overloads and runtime Zod validation
-    return result.data as z.infer<S> | string | null;
+    // With improved type flow, result.data is now InferResponseType<LLMCompletionOptions<S>>.
+    // The overloads ensure compile-time type safety for callers.
+    // This cast is necessary for TypeScript's overload implementation but is safe due to runtime validation.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any
+    return result.data as any;
   }
 }

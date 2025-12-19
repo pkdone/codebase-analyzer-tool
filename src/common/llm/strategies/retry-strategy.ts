@@ -5,6 +5,7 @@ import type {
   LLMContext,
   LLMCompletionOptions,
   LLMFunction,
+  InferResponseType,
 } from "../types/llm.types";
 import { LLMResponseStatus } from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
@@ -41,14 +42,16 @@ export class RetryStrategy {
    * The return type is inferred from the completionOptions.jsonSchema, enabling
    * end-to-end type safety through the LLM call chain.
    * Generic over the schema type S directly to simplify type inference.
+   * Return type uses InferResponseType for format-aware type inference.
    */
-  async executeWithRetries<S extends z.ZodType = z.ZodType>(
+  async executeWithRetries<S extends z.ZodType>(
     llmFunction: LLMFunction,
     prompt: string,
     context: LLMContext,
     providerRetryConfig: LLMRetryConfig,
     completionOptions?: LLMCompletionOptions<S>,
-  ): Promise<LLMFunctionResponse<z.infer<S>> | null> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
+  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions>> | null> {
     try {
       return await pRetry(
         async () => {

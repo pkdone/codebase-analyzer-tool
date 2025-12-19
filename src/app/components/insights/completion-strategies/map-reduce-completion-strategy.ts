@@ -12,7 +12,6 @@ import {
   AppSummaryCategoryEnum,
   CategoryInsightResult,
   appSummaryCategorySchemas,
-  type AppSummaryCategorySchemas,
 } from "../insights.types";
 import { getSchemaSpecificSanitizerConfig } from "../../../prompts/config/schema-specific-sanitizer.config";
 import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
@@ -124,24 +123,6 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
   }
 
   /**
-   * Helper method to execute completion with a schema, properly typed to help TypeScript inference.
-   */
-  private async executeCompletionWithSchema<C extends AppSummaryCategoryEnum>(
-    resourceName: string,
-    prompt: string,
-    schema: AppSummaryCategorySchemas[C],
-  ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
-    // The function overloads in LLMRouter.executeCompletion() ensure proper type inference.
-    // TypeScript's limitations with generic indexed access types require explicit typing.
-    return (await this.llmRouter.executeCompletion(resourceName, prompt, {
-      outputFormat: LLMOutputFormat.JSON,
-      jsonSchema: schema,
-      hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
-      sanitizerConfig: getSchemaSpecificSanitizerConfig(),
-    })) as z.infer<AppSummaryCategorySchemas[C]> | null;
-  }
-
-  /**
    * REDUCE step: Consolidates multiple partial insights into a single final result.
    * This method combines and de-duplicates results from all chunks.
    *
@@ -164,13 +145,9 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const categoryKey = Object.keys(schemaShape)[0] as keyof CategoryInsightResult<C>;
 
     // Flatten the arrays from all partial results into a single combined list
-    // result is strongly typed as CategoryInsightResult<C>, which is the category-specific shape
     const combinedData = partialResults.flatMap((result) => {
-      // TypeScript now correctly infers the type of categoryData based on the categoryKey assertion
       const categoryData = result[categoryKey];
-      if (Array.isArray(categoryData)) {
-        return categoryData;
-      }
+      if (Array.isArray(categoryData)) return categoryData;
       return [];
     });
 
@@ -182,15 +159,15 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     const renderedPrompt = renderPrompt(reducePromptDefinition, { categoryKey, content });
 
     try {
-      // Use strongly-typed schema lookup - enables correct return type inference
-      // Helper function call with explicit type parameter to help TypeScript infer types
-      const result = await this.executeCompletionWithSchema<C>(
-        `${category}-reduce`,
-        renderedPrompt,
-        schema,
-      );
-
-      return result;
+      // Use strongly-typed schema lookup - enables correct return type inference.
+      // The indexed access type requires runtime casts to satisfy TypeScript's generic constraints.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return await this.llmRouter.executeCompletion(`${category}-reduce`, renderedPrompt, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+        hasComplexSchema: !CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE,
+        sanitizerConfig: getSchemaSpecificSanitizerConfig(),
+      });
     } catch (error: unknown) {
       logOneLineWarning(
         `Failed to consolidate partial insights for ${config.label ?? category}: ${error instanceof Error ? error.message : "Unknown error"}`,

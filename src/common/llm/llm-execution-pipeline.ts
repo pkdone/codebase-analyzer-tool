@@ -7,6 +7,7 @@ import {
   LLMCandidateFunction,
   LLMFunctionResponse,
   LLMFunction,
+  InferResponseType,
 } from "./types/llm.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
@@ -23,7 +24,7 @@ import { logOneLineWarning } from "../utils/logging";
  * Groups all execution parameters into a single object for better maintainability.
  * Generic over the schema type S directly to simplify type inference.
  */
-export interface LLMExecutionParams<S extends z.ZodType = z.ZodType> {
+export interface LLMExecutionParams<S extends z.ZodType> {
   readonly resourceName: string;
   readonly prompt: string;
   readonly context: LLMContext;
@@ -55,10 +56,11 @@ export class LLMExecutionPipeline {
    * The return type is inferred from completionOptions.jsonSchema, enabling end-to-end
    * type safety through the LLM call chain without requiring unsafe casts.
    * Generic over the schema type S directly to simplify type inference.
+   * Return type uses InferResponseType for format-aware type inference.
    */
-  async execute<S extends z.ZodType = z.ZodType>(
+  async execute<S extends z.ZodType>(
     params: LLMExecutionParams<S>,
-  ): Promise<LLMExecutionResult<z.infer<S>>> {
+  ): Promise<LLMExecutionResult<InferResponseType<LLMCompletionOptions>>> {
     const {
       resourceName,
       prompt,
@@ -147,8 +149,9 @@ export class LLMExecutionPipeline {
    *
    * The return type is inferred from completionOptions.jsonSchema via the schema type S.
    * Generic over the schema type S directly to simplify type inference.
+   * Return type uses InferResponseType for format-aware type inference.
    */
-  private async iterateOverLLMFunctions<S extends z.ZodType = z.ZodType>(
+  private async iterateOverLLMFunctions<S extends z.ZodType>(
     resourceName: string,
     initialPrompt: string,
     context: LLMContext,
@@ -157,14 +160,15 @@ export class LLMExecutionPipeline {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions<S>,
-  ): Promise<LLMFunctionResponse<z.infer<S>> | null> {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
+  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions>> | null> {
     let currentPrompt = initialPrompt;
     let llmFunctionIndex = 0;
 
     // Don't want to increment 'llmFuncIndex' before looping again, if going to crop prompt
     // (to enable us to try cropped prompt with same size LLM as last iteration)
     while (llmFunctionIndex < llmFunctions.length) {
-      const llmResponse = await this.retryStrategy.executeWithRetries<S>(
+      const llmResponse = await this.retryStrategy.executeWithRetries(
         llmFunctions[llmFunctionIndex],
         currentPrompt,
         context,

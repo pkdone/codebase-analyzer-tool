@@ -327,6 +327,7 @@ describe("Abstract LLM Token Extraction", () => {
 class TestJSONLLM extends AbstractLLM {
   private mockResponseContent = "";
   private mockIsIncomplete = false;
+  private mockEmbeddingResponseContent: number[] = [0.1, 0.2, 0.3];
 
   constructor() {
     super(createTestProviderInit(GPT_COMPLETIONS_GPT4_32k));
@@ -337,10 +338,14 @@ class TestJSONLLM extends AbstractLLM {
     this.mockIsIncomplete = isIncomplete;
   }
 
+  setMockEmbeddingResponse(content: number[]) {
+    this.mockEmbeddingResponseContent = content;
+  }
+
   protected async invokeEmbeddingProvider(): Promise<LLMImplSpecificResponseSummary> {
     return {
       isIncompleteResponse: false,
-      responseContent: [0.1, 0.2, 0.3],
+      responseContent: this.mockEmbeddingResponseContent,
       tokenUsage: {
         promptTokens: 10,
         completionTokens: 20,
@@ -508,6 +513,263 @@ describe("Abstract LLM Deep Immutability", () => {
       expect(metadata[GPT_EMBEDDINGS_GPT4]).toBeDefined();
       expect(metadata[GPT_COMPLETIONS_GPT4_32k].urn).toBe("gpt-4-32k");
       expect(metadata[GPT_EMBEDDINGS_GPT4].urn).toBe("text-embedding-ada-002");
+    });
+  });
+});
+
+describe("Abstract LLM Type Safety with InferResponseType", () => {
+  let testLLM: TestJSONLLM;
+  const testContext: LLMContext = {
+    resource: "test-resource",
+    purpose: LLMPurpose.COMPLETIONS,
+    outputFormat: LLMOutputFormat.JSON,
+  };
+
+  beforeEach(() => {
+    testLLM = new TestJSONLLM();
+  });
+
+  describe("TEXT format responses", () => {
+    test("should return string type for TEXT format", async () => {
+      const textResponse = "This is a plain text response from the LLM";
+      testLLM.setMockResponse(textResponse);
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(typeof result.generated).toBe("string");
+      expect(result.generated).toBe(textResponse);
+
+      // TypeScript infers string type with proper narrowing
+      if (result.generated && typeof result.generated === "string") {
+        const upperCase = result.generated.toUpperCase();
+        expect(upperCase).toBe(textResponse.toUpperCase());
+      }
+    });
+
+    test("should handle TEXT responses without type assertions", async () => {
+      testLLM.setMockResponse("Sample text");
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
+
+      // No 'as string' cast needed with type narrowing
+      expect(result.generated).toBe("Sample text");
+      expect(typeof result.generated).toBe("string");
+    });
+  });
+
+  describe("JSON format responses with schema", () => {
+    test("should return correctly typed object for JSON with schema", async () => {
+      const userSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+        email: z.string(),
+      });
+
+      const mockData = {
+        id: 123,
+        name: "Test User",
+        email: "test@example.com",
+      };
+
+      testLLM.setMockResponse(JSON.stringify(mockData));
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: userSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toEqual(mockData);
+
+      // Type is inferred, with narrowing for access
+      if (
+        result.generated &&
+        typeof result.generated === "object" &&
+        !Array.isArray(result.generated)
+      ) {
+        const data = result.generated as Record<string, any>;
+        expect(data.id).toBe(123);
+        expect(data.name).toBe("Test User");
+      }
+    });
+
+    test("should handle complex nested schemas", async () => {
+      const complexSchema = z.object({
+        metadata: z.object({
+          version: z.number(),
+          timestamp: z.string(),
+        }),
+        data: z.object({
+          items: z.array(
+            z.object({
+              id: z.string(),
+              count: z.number(),
+            }),
+          ),
+          total: z.number(),
+        }),
+      });
+
+      const mockData = {
+        metadata: {
+          version: 1,
+          timestamp: "2024-01-01T00:00:00Z",
+        },
+        data: {
+          items: [
+            { id: "item1", count: 5 },
+            { id: "item2", count: 10 },
+          ],
+          total: 15,
+        },
+      };
+
+      testLLM.setMockResponse(JSON.stringify(mockData));
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: complexSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(result.generated).toEqual(mockData);
+
+      if (
+        result.generated &&
+        typeof result.generated === "object" &&
+        !Array.isArray(result.generated)
+      ) {
+        const data = result.generated as Record<string, any>;
+        expect(data.data.items).toHaveLength(2);
+        expect(data.metadata.version).toBe(1);
+      }
+    });
+
+    test("should handle array schemas", async () => {
+      const arraySchema = z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          active: z.boolean(),
+        }),
+      );
+
+      const mockData = [
+        { id: "1", name: "First", active: true },
+        { id: "2", name: "Second", active: false },
+      ];
+
+      testLLM.setMockResponse(JSON.stringify(mockData));
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: arraySchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(Array.isArray(result.generated)).toBe(true);
+      expect(result.generated).toHaveLength(2);
+    });
+  });
+
+  describe("type preservation through call chain", () => {
+    test("should maintain type information from schema through response", async () => {
+      const entitySchema = z.object({
+        entities: z.array(
+          z.object({
+            name: z.string(),
+            description: z.string(),
+          }),
+        ),
+      });
+
+      const mockData = {
+        entities: [
+          { name: "User", description: "User entity" },
+          { name: "Product", description: "Product entity" },
+        ],
+      };
+
+      testLLM.setMockResponse(JSON.stringify(mockData));
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: entitySchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+
+      // Type is inferred, with narrowing for access
+      if (
+        result.generated &&
+        typeof result.generated === "object" &&
+        !Array.isArray(result.generated)
+      ) {
+        const data = result.generated as Record<string, any>;
+        expect(data.entities).toBeDefined();
+        expect(data.entities[0].name).toBe("User");
+      }
+    });
+
+    test("should handle optional fields correctly", async () => {
+      const optionalSchema = z.object({
+        required: z.string(),
+        optional: z.string().optional(),
+        nullable: z.number().nullable(),
+      });
+
+      const mockData = {
+        required: "present",
+        nullable: null,
+      };
+
+      testLLM.setMockResponse(JSON.stringify(mockData));
+
+      const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: optionalSchema,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+
+      if (
+        result.generated &&
+        typeof result.generated === "object" &&
+        !Array.isArray(result.generated)
+      ) {
+        const data = result.generated as Record<string, any>;
+        expect(data.required).toBe("present");
+        expect(data.optional).toBeUndefined();
+        expect(data.nullable).toBeNull();
+      }
+    });
+  });
+
+  describe("embeddings type safety", () => {
+    test("should always return number array for embeddings", async () => {
+      const embeddingVector = [0.1, 0.2, 0.3, 0.4, 0.5];
+      testLLM.setMockEmbeddingResponse(embeddingVector);
+
+      const result = await testLLM.generateEmbeddings("test content", {
+        resource: "test",
+        purpose: LLMPurpose.EMBEDDINGS,
+      });
+
+      expect(result.status).toBe(LLMResponseStatus.COMPLETED);
+      expect(Array.isArray(result.generated)).toBe(true);
+      expect(result.generated).toEqual(embeddingVector);
+
+      // Type should be number[] without casts
+      if (result.generated) {
+        result.generated.forEach((num) => {
+          expect(typeof num).toBe("number");
+        });
+      }
     });
   });
 });

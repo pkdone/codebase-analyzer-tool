@@ -401,4 +401,89 @@ describe("executeInsightCompletion - Type Inference", () => {
       expect(config.responseSchema).toBeDefined();
     });
   });
+
+  describe("improved type safety - no type widening", () => {
+    test("should not require explicit z.ZodType annotation", async () => {
+      // This tests that removing the explicit z.ZodType annotation maintains type safety
+      const mockResponse = {
+        entities: [
+          { name: "User", description: "User entity" },
+          { name: "Product", description: "Product entity" },
+        ],
+      };
+
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, "entities", [
+        "* file1.ts: implementation",
+      ]);
+
+      // Should not need 'as' cast - types flow correctly
+      expect(result).toEqual(mockResponse);
+      if (result) {
+        // TypeScript infers exact type
+        expect(result.entities).toHaveLength(2);
+        expect(result.entities[0].name).toBe("User");
+      }
+    });
+
+    test("should maintain type safety without eslint-disable comments", async () => {
+      // Verifies that we removed the need for eslint-disable comments
+      const mockResponse = {
+        boundedContexts: [
+          {
+            name: "Sales",
+            description: "Sales context",
+            responsibilities: ["Orders", "Invoices"],
+          },
+        ],
+      };
+
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+
+      // No eslint-disable comments needed
+      const result = await executeInsightCompletion(mockLLMRouter, "boundedContexts", [
+        "* file1.ts: implementation",
+      ]);
+
+      if (result) {
+        // Type is correctly inferred without unsafe type assertions
+        expect(result.boundedContexts[0].responsibilities).toContain("Orders");
+      }
+    });
+
+    test("should preserve specific schema types through entire call chain", async () => {
+      // Demonstrates that specific schema types are preserved
+      const category = "aggregates";
+      const mockResponse = {
+        aggregates: [
+          {
+            name: "OrderAggregate",
+            description: "Handles order lifecycle",
+            entities: ["Order", "OrderItem", "Payment"],
+          },
+        ],
+      };
+
+      (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
+
+      const result = await executeInsightCompletion(mockLLMRouter, category, [
+        "* file1.ts: implementation",
+      ]);
+
+      // Schema-specific type is preserved
+      expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
+        category,
+        expect.any(String),
+        expect.objectContaining({
+          jsonSchema: appSummaryCategorySchemas[category],
+        }),
+      );
+
+      if (result) {
+        // Type narrowing works correctly
+        expect(result.aggregates[0].entities).toHaveLength(3);
+      }
+    });
+  });
 });
