@@ -3,7 +3,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
-import { promptRegistry } from "../../../prompts/prompt-registry";
+import { promptRegistry, createReduceInsightsPrompt } from "../../../prompts/prompt-registry";
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
@@ -151,11 +151,10 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     });
 
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
-    const renderedPrompt = renderPrompt(
-      promptRegistry.reduceInsights,
-      { categoryKey, content },
-      { overrideSchema: schema },
-    );
+
+    // Create a fully-typed prompt definition using the factory function
+    const reducePromptDef = createReduceInsightsPrompt(category, categoryKey as string, schema);
+    const renderedPrompt = renderPrompt(reducePromptDef, { content });
 
     try {
       // Use strongly-typed schema lookup - enables correct return type inference.

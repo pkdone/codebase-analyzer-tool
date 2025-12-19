@@ -1,6 +1,16 @@
+import { z } from "zod";
 import { promptRegistry } from "../../../../src/app/prompts/prompt-registry";
 const fileTypePromptMetadata = promptRegistry.sources;
 import { sourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.config";
+
+/**
+ * Helper function to get schema field names from a config entry.
+ * Since responseSchema is now a ZodObject, we can extract field names from its shape.
+ */
+function getSchemaFields(config: (typeof sourceConfigMap)[keyof typeof sourceConfigMap]): string[] {
+  const schema = config.responseSchema as z.ZodObject<z.ZodRawShape>;
+  return Object.keys(schema.shape);
+}
 
 describe("fileTypeMetadataConfig", () => {
   describe("supported file types", () => {
@@ -155,11 +165,12 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include dependencies in schema fields", () => {
       const config = sourceConfigMap.maven;
-      expect(config.schemaFields).toContain("dependencies");
-      expect(config.schemaFields).not.toContain("internalReferences");
-      expect(config.schemaFields).not.toContain("externalReferences");
-      expect(config.schemaFields).not.toContain("integrationPoints");
-      expect(config.schemaFields).not.toContain("databaseIntegration");
+      const schemaFields = getSchemaFields(config);
+      expect(schemaFields).toContain("dependencies");
+      expect(schemaFields).not.toContain("internalReferences");
+      expect(schemaFields).not.toContain("externalReferences");
+      expect(schemaFields).not.toContain("integrationPoints");
+      expect(schemaFields).not.toContain("databaseIntegration");
     });
 
     it("should have only BASIC_INFO and REFERENCES_AND_DEPS instruction sections", () => {
@@ -185,9 +196,10 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include dependencies in schema fields", () => {
       const config = sourceConfigMap.gradle;
-      expect(config.schemaFields).toContain("dependencies");
-      expect(config.schemaFields).not.toContain("internalReferences");
-      expect(config.schemaFields).not.toContain("externalReferences");
+      const schemaFields = getSchemaFields(config);
+      expect(schemaFields).toContain("dependencies");
+      expect(schemaFields).not.toContain("internalReferences");
+      expect(schemaFields).not.toContain("externalReferences");
     });
 
     it("should have dependency extraction instructions", () => {
@@ -207,9 +219,10 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include dependencies in schema fields", () => {
       const config = sourceConfigMap.npm;
-      expect(config.schemaFields).toContain("dependencies");
-      expect(config.schemaFields).not.toContain("internalReferences");
-      expect(config.schemaFields).not.toContain("externalReferences");
+      const schemaFields = getSchemaFields(config);
+      expect(schemaFields).toContain("dependencies");
+      expect(schemaFields).not.toContain("internalReferences");
+      expect(schemaFields).not.toContain("externalReferences");
     });
 
     it("should have dependency extraction instructions for npm", () => {
@@ -231,9 +244,10 @@ describe("fileTypeMetadataConfig", () => {
 
     it("should include dependencies in schema fields", () => {
       const config = sourceConfigMap["python-pip"];
-      expect(config.schemaFields).toContain("dependencies");
-      expect(config.schemaFields).not.toContain("internalReferences");
-      expect(config.schemaFields).not.toContain("externalReferences");
+      const schemaFields = getSchemaFields(config);
+      expect(schemaFields).toContain("dependencies");
+      expect(schemaFields).not.toContain("internalReferences");
+      expect(schemaFields).not.toContain("externalReferences");
     });
 
     it("should have dependency extraction instructions for pip", () => {

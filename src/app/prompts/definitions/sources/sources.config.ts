@@ -1,40 +1,44 @@
+import { z } from "zod";
 import type { CanonicalFileType } from "../../../components/capture/config/file-types.config";
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "./sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
 import { buildInstructionBlock } from "../prompt-factory";
+import { sourceSummarySchema } from "../../../schemas/sources.schema";
 
 /**
- * Configuration entry for a source prompt definition
+ * Configuration entry for a source prompt definition.
+ * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
+ * making the schemas explicit and type-safe.
  */
 export interface SourceConfigEntry {
   contentDesc: string;
   hasComplexSchema?: boolean; // Defaults to true when undefined
-  schemaFields: string[];
+  responseSchema: z.ZodType;
   instructions: readonly string[];
-  // responseSchema is optional - sources build schema via pick() in the factory
 }
 
 /**
  * Centralized configuration for all source prompt definitions.
  * This replaces the individual prompt definition files with a data-driven approach.
+ * Each entry directly defines its responseSchema using sourceSummarySchema.pick().
  */
 export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   java: {
     contentDesc: "JVM code",
-    schemaFields: [
-      "name",
-      "kind",
-      "namespace",
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
-    ],
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -67,20 +71,20 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
-    schemaFields: [
-      "name",
-      "kind",
-      "namespace",
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
-    ],
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -113,20 +117,20 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   csharp: {
     contentDesc: "C# code",
-    schemaFields: [
-      "name",
-      "kind",
-      "namespace",
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
-    ],
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -160,20 +164,20 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   python: {
     contentDesc: "Python code",
-    schemaFields: [
-      "name",
-      "kind",
-      "namespace",
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
-    ],
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -208,20 +212,20 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   ruby: {
     contentDesc: "Ruby code",
-    schemaFields: [
-      "name",
-      "kind",
-      "namespace",
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "publicConstants",
-      "publicMethods",
-      "databaseIntegration",
-      "integrationPoints",
-      "codeQualityMetrics",
-    ],
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicMethods: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -255,14 +259,14 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   sql: {
     contentDesc: "database DDL/DML/SQL code",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "tables",
-      "storedProcedures",
-      "triggers",
-      "databaseIntegration",
-    ],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      tables: true,
+      storedProcedures: true,
+      triggers: true,
+      databaseIntegration: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -283,7 +287,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   markdown: {
     contentDesc: "Markdown documentation",
-    schemaFields: ["purpose", "implementation", "databaseIntegration"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      databaseIntegration: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -299,7 +307,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   xml: {
     contentDesc: "XML configuration",
-    schemaFields: ["purpose", "implementation", "uiFramework"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      uiFramework: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -314,14 +326,14 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   jsp: {
     contentDesc: "JSP code",
-    schemaFields: [
-      "purpose",
-      "implementation",
-      "internalReferences",
-      "externalReferences",
-      "dataInputFields",
-      "jspMetrics",
-    ],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      dataInputFields: true,
+      jspMetrics: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -345,7 +357,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   maven: {
     contentDesc: "Maven POM (Project Object Model) build file",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -360,7 +376,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   gradle: {
     contentDesc: "Gradle build configuration file",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -375,7 +395,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   ant: {
     contentDesc: "Apache Ant build.xml file",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -390,7 +414,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   npm: {
     contentDesc: "npm package.json or lock file",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -405,7 +433,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   "dotnet-proj": {
     contentDesc: ".NET project file (.csproj, .vbproj, .fsproj)",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -420,7 +452,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   nuget: {
     contentDesc: "NuGet packages.config file (legacy .NET)",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -435,7 +471,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   "ruby-bundler": {
     contentDesc: "Ruby Gemfile or Gemfile.lock",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -450,7 +490,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   "python-pip": {
     contentDesc: "Python requirements.txt or Pipfile",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -465,7 +509,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   "python-setup": {
     contentDesc: "Python setup.py file",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -480,7 +528,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   "python-poetry": {
     contentDesc: "Python pyproject.toml (Poetry)",
-    schemaFields: ["purpose", "implementation", "dependencies"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -495,7 +547,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   "shell-script": {
     contentDesc: "Shell script (bash/sh)",
-    schemaFields: ["purpose", "implementation", "scheduledJobs"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      scheduledJobs: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -514,7 +570,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   "batch-script": {
     contentDesc: "Windows batch script (.bat/.cmd)",
-    schemaFields: ["purpose", "implementation", "scheduledJobs"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      scheduledJobs: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -534,7 +594,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   jcl: {
     contentDesc: "Mainframe JCL (Job Control Language)",
-    schemaFields: ["purpose", "implementation", "scheduledJobs"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      scheduledJobs: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -554,7 +618,11 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
   },
   default: {
     contentDesc: "source files",
-    schemaFields: ["purpose", "implementation", "databaseIntegration"],
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      databaseIntegration: true,
+    }),
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -568,4 +636,4 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
     ] as const,
   },
-} as const;
+};

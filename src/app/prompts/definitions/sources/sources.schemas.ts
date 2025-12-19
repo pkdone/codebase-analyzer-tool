@@ -1,19 +1,11 @@
 import { z } from "zod";
 import { sourceConfigMap } from "./sources.config";
-import { sourceSummarySchema } from "../../../schemas/sources.schema";
 import type { CanonicalFileType } from "../../../components/capture/config/file-types.config";
 
-/**
- * Helper function to create a picked schema for a given config entry.
- * Dynamically selects only the fields specified in the config's schemaFields array.
- */
-const createSchema = (config: (typeof sourceConfigMap)[keyof typeof sourceConfigMap]) => {
-  const schemaFields = config.schemaFields.reduce<Record<string, true>>((acc, field) => {
-    acc[field] = true;
-    return acc;
-  }, {});
-  return sourceSummarySchema.pick(schemaFields as Parameters<typeof sourceSummarySchema.pick>[0]);
-};
+// Type assertion helper - the schemas in sourceConfigMap are created via
+// sourceSummarySchema.pick() which always produces ZodObject, but TypeScript
+// needs a cast because the interface types responseSchema as z.ZodType.
+type ZodObjectType = z.ZodObject<z.ZodRawShape>;
 
 /**
  * Strongly-typed mapping of canonical file types to their Zod schemas.
@@ -23,37 +15,37 @@ const createSchema = (config: (typeof sourceConfigMap)[keyof typeof sourceConfig
  * This mirrors the pattern used in app-summaries.schema.ts for appSummaryCategorySchemas,
  * enabling strong type safety throughout the file summarization call chain.
  *
- * Each schema is built by picking specific fields from sourceSummarySchema based on
- * the schemaFields configuration in sourceConfigMap.
+ * Schemas are now derived directly from sourceConfigMap.responseSchema, eliminating
+ * the intermediate schemaFields array and providing explicit, type-safe schema definitions.
  *
  * Use this mapping when you need TypeScript to infer the correct return type
  * based on a file type key, rather than getting a generic z.ZodType.
  */
 export const sourcePromptSchemas = {
-  java: createSchema(sourceConfigMap.java),
-  javascript: createSchema(sourceConfigMap.javascript),
-  sql: createSchema(sourceConfigMap.sql),
-  xml: createSchema(sourceConfigMap.xml),
-  jsp: createSchema(sourceConfigMap.jsp),
-  markdown: createSchema(sourceConfigMap.markdown),
-  csharp: createSchema(sourceConfigMap.csharp),
-  ruby: createSchema(sourceConfigMap.ruby),
-  maven: createSchema(sourceConfigMap.maven),
-  gradle: createSchema(sourceConfigMap.gradle),
-  ant: createSchema(sourceConfigMap.ant),
-  npm: createSchema(sourceConfigMap.npm),
-  python: createSchema(sourceConfigMap.python),
-  "dotnet-proj": createSchema(sourceConfigMap["dotnet-proj"]),
-  nuget: createSchema(sourceConfigMap.nuget),
-  "ruby-bundler": createSchema(sourceConfigMap["ruby-bundler"]),
-  "python-pip": createSchema(sourceConfigMap["python-pip"]),
-  "python-setup": createSchema(sourceConfigMap["python-setup"]),
-  "python-poetry": createSchema(sourceConfigMap["python-poetry"]),
-  "shell-script": createSchema(sourceConfigMap["shell-script"]),
-  "batch-script": createSchema(sourceConfigMap["batch-script"]),
-  jcl: createSchema(sourceConfigMap.jcl),
-  default: createSchema(sourceConfigMap.default),
-} as const satisfies Record<CanonicalFileType, z.ZodObject<z.ZodRawShape>>;
+  java: sourceConfigMap.java.responseSchema as ZodObjectType,
+  javascript: sourceConfigMap.javascript.responseSchema as ZodObjectType,
+  sql: sourceConfigMap.sql.responseSchema as ZodObjectType,
+  xml: sourceConfigMap.xml.responseSchema as ZodObjectType,
+  jsp: sourceConfigMap.jsp.responseSchema as ZodObjectType,
+  markdown: sourceConfigMap.markdown.responseSchema as ZodObjectType,
+  csharp: sourceConfigMap.csharp.responseSchema as ZodObjectType,
+  ruby: sourceConfigMap.ruby.responseSchema as ZodObjectType,
+  maven: sourceConfigMap.maven.responseSchema as ZodObjectType,
+  gradle: sourceConfigMap.gradle.responseSchema as ZodObjectType,
+  ant: sourceConfigMap.ant.responseSchema as ZodObjectType,
+  npm: sourceConfigMap.npm.responseSchema as ZodObjectType,
+  python: sourceConfigMap.python.responseSchema as ZodObjectType,
+  "dotnet-proj": sourceConfigMap["dotnet-proj"].responseSchema as ZodObjectType,
+  nuget: sourceConfigMap.nuget.responseSchema as ZodObjectType,
+  "ruby-bundler": sourceConfigMap["ruby-bundler"].responseSchema as ZodObjectType,
+  "python-pip": sourceConfigMap["python-pip"].responseSchema as ZodObjectType,
+  "python-setup": sourceConfigMap["python-setup"].responseSchema as ZodObjectType,
+  "python-poetry": sourceConfigMap["python-poetry"].responseSchema as ZodObjectType,
+  "shell-script": sourceConfigMap["shell-script"].responseSchema as ZodObjectType,
+  "batch-script": sourceConfigMap["batch-script"].responseSchema as ZodObjectType,
+  jcl: sourceConfigMap.jcl.responseSchema as ZodObjectType,
+  default: sourceConfigMap.default.responseSchema as ZodObjectType,
+} as const satisfies Record<CanonicalFileType, ZodObjectType>;
 
 /**
  * Type representing the strongly-typed file-type-to-schema mapping.

@@ -1,9 +1,19 @@
+import { z } from "zod";
 import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
 import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.config";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.config";
 
 const fileTypePromptMetadata = promptRegistry.sources;
 const appSummaryPromptMetadata = promptRegistry.appSummaries;
+
+/**
+ * Helper function to get schema field names from a config entry.
+ * Since responseSchema is now a ZodObject, we can extract field names from its shape.
+ */
+function getSchemaFields(config: (typeof sourceConfigMap)[keyof typeof sourceConfigMap]): string[] {
+  const schema = config.responseSchema as z.ZodObject<z.ZodRawShape>;
+  return Object.keys(schema.shape);
+}
 
 describe("Data-driven Prompt System", () => {
   describe("Source prompt generation", () => {
@@ -37,9 +47,10 @@ describe("Data-driven Prompt System", () => {
       expect(typeof javaMetadata.responseSchema.parse).toBe("function");
 
       // Check that the schema fields match the configuration
-      expect(javaConfig.schemaFields).toContain("name");
-      expect(javaConfig.schemaFields).toContain("purpose");
-      expect(javaConfig.schemaFields).toContain("databaseIntegration");
+      const schemaFields = getSchemaFields(javaConfig);
+      expect(schemaFields).toContain("name");
+      expect(schemaFields).toContain("purpose");
+      expect(schemaFields).toContain("databaseIntegration");
     });
 
     it("should handle different complexity levels correctly", () => {
@@ -141,6 +152,7 @@ describe("Data-driven Prompt System", () => {
   describe("Schema field validation", () => {
     it("should include all required fields for complex file types", () => {
       const javaConfig = sourceConfigMap.java;
+      const schemaFields = getSchemaFields(javaConfig);
       const expectedFields = [
         "name",
         "kind",
@@ -157,19 +169,21 @@ describe("Data-driven Prompt System", () => {
       ];
 
       expectedFields.forEach((field) => {
-        expect(javaConfig.schemaFields).toContain(field);
+        expect(schemaFields).toContain(field);
       });
     });
 
     it("should have appropriate field sets for different file types", () => {
       // SQL should have database-specific fields
       const sqlConfig = sourceConfigMap.sql;
-      expect(sqlConfig.schemaFields).toContain("databaseIntegration");
+      const sqlFields = getSchemaFields(sqlConfig);
+      expect(sqlFields).toContain("databaseIntegration");
 
       // Maven should have simpler field set (build files don't have "name" field)
       const mavenConfig = sourceConfigMap.maven;
-      expect(mavenConfig.schemaFields).toContain("purpose");
-      expect(mavenConfig.schemaFields).toContain("dependencies"); // Build files store dependencies directly
+      const mavenFields = getSchemaFields(mavenConfig);
+      expect(mavenFields).toContain("purpose");
+      expect(mavenFields).toContain("dependencies"); // Build files store dependencies directly
     });
   });
 

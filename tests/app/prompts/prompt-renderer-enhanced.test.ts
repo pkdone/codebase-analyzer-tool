@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
+import { createReduceInsightsPrompt } from "../../../src/app/prompts/prompt-registry";
 import { BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { type PromptDefinition } from "../../../src/app/prompts/prompt.types";
 
-describe("Enhanced Prompt Renderer", () => {
+describe("Prompt Renderer", () => {
   const baseSchema = z.object({
     name: z.string(),
     value: z.number(),
@@ -19,8 +20,8 @@ describe("Enhanced Prompt Renderer", () => {
     wrapInCodeBlock: false,
   };
 
-  describe("Backward Compatibility (no options)", () => {
-    it("should render prompt without options parameter", () => {
+  describe("Basic Rendering", () => {
+    it("should render prompt with definition schema", () => {
       const result = renderPrompt(testPromptDefinition, {
         content: "sample code",
       });
@@ -31,7 +32,7 @@ describe("Enhanced Prompt Renderer", () => {
       expect(result).toContain("instruction 2");
     });
 
-    it("should use definition's responseSchema when no override provided", () => {
+    it("should use definition's responseSchema for JSON schema generation", () => {
       const result = renderPrompt(testPromptDefinition, {
         content: "sample code",
       });
@@ -43,45 +44,8 @@ describe("Enhanced Prompt Renderer", () => {
     });
   });
 
-  describe("Schema Override", () => {
-    it("should override schema when provided in options", () => {
-      const overrideSchema = z.object({
-        title: z.string(),
-        count: z.number(),
-      });
-
-      const result = renderPrompt(
-        testPromptDefinition,
-        { content: "sample code" },
-        { overrideSchema },
-      );
-
-      // Should contain properties from override schema
-      expect(result).toContain('"title"');
-      expect(result).toContain('"count"');
-
-      // Should NOT contain properties from original schema in the JSON schema section
-      // Extract just the JSON schema portion to avoid false positives from FORCE_JSON_FORMAT text
-      const schemaRegex = /```json\n([\s\S]*?)\n```/;
-      const schemaMatch = schemaRegex.exec(result);
-      expect(schemaMatch).toBeTruthy();
-      const schemaSection = schemaMatch![1];
-      expect(schemaSection).not.toContain('"name":');
-      expect(schemaSection).not.toContain('"value":');
-    });
-
-    it("should not mutate the original definition when overriding schema", () => {
-      const overrideSchema = z.object({
-        different: z.string(),
-      });
-
-      renderPrompt(testPromptDefinition, { content: "sample code" }, { overrideSchema });
-
-      // Original definition should remain unchanged
-      expect(testPromptDefinition.responseSchema).toBe(baseSchema);
-    });
-
-    it("should work with complex override schemas", () => {
+  describe("Schema Types", () => {
+    it("should work with complex schemas", () => {
       const complexSchema = z.object({
         items: z.array(
           z.object({
@@ -95,103 +59,43 @@ describe("Enhanced Prompt Renderer", () => {
         total: z.number(),
       });
 
-      const result = renderPrompt(
-        testPromptDefinition,
-        { content: "sample code" },
-        { overrideSchema: complexSchema },
-      );
+      const complexPrompt: PromptDefinition = {
+        ...testPromptDefinition,
+        responseSchema: complexSchema,
+      };
+
+      const result = renderPrompt(complexPrompt, { content: "sample code" });
 
       expect(result).toContain('"items"');
       expect(result).toContain('"metadata"');
       expect(result).toContain('"total"');
     });
 
-    it("should handle z.unknown() as override schema", () => {
-      const unknownSchema = z.unknown();
+    it("should handle z.unknown() schema", () => {
+      const unknownPrompt: PromptDefinition = {
+        ...testPromptDefinition,
+        responseSchema: z.unknown(),
+      };
 
-      const result = renderPrompt(
-        testPromptDefinition,
-        { content: "sample code" },
-        { overrideSchema: unknownSchema },
-      );
+      const result = renderPrompt(unknownPrompt, { content: "sample code" });
 
       // Should still render a valid prompt
       expect(result).toContain("sample code");
       expect(result).toContain("instruction 1");
     });
-  });
 
-  describe("Dynamic Content with Schema Override", () => {
-    it("should handle placeholder replacement along with schema override", () => {
-      const promptWithPlaceholder: PromptDefinition = {
-        label: "Dynamic Prompt",
-        contentDesc: "data for {{categoryKey}}",
-        instructions: ["process {{categoryKey}}"],
-        responseSchema: z.unknown(),
-        template: BASE_PROMPT_TEMPLATE,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
+    it("should work with primitive schemas", () => {
+      const stringPrompt: PromptDefinition = {
+        ...testPromptDefinition,
+        responseSchema: z.string(),
       };
 
-      const overrideSchema = z.object({
-        entities: z.array(z.object({ name: z.string() })),
-      });
-
-      const result = renderPrompt(
-        promptWithPlaceholder,
-        { content: "sample data", categoryKey: "entities" },
-        { overrideSchema },
-      );
-
-      // Should replace placeholders
-      expect(result).toContain("data for entities");
-      expect(result).toContain("process entities");
-
-      // Should use override schema
-      expect(result).toContain('"entities"');
-    });
-  });
-
-  describe("Edge Cases", () => {
-    it("should handle empty options object", () => {
-      const result = renderPrompt(testPromptDefinition, { content: "sample code" }, {});
-
-      // Should behave same as no options (use definition's schema)
-      expect(result).toContain('"name"');
-      expect(result).toContain('"value"');
-    });
-
-    it("should handle undefined overrideSchema", () => {
-      const result = renderPrompt(
-        testPromptDefinition,
-        { content: "sample code" },
-        { overrideSchema: undefined },
-      );
-
-      // Should use definition's schema
-      expect(result).toContain('"name"');
-      expect(result).toContain('"value"');
-    });
-
-    it("should work with primitive schemas as override", () => {
-      const stringSchema = z.string();
-
-      const result = renderPrompt(
-        testPromptDefinition,
-        { content: "sample code" },
-        { overrideSchema: stringSchema },
-      );
+      const result = renderPrompt(stringPrompt, { content: "sample code" });
 
       expect(result).toContain('"type": "string"');
-      // Extract JSON schema section to avoid false positives
-      const schemaRegex = /```json\n([\s\S]*?)\n```/;
-      const schemaMatch = schemaRegex.exec(result);
-      expect(schemaMatch).toBeTruthy();
-      const schemaSection = schemaMatch![1];
-      expect(schemaSection).not.toContain('"name":');
     });
 
-    it("should handle array schemas as override", () => {
+    it("should handle array schemas", () => {
       const arraySchema = z.array(
         z.object({
           name: z.string(),
@@ -199,11 +103,12 @@ describe("Enhanced Prompt Renderer", () => {
         }),
       );
 
-      const result = renderPrompt(
-        testPromptDefinition,
-        { content: "sample code" },
-        { overrideSchema: arraySchema },
-      );
+      const arrayPrompt: PromptDefinition = {
+        ...testPromptDefinition,
+        responseSchema: arraySchema,
+      };
+
+      const result = renderPrompt(arrayPrompt, { content: "sample code" });
 
       expect(result).toContain('"type": "array"');
       expect(result).toContain('"description"');
@@ -211,32 +116,53 @@ describe("Enhanced Prompt Renderer", () => {
   });
 
   describe("Template Variables", () => {
-    it("should preserve all template variables with schema override", () => {
-      const result = renderPrompt(
-        testPromptDefinition,
-        { content: "sample code", partialAnalysisNote: "Note: partial analysis" },
-        { overrideSchema: z.object({ test: z.string() }) },
-      );
+    it("should include all template variables in rendered output", () => {
+      const result = renderPrompt(testPromptDefinition, {
+        content: "sample code",
+        partialAnalysisNote: "Note: partial analysis",
+      });
 
       expect(result).toContain("sample code");
       expect(result).toContain("Note: partial analysis");
       expect(result).toContain("instruction 1");
       expect(result).toContain("CODE:");
     });
+
+    it("should handle missing partialAnalysisNote gracefully", () => {
+      const result = renderPrompt(testPromptDefinition, {
+        content: "sample code",
+      });
+
+      // Should render without errors, with empty partialAnalysisNote
+      expect(result).toContain("sample code");
+      expect(result).not.toContain("undefined");
+    });
   });
 
-  describe("Reduce Insights Use Case", () => {
-    it("should properly render reduce insights prompt with category-specific schema", () => {
-      const reducePrompt: PromptDefinition = {
-        label: "Reduce Insights",
-        contentDesc: "objects containing '{{categoryKey}}'",
-        instructions: ["consolidate {{categoryKey}}"],
-        responseSchema: z.unknown(),
-        template: BASE_PROMPT_TEMPLATE,
-        dataBlockHeader: "FRAGMENTED_DATA",
-        wrapInCodeBlock: false,
+  describe("Code Block Wrapping", () => {
+    it("should wrap content in code blocks when wrapInCodeBlock is true", () => {
+      const wrappedPrompt: PromptDefinition = {
+        ...testPromptDefinition,
+        wrapInCodeBlock: true,
       };
 
+      const result = renderPrompt(wrappedPrompt, { content: "sample code" });
+
+      // The content should be wrapped with ``` markers
+      expect(result).toContain("```\nsample code```");
+    });
+
+    it("should not wrap content when wrapInCodeBlock is false", () => {
+      const result = renderPrompt(testPromptDefinition, { content: "sample code" });
+
+      // Content should appear without surrounding ``` markers (except in JSON schema block)
+      const contentSection = result.split("CODE:")[1];
+      expect(contentSection).not.toMatch(/^```\n/);
+    });
+  });
+
+  describe("Reduce Insights Use Case with Factory", () => {
+    it("should properly render reduce insights prompt created via factory", () => {
       const categorySchema = z.object({
         entities: z.array(
           z.object({
@@ -246,22 +172,19 @@ describe("Enhanced Prompt Renderer", () => {
         ),
       });
 
+      // Use the factory to create a typed prompt definition
+      const reducePrompt = createReduceInsightsPrompt("entities", "entities", categorySchema);
+
       const partialData = {
         entities: [{ name: "Entity1", description: "Desc1" }],
       };
 
-      const result = renderPrompt(
-        reducePrompt,
-        {
-          categoryKey: "entities",
-          content: JSON.stringify(partialData),
-        },
-        { overrideSchema: categorySchema },
-      );
+      const result = renderPrompt(reducePrompt, {
+        content: JSON.stringify(partialData),
+      });
 
-      // Should replace categoryKey placeholder
-      expect(result).toContain("objects containing 'entities'");
-      expect(result).toContain("consolidate entities");
+      // Should have categoryKey baked into the prompt definition
+      expect(result).toContain("'entities'");
 
       // Should use category-specific schema
       expect(result).toContain('"entities"');
@@ -269,6 +192,48 @@ describe("Enhanced Prompt Renderer", () => {
 
       // Should contain the data
       expect(result).toContain("Entity1");
+    });
+
+    it("should work with different category keys via factory", () => {
+      const techSchema = z.object({
+        technologies: z.array(z.object({ name: z.string(), version: z.string() })),
+      });
+
+      const reducePrompt = createReduceInsightsPrompt("technologies", "technologies", techSchema);
+
+      const result = renderPrompt(reducePrompt, {
+        content: JSON.stringify({ technologies: [{ name: "TypeScript", version: "5.7" }] }),
+      });
+
+      expect(result).toContain("'technologies'");
+      expect(result).toContain("TypeScript");
+    });
+  });
+
+  describe("Data Block Header", () => {
+    it("should use the correct dataBlockHeader in output", () => {
+      const result = renderPrompt(testPromptDefinition, { content: "sample code" });
+      expect(result).toContain("CODE:");
+    });
+
+    it("should handle different dataBlockHeaders", () => {
+      const fileSummariesPrompt: PromptDefinition = {
+        ...testPromptDefinition,
+        dataBlockHeader: "FILE_SUMMARIES",
+      };
+
+      const result = renderPrompt(fileSummariesPrompt, { content: "summaries" });
+      expect(result).toContain("FILE_SUMMARIES:");
+    });
+
+    it("should handle FRAGMENTED_DATA header", () => {
+      const fragmentedPrompt: PromptDefinition = {
+        ...testPromptDefinition,
+        dataBlockHeader: "FRAGMENTED_DATA",
+      };
+
+      const result = renderPrompt(fragmentedPrompt, { content: "data" });
+      expect(result).toContain("FRAGMENTED_DATA:");
     });
   });
 });

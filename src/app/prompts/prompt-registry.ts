@@ -4,7 +4,7 @@ import { sourceConfigMap } from "./definitions/sources/sources.config";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "./templates";
 import { createPromptMetadata } from "./definitions/prompt-factory";
 import { type PromptDefinition } from "./prompt.types";
-import { sourceSummarySchema } from "../schemas/sources.schema";
+import { type AppSummaryCategoryEnum } from "../components/insights/insights.types";
 
 /**
  * App summary prompt definitions generated from centralized configuration.
@@ -20,38 +20,15 @@ const appSummaryPrompts = createPromptMetadata(appSummaryConfigMap, BASE_PROMPT_
 /**
  * Source file type prompt definitions generated from centralized configuration.
  * These prompts are used to summarize individual source files based on their type.
+ * Schemas are now defined directly in sourceConfigMap.responseSchema, eliminating
+ * the need for dynamic schema building.
  */
-const sourcePrompts = createPromptMetadata(
-  sourceConfigMap as Record<
-    keyof typeof sourceConfigMap,
-    { label?: string; responseSchema?: z.ZodType }
-  >,
-  BASE_PROMPT_TEMPLATE,
-  {
-    schemaBuilder: (config) => {
-      // Cast config to access schemaFields property
-      const sourceConfig = config as (typeof sourceConfigMap)[keyof typeof sourceConfigMap];
-      // Dynamically pick fields from the master schema
-      const schemaFields = sourceConfig.schemaFields.reduce<Record<string, true>>((acc, field) => {
-        acc[field] = true;
-        return acc;
-      }, {});
-      return sourceSummarySchema.pick(
-        schemaFields as Parameters<typeof sourceSummarySchema.pick>[0],
-      );
-    },
-    contentDescBuilder: (config) => {
-      const sourceConfig = config as (typeof sourceConfigMap)[keyof typeof sourceConfigMap];
-      return `the ${sourceConfig.contentDesc}`;
-    },
-    instructionsBuilder: (config) => {
-      const sourceConfig = config as (typeof sourceConfigMap)[keyof typeof sourceConfigMap];
-      return sourceConfig.instructions;
-    },
-    dataBlockHeaderBuilder: () => "CODE",
-    wrapInCodeBlockBuilder: () => true,
-  },
-);
+const sourcePrompts = createPromptMetadata(sourceConfigMap, BASE_PROMPT_TEMPLATE, {
+  contentDescBuilder: (config) => `the ${config.contentDesc}`,
+  instructionsBuilder: (config) => config.instructions,
+  dataBlockHeaderBuilder: () => "CODE",
+  wrapInCodeBlockBuilder: () => true,
+});
 
 // Set hasComplexSchema for all source file types (defaults to true when undefined)
 Object.values(sourcePrompts).forEach((metadata) => {
@@ -74,23 +51,37 @@ const codebaseQueryPrompt: PromptDefinition = {
 };
 
 /**
- * Static prompt definition for reducing insights in the map-reduce strategy.
- * This prompt consolidates partial insights from multiple chunks into a single result.
+ * Factory function to create a fully-typed prompt definition for reducing insights.
+ * This replaces the static reduceInsightsPrompt that used z.unknown() and required
+ * schema override at render time.
  *
- * The contentDesc uses a {{categoryKey}} placeholder that will be filled at render time.
- * The schema is generic (z.unknown()) and should be overridden at render time with the
- * specific category schema using the renderPrompt options parameter.
+ * @param category - The app summary category being reduced (e.g., "entities", "technologies")
+ * @param categoryKey - The key name for the category data (e.g., "entities", "technologies")
+ * @param schema - The Zod schema for validating the reduced result
+ * @returns A fully-typed PromptDefinition with the correct schema
+ *
+ * @example
+ * ```typescript
+ * const schema = appSummaryCategorySchemas["entities"];
+ * const reducePrompt = createReduceInsightsPrompt("entities", "entities", schema);
+ * const renderedPrompt = renderPrompt(reducePrompt, { content: JSON.stringify(data) });
+ * ```
  */
-const reduceInsightsPrompt: PromptDefinition = {
-  label: "Reduce Insights",
-  contentDesc:
-    "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized",
-  instructions: ["a consolidated list of '{{categoryKey}}'"],
-  responseSchema: z.unknown(),
-  template: BASE_PROMPT_TEMPLATE,
-  dataBlockHeader: "FRAGMENTED_DATA",
-  wrapInCodeBlock: false,
-};
+export function createReduceInsightsPrompt(
+  _category: AppSummaryCategoryEnum,
+  categoryKey: string,
+  schema: z.ZodType,
+): PromptDefinition {
+  return {
+    label: "Reduce Insights",
+    contentDesc: `several JSON objects, each containing a list of '${categoryKey}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized`,
+    instructions: [`a consolidated list of '${categoryKey}'`],
+    responseSchema: schema,
+    template: BASE_PROMPT_TEMPLATE,
+    dataBlockHeader: "FRAGMENTED_DATA",
+    wrapInCodeBlock: false,
+  };
+}
 
 /**
  * Centralized registry of all prompt definitions used throughout the application.
@@ -101,11 +92,10 @@ const reduceInsightsPrompt: PromptDefinition = {
  * - `promptRegistry.appSummaries[category]` - App summary prompts for insights
  * - `promptRegistry.sources[fileType]` - Source file type prompts for summarization
  * - `promptRegistry.codebaseQuery` - Query prompt for RAG workflows
- * - `promptRegistry.reduceInsights` - Reduce prompt for map-reduce strategy
+ * - `createReduceInsightsPrompt(category, categoryKey, schema)` - Factory for reduce prompts
  */
 export const promptRegistry = Object.freeze({
   appSummaries: appSummaryPrompts,
   sources: sourcePrompts,
   codebaseQuery: codebaseQueryPrompt,
-  reduceInsights: reduceInsightsPrompt,
 } as const);

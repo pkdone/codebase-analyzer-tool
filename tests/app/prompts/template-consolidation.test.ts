@@ -1,6 +1,8 @@
 import { BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
+import { createReduceInsightsPrompt } from "../../../src/app/prompts/prompt-registry";
 import { z } from "zod";
+import { AppSummaryCategoryEnum } from "../../../src/app/components/insights/insights.types";
 
 describe("Template Consolidation", () => {
   describe("BASE_PROMPT_TEMPLATE", () => {
@@ -85,17 +87,13 @@ describe("Template Consolidation", () => {
       );
     });
 
-    it("should render correctly with reduce configuration", () => {
-      const definition = {
-        contentDesc:
-          "Act as a senior developer analyzing the code in a legacy application. You've been provided with several JSON objects containing '{{categoryKey}}'. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object.",
-        instructions: ["a consolidated list"] as const,
-        responseSchema: z.string(),
-        template: BASE_PROMPT_TEMPLATE,
-        dataBlockHeader: "FRAGMENTED_DATA" as const,
-        wrapInCodeBlock: false,
-      };
-      const rendered = renderPrompt(definition, { categoryKey: "entities", content: "test data" });
+    it("should render correctly with reduce configuration using factory", () => {
+      // Use the factory function to create a reduce prompt with categoryKey baked in
+      const category: AppSummaryCategoryEnum = "entities";
+      const schema = z.object({ entities: z.array(z.object({ name: z.string() })) });
+      const definition = createReduceInsightsPrompt(category, "entities", schema);
+
+      const rendered = renderPrompt(definition, { content: "test data" });
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain("entities");

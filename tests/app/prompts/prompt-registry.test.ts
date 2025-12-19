@@ -1,4 +1,7 @@
-import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
+import {
+  promptRegistry,
+  createReduceInsightsPrompt,
+} from "../../../src/app/prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../src/app/schemas/app-summaries.schema";
 import { z } from "zod";
 
@@ -8,7 +11,8 @@ describe("Prompt Registry", () => {
       expect(promptRegistry).toHaveProperty("appSummaries");
       expect(promptRegistry).toHaveProperty("sources");
       expect(promptRegistry).toHaveProperty("codebaseQuery");
-      expect(promptRegistry).toHaveProperty("reduceInsights");
+      // reduceInsights is now a factory function exported separately
+      expect(typeof createReduceInsightsPrompt).toBe("function");
     });
 
     it("should have app summary prompts for all categories", () => {
@@ -161,33 +165,45 @@ describe("Prompt Registry", () => {
     });
   });
 
-  describe("Reduce Insights Prompt", () => {
-    it("should have valid structure", () => {
-      const prompt = promptRegistry.reduceInsights;
+  describe("Reduce Insights Prompt Factory", () => {
+    it("should create a valid prompt definition", () => {
+      const schema = z.object({ entities: z.array(z.string()) });
+      const prompt = createReduceInsightsPrompt("entities", "entities", schema);
 
       expect(prompt.label).toBe("Reduce Insights");
-      expect(prompt.contentDesc).toContain("{{categoryKey}}");
+      expect(prompt.contentDesc).toContain("entities");
       expect(prompt.instructions.length).toBeGreaterThan(0);
-      expect(prompt.responseSchema).toBeDefined();
+      expect(prompt.responseSchema).toBe(schema);
       expect(prompt.dataBlockHeader).toBe("FRAGMENTED_DATA");
       expect(prompt.wrapInCodeBlock).toBe(false);
     });
 
-    it("should have categoryKey placeholder in contentDesc", () => {
-      const prompt = promptRegistry.reduceInsights;
-      expect(prompt.contentDesc).toContain("{{categoryKey}}");
+    it("should include the categoryKey in contentDesc", () => {
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const prompt = createReduceInsightsPrompt("technologies", "technologies", schema);
+      expect(prompt.contentDesc).toContain("technologies");
     });
 
-    it("should have instructions mentioning categoryKey placeholder", () => {
-      const prompt = promptRegistry.reduceInsights;
-      const hasPlaceholder = prompt.instructions.some((inst) => inst.includes("{{categoryKey}}"));
-      expect(hasPlaceholder).toBe(true);
+    it("should include the categoryKey in instructions", () => {
+      const schema = z.object({ entities: z.array(z.string()) });
+      const prompt = createReduceInsightsPrompt("entities", "entities", schema);
+      const hasKey = prompt.instructions.some((inst) => inst.includes("entities"));
+      expect(hasKey).toBe(true);
     });
 
-    it("should use generic schema (z.unknown())", () => {
-      const prompt = promptRegistry.reduceInsights;
-      // The schema should be z.unknown() which will be overridden at render time
-      expect(prompt.responseSchema).toBeDefined();
+    it("should use the provided schema directly (not z.unknown())", () => {
+      const schema = z.object({
+        entities: z.array(z.object({ name: z.string() })),
+      });
+      const prompt = createReduceInsightsPrompt("entities", "entities", schema);
+
+      // Verify it's the actual schema, not z.unknown()
+      expect(prompt.responseSchema).toBe(schema);
+
+      // Verify it can be used for parsing
+      const testData = { entities: [{ name: "Test" }] };
+      const result = prompt.responseSchema.safeParse(testData);
+      expect(result.success).toBe(true);
     });
   });
 

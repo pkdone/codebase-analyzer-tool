@@ -72,23 +72,25 @@ describe("Prompt Constructor and Templates", () => {
       expect(BASE_PROMPT_TEMPLATE).toContain("{{partialAnalysisNote}}");
     });
 
-    it("should handle reduce template with category key replacement", () => {
+    it("should handle reduce template with category key via factory", () => {
+      // With the factory pattern, categoryKey is directly embedded in contentDesc
+      // by createReduceInsightsPrompt, rather than being a placeholder
       const categoryKey = "entities";
       const reduceDefinition = {
         ...sourceDefinition,
-        contentDesc:
-          "Act as a senior developer. You've been provided with data containing '{{categoryKey}}'...",
+        // Factory would pre-populate contentDesc with the category key
+        contentDesc: `Act as a senior developer. You've been provided with data containing '${categoryKey}'...`,
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FRAGMENTED_DATA" as const,
         wrapInCodeBlock: false,
       };
       const rendered = renderPrompt(reduceDefinition, {
-        categoryKey,
         content: testContent,
       });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(categoryKey);
+      // No placeholder should exist since factory embeds the value directly
       expect(rendered).not.toContain("{{categoryKey}}");
     });
   });

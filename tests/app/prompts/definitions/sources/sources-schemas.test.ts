@@ -82,15 +82,14 @@ describe("sourcePromptSchemas", () => {
       }
     });
 
-    it("should pick fields matching sourceConfigMap schemaFields", () => {
+    it("should derive schemas from sourceConfigMap.responseSchema", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const schema = sourcePromptSchemas[fileType];
-        const config = sourceConfigMap[fileType];
-        const shape = (schema as z.ZodObject<z.ZodRawShape>).shape;
-        const actualFields = Object.keys(shape).sort();
-        const expectedFields = [...config.schemaFields].sort();
+        const schemaFromMap = sourcePromptSchemas[fileType];
+        const schemaFromConfig = sourceConfigMap[fileType].responseSchema;
 
-        expect(actualFields).toEqual(expectedFields);
+        // The schemas should be the same instance since sourcePromptSchemas
+        // now derives directly from sourceConfigMap.responseSchema
+        expect(schemaFromMap).toBe(schemaFromConfig);
       }
     });
   });

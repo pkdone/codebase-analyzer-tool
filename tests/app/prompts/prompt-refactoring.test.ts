@@ -41,19 +41,23 @@ describe("Prompt Refactoring", () => {
       expect(rendered).not.toContain("CODE:");
     });
 
-    it("should handle reduce template with category key replacement via render parameters", () => {
+    it("should handle reduce template with category key via factory function", () => {
+      // With the new factory pattern, categoryKey is directly embedded in contentDesc
+      // by the createReduceInsightsPrompt factory, rather than being a placeholder
       const categoryKey = "entities";
       const reduceDefinition = {
         ...testDefinition,
-        contentDesc: "Consolidate {{categoryKey}} from the data below.",
+        // Factory would pre-populate contentDesc with the category key
+        contentDesc: `Consolidate ${categoryKey} from the data below.`,
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FRAGMENTED_DATA" as const,
         wrapInCodeBlock: false,
       };
-      const rendered = renderPrompt(reduceDefinition, { categoryKey, content: testContent });
+      const rendered = renderPrompt(reduceDefinition, { content: testContent });
 
       expect(rendered).toContain("FRAGMENTED_DATA:");
       expect(rendered).toContain(categoryKey);
+      // No placeholder should exist since factory embeds the value directly
       expect(rendered).not.toContain("{{categoryKey}}");
     });
 

@@ -1,7 +1,15 @@
 import { createDbMechanismInstructions } from "../../utils/prompt-utils";
 
 /**
- * Common instruction fragments used across multiple sources templates
+ * Common instruction fragments used across multiple sources templates.
+ *
+ * The COMMON section provides generic, language-agnostic instructions that work across
+ * all programming languages. Modern LLMs can infer language-specific details from the
+ * code context, making these generic instructions effective for most use cases.
+ *
+ * Language-specific sections (JAVA_SPECIFIC, CSHARP_SPECIFIC, etc.) provide more detailed
+ * instructions where language-specific terminology adds significant value, particularly
+ * for complex areas like database mechanism detection.
  */
 export const SOURCES_PROMPT_FRAGMENTS = {
   COMMON: {
@@ -10,6 +18,28 @@ export const SOURCES_PROMPT_FRAGMENTS = {
     DB_IN_DOCUMENTATION:
       "Look for database schemas, queries, or data models mentioned in the documentation",
     DB_IN_FILE: "Look for database operations, queries, or connections in the file",
+    /**
+     * Generic internal references instruction - works across all languages.
+     * The LLM infers language-specific import/require mechanisms from context.
+     */
+    INTERNAL_REFS:
+      "A list of internal references to other modules/classes/files in the same application (do not include standard library or third-party packages)",
+    /**
+     * Generic external references instruction - works across all languages.
+     * The LLM identifies external dependencies based on code context.
+     */
+    EXTERNAL_REFS:
+      "A list of external references to third-party libraries or modules that do not belong to this same application",
+    /**
+     * Generic public methods instruction - provides comprehensive details applicable to all languages.
+     */
+    PUBLIC_METHODS:
+      "A list of its public methods/functions (if any) - for each include: name, purpose (detailed), parameters (with types if available), return type, and a detailed implementation description",
+    /**
+     * Generic public constants instruction - works across all languages.
+     */
+    PUBLIC_CONSTANTS:
+      "A list of public constants it defines (if any) - include name, value, and type",
   },
 
   CODE_QUALITY: {
