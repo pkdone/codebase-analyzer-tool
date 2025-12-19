@@ -41,7 +41,7 @@ export class RetryStrategy {
    * The return type is inferred from the completionOptions.jsonSchema, enabling
    * end-to-end type safety through the LLM call chain.
    * Generic over the schema type S directly to simplify type inference.
-   * Return type uses InferResponseType for format-aware type inference.
+   * Return type uses z.infer<S> for schema-based type inference.
    */
   async executeWithRetries<S extends z.ZodType>(
     llmFunction: LLMFunction,
@@ -49,7 +49,7 @@ export class RetryStrategy {
     context: LLMContext,
     providerRetryConfig: LLMRetryConfig,
     completionOptions?: LLMCompletionOptions<S>,
-  ): Promise<LLMFunctionResponse | null> {
+  ): Promise<LLMFunctionResponse<z.infer<S>> | null> {
     try {
       return await pRetry(
         async () => {

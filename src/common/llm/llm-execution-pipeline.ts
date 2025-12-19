@@ -7,7 +7,6 @@ import {
   LLMCandidateFunction,
   LLMFunctionResponse,
   LLMFunction,
-  InferResponseType,
 } from "./types/llm.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
@@ -56,11 +55,11 @@ export class LLMExecutionPipeline {
    * The return type is inferred from completionOptions.jsonSchema, enabling end-to-end
    * type safety through the LLM call chain without requiring unsafe casts.
    * Generic over the schema type S directly to simplify type inference.
-   * Return type uses InferResponseType for format-aware type inference.
+   * Return type uses z.infer<S> for schema-based type inference.
    */
   async execute<S extends z.ZodType>(
     params: LLMExecutionParams<S>,
-  ): Promise<LLMExecutionResult<InferResponseType<LLMCompletionOptions<S>>>> {
+  ): Promise<LLMExecutionResult<z.infer<S>>> {
     const {
       resourceName,
       prompt,
@@ -149,7 +148,7 @@ export class LLMExecutionPipeline {
    *
    * The return type is inferred from completionOptions.jsonSchema via the schema type S.
    * Generic over the schema type S directly to simplify type inference.
-   * Return type uses InferResponseType for format-aware type inference.
+   * Return type uses z.infer<S> for schema-based type inference.
    */
   private async iterateOverLLMFunctions<S extends z.ZodType>(
     resourceName: string,
@@ -160,7 +159,7 @@ export class LLMExecutionPipeline {
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
     completionOptions?: LLMCompletionOptions<S>,
-  ): Promise<LLMFunctionResponse | null> {
+  ): Promise<LLMFunctionResponse<z.infer<S>> | null> {
     let currentPrompt = initialPrompt;
     let llmFunctionIndex = 0;
 

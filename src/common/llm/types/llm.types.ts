@@ -237,8 +237,9 @@ export interface LLMFunctionResponse<T = LLMGeneratedContent> {
  * Generic over the schema type S directly to simplify type inference through
  * the async call chain, avoiding the need for conditional type extraction.
  *
- * Uses InferResponseType to make return type format-aware: returns string for
- * TEXT format and z.infer<S> for JSON format with schema.
+ * The return type uses z.infer<S> for schema-based inference. For TEXT format
+ * or when no schema is provided, the generated content will be string or
+ * LLMGeneratedContent at runtime.
  *
  * For embeddings, use LLMEmbeddingFunction instead.
  */
@@ -246,7 +247,7 @@ export type LLMFunction = <S extends z.ZodType>(
   content: string,
   context: LLMContext,
   options?: LLMCompletionOptions<S>,
-) => Promise<LLMFunctionResponse>;
+) => Promise<LLMFunctionResponse<z.infer<S>>>;
 
 /**
  * Type for embedding functions that always return number[].

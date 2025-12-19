@@ -122,8 +122,8 @@ export default abstract class AbstractLLM implements LLMProvider {
       context,
       options as LLMCompletionOptions<z.ZodType<number[]>>,
     );
-    // Cast is safe for embeddings as we know the response type is always number[]
-    return result as LLMFunctionResponse<number[]>;
+    // Return type is correctly inferred as LLMFunctionResponse<number[]> from the generic
+    return result;
   };
 
   /**
@@ -192,7 +192,7 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Executes the LLM function for the given model key and task type.
    * Type safety is enforced through generic schema type propagation.
    * Generic over the schema type S directly to simplify type inference.
-   * Return type uses InferResponseType for format-aware type inference.
+   * Return type uses z.infer<S> for schema-based type inference.
    */
   private async executeProviderFunction<S extends z.ZodType>(
     modelKey: string,
@@ -200,7 +200,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     request: string,
     context: LLMContext,
     completionOptions?: LLMCompletionOptions<S>,
-  ): Promise<LLMFunctionResponse> {
+  ): Promise<LLMFunctionResponse<z.infer<S>>> {
     const skeletonResponse: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps"> = {
       request,
       context,
@@ -299,7 +299,7 @@ export default abstract class AbstractLLM implements LLMProvider {
    * response metadata object with type-safe JSON validation.
    * Type safety is enforced through generic schema type propagation.
    * Generic over the schema type S directly to simplify type inference.
-   * Return type uses InferResponseType for format-aware type inference.
+   * Return type uses z.infer<S> for schema-based type inference.
    */
   private async formatAndValidateResponse<S extends z.ZodType>(
     skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
@@ -307,7 +307,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions<S>,
     context: LLMContext,
-  ): Promise<LLMFunctionResponse> {
+  ): Promise<LLMFunctionResponse<z.infer<S>>> {
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
       return {

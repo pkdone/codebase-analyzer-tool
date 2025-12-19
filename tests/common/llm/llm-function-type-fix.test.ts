@@ -17,8 +17,7 @@ import {
  * generic schema type information throughout the call chain.
  *
  * This test suite validates the fix for the type safety issue where
- * InferResponseType<LLMCompletionOptions> was incorrectly used instead of
- * InferResponseType<LLMCompletionOptions<S>>, causing type information loss.
+ * the LLMFunction type now uses z.infer<S> for schema-based type inference.
  */
 describe("LLMFunction Type Fix - Generic Type Preservation", () => {
   const mockContext: LLMContext = {
@@ -27,6 +26,25 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
     modelQuality: LLMModelQuality.PRIMARY,
     outputFormat: LLMOutputFormat.JSON,
   };
+
+  /**
+   * Helper to create a mock LLM function with typed responses.
+   */
+  function createMockLLMFunction(mockData: unknown): LLMFunction {
+    return async <S extends z.ZodType>(
+      _content: string,
+      _context: LLMContext,
+      _options?: LLMCompletionOptions<S>,
+    ): Promise<LLMFunctionResponse<z.infer<S>>> => {
+      return {
+        status: LLMResponseStatus.COMPLETED,
+        request: "test",
+        modelKey: "test-model",
+        context: mockContext,
+        generated: mockData as z.infer<S>,
+      };
+    };
+  }
 
   describe("Type Inference with Simple Schemas", () => {
     test("should preserve simple object schema type through LLMFunction", async () => {
@@ -38,24 +56,13 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type UserType = z.infer<typeof userSchema>;
 
-      // Mock LLMFunction that matches the corrected type signature
-      const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test-model",
-          context: mockContext,
-          generated: {
-            id: 1,
-            name: "Test User",
-            email: "test@example.com",
-          } as InferResponseType<LLMCompletionOptions<S>>,
-        };
+      const mockUser: UserType = {
+        id: 1,
+        name: "Test User",
+        email: "test@example.com",
       };
+
+      const mockLLMFunction = createMockLLMFunction(mockUser);
 
       const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
@@ -67,7 +74,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       // TypeScript should infer the correct type here
       if (result.generated) {
-        const user = result.generated as UserType;
+        const user = result.generated;
         expect(user.id).toBe(1);
         expect(user.name).toBe("Test User");
         expect(user.email).toBe("test@example.com");
@@ -81,19 +88,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
     });
 
     test("should handle TEXT format without schema", async () => {
-      const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test-model",
-          context: mockContext,
-          generated: "Plain text response" as InferResponseType<LLMCompletionOptions<S>>,
-        };
-      };
+      const mockLLMFunction = createMockLLMFunction("Plain text response");
 
       const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.TEXT,
@@ -123,29 +118,19 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type NestedType = z.infer<typeof nestedSchema>;
 
-      const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test-model",
-          context: mockContext,
-          generated: {
-            user: {
-              id: 1,
-              profile: {
-                name: "Bob",
-              },
-            },
-            metadata: {
-              createdAt: "2024-01-01",
-            },
-          } as InferResponseType<LLMCompletionOptions<S>>,
-        };
+      const mockData: NestedType = {
+        user: {
+          id: 1,
+          profile: {
+            name: "Bob",
+          },
+        },
+        metadata: {
+          createdAt: "2024-01-01",
+        },
       };
+
+      const mockLLMFunction = createMockLLMFunction(mockData);
 
       const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
@@ -153,7 +138,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       if (result.generated) {
-        const data = result.generated as NestedType;
+        const data = result.generated;
         expect(data.user.id).toBe(1);
         expect(data.user.profile.name).toBe("Bob");
         expect(data.metadata.createdAt).toBe("2024-01-01");
@@ -170,22 +155,12 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type ArrayType = z.infer<typeof arraySchema>;
 
-      const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test-model",
-          context: mockContext,
-          generated: [
-            { id: "item1", value: 10 },
-            { id: "item2", value: 20 },
-          ] as unknown as InferResponseType<LLMCompletionOptions<S>>,
-        };
-      };
+      const mockData: ArrayType = [
+        { id: "item1", value: 10 },
+        { id: "item2", value: 20 },
+      ];
+
+      const mockLLMFunction = createMockLLMFunction(mockData);
 
       const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
@@ -193,7 +168,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       if (result.generated) {
-        const data = result.generated as unknown as ArrayType;
+        const data = result.generated;
         expect(Array.isArray(data)).toBe(true);
         expect(data).toHaveLength(2);
         expect(data[0].id).toBe("item1");
@@ -211,22 +186,12 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type UnionType = z.infer<typeof unionSchema>;
 
-      const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test-model",
-          context: mockContext,
-          generated: {
-            type: "success",
-            data: "operation completed",
-          } as InferResponseType<LLMCompletionOptions<S>>,
-        };
+      const mockData: UnionType = {
+        type: "success",
+        data: "operation completed",
       };
+
+      const mockLLMFunction = createMockLLMFunction(mockData);
 
       const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
@@ -234,7 +199,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       if (result.generated) {
-        const data = result.generated as UnionType;
+        const data = result.generated;
         if (data.type === "success") {
           expect(data.data).toBe("operation completed");
         }
@@ -250,22 +215,12 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type DiscriminatedType = z.infer<typeof discriminatedSchema>;
 
-      const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test-model",
-          context: mockContext,
-          generated: {
-            status: "completed",
-            result: "Success!",
-          } as InferResponseType<LLMCompletionOptions<S>>,
-        };
+      const mockData: DiscriminatedType = {
+        status: "completed",
+        result: "Success!",
       };
+
+      const mockLLMFunction = createMockLLMFunction(mockData);
 
       const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
@@ -273,7 +228,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       if (result.generated) {
-        const data = result.generated as DiscriminatedType;
+        const data = result.generated;
         if (data.status === "completed") {
           expect(data.result).toBe("Success!");
         }
@@ -291,22 +246,12 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type OptionalType = z.infer<typeof optionalSchema>;
 
-      const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test-model",
-          context: mockContext,
-          generated: {
-            required: "present",
-            withDefault: "default-value",
-          } as InferResponseType<LLMCompletionOptions<S>>,
-        };
+      const mockData: OptionalType = {
+        required: "present",
+        withDefault: "default-value",
       };
+
+      const mockLLMFunction = createMockLLMFunction(mockData);
 
       const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
@@ -314,7 +259,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       if (result.generated) {
-        const data = result.generated as OptionalType;
+        const data = result.generated;
         expect(data.required).toBe("present");
         expect(data.withDefault).toBe("default-value");
         expect(data.optional).toBeUndefined();
@@ -329,22 +274,12 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
 
       type NullableType = z.infer<typeof nullableSchema>;
 
-      const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
-        _content: string,
-        _context: LLMContext,
-        _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
-        return {
-          status: LLMResponseStatus.COMPLETED,
-          request: "test",
-          modelKey: "test-model",
-          context: mockContext,
-          generated: {
-            value: null,
-            count: 42,
-          } as InferResponseType<LLMCompletionOptions<S>>,
-        };
+      const mockData: NullableType = {
+        value: null,
+        count: 42,
       };
+
+      const mockLLMFunction = createMockLLMFunction(mockData);
 
       const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
@@ -352,7 +287,7 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
       });
 
       if (result.generated) {
-        const data = result.generated as NullableType;
+        const data = result.generated;
         expect(data.value).toBeNull();
         expect(data.count).toBe(42);
       }
@@ -406,14 +341,14 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
   });
 
   describe("Response Status Handling", () => {
-    test("should handle responses with undefined generated content", () => {
+    test("should handle responses with undefined generated content", async () => {
       const schema = z.object({ value: z.string() });
 
       const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
         _content: string,
         _context: LLMContext,
         _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
+      ): Promise<LLMFunctionResponse<z.infer<S>>> => {
         return {
           status: LLMResponseStatus.EXCEEDED,
           request: "test",
@@ -423,22 +358,23 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         };
       };
 
-      const result = mockLLMFunction("test prompt", mockContext, {
+      const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
       });
 
-      void expect(result).resolves.toHaveProperty("status", LLMResponseStatus.EXCEEDED);
+      expect(result.status).toBe(LLMResponseStatus.EXCEEDED);
+      expect(result.generated).toBeUndefined();
     });
 
-    test("should handle error responses", () => {
+    test("should handle error responses", async () => {
       const schema = z.object({ data: z.string() });
 
       const mockLLMFunction: LLMFunction = async <S extends z.ZodType>(
         _content: string,
         _context: LLMContext,
         _options?: LLMCompletionOptions<S>,
-      ): Promise<LLMFunctionResponse> => {
+      ): Promise<LLMFunctionResponse<z.infer<S>>> => {
         return {
           status: LLMResponseStatus.ERRORED,
           request: "test",
@@ -448,15 +384,13 @@ describe("LLMFunction Type Fix - Generic Type Preservation", () => {
         };
       };
 
-      const result = mockLLMFunction("test prompt", mockContext, {
+      const result = await mockLLMFunction("test prompt", mockContext, {
         outputFormat: LLMOutputFormat.JSON,
         jsonSchema: schema,
       });
 
-      void expect(result).resolves.toMatchObject({
-        status: LLMResponseStatus.ERRORED,
-        error: expect.any(Error),
-      });
+      expect(result.status).toBe(LLMResponseStatus.ERRORED);
+      expect(result.error).toBeDefined();
     });
   });
 

@@ -58,7 +58,11 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
 
-    // Schema lookup preserves category-specific typing through the call chain.
+    // Schema lookup uses the category type to get the correct schema.
+    // Type assertion is required here because TypeScript cannot infer through the
+    // dynamic lookup of appSummaryCategorySchemas[category] to the return type.
+    // This is a safe cast as the schema and return type are guaranteed to match
+    // by the AppSummaryCategorySchemas type definition.
     const schema = appSummaryCategorySchemas[category];
     return (await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
