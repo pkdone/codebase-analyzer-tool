@@ -67,9 +67,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("javascript configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.javascript.contentDesc).toContain(
-        "JavaScript/TypeScript code",
-      );
+      expect(fileTypePromptMetadata.javascript.contentDesc).toContain("JavaScript/TypeScript code");
     });
 
     it("should be marked as complex schema", () => {
@@ -203,9 +201,7 @@ describe("fileTypeMetadataConfig", () => {
 
   describe("npm configuration", () => {
     it("should have appropriate content description", () => {
-      expect(fileTypePromptMetadata.npm.contentDesc).toContain(
-        "npm package.json or lock file",
-      );
+      expect(fileTypePromptMetadata.npm.contentDesc).toContain("npm package.json or lock file");
     });
 
     it("should include dependencies in schema fields", () => {

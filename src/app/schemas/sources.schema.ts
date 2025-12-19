@@ -170,9 +170,9 @@ export const procedureTriggerSchema = z
  */
 export const publicConstantSchema = z
   .object({
-    name: z.string().describe("The name of the constant."),
-    value: z.string().describe("The value of the constant."),
-    type: z.string().describe("The type of the constant."),
+    name: z.string().default("").describe("The name of the constant."),
+    value: z.string().default("").describe("The value of the constant."),
+    type: z.string().default("").describe("The type of the constant."),
   })
   .passthrough();
 
@@ -183,11 +183,18 @@ export const dataInputFieldSchema = z
   .object({
     name: z
       .string()
+      .default("")
       .describe(
         "The name attribute of the input field (of there is no name, suggest and use an approximate indicative name that reflects its purpose).",
       ),
-    type: z.string().describe("The type of the input field (e.g., 'text', 'password', 'hidden')."),
-    description: z.string().describe("A detailed description of the input field's purpose."),
+    type: z
+      .string()
+      .default("")
+      .describe("The type of the input field (e.g., 'text', 'password', 'hidden')."),
+    description: z
+      .string()
+      .default("")
+      .describe("A detailed description of the input field's purpose."),
   })
   .passthrough();
 
@@ -196,9 +203,10 @@ export const dataInputFieldSchema = z
  */
 export const publicMethodSchema = z
   .object({
-    name: z.string().describe("The name of the method/function."),
+    name: z.string().default("").describe("The name of the method/function."),
     purpose: z
       .string()
+      .default("")
       .describe(
         "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences.",
       ),
@@ -213,9 +221,10 @@ export const publicMethodSchema = z
       )
       .optional()
       .describe("List parameters of the method/function."),
-    returnType: z.string().describe("The return type of the method/function."),
+    returnType: z.string().default("").describe("The return type of the method/function."),
     description: z
       .string()
+      .default("")
       .describe("Detailed description of how the method/function is implementated."),
     cyclomaticComplexity: z
       .number()
@@ -244,8 +253,11 @@ export const integrationEndpointSchema = z
     mechanism: createCaseInsensitiveEnumSchema(INTEGRATION_MECHANISM_VALUES).describe(
       "The integration mechanism type - only the listed values are valid; invalid becomes 'INVALID'.",
     ),
-    name: z.string().describe("Name of the endpoint, queue, topic, or service operation"),
-    description: z.string().describe("What this integration point does"),
+    name: z
+      .string()
+      .default("")
+      .describe("Name of the endpoint, queue, topic, or service operation"),
+    description: z.string().default("").describe("What this integration point does"),
     path: z
       .string()
       .optional()

@@ -156,22 +156,20 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the constant."
           },
           "value": {
             "type": "string",
+            "default": "",
             "description": "The value of the constant."
           },
           "type": {
             "type": "string",
+            "default": "",
             "description": "The type of the constant."
           }
         },
-        "required": [
-          "name",
-          "value",
-          "type"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public constants defined."
@@ -183,10 +181,12 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the method/function."
           },
           "purpose": {
             "type": "string",
+            "default": "",
             "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
@@ -213,10 +213,12 @@ The JSON response must follow this JSON schema:
           },
           "returnType": {
             "type": "string",
+            "default": "",
             "description": "The return type of the method/function."
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "Detailed description of how the method/function is implementated."
           },
           "cyclomaticComplexity": {
@@ -263,12 +265,6 @@ The JSON response must follow this JSON schema:
             "description": "List of code smells detected - only the listed values are valid"
           }
         },
-        "required": [
-          "name",
-          "purpose",
-          "returnType",
-          "description"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public methods/functions)."
@@ -491,10 +487,12 @@ The JSON response must follow this JSON schema:
           },
           "name": {
             "type": "string",
+            "default": "",
             "description": "Name of the endpoint, queue, topic, or service operation"
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "What this integration point does"
           },
           "path": {
@@ -553,9 +551,7 @@ The JSON response must follow this JSON schema:
           }
         },
         "required": [
-          "mechanism",
-          "name",
-          "description"
+          "mechanism"
         ],
         "additionalProperties": true
       },
@@ -961,22 +957,20 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name attribute of the input field (of there is no name, suggest and use an approximate indicative name that reflects its purpose)."
           },
           "type": {
             "type": "string",
+            "default": "",
             "description": "The type of the input field (e.g., 'text', 'password', 'hidden')."
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "A detailed description of the input field's purpose."
           }
         },
-        "required": [
-          "name",
-          "type",
-          "description"
-        ],
         "additionalProperties": true
       },
       "description": "A list of data input fields."
@@ -1237,22 +1231,20 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the constant."
           },
           "value": {
             "type": "string",
+            "default": "",
             "description": "The value of the constant."
           },
           "type": {
             "type": "string",
+            "default": "",
             "description": "The type of the constant."
           }
         },
-        "required": [
-          "name",
-          "value",
-          "type"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public constants defined."
@@ -1264,10 +1256,12 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the method/function."
           },
           "purpose": {
             "type": "string",
+            "default": "",
             "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
@@ -1294,10 +1288,12 @@ The JSON response must follow this JSON schema:
           },
           "returnType": {
             "type": "string",
+            "default": "",
             "description": "The return type of the method/function."
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "Detailed description of how the method/function is implementated."
           },
           "cyclomaticComplexity": {
@@ -1344,12 +1340,6 @@ The JSON response must follow this JSON schema:
             "description": "List of code smells detected - only the listed values are valid"
           }
         },
-        "required": [
-          "name",
-          "purpose",
-          "returnType",
-          "description"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public methods/functions)."
@@ -1572,10 +1562,12 @@ The JSON response must follow this JSON schema:
           },
           "name": {
             "type": "string",
+            "default": "",
             "description": "Name of the endpoint, queue, topic, or service operation"
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "What this integration point does"
           },
           "path": {
@@ -1634,9 +1626,7 @@ The JSON response must follow this JSON schema:
           }
         },
         "required": [
-          "mechanism",
-          "name",
-          "description"
+          "mechanism"
         ],
         "additionalProperties": true
       },
@@ -1899,22 +1889,20 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the constant."
           },
           "value": {
             "type": "string",
+            "default": "",
             "description": "The value of the constant."
           },
           "type": {
             "type": "string",
+            "default": "",
             "description": "The type of the constant."
           }
         },
-        "required": [
-          "name",
-          "value",
-          "type"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public constants defined."
@@ -1926,10 +1914,12 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the method/function."
           },
           "purpose": {
             "type": "string",
+            "default": "",
             "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
@@ -1956,10 +1946,12 @@ The JSON response must follow this JSON schema:
           },
           "returnType": {
             "type": "string",
+            "default": "",
             "description": "The return type of the method/function."
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "Detailed description of how the method/function is implementated."
           },
           "cyclomaticComplexity": {
@@ -2006,12 +1998,6 @@ The JSON response must follow this JSON schema:
             "description": "List of code smells detected - only the listed values are valid"
           }
         },
-        "required": [
-          "name",
-          "purpose",
-          "returnType",
-          "description"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public methods/functions)."
@@ -2234,10 +2220,12 @@ The JSON response must follow this JSON schema:
           },
           "name": {
             "type": "string",
+            "default": "",
             "description": "Name of the endpoint, queue, topic, or service operation"
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "What this integration point does"
           },
           "path": {
@@ -2296,9 +2284,7 @@ The JSON response must follow this JSON schema:
           }
         },
         "required": [
-          "mechanism",
-          "name",
-          "description"
+          "mechanism"
         ],
         "additionalProperties": true
       },
@@ -2794,22 +2780,20 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the constant."
           },
           "value": {
             "type": "string",
+            "default": "",
             "description": "The value of the constant."
           },
           "type": {
             "type": "string",
+            "default": "",
             "description": "The type of the constant."
           }
         },
-        "required": [
-          "name",
-          "value",
-          "type"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public constants defined."
@@ -2821,10 +2805,12 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the method/function."
           },
           "purpose": {
             "type": "string",
+            "default": "",
             "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
@@ -2851,10 +2837,12 @@ The JSON response must follow this JSON schema:
           },
           "returnType": {
             "type": "string",
+            "default": "",
             "description": "The return type of the method/function."
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "Detailed description of how the method/function is implementated."
           },
           "cyclomaticComplexity": {
@@ -2901,12 +2889,6 @@ The JSON response must follow this JSON schema:
             "description": "List of code smells detected - only the listed values are valid"
           }
         },
-        "required": [
-          "name",
-          "purpose",
-          "returnType",
-          "description"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public methods/functions)."
@@ -3129,10 +3111,12 @@ The JSON response must follow this JSON schema:
           },
           "name": {
             "type": "string",
+            "default": "",
             "description": "Name of the endpoint, queue, topic, or service operation"
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "What this integration point does"
           },
           "path": {
@@ -3191,9 +3175,7 @@ The JSON response must follow this JSON schema:
           }
         },
         "required": [
-          "mechanism",
-          "name",
-          "description"
+          "mechanism"
         ],
         "additionalProperties": true
       },
@@ -3446,22 +3428,20 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the constant."
           },
           "value": {
             "type": "string",
+            "default": "",
             "description": "The value of the constant."
           },
           "type": {
             "type": "string",
+            "default": "",
             "description": "The type of the constant."
           }
         },
-        "required": [
-          "name",
-          "value",
-          "type"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public constants defined."
@@ -3473,10 +3453,12 @@ The JSON response must follow this JSON schema:
         "properties": {
           "name": {
             "type": "string",
+            "default": "",
             "description": "The name of the method/function."
           },
           "purpose": {
             "type": "string",
+            "default": "",
             "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
@@ -3503,10 +3485,12 @@ The JSON response must follow this JSON schema:
           },
           "returnType": {
             "type": "string",
+            "default": "",
             "description": "The return type of the method/function."
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "Detailed description of how the method/function is implementated."
           },
           "cyclomaticComplexity": {
@@ -3553,12 +3537,6 @@ The JSON response must follow this JSON schema:
             "description": "List of code smells detected - only the listed values are valid"
           }
         },
-        "required": [
-          "name",
-          "purpose",
-          "returnType",
-          "description"
-        ],
         "additionalProperties": true
       },
       "description": "A list of public methods/functions)."
@@ -3781,10 +3759,12 @@ The JSON response must follow this JSON schema:
           },
           "name": {
             "type": "string",
+            "default": "",
             "description": "Name of the endpoint, queue, topic, or service operation"
           },
           "description": {
             "type": "string",
+            "default": "",
             "description": "What this integration point does"
           },
           "path": {
@@ -3843,9 +3823,7 @@ The JSON response must follow this JSON schema:
           }
         },
         "required": [
-          "mechanism",
-          "name",
-          "description"
+          "mechanism"
         ],
         "additionalProperties": true
       },

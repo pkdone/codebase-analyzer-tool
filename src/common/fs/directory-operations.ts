@@ -11,15 +11,24 @@ export async function listDirectoryEntries(dirpath: string): Promise<Dirent[]> {
 }
 
 /**
- * Deletes all files and folders in a directory, except for a file named `.gitignore`.
+ * Deletes all files and folders in a directory, except for files matching the ignore criteria.
+ * By default, `.gitignore` is preserved.
+ * @param dirPath - The directory to clear
+ * @param ignore - Either an array of filenames to ignore, or a filter function that returns true for files to ignore
  */
-export async function clearDirectory(dirPath: string): Promise<void> {
+export async function clearDirectory(
+  dirPath: string,
+  ignore: string[] | ((filename: string) => boolean) = [".gitignore"],
+): Promise<void> {
   try {
     const files = await fs.readdir(dirPath);
     const removalPromises: Promise<void>[] = [];
 
+    // Create a unified shouldIgnore function
+    const shouldIgnore = Array.isArray(ignore) ? (file: string) => ignore.includes(file) : ignore;
+
     for (const file of files) {
-      if (file === ".gitignore") continue;
+      if (shouldIgnore(file)) continue;
 
       const filePath = path.join(dirPath, file);
       const promise = fs.rm(filePath, { recursive: true, force: true }).catch((error: unknown) => {

@@ -9,8 +9,7 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
 
     // Create a test prompt to verify the render method works with categoryKey
     const testConfig = {
-      contentDesc:
-        "Test intro with {{categoryKey}} in the section marked '{{dataBlockHeader}}'.",
+      contentDesc: "Test intro with {{categoryKey}} in the section marked '{{dataBlockHeader}}'.",
       instructions: ["test"],
       responseSchema: z.object({ entities: z.array(z.object({ name: z.string() })) }),
       template: BASE_PROMPT_TEMPLATE,
@@ -30,8 +29,7 @@ describe("MapReduceInsightStrategy - categoryKey parameter handling", () => {
 
   it("should use Prompt.render() with categoryKey parameter for template substitution", () => {
     const testConfig = {
-      contentDesc:
-        "Test intro with {{categoryKey}} in the section marked '{{dataBlockHeader}}'.",
+      contentDesc: "Test intro with {{categoryKey}} in the section marked '{{dataBlockHeader}}'.",
       instructions: ["a consolidated list"],
       responseSchema: z.object({ entities: z.array(z.object({ name: z.string() })) }),
       template: BASE_PROMPT_TEMPLATE,

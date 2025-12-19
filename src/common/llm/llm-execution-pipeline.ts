@@ -86,7 +86,7 @@ export class LLMExecutionPipeline {
         if (hasSignificantSanitizationSteps(result.mutationSteps)) {
           this.llmStats.recordJsonMutated();
         }
-        
+
         if (result.generated === undefined) {
           logOneLineWarning(
             `LLM response has COMPLETED status but generated content is undefined for resource: '${resourceName}'`,

@@ -72,8 +72,7 @@ describe("Prompt Factory", () => {
       };
 
       const result = createPromptMetadata(testConfigMap, testTemplate, {
-        contentDescBuilder: (config) =>
-          `Custom intro with ${config.contentDesc ?? "default"}`,
+        contentDescBuilder: (config) => `Custom intro with ${config.contentDesc ?? "default"}`,
       });
 
       expect(result.test1.contentDesc).toBe("Custom intro with custom content description");
@@ -139,8 +138,7 @@ describe("Prompt Factory", () => {
         schemaBuilder: (config) => {
           return (config.responseSchema as z.ZodObject<z.ZodRawShape>).pick({ field1: true });
         },
-        contentDescBuilder: (config) =>
-          `Intro template with ${config.contentDesc ?? "default"}`,
+        contentDescBuilder: (config) => `Intro template with ${config.contentDesc ?? "default"}`,
         instructionsBuilder: (config) => [`Instruction for ${config.label ?? "unknown"}`],
       });
 

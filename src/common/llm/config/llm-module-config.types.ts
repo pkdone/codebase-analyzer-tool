@@ -21,7 +21,6 @@ export interface LLMSanitizerConfig {
   readonly propertyTypoCorrections?: Record<string, string>;
   readonly knownProperties?: readonly string[];
   readonly numericProperties?: readonly string[];
-  readonly requiredStringProperties?: readonly string[];
   readonly packageNamePrefixReplacements?: Record<string, string>;
   readonly packageNameTypoPatterns?: {
     pattern: RegExp;

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   convertNullToUndefined,
-  convertUndefinedToString,
   fixCommonPropertyNameTypos,
   coerceStringToArray,
   unwrapJsonSchemaStructure,
@@ -24,7 +23,6 @@ export type ValidationWithTransformsResult<T> =
  * Transform order:
  * - coerceStringToArray: Converts string values to empty arrays for predefined property names (generic)
  * - convertNullToUndefined: Converts null to undefined for optional fields (generic)
- * - convertUndefinedToString: Converts undefined to empty string for required string fields (generic)
  * - fixCommonPropertyNameTypos: Fixes typos in property names ending with underscore (generic)
  * - coerceNumericProperties: Converts string values to numbers for known numeric properties (generic)
  * - unwrapJsonSchemaStructure: Unwraps when LLM returns JSON Schema instead of data (generic)
@@ -32,7 +30,6 @@ export type ValidationWithTransformsResult<T> =
 const SCHEMA_FIXING_TRANSFORMS: readonly SchemaFixingTransform[] = [
   coerceStringToArray,
   convertNullToUndefined,
-  convertUndefinedToString,
   fixCommonPropertyNameTypos,
   coerceNumericProperties,
   unwrapJsonSchemaStructure,

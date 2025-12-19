@@ -103,9 +103,7 @@ export function createPromptMetadata<TKey extends string, TConfig extends BaseCo
       const configWithHasComplexSchema = typedConfig as { hasComplexSchema?: boolean };
       const definition: PromptDefinition = {
         label: typedConfig.label,
-        contentDesc: contentDescBuilder
-          ? contentDescBuilder(typedConfig)
-          : "content",
+        contentDesc: contentDescBuilder ? contentDescBuilder(typedConfig) : "content",
         responseSchema: schemaBuilder
           ? schemaBuilder(typedConfig)
           : (typedConfig.responseSchema ?? z.unknown()),

@@ -36,24 +36,22 @@ export function createReduceInsightsPromptDefinition(
     label: `Reduce ${categoryLabel}`,
     instructions: [`a consolidated list of '${categoryLabel}'`] as const,
     responseSchema,
-    contentDesc: "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase",
+    contentDesc:
+      "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase",
   };
 
   // Create a single-entry map and extract the definition
-  const metadata = createPromptMetadata(
-    { reduce: config },
-    BASE_PROMPT_TEMPLATE,
-    {
-      contentDescBuilder: (cfg) => cfg.contentDesc,
-      instructionsBuilder: (cfg) => cfg.instructions,
-      dataBlockHeaderBuilder: () => "FRAGMENTED_DATA",
-      wrapInCodeBlockBuilder: () => false,
-    },
-  );
+  const metadata = createPromptMetadata({ reduce: config }, BASE_PROMPT_TEMPLATE, {
+    contentDescBuilder: (cfg) => cfg.contentDesc,
+    instructionsBuilder: (cfg) => cfg.instructions,
+    dataBlockHeaderBuilder: () => "FRAGMENTED_DATA",
+    wrapInCodeBlockBuilder: () => false,
+  });
 
   // Return the single definition, but customize the contentDesc for this specific use case
   const definition = metadata.reduce;
   // Override contentDesc with a more detailed explanation for reduce operations
-  definition.contentDesc = "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized";
+  definition.contentDesc =
+    "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized";
   return definition;
 }

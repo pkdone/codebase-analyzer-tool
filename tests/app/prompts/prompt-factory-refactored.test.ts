@@ -54,4 +54,3 @@ describe("Prompt Factory Refactoring Tests", () => {
     });
   });
 });
-

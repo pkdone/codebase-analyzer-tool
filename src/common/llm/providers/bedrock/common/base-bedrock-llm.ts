@@ -16,7 +16,6 @@ import {
   extractGenericCompletionResponse,
   type ResponsePathConfig,
 } from "./bedrock-response-parser";
-import { buildStandardMessagesArray } from "../utils/bedrock-request-builders";
 
 const TOKEN_LIMIT_ERROR_KEYWORDS = [
   "too many input tokens",
@@ -145,14 +144,6 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
   }
 
   /**
-   * Build the request body object for completions using the standard messages array format.
-   * This default implementation can be overridden by subclasses that require custom formatting.
-   */
-  protected buildCompletionRequestBody(modelKey: string, prompt: string): Record<string, unknown> {
-    return buildStandardMessagesArray(prompt, modelKey, this.llmModelsMetadata);
-  }
-
-  /**
    * Extract the relevant information from the LLM specific response.
    */
   private extractEmbeddingModelSpecificResponse(llmResponse: unknown) {
@@ -201,6 +192,15 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     const bodyObj = this.buildCompletionRequestBody(modelKey, prompt);
     return this.buildBedrockParameters(modelKey, bodyObj);
   }
+
+  /**
+   * Build the request body object for completions.
+   * Each concrete Bedrock provider must implement this to match their specific API format.
+   */
+  protected abstract buildCompletionRequestBody(
+    modelKey: string,
+    prompt: string,
+  ): Record<string, unknown>;
 
   /**
    * Abstract method to get the provider-specific response extraction configuration.

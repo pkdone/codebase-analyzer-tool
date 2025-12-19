@@ -83,13 +83,9 @@ export class RawAnalyzerDrivenByReqsFiles {
     let response = "";
 
     try {
-      const executionResult = await this.llmRouter.executeCompletion(
-        resource,
-        fullPrompt,
-        {
-          outputFormat: LLMOutputFormat.TEXT,
-        },
-      );
+      const executionResult = await this.llmRouter.executeCompletion(resource, fullPrompt, {
+        outputFormat: LLMOutputFormat.TEXT,
+      });
 
       if (executionResult === null) {
         response = "No response received from LLM.";

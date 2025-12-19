@@ -199,7 +199,7 @@ describe("directory-operations", () => {
       jest.clearAllMocks();
     });
 
-    test("should delete all files except .gitignore", async () => {
+    test("should delete all files except .gitignore by default", async () => {
       mockReaddir.mockResolvedValue(["file1.txt", "file2.txt", ".gitignore", "subfolder"] as any);
       mockRm.mockResolvedValue(undefined);
       mockMkdir.mockResolvedValue(undefined);
@@ -223,6 +223,44 @@ describe("directory-operations", () => {
       expect(mockRm).toHaveBeenCalledTimes(2); // Only file1.txt and file2.txt
       expect(mockRm).toHaveBeenCalledWith("/test/dir/file1.txt", { recursive: true, force: true });
       expect(mockRm).toHaveBeenCalledWith("/test/dir/file2.txt", { recursive: true, force: true });
+    });
+
+    test("should accept custom ignore array", async () => {
+      mockReaddir.mockResolvedValue(["file1.txt", "keep.txt", "file2.txt"] as any);
+      mockRm.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await clearDirectory("/test/dir", ["keep.txt"]);
+
+      expect(mockRm).toHaveBeenCalledTimes(2); // Only file1.txt and file2.txt
+      expect(mockRm).toHaveBeenCalledWith("/test/dir/file1.txt", { recursive: true, force: true });
+      expect(mockRm).toHaveBeenCalledWith("/test/dir/file2.txt", { recursive: true, force: true });
+      expect(mockRm).not.toHaveBeenCalledWith("/test/dir/keep.txt", expect.anything());
+    });
+
+    test("should accept custom filter function", async () => {
+      mockReaddir.mockResolvedValue(["file1.txt", "important.txt", "file2.txt"] as any);
+      mockRm.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      // Keep files starting with "important"
+      await clearDirectory("/test/dir", (filename) => filename.startsWith("important"));
+
+      expect(mockRm).toHaveBeenCalledTimes(2); // Only file1.txt and file2.txt
+      expect(mockRm).toHaveBeenCalledWith("/test/dir/file1.txt", { recursive: true, force: true });
+      expect(mockRm).toHaveBeenCalledWith("/test/dir/file2.txt", { recursive: true, force: true });
+      expect(mockRm).not.toHaveBeenCalledWith("/test/dir/important.txt", expect.anything());
+    });
+
+    test("should handle empty ignore array", async () => {
+      mockReaddir.mockResolvedValue(["file1.txt", ".gitignore", "file2.txt"] as any);
+      mockRm.mockResolvedValue(undefined);
+      mockMkdir.mockResolvedValue(undefined);
+
+      await clearDirectory("/test/dir", []);
+
+      expect(mockRm).toHaveBeenCalledTimes(3); // All files including .gitignore
+      expect(mockRm).toHaveBeenCalledWith("/test/dir/.gitignore", { recursive: true, force: true });
     });
 
     test("should handle rm errors gracefully", async () => {

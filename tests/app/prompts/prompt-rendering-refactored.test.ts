@@ -181,4 +181,3 @@ describe("Prompt Rendering Refactoring Tests", () => {
     });
   });
 });
-
