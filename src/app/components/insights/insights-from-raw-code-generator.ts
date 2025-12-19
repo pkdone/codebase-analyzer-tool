@@ -15,7 +15,7 @@ import type { EnvVars } from "../../env/env.types";
 import { logOneLineWarning } from "../../../common/utils/logging";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../prompts/definitions/app-summaries";
+import { promptRegistry } from "../../prompts/prompt-registry";
 import { BASE_PROMPT_TEMPLATE } from "../../prompts/templates";
 import { appSummaryRecordCategoriesSchema } from "./insights.types";
 
@@ -90,7 +90,7 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
     codeBlocksContent: string,
   ): Promise<AppSummaryRecordCategories | null> {
     try {
-      const instructions: readonly string[] = Object.values(summaryCategoriesConfig).flatMap(
+      const instructions: readonly string[] = Object.values(promptRegistry.appSummaries).flatMap(
         (category) => {
           const inst = category.instructions;
           return inst;

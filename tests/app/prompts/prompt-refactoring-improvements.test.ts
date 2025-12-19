@@ -4,8 +4,9 @@ import {
 } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { FORCE_JSON_FORMAT, BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { fileTypePromptMetadata } from "../../../src/app/prompts/definitions/sources";
-import { codebaseQueryPromptDefinition } from "../../../src/app/prompts/definitions/utility-prompts";
+import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
+const fileTypePromptMetadata = promptRegistry.sources;
+const codebaseQueryPromptDefinition = promptRegistry.codebaseQuery;
 
 describe("Prompt Refactoring Improvements", () => {
   describe("FORCE_JSON_FORMAT location", () => {

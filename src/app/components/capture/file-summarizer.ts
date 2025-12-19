@@ -4,7 +4,7 @@ import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
 import path from "node:path";
-import { fileTypePromptMetadata } from "../../prompts/definitions/sources";
+import { promptRegistry } from "../../prompts/prompt-registry";
 import { sourcePromptSchemas } from "../../prompts/definitions/sources/sources.schemas";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
@@ -13,7 +13,7 @@ import {
   FILENAME_TO_TYPE_MAP,
   EXTENSION_TO_TYPE_MAP,
 } from "./config/file-types.config";
-import { getSchemaSpecificSanitizerConfig } from "../../prompts/config/schema-specific-sanitizer.config";
+import { getSchemaSpecificSanitizerConfig } from "../insights/config/sanitizer.config";
 
 /**
  * Type for source summary (full schema).
@@ -32,7 +32,7 @@ export type PartialSourceSummaryType = Partial<SourceSummaryType>;
  * Derive the canonical file type for a given path and declared extension/suffix.
  * Uses data-driven maps for fast lookups, falling back to rule-based system for complex cases.
  */
-function getCanonicalFileType(filepath: string, type: string): keyof typeof fileTypePromptMetadata {
+function getCanonicalFileType(filepath: string, type: string): keyof typeof promptRegistry.sources {
   const filename = path.basename(filepath).toLowerCase();
   const extension = type.toLowerCase();
 
@@ -81,7 +81,7 @@ export async function summarizeFile(
   try {
     if (content.trim().length === 0) throw new Error("File is empty");
     const canonicalFileType = getCanonicalFileType(filepath, type);
-    const promptMetadata = fileTypePromptMetadata[canonicalFileType];
+    const promptMetadata = promptRegistry.sources[canonicalFileType];
     const schema = sourcePromptSchemas[canonicalFileType];
     const renderedPrompt = renderPrompt(promptMetadata, { content });
 

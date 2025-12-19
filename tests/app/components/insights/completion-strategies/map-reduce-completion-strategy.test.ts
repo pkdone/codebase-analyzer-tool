@@ -8,7 +8,8 @@ import {
 } from "../../../../../src/app/components/insights/insights.types";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
-import { appSummaryPromptMetadata } from "../../../../../src/app/prompts/definitions/app-summaries";
+import { promptRegistry } from "../../../../../src/app/prompts/prompt-registry";
+const appSummaryPromptMetadata = promptRegistry.appSummaries;
 import { z } from "zod";
 
 describe("MapReduceCompletionStrategy", () => {

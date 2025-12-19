@@ -11,7 +11,8 @@ import {
   AppSummaryCategoryEnum,
   appSummaryCategorySchemas,
 } from "../../../../../src/app/components/insights/insights.types";
-import { appSummaryPromptMetadata } from "../../../../../src/app/prompts/definitions/app-summaries";
+import { promptRegistry } from "../../../../../src/app/prompts/prompt-registry";
+const appSummaryPromptMetadata = promptRegistry.appSummaries;
 
 // Mock dependencies
 jest.mock("../../../../../src/common/utils/logging", () => ({

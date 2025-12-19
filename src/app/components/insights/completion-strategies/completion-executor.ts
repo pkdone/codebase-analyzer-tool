@@ -1,7 +1,7 @@
 import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
-import { appSummaryPromptMetadata } from "../../../prompts/definitions/app-summaries";
+import { promptRegistry } from "../../../prompts/prompt-registry";
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { joinArrayWithSeparators } from "../../../../common/utils/text-utils";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
@@ -10,7 +10,7 @@ import {
   appSummaryCategorySchemas,
   type AppSummaryCategorySchemas,
 } from "../insights.types";
-import { getSchemaSpecificSanitizerConfig } from "../../../prompts/config/schema-specific-sanitizer.config";
+import { getSchemaSpecificSanitizerConfig } from "../config/sanitizer.config";
 
 // Individual category schemas are simple and compatible with all LLM providers including VertexAI
 const CATEGORY_SCHEMA_IS_VERTEXAI_COMPATIBLE = true;
@@ -46,11 +46,11 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
   sourceFileSummaries: string[],
   options: InsightCompletionOptions = {},
 ): Promise<z.infer<AppSummaryCategorySchemas[C]> | null> {
-  const categoryLabel = appSummaryPromptMetadata[category].label ?? category;
+  const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
   const taskCategory: string = options.taskCategory ?? category;
 
   try {
-    const config = appSummaryPromptMetadata[category];
+    const config = promptRegistry.appSummaries[category];
     const codeContent = joinArrayWithSeparators(sourceFileSummaries);
     const renderParams: Record<string, unknown> = {
       content: codeContent,

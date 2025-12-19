@@ -1,6 +1,6 @@
 import { injectable, injectAll } from "tsyringe";
 import { z } from "zod";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../../prompts/definitions/app-summaries";
+import { promptRegistry } from "../../../../prompts/prompt-registry";
 import { AppSummaryCategories, nameDescSchema } from "../../../../schemas/app-summaries.schema";
 import type { AppSummaryCategoryType } from "../../../insights/insights.types";
 import type {
@@ -44,7 +44,7 @@ export class AppSummaryCategoriesProvider {
     );
 
     const results = standardCategoryKeys.map((category: AppSummaryCategoryType) => {
-      const config = summaryCategoriesConfig[category];
+      const config = promptRegistry.appSummaries[category];
       const label = config.label ?? category;
       const fieldData = appSummaryData[category];
       const data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];

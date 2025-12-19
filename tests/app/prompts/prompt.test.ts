@@ -1,8 +1,10 @@
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { fileTypePromptMetadata } from "../../../src/app/prompts/definitions/sources";
+import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
 import { FORCE_JSON_FORMAT, BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-titles";
+
+const fileTypePromptMetadata = promptRegistry.sources;
 
 describe("renderPrompt", () => {
   const javaCodeSample = `package com.acme.myapp.address.ejb;

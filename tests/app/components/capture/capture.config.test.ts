@@ -1,4 +1,5 @@
-import { fileTypePromptMetadata } from "../../../../src/app/prompts/definitions/sources";
+import { promptRegistry } from "../../../../src/app/prompts/prompt-registry";
+const fileTypePromptMetadata = promptRegistry.sources;
 import { sourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.config";
 
 describe("fileTypeMetadataConfig", () => {

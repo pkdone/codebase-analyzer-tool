@@ -1,5 +1,6 @@
 import "reflect-metadata";
-import { fileTypePromptMetadata } from "../../../../src/app/prompts/definitions/sources";
+import { promptRegistry } from "../../../../src/app/prompts/prompt-registry";
+const fileTypePromptMetadata = promptRegistry.sources;
 import { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
 import { FILE_TYPE_MAPPING_RULES } from "../../../../src/app/components/capture/config/file-types.config";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";

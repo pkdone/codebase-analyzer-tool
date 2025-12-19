@@ -8,7 +8,7 @@ import { repositoryTokens } from "../../../di/tokens";
 import { llmTokens } from "../../../di/tokens";
 import { coreTokens } from "../../../di/tokens";
 import { insightsTuningConfig } from "../insights.config";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
+import { promptRegistry } from "../../../prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
 import type { IInsightsProcessor } from "../insights-processor.interface";
 import { AppSummaryCategoryEnum } from "../insights.types";
@@ -122,7 +122,7 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     category: AppSummaryCategoryEnum,
     sourceFileSummaries: string[],
   ): Promise<void> {
-    const categoryLabel = summaryCategoriesConfig[category].label ?? category;
+    const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
 
     try {
       console.log(`Processing ${categoryLabel}`);

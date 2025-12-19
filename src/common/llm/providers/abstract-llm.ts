@@ -306,17 +306,12 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Return type uses InferResponseType for format-aware type inference.
    */
   private async formatAndValidateResponse<S extends z.ZodType>(
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-    skeletonResult: Omit<
-      LLMFunctionResponse<InferResponseType<LLMCompletionOptions>>,
-      "generated" | "status" | "mutationSteps"
-    >,
+    skeletonResult: Omit<LLMFunctionResponse, "generated" | "status" | "mutationSteps">,
     taskType: LLMPurpose,
     responseContent: LLMGeneratedContent,
     completionOptions: LLMCompletionOptions<S>,
     context: LLMContext,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-arguments
-  ): Promise<LLMFunctionResponse<InferResponseType<LLMCompletionOptions>>> {
+  ): Promise<LLMFunctionResponse> {
     // Early return for non-completion tasks
     if (taskType !== LLMPurpose.COMPLETIONS) {
       return {

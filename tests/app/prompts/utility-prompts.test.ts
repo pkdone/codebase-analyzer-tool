@@ -1,7 +1,8 @@
-import {
-  codebaseQueryPromptDefinition,
-  createReduceInsightsPromptDefinition,
-} from "../../../src/app/prompts/definitions/utility-prompts";
+import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
+
+const codebaseQueryPromptDefinition = promptRegistry.codebaseQuery;
+// createReduceInsightsPromptDefinition no longer exists - it's now a static prompt in the registry
+const reduceInsightsPromptDefinition = promptRegistry.reduceInsights;
 import { CODEBASE_QUERY_TEMPLATE, BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { z } from "zod";
@@ -54,40 +55,32 @@ describe("Utility Prompts", () => {
     });
   });
 
-  describe("createReduceInsightsPromptDefinition", () => {
-    it("should create a valid prompt definition", () => {
-      const categoryLabel = "Entities";
-      const responseSchema = z.object({
-        entities: z.array(
-          z.object({
-            name: z.string(),
-            description: z.string(),
-          }),
-        ),
-      });
-
-      const definition = createReduceInsightsPromptDefinition(categoryLabel, responseSchema);
-
-      expect(definition.label).toBe("Reduce Entities");
-      expect(definition.contentDesc).toContain("several JSON objects");
-      expect(definition.template).toBe(BASE_PROMPT_TEMPLATE);
-      expect(definition.responseSchema).toBe(responseSchema);
-      expect(definition.instructions).toHaveLength(1);
-      expect(definition.instructions[0]).toContain("a consolidated list of 'Entities'");
+  describe("reduceInsightsPromptDefinition", () => {
+    it("should have the correct static structure", () => {
+      expect(reduceInsightsPromptDefinition.label).toBe("Reduce Insights");
+      expect(reduceInsightsPromptDefinition.contentDesc).toContain("several JSON objects");
+      expect(reduceInsightsPromptDefinition.contentDesc).toContain("{{categoryKey}}");
+      expect(reduceInsightsPromptDefinition.template).toBe(BASE_PROMPT_TEMPLATE);
+      expect(reduceInsightsPromptDefinition.dataBlockHeader).toBe("FRAGMENTED_DATA");
+      expect(reduceInsightsPromptDefinition.responseSchema).toBeDefined();
+      expect(reduceInsightsPromptDefinition.instructions).toHaveLength(1);
+      expect(reduceInsightsPromptDefinition.instructions[0]).toContain("{{categoryKey}}");
     });
 
-    it("should render correctly with categoryKey parameter", () => {
-      const categoryLabel = "Aggregates";
+    it("should render correctly with categoryKey parameter and schema override", () => {
       const responseSchema = z.object({
         aggregates: z.array(z.object({ name: z.string() })),
       });
 
-      const definition = createReduceInsightsPromptDefinition(categoryLabel, responseSchema);
       const testContent = '{"aggregates": [{"name": "Test"}]}';
-      const rendered = renderPrompt(definition, {
-        categoryKey: "aggregates",
-        content: testContent,
-      });
+      const rendered = renderPrompt(
+        reduceInsightsPromptDefinition,
+        {
+          categoryKey: "aggregates",
+          content: testContent,
+        },
+        { overrideSchema: responseSchema },
+      );
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FRAGMENTED_DATA:");
@@ -98,15 +91,21 @@ describe("Utility Prompts", () => {
     });
 
     it("should use BASE_PROMPT_TEMPLATE", () => {
-      const definition = createReduceInsightsPromptDefinition("Test", z.string());
-      expect(definition.template).toBe(BASE_PROMPT_TEMPLATE);
+      expect(reduceInsightsPromptDefinition.template).toBe(BASE_PROMPT_TEMPLATE);
     });
 
-    it("should handle different category labels correctly", () => {
-      const labels = ["Entities", "Aggregates", "Bounded Contexts"];
-      labels.forEach((label) => {
-        const definition = createReduceInsightsPromptDefinition(label, z.string());
-        expect(definition.instructions[0]).toContain(`'${label}'`);
+    it("should handle different category keys in rendering", () => {
+      const labels = ["entities", "aggregates", "boundedContexts"];
+      labels.forEach((categoryKey) => {
+        const rendered = renderPrompt(
+          reduceInsightsPromptDefinition,
+          {
+            categoryKey,
+            content: "{}",
+          },
+          { overrideSchema: z.object({ [categoryKey]: z.array(z.string()) }) },
+        );
+        expect(rendered).toContain(`'${categoryKey}'`);
       });
     });
   });

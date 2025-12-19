@@ -14,8 +14,6 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineWarning: jest.fn(),
 }));
 
-jest.unmock("../../../../src/app/prompts/definitions/sources");
-
 jest.mock("../../../../src/app/components/capture/config/file-types.config", () => {
   // Create rules that match the test expectations
   const createRules = () => [
@@ -106,69 +104,16 @@ jest.mock("../../../../src/app/components/capture/config/file-types.config", () 
   };
 });
 
-// Fix the mock to use the correct export name
-jest.mock("../../../../src/app/prompts/definitions/sources", () => ({
-  fileTypePromptMetadata: {
-    java: {
-      contentDesc: "Java code",
-      hasComplexSchema: false,
-      sanitizerConfig: expect.any(Object),
-      responseSchema: z.object({}),
-      instructions: ["Java instructions"],
-    },
-    javascript: {
-      contentDesc: "JavaScript/TypeScript code",
-      hasComplexSchema: false,
-      sanitizerConfig: expect.any(Object),
-      responseSchema: z.object({}),
-      instructions: ["JavaScript instructions"],
-    },
-    default: {
-      contentDesc: "project file content",
-      hasComplexSchema: false,
-      sanitizerConfig: expect.any(Object),
-      responseSchema: z.object({}),
-      instructions: ["Default instructions"],
-    },
-    sql: {
-      contentDesc: "database DDL/DML/SQL code",
-      hasComplexSchema: false,
-      sanitizerConfig: expect.any(Object),
-      responseSchema: z.object({}),
-      instructions: ["SQL instructions"],
-    },
-    xml: {
-      contentDesc: "XML code",
-      hasComplexSchema: false,
-      sanitizerConfig: expect.any(Object),
-      responseSchema: z.object({}),
-      instructions: ["XML instructions"],
-    },
-    jsp: {
-      contentDesc: "JSP code",
-      hasComplexSchema: false,
-      sanitizerConfig: expect.any(Object),
-      responseSchema: z.object({}),
-      instructions: ["JSP instructions"],
-    },
-    markdown: {
-      contentDesc: "Markdown content",
-      hasComplexSchema: false,
-      sanitizerConfig: expect.any(Object),
-      responseSchema: z.object({}),
-      instructions: ["Markdown instructions"],
-    },
-  },
-}));
-
 // Note: We no longer mock buildPrompt as FileSummarizer now uses the Prompt class directly
+// The prompt registry is now imported directly from the centralized location
 
 // LLMRouter is mocked, we'll create a mock instance directly
 const mockLogSingleLineWarning = logging.logOneLineWarning as jest.MockedFunction<
   typeof logging.logOneLineWarning
 >;
 
-import { fileTypePromptMetadata } from "../../../../src/app/prompts/definitions/sources";
+import { promptRegistry } from "../../../../src/app/prompts/prompt-registry";
+const fileTypePromptMetadata = promptRegistry.sources;
 
 describe("summarizeFile", () => {
   let mockLLMRouter: jest.Mocked<LLMRouter>;

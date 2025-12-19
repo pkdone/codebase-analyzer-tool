@@ -1,7 +1,9 @@
-import { fileTypePromptMetadata } from "../../../src/app/prompts/definitions/sources";
-import { appSummaryPromptMetadata } from "../../../src/app/prompts/definitions/app-summaries";
+import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
 import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.config";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.config";
+
+const fileTypePromptMetadata = promptRegistry.sources;
+const appSummaryPromptMetadata = promptRegistry.appSummaries;
 
 describe("Data-driven Prompt System", () => {
   describe("Source prompt generation", () => {

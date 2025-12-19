@@ -1,5 +1,6 @@
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { fileTypePromptMetadata } from "../../../src/app/prompts/definitions/sources";
+import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
+const fileTypePromptMetadata = promptRegistry.sources;
 
 describe("renderPrompt Snapshot Tests", () => {
   const testContent = "public class TestClass {\n  // Test code\n}";

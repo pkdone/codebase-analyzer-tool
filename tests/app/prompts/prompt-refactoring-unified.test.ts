@@ -1,12 +1,14 @@
 import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
-import { fileTypePromptMetadata } from "../../../src/app/prompts/definitions/sources";
-import { appSummaryPromptMetadata } from "../../../src/app/prompts/definitions/app-summaries";
+import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.fragments";
 import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-titles";
 import { sourceConfigMap } from "../../../src/app/prompts/definitions/sources/sources.config";
 import { appSummaryConfigMap } from "../../../src/app/prompts/definitions/app-summaries/app-summaries.config";
 import { z } from "zod";
+
+const fileTypePromptMetadata = promptRegistry.sources;
+const appSummaryPromptMetadata = promptRegistry.appSummaries;
 
 describe("Prompt Refactoring - Unified Configuration", () => {
   describe("Sources Configuration", () => {

@@ -3,7 +3,7 @@ import { z } from "zod";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { insightsTuningConfig } from "../insights.config";
-import { appSummaryPromptMetadata as summaryCategoriesConfig } from "../../../prompts/definitions/app-summaries";
+import { promptRegistry } from "../../../prompts/prompt-registry";
 import { logOneLineWarning } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { llmTokens } from "../../../di/tokens";
@@ -13,8 +13,7 @@ import {
   CategoryInsightResult,
   appSummaryCategorySchemas,
 } from "../insights.types";
-import { getSchemaSpecificSanitizerConfig } from "../../../prompts/config/schema-specific-sanitizer.config";
-import { createReduceInsightsPromptDefinition } from "../../../prompts/definitions/utility-prompts";
+import { getSchemaSpecificSanitizerConfig } from "../config/sanitizer.config";
 import { executeInsightCompletion } from "./completion-executor";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 
@@ -47,7 +46,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     category: C,
     sourceFileSummaries: string[],
   ): Promise<CategoryInsightResult<C> | null> {
-    const categoryLabel = summaryCategoriesConfig[category].label ?? category;
+    const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
 
     try {
       console.log(`  - Using map-reduce strategy for ${categoryLabel}`);
@@ -133,7 +132,7 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     category: C,
     partialResults: CategoryInsightResult<C>[],
   ): Promise<CategoryInsightResult<C> | null> {
-    const config = summaryCategoriesConfig[category];
+    const config = promptRegistry.appSummaries[category];
 
     // Use strongly-typed schema for type inference
     const schema = appSummaryCategorySchemas[category];
@@ -152,11 +151,11 @@ export class MapReduceCompletionStrategy implements ICompletionStrategy {
     });
 
     const content = JSON.stringify({ [categoryKey]: combinedData }, null, 2);
-    const reducePromptDefinition = createReduceInsightsPromptDefinition(
-      config.label ?? category,
-      schema,
+    const renderedPrompt = renderPrompt(
+      promptRegistry.reduceInsights,
+      { categoryKey, content },
+      { overrideSchema: schema },
     );
-    const renderedPrompt = renderPrompt(reducePromptDefinition, { categoryKey, content });
 
     try {
       // Use strongly-typed schema lookup - enables correct return type inference.
