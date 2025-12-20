@@ -11,7 +11,7 @@ import {
 } from "../../../../../../src/common/llm/providers/llm-provider.types";
 import { llmConfig } from "../../../../../../src/common/llm/config/llm.config";
 import {
-  AWS_COMPLETIONS_CLAUDE_V40,
+  AWS_COMPLETIONS_CLAUDE_SONNET_V40,
   bedrockClaudeProviderManifest,
 } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
@@ -35,8 +35,8 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       maxCompletionTokens: 8192,
       maxTotalTokens: 200000,
     },
-    [AWS_COMPLETIONS_CLAUDE_V40]: {
-      modelKey: AWS_COMPLETIONS_CLAUDE_V40,
+    [AWS_COMPLETIONS_CLAUDE_SONNET_V40]: {
+      modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V40,
       urn: "us.anthropic.claude-4-0-preview-20250514-v1:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,
@@ -69,11 +69,11 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
           maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].maxTotalTokens,
         },
         secondaryCompletion: {
-          modelKey: AWS_COMPLETIONS_CLAUDE_V40,
+          modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V40,
           urnEnvKey: "TEST_V40_MODEL",
           purpose: LLMPurpose.COMPLETIONS,
-          maxCompletionTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V40].maxCompletionTokens,
-          maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V40].maxTotalTokens,
+          maxCompletionTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V40].maxCompletionTokens,
+          maxTotalTokens: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V40].maxTotalTokens,
         },
       },
     };
@@ -84,7 +84,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
       resolvedModels: {
         embeddings: mockModelsMetadata.EMBEDDINGS.urn,
         primaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V37].urn,
-        secondaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_V40].urn,
+        secondaryCompletion: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V40].urn,
       },
       errorLogger: createMockErrorLogger(),
     };
@@ -128,7 +128,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
       const testPrompt = "Analyze large codebase";
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_CLAUDE_V40, testPrompt);
+      const requestBody = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_CLAUDE_SONNET_V40, testPrompt);
 
       // Verify structure includes beta header for 1M context
       expect(requestBody).toHaveProperty("anthropic_beta");
@@ -209,7 +209,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
 
       // Test with Claude 4.0 (64000 max tokens)
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const requestBody40 = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_CLAUDE_V40, "test");
+      const requestBody40 = llm["buildCompletionRequestBody"](AWS_COMPLETIONS_CLAUDE_SONNET_V40, "test");
       expect((requestBody40 as any).max_tokens).toBe(64000);
     });
 

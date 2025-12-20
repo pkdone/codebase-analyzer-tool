@@ -1,7 +1,7 @@
 import BedrockClaudeLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude-llm";
 import {
   bedrockClaudeProviderManifest,
-  AWS_COMPLETIONS_CLAUDE_V40,
+  AWS_COMPLETIONS_CLAUDE_SONNET_V40,
 } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 import {
   createBedrockMockEnv,
@@ -34,7 +34,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_V40,
+      AWS_COMPLETIONS_CLAUDE_SONNET_V40,
       "test prompt",
     );
 
@@ -56,7 +56,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_V40,
+      AWS_COMPLETIONS_CLAUDE_SONNET_V40,
       "test prompt",
     );
 
@@ -123,7 +123,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_V40,
+      AWS_COMPLETIONS_CLAUDE_SONNET_V40,
       "test prompt",
     );
 

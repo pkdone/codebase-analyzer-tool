@@ -1,6 +1,6 @@
 import { llmConfig } from "../../../config/llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { AWS_COMPLETIONS_CLAUDE_V40, AWS_COMPLETIONS_CLAUDE_V45 } from "./bedrock-claude.manifest";
+import { AWS_COMPLETIONS_CLAUDE_SONNET_V40, AWS_COMPLETIONS_CLAUDE_SONNET_V45 } from "./bedrock-claude.manifest";
 import { z } from "zod";
 import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
 
@@ -59,7 +59,7 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
 
     // Add anthropic_beta flags for Claude V40 model (1M-token context beta) if configured
     if (
-      [AWS_COMPLETIONS_CLAUDE_V40, AWS_COMPLETIONS_CLAUDE_V45].includes(modelKey) &&
+      [AWS_COMPLETIONS_CLAUDE_SONNET_V40, AWS_COMPLETIONS_CLAUDE_SONNET_V45].includes(modelKey) &&
       config.anthropicBetaFlags
     ) {
       return {
