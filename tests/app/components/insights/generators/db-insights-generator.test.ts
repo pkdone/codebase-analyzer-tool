@@ -1,14 +1,14 @@
 import "reflect-metadata";
-import InsightsFromDBGenerator from "../../../../src/app/components/insights/generators/db-insights-generator";
-import { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
-import { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
-import LLMRouter from "../../../../src/common/llm/llm-router";
-import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
-import { llmProviderConfig } from "../../../../src/common/llm/config/llm.config";
-import * as logging from "../../../../src/common/utils/logging";
+import InsightsFromDBGenerator from "../../../../../src/app/components/insights/generators/db-insights-generator";
+import { AppSummariesRepository } from "../../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
+import { SourcesRepository } from "../../../../../src/app/repositories/sources/sources.repository.interface";
+import LLMRouter from "../../../../../src/common/llm/llm-router";
+import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
+import { llmProviderConfig } from "../../../../../src/common/llm/config/llm.config";
+import * as logging from "../../../../../src/common/utils/logging";
 
 // Mock the logging utilities
-jest.mock("../../../../src/common/utils/logging", () => ({
+jest.mock("../../../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
   logOneLineWarning: jest.fn(),
 }));

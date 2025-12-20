@@ -1,5 +1,5 @@
 import { procedureTriggerSchema } from "../../schemas/sources.schema";
-import { COMPLEXITY_VALUES, COMPLEXITY_VALUES_SET } from "../../schemas/source-schema.enums";
+import { COMPLEXITY_VALUES, COMPLEXITY_VALUES_SET } from "../../schemas/sources.enums";
 import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
 import type {
   ProjectedFileTypesCountAndLines,

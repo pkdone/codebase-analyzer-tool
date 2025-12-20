@@ -10,11 +10,11 @@ import { coreTokens } from "../../../di/tokens";
 import { insightsTuningConfig } from "../insights.config";
 import { promptRegistry } from "../../../prompts/prompt-registry";
 import { AppSummaryCategories } from "../../../schemas/app-summaries.schema";
-import type { IInsightsProcessor } from "../insights-processor.interface";
+import type { IInsightsProcessor } from "./insights-processor.interface";
 import { AppSummaryCategoryEnum } from "../insights.types";
-import { ICompletionStrategy } from "../completion-strategies/completion-strategy.interface";
-import { SinglePassCompletionStrategy } from "../completion-strategies/single-pass-completion-strategy";
-import { MapReduceCompletionStrategy } from "../completion-strategies/map-reduce-completion-strategy";
+import { ICompletionStrategy } from "../strategies/completion-strategy.interface";
+import { SinglePassCompletionStrategy } from "../strategies/single-pass-completion-strategy";
+import { MapReduceCompletionStrategy } from "../strategies/map-reduce-completion-strategy";
 import { chunkTextByTokenLimit } from "../../../../common/llm/utils/text-chunking";
 
 /**

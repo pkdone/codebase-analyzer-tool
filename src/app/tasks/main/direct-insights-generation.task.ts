@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../../components/reporting/config/output.config";
 import { clearDirectory } from "../../../common/fs/directory-operations";
-import { RawAnalyzerDrivenByReqsFiles } from "../../components/insights/file-driven/raw-analyzer-driven-by-reqs-files";
+import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
 import type LLMStats from "../../../common/llm/tracking/llm-stats";
 import { Task } from "../task.types";
 import type { EnvVars } from "../../env/env.types";
@@ -23,7 +23,7 @@ export class FileBasedInsightsGenerationTask implements Task {
     @inject(llmTokens.LLMStats) private readonly llmStats: LLMStats,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(insightsTokens.PromptFileInsightsGenerator)
-    private readonly insightsFileGenerator: RawAnalyzerDrivenByReqsFiles,
+    private readonly insightsFileGenerator: PromptFileInsightsGenerator,
     @inject(coreTokens.ProjectName) private readonly projectName: string,
   ) {}
 

@@ -1,8 +1,8 @@
 import "reflect-metadata";
-import { ICompletionStrategy } from "../../../../../src/app/components/insights/completion-strategies/completion-strategy.interface";
-import { SinglePassCompletionStrategy } from "../../../../../src/app/components/insights/completion-strategies/single-pass-completion-strategy";
-import { MapReduceCompletionStrategy } from "../../../../../src/app/components/insights/completion-strategies/map-reduce-completion-strategy";
-import { executeInsightCompletion } from "../../../../../src/app/components/insights/completion-strategies/completion-executor";
+import { ICompletionStrategy } from "../../../../../src/app/components/insights/strategies/completion-strategy.interface";
+import { SinglePassCompletionStrategy } from "../../../../../src/app/components/insights/strategies/single-pass-completion-strategy";
+import { MapReduceCompletionStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-completion-strategy";
+import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/completion-executor";
 import {
   PartialAppSummaryRecord,
   AppSummaryCategoryEnum,

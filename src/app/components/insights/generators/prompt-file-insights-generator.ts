@@ -36,7 +36,7 @@ interface FileRequirementPrompt {
  * bypassing the database-driven workflow and writing output directly to files.
  */
 @injectable()
-export class RawAnalyzerDrivenByReqsFiles {
+export class PromptFileInsightsGenerator {
   /**
    * Constructor with dependency injection.
    */

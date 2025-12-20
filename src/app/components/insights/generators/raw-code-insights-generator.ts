@@ -5,7 +5,7 @@ import type { AppSummariesRepository } from "../../../repositories/app-summaries
 import { repositoryTokens } from "../../../di/tokens";
 import { llmTokens } from "../../../di/tokens";
 import { coreTokens } from "../../../di/tokens";
-import type { IInsightsProcessor } from "../insights-processor.interface";
+import type { IInsightsProcessor } from "./insights-processor.interface";
 import {
   formatDirectoryAsMarkdown,
   type DirectoryFormattingConfig,

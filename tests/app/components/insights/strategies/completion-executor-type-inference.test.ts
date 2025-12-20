@@ -1,4 +1,4 @@
-import { executeInsightCompletion } from "../../../../../src/app/components/insights/completion-strategies/completion-executor";
+import { executeInsightCompletion } from "../../../../../src/app/components/insights/strategies/completion-executor";
 import LLMRouter from "../../../../../src/common/llm/llm-router";
 import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
 import {

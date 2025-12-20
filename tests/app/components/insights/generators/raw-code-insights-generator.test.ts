@@ -1,27 +1,27 @@
 import "reflect-metadata";
 import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { z } from "zod";
-import InsightsFromRawCodeGenerator from "../../../../src/app/components/insights/generators/raw-code-insights-generator";
-import LLMRouter from "../../../../src/common/llm/llm-router";
-import type { AppSummariesRepository } from "../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
-import type { EnvVars } from "../../../../src/app/env/env.types";
-import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
-import { appSummaryRecordCategoriesSchema } from "../../../../src/app/components/insights/insights.types";
+import InsightsFromRawCodeGenerator from "../../../../../src/app/components/insights/generators/raw-code-insights-generator";
+import LLMRouter from "../../../../../src/common/llm/llm-router";
+import type { AppSummariesRepository } from "../../../../../src/app/repositories/app-summaries/app-summaries.repository.interface";
+import type { EnvVars } from "../../../../../src/app/env/env.types";
+import { LLMOutputFormat } from "../../../../../src/common/llm/types/llm.types";
+import { appSummaryRecordCategoriesSchema } from "../../../../../src/app/components/insights/insights.types";
 
 // Mock dependencies
-jest.mock("../../../../src/common/utils/logging", () => ({
+jest.mock("../../../../../src/common/utils/logging", () => ({
   logOneLineWarning: jest.fn(),
   logError: jest.fn(),
   logErrorMsg: jest.fn(),
 }));
 
-jest.mock("../../../../src/common/utils/directory-to-markdown", () => ({
+jest.mock("../../../../../src/common/utils/directory-to-markdown", () => ({
   formatDirectoryAsMarkdown: jest
     .fn<() => Promise<string>>()
     .mockResolvedValue("mock codebase content"),
 }));
 
-jest.mock("../../../../src/app/prompts/prompt-renderer", () => ({
+jest.mock("../../../../../src/app/prompts/prompt-renderer", () => ({
   renderPrompt: jest.fn<() => string>().mockReturnValue("mock rendered prompt"),
 }));
 

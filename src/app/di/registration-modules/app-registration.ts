@@ -19,8 +19,8 @@ import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
 // Insights component imports
 import InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
 import InsightsFromRawCodeGenerator from "../../components/insights/generators/raw-code-insights-generator";
-import { RawAnalyzerDrivenByReqsFiles } from "../../components/insights/file-driven/raw-analyzer-driven-by-reqs-files";
-import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
+import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
+import { InsightsProcessorSelector } from "../../components/insights/generators/insights-processor-selector";
 
 // Task imports (these are top-level orchestrators for CLI commands)
 import { CodebaseCaptureTask } from "../../tasks/main/codebase-capture.task";
@@ -94,7 +94,7 @@ function registerComponents(): void {
   // Register insights components
   container.registerSingleton(
     insightsTokens.PromptFileInsightsGenerator,
-    RawAnalyzerDrivenByReqsFiles,
+    PromptFileInsightsGenerator,
   );
   container.registerSingleton(insightsTokens.InsightsFromDBGenerator, InsightsFromDBGenerator);
   container.registerSingleton(

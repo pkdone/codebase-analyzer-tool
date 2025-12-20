@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { MapReduceCompletionStrategy } from "../../../../../src/app/components/insights/completion-strategies/map-reduce-completion-strategy";
+import { MapReduceCompletionStrategy } from "../../../../../src/app/components/insights/strategies/map-reduce-completion-strategy";
 import {
   PartialAppSummaryRecord,
   AppSummaryCategoryEnum,

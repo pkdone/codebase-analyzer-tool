@@ -1,17 +1,17 @@
 import { inject, injectable } from "tsyringe";
-import { coreTokens } from "../../di/tokens";
-import { insightsTokens } from "../../di/tokens";
-import { llmTokens } from "../../di/tokens";
-import LLMRouter from "../../../common/llm/llm-router";
-import type { EnvVars } from "../../env/env.types";
-import type InsightsFromDBGenerator from "./generators/db-insights-generator";
-import type InsightsFromRawCodeGenerator from "./generators/raw-code-insights-generator";
+import { coreTokens } from "../../../di/tokens";
+import { insightsTokens } from "../../../di/tokens";
+import { llmTokens } from "../../../di/tokens";
+import LLMRouter from "../../../../common/llm/llm-router";
+import type { EnvVars } from "../../../env/env.types";
+import type InsightsFromDBGenerator from "./db-insights-generator";
+import type InsightsFromRawCodeGenerator from "./raw-code-insights-generator";
 import {
   formatDirectoryAsMarkdown,
   type DirectoryFormattingConfig,
-} from "../../../common/utils/directory-to-markdown";
-import { fileProcessingConfig } from "../../components/capture/config/file-processing.config";
-import { llmProviderConfig } from "../../../common/llm/config/llm.config";
+} from "../../../../common/utils/directory-to-markdown";
+import { fileProcessingConfig } from "../../capture/config/file-processing.config";
+import { llmProviderConfig } from "../../../../common/llm/config/llm.config";
 
 /**
  * Service to determine which insights processor to use based on LLM capabilities.
