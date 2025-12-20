@@ -1,5 +1,5 @@
 import { container } from "tsyringe";
-import { coreTokens } from "../tokens";
+import { coreTokens, captureTokens, insightsTokens } from "../tokens";
 import { repositoryTokens } from "../tokens";
 import { taskTokens } from "../tokens";
 import { llmTokens } from "../tokens";
@@ -10,11 +10,17 @@ import AppSummariesRepositoryImpl from "../../repositories/app-summaries/app-sum
 import { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 
-// Domain-specific registration functions
-import { registerCaptureComponents } from "./capture-registration";
-import { registerInsightsComponents } from "./insights-registration";
+// Domain-specific registration function
 import { registerReportingComponents } from "./reporting-registration";
-import { registerQueryingComponents } from "./querying-registration";
+
+// Capture component imports
+import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
+
+// Insights component imports
+import InsightsFromDBGenerator from "../../components/insights/generators/db-insights-generator";
+import InsightsFromRawCodeGenerator from "../../components/insights/generators/raw-code-insights-generator";
+import { RawAnalyzerDrivenByReqsFiles } from "../../components/insights/file-driven/raw-analyzer-driven-by-reqs-files";
+import { InsightsProcessorSelector } from "../../components/insights/insights-processor-selector";
 
 // Task imports (these are top-level orchestrators for CLI commands)
 import { CodebaseCaptureTask } from "../../tasks/main/codebase-capture.task";
@@ -82,12 +88,23 @@ function registerComponents(): void {
   // Register database components
   container.registerSingleton(coreTokens.DatabaseInitializer, DatabaseInitializer);
 
-  // Register domain-specific components (including LLM-dependent ones)
-  // tsyringe's lazy-loading ensures components are only instantiated when actually needed
-  registerCaptureComponents();
-  registerInsightsComponents();
+  // Register capture components
+  container.registerSingleton(captureTokens.CodebaseToDBLoader, CodebaseToDBLoader);
+
+  // Register insights components
+  container.registerSingleton(
+    insightsTokens.PromptFileInsightsGenerator,
+    RawAnalyzerDrivenByReqsFiles,
+  );
+  container.registerSingleton(insightsTokens.InsightsFromDBGenerator, InsightsFromDBGenerator);
+  container.registerSingleton(
+    insightsTokens.InsightsFromRawCodeGenerator,
+    InsightsFromRawCodeGenerator,
+  );
+  container.registerSingleton(insightsTokens.InsightsProcessorSelector, InsightsProcessorSelector);
+
+  // Register reporting components (kept separate due to size)
   registerReportingComponents();
-  registerQueryingComponents();
 
   console.log("Internal helper components registered");
 }

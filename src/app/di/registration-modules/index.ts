@@ -3,11 +3,8 @@ import { registerBaseEnvDependencies, registerLlmEnvDependencies } from "./env-r
 import { registerAppDependencies } from "./app-registration";
 import { registerMongoDBDependencies } from "./mongodb-registration";
 
-// Domain-specific registration functions (exported for testing and advanced usage)
-import { registerCaptureComponents } from "./capture-registration";
-import { registerInsightsComponents } from "./insights-registration";
+// Domain-specific registration function (exported for testing and advanced usage)
 import { registerReportingComponents } from "./reporting-registration";
-import { registerQueryingComponents } from "./querying-registration";
 
 export {
   // Main registration functions
@@ -17,9 +14,6 @@ export {
   registerAppDependencies,
   registerMongoDBDependencies,
 
-  // Domain-specific registration functions
-  registerCaptureComponents,
-  registerInsightsComponents,
+  // Domain-specific registration function
   registerReportingComponents,
-  registerQueryingComponents,
 };

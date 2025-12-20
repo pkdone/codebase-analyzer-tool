@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { RawAnalyzerDrivenByReqsFiles } from "../../../../src/app/components/insights/generators/file-driven-insights-generator";
+import { RawAnalyzerDrivenByReqsFiles } from "../../../../src/app/components/insights/file-driven/raw-analyzer-driven-by-reqs-files";
 import LLMRouter from "../../../../src/common/llm/llm-router";
 
 jest.mock("../../../../src/common/fs/directory-operations", () => ({
