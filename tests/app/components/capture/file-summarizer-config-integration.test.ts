@@ -181,4 +181,3 @@ describe("file-summarizer sourceConfigMap integration", () => {
     });
   });
 });
-

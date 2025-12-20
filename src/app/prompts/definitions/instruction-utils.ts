@@ -65,4 +65,3 @@ export function buildInstructionBlock(
   }
   return `__${title}__\n${flattenedParts.join("\n")}`;
 }
-

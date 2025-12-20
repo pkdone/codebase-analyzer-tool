@@ -238,4 +238,3 @@ describe("sourceConfigMap.responseSchema", () => {
     });
   });
 });
-

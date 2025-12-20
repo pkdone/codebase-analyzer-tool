@@ -236,4 +236,3 @@ describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", (
     });
   });
 });
-

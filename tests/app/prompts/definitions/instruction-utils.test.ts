@@ -35,7 +35,9 @@ describe("instruction-utils", () => {
 
       expectedKeys.forEach((key) => {
         expect(INSTRUCTION_SECTION_TITLES).toHaveProperty(key);
-        expect(typeof INSTRUCTION_SECTION_TITLES[key as keyof typeof INSTRUCTION_SECTION_TITLES]).toBe("string");
+        expect(
+          typeof INSTRUCTION_SECTION_TITLES[key as keyof typeof INSTRUCTION_SECTION_TITLES],
+        ).toBe("string");
       });
     });
 
@@ -43,14 +45,18 @@ describe("instruction-utils", () => {
       expect(INSTRUCTION_SECTION_TITLES.BASIC_INFO).toBe("Basic Information");
       expect(INSTRUCTION_SECTION_TITLES.CLASS_INFO).toBe("Class Information");
       expect(INSTRUCTION_SECTION_TITLES.MODULE_INFO).toBe("Module Information");
-      expect(INSTRUCTION_SECTION_TITLES.PURPOSE_AND_IMPLEMENTATION).toBe("Purpose and Implementation");
+      expect(INSTRUCTION_SECTION_TITLES.PURPOSE_AND_IMPLEMENTATION).toBe(
+        "Purpose and Implementation",
+      );
       expect(INSTRUCTION_SECTION_TITLES.REFERENCES).toBe("References");
       expect(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS).toBe("References and Dependencies");
       expect(INSTRUCTION_SECTION_TITLES.PUBLIC_API).toBe("Public API");
       expect(INSTRUCTION_SECTION_TITLES.USER_INPUT_FIELDS).toBe("User Input Fields");
       expect(INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS).toBe("Integration Points");
       expect(INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION).toBe("Database Integration");
-      expect(INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS).toBe("Database Integration Analysis");
+      expect(INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS).toBe(
+        "Database Integration Analysis",
+      );
       expect(INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS).toBe("Code Quality Metrics");
       expect(INSTRUCTION_SECTION_TITLES.UI_FRAMEWORK_DETECTION).toBe("User Interface Framework");
       expect(INSTRUCTION_SECTION_TITLES.DEPENDENCIES).toBe("Dependencies");
@@ -167,7 +173,11 @@ describe("instruction-utils", () => {
       });
 
       it("should match the pattern used in sources.config.ts", () => {
-        const baseInstructions = ["The name of the main class", "Its kind", "Its namespace"] as const;
+        const baseInstructions = [
+          "The name of the main class",
+          "Its kind",
+          "Its namespace",
+        ] as const;
         const purpose = "A detailed definition of its purpose";
         const implementation = "A detailed definition of its implementation";
 
@@ -251,4 +261,3 @@ describe("instruction-utils", () => {
     });
   });
 });
-
