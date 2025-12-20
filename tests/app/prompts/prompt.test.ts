@@ -2,7 +2,7 @@ import { renderPrompt } from "../../../src/app/prompts/prompt-renderer";
 import { promptRegistry } from "../../../src/app/prompts/prompt-registry";
 import { FORCE_JSON_FORMAT, BASE_PROMPT_TEMPLATE } from "../../../src/app/prompts/templates";
 import { SOURCES_PROMPT_FRAGMENTS } from "../../../src/app/prompts/definitions/sources/sources.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-titles";
+import { INSTRUCTION_SECTION_TITLES } from "../../../src/app/prompts/definitions/instruction-utils";
 
 const fileTypePromptMetadata = promptRegistry.sources;
 

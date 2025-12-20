@@ -2,39 +2,6 @@ import { DataBlockHeader, PromptDefinition } from "../prompt.types";
 import { z } from "zod";
 
 /**
- * Builds a formatted instruction block from a title and a list of instruction parts.
- * The title is formatted with double underscores (__title__) and followed by a newline,
- * then all parts are joined with newlines.
- *
- * This is a local helper function used internally by the config files.
- * Exported for use in sources.config.ts and app-summaries.config.ts.
- *
- * @param title - The title for the instruction block (will be wrapped in __title__)
- * @param parts - Variable number of instruction parts, which can be strings or readonly string arrays
- * @returns A single formatted string with the title and joined parts
- *
- * @example
- * ```typescript
- * buildInstructionBlock(
- *   "Basic Info",
- *   ["Extract name", "Extract kind"],
- *   "Additional instruction"
- * )
- * // Returns: "__Basic Info__\nExtract name\nExtract kind\nAdditional instruction"
- * ```
- */
-export function buildInstructionBlock(
-  title: string,
-  ...parts: (string | readonly string[])[]
-): string {
-  const flattenedParts = parts.flat();
-  if (flattenedParts.length === 0) {
-    return `__${title}__`;
-  }
-  return `__${title}__\n${flattenedParts.join("\n")}`;
-}
-
-/**
  * Generic configuration entry that must have at least a label.
  * responseSchema is optional because some configs (like sources) build it dynamically.
  * Specific config types can extend this interface.

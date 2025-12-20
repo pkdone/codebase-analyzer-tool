@@ -5,7 +5,7 @@ import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
 import path from "node:path";
 import { promptRegistry } from "../../prompts/prompt-registry";
-import { sourcePromptSchemas } from "../../prompts/definitions/sources/sources.schemas";
+import { sourceConfigMap } from "../../prompts/definitions/sources/sources.config";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
 import {
@@ -82,11 +82,10 @@ export async function summarizeFile(
     if (content.trim().length === 0) throw new Error("File is empty");
     const canonicalFileType = getCanonicalFileType(filepath, type);
     const promptMetadata = promptRegistry.sources[canonicalFileType];
-    const schema = sourcePromptSchemas[canonicalFileType];
+    const schema = sourceConfigMap[canonicalFileType].responseSchema;
     const renderedPrompt = renderPrompt(promptMetadata, { content });
 
-    // Use strongly-typed schema from the sourcePromptSchemas map.
-    // This ensures proper type inference throughout the call chain.
+    // Use schema from sourceConfigMap.responseSchema directly.
     // Each file type uses .pick() to request only relevant fields (improves token efficiency).
     const completionOptions = {
       outputFormat: LLMOutputFormat.JSON,
@@ -95,16 +94,22 @@ export async function summarizeFile(
       sanitizerConfig: getSchemaSpecificSanitizerConfig(),
     } as const;
 
-    // The response type is now correctly inferred from the strongly-typed schema.
-    // Type safety is maintained throughout the entire call chain.
-    const response = await llmRouter.executeCompletion(filepath, renderedPrompt, completionOptions);
+    // Execute completion with the file-type-specific schema.
+    // The schema is z.ZodType, so we explicitly cast the response as PartialSourceSummaryType
+    // which accurately represents the union of all possible returned fields.
+    // The type assertion is safe because the schema is derived from sourceSummarySchema.pick().
+    const response = (await llmRouter.executeCompletion(
+      filepath,
+      renderedPrompt,
+      completionOptions,
+    )) as PartialSourceSummaryType | null;
 
     if (response === null) {
       throw new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "LLM returned null response");
     }
 
-    // The response is correctly typed as a partial summary based on the picked schema.
-    // No type assertion needed - the return type accurately reflects the runtime data.
+    // The response is typed as PartialSourceSummaryType, representing the subset
+    // of fields that were actually requested for this file type.
     return response;
   } catch (error: unknown) {
     const errorMsg = `Failed to generate summary for '${filepath}'`;

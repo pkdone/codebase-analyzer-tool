@@ -4,7 +4,7 @@ import {
   type PartialSourceSummaryType,
 } from "../../../../src/app/components/capture/file-summarizer";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
-import { sourcePromptSchemas } from "../../../../src/app/prompts/definitions/sources/sources.schemas";
+import { sourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.config";
 
 // Mock LLMRouter for testing
 const createMockLLMRouter = (mockResponse: unknown): LLMRouter => {
@@ -143,10 +143,10 @@ describe("file-summarizer Partial Types", () => {
 
   describe("Schema Validation", () => {
     it("should use picked schemas that return partial types", () => {
-      // Verify that the schemas are properly typed as returning partial data
-      const javaSchema = sourcePromptSchemas.java;
-      const sqlSchema = sourcePromptSchemas.sql;
-      const defaultSchema = sourcePromptSchemas.default;
+      // Verify that the schemas from sourceConfigMap are properly typed as returning partial data
+      const javaSchema = sourceConfigMap.java.responseSchema;
+      const sqlSchema = sourceConfigMap.sql.responseSchema;
+      const defaultSchema = sourceConfigMap.default.responseSchema;
 
       // All schemas should be ZodObjects
       expect(javaSchema).toBeInstanceOf(z.ZodObject);

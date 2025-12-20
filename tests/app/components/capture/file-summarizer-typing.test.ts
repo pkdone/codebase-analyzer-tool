@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { summarizeFile } from "../../../../src/app/components/capture/file-summarizer";
 import type LLMRouter from "../../../../src/common/llm/llm-router";
-import { sourcePromptSchemas } from "../../../../src/app/prompts/definitions/sources/sources.schemas";
+import { sourceConfigMap } from "../../../../src/app/prompts/definitions/sources/sources.config";
 import type { CanonicalFileType } from "../../../../src/app/components/capture/config/file-types.config";
 
 // Mock LLMRouter for testing
@@ -52,8 +52,8 @@ describe("file-summarizer Type Safety", () => {
       const callArgs = (mockRouter.executeCompletion as jest.Mock).mock.calls[0];
       const options = callArgs[2];
 
-      // Verify that the schema used is the Java schema
-      expect(options.jsonSchema).toBe(sourcePromptSchemas.java);
+      // Verify that the schema used is the Java schema from sourceConfigMap
+      expect(options.jsonSchema).toBe(sourceConfigMap.java.responseSchema);
 
       // Verify the result has expected Java-specific fields
       expect(result).toHaveProperty("name");
@@ -94,8 +94,8 @@ describe("file-summarizer Type Safety", () => {
       const callArgs = (mockRouter.executeCompletion as jest.Mock).mock.calls[0];
       const options = callArgs[2];
 
-      // Verify that the schema used is the SQL schema
-      expect(options.jsonSchema).toBe(sourcePromptSchemas.sql);
+      // Verify that the schema used is the SQL schema from sourceConfigMap
+      expect(options.jsonSchema).toBe(sourceConfigMap.sql.responseSchema);
 
       // Verify the result has expected SQL-specific fields
       expect(result).toHaveProperty("tables");
@@ -127,8 +127,8 @@ describe("file-summarizer Type Safety", () => {
       const callArgs = (mockRouter.executeCompletion as jest.Mock).mock.calls[0];
       const options = callArgs[2];
 
-      // Verify that the schema used is the Maven schema
-      expect(options.jsonSchema).toBe(sourcePromptSchemas.maven);
+      // Verify that the schema used is the Maven schema from sourceConfigMap
+      expect(options.jsonSchema).toBe(sourceConfigMap.maven.responseSchema);
 
       // Verify the result has expected Maven-specific fields
       expect(result).toHaveProperty("dependencies");
@@ -156,8 +156,8 @@ describe("file-summarizer Type Safety", () => {
       const callArgs = (mockRouter.executeCompletion as jest.Mock).mock.calls[0];
       const options = callArgs[2];
 
-      // Verify that the schema used is the default schema
-      expect(options.jsonSchema).toBe(sourcePromptSchemas.default);
+      // Verify that the schema used is the default schema from sourceConfigMap
+      expect(options.jsonSchema).toBe(sourceConfigMap.default.responseSchema);
 
       // Verify the result has core required fields
       expect(result).toHaveProperty("purpose");
@@ -258,7 +258,7 @@ describe("file-summarizer Type Safety", () => {
 
   describe("Schema Consistency", () => {
     it("should use strongly-typed schemas matching the config", () => {
-      // Verify that each schema in sourcePromptSchemas is a ZodObject
+      // Verify that each schema in sourceConfigMap is a ZodObject
       const fileTypes: CanonicalFileType[] = [
         "java",
         "javascript",
@@ -272,7 +272,7 @@ describe("file-summarizer Type Safety", () => {
       ];
 
       for (const fileType of fileTypes) {
-        const schema = sourcePromptSchemas[fileType];
+        const schema = sourceConfigMap[fileType].responseSchema;
         expect(schema).toBeInstanceOf(z.ZodObject);
 
         // Verify all schemas include the required core fields

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { sourcePromptSchemas } from "../../../../../src/app/prompts/definitions/sources/sources.schemas";
 import { sourceConfigMap } from "../../../../../src/app/prompts/definitions/sources/sources.config";
 import { sourceSummarySchema } from "../../../../../src/app/schemas/sources.schema";
 import {
@@ -7,27 +6,33 @@ import {
   type CanonicalFileType,
 } from "../../../../../src/app/components/capture/config/file-types.config";
 
-describe("sourcePromptSchemas", () => {
+/**
+ * Tests for sourceConfigMap.responseSchema schemas.
+ * These tests verify that the response schemas defined directly in sourceConfigMap
+ * are correctly structured and provide the expected type validation.
+ */
+describe("sourceConfigMap.responseSchema", () => {
   describe("Schema Map Completeness", () => {
     it("should have a schema for every canonical file type", () => {
-      const schemaKeys = Object.keys(sourcePromptSchemas).sort();
+      const configKeys = Object.keys(sourceConfigMap).sort();
       const expectedKeys = [...CANONICAL_FILE_TYPES].sort();
 
-      expect(schemaKeys).toEqual(expectedKeys);
+      expect(configKeys).toEqual(expectedKeys);
     });
 
-    it("should have matching keys with sourceConfigMap", () => {
-      const schemaKeys = Object.keys(sourcePromptSchemas).sort();
-      const configKeys = Object.keys(sourceConfigMap).sort();
-
-      expect(schemaKeys).toEqual(configKeys);
+    it("should have responseSchema defined for all config entries", () => {
+      for (const fileType of CANONICAL_FILE_TYPES) {
+        const config = sourceConfigMap[fileType];
+        expect(config.responseSchema).toBeDefined();
+        expect(config.responseSchema).toBeInstanceOf(z.ZodType);
+      }
     });
   });
 
   describe("Schema Type Validation", () => {
     it("should have all schemas as ZodObject instances", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const schema = sourcePromptSchemas[fileType];
+        const schema = sourceConfigMap[fileType].responseSchema;
         expect(schema).toBeInstanceOf(z.ZodObject);
       }
     });
@@ -74,22 +79,11 @@ describe("sourcePromptSchemas", () => {
       ];
 
       for (const { fileType, expectedFields } of testCases) {
-        const schema = sourcePromptSchemas[fileType];
+        const schema = sourceConfigMap[fileType].responseSchema;
         const shape = (schema as z.ZodObject<z.ZodRawShape>).shape;
         const actualFields = Object.keys(shape).sort();
 
         expect(actualFields).toEqual(expectedFields.sort());
-      }
-    });
-
-    it("should derive schemas from sourceConfigMap.responseSchema", () => {
-      for (const fileType of CANONICAL_FILE_TYPES) {
-        const schemaFromMap = sourcePromptSchemas[fileType];
-        const schemaFromConfig = sourceConfigMap[fileType].responseSchema;
-
-        // The schemas should be the same instance since sourcePromptSchemas
-        // now derives directly from sourceConfigMap.responseSchema
-        expect(schemaFromMap).toBe(schemaFromConfig);
       }
     });
   });
@@ -99,7 +93,7 @@ describe("sourcePromptSchemas", () => {
       const fullSchemaKeys = Object.keys(sourceSummarySchema.shape);
 
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const schema = sourcePromptSchemas[fileType];
+        const schema = sourceConfigMap[fileType].responseSchema;
         const shape = (schema as z.ZodObject<z.ZodRawShape>).shape;
         const pickedKeys = Object.keys(shape);
 
@@ -112,7 +106,7 @@ describe("sourcePromptSchemas", () => {
 
     it("should include required fields purpose and implementation for all file types", () => {
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const schema = sourcePromptSchemas[fileType];
+        const schema = sourceConfigMap[fileType].responseSchema;
         const shape = (schema as z.ZodObject<z.ZodRawShape>).shape;
         const fields = Object.keys(shape);
 
@@ -124,13 +118,8 @@ describe("sourcePromptSchemas", () => {
   });
 
   describe("Type Inference", () => {
-    it("should allow type inference for a specific file type", () => {
-      // This test verifies that TypeScript can infer types correctly
-      type JavaSchema = typeof sourcePromptSchemas.java;
-      type JavaInferredType = z.infer<JavaSchema>;
-
-      // Create a sample object that matches the inferred type
-      const sampleJavaSummary: JavaInferredType = {
+    it("should validate a minimal Java summary", () => {
+      const sampleJavaSummary = {
         name: "TestClass",
         kind: "CLASS",
         namespace: "com.example.test",
@@ -151,16 +140,12 @@ describe("sourcePromptSchemas", () => {
         },
       };
 
-      // Validate the sample object against the schema
-      const result = sourcePromptSchemas.java.safeParse(sampleJavaSummary);
+      const result = sourceConfigMap.java.responseSchema.safeParse(sampleJavaSummary);
       expect(result.success).toBe(true);
     });
 
     it("should validate a minimal SQL summary", () => {
-      type SQLSchema = typeof sourcePromptSchemas.sql;
-      type SQLInferredType = z.infer<SQLSchema>;
-
-      const sampleSQLSummary: SQLInferredType = {
+      const sampleSQLSummary = {
         purpose: "Defines database schema",
         implementation: "Creates tables and stored procedures",
         tables: [{ name: "users", fields: "id, name, email" }],
@@ -173,7 +158,7 @@ describe("sourcePromptSchemas", () => {
         },
       };
 
-      const result = sourcePromptSchemas.sql.safeParse(sampleSQLSummary);
+      const result = sourceConfigMap.sql.responseSchema.safeParse(sampleSQLSummary);
       expect(result.success).toBe(true);
     });
 
@@ -188,7 +173,7 @@ describe("sourcePromptSchemas", () => {
         },
       };
 
-      const result = sourcePromptSchemas.default.safeParse(sampleDefaultSummary);
+      const result = sourceConfigMap.default.responseSchema.safeParse(sampleDefaultSummary);
       expect(result.success).toBe(true);
     });
   });
@@ -200,7 +185,7 @@ describe("sourcePromptSchemas", () => {
         // Missing 'purpose' and 'implementation' which are required
       };
 
-      const result = sourcePromptSchemas.java.safeParse(invalidJavaSummary);
+      const result = sourceConfigMap.java.responseSchema.safeParse(invalidJavaSummary);
       expect(result.success).toBe(false);
     });
 
@@ -211,7 +196,7 @@ describe("sourcePromptSchemas", () => {
         // All other fields are optional and can be omitted
       };
 
-      const result = sourcePromptSchemas.java.safeParse(minimalJavaSummary);
+      const result = sourceConfigMap.java.responseSchema.safeParse(minimalJavaSummary);
       expect(result.success).toBe(true);
     });
 
@@ -222,11 +207,35 @@ describe("sourcePromptSchemas", () => {
         extraField: "This should be allowed due to passthrough",
       };
 
-      const result = sourcePromptSchemas.default.safeParse(summaryWithExtraField);
+      const result = sourceConfigMap.default.responseSchema.safeParse(summaryWithExtraField);
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toHaveProperty("extraField");
       }
     });
   });
+
+  describe("Config Entry Structure", () => {
+    it("should have contentDesc for all file types", () => {
+      for (const fileType of CANONICAL_FILE_TYPES) {
+        expect(sourceConfigMap[fileType].contentDesc).toBeDefined();
+        expect(typeof sourceConfigMap[fileType].contentDesc).toBe("string");
+      }
+    });
+
+    it("should have instructions array for all file types", () => {
+      for (const fileType of CANONICAL_FILE_TYPES) {
+        expect(sourceConfigMap[fileType].instructions).toBeDefined();
+        expect(Array.isArray(sourceConfigMap[fileType].instructions)).toBe(true);
+      }
+    });
+
+    it("should have non-empty instructions for code file types", () => {
+      const codeFileTypes: CanonicalFileType[] = ["java", "javascript", "python", "csharp", "ruby"];
+      for (const fileType of codeFileTypes) {
+        expect(sourceConfigMap[fileType].instructions.length).toBeGreaterThan(0);
+      }
+    });
+  });
 });
+

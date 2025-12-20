@@ -1,7 +1,7 @@
-import { buildInstructionBlock } from "../../../src/app/prompts/definitions/prompt-factory";
+import { buildInstructionBlock } from "../../../src/app/prompts/definitions/instruction-utils";
 
 describe("Prompt Factory Refactoring Tests", () => {
-  describe("buildInstructionBlock moved from prompt-utils", () => {
+  describe("buildInstructionBlock in instruction-utils", () => {
     test("should build instruction block with title and parts", () => {
       const result = buildInstructionBlock("Basic Info", "Extract name", "Extract kind");
 
@@ -47,9 +47,9 @@ describe("Prompt Factory Refactoring Tests", () => {
       expect(result).toBe("__Readonly__\nPart 1\nPart 2");
     });
 
-    test("should be accessible from prompt-factory module", () => {
+    test("should be accessible from instruction-utils module", () => {
       // This test verifies that buildInstructionBlock is properly exported
-      // from prompt-factory after being moved from prompt-utils
+      // from instruction-utils (co-located with INSTRUCTION_SECTION_TITLES)
       expect(typeof buildInstructionBlock).toBe("function");
     });
   });

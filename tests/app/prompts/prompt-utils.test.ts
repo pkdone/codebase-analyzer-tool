@@ -1,8 +1,8 @@
-import { buildInstructionBlock } from "../../../src/app/prompts/definitions/prompt-factory";
+import { buildInstructionBlock } from "../../../src/app/prompts/definitions/instruction-utils";
 
 /**
  * Tests for buildInstructionBlock function.
- * Note: This function was moved from prompt-utils.ts to prompt-factory.ts as part of refactoring.
+ * Note: This function is now in instruction-utils.ts alongside INSTRUCTION_SECTION_TITLES.
  */
 describe("buildInstructionBlock", () => {
   describe("basic functionality", () => {

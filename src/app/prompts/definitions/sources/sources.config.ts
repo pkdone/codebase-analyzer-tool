@@ -1,8 +1,7 @@
 import { z } from "zod";
 import type { CanonicalFileType } from "../../../components/capture/config/file-types.config";
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "./sources.fragments";
-import { INSTRUCTION_SECTION_TITLES } from "../instruction-titles";
-import { buildInstructionBlock } from "../prompt-factory";
+import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../instruction-utils";
 import { sourceSummarySchema } from "../../../schemas/sources.schema";
 
 /**
