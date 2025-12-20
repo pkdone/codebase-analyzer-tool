@@ -47,7 +47,7 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
       urnEnvKey: BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,
-      maxTotalTokens: 1_000_000,
+      maxTotalTokens: 200_000,
     },
     secondaryCompletion: {
       modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
