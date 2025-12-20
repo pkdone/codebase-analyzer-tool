@@ -21,6 +21,9 @@ import {
   sanitizeSchemaForProvider,
 } from "../../../utils/schema-sanitizer";
 
+// Constant for the VertexAI API endpoint base domain
+const VERTEXAI_API_ENDPOINT = "aiplatform.googleapis.com";
+
 // Constant for the finish reasons that are considered terminal and should be rejected
 const VERTEXAI_TERMINAL_FINISH_REASONS = [
   FinishReason.BLOCKLIST,
@@ -45,16 +48,32 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
 
   /**
    * Constructor
+   *
+   * Supports separate locations for embeddings and completions:
+   * - VERTEXAI_EMBEDDINGS_LOCATION: Regional location for embeddings (e.g., "us-central1")
+   * - VERTEXAI_COMPLETIONS_LOCATION: Location for completions (can be "global" for preview models)
    */
   constructor(init: import("../../llm-provider.types").ProviderInit) {
     super(init);
     const project = init.providerParams.VERTEXAI_PROJECTID as string;
-    const location = init.providerParams.VERTEXAI_LOCATION as string;
-    this.vertexAiApiClient = new VertexAI({ project, location });
-    this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
-      apiEndpoint: `${location}-aiplatform.googleapis.com`,
+    const embeddingsLocation = init.providerParams.VERTEXAI_EMBEDDINGS_LOCATION as string;
+    const completionsLocation = init.providerParams.VERTEXAI_COMPLETIONS_LOCATION as string;
+
+    // For 'global' location, the API endpoint is the base domain (no region prefix)
+    // For regional locations, the SDK automatically constructs '{location}-aiplatform.googleapis.com'
+    const completionsApiEndpoint =
+      completionsLocation === "global" ? VERTEXAI_API_ENDPOINT : undefined;
+    this.vertexAiApiClient = new VertexAI({
+      project,
+      location: completionsLocation,
+      ...(completionsApiEndpoint && { apiEndpoint: completionsApiEndpoint }),
     });
-    this.apiEndpointPrefix = `projects/${project}/locations/${location}/publishers/google/models/`;
+
+    // Use the specified regional location for embeddings
+    this.embeddingsApiClient = new aiplatform.PredictionServiceClient({
+      apiEndpoint: `${embeddingsLocation}-${VERTEXAI_API_ENDPOINT}`,
+    });
+    this.apiEndpointPrefix = `projects/${project}/locations/${embeddingsLocation}/publishers/google/models/`;
   }
 
   /**

@@ -90,7 +90,11 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
 
     const init: ProviderInit = {
       manifest: vertexAIGeminiProviderManifest,
-      providerParams: { VERTEXAI_PROJECTID: "test-project", VERTEXAI_LOCATION: "us-central1" },
+      providerParams: {
+        VERTEXAI_PROJECTID: "test-project",
+        VERTEXAI_EMBEDDINGS_LOCATION: "us-central1",
+        VERTEXAI_COMPLETIONS_LOCATION: "us-central1",
+      },
       resolvedModels: {
         embeddings: mockModelsMetadata.GEMINI_EMBEDDINGS.urn,
         primaryCompletion: mockModelsMetadata.GEMINI_COMPLETIONS.urn,

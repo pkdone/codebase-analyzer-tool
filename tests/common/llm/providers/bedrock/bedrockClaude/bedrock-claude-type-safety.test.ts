@@ -1,7 +1,7 @@
 import BedrockClaudeLLM from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude-llm";
 import {
   bedrockClaudeProviderManifest,
-  AWS_COMPLETIONS_CLAUDE_SONNET_V40,
+  AWS_COMPLETIONS_CLAUDE_OPUS_V45,
 } from "../../../../../../src/common/llm/providers/bedrock/bedrockClaude/bedrock-claude.manifest";
 import {
   createBedrockMockEnv,
@@ -22,7 +22,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     "anthropic.claude-3-7-sonnet-20250219-v1:0",
   );
 
-  it("should safely access anthropicBetaFlags from provider config for Claude V40", () => {
+  it("should safely access anthropicBetaFlags from provider config for Claude Opus 4.5", () => {
     const customManifest = {
       ...bedrockClaudeProviderManifest,
       providerSpecificConfig: {
@@ -34,7 +34,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_SONNET_V40,
+      AWS_COMPLETIONS_CLAUDE_OPUS_V45,
       "test prompt",
     );
 
@@ -45,7 +45,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     expect(requestBody.messages[0].content[0].text).toBe("test prompt");
   });
 
-  it("should work without anthropicBetaFlags for Claude V40", () => {
+  it("should work without anthropicBetaFlags for Claude Opus 4.5", () => {
     const { anthropicBetaFlags: _anthropicBetaFlags, ...configWithoutBeta } =
       bedrockClaudeProviderManifest.providerSpecificConfig as any;
     const manifestWithoutBeta = {
@@ -56,7 +56,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_SONNET_V40,
+      AWS_COMPLETIONS_CLAUDE_OPUS_V45,
       "test prompt",
     );
 
@@ -65,7 +65,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     expect(requestBody.anthropic_version).toBe("bedrock-2023-05-31");
   });
 
-  it("should not include anthropicBetaFlags for non-V40 Claude models", () => {
+  it("should not include anthropicBetaFlags for non-supported Claude models", () => {
     const customManifest = {
       ...bedrockClaudeProviderManifest,
       models: {
@@ -92,7 +92,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
       "test prompt",
     );
 
-    // anthropic_beta should not be included for non-V40 models
+    // anthropic_beta should not be included for non-supported models
     expect(requestBody.anthropic_beta).toBeUndefined();
     expect(requestBody.anthropic_version).toBe("bedrock-2023-05-31");
   });
@@ -123,7 +123,7 @@ describe("BedrockClaudeLLM - Type Safety", () => {
     const llm = new BedrockClaudeLLM(init);
 
     const requestBody = (llm as any).buildCompletionRequestBody(
-      AWS_COMPLETIONS_CLAUDE_SONNET_V40,
+      AWS_COMPLETIONS_CLAUDE_OPUS_V45,
       "test prompt",
     );
 
