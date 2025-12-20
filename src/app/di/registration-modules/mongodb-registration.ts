@@ -1,7 +1,7 @@
 import { container } from "tsyringe";
 import { coreTokens } from "../tokens";
 import { MongoDBConnectionManager } from "../../../common/mongodb/mdb-connection-manager";
-import { databaseConfig } from "../../repositories/config/database.config";
+import { databaseConfig } from "../../components/database/database.config";
 import type { EnvVars } from "../../env/env.types";
 
 /**

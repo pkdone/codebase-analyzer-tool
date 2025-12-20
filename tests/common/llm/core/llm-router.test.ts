@@ -245,6 +245,18 @@ describe("LLM Router tests", () => {
       expect(mockProvider.getModelsMetadata).toHaveBeenCalled();
     });
 
+    test("should store the LLM provider instance with a descriptive name", () => {
+      const { router } = createLLMRouter();
+
+      // Verify that the router has the activeLlmProvider field (implementation detail test)
+      // This tests that the field is named appropriately to indicate it's the active provider
+      expect((router as any).activeLlmProvider).toBeDefined();
+      expect((router as any).activeLlmProvider.getModelFamily).toBeDefined();
+
+      // Verify the old generic name 'llm' is not used
+      expect((router as any).llm).toBeUndefined();
+    });
+
     test("should return manifest via getLLMManifest()", () => {
       const { router, mockManifest } = createLLMRouter();
       const manifest = router.getLLMManifest();

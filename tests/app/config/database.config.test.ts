@@ -1,4 +1,4 @@
-import { databaseConfig } from "../../../src/app/repositories/config/database.config";
+import { databaseConfig } from "../../../src/app/components/database/database.config";
 
 describe("databaseConfig", () => {
   describe("basic configuration", () => {

@@ -2,19 +2,19 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { MongoClient, Db, Collection, IndexSpecification, MongoServerError } from "mongodb";
 import type { JsonSchema7Type } from "zod-to-json-schema";
-import { coreTokens } from "../di/tokens";
-import { databaseConfig } from "../repositories/config/database.config";
-import { logError } from "../../common/utils/logging";
-import { getJSONSchema as getSourcesJSONSchema } from "../repositories/sources/sources.model";
-import { getJSONSchema as getAppSummariesJSONSchema } from "../repositories/app-summaries/app-summaries.model";
+import { coreTokens } from "../../di/tokens";
+import { databaseConfig } from "./database.config";
+import { logError } from "../../../common/utils/logging";
+import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
+import { getJSONSchema as getAppSummariesJSONSchema } from "../../repositories/app-summaries/app-summaries.model";
 import {
   VectorSearchFilter,
   createVectorSearchIndexDefinition,
-} from "../../common/mongodb/mdb-index-utils";
+} from "../../../common/mongodb/mdb-index-utils";
 import {
   MONGODB_DUPLICATE_OBJ_ERROR_CODES_SET,
   MONGODB_NAMESPACE_EXISTS_ERROR_CODE,
-} from "../../common/mongodb/mdb.constants";
+} from "../../../common/mongodb/mdb.constants";
 
 /**
  * Component responsible for database schema initialization and management.

@@ -26,20 +26,20 @@ import { InsightsProcessorSelector } from "../../components/insights/insights-pr
 import { CodebaseCaptureTask } from "../../tasks/main/codebase-capture.task";
 import { CodebaseQueryTask } from "../../tasks/main/code-query.task";
 import { InsightsGenerationTask } from "../../tasks/main/insights-generation.task";
-import { DirectInsightsGenerationTask } from "../../tasks/main/direct-insights-generation.task";
+import { FileBasedInsightsGenerationTask } from "../../tasks/main/direct-insights-generation.task";
 import { MongoConnectionTestTask } from "../../tasks/dev/mdb-connection-test.task";
 import { PluggableLLMsTestTask } from "../../tasks/dev/test-pluggable-llms.task";
 import { ReportGenerationTask } from "../../tasks/main/report-generation.task";
 
 // Configuration import
-import { databaseConfig } from "../../repositories/config/database.config";
+import { databaseConfig } from "../../components/database/database.config";
 
 // LLM strategy and pipeline imports
 import { RetryStrategy } from "../../../common/llm/strategies/retry-strategy";
 import { LLMExecutionPipeline } from "../../../common/llm/llm-execution-pipeline";
 
 // Database component imports
-import { DatabaseInitializer } from "../../tasks/database-initializer";
+import { DatabaseInitializer } from "../../components/database/database-initializer";
 
 /**
  * Register all application-level dependencies (repositories, components, and tasks).
@@ -132,8 +132,8 @@ function registerLLMDependentTasks(): void {
   container.registerSingleton(taskTokens.CodebaseCaptureTask, CodebaseCaptureTask);
   container.registerSingleton(taskTokens.InsightsGenerationTask, InsightsGenerationTask);
   container.registerSingleton(
-    taskTokens.DirectInsightsGenerationTask,
-    DirectInsightsGenerationTask,
+    taskTokens.FileBasedInsightsGenerationTask,
+    FileBasedInsightsGenerationTask,
   );
   container.registerSingleton(taskTokens.PluggableLLMsTestTask, PluggableLLMsTestTask);
   console.log("LLM-dependent tasks registered with simplified singleton registrations");

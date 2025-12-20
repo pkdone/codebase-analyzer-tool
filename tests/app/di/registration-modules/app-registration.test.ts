@@ -33,7 +33,7 @@ describe("App Registration Module", () => {
       expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
       expect(container.isRegistered(taskTokens.CodebaseCaptureTask)).toBe(true);
       expect(container.isRegistered(taskTokens.InsightsGenerationTask)).toBe(true);
-      expect(container.isRegistered(taskTokens.DirectInsightsGenerationTask)).toBe(true);
+      expect(container.isRegistered(taskTokens.FileBasedInsightsGenerationTask)).toBe(true);
       expect(container.isRegistered(taskTokens.PluggableLLMsTestTask)).toBe(true);
     });
 

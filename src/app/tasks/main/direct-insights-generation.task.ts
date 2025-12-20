@@ -11,10 +11,11 @@ import { insightsTokens } from "../../di/tokens";
 import { coreTokens } from "../../di/tokens";
 
 /**
- * Task to generate inline insights.
+ * Task to generate file-based insights from prompt files in the input/requirements directory.
+ * This task uses a file-driven workflow that bypasses the database-centric approach.
  */
 @injectable()
-export class DirectInsightsGenerationTask implements Task {
+export class FileBasedInsightsGenerationTask implements Task {
   /**
    * Constructor with dependency injection.
    */

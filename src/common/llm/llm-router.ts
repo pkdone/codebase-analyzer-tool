@@ -33,7 +33,7 @@ import { LLMErrorLogger } from "./tracking/llm-error-logger";
  */
 export default class LLMRouter {
   // Private fields
-  private readonly llm: LLMProvider;
+  private readonly activeLlmProvider: LLMProvider;
   private readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
   private readonly completionCandidates: LLMCandidateFunction[];
   private readonly providerRetryConfig: LLMRetryConfig;
@@ -66,11 +66,11 @@ export default class LLMRouter {
       resolvedModels: config.resolvedModels,
       errorLogger: this.errorLogger,
     };
-    this.llm = new this.manifest.implementation(init);
+    this.activeLlmProvider = new this.manifest.implementation(init);
 
-    this.modelsMetadata = this.llm.getModelsMetadata();
+    this.modelsMetadata = this.activeLlmProvider.getModelsMetadata();
     this.providerRetryConfig = this.manifest.providerSpecificConfig;
-    this.completionCandidates = buildCompletionCandidates(this.llm);
+    this.completionCandidates = buildCompletionCandidates(this.activeLlmProvider);
 
     if (this.completionCandidates.length === 0) {
       throw new LLMError(
@@ -86,7 +86,7 @@ export default class LLMRouter {
    * Check if the underlying provider needs a forced shutdown.
    */
   providerNeedsForcedShutdown(): boolean {
-    return this.llm.needsForcedShutdown();
+    return this.activeLlmProvider.needsForcedShutdown();
   }
 
   /**
@@ -106,21 +106,21 @@ export default class LLMRouter {
    * ```
    */
   async shutdown(): Promise<void> {
-    await this.llm.close();
+    await this.activeLlmProvider.close();
   }
 
   /**
    * Get the model family of the LLM implementation.
    */
   getModelFamily(): string {
-    return this.llm.getModelFamily();
+    return this.activeLlmProvider.getModelFamily();
   }
 
   /**
    * Get a human-readable description of the models being used by the LLM provider.
    */
   getModelsUsedDescription(): string {
-    const models = this.llm.getModelsNames();
+    const models = this.activeLlmProvider.getModelsNames();
     const candidateDescriptions = this.completionCandidates
       .map((candidate) => {
         const modelId =
@@ -130,14 +130,14 @@ export default class LLMRouter {
         return `${candidate.modelQuality}: ${modelId}`;
       })
       .join(", ");
-    return `${this.llm.getModelFamily()} (embeddings: ${models.embeddings}, completions - ${candidateDescriptions})`;
+    return `${this.activeLlmProvider.getModelFamily()} (embeddings: ${models.embeddings}, completions - ${candidateDescriptions})`;
   }
 
   /**
    * Get the dimensions for the embeddings model.
    */
   getEmbeddingModelDimensions(): number | undefined {
-    return this.llm.getEmbeddingModelDimensions();
+    return this.activeLlmProvider.getEmbeddingModelDimensions();
   }
 
   /**
@@ -161,8 +161,8 @@ export default class LLMRouter {
     };
     // Cast embedding function to LLMFunction for pipeline compatibility.
     // This is safe because embeddings don't use schema-based inference and always return number[].
-    const embeddingFn = this.llm.generateEmbeddings.bind(
-      this.llm,
+    const embeddingFn = this.activeLlmProvider.generateEmbeddings.bind(
+      this.activeLlmProvider,
     ) as unknown as LLMEmbeddingFunction;
     const contentResponse = await embeddingFn(content, context);
 

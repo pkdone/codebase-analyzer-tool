@@ -1,6 +1,6 @@
 import { AppSummariesRepository } from "./app-summaries.repository.interface";
 import { AppSummaryRecordWithId, PartialAppSummaryRecord } from "./app-summaries.model";
-import { databaseConfig } from "../config/database.config";
+import { databaseConfig } from "../../components/database/database.config";
 import { logMongoValidationErrorIfPresent } from "../../../common/mongodb/mdb-error-utils";
 import { MongoClient, Collection } from "mongodb";
 import { coreTokens } from "../../di/tokens";

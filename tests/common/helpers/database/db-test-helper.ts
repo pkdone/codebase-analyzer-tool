@@ -3,7 +3,7 @@ import { container } from "tsyringe";
 import { MongoClient } from "mongodb";
 import { randomUUID } from "crypto";
 import { coreTokens } from "../../../../src/app/di/tokens";
-import { databaseConfig } from "../../../../src/app/repositories/config/database.config";
+import { databaseConfig } from "../../../../src/app/components/database/database.config";
 import { registerAppDependencies } from "../../../../src/app/di/registration-modules";
 import { loadManifestForModelFamily } from "../../../../src/common/llm/utils/manifest-loader";
 
@@ -84,7 +84,7 @@ export async function setupTestDatabase(): Promise<MongoClient> {
 
   // Initialize the schema in the new test database
   const databaseInitializer = container.resolve<
-    import("../../../../src/app/tasks/database-initializer").DatabaseInitializer
+    import("../../../../src/app/components/database/database-initializer").DatabaseInitializer
   >(coreTokens.DatabaseInitializer);
   const vectorDimensions = await getVectorDimensions();
   await databaseInitializer.initializeDatabaseSchema(vectorDimensions);
