@@ -317,9 +317,10 @@ export default abstract class AbstractLLM implements LLMProvider {
       };
     }
 
-    // Early return for non-JSON output format
+    // Early return for non-JSON output format (TEXT mode)
     if (completionOptions.outputFormat !== LLMOutputFormat.JSON) {
-      // Runtime validation: TEXT format must return string
+      // Runtime validation: TEXT format must return string.
+      // This validates the type before assignment to ensure type safety.
       if (typeof responseContent !== "string") {
         throw new LLMError(
           LLMErrorCode.BAD_RESPONSE_CONTENT,
@@ -327,6 +328,13 @@ export default abstract class AbstractLLM implements LLMProvider {
           responseContent,
         );
       }
+      // Type assertion explanation:
+      // For TEXT output, the generic S defaults to z.ZodType when no schema is provided,
+      // making z.infer<S> resolve to `any`. However, we've validated at runtime that
+      // responseContent is a string. The API boundary (LLMRouter.executeCompletion overloads)
+      // provides the correct type (string | null) to callers, so this internal `any` is
+      // safely bounded and doesn't leak to consumers.
+      // See: isTextOptions type guard in llm.types.ts for type-safe narrowing at call sites.
       return {
         ...skeletonResult,
         status: LLMResponseStatus.COMPLETED,

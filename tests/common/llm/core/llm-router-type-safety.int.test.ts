@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { describe, test, expect } from "@jest/globals";
-import { LLMOutputFormat } from "../../../../src/common/llm/types/llm.types";
+import {
+  LLMOutputFormat,
+  LLMCompletionOptions,
+  isJsonOptionsWithSchema,
+  isTextOptions,
+} from "../../../../src/common/llm/types/llm.types";
 import { processJson } from "../../../../src/common/llm/json-processing/core/json-processing";
 import { validateJsonWithTransforms } from "../../../../src/common/llm/json-processing/core/json-validating";
 
@@ -471,6 +476,158 @@ describe("LLMRouter Type Safety Integration Tests", () => {
       if (result.success) {
         expect(result.transformSteps).toEqual([]);
       }
+    });
+  });
+
+  describe("TEXT Output Path Type Safety", () => {
+    test("should preserve string type through options for TEXT output", () => {
+      const options = {
+        outputFormat: LLMOutputFormat.TEXT,
+      };
+
+      // Simulate what the pipeline returns for TEXT
+      const mockResponse = "This is a text response";
+
+      // Type should be string when format is TEXT
+      if (options.outputFormat === LLMOutputFormat.TEXT) {
+        const result: string = mockResponse;
+        expect(typeof result).toBe("string");
+        expect(result.toUpperCase()).toBe("THIS IS A TEXT RESPONSE");
+      }
+    });
+
+    test("should correctly narrow types using isTextOptions guard", () => {
+      const textOptions: LLMCompletionOptions = {
+        outputFormat: LLMOutputFormat.TEXT,
+      };
+
+      // Test type narrowing with guard
+      if (isTextOptions(textOptions)) {
+        // TypeScript should know this is TEXT
+        expect(textOptions.outputFormat).toBe(LLMOutputFormat.TEXT);
+        expect(textOptions.jsonSchema).toBeUndefined();
+      } else {
+        // This branch should not execute
+        expect(true).toBe(false);
+      }
+    });
+
+    test("should correctly narrow types using isJsonOptionsWithSchema guard", () => {
+      const schema = z.object({ value: z.string() });
+
+      const jsonOptions: LLMCompletionOptions<typeof schema> = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
+
+      // Test type narrowing with guard
+      if (isJsonOptionsWithSchema(jsonOptions)) {
+        // TypeScript should know options.jsonSchema exists
+        const validated = jsonOptions.jsonSchema.parse({ value: "test" });
+        expect(validated.value).toBe("test");
+      } else {
+        // This branch should not execute
+        expect(true).toBe(false);
+      }
+    });
+
+    test("should distinguish between TEXT and JSON with type guards", () => {
+      const schema = z.object({ data: z.string() });
+
+      const jsonOptions: LLMCompletionOptions<typeof schema> = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
+
+      const textOptions: LLMCompletionOptions = {
+        outputFormat: LLMOutputFormat.TEXT,
+      };
+
+      // JSON with schema
+      expect(isJsonOptionsWithSchema(jsonOptions)).toBe(true);
+      expect(isTextOptions(jsonOptions)).toBe(false);
+
+      // TEXT
+      expect(isJsonOptionsWithSchema(textOptions)).toBe(false);
+      expect(isTextOptions(textOptions)).toBe(true);
+    });
+
+    test("should handle conditional logic pattern with type guards", () => {
+      const schema = z.object({ result: z.boolean() });
+      const options: LLMCompletionOptions<typeof schema> | undefined = {
+        outputFormat: LLMOutputFormat.JSON,
+        jsonSchema: schema,
+      };
+
+      let pathTaken = "";
+
+      if (isJsonOptionsWithSchema(options)) {
+        // JSON with schema path
+        const parsed = options.jsonSchema.safeParse({ result: true });
+        expect(parsed.success).toBe(true);
+        pathTaken = "json";
+      } else if (isTextOptions(options)) {
+        // TEXT path - should not execute for this test
+        pathTaken = "text";
+      }
+
+      expect(pathTaken).toBe("json");
+    });
+
+    test("should handle TEXT options in conditional pattern", () => {
+      const options: LLMCompletionOptions = {
+        outputFormat: LLMOutputFormat.TEXT,
+      };
+
+      let pathTaken = "";
+
+      if (isJsonOptionsWithSchema(options)) {
+        pathTaken = "json";
+      } else if (isTextOptions(options)) {
+        pathTaken = "text";
+        // TypeScript knows this is TEXT output
+        expect(options.outputFormat).toBe(LLMOutputFormat.TEXT);
+      }
+
+      expect(pathTaken).toBe("text");
+    });
+
+    test("should work with string operations after TEXT type narrowing", () => {
+      const textOptions: LLMCompletionOptions = {
+        outputFormat: LLMOutputFormat.TEXT,
+      };
+
+      // Mock TEXT response
+      const mockTextResponse = "  response with whitespace  ";
+
+      if (isTextOptions(textOptions)) {
+        // String operations should work
+        const trimmed = mockTextResponse.trim();
+        expect(trimmed).toBe("response with whitespace");
+
+        const upper = mockTextResponse.toUpperCase();
+        expect(upper).toBe("  RESPONSE WITH WHITESPACE  ");
+
+        const words = mockTextResponse.trim().split(" ");
+        expect(words).toHaveLength(3);
+      }
+    });
+
+    test("should handle undefined options correctly with type guards", () => {
+      const undefinedOptions: LLMCompletionOptions | undefined = undefined;
+
+      expect(isJsonOptionsWithSchema(undefinedOptions)).toBe(false);
+      expect(isTextOptions(undefinedOptions)).toBe(false);
+    });
+
+    test("should handle JSON options without schema correctly", () => {
+      const jsonNoSchema: LLMCompletionOptions = {
+        outputFormat: LLMOutputFormat.JSON,
+      };
+
+      // Neither guard should return true for JSON without schema
+      expect(isJsonOptionsWithSchema(jsonNoSchema)).toBe(false);
+      expect(isTextOptions(jsonNoSchema)).toBe(false);
     });
   });
 });

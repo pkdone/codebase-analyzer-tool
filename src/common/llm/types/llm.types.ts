@@ -210,6 +210,71 @@ export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions 
     : LLMGeneratedContent;
 
 /**
+ * Type-safe completion options for JSON output with a schema.
+ * Used for discriminated union pattern to enable better type narrowing.
+ */
+export interface JsonCompletionOptions<S extends z.ZodType = z.ZodType>
+  extends LLMCompletionOptions<S> {
+  outputFormat: LLMOutputFormat.JSON;
+  jsonSchema: S;
+}
+
+/**
+ * Type-safe completion options for TEXT output.
+ * Used for discriminated union pattern to enable better type narrowing.
+ */
+export interface TextCompletionOptions extends Omit<LLMCompletionOptions, "jsonSchema"> {
+  outputFormat: LLMOutputFormat.TEXT;
+  jsonSchema?: never;
+}
+
+/**
+ * Type guard to check if options are for JSON output with a schema.
+ * Enables TypeScript to narrow the type when checking output format.
+ *
+ * @param options - The completion options to check
+ * @returns True if options specify JSON output with a schema
+ *
+ * @example
+ * ```typescript
+ * if (isJsonOptionsWithSchema(options)) {
+ *   // TypeScript knows options.jsonSchema exists here
+ *   const validated = options.jsonSchema.parse(data);
+ * }
+ * ```
+ */
+export function isJsonOptionsWithSchema<S extends z.ZodType>(
+  options: LLMCompletionOptions<S> | undefined,
+): options is JsonCompletionOptions<S> {
+  return (
+    options !== undefined &&
+    options.outputFormat === LLMOutputFormat.JSON &&
+    options.jsonSchema !== undefined
+  );
+}
+
+/**
+ * Type guard to check if options are for TEXT output.
+ * Enables TypeScript to narrow the type when checking output format.
+ *
+ * @param options - The completion options to check
+ * @returns True if options specify TEXT output
+ *
+ * @example
+ * ```typescript
+ * if (isTextOptions(options)) {
+ *   // TypeScript knows this is TEXT output, no schema expected
+ *   const result: string = response.generated;
+ * }
+ * ```
+ */
+export function isTextOptions(
+  options: LLMCompletionOptions | undefined,
+): options is TextCompletionOptions {
+  return options !== undefined && options.outputFormat === LLMOutputFormat.TEXT;
+}
+
+/**
  * Type to define the LLM response with type-safe generated content.
  * The generic type parameter T represents the type of the generated content,
  * which is inferred from the Zod schema when JSON validation is used.
