@@ -7,8 +7,9 @@ import { isJsonObject } from "../utils/type-guards";
 
 /**
  * Recursively traverse a JSON Schema object and replace unsupported keywords for MongoDB.
- * Currently handles conversion of `const: <value>` to `enum: [<value>]` since MongoDB
- * does not support the JSON Schema `const` keyword (error: Unknown $jsonSchema keyword: const).
+ * Handles:
+ * - Conversion of `const: <value>` to `enum: [<value>]` (MongoDB doesn't support `const`)
+ * - Removal of `default` keyword (MongoDB doesn't support `default` in $jsonSchema)
  */
 function sanitizeMongoUnsupportedKeywords(schema: unknown): unknown {
   if (Array.isArray(schema)) {
@@ -24,6 +25,8 @@ function sanitizeMongoUnsupportedKeywords(schema: unknown): unknown {
           sanitized.enum = [value];
         }
         // Skip adding const to sanitized object
+      } else if (key === "default") {
+        // Skip default keyword - MongoDB doesn't support it in $jsonSchema validation
       } else {
         sanitized[key] = sanitizeMongoUnsupportedKeywords(value);
       }
