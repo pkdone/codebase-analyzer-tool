@@ -230,8 +230,15 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"id": 1, "name": "Widget", "price": 19.99}');
 
+      // Bind options to create BoundLLMFunction
+      const boundFn = async (content: string, ctx: LLMContext) =>
+        testLLM.executeCompletionPrimary(content, ctx, {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: productSchema,
+        });
+
       const result = await retryStrategy.executeWithRetries(
-        testLLM.executeCompletionPrimary,
+        boundFn,
         "test prompt",
         testContext,
         {
@@ -240,10 +247,7 @@ describe("Type Safety Chain - End to End", () => {
           minRetryDelayMillis: 1000,
           maxRetryDelayMillis: 5000,
         },
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: productSchema,
-        },
+        true, // retryOnInvalid
       );
 
       expect(result).not.toBeNull();
@@ -263,8 +267,15 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse("[1, 2, 3, 4, 5]");
 
+      // Bind options to create BoundLLMFunction
+      const boundFn = async (content: string, ctx: LLMContext) =>
+        testLLM.executeCompletionPrimary(content, ctx, {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: numbersSchema,
+        });
+
       const result = await retryStrategy.executeWithRetries(
-        testLLM.executeCompletionPrimary,
+        boundFn,
         "test prompt",
         testContext,
         {
@@ -273,10 +284,7 @@ describe("Type Safety Chain - End to End", () => {
           minRetryDelayMillis: 1000,
           maxRetryDelayMillis: 5000,
         },
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: numbersSchema,
-        },
+        true, // retryOnInvalid
       );
 
       expect(result).not.toBeNull();
@@ -306,11 +314,18 @@ describe("Type Safety Chain - End to End", () => {
         '{"status": "success", "data": {"items": ["a", "b", "c"], "count": 3}, "timestamp": "2024-01-01T00:00:00Z"}',
       );
 
+      // Bind options to create BoundLLMFunction
+      const boundFn = async (content: string, ctx: LLMContext) =>
+        testLLM.executeCompletionPrimary(content, ctx, {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: complexSchema,
+        });
+
       const result = await executionPipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context: testContext,
-        llmFunctions: [testLLM.executeCompletionPrimary],
+        llmFunctions: [boundFn],
         providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
@@ -318,10 +333,6 @@ describe("Type Safety Chain - End to End", () => {
           maxRetryDelayMillis: 5000,
         },
         modelsMetadata: testModelsMetadata,
-        completionOptions: {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: complexSchema,
-        },
       });
 
       expect(result.success).toBe(true);
@@ -342,11 +353,18 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"type": "text", "content": "hello"}');
 
+      // Bind options to create BoundLLMFunction
+      const boundFn = async (content: string, ctx: LLMContext) =>
+        testLLM.executeCompletionPrimary(content, ctx, {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: unionSchema,
+        });
+
       const result = await executionPipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context: testContext,
-        llmFunctions: [testLLM.executeCompletionPrimary],
+        llmFunctions: [boundFn],
         providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
@@ -354,10 +372,6 @@ describe("Type Safety Chain - End to End", () => {
           maxRetryDelayMillis: 5000,
         },
         modelsMetadata: testModelsMetadata,
-        completionOptions: {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: unionSchema,
-        },
       });
 
       expect(result.success).toBe(true);
@@ -521,8 +535,15 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"verified": true, "timestamp": "2024-01-01"}');
 
+      // Bind options to create BoundLLMFunction
+      const boundFn = async (content: string, ctx: LLMContext) =>
+        testLLM.executeCompletionPrimary(content, ctx, {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: verificationSchema,
+        });
+
       const result = await retryStrategy.executeWithRetries(
-        testLLM.executeCompletionPrimary,
+        boundFn,
         "test",
         testContext,
         {
@@ -531,10 +552,7 @@ describe("Type Safety Chain - End to End", () => {
           minRetryDelayMillis: 1000,
           maxRetryDelayMillis: 5000,
         },
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: verificationSchema,
-        },
+        true, // retryOnInvalid
       );
 
       expect(result).not.toBeNull();
@@ -553,11 +571,18 @@ describe("Type Safety Chain - End to End", () => {
 
       testLLM.setMockResponse('{"status": "success", "code": 200}');
 
+      // Bind options to create BoundLLMFunction
+      const boundFn = async (content: string, ctx: LLMContext) =>
+        testLLM.executeCompletionPrimary(content, ctx, {
+          outputFormat: LLMOutputFormat.JSON,
+          jsonSchema: pipelineSchema,
+        });
+
       const result = await executionPipeline.execute({
         resourceName: "test",
-        prompt: "test",
+        content: "test",
         context: testContext,
-        llmFunctions: [testLLM.executeCompletionPrimary],
+        llmFunctions: [boundFn],
         providerRetryConfig: {
           requestTimeoutMillis: 60000,
           maxRetryAttempts: 3,
@@ -565,10 +590,6 @@ describe("Type Safety Chain - End to End", () => {
           maxRetryDelayMillis: 5000,
         },
         modelsMetadata: testModelsMetadata,
-        completionOptions: {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: pipelineSchema,
-        },
       });
 
       expect(result.success).toBe(true);

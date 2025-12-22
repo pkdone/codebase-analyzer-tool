@@ -325,6 +325,22 @@ export type LLMEmbeddingFunction = (
 ) => Promise<LLMFunctionResponse<number[]>>;
 
 /**
+ * A bound LLM function ready for execution with options already applied.
+ * Generic over the response data type T, enabling a unified execution pipeline
+ * that handles both completions and embeddings.
+ *
+ * - For completions: T is z.infer<S> where S is the schema type
+ * - For embeddings: T is number[]
+ *
+ * This type allows the execution pipeline to work with a single code path
+ * while preserving type safety through the generic parameter.
+ */
+export type BoundLLMFunction<T> = (
+  content: string,
+  context: LLMContext,
+) => Promise<LLMFunctionResponse<T>>;
+
+/**
  * Type to define a candidate LLM function with its associated metadata.
  * The function uses call-site type inference from options.jsonSchema.
  */

@@ -5,7 +5,7 @@ import {
   LLMPurpose,
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
-  LLMEmbeddingFunction,
+  BoundLLMFunction,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
@@ -151,37 +151,51 @@ export default class LLMRouter {
   /**
    * Send the content to the LLM for it to generate and return the content's embedding.
    *
-   * Note: Embeddings use a separate function type (LLMEmbeddingFunction) that always returns
-   * number[], so we don't use the schema-based type inference here.
+   * Uses the unified execution pipeline which provides:
+   * - Retry logic for overloaded models
+   * - Prompt cropping when content exceeds context window
+   * - Statistics tracking (success, failure, retries, crops)
+   * - Consistent error handling and logging
+   *
+   * Embeddings use the same pipeline as completions but with a single-element function array
+   * (no model fallback) and retryOnInvalid=false (no JSON parsing for embeddings).
    */
   async generateEmbeddings(resourceName: string, content: string): Promise<number[] | null> {
     const context: LLMContext = {
       resource: resourceName,
       purpose: LLMPurpose.EMBEDDINGS,
     };
-    // Cast embedding function to LLMFunction for pipeline compatibility.
-    // This is safe because embeddings don't use schema-based inference and always return number[].
-    const embeddingFn = this.activeLlmProvider.generateEmbeddings.bind(
-      this.activeLlmProvider,
-    ) as unknown as LLMEmbeddingFunction;
-    const contentResponse = await embeddingFn(content, context);
 
-    if (contentResponse.status !== "completed") {
-      logOneLineWarning(`Failed to generate embeddings: ${contentResponse.status}`, context);
+    // Embedding function is already compatible with BoundLLMFunction<number[]>
+    const embeddingFn: BoundLLMFunction<number[]> = async (c: string, ctx: LLMContext) =>
+      this.activeLlmProvider.generateEmbeddings(c, ctx);
+
+    const result = await this.executionPipeline.execute<number[]>({
+      resourceName,
+      content,
+      context,
+      llmFunctions: [embeddingFn],
+      providerRetryConfig: this.providerRetryConfig,
+      modelsMetadata: this.modelsMetadata,
+      retryOnInvalid: false, // Embeddings don't have JSON parsing
+      trackJsonMutations: false, // No JSON mutations for embeddings
+    });
+
+    if (!result.success) {
+      // Error already logged by the execution pipeline
       return null;
     }
 
-    if (
-      !(
-        Array.isArray(contentResponse.generated) &&
-        contentResponse.generated.every((item: unknown) => typeof item === "number")
-      )
-    ) {
-      logOneLineWarning("LLM response for embeddings was not an array of numbers", context);
+    // Validate that the result is actually an array of numbers (embeddings)
+    if (!Array.isArray(result.data)) {
+      logOneLineWarning(
+        `Embedding response has invalid type: expected number[] but got ${typeof result.data}`,
+        context,
+      );
       return null;
     }
 
-    return contentResponse.generated;
+    return result.data;
   }
 
   /**
@@ -237,15 +251,21 @@ export default class LLMRouter {
       outputFormat: options.outputFormat,
     };
 
-    const result = await this.executionPipeline.execute<S>({
+    // Bind options to create BoundLLMFunction<z.infer<S>>[] for the unified pipeline
+    const boundFunctions: BoundLLMFunction<z.infer<S>>[] = candidateFunctions.map(
+      (fn) => async (content: string, ctx: LLMContext) => fn(content, ctx, options),
+    );
+
+    const result = await this.executionPipeline.execute<z.infer<S>>({
       resourceName,
-      prompt,
+      content: prompt,
       context,
-      llmFunctions: candidateFunctions,
+      llmFunctions: boundFunctions,
       providerRetryConfig: this.providerRetryConfig,
       modelsMetadata: this.modelsMetadata,
       candidateModels: candidatesToUse,
-      completionOptions: options,
+      retryOnInvalid: true,
+      trackJsonMutations: true,
     });
 
     if (!result.success) {

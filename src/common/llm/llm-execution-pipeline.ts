@@ -1,13 +1,12 @@
-import { z } from "zod";
-import {
+import type {
   LLMContext,
-  LLMResponseStatus,
   ResolvedLLMModelMetadata,
-  LLMCompletionOptions,
   LLMCandidateFunction,
   LLMFunctionResponse,
-  LLMFunction,
+  BoundLLMFunction,
+  LLMGeneratedContent,
 } from "./types/llm.types";
+import { LLMResponseStatus } from "./types/llm.types";
 import type { LLMRetryConfig } from "./providers/llm-provider.types";
 import { RetryStrategy } from "./strategies/retry-strategy";
 import { determineNextAction } from "./strategies/fallback-strategy";
@@ -19,25 +18,34 @@ import { LLMExecutionError } from "./types/llm-execution-result.types";
 import { logOneLineWarning } from "../utils/logging";
 
 /**
- * Parameters for executing an LLM function with the execution pipeline.
- * Groups all execution parameters into a single object for better maintainability.
- * Generic over the schema type S directly to simplify type inference.
+ * Parameters for executing LLM functions with the execution pipeline.
+ * Generic over the response data type T, enabling unified handling of both
+ * completions (T = z.infer<S>) and embeddings (T = number[]).
  */
-export interface LLMExecutionParams<S extends z.ZodType> {
+export interface LLMExecutionParams<T extends LLMGeneratedContent> {
   readonly resourceName: string;
-  readonly prompt: string;
+  readonly content: string;
   readonly context: LLMContext;
-  readonly llmFunctions: LLMFunction[];
+  /** Bound functions ready for execution. For embeddings, pass a single-element array. */
+  readonly llmFunctions: BoundLLMFunction<T>[];
   readonly providerRetryConfig: LLMRetryConfig;
   readonly modelsMetadata: Record<string, ResolvedLLMModelMetadata>;
+  /** Candidate models for tracking model quality switches. Optional for embeddings. */
   readonly candidateModels?: LLMCandidateFunction[];
-  readonly completionOptions?: LLMCompletionOptions<S>;
+  /** Whether to retry on INVALID status. Default true (for completions). Set false for embeddings. */
+  readonly retryOnInvalid?: boolean;
+  /** Whether to track JSON mutation stats. Default true (for completions). Set false for embeddings. */
+  readonly trackJsonMutations?: boolean;
 }
 
 /**
  * Encapsulates the complex orchestration logic for executing LLM functions with retries,
  * fallbacks, and prompt adaptation. This class was extracted from LLMRouter to improve
  * separation of concerns and testability.
+ *
+ * Handles both completions and embeddings through a unified code path:
+ * - Completions: Pass multiple bound functions for fallback support
+ * - Embeddings: Pass a single-element array (no fallback, but still gets retries and cropping)
  */
 export class LLMExecutionPipeline {
   constructor(
@@ -46,45 +54,44 @@ export class LLMExecutionPipeline {
   ) {}
 
   /**
-   * Executes an LLM function applying a series of before and after non-functional aspects
+   * Executes LLM functions applying a series of before and after non-functional aspects
    * (e.g. retries, switching LLM qualities, truncating large prompts).
    *
-   * Context is just an optional object of key value pairs which will be retained with the LLM
-   * request and subsequent response for convenient debugging and error logging context.
+   * This unified method handles both completions and embeddings:
+   * - For completions: Pass bound functions with options, set retryOnInvalid=true
+   * - For embeddings: Pass single function in array, set retryOnInvalid=false
    *
-   * The return type is inferred from completionOptions.jsonSchema, enabling end-to-end
-   * type safety through the LLM call chain without requiring unsafe casts.
-   * Generic over the schema type S directly to simplify type inference.
-   * Return type uses z.infer<S> for schema-based type inference.
+   * Generic over the response data type T for type-safe results.
    */
-  async execute<S extends z.ZodType>(
-    params: LLMExecutionParams<S>,
-  ): Promise<LLMExecutionResult<z.infer<S>>> {
+  async execute<T extends LLMGeneratedContent>(
+    params: LLMExecutionParams<T>,
+  ): Promise<LLMExecutionResult<T>> {
     const {
       resourceName,
-      prompt,
+      content,
       context,
       llmFunctions,
       providerRetryConfig,
       modelsMetadata,
       candidateModels,
-      completionOptions,
+      retryOnInvalid = true,
+      trackJsonMutations = true,
     } = params;
 
     try {
       const result = await this.iterateOverLLMFunctions(
         resourceName,
-        prompt,
+        content,
         context,
         llmFunctions,
         providerRetryConfig,
         modelsMetadata,
         candidateModels,
-        completionOptions,
+        retryOnInvalid,
       );
 
       if (result) {
-        if (hasSignificantSanitizationSteps(result.mutationSteps)) {
+        if (trackJsonMutations && hasSignificantSanitizationSteps(result.mutationSteps)) {
           this.llmStats.recordJsonMutated();
         }
 
@@ -146,21 +153,23 @@ export class LLMExecutionPipeline {
    * Iterates through available LLM functions, attempting each until successful completion
    * or all options are exhausted.
    *
-   * The return type is inferred from completionOptions.jsonSchema via the schema type S.
-   * Generic over the schema type S directly to simplify type inference.
-   * Return type uses z.infer<S> for schema-based type inference.
+   * This unified method works for both completions and embeddings:
+   * - Completions with multiple functions: Full fallback support
+   * - Embeddings with single function: No fallback (naturally handled by array length check)
+   *
+   * Generic over the response data type T.
    */
-  private async iterateOverLLMFunctions<S extends z.ZodType>(
+  private async iterateOverLLMFunctions<T extends LLMGeneratedContent>(
     resourceName: string,
-    initialPrompt: string,
+    initialContent: string,
     context: LLMContext,
-    llmFunctions: LLMFunction[],
+    llmFunctions: BoundLLMFunction<T>[],
     providerRetryConfig: LLMRetryConfig,
     modelsMetadata: Record<string, ResolvedLLMModelMetadata>,
     candidateModels?: LLMCandidateFunction[],
-    completionOptions?: LLMCompletionOptions<S>,
-  ): Promise<LLMFunctionResponse<z.infer<S>> | null> {
-    let currentPrompt = initialPrompt;
+    retryOnInvalid = true,
+  ): Promise<LLMFunctionResponse<T> | null> {
+    let currentContent = initialContent;
     let llmFunctionIndex = 0;
 
     // Don't want to increment 'llmFuncIndex' before looping again, if going to crop prompt
@@ -168,10 +177,10 @@ export class LLMExecutionPipeline {
     while (llmFunctionIndex < llmFunctions.length) {
       const llmResponse = await this.retryStrategy.executeWithRetries(
         llmFunctions[llmFunctionIndex],
-        currentPrompt,
+        currentContent,
         context,
         providerRetryConfig,
-        completionOptions,
+        retryOnInvalid,
       );
 
       if (llmResponse?.status === LLMResponseStatus.COMPLETED) {
@@ -192,10 +201,10 @@ export class LLMExecutionPipeline {
       if (nextAction.shouldTerminate) break;
 
       if (nextAction.shouldCropPrompt && llmResponse) {
-        currentPrompt = adaptPromptFromResponse(currentPrompt, llmResponse, modelsMetadata);
+        currentContent = adaptPromptFromResponse(currentContent, llmResponse, modelsMetadata);
         this.llmStats.recordCrop();
 
-        if (currentPrompt.trim() === "") {
+        if (currentContent.trim() === "") {
           logOneLineWarning(
             `Prompt became empty after cropping for resource '${resourceName}', terminating attempts.`,
             context,

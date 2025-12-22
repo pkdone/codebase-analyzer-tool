@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
-import { z } from "zod";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import LLMStats from "../../../../src/common/llm/tracking/llm-stats";
 import { RetryStrategy } from "../../../../src/common/llm/strategies/retry-strategy";
@@ -10,18 +9,21 @@ import {
   LLMResponseStatus,
   LLMOutputFormat,
   LLMFunctionResponse,
-  LLMFunction,
+  BoundLLMFunction,
   LLMModelQuality,
+  LLMGeneratedContent,
 } from "../../../../src/common/llm/types/llm.types";
 import { SANITIZATION_STEP } from "../../../../src/common/llm/json-processing/sanitizers";
 
 /**
- * Helper to create a mock LLMFunction.
- * Since LLMFunction is now a generic function type, we need to cast the mock.
+ * Helper to create a mock BoundLLMFunction.
+ * BoundLLMFunction is a function that returns a specific response type.
  */
-function createMockLLMFunction(response: LLMFunctionResponse): LLMFunction {
+function createMockLLMFunction<T extends LLMGeneratedContent>(
+  response: LLMFunctionResponse<T>,
+): BoundLLMFunction<T> {
   // Use explicit async function to avoid Jest mock type inference issues
-  return (async () => response) as unknown as LLMFunction;
+  return async () => response;
 }
 
 describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
@@ -69,7 +71,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -80,7 +82,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(recordJsonMutatedSpy).toHaveBeenCalledTimes(1);
@@ -103,7 +104,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -114,7 +115,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
@@ -137,7 +137,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -148,7 +148,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
@@ -174,7 +173,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -185,7 +184,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
@@ -208,7 +206,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -219,7 +217,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
@@ -241,7 +238,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -252,7 +249,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(recordJsonMutatedSpy).not.toHaveBeenCalled();
@@ -280,7 +276,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -291,7 +287,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(recordJsonMutatedSpy).toHaveBeenCalledTimes(1);
@@ -317,7 +312,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       const result = await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -328,7 +323,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(result.success).toBe(false);
@@ -358,7 +352,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       const result = await pipeline.execute({
         resourceName: "failed-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -369,7 +363,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.TEXT },
       });
 
       expect(result.success).toBe(false);
@@ -384,9 +377,9 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
     test("should return LLMExecutionError with typed context when LLM function throws", async () => {
       const thrownError = new Error("Unexpected error");
-      const mockLLMFunction = (async () => {
+      const mockLLMFunction: BoundLLMFunction<LLMGeneratedContent> = async () => {
         throw thrownError;
-      }) as unknown as LLMFunction;
+      };
 
       const context: LLMContext = {
         resource: "exception-resource",
@@ -395,7 +388,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       const result = await pipeline.execute({
         resourceName: "exception-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -406,7 +399,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       // When LLM function throws, retry strategy catches it and returns null,
@@ -450,7 +442,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       const result = await testPipeline.execute({
         resourceName: "direct-exception-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -461,7 +453,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(result.success).toBe(false);
@@ -492,7 +483,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       const result = await pipeline.execute({
         resourceName: "parse-error-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -503,7 +494,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
         },
         modelsMetadata: {},
         candidateModels: undefined,
-        completionOptions: { outputFormat: LLMOutputFormat.JSON },
       });
 
       expect(result.success).toBe(false);
@@ -527,13 +517,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       pipeline = new LLMExecutionPipeline(retryStrategy, llmStats);
     });
 
-    test("should preserve object schema type through pipeline execution", async () => {
-      const configSchema = z.object({
-        enabled: z.boolean(),
-        maxItems: z.number(),
-        tags: z.array(z.string()),
-      });
-
+    test("should preserve object type through pipeline execution", async () => {
       const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
@@ -549,7 +533,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       const result = await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -559,10 +543,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
           maxRetryDelayMillis: 1000,
         },
         modelsMetadata: {},
-        completionOptions: {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: configSchema,
-        },
       });
 
       expect(result.success).toBe(true);
@@ -575,14 +555,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       }
     });
 
-    test("should preserve array schema type through pipeline execution", async () => {
-      const itemsSchema = z.array(
-        z.object({
-          id: z.number(),
-          name: z.string(),
-        }),
-      );
-
+    test("should preserve array type through pipeline execution", async () => {
       const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
@@ -601,7 +574,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       const result = await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -611,10 +584,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
           maxRetryDelayMillis: 1000,
         },
         modelsMetadata: {},
-        completionOptions: {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: itemsSchema,
-        },
       });
 
       expect(result.success).toBe(true);
@@ -626,22 +595,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
       }
     });
 
-    test("should preserve complex nested schema type", async () => {
-      const complexSchema = z.object({
-        user: z.object({
-          id: z.number(),
-          profile: z.object({
-            name: z.string(),
-            settings: z.object({
-              theme: z.string(),
-            }),
-          }),
-        }),
-        metadata: z.object({
-          version: z.string(),
-        }),
-      });
-
+    test("should preserve complex nested type", async () => {
       const mockLLMFunction = createMockLLMFunction({
         status: LLMResponseStatus.COMPLETED,
         request: "test",
@@ -670,7 +624,7 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
 
       const result = await pipeline.execute({
         resourceName: "test-resource",
-        prompt: "test prompt",
+        content: "test prompt",
         context,
         llmFunctions: [mockLLMFunction],
         providerRetryConfig: {
@@ -680,10 +634,6 @@ describe("LLMExecutionPipeline - JSON Mutation Detection", () => {
           maxRetryDelayMillis: 1000,
         },
         modelsMetadata: {},
-        completionOptions: {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: complexSchema,
-        },
       });
 
       expect(result.success).toBe(true);

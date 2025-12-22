@@ -1,16 +1,12 @@
 import "reflect-metadata";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
-import { z } from "zod";
 import { RetryStrategy } from "../../../../../src/common/llm/strategies/retry-strategy";
 import LLMStats from "../../../../../src/common/llm/tracking/llm-stats";
 import {
-  LLMFunction,
   LLMFunctionResponse,
   LLMContext,
-  LLMCompletionOptions,
   LLMResponseStatus,
   LLMPurpose,
-  LLMOutputFormat,
 } from "../../../../../src/common/llm/types/llm.types";
 import { LLMRetryConfig } from "../../../../../src/common/llm/providers/llm-provider.types";
 
@@ -65,11 +61,10 @@ describe("RetryStrategy", () => {
 
   describe("Successful Execution", () => {
     test("should return result immediately on successful first attempt", async () => {
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(mockSuccessResponse);
-
-      // Mock successful LLM function response
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(mockSuccessResponse);
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
+      mockLLMFunction.mockResolvedValue(mockSuccessResponse);
 
       // Mock p-retry to call the function and return its result
       (mockPRetry as any).mockImplementation(async (fn: any) => {
@@ -85,33 +80,30 @@ describe("RetryStrategy", () => {
 
       expect(result).toEqual(mockSuccessResponse);
       expect(mockLLMFunction).toHaveBeenCalledTimes(1);
-      expect(mockLLMFunction).toHaveBeenCalledWith("test prompt", mockContext, undefined);
+      expect(mockLLMFunction).toHaveBeenCalledWith("test prompt", mockContext);
     });
 
-    test("should pass completion options to LLM function", async () => {
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
-      const mockCompletionOptions: LLMCompletionOptions = { outputFormat: LLMOutputFormat.JSON };
-
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(mockSuccessResponse);
+    test("should pass retryOnInvalid flag correctly", async () => {
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
+      mockLLMFunction.mockResolvedValue(mockSuccessResponse);
 
       // Mock p-retry to call the function and return its result
       (mockPRetry as any).mockImplementation(async (fn: any) => {
         return await fn();
       });
 
+      // Test with retryOnInvalid = false (like for embeddings)
       await retryStrategy.executeWithRetries(
         mockLLMFunction,
         "test prompt",
         mockContext,
         mockProviderRetryConfig,
-        mockCompletionOptions,
+        false, // retryOnInvalid
       );
 
-      expect(mockLLMFunction).toHaveBeenCalledWith(
-        "test prompt",
-        mockContext,
-        mockCompletionOptions,
-      );
+      expect(mockLLMFunction).toHaveBeenCalledWith("test prompt", mockContext);
     });
   });
 
@@ -122,9 +114,11 @@ describe("RetryStrategy", () => {
         status: LLMResponseStatus.OVERLOADED,
       };
 
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
 
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>)
+      mockLLMFunction
         .mockResolvedValueOnce(overloadedResponse)
         .mockResolvedValueOnce(mockSuccessResponse);
 
@@ -146,9 +140,11 @@ describe("RetryStrategy", () => {
 
   describe("Configuration Handling", () => {
     test("should use provider retry config to build p-retry options", async () => {
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
 
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(mockSuccessResponse);
+      mockLLMFunction.mockResolvedValue(mockSuccessResponse);
       (mockPRetry as jest.MockedFunction<typeof mockPRetry>).mockResolvedValue(mockSuccessResponse);
 
       await retryStrategy.executeWithRetries(
@@ -162,7 +158,9 @@ describe("RetryStrategy", () => {
     });
 
     test("should handle minimal retry config with all required properties", async () => {
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
       const minimalConfig: LLMRetryConfig = {
         requestTimeoutMillis: 60000,
         maxRetryAttempts: 1,
@@ -170,7 +168,7 @@ describe("RetryStrategy", () => {
         maxRetryDelayMillis: 500,
       };
 
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(mockSuccessResponse);
+      mockLLMFunction.mockResolvedValue(mockSuccessResponse);
       (mockPRetry as jest.MockedFunction<typeof mockPRetry>).mockResolvedValue(mockSuccessResponse);
 
       await retryStrategy.executeWithRetries(
@@ -187,9 +185,11 @@ describe("RetryStrategy", () => {
   describe("Error Handling", () => {
     test("should return null when p-retry throws non-retryable errors", async () => {
       const nonRetryableError = new Error("Non-retryable error");
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
 
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockRejectedValue(nonRetryableError);
+      mockLLMFunction.mockRejectedValue(nonRetryableError);
 
       mockPRetry.mockRejectedValue(nonRetryableError);
 
@@ -209,9 +209,11 @@ describe("RetryStrategy", () => {
         status: LLMResponseStatus.OVERLOADED,
       };
 
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
 
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(overloadedResponse);
+      mockLLMFunction.mockResolvedValue(overloadedResponse);
       // Mock p-retry to simulate exhausted retries
       (mockPRetry as jest.MockedFunction<typeof mockPRetry>).mockRejectedValue(
         new Error("All retries exhausted"),
@@ -235,9 +237,11 @@ describe("RetryStrategy", () => {
         status: LLMResponseStatus.OVERLOADED,
       };
 
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
 
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(overloadedResponse);
+      mockLLMFunction.mockResolvedValue(overloadedResponse);
       (mockPRetry as jest.MockedFunction<typeof mockPRetry>).mockRejectedValue(
         new Error("LLM is overloaded"),
       );
@@ -265,9 +269,11 @@ describe("RetryStrategy", () => {
         status: LLMResponseStatus.INVALID,
       };
 
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
 
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(tokenLimitResponse);
+      mockLLMFunction.mockResolvedValue(tokenLimitResponse);
 
       const invalidError = Object.assign(new Error("Invalid response"), {
         retryableStatus: LLMResponseStatus.INVALID,
@@ -287,13 +293,8 @@ describe("RetryStrategy", () => {
   });
 
   describe("Type Safety with Schemas", () => {
-    test("should preserve object schema type through retry", async () => {
-      const userSchema = z.object({
-        id: z.number(),
-        name: z.string(),
-      });
-
-      const typedResponse: LLMFunctionResponse<z.infer<typeof userSchema>> = {
+    test("should preserve object type through retry", async () => {
+      const typedResponse: LLMFunctionResponse<Record<string, unknown>> = {
         status: LLMResponseStatus.COMPLETED,
         generated: { id: 1, name: "Alice" },
         request: "test prompt",
@@ -301,8 +302,10 @@ describe("RetryStrategy", () => {
         context: mockContext,
       };
 
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(typedResponse);
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
+      mockLLMFunction.mockResolvedValue(typedResponse);
       (mockPRetry as any).mockImplementation(async (fn: any) => await fn());
 
       const result = await retryStrategy.executeWithRetries(
@@ -310,27 +313,20 @@ describe("RetryStrategy", () => {
         "test prompt",
         mockContext,
         mockProviderRetryConfig,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: userSchema,
-        },
       );
 
       expect(result).not.toBeNull();
       expect(result?.status).toBe(LLMResponseStatus.COMPLETED);
 
       if (result?.status === LLMResponseStatus.COMPLETED && result.generated) {
-        // Type should be inferred as the schema type
         const data = result.generated as Record<string, unknown>;
         expect(data.id).toBe(1);
         expect(data.name).toBe("Alice");
       }
     });
 
-    test("should preserve array schema type through retry", async () => {
-      const arraySchema = z.array(z.number());
-
-      const typedResponse: LLMFunctionResponse<z.infer<typeof arraySchema>> = {
+    test("should preserve array type through retry", async () => {
+      const typedResponse: LLMFunctionResponse<number[]> = {
         status: LLMResponseStatus.COMPLETED,
         generated: [1, 2, 3, 4, 5],
         request: "test prompt",
@@ -338,8 +334,10 @@ describe("RetryStrategy", () => {
         context: mockContext,
       };
 
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>).mockResolvedValue(typedResponse);
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
+      mockLLMFunction.mockResolvedValue(typedResponse);
       (mockPRetry as any).mockImplementation(async (fn: any) => await fn());
 
       const result = await retryStrategy.executeWithRetries(
@@ -347,10 +345,6 @@ describe("RetryStrategy", () => {
         "test prompt",
         mockContext,
         mockProviderRetryConfig,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: arraySchema,
-        },
       );
 
       expect(result).not.toBeNull();
@@ -363,16 +357,7 @@ describe("RetryStrategy", () => {
       }
     });
 
-    test("should preserve nested schema type through retry with overload recovery", async () => {
-      const nestedSchema = z.object({
-        user: z.object({
-          id: z.number(),
-          profile: z.object({
-            name: z.string(),
-          }),
-        }),
-      });
-
+    test("should preserve nested type through retry with overload recovery", async () => {
       const overloadedResponse: LLMFunctionResponse = {
         status: LLMResponseStatus.OVERLOADED,
         request: "test prompt",
@@ -380,7 +365,7 @@ describe("RetryStrategy", () => {
         context: mockContext,
       };
 
-      const successResponse: LLMFunctionResponse<z.infer<typeof nestedSchema>> = {
+      const successResponse: LLMFunctionResponse<Record<string, unknown>> = {
         status: LLMResponseStatus.COMPLETED,
         generated: { user: { id: 1, profile: { name: "Bob" } } },
         request: "test prompt",
@@ -388,8 +373,10 @@ describe("RetryStrategy", () => {
         context: mockContext,
       };
 
-      const mockLLMFunction: LLMFunction = jest.fn() as jest.MockedFunction<LLMFunction>;
-      (mockLLMFunction as jest.MockedFunction<LLMFunction>)
+      const mockLLMFunction = jest.fn() as jest.MockedFunction<
+        (content: string, context: LLMContext) => Promise<LLMFunctionResponse>
+      >;
+      mockLLMFunction
         .mockResolvedValueOnce(overloadedResponse)
         .mockResolvedValueOnce(successResponse);
 
@@ -400,10 +387,6 @@ describe("RetryStrategy", () => {
         "test prompt",
         mockContext,
         mockProviderRetryConfig,
-        {
-          outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: nestedSchema,
-        },
       );
 
       expect(result).not.toBeNull();

@@ -1,10 +1,9 @@
 import pRetry, { FailedAttemptError } from "p-retry";
-import { z } from "zod";
 import type {
   LLMFunctionResponse,
   LLMContext,
-  LLMCompletionOptions,
-  LLMFunction,
+  BoundLLMFunction,
+  LLMGeneratedContent,
 } from "../types/llm.types";
 import { LLMResponseStatus } from "../types/llm.types";
 import type { LLMRetryConfig } from "../providers/llm-provider.types";
@@ -38,31 +37,34 @@ export class RetryStrategy {
   /**
    * Execute an LLM function with retry logic for overloaded or invalid responses.
    *
-   * The return type is inferred from the completionOptions.jsonSchema, enabling
-   * end-to-end type safety through the LLM call chain.
-   * Generic over the schema type S directly to simplify type inference.
-   * Return type uses z.infer<S> for schema-based type inference.
+   * Generic over the response data type T, enabling unified handling of both
+   * completions (T = z.infer<S>) and embeddings (T = number[]).
+   *
+   * @param llmFunction - A bound function ready for execution
+   * @param content - The content/prompt to send to the LLM
+   * @param context - The LLM context for logging and tracking
+   * @param providerRetryConfig - Retry configuration from the provider
+   * @param retryOnInvalid - Whether to retry on INVALID status (true for completions, false for embeddings)
    */
-  async executeWithRetries<S extends z.ZodType>(
-    llmFunction: LLMFunction,
-    prompt: string,
+  async executeWithRetries<T extends LLMGeneratedContent>(
+    llmFunction: BoundLLMFunction<T>,
+    content: string,
     context: LLMContext,
     providerRetryConfig: LLMRetryConfig,
-    completionOptions?: LLMCompletionOptions<S>,
-  ): Promise<LLMFunctionResponse<z.infer<S>> | null> {
+    retryOnInvalid = true,
+  ): Promise<LLMFunctionResponse<T> | null> {
     try {
-      return await pRetry(
-        async () => {
-          // The result type is inferred from completionOptions
-          const result = await llmFunction(prompt, context, completionOptions);
+      const result = await pRetry<LLMFunctionResponse<T>>(
+        async (): Promise<LLMFunctionResponse<T>> => {
+          const response: LLMFunctionResponse<T> = await llmFunction(content, context);
 
-          if (result.status === LLMResponseStatus.OVERLOADED) {
+          if (response.status === LLMResponseStatus.OVERLOADED) {
             throw new RetryableError("LLM is overloaded", LLMResponseStatus.OVERLOADED);
-          } else if (result.status === LLMResponseStatus.INVALID) {
+          } else if (retryOnInvalid && response.status === LLMResponseStatus.INVALID) {
             throw new RetryableError("LLM response is invalid", LLMResponseStatus.INVALID);
           }
 
-          return result;
+          return response;
         },
         {
           retries: providerRetryConfig.maxRetryAttempts - 1, // p-retry uses `retries` (number of retries, not total attempts)
@@ -74,8 +76,9 @@ export class RetryStrategy {
               this.classifyAndRecordRetry(error);
             }
           },
-        } as pRetry.Options,
+        },
       );
+      return result;
     } catch {
       // p-retry throws if all attempts fail - we catch it and return null
       return null;
