@@ -12,6 +12,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logErrorMsg: jest.fn(),
   logError: jest.fn(),
   logOneLineWarning: jest.fn(),
+  logOneLineError: jest.fn(),
 }));
 
 jest.mock("../../../../src/app/components/capture/config/file-types.config", () => {
@@ -108,8 +109,8 @@ jest.mock("../../../../src/app/components/capture/config/file-types.config", () 
 // The prompt registry is now imported directly from the centralized location
 
 // LLMRouter is mocked, we'll create a mock instance directly
-const mockLogSingleLineWarning = logging.logOneLineWarning as jest.MockedFunction<
-  typeof logging.logOneLineWarning
+const mockLogOneLineError = logging.logOneLineError as jest.MockedFunction<
+  typeof logging.logOneLineError
 >;
 
 import { promptRegistry } from "../../../../src/app/prompts/prompt-registry";
@@ -365,7 +366,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
           llmError,
         );
 
-        expect(mockLogSingleLineWarning).toHaveBeenCalledWith(
+        expect(mockLogOneLineError).toHaveBeenCalledWith(
           `Failed to generate summary for '${filepath}'`,
           llmError,
         );

@@ -12,7 +12,7 @@ import * as aiplatform from "@google-cloud/aiplatform";
 const { helpers } = aiplatform;
 import { llmConfig } from "../../../config/llm.config";
 import { LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm.types";
-import { logOneLineWarning, logError } from "../../../../utils/logging";
+import { logOneLineWarning, logOneLineError } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
 import AbstractLLM from "../../abstract-llm";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
@@ -97,7 +97,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       // Use timeout-based cleanup as the recommended workaround at the end of the program to allow
       // the process to terminate.
     } catch (error: unknown) {
-      logError("Error when closing Vertex AI Gemini LLM clients", error);
+      logOneLineError("Error when closing Vertex AI Gemini LLM clients", error);
     }
   }
 

@@ -1,44 +1,37 @@
-import { formatErrorMessageAndDetail, formatError } from "./error-formatters";
+import { inspect } from "node:util";
+import { formatError } from "./error-formatters";
+
+// Helper to sanitize a string for single-line logging
+const toSingleLine = (str: string) => str.replace(/(\r\n|\n|\r|\\n|\\r|\\r\\n)/gm, " ");
 
 /**
- * Type guard to check if a value is a primitive (not an object)
+ * Logs an error message to the console as a single line, including error details.
+ * Replaces newlines in the message and error with spaces.
+ * Uses formatError for proper error formatting (handles Error instances, plain objects, and circular references).
+ * @param message The main error message.
+ * @param error The error to log.
  */
-function isPrimitive(value: unknown): value is string | number | boolean | symbol | bigint {
-  return (
-    typeof value === "string" ||
-    typeof value === "number" ||
-    typeof value === "boolean" ||
-    typeof value === "symbol" ||
-    typeof value === "bigint"
-  );
-}
-
-/**
- * Log an error message and the error stack to the console.
- */
-export function logError(msg: string, error: unknown): void {
-  console.error(formatErrorMessageAndDetail(msg, error));
+export function logOneLineError(message: string, error: unknown): void {
+  let logMessage = toSingleLine(message);
+  const errorString = formatError(error);
+  logMessage += ` | Error: ${toSingleLine(errorString)}`;
+  console.error(logMessage);
 }
 
 /**
  * Logs a warning message to the console, ensuring it is a single line.
  * Replaces newlines in the message and context with spaces.
- * Uses formatError for all objects (handles Error instances, plain objects, and circular references safely).
- * Uses String() for primitives.
+ * Uses util.inspect for context serialization (handles circular references safely).
  * @param message The main warning message.
  * @param context Optional additional data to log, will be stringified.
  */
 export function logOneLineWarning(message: string, context?: unknown): void {
-  // Helper to sanitize a string for single-line logging
-  const toSingleLine = (str: string) => str.replace(/(\r\n|\n|\r|\\n|\\r|\\r\\n)/gm, " ");
-
   let logMessage = toSingleLine(message);
 
   if (context) {
-    // Use formatError for all objects (handles Error instances, plain objects, and circular references safely)
-    // Use String() for primitives
-    const contextString = isPrimitive(context) ? String(context) : formatError(context);
+    const contextString = inspect(context, { depth: 2, breakLength: Infinity });
     logMessage += ` | Context: ${toSingleLine(contextString)}`;
   }
+
   console.warn(logMessage);
 }

@@ -12,7 +12,7 @@ import {
 } from "../../../../common/utils/directory-to-markdown";
 import { fileProcessingConfig } from "../../../components/capture/config/file-processing.config";
 import type { EnvVars } from "../../../env/env.types";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { logOneLineError, logOneLineWarning } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";
 import { LLMOutputFormat } from "../../../../common/llm/types/llm.types";
 import { promptRegistry } from "../../../prompts/prompt-registry";
@@ -76,7 +76,7 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
       });
       console.log(`Captured summary details of all categories into database`);
     } catch (error: unknown) {
-      logOneLineWarning(
+      logOneLineError(
         `Unable to generate summary data for all app categories details into database`,
         error,
       );

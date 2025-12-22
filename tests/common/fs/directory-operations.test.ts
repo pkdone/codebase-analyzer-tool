@@ -5,7 +5,7 @@ import {
 } from "../../../src/common/fs/directory-operations";
 import glob from "fast-glob";
 import { promises as fs } from "fs";
-import { logError } from "../../../src/common/utils/logging";
+import { logOneLineError } from "../../../src/common/utils/logging";
 
 jest.mock("fast-glob");
 jest.mock("../../../src/common/utils/logging");
@@ -193,7 +193,7 @@ describe("directory-operations", () => {
     const mockReaddir = fs.readdir as jest.MockedFunction<typeof fs.readdir>;
     const mockRm = fs.rm as jest.MockedFunction<typeof fs.rm>;
     const mockMkdir = fs.mkdir as jest.MockedFunction<typeof fs.mkdir>;
-    const mockLogError = logError as jest.MockedFunction<typeof logError>;
+    const mockLogOneLineError = logOneLineError as jest.MockedFunction<typeof logOneLineError>;
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -270,7 +270,7 @@ describe("directory-operations", () => {
 
       await clearDirectory("/test/dir");
 
-      expect(mockLogError).toHaveBeenCalledWith(
+      expect(mockLogOneLineError).toHaveBeenCalledWith(
         expect.stringContaining("unable to remove the item"),
         expect.any(Error),
       );
@@ -282,7 +282,7 @@ describe("directory-operations", () => {
 
       await clearDirectory("/test/dir");
 
-      expect(mockLogError).toHaveBeenCalledWith(
+      expect(mockLogOneLineError).toHaveBeenCalledWith(
         "Unable to read directory for clearing: /test/dir",
         expect.any(Error),
       );
@@ -295,7 +295,7 @@ describe("directory-operations", () => {
 
       await clearDirectory("/test/dir");
 
-      expect(mockLogError).toHaveBeenCalledWith(
+      expect(mockLogOneLineError).toHaveBeenCalledWith(
         "Failed to ensure directory exists after clearing: /test/dir",
         expect.any(Error),
       );

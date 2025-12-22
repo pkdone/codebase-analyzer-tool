@@ -14,6 +14,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineWarning: jest.fn(),
   logError: jest.fn(),
   logErrorMsg: jest.fn(),
+  logOneLineError: jest.fn(),
 }));
 
 /**

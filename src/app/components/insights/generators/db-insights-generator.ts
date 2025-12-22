@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import LLMRouter from "../../../../common/llm/llm-router";
 import { fileProcessingConfig } from "../../../components/capture/config/file-processing.config";
-import { logOneLineWarning } from "../../../../common/utils/logging";
+import { logOneLineError } from "../../../../common/utils/logging";
 import type { AppSummariesRepository } from "../../../repositories/app-summaries/app-summaries.repository.interface";
 import type { SourcesRepository } from "../../../repositories/sources/sources.repository.interface";
 import { repositoryTokens } from "../../../di/tokens";
@@ -79,7 +79,7 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     );
     results.forEach((result, index) => {
       if (result.status === "rejected") {
-        logOneLineWarning(
+        logOneLineError(
           `Failed to generate data for category: ${categories[index]}`,
           result.reason,
         );
@@ -153,7 +153,7 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
       await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
     } catch (error: unknown) {
-      logOneLineWarning(`Unable to generate ${categoryLabel} details into database`, error);
+      logOneLineError(`Unable to generate ${categoryLabel} details into database`, error);
     }
   }
 }

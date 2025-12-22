@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { logOneLineWarning } from "../../../common/utils/logging";
+import { logOneLineError } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
@@ -113,7 +113,7 @@ export async function summarizeFile(
     return response;
   } catch (error: unknown) {
     const errorMsg = `Failed to generate summary for '${filepath}'`;
-    logOneLineWarning(errorMsg, error);
+    logOneLineError(errorMsg, error);
     throw error;
   }
 }

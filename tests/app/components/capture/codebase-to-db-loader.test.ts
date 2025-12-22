@@ -21,6 +21,7 @@ jest.mock("../../../../src/app/components/capture/file-summarizer", () => ({
 jest.mock("../../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
   logOneLineWarning: jest.fn(),
+  logOneLineError: jest.fn(),
 }));
 
 jest.mock("../../../../src/app/components/capture/config/file-processing.config", () => ({
@@ -179,7 +180,7 @@ describe("CodebaseToDBLoader", () => {
       mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
       mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
 
-      const { logOneLineWarning: mockLogWarning } = jest.requireMock(
+      const { logOneLineError: mockLogError } = jest.requireMock(
         "../../../../src/common/utils/logging",
       );
 
@@ -189,7 +190,7 @@ describe("CodebaseToDBLoader", () => {
       expect(mockConsoleWarn).toHaveBeenCalledWith(
         "Warning: 1 files failed to process. Check logs for details.",
       );
-      expect(mockLogWarning).toHaveBeenCalled();
+      expect(mockLogError).toHaveBeenCalled();
     });
 
     it("should report all successful when no failures occur", async () => {
@@ -411,13 +412,13 @@ describe("CodebaseToDBLoader", () => {
       mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockFileOperations.readFile.mockRejectedValue(processingError);
 
-      const { logOneLineWarning: mockLogWarning } = jest.requireMock(
+      const { logOneLineError: mockLogError } = jest.requireMock(
         "../../../../src/common/utils/logging",
       );
 
       await loader.captureCodebaseToDatabase("testProject", "/src", false);
 
-      expect(mockLogWarning).toHaveBeenCalledWith(
+      expect(mockLogError).toHaveBeenCalledWith(
         "Failed to process file: /src/file1.ts",
         processingError,
       );

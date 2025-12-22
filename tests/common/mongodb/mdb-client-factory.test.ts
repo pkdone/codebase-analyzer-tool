@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { MongoClient, MongoClientOptions } from "mongodb";
 import { DatabaseConnectionError } from "../../../src/common/mongodb/mdb-errors";
 import { MongoDBConnectionManager } from "../../../src/common/mongodb/mdb-connection-manager";
-import { logError, logOneLineWarning } from "../../../src/common/utils/logging";
+import { logOneLineError, logOneLineWarning } from "../../../src/common/utils/logging";
 import { redactUrl } from "../../../src/common/security/url-redactor";
 
 // Mock dependencies
@@ -11,7 +11,7 @@ jest.mock("../../../src/common/utils/logging");
 jest.mock("../../../src/common/security/url-redactor");
 
 const MockedMongoClient = MongoClient as jest.MockedClass<typeof MongoClient>;
-const mockLogErrorMsgAndDetail = logError as jest.MockedFunction<typeof logError>;
+const mockLogOneLineError = logOneLineError as jest.MockedFunction<typeof logOneLineError>;
 const mockLogSingleLineWarning = logOneLineWarning as jest.MockedFunction<typeof logOneLineWarning>;
 const mockRedactUrl = redactUrl as jest.MockedFunction<typeof redactUrl>;
 
@@ -116,7 +116,7 @@ describe("MongoDBConnectionManager", () => {
         // The important part is that a MongoError is thrown when connection fails
       }
 
-      expect(mockLogErrorMsgAndDetail).toHaveBeenCalledWith(
+      expect(mockLogOneLineError).toHaveBeenCalledWith(
         "Failed to connect to MongoDB",
         connectionError,
       );
@@ -240,7 +240,7 @@ describe("MongoDBConnectionManager", () => {
 
       await connectionManager.closeAll();
 
-      expect(mockLogErrorMsgAndDetail).toHaveBeenCalledWith(
+      expect(mockLogOneLineError).toHaveBeenCalledWith(
         `Error closing MongoDB client '${id}'`,
         closeError,
       );

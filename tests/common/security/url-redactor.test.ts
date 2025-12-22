@@ -1,10 +1,10 @@
 import { redactUrl } from "../../../src/common/security/url-redactor";
-import { logError } from "../../../src/common/utils/logging";
+import { logOneLineError } from "../../../src/common/utils/logging";
 
 // Mock the logging module
 jest.mock("../../../src/common/utils/logging");
 // No need to mock the old shim path; using generic redactor directly
-const mockLogError = logError as jest.MockedFunction<typeof logError>;
+const mockLogOneLineError = logOneLineError as jest.MockedFunction<typeof logOneLineError>;
 
 describe("url-redactor", () => {
   beforeEach(() => {
@@ -55,7 +55,7 @@ describe("url-redactor", () => {
       const result = redactUrl(invalidUrl);
 
       expect(result).toBe("REDACTED_URL");
-      expect(mockLogError).toHaveBeenCalledWith(
+      expect(mockLogOneLineError).toHaveBeenCalledWith(
         "Could not parse URL for redaction",
         expect.anything(),
       );
@@ -65,7 +65,7 @@ describe("url-redactor", () => {
       const result = redactUrl("");
 
       expect(result).toBe("REDACTED_URL");
-      expect(mockLogError).toHaveBeenCalledWith(
+      expect(mockLogOneLineError).toHaveBeenCalledWith(
         "Could not parse URL for redaction",
         expect.anything(),
       );
@@ -77,7 +77,7 @@ describe("url-redactor", () => {
       // Should not throw and should return REDACTED_URL when parsing fails
       expect(typeof result).toBe("string");
       expect(result).toBe("REDACTED_URL");
-      expect(mockLogError).toHaveBeenCalledWith(
+      expect(mockLogOneLineError).toHaveBeenCalledWith(
         "Could not parse URL for redaction",
         expect.anything(),
       );

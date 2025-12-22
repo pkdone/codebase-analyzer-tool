@@ -9,7 +9,7 @@ import {
   ensureDirectoryExists,
 } from "../../../../common/fs/directory-operations";
 import pLimit from "p-limit";
-import { logError } from "../../../../common/utils/logging";
+import { logOneLineError } from "../../../../common/utils/logging";
 import { formatError } from "../../../../common/utils/error-formatters";
 import { inject } from "tsyringe";
 import { llmTokens } from "../../../di/tokens";
@@ -94,7 +94,7 @@ export class PromptFileInsightsGenerator {
         response = executionResult;
       }
     } catch (error: unknown) {
-      logError("Problem introspecting and processing source files", error);
+      logOneLineError("Problem introspecting and processing source files", error);
       response = formatError(error);
     }
 
@@ -124,7 +124,7 @@ export class PromptFileInsightsGenerator {
         });
       }
     } catch (error: unknown) {
-      logError("Problem loading prompts from input folder", error);
+      logOneLineError("Problem loading prompts from input folder", error);
     }
 
     return prompts;
@@ -142,7 +142,7 @@ export class PromptFileInsightsGenerator {
       await writeFile(tempFilePath, codeBlocksContent);
       console.log(`Project code has been dumped to: ${tempFilePath}`);
     } catch (error: unknown) {
-      logError("Failed to dump code blocks to temp file", error);
+      logOneLineError("Failed to dump code blocks to temp file", error);
     }
   }
 }

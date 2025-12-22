@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-bedrock-runtime";
 import { llmConfig } from "../../../config/llm.config";
 import { formatError } from "../../../../utils/error-formatters";
-import { logError } from "../../../../utils/logging";
+import { logOneLineError } from "../../../../utils/logging";
 import AbstractLLM from "../../abstract-llm";
 import { z } from "zod";
 import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
@@ -86,7 +86,7 @@ export default abstract class BaseBedrockLLM extends AbstractLLM {
     try {
       this.client.destroy();
     } catch (error: unknown) {
-      logError("Error when calling destroy on AWSBedrock LLM", error);
+      logOneLineError("Error when calling destroy on AWSBedrock LLM", error);
     }
   }
 
