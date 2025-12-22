@@ -35,9 +35,17 @@ export interface SourcesRepository {
   /**
    * Get source file summaries for a project
    */
-  getProjectSourcesSummaries(
+  getProjectSourcesSummariesByFileType(
     projectName: string,
     fileTypes: string[],
+  ): Promise<ProjectedSourceSummaryFields[]>;
+
+  /**
+   * Get source file summaries for a project filtered by canonical type
+   */
+  getProjectSourcesSummariesByCanonicalType(
+    projectName: string,
+    canonicalTypes: string[],
   ): Promise<ProjectedSourceSummaryFields[]>;
 
   /**

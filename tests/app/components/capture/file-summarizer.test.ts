@@ -102,6 +102,79 @@ jest.mock("../../../../src/app/components/capture/config/file-types.config", () 
       cmd: "batch-script",
       jcl: "jcl",
     },
+    getCanonicalFileType: (filepath: string, type: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const path = require("path");
+      const filename = path.basename(filepath).toLowerCase();
+      const extension = type.toLowerCase();
+
+      // Check exact filename matches first
+      const filenameMap: Record<string, string> = {
+        "pom.xml": "maven",
+        "build.gradle": "gradle",
+        "build.gradle.kts": "gradle",
+        "build.xml": "ant",
+        "package.json": "npm",
+        "package-lock.json": "npm",
+        "yarn.lock": "npm",
+        "packages.config": "nuget",
+        "requirements.txt": "python-pip",
+        "setup.py": "python-setup",
+        "pyproject.toml": "python-poetry",
+        crontab: "shell-script",
+        gemfile: "ruby-bundler",
+        "gemfile.lock": "ruby-bundler",
+        pipfile: "python-pip",
+        "pipfile.lock": "python-pip",
+      };
+      if (Object.hasOwn(filenameMap, filename)) {
+        return filenameMap[filename];
+      }
+
+      // Check extension-based mappings
+      const extensionMap: Record<string, string> = {
+        java: "java",
+        kt: "java",
+        kts: "java",
+        js: "javascript",
+        ts: "javascript",
+        javascript: "javascript",
+        typescript: "javascript",
+        py: "python",
+        rb: "ruby",
+        ruby: "ruby",
+        cs: "csharp",
+        csx: "csharp",
+        csharp: "csharp",
+        ddl: "sql",
+        sql: "sql",
+        xml: "xml",
+        jsp: "jsp",
+        markdown: "markdown",
+        md: "markdown",
+        csproj: "dotnet-proj",
+        vbproj: "dotnet-proj",
+        fsproj: "dotnet-proj",
+        sh: "shell-script",
+        bash: "shell-script",
+        bat: "batch-script",
+        cmd: "batch-script",
+        jcl: "jcl",
+      };
+      if (Object.hasOwn(extensionMap, extension)) {
+        return extensionMap[extension];
+      }
+
+      // Fall back to rule-based system
+      const rules = createRules();
+      for (const rule of rules) {
+        if (rule.test(filename, extension)) {
+          return rule.type;
+        }
+      }
+
+      return "default";
+    },
   };
 });
 

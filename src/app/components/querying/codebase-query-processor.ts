@@ -40,7 +40,7 @@ function formatSourcesForPrompt(
   return formatFilesAsMarkdownCodeBlocks(
     sourceFileMetadataList.map((file) => ({
       filepath: file.filepath,
-      type: file.type,
+      type: file.fileType,
       content: file.content,
     })),
   );

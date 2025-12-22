@@ -3,16 +3,11 @@ import { logOneLineError } from "../../../common/utils/logging";
 import type LLMRouter from "../../../common/llm/llm-router";
 import { LLMOutputFormat } from "../../../common/llm/types/llm.types";
 import { LLMError, LLMErrorCode } from "../../../common/llm/types/llm-errors.types";
-import path from "node:path";
 import { promptRegistry } from "../../prompts/prompt-registry";
 import { sourceConfigMap } from "../../prompts/definitions/sources/sources.config";
 import { renderPrompt } from "../../prompts/prompt-renderer";
 import { sourceSummarySchema } from "../../schemas/sources.schema";
-import {
-  FILE_TYPE_MAPPING_RULES,
-  FILENAME_TO_TYPE_MAP,
-  EXTENSION_TO_TYPE_MAP,
-} from "./config/file-types.config";
+import { getCanonicalFileType } from "./config/file-types.config";
 import { getSchemaSpecificSanitizerConfig } from "../insights/config/sanitizer.config";
 
 /**
@@ -27,35 +22,6 @@ export type SourceSummaryType = z.infer<typeof sourceSummarySchema>;
  * the actual return type from the summarization process.
  */
 export type PartialSourceSummaryType = Partial<SourceSummaryType>;
-
-/**
- * Derive the canonical file type for a given path and declared extension/suffix.
- * Uses data-driven maps for fast lookups, falling back to rule-based system for complex cases.
- */
-function getCanonicalFileType(filepath: string, type: string): keyof typeof promptRegistry.sources {
-  const filename = path.basename(filepath).toLowerCase();
-  const extension = type.toLowerCase();
-
-  // 1. Check exact filename matches first (fastest lookup)
-  if (Object.hasOwn(FILENAME_TO_TYPE_MAP, filename)) {
-    return FILENAME_TO_TYPE_MAP[filename];
-  }
-
-  // 2. Check extension-based mappings
-  if (Object.hasOwn(EXTENSION_TO_TYPE_MAP, extension)) {
-    return EXTENSION_TO_TYPE_MAP[extension];
-  }
-
-  // 3. Fall back to rule-based system for complex patterns (e.g., "readme*", "license*")
-  for (const rule of FILE_TYPE_MAPPING_RULES) {
-    if (rule.test(filename, extension)) {
-      return rule.type;
-    }
-  }
-
-  // Fallback to default (should never reach here as last rule always matches)
-  return "default";
-}
 
 /**
  * Generate a strongly-typed summary for the given file content.

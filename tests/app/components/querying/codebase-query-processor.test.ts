@@ -34,13 +34,13 @@ describe("queryCodebaseWithQuestion", () => {
         {
           projectName: testProjectName,
           filepath: "src/auth/login.ts",
-          type: "typescript",
+          fileType: "typescript",
           content: "export function login() { /* code */ }",
         },
         {
           projectName: testProjectName,
           filepath: "src/auth/verify.ts",
-          type: "typescript",
+          fileType: "typescript",
           content: "export function verify() { /* code */ }",
         },
       ];
@@ -137,7 +137,7 @@ describe("queryCodebaseWithQuestion", () => {
         {
           projectName: testProjectName,
           filepath: "src/test.ts",
-          type: "typescript",
+          fileType: "typescript",
           content: "test content",
         },
       ];
@@ -165,7 +165,7 @@ describe("queryCodebaseWithQuestion", () => {
         {
           projectName: testProjectName,
           filepath: "src/test.ts",
-          type: "typescript",
+          fileType: "typescript",
           content: "test content",
         },
       ];
@@ -198,7 +198,7 @@ describe("queryCodebaseWithQuestion", () => {
         {
           projectName: testProjectName,
           filepath: "test.ts",
-          type: "typescript",
+          fileType: "typescript",
           content: "content",
         },
       ]);
@@ -225,7 +225,7 @@ describe("queryCodebaseWithQuestion", () => {
         {
           projectName: testProjectName,
           filepath: "src/test.ts",
-          type: "typescript",
+          fileType: "typescript",
           content: "test content",
         },
       ];

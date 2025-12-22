@@ -30,11 +30,10 @@ export class JobDataProvider {
    */
   async getScheduledJobsSummary(projectName: string): Promise<ScheduledJobsAggregationResult> {
     // Fetch all script files with scheduled jobs
-    const scriptFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, [
-      "shell-script",
-      "batch-script",
-      "jcl",
-    ]);
+    const scriptFiles = await this.sourcesRepository.getProjectSourcesSummariesByCanonicalType(
+      projectName,
+      ["shell-script", "batch-script", "jcl"],
+    );
 
     const jobsList: ScheduledJobItem[] = [];
     const triggerTypesSet = new Set<string>();

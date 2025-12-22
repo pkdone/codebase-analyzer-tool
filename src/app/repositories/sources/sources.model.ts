@@ -41,7 +41,7 @@ export type ProjectedSourceMetataContentAndSummary = z.infer<
   ReturnType<
     typeof sourceSchema.pick<{
       projectName: true;
-      type: true;
+      fileType: true;
       filepath: true;
       content: true;
       summary: true;

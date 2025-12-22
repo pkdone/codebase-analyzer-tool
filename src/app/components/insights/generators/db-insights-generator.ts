@@ -92,9 +92,10 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
    */
   private async formatSourcesForLLMPrompt(): Promise<string[]> {
     const srcFilesList: string[] = [];
-    const records = await this.sourcesRepository.getProjectSourcesSummaries(this.projectName, [
-      ...fileProcessingConfig.CODE_FILE_EXTENSIONS,
-    ]);
+    const records = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
+      this.projectName,
+      [...fileProcessingConfig.CODE_FILE_EXTENSIONS],
+    );
 
     for (const record of records) {
       if (!record.summary || Object.keys(record.summary).length === 0) {

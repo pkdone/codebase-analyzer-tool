@@ -44,7 +44,29 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     } as unknown as jest.Mocked<AppSummariesRepository>;
 
     mockSourcesRepository = {
-      getProjectSourcesSummaries: jest.fn().mockResolvedValue([]),
+      insertSource: jest.fn().mockResolvedValue(undefined),
+      deleteSourcesByProject: jest.fn().mockResolvedValue(undefined),
+      doesProjectSourceExist: jest.fn().mockResolvedValue(false),
+      getProjectSourcesSummariesByFileType: jest.fn().mockResolvedValue([]),
+      getProjectSourcesSummariesByCanonicalType: jest.fn().mockResolvedValue([]),
+      getProjectDatabaseIntegrations: jest.fn().mockResolvedValue([]),
+      getProjectStoredProceduresAndTriggers: jest.fn().mockResolvedValue([]),
+      vectorSearchProjectSourcesRawContent: jest.fn().mockResolvedValue([]),
+      getProjectFilesPaths: jest.fn().mockResolvedValue([]),
+      getProjectFileAndLineStats: jest.fn().mockResolvedValue({ fileCount: 0, linesOfCode: 0 }),
+      getProjectFileTypesCountAndLines: jest.fn().mockResolvedValue([]),
+      getTopLevelClassDependencies: jest.fn().mockResolvedValue([]),
+      getProjectIntegrationPoints: jest.fn().mockResolvedValue([]),
+      getTopComplexMethods: jest.fn().mockResolvedValue([]),
+      getCodeSmellStatistics: jest.fn().mockResolvedValue([]),
+      getCodeQualityStatistics: jest.fn().mockResolvedValue({
+        totalMethods: 0,
+        averageComplexity: 0,
+        highComplexityCount: 0,
+        veryHighComplexityCount: 0,
+        averageMethodLength: 0,
+        longMethodCount: 0,
+      }),
     } as unknown as jest.Mocked<SourcesRepository>;
 
     mockLLMRouter = {
@@ -79,7 +101,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
   describe("generateAndRecordDataForCategory", () => {
     beforeEach(() => {
-      mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
         {
           filepath: "file1.ts",
           summary: { namespace: "File1", purpose: "Test", implementation: "Mock" },
@@ -227,7 +249,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const charsPerChunk = tokenLimitPerChunk * llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.9));
 
-      mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue([
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([
         {
           filepath: "file1.ts",
           summary: {
@@ -264,7 +286,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
     });
 
     it("should throw error when no source summaries exist", async () => {
-      mockSourcesRepository.getProjectSourcesSummaries.mockResolvedValue([]);
+      mockSourcesRepository.getProjectSourcesSummariesByFileType.mockResolvedValue([]);
 
       await expect(generator.generateAndStoreInsights()).rejects.toThrow(
         "No existing code file summaries found",

@@ -37,18 +37,21 @@ export class BomDataProvider {
    */
   async getBillOfMaterials(projectName: string): Promise<BomAggregationResult> {
     // Fetch all build files with dependencies
-    const buildFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, [
-      "maven",
-      "gradle",
-      "ant",
-      "npm",
-      "dotnet-proj",
-      "nuget",
-      "ruby-bundler",
-      "python-pip",
-      "python-setup",
-      "python-poetry",
-    ]);
+    const buildFiles = await this.sourcesRepository.getProjectSourcesSummariesByCanonicalType(
+      projectName,
+      [
+        "maven",
+        "gradle",
+        "ant",
+        "npm",
+        "dotnet-proj",
+        "nuget",
+        "ruby-bundler",
+        "python-pip",
+        "python-setup",
+        "python-poetry",
+      ],
+    );
 
     const dependencyMap = new Map<string, AggregatedDependency>();
     const buildFilePaths = new Set<string>();

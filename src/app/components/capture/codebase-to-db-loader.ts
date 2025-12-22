@@ -9,6 +9,7 @@ import { getFileExtension } from "../../../common/fs/path-utils";
 import { countLines } from "../../../common/utils/text-utils";
 import { logOneLineError } from "../../../common/utils/logging";
 import { summarizeFile, type PartialSourceSummaryType } from "./file-summarizer";
+import { getCanonicalFileType } from "./config/file-types.config";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type { SourceRecord } from "../../repositories/sources/sources.model";
 import { repositoryTokens, llmTokens } from "../../di/tokens";
@@ -121,10 +122,12 @@ export default class CodebaseToDBLoader {
     skipIfAlreadyCaptured: boolean,
     existingFiles: Set<string>,
   ) {
-    const type = getFileExtension(fullFilepath).toLowerCase();
+    const fileType = getFileExtension(fullFilepath).toLowerCase();
 
     if (
-      (fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(type)
+      (fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST as readonly string[]).includes(
+        fileType,
+      )
     ) {
       return; // Skip file if it has binary content
     }
@@ -138,15 +141,17 @@ export default class CodebaseToDBLoader {
     const linesCount = countLines(content);
     const { summary, summaryError, summaryVector } = await this.generateSummaryAndEmbeddings(
       filepath,
-      type,
+      fileType,
       content,
     );
     const contentVector = await this.getContentEmbeddings(filepath, content);
+    const canonicalType = getCanonicalFileType(filepath, fileType);
     const sourceFileRecord: SourceRecord = {
       projectName,
       filename,
       filepath,
-      type,
+      fileType,
+      canonicalType,
       linesCount,
       content,
       ...(summary && { summary }),

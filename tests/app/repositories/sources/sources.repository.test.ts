@@ -62,7 +62,7 @@ describe("SourcesRepositoryImpl", () => {
         projectName: "test-project",
         filename: "test.ts",
         filepath: "src/test.ts",
-        type: "ts",
+        fileType: "ts",
         linesCount: 10,
         content: "console.log('test');",
         summary: {
@@ -84,7 +84,7 @@ describe("SourcesRepositoryImpl", () => {
         projectName: "test-project",
         filename: "test.ts",
         filepath: "src/test.ts",
-        type: "ts",
+        fileType: "ts",
         linesCount: 10,
         content: "console.log('test');",
       };
@@ -145,7 +145,7 @@ describe("SourcesRepositoryImpl", () => {
         {
           projectName,
           filepath: "src/test.ts",
-          type: "ts",
+          fileType: "ts",
           content: "test content",
           summary: { namespace: "Test" },
         },
@@ -179,7 +179,7 @@ describe("SourcesRepositoryImpl", () => {
             _id: 0,
             projectName: 1,
             filepath: 1,
-            type: 1,
+            fileType: 1,
             content: 1,
             summary: 1,
           },
@@ -301,7 +301,7 @@ describe("SourcesRepositoryImpl", () => {
           { $match: { projectName } },
           {
             $group: {
-              _id: "$type",
+              _id: "$fileType",
               lines: { $sum: "$linesCount" },
               files: { $sum: 1 },
             },
@@ -327,11 +327,14 @@ describe("SourcesRepositoryImpl", () => {
         ];
         mockFindCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectSourcesSummaries(projectName, fileTypes);
+        const result = await repository.getProjectSourcesSummariesByFileType(
+          projectName,
+          fileTypes,
+        );
 
         expect(result).toEqual(mockResults);
         expect(mockCollection.find).toHaveBeenCalledWith(
-          { projectName, type: { $in: fileTypes } },
+          { projectName, fileType: { $in: fileTypes } },
           {
             projection: {
               _id: 0,
@@ -361,7 +364,10 @@ describe("SourcesRepositoryImpl", () => {
         ];
         mockFindCursor.toArray.mockResolvedValue(mockResults);
 
-        const result = await repository.getProjectSourcesSummaries(projectName, fileTypes);
+        const result = await repository.getProjectSourcesSummariesByFileType(
+          projectName,
+          fileTypes,
+        );
 
         expect(result).toEqual(mockResults);
         // Should query without type filter when fileTypes is empty
@@ -540,10 +546,10 @@ describe("SourcesRepositoryImpl", () => {
       const pipeline = aggregateCalls[0][0]!;
 
       // Verify fileType parameter is used in the $match stage
-      const matchStage = pipeline.find((stage: any) => stage.$match?.type !== undefined);
+      const matchStage = pipeline.find((stage: any) => stage.$match?.fileType !== undefined);
       expect(matchStage?.$match).toEqual({
         projectName: "test-project",
-        type: "java",
+        fileType: "java",
       });
     });
 
@@ -559,7 +565,7 @@ describe("SourcesRepositoryImpl", () => {
       const pipeline = aggregateCalls[0][0]!;
 
       // Verify file type matching
-      const matchStage = pipeline.find((stage: any) => stage.$match?.type !== undefined);
+      const matchStage = pipeline.find((stage: any) => stage.$match?.fileType !== undefined);
       expect(matchStage).toBeDefined();
 
       // Verify javax exclusion

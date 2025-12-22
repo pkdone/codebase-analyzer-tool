@@ -1,4 +1,5 @@
 import { z } from "zod";
+import path from "node:path";
 
 /**
  * Supported file types for metadata configuration.
@@ -134,3 +135,32 @@ export const FILE_TYPE_MAPPING_RULES: readonly FileTypeRule[] = [
   // Default rule (always matches, must be last)
   { test: () => true, type: "default" },
 ] as const;
+
+/**
+ * Derive the canonical file type for a given path and declared extension/suffix.
+ * Uses data-driven maps for fast lookups, falling back to rule-based system for complex cases.
+ */
+export const getCanonicalFileType = (filepath: string, type: string): CanonicalFileType => {
+  const filename = path.basename(filepath).toLowerCase();
+  const extension = type.toLowerCase();
+
+  // 1. Check exact filename matches first (fastest lookup)
+  if (Object.hasOwn(FILENAME_TO_TYPE_MAP, filename)) {
+    return FILENAME_TO_TYPE_MAP[filename];
+  }
+
+  // 2. Check extension-based mappings
+  if (Object.hasOwn(EXTENSION_TO_TYPE_MAP, extension)) {
+    return EXTENSION_TO_TYPE_MAP[extension];
+  }
+
+  // 3. Fall back to rule-based system for complex patterns (e.g., "readme*", "license*")
+  for (const rule of FILE_TYPE_MAPPING_RULES) {
+    if (rule.test(filename, extension)) {
+      return rule.type;
+    }
+  }
+
+  // Fallback to default (should never reach here as last rule always matches)
+  return "default";
+};

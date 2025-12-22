@@ -434,13 +434,46 @@ export const sourceSummarySchema = z
 
 /**
  * Schema for source file metadata
+ * Note: We define the canonical file type enum here to avoid circular dependency issues
+ * with file-types.config.ts. The values must match CANONICAL_FILE_TYPES in that file.
  */
+const CANONICAL_FILE_TYPES = [
+  "java",
+  "javascript",
+  "sql",
+  "xml",
+  "jsp",
+  "markdown",
+  "csharp",
+  "ruby",
+  "maven",
+  "gradle",
+  "ant",
+  "npm",
+  "python",
+  "dotnet-proj",
+  "nuget",
+  "ruby-bundler",
+  "python-pip",
+  "python-setup",
+  "python-poetry",
+  "shell-script",
+  "batch-script",
+  "jcl",
+  "default",
+] as const;
+
+const canonicalFileTypeSchema = z.enum(CANONICAL_FILE_TYPES);
+
 export const sourceSchema = z
   .object({
     projectName: z.string().describe("The name of the project this source file belongs to."),
     filename: z.string().describe("The name of the source file (without path)."),
     filepath: z.string().describe("The full path to the source file within the project."),
-    type: z.string().describe("The type of the source file (e.g., 'java', 'js', 'sql', etc.)."),
+    fileType: z.string().describe("The type of the source file (e.g., 'java', 'js', 'sql', etc.)."),
+    canonicalType: canonicalFileTypeSchema
+      .optional()
+      .describe("The canonical file type category (e.g., 'javascript' for .ts/.js files)."),
     linesCount: z.number().describe("The total number of lines in the source file."),
     summary: sourceSummarySchema
       .partial()

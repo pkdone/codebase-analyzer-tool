@@ -30,7 +30,10 @@ export class ModuleCouplingDataProvider {
     moduleDepth: number = moduleCouplingConfig.DEFAULT_MODULE_DEPTH,
   ): Promise<ModuleCouplingAggregationResult> {
     // Fetch all source files from the project
-    const sourceFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, []);
+    const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
+      projectName,
+      [],
+    );
 
     const couplingMap: ModuleCouplingMap = {};
     const uniqueModules = new Set<string>();

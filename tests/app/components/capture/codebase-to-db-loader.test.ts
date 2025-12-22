@@ -306,7 +306,7 @@ describe("CodebaseToDBLoader", () => {
           projectName: "testProject",
           filename: "file1.ts",
           filepath: "file1.ts",
-          type: "ts",
+          fileType: "ts",
           linesCount: 10,
           content: "file content",
           summary: mockSummary,

@@ -62,6 +62,18 @@ export class DatabaseInitializer {
     }[] = [
       {
         collection: this.sourcesCollection,
+        spec: { projectName: 1, filepath: 1 },
+      },
+      {
+        collection: this.sourcesCollection,
+        spec: { projectName: 1, type: 1 },
+      },
+      {
+        collection: this.sourcesCollection,
+        spec: { projectName: 1, canonicalType: 1 },
+      },
+      {
+        collection: this.sourcesCollection,
         spec: { projectName: 1, "summary.namespace": 1 },
       },
       {
@@ -70,8 +82,25 @@ export class DatabaseInitializer {
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, filepath: 1 },
+        spec: { projectName: 1, "summary.integrationPoints": 1 },
       },
+      {
+        collection: this.sourcesCollection,
+        spec: { projectName: 1, "summary.publicMethods": 1 },
+      },
+      {
+        collection: this.sourcesCollection,
+        spec: { projectName: 1, "summary.codeQualityMetrics.fileSmells": 1 },
+      },
+      {
+        collection: this.sourcesCollection,
+        spec: {
+          projectName: 1,
+          "summary.databaseIntegration": 1,
+          "summary.databaseIntegration.mechanism": 1,
+        },
+      },
+
       // Add index to optimize graphLookup performance (albeit doesn't query on projectid too)
       {
         collection: this.sourcesCollection,

@@ -32,7 +32,10 @@ export class UiDataProvider {
    */
   async getUiTechnologyAnalysis(projectName: string): Promise<UiAnalysisSummary> {
     // Fetch all source files from the project
-    const sourceFiles = await this.sourcesRepository.getProjectSourcesSummaries(projectName, []);
+    const sourceFiles = await this.sourcesRepository.getProjectSourcesSummariesByFileType(
+      projectName,
+      [],
+    );
 
     // Data structures for aggregation
     const frameworkMap = new Map<string, UiFrameworkItem>();

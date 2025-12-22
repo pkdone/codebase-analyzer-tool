@@ -78,34 +78,39 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
   /**
    * Get source file summaries for a project
    */
-  async getProjectSourcesSummaries(
+  async getProjectSourcesSummariesByFileType(
     projectName: string,
     fileTypes: string[],
   ): Promise<ProjectedSourceSummaryFields[]> {
-    const query: { projectName: string; type?: { $in: string[] } } = {
+    const query: { projectName: string; fileType?: { $in: string[] } } = {
       projectName,
     };
 
-    // Only add type filter if fileTypes array is not empty
+    // Only add fileType filter if fileTypes array is not empty
     if (fileTypes.length > 0) {
-      query.type = { $in: fileTypes };
+      query.fileType = { $in: fileTypes };
     }
-    const options: { projection: Document; sort: Sort } = {
-      projection: {
-        _id: 0,
-        "summary.namespace": 1,
-        "summary.purpose": 1,
-        "summary.implementation": 1,
-        "summary.dependencies": 1,
-        "summary.scheduledJobs": 1,
-        "summary.internalReferences": 1,
-        "summary.jspMetrics": 1,
-        "summary.uiFramework": 1,
-        filepath: 1,
-      },
-      sort: { "summary.namespace": 1 },
+
+    return this.findProjectSourcesSummaries(query);
+  }
+
+  /**
+   * Get source file summaries for a project filtered by canonical type
+   */
+  async getProjectSourcesSummariesByCanonicalType(
+    projectName: string,
+    canonicalTypes: string[],
+  ): Promise<ProjectedSourceSummaryFields[]> {
+    const query: { projectName: string; canonicalType?: { $in: string[] } } = {
+      projectName,
     };
-    return this.collection.find<ProjectedSourceSummaryFields>(query, options).toArray();
+
+    // Only add canonicalType filter if canonicalTypes array is not empty
+    if (canonicalTypes.length > 0) {
+      query.canonicalType = { $in: canonicalTypes };
+    }
+
+    return this.findProjectSourcesSummaries(query);
   }
 
   /**
@@ -114,7 +119,6 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
   async getProjectDatabaseIntegrations(
     projectName: string,
   ): Promise<ProjectedDatabaseIntegrationFields[]> {
-    // TODO: look at index
     const query = {
       projectName,
       "summary.databaseIntegration": { $exists: true, $ne: null },
@@ -141,7 +145,6 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
   async getProjectStoredProceduresAndTriggers(
     projectName: string,
   ): Promise<ProjectedSourceFilePathAndSummary[]> {
-    // TODO: look at index
     const query = {
       $and: [
         { projectName },
@@ -165,7 +168,6 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
   async getProjectIntegrationPoints(
     projectName: string,
   ): Promise<ProjectedIntegrationPointFields[]> {
-    // TODO: look at index
     const query = {
       projectName,
       "summary.integrationPoints": { $exists: true, $ne: [] },
@@ -213,7 +215,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
           _id: 0,
           projectName: 1,
           filepath: 1,
-          type: 1,
+          fileType: 1,
           content: 1,
           summary: 1,
         },
@@ -277,7 +279,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       { $match: { projectName } },
       {
         $group: {
-          _id: "$type",
+          _id: "$fileType",
           lines: { $sum: "$linesCount" },
           files: { $sum: 1 },
         },
@@ -303,7 +305,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       {
         $match: {
           projectName,
-          type: fileType,
+          fileType,
         },
       },
       {
@@ -419,7 +421,6 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
    * Get code smell statistics using aggregation pipeline
    */
   async getCodeSmellStatistics(projectName: string): Promise<ProjectedCodeSmellStatistic[]> {
-    // TODO: look at index
     const pipeline = [
       {
         $match: {
@@ -519,7 +520,6 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
    * Get overall code quality statistics using aggregation pipeline
    */
   async getCodeQualityStatistics(projectName: string): Promise<ProjectedCodeQualityStatistics> {
-    // TODO: look at index
     const pipeline = [
       {
         $match: {
@@ -586,6 +586,30 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
         longMethodCount: 0,
       }
     );
+  }
+
+  /**
+   * Private helper method to execute the common query for source summaries
+   */
+  private async findProjectSourcesSummaries(
+    query: Document,
+  ): Promise<ProjectedSourceSummaryFields[]> {
+    const options: { projection: Document; sort: Sort } = {
+      projection: {
+        _id: 0,
+        "summary.namespace": 1,
+        "summary.purpose": 1,
+        "summary.implementation": 1,
+        "summary.dependencies": 1,
+        "summary.scheduledJobs": 1,
+        "summary.internalReferences": 1,
+        "summary.jspMetrics": 1,
+        "summary.uiFramework": 1,
+        filepath: 1,
+      },
+      sort: { "summary.namespace": 1 },
+    };
+    return this.collection.find<ProjectedSourceSummaryFields>(query, options).toArray();
   }
 
   /**
