@@ -280,9 +280,7 @@ describe("LLM Router tests", () => {
     test("should return correct models description", () => {
       const { router } = createLLMRouter();
       const description = router.getModelsUsedDescription();
-      expect(description).toBe(
-        "OpenAI GPT (embeddings: text-embedding-ada-002, completions - primary: GPT-4, secondary: GPT-3.5 Turbo)",
-      );
+      expect(description).toBe("OpenAI GPT (text-embedding-ada-002, GPT-4, GPT-3.5 Turbo)");
     });
 
     test("should return embedded model dimensions", () => {

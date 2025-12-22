@@ -121,16 +121,12 @@ export default class LLMRouter {
    */
   getModelsUsedDescription(): string {
     const models = this.activeLlmProvider.getModelsNames();
-    const candidateDescriptions = this.completionCandidates
-      .map((candidate) => {
-        const modelId =
-          candidate.modelQuality === LLMModelQuality.PRIMARY
-            ? models.primaryCompletion
-            : (models.secondaryCompletion ?? "n/a");
-        return `${candidate.modelQuality}: ${modelId}`;
-      })
-      .join(", ");
-    return `${this.activeLlmProvider.getModelFamily()} (embeddings: ${models.embeddings}, completions - ${candidateDescriptions})`;
+    const modelNames = [
+      models.embeddings,
+      models.primaryCompletion,
+      models.secondaryCompletion,
+    ].filter((name): name is string => name !== undefined);
+    return `${this.activeLlmProvider.getModelFamily()} (${modelNames.join(", ")})`;
   }
 
   /**

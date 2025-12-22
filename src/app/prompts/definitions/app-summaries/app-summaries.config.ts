@@ -42,7 +42,7 @@ export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
     instructions: [
       buildInstructionBlock(
         "Instructions",
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies depended on by the application`,
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of key external and host platform technologies (and programming languages) depended on by the application`,
       ),
     ] as const,
     responseSchema: technologiesSchema,

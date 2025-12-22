@@ -125,8 +125,6 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
     const categoryLabel = promptRegistry.appSummaries[category].label ?? category;
 
     try {
-      console.log(`Processing ${categoryLabel}`);
-
       // Determine which strategy to use based on codebase size
       const summaryChunks = chunkTextByTokenLimit(sourceFileSummaries, {
         maxTokens: this.maxTokens,
@@ -134,21 +132,14 @@ export default class InsightsFromDBGenerator implements IInsightsProcessor {
       });
       const strategy =
         summaryChunks.length === 1 ? this.singlePassStrategy : this.mapReduceStrategy;
-
-      // Log strategy selection
-      if (summaryChunks.length === 1) {
-        console.log(`  - Using single-pass strategy for ${categoryLabel}`);
-      }
-
+      console.log(
+        `Processing ${categoryLabel} (using ${summaryChunks.length === 1 ? "single-pass" : "map-reduce"} strategy)`,
+      );
       // Generate insights using the selected strategy
       // The strategy returns a strongly-typed result (CategoryInsightResult<typeof category>)
       // which is assignable to PartialAppSummaryRecord for repository storage
       const categorySummaryData = await strategy.generateInsights(category, sourceFileSummaries);
-
-      if (!categorySummaryData) {
-        return;
-      }
-
+      if (!categorySummaryData) return;
       // Store the result - the category-specific type is compatible with PartialAppSummaryRecord
       await this.appSummariesRepository.updateAppSummary(this.projectName, categorySummaryData);
       console.log(`Captured main ${categoryLabel} summary details into database`);
