@@ -28,6 +28,7 @@ export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: {
       modelKey: AWS_EMBEDDINGS_TITAN_V1,
+      name: "Titan Embeddings v1",
       urnEnvKey: BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1024,
@@ -35,6 +36,7 @@ export const bedrockDeepseekProviderManifest: LLMProviderManifest = {
     },
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_DEEPSEEK_R1,
+      name: "Deepseek R1",
       urnEnvKey: BEDROCK_DEEPSEEK_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 16384,

@@ -31,6 +31,7 @@ describe("Environment Registration Module", () => {
     models: {
       embeddings: {
         modelKey: "embeddings",
+        name: "Test Embeddings",
         urnEnvKey: "TEST_EMBEDDINGS_URN",
         purpose: LLMPurpose.EMBEDDINGS,
         maxTotalTokens: 1000,
@@ -38,6 +39,7 @@ describe("Environment Registration Module", () => {
       },
       primaryCompletion: {
         modelKey: "primary",
+        name: "Test Primary",
         urnEnvKey: "TEST_PRIMARY_URN",
         purpose: LLMPurpose.COMPLETIONS,
         maxTotalTokens: 4000,

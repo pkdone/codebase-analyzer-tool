@@ -37,6 +37,7 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: {
       modelKey: AWS_EMBEDDINGS_TITAN_V1,
+      name: "Titan Embeddings v1",
       urnEnvKey: BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1024,
@@ -44,6 +45,7 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     },
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_CLAUDE_OPUS_V45,
+      name: "Claude Opus 4.5",
       urnEnvKey: BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,
@@ -51,6 +53,7 @@ export const bedrockClaudeProviderManifest: LLMProviderManifest = {
     },
     secondaryCompletion: {
       modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
+      name: "Claude Sonnet 4.5",
       urnEnvKey: BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,

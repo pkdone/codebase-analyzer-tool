@@ -24,6 +24,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
+      name: "Titan Embeddings v1",
       urn: "amazon.titan-embed-text-v2:0",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1024,
@@ -31,6 +32,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     },
     [AWS_COMPLETIONS_CLAUDE_V37]: {
       modelKey: AWS_COMPLETIONS_CLAUDE_V37,
+      name: "Claude 3.7 Sonnet",
       urn: "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,
@@ -38,6 +40,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     },
     [AWS_COMPLETIONS_CLAUDE_OPUS_V45]: {
       modelKey: AWS_COMPLETIONS_CLAUDE_OPUS_V45,
+      name: "Claude Opus 4.5",
       urn: "global.anthropic.claude-opus-4-5-20251101-v1:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,
@@ -45,6 +48,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     },
     [AWS_COMPLETIONS_CLAUDE_SONNET_V45]: {
       modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
+      name: "Claude Sonnet 4.5",
       urn: "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 64000,
@@ -78,6 +82,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         },
         secondaryCompletion: {
           modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
+          name: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].name,
           urnEnvKey: "TEST_SONNET_V45_MODEL",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens:
@@ -115,6 +120,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
         },
         secondaryCompletion: {
           modelKey: AWS_COMPLETIONS_CLAUDE_SONNET_V45,
+          name: mockModelsMetadata[AWS_COMPLETIONS_CLAUDE_SONNET_V45].name,
           urnEnvKey: "TEST_SONNET_V45_MODEL",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens:
@@ -324,7 +330,7 @@ describe("BedrockClaudeLLM - Request Body Building", () => {
     it("should return correct model family", () => {
       const llm = new BedrockClaudeLLM(createTestProviderInit());
 
-      expect(llm.getModelFamily()).toBe("BedrockClaude");
+      expect(llm.getModelFamily()).toBe("Bedrock Claude");
     });
   });
 });

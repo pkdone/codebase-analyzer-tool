@@ -10,6 +10,7 @@ const GPT_COMPLETIONS_GPT4_32k = "GPT_COMPLETIONS_GPT4_32k";
 const testMetadata = {
   [GPT_COMPLETIONS_GPT4]: {
     modelKey: GPT_COMPLETIONS_GPT4,
+    name: "GPT-4",
     urn: "gpt-4",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -17,6 +18,7 @@ const testMetadata = {
   },
   [GPT_COMPLETIONS_GPT4_32k]: {
     modelKey: GPT_COMPLETIONS_GPT4_32k,
+    name: "GPT-4 32k",
     urn: "gpt-4-32k",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,

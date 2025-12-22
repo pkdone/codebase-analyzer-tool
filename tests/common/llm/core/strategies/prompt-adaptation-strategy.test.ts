@@ -23,6 +23,7 @@ describe("adaptPromptFromResponse", () => {
     modelsMetadata = {
       GPT_COMPLETIONS_GPT4: {
         modelKey: "GPT_COMPLETIONS_GPT4",
+        name: "GPT-4",
         urn: "gpt-4",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: 4096,

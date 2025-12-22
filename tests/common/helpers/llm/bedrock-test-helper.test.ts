@@ -82,6 +82,7 @@ describe("bedrock-test-helper", () => {
       models: {
         embeddings: {
           modelKey: "AWS_EMBEDDINGS_TITAN",
+          name: "Titan Embeddings v1",
           urnEnvKey: "BEDROCK_TITAN_EMBEDDINGS_MODEL",
           purpose: LLMPurpose.EMBEDDINGS,
           dimensions: 1536,
@@ -89,6 +90,7 @@ describe("bedrock-test-helper", () => {
         },
         primaryCompletion: {
           modelKey: "AWS_COMPLETIONS_CLAUDE_V35",
+          name: "Claude 3.5",
           urnEnvKey: "BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 4096,
@@ -96,6 +98,7 @@ describe("bedrock-test-helper", () => {
         },
         secondaryCompletion: {
           modelKey: "AWS_COMPLETIONS_CLAUDE_V40",
+          name: "Claude 4.0",
           urnEnvKey: "BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 8192,
@@ -128,6 +131,7 @@ describe("bedrock-test-helper", () => {
 
       expect(result.modelsMetadata.AWS_EMBEDDINGS_TITAN).toEqual({
         modelKey: "AWS_EMBEDDINGS_TITAN",
+        name: "Titan Embeddings v1",
         urn: "amazon.titan-embed-text-v1",
         purpose: LLMPurpose.EMBEDDINGS,
         dimensions: 1536,
@@ -140,6 +144,7 @@ describe("bedrock-test-helper", () => {
 
       expect(result.modelsMetadata.AWS_COMPLETIONS_CLAUDE_V35).toEqual({
         modelKey: "AWS_COMPLETIONS_CLAUDE_V35",
+        name: "Claude 3.5",
         urn: "anthropic.claude-3-5-sonnet-20240620-v1:0",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: 4096,
@@ -152,6 +157,7 @@ describe("bedrock-test-helper", () => {
 
       expect(result.modelsMetadata.AWS_COMPLETIONS_CLAUDE_V40).toEqual({
         modelKey: "AWS_COMPLETIONS_CLAUDE_V40",
+        name: "Claude 4.0",
         urn: "anthropic.claude-3-opus-20240229-v1:0",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: 8192,
@@ -188,6 +194,7 @@ describe("bedrock-test-helper", () => {
 
       expect(result.modelsMetadata.AWS_COMPLETIONS_CUSTOM_MODEL).toEqual({
         modelKey: "AWS_COMPLETIONS_CUSTOM_MODEL",
+        name: "custom.model-v1:0",
         urn: "custom.model-v1:0",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: 2048,
@@ -213,6 +220,7 @@ describe("bedrock-test-helper", () => {
           ...mockManifest.models,
           secondaryCompletion: {
             modelKey: "AWS_COMPLETIONS_CLAUDE_V40",
+            name: "Claude 4.0",
             urnEnvKey: "BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY",
             purpose: LLMPurpose.COMPLETIONS,
             maxTotalTokens: 200000,

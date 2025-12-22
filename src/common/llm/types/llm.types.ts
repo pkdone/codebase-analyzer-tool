@@ -114,6 +114,8 @@ export type LLMModelFeature =
 interface BaseLLMModelMetadata {
   /** The string identifier for this model - changed from ModelKey enum to string */
   readonly modelKey: string;
+  /** User-friendly name for the model, defined in its manifest */
+  readonly name: string;
   /** Whether this is an embedding or completion model */
   readonly purpose: LLMPurpose;
   /** Number of dimensions for embedding models */

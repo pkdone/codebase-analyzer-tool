@@ -22,6 +22,7 @@ const GPT_EMBEDDINGS_GPT4 = "GPT_EMBEDDINGS_GPT4";
 const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [GPT_COMPLETIONS_GPT4_32k]: {
     modelKey: GPT_COMPLETIONS_GPT4_32k,
+    name: "GPT-4 32k",
     urn: "gpt-4-32k",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -29,6 +30,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [GPT_EMBEDDINGS_GPT4]: {
     modelKey: GPT_EMBEDDINGS_GPT4,
+    name: "text-embedding-ada-002",
     urn: "text-embedding-ada-002",
     purpose: LLMPurpose.EMBEDDINGS,
     maxCompletionTokens: 0,
@@ -48,6 +50,7 @@ class StubLLM extends AbstractLLM {
         models: {
           embeddings: {
             modelKey: GPT_EMBEDDINGS_GPT4,
+            name: testModelsMetadata[GPT_EMBEDDINGS_GPT4].name,
             urnEnvKey: "STUB_EMBED",
             purpose: LLMPurpose.EMBEDDINGS,
             maxTotalTokens: 8191,
@@ -55,6 +58,7 @@ class StubLLM extends AbstractLLM {
           },
           primaryCompletion: {
             modelKey: GPT_COMPLETIONS_GPT4_32k,
+            name: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].name,
             urnEnvKey: "STUB_COMPLETE",
             purpose: LLMPurpose.COMPLETIONS,
             maxCompletionTokens: 4096,
@@ -109,6 +113,7 @@ function createTestProviderInit(): ProviderInit {
     models: {
       embeddings: {
         modelKey: GPT_EMBEDDINGS_GPT4,
+        name: testModelsMetadata[GPT_EMBEDDINGS_GPT4].name,
         urnEnvKey: "TEST_EMBEDDINGS_MODEL",
         purpose: LLMPurpose.EMBEDDINGS,
         maxTotalTokens: testModelsMetadata[GPT_EMBEDDINGS_GPT4].maxTotalTokens,
@@ -116,6 +121,7 @@ function createTestProviderInit(): ProviderInit {
       },
       primaryCompletion: {
         modelKey: GPT_COMPLETIONS_GPT4_32k,
+        name: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].name,
         urnEnvKey: "TEST_PRIMARY_MODEL",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: testModelsMetadata[GPT_COMPLETIONS_GPT4_32k].maxCompletionTokens,

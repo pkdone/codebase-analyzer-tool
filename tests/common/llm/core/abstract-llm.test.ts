@@ -25,6 +25,7 @@ const GPT_EMBEDDINGS_GPT4 = "GPT_EMBEDDINGS_GPT4";
 const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [GPT_COMPLETIONS_GPT4_32k]: {
     modelKey: GPT_COMPLETIONS_GPT4_32k,
+    name: "GPT-4 32k",
     urn: "gpt-4-32k",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -32,6 +33,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT]: {
     modelKey: AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT,
+    name: "Llama 3.1 405B",
     urn: "meta.llama3-1-405b-instruct-v1:0",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -39,6 +41,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [GPT_EMBEDDINGS_GPT4]: {
     modelKey: GPT_EMBEDDINGS_GPT4,
+    name: "text-embedding-ada-002",
     urn: "text-embedding-ada-002",
     purpose: LLMPurpose.EMBEDDINGS,
     maxCompletionTokens: 0,
@@ -58,6 +61,7 @@ class StubLLM extends AbstractLLM {
         models: {
           embeddings: {
             modelKey: GPT_EMBEDDINGS_GPT4,
+            name: "text-embedding-ada-002",
             urnEnvKey: "STUB_EMBED",
             purpose: LLMPurpose.EMBEDDINGS,
             maxTotalTokens: 8191,
@@ -65,6 +69,7 @@ class StubLLM extends AbstractLLM {
           },
           primaryCompletion: {
             modelKey: GPT_COMPLETIONS_GPT4_32k,
+            name: "GPT-4 32k",
             urnEnvKey: "STUB_COMPLETE",
             purpose: LLMPurpose.COMPLETIONS,
             maxCompletionTokens: 4096,
@@ -122,6 +127,7 @@ function createTestProviderInit(
     models: {
       embeddings: {
         modelKey: embeddingsKey,
+        name: testModelsMetadata[embeddingsKey].name,
         urnEnvKey: "TEST_EMBEDDINGS_MODEL",
         purpose: LLMPurpose.EMBEDDINGS,
         maxTotalTokens: testModelsMetadata[embeddingsKey].maxTotalTokens,
@@ -129,6 +135,7 @@ function createTestProviderInit(
       },
       primaryCompletion: {
         modelKey: primaryCompletionKey,
+        name: testModelsMetadata[primaryCompletionKey].name,
         urnEnvKey: "TEST_PRIMARY_MODEL",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: testModelsMetadata[primaryCompletionKey].maxCompletionTokens,

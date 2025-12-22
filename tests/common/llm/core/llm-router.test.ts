@@ -91,6 +91,7 @@ describe("LLM Router tests", () => {
   // Mock model metadata for testing
   const mockEmbeddingModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_EMBEDDINGS_ADA002",
+    name: "text-embedding-ada-002",
     urn: "text-embedding-ada-002",
     purpose: LLMPurpose.EMBEDDINGS,
     dimensions: 1536,
@@ -99,6 +100,7 @@ describe("LLM Router tests", () => {
 
   const mockPrimaryModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_COMPLETIONS_GPT4",
+    name: "GPT-4",
     urn: "gpt-4",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -113,15 +115,15 @@ describe("LLM Router tests", () => {
       executeCompletionSecondary: jest.fn(),
       getModelsNames: jest.fn(() => ({
         embeddings: "text-embedding-ada-002",
-        primaryCompletion: "gpt-4",
-        secondaryCompletion: "gpt-3.5-turbo",
+        primaryCompletion: "GPT-4",
+        secondaryCompletion: "GPT-3.5 Turbo",
       })),
       getAvailableCompletionModelQualities: jest.fn(() => [
         LLMModelQuality.PRIMARY,
         LLMModelQuality.SECONDARY,
       ]),
       getEmbeddingModelDimensions: jest.fn(() => 1536),
-      getModelFamily: jest.fn(() => "OpenAI"),
+      getModelFamily: jest.fn(() => "OpenAI GPT"),
       getModelsMetadata: jest.fn(() => ({
         GPT_COMPLETIONS_GPT4: mockPrimaryModelMetadata,
         GPT_EMBEDDINGS_ADA002: mockEmbeddingModelMetadata,
@@ -178,12 +180,14 @@ describe("LLM Router tests", () => {
       models: {
         embeddings: {
           modelKey: "GPT_EMBEDDINGS_ADA002",
+          name: "text-embedding-ada-002",
           purpose: LLMPurpose.EMBEDDINGS,
           urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
           maxTotalTokens: 8191,
         },
         primaryCompletion: {
           modelKey: "GPT_COMPLETIONS_GPT4",
+          name: "GPT-4",
           purpose: LLMPurpose.COMPLETIONS,
           urnEnvKey: "OPENAI_COMPLETION_MODEL",
           maxTotalTokens: 8192,
@@ -191,6 +195,7 @@ describe("LLM Router tests", () => {
         },
         secondaryCompletion: {
           modelKey: "GPT_COMPLETIONS_GPT35",
+          name: "GPT-3.5 Turbo",
           purpose: LLMPurpose.COMPLETIONS,
           urnEnvKey: "OPENAI_SECONDARY_MODEL",
           maxTotalTokens: 4096,
@@ -269,14 +274,14 @@ describe("LLM Router tests", () => {
 
     test("should return correct model family", () => {
       const { router } = createLLMRouter();
-      expect(router.getModelFamily()).toBe("OpenAI");
+      expect(router.getModelFamily()).toBe("OpenAI GPT");
     });
 
     test("should return correct models description", () => {
       const { router } = createLLMRouter();
       const description = router.getModelsUsedDescription();
       expect(description).toBe(
-        "OpenAI (embeddings: text-embedding-ada-002, completions - primary: gpt-4, secondary: gpt-3.5-turbo)",
+        "OpenAI GPT (embeddings: text-embedding-ada-002, completions - primary: GPT-4, secondary: GPT-3.5 Turbo)",
       );
     });
 
@@ -300,6 +305,7 @@ describe("LLM Router tests", () => {
         description: "embeddings model with purpose check",
         model: {
           modelKey: "GPT_EMBEDDINGS_ADA002",
+          name: "text-embedding-ada-002",
           urn: "text-embedding-ada-002",
           purpose: LLMPurpose.EMBEDDINGS,
           dimensions: 1536,
@@ -312,6 +318,7 @@ describe("LLM Router tests", () => {
         description: "completion model with purpose check",
         model: {
           modelKey: "GPT_COMPLETIONS_GPT4",
+          name: "GPT-4",
           urn: "gpt-4",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 4096,
@@ -324,6 +331,7 @@ describe("LLM Router tests", () => {
         description: "embeddings model with dimensions check",
         model: {
           modelKey: "GPT_EMBEDDINGS_ADA002",
+          name: "text-embedding-ada-002",
           urn: "text-embedding-ada-002",
           purpose: LLMPurpose.EMBEDDINGS,
           dimensions: 1536,
@@ -336,6 +344,7 @@ describe("LLM Router tests", () => {
         description: "completion model with maxCompletionTokens check",
         model: {
           modelKey: "GPT_COMPLETIONS_GPT4",
+          name: "GPT-4",
           urn: "gpt-4",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 4096,
@@ -348,6 +357,7 @@ describe("LLM Router tests", () => {
         description: "embeddings model with maxTotalTokens check",
         model: {
           modelKey: "GPT_EMBEDDINGS_ADA002",
+          name: "text-embedding-ada-002",
           urn: "text-embedding-ada-002",
           purpose: LLMPurpose.EMBEDDINGS,
           dimensions: 1536,
@@ -360,6 +370,7 @@ describe("LLM Router tests", () => {
         description: "embeddings model with urn check",
         model: {
           modelKey: "GPT_EMBEDDINGS_ADA002",
+          name: "text-embedding-ada-002",
           urn: "text-embedding-ada-002",
           purpose: LLMPurpose.EMBEDDINGS,
           dimensions: 1536,
@@ -372,6 +383,7 @@ describe("LLM Router tests", () => {
         description: "embeddings model with internalKey check",
         model: {
           modelKey: "GPT_EMBEDDINGS_ADA002",
+          name: "text-embedding-ada-002",
           urn: "text-embedding-ada-002",
           purpose: LLMPurpose.EMBEDDINGS,
           dimensions: 1536,
@@ -384,6 +396,7 @@ describe("LLM Router tests", () => {
         description: "completion model with maxTotalTokens check",
         model: {
           modelKey: "GPT_COMPLETIONS_GPT4",
+          name: "GPT-4",
           urn: "gpt-4",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 4096,

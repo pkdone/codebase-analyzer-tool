@@ -25,12 +25,14 @@ describe("Type-Safe Config Without Features Array", () => {
       models: {
         embeddings: {
           modelKey: "test-embed",
+          name: "Test Embeddings",
           urnEnvKey: "TEST_EMBED",
           purpose: LLMPurpose.EMBEDDINGS,
           maxTotalTokens: 8192,
         },
         primaryCompletion: {
           modelKey: "llama-complete",
+          name: "Llama Completion",
           urnEnvKey: "LLAMA_COMPLETE",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 8192,

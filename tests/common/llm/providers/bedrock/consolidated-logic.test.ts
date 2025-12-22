@@ -26,12 +26,14 @@ describe("Consolidated Bedrock Logic", () => {
       models: {
         embeddings: {
           modelKey: "test-embed",
+          name: "Test Embeddings",
           urnEnvKey: "TEST_EMBED",
           purpose: LLMPurpose.EMBEDDINGS,
           maxTotalTokens: 8192,
         },
         primaryCompletion: {
           modelKey: "test-complete",
+          name: "Test Completion",
           urnEnvKey: "TEST_COMPLETE",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 4096,

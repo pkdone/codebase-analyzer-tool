@@ -47,6 +47,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
 
   const mockEmbeddingModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "TEST_EMBEDDINGS",
+    name: "Test Embeddings",
     urn: "test-embedding-model",
     purpose: LLMPurpose.EMBEDDINGS,
     dimensions: 1536,
@@ -55,6 +56,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
 
   const mockPrimaryCompletionModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "TEST_PRIMARY_COMPLETION",
+    name: "Test Primary",
     urn: "test-primary-model",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -95,6 +97,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
       models: {
         embeddings: {
           modelKey: "TEST_EMBEDDINGS",
+          name: "Test Embeddings",
           urnEnvKey: "TEST_EMBEDDING_MODEL",
           purpose: LLMPurpose.EMBEDDINGS,
           dimensions: 1536,
@@ -102,6 +105,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
         },
         primaryCompletion: {
           modelKey: "TEST_PRIMARY_COMPLETION",
+          name: "Test Primary",
           urnEnvKey: "TEST_PRIMARY_MODEL",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 4096,

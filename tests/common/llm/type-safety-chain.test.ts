@@ -21,6 +21,7 @@ const TEST_EMBEDDINGS_MODEL = "TEST_EMBEDDINGS_MODEL";
 const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [TEST_COMPLETIONS_MODEL]: {
     modelKey: TEST_COMPLETIONS_MODEL,
+    name: "Test Completions",
     urn: "test-completion-model",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -28,6 +29,7 @@ const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [TEST_EMBEDDINGS_MODEL]: {
     modelKey: TEST_EMBEDDINGS_MODEL,
+    name: "Test Embeddings",
     urn: "test-embedding-model",
     purpose: LLMPurpose.EMBEDDINGS,
     maxCompletionTokens: 0,
@@ -52,6 +54,7 @@ class TypeSafetyChainTestLLM extends AbstractLLM {
         models: {
           embeddings: {
             modelKey: TEST_EMBEDDINGS_MODEL,
+            name: "Test Embeddings",
             urnEnvKey: "TEST_EMBED",
             purpose: LLMPurpose.EMBEDDINGS,
             maxTotalTokens: 8191,
@@ -59,6 +62,7 @@ class TypeSafetyChainTestLLM extends AbstractLLM {
           },
           primaryCompletion: {
             modelKey: TEST_COMPLETIONS_MODEL,
+            name: "Test Completions",
             urnEnvKey: "TEST_COMPLETE",
             purpose: LLMPurpose.COMPLETIONS,
             maxCompletionTokens: 4096,

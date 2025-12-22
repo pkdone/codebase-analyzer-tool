@@ -21,6 +21,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     GEMINI_EMBEDDINGS: {
       modelKey: "GEMINI_EMBEDDINGS",
+      name: "Gemini Embeddings",
       urn: "text-embedding-004",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 768,
@@ -28,6 +29,7 @@ describe("VertexAIGeminiLLM Schema Sanitization", () => {
     },
     GEMINI_COMPLETIONS: {
       modelKey: "GEMINI_COMPLETIONS",
+      name: "Gemini Pro",
       urn: "gemini-1.5-pro",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,

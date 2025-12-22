@@ -51,6 +51,7 @@ describe("Type Safety Refactoring - Simplified Generic Approach", () => {
 
   const mockEmbeddingModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "TEST_EMBEDDINGS",
+    name: "Test Embeddings",
     urn: "test-embedding-model",
     purpose: LLMPurpose.EMBEDDINGS,
     dimensions: 1536,
@@ -59,6 +60,7 @@ describe("Type Safety Refactoring - Simplified Generic Approach", () => {
 
   const mockPrimaryCompletionModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "TEST_PRIMARY_COMPLETION",
+    name: "Test Primary",
     urn: "test-primary-model",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,

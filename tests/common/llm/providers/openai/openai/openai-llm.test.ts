@@ -6,10 +6,7 @@ import {
   LLMOutputFormat,
 } from "../../../../../../src/common/llm/types/llm.types";
 import OpenAILLM from "../../../../../../src/common/llm/providers/openai/openai/openai-llm";
-import {
-  OPENAI,
-  openAIProviderManifest,
-} from "../../../../../../src/common/llm/providers/openai/openai/openai.manifest";
+import { openAIProviderManifest } from "../../../../../../src/common/llm/providers/openai/openai/openai.manifest";
 import { createMockErrorLogger } from "../../../../helpers/llm/mock-error-logger";
 import type { ProviderInit } from "../../../../../../src/common/llm/providers/llm-provider.types";
 
@@ -72,6 +69,7 @@ describe("OpenAI LLM Provider", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     GPT_EMBEDDINGS_ADA002: {
       modelKey: "GPT_EMBEDDINGS_ADA002",
+      name: "text-embedding-ada-002",
       urn: "text-embedding-ada-002",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1536,
@@ -79,6 +77,7 @@ describe("OpenAI LLM Provider", () => {
     },
     GPT_COMPLETIONS_GPT4: {
       modelKey: "GPT_COMPLETIONS_GPT4",
+      name: "GPT-4",
       urn: "gpt-4",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 4096,
@@ -86,6 +85,7 @@ describe("OpenAI LLM Provider", () => {
     },
     GPT_COMPLETIONS_GPT3_5: {
       modelKey: "GPT_COMPLETIONS_GPT3_5",
+      name: "GPT-3.5 Turbo",
       urn: "gpt-3.5-turbo",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 2048,
@@ -93,6 +93,7 @@ describe("OpenAI LLM Provider", () => {
     },
     GPT_COMPLETIONS_GPT35_TURBO: {
       modelKey: "GPT_COMPLETIONS_GPT35_TURBO",
+      name: "GPT-3.5 Turbo",
       urn: "gpt-3.5-turbo",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 2048,
@@ -160,7 +161,7 @@ describe("OpenAI LLM Provider", () => {
 
   describe("Basic Provider Info", () => {
     test("should return correct model family", () => {
-      expect(openAILLM.getModelFamily()).toBe(OPENAI);
+      expect(openAILLM.getModelFamily()).toBe("OpenAI GPT");
     });
 
     test("should return correct model identifier from metadata URN", () => {

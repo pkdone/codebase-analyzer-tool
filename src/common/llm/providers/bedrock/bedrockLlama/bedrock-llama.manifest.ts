@@ -40,6 +40,7 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: {
       modelKey: AWS_EMBEDDINGS_TITAN_V1,
+      name: "Titan Embeddings v1",
       urnEnvKey: BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1536,
@@ -47,6 +48,7 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     },
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_LLAMA_V33_70B_INSTRUCT,
+      name: "Llama 3.3 70B",
       urnEnvKey: BEDROCK_LLAMA_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,
@@ -54,6 +56,7 @@ export const bedrockLlamaProviderManifest: LLMProviderManifest = {
     },
     secondaryCompletion: {
       modelKey: AWS_COMPLETIONS_LLAMA_V32_90B_INSTRUCT,
+      name: "Llama 3.2 90B",
       urnEnvKey: BEDROCK_LLAMA_COMPLETIONS_MODEL_SECONDARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 4096,

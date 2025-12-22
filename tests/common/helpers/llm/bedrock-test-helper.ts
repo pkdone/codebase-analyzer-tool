@@ -16,6 +16,7 @@ import { createMockErrorLogger } from "./mock-error-logger";
  */
 export interface AdditionalTestModel {
   modelKey: string;
+  name?: string;
   urn: string;
   maxCompletionTokens: number;
   maxTotalTokens: number;
@@ -98,6 +99,7 @@ export function createBedrockTestData(
   const modelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     [manifest.models.embeddings.modelKey]: {
       modelKey: manifest.models.embeddings.modelKey,
+      name: manifest.models.embeddings.name,
       urn: resolveUrn(manifest.models.embeddings.urnEnvKey),
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: manifest.models.embeddings.dimensions,
@@ -105,6 +107,7 @@ export function createBedrockTestData(
     },
     [manifest.models.primaryCompletion.modelKey]: {
       modelKey: manifest.models.primaryCompletion.modelKey,
+      name: manifest.models.primaryCompletion.name,
       urn: resolveUrn(manifest.models.primaryCompletion.urnEnvKey),
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: manifest.models.primaryCompletion.maxCompletionTokens,
@@ -117,6 +120,7 @@ export function createBedrockTestData(
     const secondaryModel = manifest.models.secondaryCompletion;
     modelsMetadata[secondaryModel.modelKey] = {
       modelKey: secondaryModel.modelKey,
+      name: secondaryModel.name,
       urn: resolveUrn(secondaryModel.urnEnvKey),
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: secondaryModel.maxCompletionTokens ?? 4096,
@@ -129,6 +133,7 @@ export function createBedrockTestData(
     for (const model of additionalModels) {
       modelsMetadata[model.modelKey] = {
         modelKey: model.modelKey,
+        name: model.name ?? model.urn,
         urn: model.urn,
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: model.maxCompletionTokens,

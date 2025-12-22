@@ -61,6 +61,7 @@ describe("Split Invoke Methods", () => {
       models: {
         embeddings: {
           modelKey: "test-embed",
+          name: "Test Embeddings",
           urnEnvKey: "TEST_EMBED",
           purpose: LLMPurpose.EMBEDDINGS,
           dimensions: 1536,
@@ -68,6 +69,7 @@ describe("Split Invoke Methods", () => {
         },
         primaryCompletion: {
           modelKey: "test-complete",
+          name: "Test Completion",
           urnEnvKey: "TEST_COMPLETE",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 500,

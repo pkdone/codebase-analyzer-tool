@@ -45,6 +45,7 @@ describe("Type Safety Refactoring Validation", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     "test-model": {
       modelKey: "test-model",
+      name: "Test Model",
       urn: "test-model-urn",
       purpose: LLMPurpose.COMPLETIONS,
       maxTotalTokens: 8192,

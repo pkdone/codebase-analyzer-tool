@@ -34,6 +34,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: {
       modelKey: GCP_EMBEDDINGS_GEMINI_001,
+      name: "Gemini Embeddings",
       urnEnvKey: VERTEXAI_TEXT_EMBEDDINGS_MODEL_KEY,
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 3072, // Either: 768, 1536 or 3072
@@ -41,6 +42,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     },
     primaryCompletion: {
       modelKey: GCP_COMPLETIONS_GEMINI_PRO30,
+      name: "Gemini Pro 3.0",
       urnEnvKey: VERTEXAI_GEMINI_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 65535,
@@ -48,6 +50,7 @@ export const vertexAIGeminiProviderManifest: LLMProviderManifest = {
     },
     secondaryCompletion: {
       modelKey: GCP_COMPLETIONS_GEMINI_PRO25,
+      name: "Gemini Pro 2.5",
       urnEnvKey: VERTEXAI_GEMINI_COMPLETIONS_MODEL_SECONDARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 65535,

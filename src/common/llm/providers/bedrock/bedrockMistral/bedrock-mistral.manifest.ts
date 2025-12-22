@@ -32,6 +32,7 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: {
       modelKey: AWS_EMBEDDINGS_TITAN_V1,
+      name: "Titan Embeddings v1",
       urnEnvKey: BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1024,
@@ -39,6 +40,7 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
     },
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_MISTRAL_LARGE2,
+      name: "Mistral Large 2",
       urnEnvKey: BEDROCK_MISTRAL_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,
@@ -46,6 +48,7 @@ export const bedrockMistralProviderManifest: LLMProviderManifest = {
     },
     secondaryCompletion: {
       modelKey: AWS_COMPLETIONS_MISTRAL_LARGE,
+      name: "Mistral Large",
       urnEnvKey: BEDROCK_MISTRAL_COMPLETIONS_MODEL_SECONDARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,

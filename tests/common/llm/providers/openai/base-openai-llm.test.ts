@@ -46,6 +46,7 @@ class TestOpenAILLM extends BaseOpenAILLM {
       models: {
         embeddings: {
           modelKey: "EMBED",
+          name: "Test Embeddings",
           urnEnvKey: "EMBED_URN",
           purpose: LLMPurpose.EMBEDDINGS,
           maxTotalTokens: 8191,
@@ -53,6 +54,7 @@ class TestOpenAILLM extends BaseOpenAILLM {
         },
         primaryCompletion: {
           modelKey: "COMPLETE",
+          name: "Test Completion",
           urnEnvKey: "COMPLETE_URN",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 32,

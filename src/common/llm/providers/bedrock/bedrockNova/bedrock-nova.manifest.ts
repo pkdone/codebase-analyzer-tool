@@ -31,6 +31,7 @@ export const bedrockNovaProviderManifest: LLMProviderManifest = {
   models: {
     embeddings: {
       modelKey: AWS_EMBEDDINGS_TITAN_V1,
+      name: "Titan Embeddings v1",
       urnEnvKey: BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1024,
@@ -38,6 +39,7 @@ export const bedrockNovaProviderManifest: LLMProviderManifest = {
     },
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_NOVA_PRO_V1,
+      name: "Nova Pro",
       urnEnvKey: BEDROCK_NOVA_COMPLETIONS_MODEL_PRIMARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 5000,
@@ -45,6 +47,7 @@ export const bedrockNovaProviderManifest: LLMProviderManifest = {
     },
     secondaryCompletion: {
       modelKey: AWS_COMPLETIONS_NOVA_LITE_V1,
+      name: "Nova Lite",
       urnEnvKey: BEDROCK_NOVA_COMPLETIONS_MODEL_SECONDARY_KEY,
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 5000,

@@ -20,6 +20,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
+      name: "Titan Embeddings v1",
       urn: "amazon.titan-embed-text-v2:0",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1024,
@@ -27,6 +28,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     },
     [AWS_COMPLETIONS_DEEPSEEK_R1]: {
       modelKey: AWS_COMPLETIONS_DEEPSEEK_R1,
+      name: "Deepseek R1",
       urn: "us.amazon.deepseek-r1-distill-qwen-32b-v1:0",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 8192,
@@ -198,7 +200,7 @@ describe("BedrockDeepseekLLM - Request Body Building", () => {
     it("should return correct model family", () => {
       const llm = new BedrockDeepseekLLM(createTestProviderInit());
 
-      expect(llm.getModelFamily()).toBe("BedrockDeepseek");
+      expect(llm.getModelFamily()).toBe("Bedrock Deepseek");
     });
   });
 });

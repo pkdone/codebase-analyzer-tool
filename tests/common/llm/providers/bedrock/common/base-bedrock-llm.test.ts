@@ -33,6 +33,7 @@ function createTestProviderInit(
     models: {
       embeddings: {
         modelKey: embeddingsKey,
+        name: modelsMetadata[embeddingsKey].name,
         urnEnvKey: "TEST_EMBED",
         purpose: LLMPurpose.EMBEDDINGS,
         maxTotalTokens: modelsMetadata[embeddingsKey].maxTotalTokens,
@@ -40,6 +41,7 @@ function createTestProviderInit(
       },
       primaryCompletion: {
         modelKey: completionKey,
+        name: modelsMetadata[completionKey].name,
         urnEnvKey: "TEST_COMPLETE",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: modelsMetadata[completionKey].maxCompletionTokens,
@@ -135,6 +137,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
   const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
     EMBEDDINGS: {
       modelKey: "EMBEDDINGS",
+      name: "Test Embeddings",
       urn: "test-embeddings-model",
       purpose: LLMPurpose.EMBEDDINGS,
       dimensions: 1536,
@@ -142,6 +145,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     },
     COMPLETION: {
       modelKey: "COMPLETION",
+      name: "Test Completion",
       urn: "test-completion-model",
       purpose: LLMPurpose.COMPLETIONS,
       maxCompletionTokens: 4096,
@@ -227,6 +231,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
     const mockModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
       EMBEDDINGS: {
         modelKey: "EMBEDDINGS",
+        name: "Test Embeddings",
         urn: "test-embeddings-model",
         purpose: LLMPurpose.EMBEDDINGS,
         dimensions: 1536,
@@ -234,6 +239,7 @@ describe("BaseBedrockLLM - JSON stringification centralization", () => {
       },
       COMPLETION: {
         modelKey: "COMPLETION",
+        name: "Test Completion",
         urn: "test-completion-model",
         purpose: LLMPurpose.COMPLETIONS,
         maxCompletionTokens: 4096,

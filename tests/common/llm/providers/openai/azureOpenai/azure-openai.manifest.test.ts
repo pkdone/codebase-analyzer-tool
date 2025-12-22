@@ -40,6 +40,7 @@ const resolveUrn = (urnEnvKey: string): string => {
 const azureOpenAIModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   [azureOpenAIProviderManifest.models.embeddings.modelKey]: {
     modelKey: azureOpenAIProviderManifest.models.embeddings.modelKey,
+    name: azureOpenAIProviderManifest.models.embeddings.name,
     urn: resolveUrn(azureOpenAIProviderManifest.models.embeddings.urnEnvKey),
     purpose: LLMPurpose.EMBEDDINGS,
     dimensions: azureOpenAIProviderManifest.models.embeddings.dimensions,
@@ -47,6 +48,7 @@ const azureOpenAIModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [azureOpenAIProviderManifest.models.primaryCompletion.modelKey]: {
     modelKey: azureOpenAIProviderManifest.models.primaryCompletion.modelKey,
+    name: azureOpenAIProviderManifest.models.primaryCompletion.name,
     urn: resolveUrn(azureOpenAIProviderManifest.models.primaryCompletion.urnEnvKey),
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: azureOpenAIProviderManifest.models.primaryCompletion.maxCompletionTokens,
@@ -55,6 +57,7 @@ const azureOpenAIModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   // Add common test models that are used in the tests
   [GPT_COMPLETIONS_GPT4]: {
     modelKey: GPT_COMPLETIONS_GPT4,
+    name: "GPT-4",
     urn: "gpt-4",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -62,6 +65,7 @@ const azureOpenAIModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
   },
   [GPT_COMPLETIONS_GPT4_32k]: {
     modelKey: GPT_COMPLETIONS_GPT4_32k,
+    name: "GPT-4 32k",
     urn: "gpt-4-32k",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -74,6 +78,7 @@ if (azureOpenAIProviderManifest.models.secondaryCompletion) {
   const secondaryModel = azureOpenAIProviderManifest.models.secondaryCompletion;
   azureOpenAIModelsMetadata[secondaryModel.modelKey] = {
     modelKey: secondaryModel.modelKey,
+    name: secondaryModel.name,
     urn: resolveUrn(secondaryModel.urnEnvKey),
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: secondaryModel.maxCompletionTokens ?? 4096,
@@ -151,7 +156,7 @@ describe("Azure OpenAI Provider Tests", () => {
     test("verifies model family", () => {
       const init = createTestProviderInit();
       const llm = new azureOpenAIProviderManifest.implementation(init);
-      expect(llm.getModelFamily()).toBe("AzureOpenAI");
+      expect(llm.getModelFamily()).toBe("Azure OpenAI");
     });
   });
 });

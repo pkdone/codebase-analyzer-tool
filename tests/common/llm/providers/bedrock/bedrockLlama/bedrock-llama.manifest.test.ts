@@ -88,7 +88,7 @@ describe("Bedrock Llama Provider Tests", () => {
     test("verifies model family", () => {
       const init = createBedrockProviderInit(bedrockLlamaProviderManifest, mockBedrockLlamaEnv);
       const llm = new bedrockLlamaProviderManifest.implementation(init);
-      expect(llm.getModelFamily()).toBe("BedrockLlama");
+      expect(llm.getModelFamily()).toBe("Bedrock Llama");
     });
 
     test("counts available models", () => {

@@ -50,6 +50,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
   // Mock model metadata
   const mockEmbeddingModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_EMBEDDINGS_ADA002",
+    name: "text-embedding-ada-002",
     urn: "text-embedding-ada-002",
     purpose: LLMPurpose.EMBEDDINGS,
     dimensions: 1536,
@@ -58,6 +59,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
 
   const mockPrimaryModelMetadata: ResolvedLLMModelMetadata = {
     modelKey: "GPT_COMPLETIONS_GPT4",
+    name: "GPT-4",
     urn: "gpt-4",
     purpose: LLMPurpose.COMPLETIONS,
     maxCompletionTokens: 4096,
@@ -72,15 +74,15 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       executeCompletionSecondary: jest.fn(),
       getModelsNames: jest.fn(() => ({
         embeddings: "text-embedding-ada-002",
-        primaryCompletion: "gpt-4",
-        secondaryCompletion: "gpt-3.5-turbo",
+        primaryCompletion: "GPT-4",
+        secondaryCompletion: "GPT-3.5 Turbo",
       })),
       getAvailableCompletionModelQualities: jest.fn(() => [
         LLMModelQuality.PRIMARY,
         LLMModelQuality.SECONDARY,
       ]),
       getEmbeddingModelDimensions: jest.fn(() => 1536),
-      getModelFamily: jest.fn(() => "OpenAI"),
+      getModelFamily: jest.fn(() => "OpenAI GPT"),
       getModelsMetadata: jest.fn(() => ({
         GPT_COMPLETIONS_GPT4: mockPrimaryModelMetadata,
         GPT_EMBEDDINGS_ADA002: mockEmbeddingModelMetadata,
@@ -111,12 +113,14 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
       models: {
         embeddings: {
           modelKey: "GPT_EMBEDDINGS_ADA002",
+          name: "text-embedding-ada-002",
           purpose: LLMPurpose.EMBEDDINGS,
           urnEnvKey: "OPENAI_EMBEDDINGS_MODEL",
           maxTotalTokens: 8191,
         },
         primaryCompletion: {
           modelKey: "GPT_COMPLETIONS_GPT4",
+          name: "GPT-4",
           purpose: LLMPurpose.COMPLETIONS,
           urnEnvKey: "OPENAI_COMPLETION_MODEL",
           maxTotalTokens: 8192,
@@ -124,6 +128,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         },
         secondaryCompletion: {
           modelKey: "GPT_COMPLETIONS_GPT35",
+          name: "GPT-3.5 Turbo",
           purpose: LLMPurpose.COMPLETIONS,
           urnEnvKey: "OPENAI_SECONDARY_MODEL",
           maxTotalTokens: 4096,

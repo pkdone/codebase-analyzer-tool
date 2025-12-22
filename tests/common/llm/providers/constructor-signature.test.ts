@@ -60,12 +60,14 @@ describe("Provider Constructor Signatures", () => {
       models: {
         embeddings: {
           modelKey: "test-embed",
+          name: "Test Embeddings",
           urnEnvKey: "TEST_EMBED",
           purpose: LLMPurpose.EMBEDDINGS,
           maxTotalTokens: 1000,
         },
         primaryCompletion: {
           modelKey: "test-primary",
+          name: "Test Primary",
           urnEnvKey: "TEST_PRIMARY",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 500,

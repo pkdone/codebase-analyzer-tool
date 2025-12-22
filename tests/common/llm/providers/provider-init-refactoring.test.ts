@@ -51,12 +51,14 @@ describe("Provider Init Refactoring", () => {
       models: {
         embeddings: {
           modelKey: "test-embed",
+          name: "Test Embeddings",
           urnEnvKey: "TEST_EMBED_URN",
           purpose: LLMPurpose.EMBEDDINGS,
           maxTotalTokens: 1000,
         },
         primaryCompletion: {
           modelKey: "test-primary",
+          name: "Test Primary",
           urnEnvKey: "TEST_PRIMARY_URN",
           purpose: LLMPurpose.COMPLETIONS,
           maxCompletionTokens: 500,
@@ -65,6 +67,7 @@ describe("Provider Init Refactoring", () => {
         ...(includeSecondary && {
           secondaryCompletion: {
             modelKey: "test-secondary",
+            name: "Test Secondary",
             urnEnvKey: "TEST_SECONDARY_URN",
             purpose: LLMPurpose.COMPLETIONS,
             maxCompletionTokens: 250,
@@ -120,7 +123,7 @@ describe("Provider Init Refactoring", () => {
 
     expect(providerSpecificConfig).toEqual(init.manifest.providerSpecificConfig);
     expect(providerParams).toEqual(init.providerParams);
-    expect(modelFamily).toBe("test-family");
+    expect(modelFamily).toBe("Test Provider");
 
     expect(modelsKeys.embeddingsModelKey).toBe("test-embed");
     expect(modelsKeys.primaryCompletionModelKey).toBe("test-primary");

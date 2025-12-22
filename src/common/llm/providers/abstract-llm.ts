@@ -59,7 +59,7 @@ export default abstract class AbstractLLM implements LLMProvider {
     // Assign configuration values
     this.errorPatterns = manifest.errorPatterns;
     this.providerSpecificConfig = manifest.providerSpecificConfig;
-    this.modelFamily = manifest.modelFamily;
+    this.modelFamily = manifest.providerName;
     this.errorLogger = errorLogger;
     this.providerParams = providerParams;
   }
@@ -86,12 +86,15 @@ export default abstract class AbstractLLM implements LLMProvider {
    * Get the model key for the embeddings model.
    */
   getModelsNames() {
+    const embeddingsMetadata = this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey];
+    const primaryCompletionMetadata =
+      this.llmModelsMetadata[this.modelsKeys.primaryCompletionModelKey];
     return {
-      embeddings: this.llmModelsMetadata[this.modelsKeys.embeddingsModelKey].urn,
-      primaryCompletion: this.llmModelsMetadata[this.modelsKeys.primaryCompletionModelKey].urn,
+      embeddings: embeddingsMetadata.name,
+      primaryCompletion: primaryCompletionMetadata.name,
       ...(this.modelsKeys.secondaryCompletionModelKey && {
         secondaryCompletion:
-          this.llmModelsMetadata[this.modelsKeys.secondaryCompletionModelKey].urn,
+          this.llmModelsMetadata[this.modelsKeys.secondaryCompletionModelKey].name,
       }),
     };
   }
