@@ -226,9 +226,9 @@ describe("Data-driven Prompt System", () => {
         "technologies",
         "businessProcesses",
         "boundedContexts",
-        "aggregates",
-        "entities",
-        "repositories",
+        "boundedContexts",
+        "technologies",
+        "businessProcesses",
         "potentialMicroservices",
       ];
 

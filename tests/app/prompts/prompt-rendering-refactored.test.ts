@@ -34,7 +34,7 @@ describe("Prompt Rendering Refactoring Tests", () => {
       const definition: PromptDefinition = {
         contentDesc: "a set of source file summaries",
         instructions: ["a list of entities"],
-        responseSchema: z.object({ entities: z.array(z.string()) }),
+        responseSchema: z.object({ technologies: z.array(z.string()) }),
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FILE_SUMMARIES",
         wrapInCodeBlock: false,
@@ -52,15 +52,15 @@ describe("Prompt Rendering Refactoring Tests", () => {
         contentDesc:
           "several JSON objects, each containing a list of '{{categoryKey}}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized",
         instructions: ["a consolidated list of 'Entities'"],
-        responseSchema: z.object({ entities: z.array(z.string()) }),
+        responseSchema: z.object({ technologies: z.array(z.string()) }),
         template: BASE_PROMPT_TEMPLATE,
         dataBlockHeader: "FRAGMENTED_DATA",
         wrapInCodeBlock: false,
       };
 
       const rendered = renderPrompt(definition, {
-        content: '[{"entities": ["User"]}]',
-        categoryKey: "entities",
+        content: '[{"technologies": ["User"]}]',
+        categoryKey: "technologies",
       });
 
       // Should contain the contentDesc with template placeholder replaced

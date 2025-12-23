@@ -89,14 +89,14 @@ describe("Template Consolidation", () => {
 
     it("should render correctly with reduce configuration using factory", () => {
       // Use the factory function to create a reduce prompt with categoryKey baked in
-      const category: AppSummaryCategoryEnum = "entities";
-      const schema = z.object({ entities: z.array(z.object({ name: z.string() })) });
-      const definition = createReduceInsightsPrompt(category, "entities", schema);
+      const category: AppSummaryCategoryEnum = "technologies";
+      const schema = z.object({ technologies: z.array(z.object({ name: z.string() })) });
+      const definition = createReduceInsightsPrompt(category, "technologies", schema);
 
       const rendered = renderPrompt(definition, { content: "test data" });
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FRAGMENTED_DATA:");
-      expect(rendered).toContain("entities");
+      expect(rendered).toContain("technologies");
       expect(rendered).toContain("consolidate these lists into a single, de-duplicated");
     });
   });

@@ -48,7 +48,7 @@ describe("executeInsightCompletion - Type Inference", () => {
   describe("category-specific result type inference", () => {
     test("should return correctly typed result for entities category", async () => {
       const mockResponse = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity" },
           { name: "Order", description: "Order entity" },
         ],
@@ -56,16 +56,16 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "entities", [
+      const result = await executeInsightCompletion(mockLLMRouter, "technologies", [
         "* file1.ts: implementation",
       ]);
 
-      // Type should be inferred as CategoryInsightResult<"entities">
+      // Type should be inferred as CategoryInsightResult<"technologies">
       expect(result).toEqual(mockResponse);
       if (result) {
         // No type assertion needed - should compile with correct type
-        expect(result.entities).toBeDefined();
-        expect(result.entities[0].name).toBe("User");
+        expect(result.technologies).toBeDefined();
+        expect(result.technologies[0].name).toBe("User");
       }
     });
 
@@ -132,36 +132,46 @@ describe("executeInsightCompletion - Type Inference", () => {
       }
     });
 
-    test("should return correctly typed result for aggregates category", async () => {
+    test("should return correctly typed result for boundedContexts category", async () => {
       const mockResponse = {
-        aggregates: [
+        boundedContexts: [
           {
-            name: "OrderAggregate",
-            description: "Aggregate for orders",
-            entities: ["Order", "OrderItem"],
+            name: "OrderContext",
+            description: "Bounded context for orders",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Aggregate for orders",
+                repository: { name: "OrderRepository", description: "Order repository" },
+                entities: [
+                  { name: "Order", description: "Order entity" },
+                  { name: "OrderItem", description: "Order item entity" },
+                ],
+              },
+            ],
           },
         ],
       };
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "aggregates", [
+      const result = await executeInsightCompletion(mockLLMRouter, "boundedContexts", [
         "* file1.ts: implementation",
       ]);
 
       expect(result).toEqual(mockResponse);
       if (result) {
-        expect(result.aggregates).toBeDefined();
-        expect(result.aggregates[0].entities).toContain("Order");
+        expect(result.boundedContexts).toBeDefined();
+        expect(result.boundedContexts[0].aggregates[0].entities).toHaveLength(2);
       }
     });
   });
 
   describe("generic type parameter inference", () => {
     test("should infer type from category enum parameter", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       const mockResponse = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "User", description: "User entity" }],
       };
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
@@ -180,9 +190,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         "technologies",
         "businessProcesses",
         "boundedContexts",
-        "aggregates",
-        "entities",
-        "repositories",
+        "boundedContexts",
+        "technologies",
+        "businessProcesses",
         "potentialMicroservices",
       ];
 
@@ -202,30 +212,38 @@ describe("executeInsightCompletion - Type Inference", () => {
   describe("no unsafe casts in return path", () => {
     test("should return result without type assertions", async () => {
       const mockResponse = {
-        repositories: [
-          { name: "UserRepository", description: "Repository for users" },
-          { name: "OrderRepository", description: "Repository for orders" },
+        businessProcesses: [
+          {
+            name: "UserRegistration",
+            description: "Process for registering users",
+            keyBusinessActivities: [],
+          },
+          {
+            name: "OrderProcessing",
+            description: "Process for processing orders",
+            keyBusinessActivities: [],
+          },
         ],
       };
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "repositories", [
+      const result = await executeInsightCompletion(mockLLMRouter, "businessProcesses", [
         "* file1.ts: implementation",
       ]);
 
       // Should not need any type assertions to access properties
       expect(result).toEqual(mockResponse);
       if (result) {
-        expect(result.repositories.length).toBe(2);
-        expect(result.repositories[0].name).toBe("UserRepository");
+        expect(result.businessProcesses.length).toBe(2);
+        expect(result.businessProcesses[0].name).toBe("UserRegistration");
       }
     });
 
     test("should handle null response without type assertions", async () => {
       mockLLMRouter.executeCompletion.mockResolvedValue(null);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "entities", [
+      const result = await executeInsightCompletion(mockLLMRouter, "technologies", [
         "* file1.ts: implementation",
       ]);
 
@@ -235,7 +253,7 @@ describe("executeInsightCompletion - Type Inference", () => {
     test("should handle errors without breaking type safety", async () => {
       mockLLMRouter.executeCompletion.mockRejectedValue(new Error("LLM error"));
 
-      const result = await executeInsightCompletion(mockLLMRouter, "entities", [
+      const result = await executeInsightCompletion(mockLLMRouter, "technologies", [
         "* file1.ts: implementation",
       ]);
 
@@ -267,15 +285,15 @@ describe("executeInsightCompletion - Type Inference", () => {
 
     test("should validate that schema inference matches category type", () => {
       // Compile-time validation
-      const _entitiesSchema = appSummaryCategorySchemas.entities;
+      const _entitiesSchema = appSummaryCategorySchemas.technologies;
       type EntitiesType = z.infer<typeof _entitiesSchema>;
 
       // This should compile correctly
       const validEntities: EntitiesType = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "User", description: "User entity" }],
       };
 
-      expect(validEntities.entities).toBeDefined();
+      expect(validEntities.technologies).toBeDefined();
     });
   });
 
@@ -307,7 +325,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
     test("should work with partial analysis note option", async () => {
       const mockResponse = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "User", description: "User entity" }],
       };
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
@@ -319,14 +337,14 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
-        "entities",
+        "technologies",
         ["* file1.ts: implementation"],
         options,
       );
 
       expect(result).toEqual(mockResponse);
       if (result) {
-        expect(result.entities).toBeDefined();
+        expect(result.technologies).toBeDefined();
       }
     });
   });
@@ -352,9 +370,9 @@ describe("executeInsightCompletion - Type Inference", () => {
         "technologies",
         "businessProcesses",
         "boundedContexts",
-        "aggregates",
-        "entities",
-        "repositories",
+        "boundedContexts",
+        "technologies",
+        "businessProcesses",
         "potentialMicroservices",
       ];
 
@@ -366,19 +384,19 @@ describe("executeInsightCompletion - Type Inference", () => {
 
     test("should demonstrate integration with LLM router type inference", async () => {
       const mockResponse = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "User", description: "User entity" }],
       };
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "entities", [
+      const result = await executeInsightCompletion(mockLLMRouter, "technologies", [
         "* file1.ts: implementation",
       ]);
 
       // Demonstrates end-to-end type flow from schema through LLM router
       if (result) {
         // No casts needed - type flows correctly
-        const entityName: string = result.entities[0].name;
+        const entityName: string = result.technologies[0].name;
         expect(entityName).toBe("User");
       }
     });
@@ -407,7 +425,7 @@ describe("executeInsightCompletion - Type Inference", () => {
     test("should not require explicit z.ZodType annotation", async () => {
       // This tests that removing the explicit z.ZodType annotation maintains type safety
       const mockResponse = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity" },
           { name: "Product", description: "Product entity" },
         ],
@@ -415,7 +433,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "entities", [
+      const result = await executeInsightCompletion(mockLLMRouter, "technologies", [
         "* file1.ts: implementation",
       ]);
 
@@ -423,8 +441,8 @@ describe("executeInsightCompletion - Type Inference", () => {
       expect(result).toEqual(mockResponse);
       if (result) {
         // TypeScript infers exact type
-        expect(result.entities).toHaveLength(2);
-        expect(result.entities[0].name).toBe("User");
+        expect(result.technologies).toHaveLength(2);
+        expect(result.technologies[0].name).toBe("User");
       }
     });
 
@@ -434,8 +452,15 @@ describe("executeInsightCompletion - Type Inference", () => {
         boundedContexts: [
           {
             name: "Sales",
-            description: "Sales context",
-            responsibilities: ["Orders", "Invoices"],
+            description: "Sales context handles orders and invoices",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Handles orders",
+                repository: { name: "OrderRepository", description: "Order repository" },
+                entities: [{ name: "Order", description: "Order entity" }],
+              },
+            ],
           },
         ],
       };
@@ -449,19 +474,30 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       if (result) {
         // Type is correctly inferred without unsafe type assertions
-        expect(result.boundedContexts[0].responsibilities).toContain("Orders");
+        expect(result.boundedContexts[0].name).toBe("Sales");
       }
     });
 
     test("should preserve specific schema types through entire call chain", async () => {
       // Demonstrates that specific schema types are preserved
-      const category = "aggregates";
+      const category = "boundedContexts";
       const mockResponse = {
-        aggregates: [
+        boundedContexts: [
           {
-            name: "OrderAggregate",
+            name: "OrderContext",
             description: "Handles order lifecycle",
-            entities: ["Order", "OrderItem", "Payment"],
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate",
+                repository: { name: "OrderRepository", description: "Order repository" },
+                entities: [
+                  { name: "Order", description: "Order entity" },
+                  { name: "OrderItem", description: "Order item" },
+                  { name: "Payment", description: "Payment entity" },
+                ],
+              },
+            ],
           },
         ],
       };
@@ -483,7 +519,7 @@ describe("executeInsightCompletion - Type Inference", () => {
 
       if (result) {
         // Type narrowing works correctly
-        expect(result.aggregates[0].entities).toHaveLength(3);
+        expect(result.boundedContexts[0].aggregates[0].entities).toHaveLength(3);
       }
     });
   });

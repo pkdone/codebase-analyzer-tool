@@ -515,7 +515,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
     test("should demonstrate end-to-end type safety from processJson to consumer", async () => {
       // Test that verifies the simplified type chain improvements
       const dataSchema = z.object({
-        entities: z.array(z.object({ name: z.string(), id: z.number() })),
+        technologies: z.array(z.object({ name: z.string(), id: z.number() })),
         summary: z.string(),
       });
 
@@ -525,7 +525,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
         modelKey: "TEST_PRIMARY_COMPLETION",
         context: { resource: "test", purpose: LLMPurpose.COMPLETIONS },
         generated: {
-          entities: [
+          technologies: [
             { name: "Entity1", id: 1 },
             { name: "Entity2", id: 2 },
           ],
@@ -546,12 +546,12 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
       expect(result).not.toBeNull();
       if (result) {
         // All type inference works without any casts
-        const entities: { name: string; id: number }[] = result.entities;
+        const technologies: { name: string; id: number }[] = result.technologies;
         const summary: string = result.summary;
 
-        expect(entities).toHaveLength(2);
-        expect(entities[0].name).toBe("Entity1");
-        expect(entities[0].id).toBe(1);
+        expect(technologies).toHaveLength(2);
+        expect(technologies[0].name).toBe("Entity1");
+        expect(technologies[0].id).toBe(1);
         expect(summary).toBe("Test summary");
       }
     });

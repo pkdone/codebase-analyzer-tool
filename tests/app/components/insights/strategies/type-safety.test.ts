@@ -77,18 +77,18 @@ describe("Type Safety Tests", () => {
       }
     });
 
-    it("should return strongly-typed result for entities", async () => {
+    it("should return strongly-typed result for technologies", async () => {
       const mockResponse = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await strategy.generateInsights("entities", ["* file1.ts: purpose"]);
+      const result = await strategy.generateInsights("technologies", ["* file1.ts: purpose"]);
 
-      // Type check: result should be the entities-specific type
+      // Type check: result should be the technologies-specific type
       if (result) {
-        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
-        expect(typed.entities[0].name).toBe("User");
+        const typed: z.infer<AppSummaryCategorySchemas["technologies"]> = result;
+        expect(typed.technologies[0].name).toBe("TypeScript");
       }
     });
 
@@ -132,14 +132,14 @@ describe("Type Safety Tests", () => {
       strategy = new MapReduceCompletionStrategy(mockLLMRouter);
     });
 
-    it("should return strongly-typed result for entities category", async () => {
+    it("should return strongly-typed result for technologies category", async () => {
       const mockPartialResponse = {
-        entities: [{ name: "Entity1", description: "Description 1" }],
+        technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
       };
       const mockFinalResponse = {
-        entities: [
-          { name: "Entity1", description: "Description 1" },
-          { name: "Entity2", description: "Description 2" },
+        technologies: [
+          { name: "TypeScript", description: "Typed JavaScript" },
+          { name: "Node.js", description: "JavaScript runtime" },
         ],
       };
 
@@ -150,16 +150,16 @@ describe("Type Safety Tests", () => {
         // Mock the reduce phase (final consolidation)
         .mockResolvedValueOnce(mockFinalResponse);
 
-      const result = await strategy.generateInsights("entities", [
+      const result = await strategy.generateInsights("technologies", [
         "* file1.ts: purpose implementation",
         "* file2.ts: purpose implementation",
       ]);
 
-      // Type check: result should be the entities-specific type
+      // Type check: result should be the technologies-specific type
       if (result) {
-        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
-        expect(typed.entities).toHaveLength(2);
-        expect(typed.entities[0].name).toBe("Entity1");
+        const typed: z.infer<AppSummaryCategorySchemas["technologies"]> = result;
+        expect(typed.technologies).toHaveLength(2);
+        expect(typed.technologies[0].name).toBe("TypeScript");
       }
     });
 
@@ -174,7 +174,7 @@ describe("Type Safety Tests", () => {
         .mockResolvedValueOnce(mockPartialResponse)
         .mockResolvedValueOnce(null);
 
-      const result = await strategy.generateInsights("entities", [
+      const result = await strategy.generateInsights("technologies", [
         "* file1.ts: purpose implementation",
       ]);
 
@@ -194,7 +194,7 @@ describe("Type Safety Tests", () => {
         .mockResolvedValueOnce(mockPartialResponse)
         .mockResolvedValueOnce(mockFinalResponse);
 
-      const result = await strategy.generateInsights("entities", [
+      const result = await strategy.generateInsights("technologies", [
         "* file1.ts: purpose implementation",
       ]);
 
@@ -213,9 +213,9 @@ describe("Type Safety Tests", () => {
         "technologies",
         "businessProcesses",
         "boundedContexts",
-        "aggregates",
-        "entities",
-        "repositories",
+        "boundedContexts",
+        "technologies",
+        "businessProcesses",
         "potentialMicroservices",
       ];
 
@@ -232,20 +232,20 @@ describe("Type Safety Tests", () => {
       // Compile-time type assertions - these would fail to compile if types don't match
       type AppDescType = z.infer<AppSummaryCategorySchemas["appDescription"]>;
       type TechType = z.infer<AppSummaryCategorySchemas["technologies"]>;
-      type EntitiesType = z.infer<AppSummaryCategorySchemas["entities"]>;
-      type AggregatesType = z.infer<AppSummaryCategorySchemas["aggregates"]>;
+      type EntitiesType = z.infer<AppSummaryCategorySchemas["technologies"]>;
+      type AggregatesType = z.infer<AppSummaryCategorySchemas["boundedContexts"]>;
 
       // Runtime checks to verify the schemas exist and are valid
       expect(appSummaryCategorySchemas.appDescription).toBeDefined();
       expect(appSummaryCategorySchemas.technologies).toBeDefined();
-      expect(appSummaryCategorySchemas.entities).toBeDefined();
-      expect(appSummaryCategorySchemas.aggregates).toBeDefined();
+      expect(appSummaryCategorySchemas.technologies).toBeDefined();
+      expect(appSummaryCategorySchemas.boundedContexts).toBeDefined();
 
       // Type-level assertions (compile-time only)
       const appDesc: AppDescType = { appDescription: "test" };
       const tech: TechType = { technologies: [] };
-      const entities: EntitiesType = { entities: [] };
-      const aggregates: AggregatesType = { aggregates: [] };
+      const entities: EntitiesType = { technologies: [] };
+      const aggregates: AggregatesType = { boundedContexts: [] };
 
       expect(appDesc).toBeDefined();
       expect(tech).toBeDefined();
@@ -304,46 +304,55 @@ describe("Type Safety Tests", () => {
       }
     });
 
-    it("should infer correct return type for entities category", async () => {
+    it("should infer correct return type for technologies category", async () => {
       const mockResponse = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "entities", [
+      const result = await executeInsightCompletion(mockLLMRouter, "technologies", [
         "* file1.ts: purpose",
       ]);
 
       if (result) {
-        // TypeScript should infer this as z.infer<AppSummaryCategorySchemas["entities"]>
-        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
-        expect(typed.entities).toHaveLength(1);
-        expect(typed.entities[0].name).toBe("User");
+        // TypeScript should infer this as z.infer<AppSummaryCategorySchemas["technologies"]>
+        const typed: z.infer<AppSummaryCategorySchemas["technologies"]> = result;
+        expect(typed.technologies).toHaveLength(1);
+        expect(typed.technologies[0].name).toBe("TypeScript");
       }
     });
 
     it("should allow accessing category-specific properties without type narrowing", async () => {
       const mockResponse = {
-        aggregates: [
+        boundedContexts: [
           {
-            name: "OrderAggregate",
-            description: "Order aggregate root",
-            entities: ["Order", "OrderItem"],
-            repository: "OrderRepository",
+            name: "OrderContext",
+            description: "Order bounded context",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate root",
+                repository: { name: "OrderRepository", description: "Order repository" },
+                entities: [
+                  { name: "Order", description: "Order entity" },
+                  { name: "OrderItem", description: "OrderItem entity" },
+                ],
+              },
+            ],
           },
         ],
       };
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
-      const result = await executeInsightCompletion(mockLLMRouter, "aggregates", [
+      const result = await executeInsightCompletion(mockLLMRouter, "boundedContexts", [
         "* file1.ts: purpose",
       ]);
 
       if (result) {
-        // Should be able to access aggregate-specific properties directly
-        const typed: z.infer<AppSummaryCategorySchemas["aggregates"]> = result;
-        expect(typed.aggregates[0].entities).toContain("Order");
-        expect(typed.aggregates[0].repository).toBe("OrderRepository");
+        // Should be able to access boundedContext-specific properties directly
+        const typed: z.infer<AppSummaryCategorySchemas["boundedContexts"]> = result;
+        expect(typed.boundedContexts[0].aggregates[0].entities).toHaveLength(2);
+        expect(typed.boundedContexts[0].aggregates[0].repository.name).toBe("OrderRepository");
       }
     });
 

@@ -167,11 +167,11 @@ describe("Prompt Registry", () => {
 
   describe("Reduce Insights Prompt Factory", () => {
     it("should create a valid prompt definition", () => {
-      const schema = z.object({ entities: z.array(z.string()) });
-      const prompt = createReduceInsightsPrompt("entities", "entities", schema);
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const prompt = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(prompt.label).toBe("Reduce Insights");
-      expect(prompt.contentDesc).toContain("entities");
+      expect(prompt.contentDesc).toContain("technologies");
       expect(prompt.instructions.length).toBeGreaterThan(0);
       expect(prompt.responseSchema).toBe(schema);
       expect(prompt.dataBlockHeader).toBe("FRAGMENTED_DATA");
@@ -185,23 +185,23 @@ describe("Prompt Registry", () => {
     });
 
     it("should include the categoryKey in instructions", () => {
-      const schema = z.object({ entities: z.array(z.string()) });
-      const prompt = createReduceInsightsPrompt("entities", "entities", schema);
-      const hasKey = prompt.instructions.some((inst) => inst.includes("entities"));
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const prompt = createReduceInsightsPrompt("technologies", "technologies", schema);
+      const hasKey = prompt.instructions.some((inst) => inst.includes("technologies"));
       expect(hasKey).toBe(true);
     });
 
     it("should use the provided schema directly (not z.unknown())", () => {
       const schema = z.object({
-        entities: z.array(z.object({ name: z.string() })),
+        technologies: z.array(z.object({ name: z.string() })),
       });
-      const prompt = createReduceInsightsPrompt("entities", "entities", schema);
+      const prompt = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       // Verify it's the actual schema, not z.unknown()
       expect(prompt.responseSchema).toBe(schema);
 
       // Verify it can be used for parsing
-      const testData = { entities: [{ name: "Test" }] };
+      const testData = { technologies: [{ name: "Test" }] };
       const result = prompt.responseSchema.safeParse(testData);
       expect(result.success).toBe(true);
     });

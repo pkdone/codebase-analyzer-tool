@@ -388,7 +388,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
 
     test("should handle entity schema with relationships", () => {
       const entitySchema = z.object({
-        entities: z.array(
+        technologies: z.array(
           z.object({
             name: z.string(),
             description: z.string(),
@@ -410,7 +410,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
       });
 
       const entityData = {
-        entities: [
+        technologies: [
           {
             name: "User",
             description: "User entity",
@@ -431,7 +431,7 @@ describe("LLMRouter Type Safety Integration Tests", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        const firstEntity = result.data.entities[0];
+        const firstEntity = result.data.technologies[0];
         expect(firstEntity.name).toBe("User");
         expect(firstEntity.properties).toHaveLength(3);
         expect(firstEntity.relationships).toHaveLength(2);

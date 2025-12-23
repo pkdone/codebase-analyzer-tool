@@ -42,13 +42,13 @@ describe("MapReduceCompletionStrategy", () => {
     });
 
     it("should call executeCompletion for map and reduce phases", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       // Use category-specific type instead of PartialAppSummaryRecord for stronger typing
       const mockMapResponse = {
-        entities: [{ name: "Entity1", description: "Description 1" }],
+        technologies: [{ name: "Entity1", description: "Description 1" }],
       };
       const mockReduceResponse = {
-        entities: [{ name: "Entity1", description: "Description 1" }],
+        technologies: [{ name: "Entity1", description: "Description 1" }],
       };
 
       mockLLMRouter.executeCompletion = jest
@@ -65,7 +65,7 @@ describe("MapReduceCompletionStrategy", () => {
     });
 
     it("should return null when all map phases return null", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(null);
 
@@ -78,10 +78,10 @@ describe("MapReduceCompletionStrategy", () => {
     });
 
     it("should return null when reduce phase returns null", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       // Use category-specific type for stronger typing
       const mockMapResponse = {
-        entities: [{ name: "Entity1", description: "Description 1" }],
+        technologies: [{ name: "Entity1", description: "Description 1" }],
       };
 
       mockLLMRouter.executeCompletion = jest
@@ -97,7 +97,7 @@ describe("MapReduceCompletionStrategy", () => {
     });
 
     it("should return null when an error is thrown", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
 
       mockLLMRouter.executeCompletion = jest.fn().mockRejectedValue(new Error("LLM error"));
 
@@ -133,10 +133,10 @@ describe("MapReduceCompletionStrategy", () => {
     });
 
     it("should handle entities category with proper type inference", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       const _config = appSummaryPromptMetadata[category];
       const mockResponse = {
-        entities: [{ name: "Entity1", description: "Desc" }],
+        technologies: [{ name: "Entity1", description: "Desc" }],
       };
 
       mockLLMRouter.executeCompletion = jest
@@ -149,8 +149,8 @@ describe("MapReduceCompletionStrategy", () => {
       expect(result).toEqual(mockResponse);
       if (result) {
         const schemaType: z.infer<typeof _config.responseSchema> = result;
-        expect(schemaType.entities).toBeDefined();
-        expect(Array.isArray(schemaType.entities)).toBe(true);
+        expect(schemaType.technologies).toBeDefined();
+        expect(Array.isArray(schemaType.technologies)).toBe(true);
       }
     });
 
@@ -178,10 +178,10 @@ describe("MapReduceCompletionStrategy", () => {
 
   describe("executeCompletion call validation", () => {
     it("should call executeCompletion with correct options for map phase", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       const config = appSummaryPromptMetadata[category];
       const mockResponse = {
-        entities: [{ name: "Entity1", description: "Description 1" }],
+        technologies: [{ name: "Entity1", description: "Description 1" }],
       };
 
       mockLLMRouter.executeCompletion = jest
@@ -205,9 +205,9 @@ describe("MapReduceCompletionStrategy", () => {
     });
 
     it("should call executeCompletion with correct options for reduce phase", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       const mockResponse = {
-        entities: [{ name: "Entity1", description: "Description 1" }],
+        technologies: [{ name: "Entity1", description: "Description 1" }],
       };
 
       mockLLMRouter.executeCompletion = jest
@@ -266,9 +266,9 @@ describe("MapReduceCompletionStrategy", () => {
         "technologies",
         "businessProcesses",
         "boundedContexts",
-        "aggregates",
-        "entities",
-        "repositories",
+        "boundedContexts",
+        "technologies",
+        "businessProcesses",
         "potentialMicroservices",
       ];
 
@@ -296,7 +296,7 @@ describe("MapReduceCompletionStrategy", () => {
   describe("CategoryInsightResult type inference", () => {
     it("should correctly infer CategoryInsightResult for entities category", async () => {
       const mockResponse = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity" },
           { name: "Order", description: "Order entity" },
         ],
@@ -307,13 +307,15 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(mockResponse)
         .mockResolvedValueOnce(mockResponse);
 
-      const result = await strategy.generateInsights("entities", ["* file1.ts: implementation"]);
+      const result = await strategy.generateInsights("technologies", [
+        "* file1.ts: implementation",
+      ]);
 
-      // Type should be inferred as CategoryInsightResult<"entities">
+      // Type should be inferred as CategoryInsightResult<"technologies">
       if (result) {
-        expect(result.entities).toBeDefined();
-        expect(Array.isArray(result.entities)).toBe(true);
-        expect(result.entities.length).toBe(2);
+        expect(result.technologies).toBeDefined();
+        expect(Array.isArray(result.technologies)).toBe(true);
+        expect(result.technologies.length).toBe(2);
       }
     });
 
@@ -341,9 +343,22 @@ describe("MapReduceCompletionStrategy", () => {
       }
     });
 
-    it("should correctly infer CategoryInsightResult for aggregates category", async () => {
+    it("should correctly infer CategoryInsightResult for boundedContexts category", async () => {
       const mockResponse = {
-        aggregates: [{ name: "OrderAggregate", description: "Order aggregate", entities: [] }],
+        boundedContexts: [
+          {
+            name: "OrderContext",
+            description: "Order bounded context",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate",
+                repository: { name: "OrderRepository", description: "Order repository" },
+                entities: [],
+              },
+            ],
+          },
+        ],
       };
 
       mockLLMRouter.executeCompletion = jest
@@ -351,12 +366,14 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(mockResponse)
         .mockResolvedValueOnce(mockResponse);
 
-      const result = await strategy.generateInsights("aggregates", ["* file1.ts: implementation"]);
+      const result = await strategy.generateInsights("boundedContexts", [
+        "* file1.ts: implementation",
+      ]);
 
-      // Type should be inferred as CategoryInsightResult<"aggregates">
+      // Type should be inferred as CategoryInsightResult<"boundedContexts">
       if (result) {
-        expect(result.aggregates).toBeDefined();
-        expect(result.aggregates[0].name).toBe("OrderAggregate");
+        expect(result.boundedContexts).toBeDefined();
+        expect(result.boundedContexts[0].name).toBe("OrderContext");
       }
     });
   });
@@ -364,10 +381,10 @@ describe("MapReduceCompletionStrategy", () => {
   describe("reducePartialInsights type safety", () => {
     it("should return correctly typed data without casts for entities", async () => {
       const mapResponse = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "User", description: "User entity" }],
       };
       const reduceResponse = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity" },
           { name: "Order", description: "Order entity" },
         ],
@@ -378,20 +395,28 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(mapResponse)
         .mockResolvedValueOnce(reduceResponse);
 
-      const result = await strategy.generateInsights("entities", ["* file1.ts: implementation"]);
+      const result = await strategy.generateInsights("technologies", [
+        "* file1.ts: implementation",
+      ]);
 
       // The reduce step should return correctly typed data
       expect(result).toEqual(reduceResponse);
       if (result) {
         // No type assertion needed - type is inferred
-        expect(result.entities.length).toBe(2);
+        expect(result.technologies.length).toBe(2);
       }
     });
 
     it("should handle indexed access type inference correctly", async () => {
       // This test validates that appSummaryCategorySchemas[C] works correctly
       const mockResponse = {
-        repositories: [{ name: "UserRepository", description: "User repo" }],
+        businessProcesses: [
+          {
+            name: "UserRegistration",
+            description: "User registration process",
+            keyBusinessActivities: [],
+          },
+        ],
       };
 
       mockLLMRouter.executeCompletion = jest
@@ -399,14 +424,14 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(mockResponse)
         .mockResolvedValueOnce(mockResponse);
 
-      const result = await strategy.generateInsights("repositories", [
+      const result = await strategy.generateInsights("businessProcesses", [
         "* file1.ts: implementation",
       ]);
 
       // Type should be correctly inferred from indexed access
       if (result) {
-        expect(result.repositories).toBeDefined();
-        expect(result.repositories[0].name).toBe("UserRepository");
+        expect(result.businessProcesses).toBeDefined();
+        expect(result.businessProcesses[0].name).toBe("UserRegistration");
       }
     });
   });
@@ -414,10 +439,10 @@ describe("MapReduceCompletionStrategy", () => {
   describe("type compatibility between partial and final results", () => {
     it("should allow partial results to be combined into final result", async () => {
       const partialResult1 = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "User", description: "User entity" }],
       };
       const finalResult = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity" },
           { name: "Order", description: "Order entity" },
         ],
@@ -430,12 +455,14 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(partialResult1) // Map phase for chunk 1
         .mockResolvedValueOnce(finalResult); // Reduce phase
 
-      const result = await strategy.generateInsights("entities", ["* file1.ts: implementation"]);
+      const result = await strategy.generateInsights("technologies", [
+        "* file1.ts: implementation",
+      ]);
 
       // Final result should be properly typed
       expect(result).toEqual(finalResult);
       if (result) {
-        expect(result.entities.length).toBe(2);
+        expect(result.technologies.length).toBe(2);
       }
     });
 
@@ -499,9 +526,9 @@ describe("MapReduceCompletionStrategy", () => {
         "technologies",
         "businessProcesses",
         "boundedContexts",
-        "aggregates",
-        "entities",
-        "repositories",
+        "boundedContexts",
+        "technologies",
+        "businessProcesses",
         "potentialMicroservices",
       ];
 
@@ -528,19 +555,19 @@ describe("MapReduceCompletionStrategy", () => {
 
       // Create multiple partial results to test the reduce operation
       const partialResult1 = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity" },
           { name: "Order", description: "Order entity" },
         ],
       };
       const partialResult2 = {
-        entities: [
+        technologies: [
           { name: "Product", description: "Product entity" },
           { name: "Category", description: "Category entity" },
         ],
       };
       const consolidatedResult = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity" },
           { name: "Order", description: "Order entity" },
           { name: "Product", description: "Product entity" },
@@ -553,15 +580,15 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(partialResult2) // Map phase chunk 2
         .mockResolvedValueOnce(consolidatedResult); // Reduce phase
 
-      const result = await strategy.generateInsights("entities", [longSummary1, longSummary2]);
+      const result = await strategy.generateInsights("technologies", [longSummary1, longSummary2]);
 
       // Verify the reduce operation properly consolidated the results
       if (result) {
         // TypeScript should infer this without any casts
-        expect(result.entities).toBeDefined();
-        expect(result.entities.length).toBe(3);
-        expect(result.entities[0].name).toBe("User");
-        expect(result.entities[2].name).toBe("Product");
+        expect(result.technologies).toBeDefined();
+        expect(result.technologies.length).toBe(3);
+        expect(result.technologies[0].name).toBe("User");
+        expect(result.technologies[2].name).toBe("Product");
       }
     });
 
@@ -678,7 +705,7 @@ describe("MapReduceCompletionStrategy", () => {
       }
     });
 
-    it("should handle aggregates with entity arrays and repository strings", async () => {
+    it("should handle boundedContexts with hierarchical aggregates", async () => {
       // Use a smaller token limit to force chunking
       mockLLMRouter.getLLMManifest = jest.fn().mockReturnValue({
         models: {
@@ -694,38 +721,74 @@ describe("MapReduceCompletionStrategy", () => {
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
 
       const partialResult1 = {
-        aggregates: [
+        boundedContexts: [
           {
-            name: "OrderAggregate",
-            description: "Order aggregate root",
-            entities: ["Order", "OrderItem"],
-            repository: "OrderRepository",
+            name: "OrderContext",
+            description: "Order bounded context",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate root",
+                repository: { name: "OrderRepository", description: "Order repository" },
+                entities: [
+                  { name: "Order", description: "Order entity" },
+                  { name: "OrderItem", description: "OrderItem entity" },
+                ],
+              },
+            ],
           },
         ],
       };
       const partialResult2 = {
-        aggregates: [
+        boundedContexts: [
           {
-            name: "UserAggregate",
-            description: "User aggregate root",
-            entities: ["User", "UserProfile"],
-            repository: "UserRepository",
+            name: "UserContext",
+            description: "User bounded context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate root",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [
+                  { name: "User", description: "User entity" },
+                  { name: "UserProfile", description: "UserProfile entity" },
+                ],
+              },
+            ],
           },
         ],
       };
       const consolidatedResult = {
-        aggregates: [
+        boundedContexts: [
           {
-            name: "OrderAggregate",
-            description: "Order aggregate root",
-            entities: ["Order", "OrderItem"],
-            repository: "OrderRepository",
+            name: "OrderContext",
+            description: "Order bounded context",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate root",
+                repository: { name: "OrderRepository", description: "Order repository" },
+                entities: [
+                  { name: "Order", description: "Order entity" },
+                  { name: "OrderItem", description: "OrderItem entity" },
+                ],
+              },
+            ],
           },
           {
-            name: "UserAggregate",
-            description: "User aggregate root",
-            entities: ["User", "UserProfile"],
-            repository: "UserRepository",
+            name: "UserContext",
+            description: "User bounded context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate root",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [
+                  { name: "User", description: "User entity" },
+                  { name: "UserProfile", description: "UserProfile entity" },
+                ],
+              },
+            ],
           },
         ],
       };
@@ -736,15 +799,18 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(partialResult2)
         .mockResolvedValueOnce(consolidatedResult);
 
-      const result = await strategy.generateInsights("aggregates", [longSummary1, longSummary2]);
+      const result = await strategy.generateInsights("boundedContexts", [
+        longSummary1,
+        longSummary2,
+      ]);
 
       // Verify strongly-typed nested arrays and properties
       if (result) {
-        expect(result.aggregates).toBeDefined();
-        expect(result.aggregates.length).toBe(2);
-        expect(result.aggregates[0].entities).toEqual(["Order", "OrderItem"]);
-        expect(result.aggregates[0].repository).toBe("OrderRepository");
-        expect(result.aggregates[1].entities).toEqual(["User", "UserProfile"]);
+        expect(result.boundedContexts).toBeDefined();
+        expect(result.boundedContexts.length).toBe(2);
+        expect(result.boundedContexts[0].aggregates[0].entities).toHaveLength(2);
+        expect(result.boundedContexts[0].aggregates[0].repository.name).toBe("OrderRepository");
+        expect(result.boundedContexts[1].aggregates[0].entities).toHaveLength(2);
       }
     });
 
@@ -764,13 +830,13 @@ describe("MapReduceCompletionStrategy", () => {
       const longSummary2 = "* file2.ts: " + "implementation ".repeat(50);
 
       const partialResult1 = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "User", description: "User entity" }],
       };
       const partialResult2 = {
-        entities: [] as { name: string; description: string; relatedEntities?: string[] }[],
+        technologies: [] as { name: string; description: string; relatedEntities?: string[] }[],
       };
       const consolidatedResult = {
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "User", description: "User entity" }],
       };
 
       mockLLMRouter.executeCompletion = jest
@@ -779,46 +845,46 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(partialResult2)
         .mockResolvedValueOnce(consolidatedResult);
 
-      const result = await strategy.generateInsights("entities", [longSummary1, longSummary2]);
+      const result = await strategy.generateInsights("technologies", [longSummary1, longSummary2]);
 
       // Verify empty arrays are handled correctly without type errors
       if (result) {
-        expect(result.entities).toBeDefined();
-        expect(result.entities.length).toBe(1);
+        expect(result.technologies).toBeDefined();
+        expect(result.technologies.length).toBe(1);
       }
     });
 
-    it("should maintain type safety for repositories with aggregate relationships", async () => {
+    it("should maintain type safety for businessProcesses with activities", async () => {
       const partialResult = {
-        repositories: [
+        businessProcesses: [
           {
-            name: "UserRepository",
-            description: "User repository for persistence",
-            aggregate: "UserAggregate",
+            name: "UserRegistration",
+            description: "User registration process",
+            keyBusinessActivities: [{ activity: "Validate", description: "Validate user input" }],
           },
           {
-            name: "OrderRepository",
-            description: "Order repository for persistence",
-            aggregate: "OrderAggregate",
+            name: "OrderPlacement",
+            description: "Order placement process",
+            keyBusinessActivities: [{ activity: "CreateOrder", description: "Create order" }],
           },
         ],
       };
       const consolidatedResult = {
-        repositories: [
+        businessProcesses: [
           {
-            name: "UserRepository",
-            description: "User repository for persistence",
-            aggregate: "UserAggregate",
+            name: "UserRegistration",
+            description: "User registration process",
+            keyBusinessActivities: [{ activity: "Validate", description: "Validate user input" }],
           },
           {
-            name: "OrderRepository",
-            description: "Order repository for persistence",
-            aggregate: "OrderAggregate",
+            name: "OrderPlacement",
+            description: "Order placement process",
+            keyBusinessActivities: [{ activity: "CreateOrder", description: "Create order" }],
           },
           {
-            name: "ProductRepository",
-            description: "Product repository for persistence",
-            aggregate: "ProductAggregate",
+            name: "ProductCatalog",
+            description: "Product catalog management",
+            keyBusinessActivities: [{ activity: "AddProduct", description: "Add product" }],
           },
         ],
       };
@@ -828,15 +894,15 @@ describe("MapReduceCompletionStrategy", () => {
         .mockResolvedValueOnce(partialResult)
         .mockResolvedValueOnce(consolidatedResult);
 
-      const result = await strategy.generateInsights("repositories", [
+      const result = await strategy.generateInsights("businessProcesses", [
         "* file1.ts: implementation",
       ]);
 
-      // Verify repository-specific properties are strongly typed
+      // Verify businessProcesses properties are strongly typed
       if (result) {
-        expect(result.repositories).toBeDefined();
-        expect(result.repositories[0].aggregate).toBe("UserAggregate");
-        expect(result.repositories[2].aggregate).toBe("ProductAggregate");
+        expect(result.businessProcesses).toBeDefined();
+        expect(result.businessProcesses[0].name).toBe("UserRegistration");
+        expect(result.businessProcesses[2].name).toBe("ProductCatalog");
       }
     });
   });

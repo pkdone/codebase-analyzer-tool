@@ -3,15 +3,13 @@ import { z } from "zod";
 /**
  * Zod schema for application summary categories
  * This is used to validate the category names in app summaries
+ * Note: aggregates, entities, and repositories are now nested within boundedContexts
  */
 export const AppSummaryCategories = z.enum([
   "appDescription",
   "technologies",
   "businessProcesses",
   "boundedContexts",
-  "aggregates",
-  "entities",
-  "repositories",
   "potentialMicroservices",
 ]);
 
@@ -103,152 +101,100 @@ export const businessProcessesSchema = z
   })
   .passthrough();
 
-/**
- * Schema for individual bounded context with aggregates
- */
-export const boundedContextSchema = baseNameDescSchema
-  .extend({
-    name: baseNameDescSchema.shape.name.describe(
-      "The name of the domain-driven design Bounded Context.",
-    ),
-    description: baseNameDescSchema.shape.description.describe(
-      "A detailed description of the bounded context and its business capabilities in at least 5 sentences.",
-    ),
-    aggregates: z
-      .array(z.string())
-      .describe(
-        "A list of 'logical' domain-driven design aggregate names that are exclusively contained within this bounded context.",
-      ),
-  })
-  .passthrough();
+// =============================================================================
+// Hierarchical Domain Model Schemas
+// These schemas define a nested structure where bounded contexts contain
+// aggregates, and each aggregate contains its repository and entities.
+// =============================================================================
 
 /**
- * Schema for bounded contexts in the application
+ * Schema for nested entity within an aggregate (full object, not just name)
+ * Entities represent core business concepts within an aggregate boundary.
  */
-export const boundedContextsSchema = z
+export const nestedEntitySchema = z
   .object({
-    boundedContexts: z
-      .array(boundedContextSchema)
-      .describe(
-        "A list of domain-driven design Bounded Contexts that define explicit boundaries around related business capabilities, including the aggregates they contain.",
-      ),
-  })
-  .passthrough();
-
-/**
- * Schema for enhanced aggregate with domain relationships
- */
-export const aggregateSchema = baseNameDescSchema
-  .extend({
-    name: baseNameDescSchema.shape.name.describe("The name of the domain-driven design aggregate."),
-    description: baseNameDescSchema.shape.description.describe(
-      "A detailed description of the domain-driven design aggregate and its business rules that should exist for this application in at least 5 sentences.",
-    ),
-    entities: z
-      .array(z.string())
-      .describe(
-        "A list of' logical' domain-driven design entity names that are managed by this aggregate.",
-      ),
-    repository: z
-      .string()
-      .describe(
-        "The name of the 'logical' domain-driven design repository associated with this aggregate for persistence.",
-      ),
-  })
-  .passthrough();
-
-/**
- * Schema for enhanced repository with aggregate relationship
- */
-export const repositorySchema = baseNameDescSchema
-  .extend({
-    name: baseNameDescSchema.shape.name.describe(
-      "The name of the domain-driven repository that should be present for this application.",
-    ),
-    description: baseNameDescSchema.shape.description.describe(
-      "A detailed description of the potential repository and its persistence responsibilities in at least 5 sentences.",
-    ),
-    aggregate: z
-      .string()
-      .describe("The name of the 'logical' aggregate that this repository is associated with."),
-  })
-  .passthrough();
-
-/**
- * Schema for arrays of aggregates with enhanced relationships
- */
-export const aggregatesSchema = z
-  .object({
-    aggregates: z
-      .array(aggregateSchema)
-      .describe(
-        "A list of domain-driven design aggregates that should exist toenforce business rules and maintain consistency, including their 'logical' associated entities and repositories that should exist for them.",
-      ),
-  })
-  .passthrough();
-
-/**
- * Schema for domain-driven design entities for microservices
- */
-export const microserviceEntitySchema = z
-  .object({
-    name: z
-      .string()
-      .describe(
-        "The name of the 'logical'  domain-driven design entity that should exist for this microservice.",
-      ),
+    name: z.string().describe("The name of the domain-driven design entity."),
     description: z
       .string()
       .describe(
-        "A detailed description of the potntial  domain-driven design entity and its purpose.",
+        "A detailed description of the entity and its business purpose in at least 3 sentences.",
       ),
-    attributes: z
-      .array(z.string())
-      .describe("Key attributes or properties of this potential entity.")
-      .optional(),
-  })
-  .passthrough();
-
-/**
- * Schema for individual domain-driven design entities with relationships
- */
-export const entitySchema = baseNameDescSchema
-  .extend({
-    name: baseNameDescSchema.shape.name.describe("The name of the domain-driven design entity."),
-    description: baseNameDescSchema.shape.description.describe(
-      "A detailed description of the entity in at least 5 sentences.",
-    ),
     relatedEntities: z
       .array(z.string())
       .describe(
-        "A list of names of other entities that this entity would be linked to in an entity-relationship style model.",
+        "A list of names of other entities within the same bounded context that this entity relates to.",
       )
       .optional(),
   })
   .passthrough();
 
 /**
- * Schema for entities in the application
+ * Schema for nested repository within an aggregate
+ * Repositories provide persistence access for the aggregate.
  */
-export const entitiesSchema = z
+export const nestedRepositorySchema = z
   .object({
-    entities: z
-      .array(entitySchema)
+    name: z.string().describe("The name of the repository."),
+    description: z
+      .string()
       .describe(
-        "A list of domain-driven design entities that should exist to represent core business concepts and contain business logic.",
+        "A detailed description of the repository and its persistence responsibilities in at least 3 sentences.",
       ),
   })
   .passthrough();
 
 /**
- * Schema for arrays of repositories with enhanced relationships
+ * Schema for nested aggregate within a bounded context (contains full entity and repository objects)
+ * Aggregates enforce business rules and maintain consistency boundaries.
+ * Each aggregate has exactly one repository for persistence.
  */
-export const repositoriesSchema = z
+export const nestedAggregateSchema = z
   .object({
-    repositories: z
-      .array(repositorySchema)
+    name: z.string().describe("The name of the domain-driven design aggregate."),
+    description: z
+      .string()
       .describe(
-        "A list of domain-driven design repositories that provide access to aggregate persistence, each associated with a specific 'logical' aggregate that should exist for it.",
+        "A detailed description of the aggregate and its business rules in at least 5 sentences.",
+      ),
+    repository: nestedRepositorySchema.describe(
+      "The repository that provides persistence for this aggregate.",
+    ),
+    entities: z
+      .array(nestedEntitySchema)
+      .describe("The domain entities managed by this aggregate, each with full details."),
+  })
+  .passthrough();
+
+/**
+ * Schema for hierarchical bounded context with embedded aggregates and entities
+ * This ensures all domain elements within a context are captured consistently in one pass.
+ */
+export const hierarchicalBoundedContextSchema = z
+  .object({
+    name: z.string().describe("The name of the domain-driven design Bounded Context."),
+    description: z
+      .string()
+      .describe(
+        "A detailed description of the bounded context and its business capabilities in at least 5 sentences.",
+      ),
+    aggregates: z
+      .array(nestedAggregateSchema)
+      .describe(
+        "The aggregates within this bounded context, each containing its repository and entities.",
+      ),
+  })
+  .passthrough();
+
+/**
+ * Schema for bounded contexts in the application (hierarchical structure)
+ * Each bounded context now contains its full domain model hierarchy.
+ */
+export const boundedContextsSchema = z
+  .object({
+    boundedContexts: z
+      .array(hierarchicalBoundedContextSchema)
+      .describe(
+        "A list of domain-driven design Bounded Contexts, each containing its aggregates with their repositories and entities in a hierarchical structure.",
       ),
   })
   .passthrough();
@@ -282,6 +228,28 @@ export const restEndpointSchema = z
       ),
     method: z.string().describe("The HTTP method (GET, POST, PUT, DELETE, PATCH)."),
     description: z.string().describe("A detailed description of what this endpoint would do."),
+  })
+  .passthrough();
+
+/**
+ * Schema for domain-driven design entities for microservices
+ */
+export const microserviceEntitySchema = z
+  .object({
+    name: z
+      .string()
+      .describe(
+        "The name of the 'logical'  domain-driven design entity that should exist for this microservice.",
+      ),
+    description: z
+      .string()
+      .describe(
+        "A detailed description of the potntial  domain-driven design entity and its purpose.",
+      ),
+    attributes: z
+      .array(z.string())
+      .describe("Key attributes or properties of this potential entity.")
+      .optional(),
   })
   .passthrough();
 
@@ -323,6 +291,7 @@ export const potentialMicroservicesSchema = z
 
 /**
  * Schema for full application summary of categories
+ * Note: aggregates, entities, and repositories are now nested within boundedContexts
  */
 export const appSummarySchema = z
   .object({
@@ -332,9 +301,6 @@ export const appSummarySchema = z
     businessProcesses: businessProcessesSchema.shape.businessProcesses.optional(),
     technologies: technologiesSchema.shape.technologies.optional(),
     boundedContexts: boundedContextsSchema.shape.boundedContexts.optional(),
-    aggregates: aggregatesSchema.shape.aggregates.optional(),
-    entities: entitiesSchema.shape.entities.optional(),
-    repositories: repositoriesSchema.shape.repositories.optional(),
     potentialMicroservices: potentialMicroservicesSchema.shape.potentialMicroservices.optional(),
   })
   .passthrough();
@@ -346,15 +312,15 @@ export const appSummarySchema = z
  *
  * Use this mapping when you need TypeScript to infer the correct return type
  * based on a category key, rather than getting a generic z.ZodType.
+ *
+ * Note: aggregates, entities, and repositories have been removed as they are
+ * now nested within boundedContexts for consistency.
  */
 export const appSummaryCategorySchemas = {
   appDescription: appDescriptionSchema,
   technologies: technologiesSchema,
   businessProcesses: businessProcessesSchema,
   boundedContexts: boundedContextsSchema,
-  aggregates: aggregatesSchema,
-  entities: entitiesSchema,
-  repositories: repositoriesSchema,
   potentialMicroservices: potentialMicroservicesSchema,
 } as const;
 
@@ -363,3 +329,15 @@ export const appSummaryCategorySchemas = {
  * Use with z.infer<AppSummaryCategorySchemas[C]> to get the inferred type for a category.
  */
 export type AppSummaryCategorySchemas = typeof appSummaryCategorySchemas;
+
+// =============================================================================
+// Type exports for use in domain model data provider and reporting
+// =============================================================================
+
+/**
+ * Inferred types from hierarchical schemas for use in data providers
+ */
+export type NestedEntity = z.infer<typeof nestedEntitySchema>;
+export type NestedAggregate = z.infer<typeof nestedAggregateSchema>;
+export type NestedRepository = z.infer<typeof nestedRepositorySchema>;
+export type HierarchicalBoundedContext = z.infer<typeof hierarchicalBoundedContextSchema>;

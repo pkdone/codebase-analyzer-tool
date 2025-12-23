@@ -8,6 +8,7 @@ export const reportSectionsConfig = {
   /**
    * All required app summary fields for report generation.
    * This includes fields needed by both AppStatisticsDataProvider and AppSummaryCategoriesProvider.
+   * Note: aggregates, entities, and repositories are now nested within boundedContexts.
    */
   allRequiredAppSummaryFields: [
     "appDescription",
@@ -15,9 +16,6 @@ export const reportSectionsConfig = {
     "technologies",
     "businessProcesses",
     "boundedContexts",
-    "aggregates",
-    "entities",
-    "repositories",
     "potentialMicroservices",
   ],
 

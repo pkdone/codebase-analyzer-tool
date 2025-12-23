@@ -75,7 +75,7 @@ describe("Prompt Constructor and Templates", () => {
     it("should handle reduce template with category key via factory", () => {
       // With the factory pattern, categoryKey is directly embedded in contentDesc
       // by createReduceInsightsPrompt, rather than being a placeholder
-      const categoryKey = "entities";
+      const categoryKey = "technologies";
       const reduceDefinition = {
         ...sourceDefinition,
         // Factory would pre-populate contentDesc with the category key

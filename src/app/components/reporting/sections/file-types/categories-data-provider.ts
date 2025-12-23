@@ -1,4 +1,4 @@
-import { injectable, injectAll } from "tsyringe";
+import { injectable } from "tsyringe";
 import { z } from "zod";
 import { promptRegistry } from "../../../../prompts/prompt-registry";
 import { AppSummaryCategories, nameDescSchema } from "../../../../schemas/app-summaries.schema";
@@ -7,7 +7,6 @@ import type {
   AppSummaryNameDescArray,
   AppSummaryRecordWithId,
 } from "../../../../repositories/app-summaries/app-summaries.model";
-import type { ReportSection } from "../report-section.interface";
 
 // Zod schema for validating AppSummaryNameDescArray
 const appSummaryNameDescArraySchema = z.array(nameDescSchema);
@@ -25,8 +24,6 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
  */
 @injectable()
 export class AppSummaryCategoriesProvider {
-  constructor(@injectAll("ReportSection") private readonly reportSections: ReportSection[]) {}
-
   /**
    * Build categorized data for standard (tabular) categories using pre-fetched app summary data.
    * Excludes categories that have custom dedicated sections in the report.
@@ -34,16 +31,11 @@ export class AppSummaryCategoriesProvider {
   getStandardSectionData(
     appSummaryData: Pick<AppSummaryRecordWithId, AppSummaryCategoryType>,
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
-    // Get categories that have custom sections (non-standard sections)
-    const customSectionCategories = this.getCustomSectionCategories();
-
-    // Filter to only standard categories
+    // Exclude appDescription & boundedContexts which have decicated visualizations
     const standardCategoryKeys = AppSummaryCategories.options.filter(
-      (key): key is AppSummaryCategoryType =>
-        !customSectionCategories.has(key) && key !== "appDescription",
+      (key): key is AppSummaryCategoryType => key !== "appDescription" && key !== "boundedContexts",
     );
-
-    const results = standardCategoryKeys.map((category: AppSummaryCategoryType) => {
+    return standardCategoryKeys.map((category: AppSummaryCategoryType) => {
       const config = promptRegistry.appSummaries[category];
       const label = config.label ?? category;
       const fieldData = appSummaryData[category];
@@ -55,24 +47,5 @@ export class AppSummaryCategoriesProvider {
         data,
       };
     });
-    return results;
-  }
-
-  /**
-   * Determines which categories have custom sections based on injected report sections.
-   * This makes the category filtering declarative rather than hardcoded.
-   */
-  private getCustomSectionCategories(): Set<string> {
-    const customCategories = new Set<string>();
-
-    for (const section of this.reportSections) {
-      if (!section.isStandardSection()) {
-        // AdvancedDataSection handles custom rendering for BOM, code quality, etc.
-        // These categories are no longer in AppSummaryCategories, so they won't appear in standard sections anyway
-        // Add other custom sections as needed
-      }
-    }
-
-    return customCategories;
   }
 }

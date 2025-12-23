@@ -36,7 +36,7 @@ describe("HtmlReportWriter", () => {
     fileTypesPieChartPath: "/path/to/chart.png",
     categorizedData: [
       {
-        category: "entities",
+        category: "technologies",
         label: "Business Entities",
         data: [{ name: "User", description: "User entity" }],
         tableViewModel: new (jest.requireActual(

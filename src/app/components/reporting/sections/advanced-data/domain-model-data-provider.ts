@@ -1,52 +1,79 @@
 import { injectable } from "tsyringe";
 import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
+import type {
+  NestedAggregate,
+  NestedEntity,
+  NestedRepository,
+} from "../../../../schemas/app-summaries.schema";
 
-// Extended interface for aggregate data with additional properties
-type AggregateData = AppSummaryNameDescArray[0] & {
-  entities?: string[];
-  repository?: string;
-};
-
-// Extended interface for bounded context data with explicit aggregate names
-type BoundedContextData = AppSummaryNameDescArray[0] & {
-  aggregates?: string[];
-};
-
+/**
+ * Interface for domain entity (flattened for reporting)
+ */
 export interface DomainEntity {
   name: string;
   description: string;
 }
 
+/**
+ * Interface for domain repository (flattened for reporting)
+ */
+export interface DomainRepository {
+  name: string;
+  description: string;
+}
+
+/**
+ * Interface for domain aggregate (flattened for reporting)
+ * Note: entities is now a string[] of names for backwards compatibility with SVG generator
+ * Repository is now a direct child of aggregate
+ */
 export interface DomainAggregate {
   name: string;
   description: string;
   entities: string[];
-  repository?: string;
+  repository: DomainRepository;
 }
 
+/**
+ * Interface for domain bounded context (for reporting)
+ */
 export interface DomainBoundedContext {
   name: string;
   description: string;
   aggregates: DomainAggregate[];
   entities: DomainEntity[];
-  repositories: DomainEntity[];
+  repositories: DomainRepository[];
 }
 
+/**
+ * Interface for the complete domain model data structure
+ */
 export interface DomainModelData {
   boundedContexts: DomainBoundedContext[];
   aggregates: DomainAggregate[];
   entities: DomainEntity[];
-  repositories: DomainEntity[];
+  repositories: DomainRepository[];
 }
 
 /**
+ * Type for hierarchical bounded context data from the new schema
+ * Repository is now at the aggregate level, not bounded context level
+ */
+type HierarchicalBoundedContextData = AppSummaryNameDescArray[0] & {
+  aggregates?: NestedAggregate[];
+};
+
+/**
  * Data provider for domain model information.
- * Groups bounded contexts with their associated aggregates, entities, and repositories.
+ * Extracts domain model data from the hierarchical bounded contexts structure
+ * and flattens it for use in reporting and diagram generation.
  */
 @injectable()
 export class DomainModelDataProvider {
   /**
-   * Extract and group domain model data from categorized app summary data
+   * Extract and transform domain model data from categorized app summary data.
+   * The boundedContexts category now contains the full hierarchical structure
+   * with embedded aggregates, each containing its repository and entities.
    */
   getDomainModelData(
     categorizedData: {
@@ -55,29 +82,18 @@ export class DomainModelDataProvider {
       data: AppSummaryNameDescArray;
     }[],
   ): DomainModelData {
-    // Extract individual category data
-    const boundedContextsData = this.findCategoryData(categorizedData, "boundedContexts");
-    const aggregatesData = this.findCategoryData(categorizedData, "aggregates");
-    const entitiesData = this.findCategoryData(categorizedData, "entities");
-    const repositoriesData = this.findCategoryData(categorizedData, "repositories");
+    // Find the boundedContexts category data
+    const boundedContextsCategory = categorizedData.find((c) => c.category === "boundedContexts");
+    const hierarchicalContexts = (boundedContextsCategory?.data ??
+      []) as HierarchicalBoundedContextData[];
 
-    // Map data to domain model types
-    const aggregates = this.mapToAggregates(aggregatesData);
-    const entities = this.mapToEntities(entitiesData);
+    // Transform hierarchical data into flattened domain model structure
+    const boundedContexts = this.transformHierarchicalContexts(hierarchicalContexts);
 
-    // Use repositories from separate category if available, otherwise extract from aggregates
-    const repositories =
-      repositoriesData.length > 0
-        ? this.mapToRepositories(repositoriesData)
-        : this.extractRepositoriesFromAggregates(aggregates);
-
-    // Group aggregates, entities, and repositories by bounded context
-    const boundedContexts = this.groupByBoundedContext(
-      boundedContextsData,
-      aggregates,
-      entities,
-      repositories,
-    );
+    // Flatten all aggregates, entities, and repositories from bounded contexts
+    const aggregates = this.flattenAggregates(boundedContexts);
+    const entities = this.flattenEntities(boundedContexts);
+    const repositories = this.flattenRepositories(boundedContexts);
 
     return {
       boundedContexts,
@@ -88,125 +104,151 @@ export class DomainModelDataProvider {
   }
 
   /**
-   * Find category data by category name
+   * Transform hierarchical bounded context data into the reporting format
    */
-  private findCategoryData(
-    categorizedData: {
-      category: string;
-      label: string;
-      data: AppSummaryNameDescArray;
-    }[],
-    categoryName: string,
-  ): AppSummaryNameDescArray {
-    const category = categorizedData.find((c) => c.category === categoryName);
-    return category?.data ?? [];
-  }
-
-  /**
-   * Map aggregates data to DomainAggregate objects
-   */
-  private mapToAggregates(aggregatesData: AppSummaryNameDescArray): DomainAggregate[] {
-    return aggregatesData.map((item) => {
-      const aggregateItem = item as AggregateData;
-      const entities = aggregateItem.entities ?? [];
-      const repository = aggregateItem.repository ?? "";
-
-      return {
-        name: item.name,
-        description: item.description,
-        entities,
-        repository,
-      };
-    });
-  }
-
-  /**
-   * Map repositories data to DomainEntity objects
-   */
-  private mapToRepositories(repositoriesData: AppSummaryNameDescArray): DomainEntity[] {
-    return repositoriesData.map((item) => ({
-      name: item.name,
-      description: item.description,
-    }));
-  }
-
-  /**
-   * Extract repositories from aggregates
-   */
-  private extractRepositoriesFromAggregates(aggregates: DomainAggregate[]): DomainEntity[] {
-    const repositoryMap = new Map<string, DomainEntity>();
-
-    aggregates.forEach((aggregate) => {
-      if (aggregate.repository?.trim()) {
-        repositoryMap.set(aggregate.repository, {
-          name: aggregate.repository,
-          description: `Repository for ${aggregate.name}`,
-        });
-      }
-    });
-
-    return Array.from(repositoryMap.values());
-  }
-
-  /**
-   * Map entities data to DomainEntity objects
-   */
-  private mapToEntities(entitiesData: AppSummaryNameDescArray): DomainEntity[] {
-    return entitiesData.map((item) => ({
-      name: item.name,
-      description: item.description,
-    }));
-  }
-
-  /**
-   * Group aggregates, entities, and repositories by bounded context using explicit relationships.
-   * Uses the aggregates array from each bounded context to determine which aggregates belong to it,
-   * then derives entities from those aggregates.
-   */
-  private groupByBoundedContext(
-    boundedContextsData: AppSummaryNameDescArray,
-    aggregates: DomainAggregate[],
-    entities: DomainEntity[],
-    repositories: DomainEntity[],
+  private transformHierarchicalContexts(
+    hierarchicalContexts: HierarchicalBoundedContextData[],
   ): DomainBoundedContext[] {
-    return boundedContextsData.map((context) => {
-      const bcData = context as BoundedContextData;
-      const aggregateNames = bcData.aggregates ?? [];
-
-      // Match aggregates by name from the explicit list
-      const contextAggregates = aggregates.filter((agg) => aggregateNames.includes(agg.name));
-
-      // Get entities from matched aggregates
-      const contextEntityNames = new Set(contextAggregates.flatMap((agg) => agg.entities));
-      const contextEntities = entities.filter((e) => contextEntityNames.has(e.name));
-
-      // Get repositories from matched aggregates
-      const contextRepositories = this.getRepositoriesForAggregates(
-        contextAggregates,
-        repositories,
-      );
+    return hierarchicalContexts.map((context) => {
+      const aggregates = this.transformAggregates(context.aggregates ?? []);
+      const entities = this.extractEntitiesFromAggregates(context.aggregates ?? []);
+      const repositories = this.extractRepositoriesFromAggregates(context.aggregates ?? []);
 
       return {
         name: context.name,
         description: context.description,
-        aggregates: contextAggregates,
-        entities: contextEntities,
-        repositories: contextRepositories,
+        aggregates,
+        entities,
+        repositories,
       };
     });
   }
 
   /**
-   * Get repositories for aggregates in a context
+   * Transform nested aggregates to the reporting format
+   * Extracts entity names as string[] and includes the repository
    */
-  private getRepositoriesForAggregates(
-    aggregates: DomainAggregate[],
-    allRepositories: DomainEntity[],
-  ): DomainEntity[] {
-    const repositoryNames = aggregates
-      .map((aggregate) => aggregate.repository)
-      .filter((repo) => repo?.trim());
+  private transformAggregates(nestedAggregates: NestedAggregate[]): DomainAggregate[] {
+    return nestedAggregates.map((aggregate) => ({
+      name: aggregate.name,
+      description: aggregate.description,
+      entities: aggregate.entities.map((entity) => entity.name),
+      repository: this.transformRepository(aggregate.repository),
+    }));
+  }
 
-    return allRepositories.filter((repository) => repositoryNames.includes(repository.name));
+  /**
+   * Transform a nested repository to the reporting format
+   */
+  private transformRepository(nestedRepository: NestedRepository): DomainRepository {
+    return {
+      name: nestedRepository.name,
+      description: nestedRepository.description,
+    };
+  }
+
+  /**
+   * Extract all entities from nested aggregates
+   */
+  private extractEntitiesFromAggregates(nestedAggregates: NestedAggregate[]): DomainEntity[] {
+    const entities: DomainEntity[] = [];
+    const seenNames = new Set<string>();
+
+    for (const aggregate of nestedAggregates) {
+      for (const entity of aggregate.entities) {
+        if (!seenNames.has(entity.name)) {
+          seenNames.add(entity.name);
+          entities.push(this.transformEntity(entity));
+        }
+      }
+    }
+
+    return entities;
+  }
+
+  /**
+   * Extract all repositories from nested aggregates
+   */
+  private extractRepositoriesFromAggregates(
+    nestedAggregates: NestedAggregate[],
+  ): DomainRepository[] {
+    const repositories: DomainRepository[] = [];
+    const seenNames = new Set<string>();
+
+    for (const aggregate of nestedAggregates) {
+      if (!seenNames.has(aggregate.repository.name)) {
+        seenNames.add(aggregate.repository.name);
+        repositories.push(this.transformRepository(aggregate.repository));
+      }
+    }
+
+    return repositories;
+  }
+
+  /**
+   * Transform a nested entity to the reporting format
+   */
+  private transformEntity(nestedEntity: NestedEntity): DomainEntity {
+    return {
+      name: nestedEntity.name,
+      description: nestedEntity.description,
+    };
+  }
+
+  /**
+   * Flatten all aggregates from all bounded contexts
+   */
+  private flattenAggregates(boundedContexts: DomainBoundedContext[]): DomainAggregate[] {
+    const aggregates: DomainAggregate[] = [];
+    const seenNames = new Set<string>();
+
+    for (const context of boundedContexts) {
+      for (const aggregate of context.aggregates) {
+        if (!seenNames.has(aggregate.name)) {
+          seenNames.add(aggregate.name);
+          aggregates.push(aggregate);
+        }
+      }
+    }
+
+    return aggregates;
+  }
+
+  /**
+   * Flatten all entities from all bounded contexts
+   */
+  private flattenEntities(boundedContexts: DomainBoundedContext[]): DomainEntity[] {
+    const entities: DomainEntity[] = [];
+    const seenNames = new Set<string>();
+
+    for (const context of boundedContexts) {
+      for (const entity of context.entities) {
+        if (!seenNames.has(entity.name)) {
+          seenNames.add(entity.name);
+          entities.push(entity);
+        }
+      }
+    }
+
+    return entities;
+  }
+
+  /**
+   * Flatten all repositories from all bounded contexts
+   */
+  private flattenRepositories(boundedContexts: DomainBoundedContext[]): DomainRepository[] {
+    const repositories: DomainRepository[] = [];
+    const seenNames = new Set<string>();
+
+    for (const context of boundedContexts) {
+      for (const repository of context.repositories) {
+        if (!seenNames.has(repository.name)) {
+          seenNames.add(repository.name);
+          repositories.push(repository);
+        }
+      }
+    }
+
+    return repositories;
   }
 }

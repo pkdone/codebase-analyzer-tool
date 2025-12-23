@@ -115,16 +115,16 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
     it("should use single-pass approach when summaries fit in one chunk", async () => {
       const summaries = ["Summary 1", "Summary 2"];
-      const mockResponse = { entities: [{ name: "Entity1", description: "Test entity" }] };
+      const mockResponse = { technologies: [{ name: "Entity1", description: "Test entity" }] };
 
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(mockResponse);
 
-      await (generator as any).generateAndRecordDataForCategory("entities", summaries);
+      await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
       // Should call executeCompletion once with the category name (not -chunk or -reduce)
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledTimes(1);
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
-        "entities",
+        "technologies",
         expect.any(String),
         expect.objectContaining({
           outputFormat: LLMOutputFormat.JSON,
@@ -144,7 +144,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const largeSummary = "x".repeat(Math.floor(charsPerChunk * 0.6));
       const summaries = [largeSummary, largeSummary];
 
-      const mockPartialResult = { entities: [{ name: "Entity1", description: "Test" }] };
+      const mockPartialResult = { technologies: [{ name: "Entity1", description: "Test" }] };
       const mockFinalResult = {
         entities: [
           { name: "Entity1", description: "Test" },
@@ -159,20 +159,20 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(mockPartialResult);
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValueOnce(mockFinalResult);
 
-      await (generator as any).generateAndRecordDataForCategory("entities", summaries);
+      await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
       // Should have at least 3 calls: at least 2 for MAP (chunks) + 1 for REDUCE
       expect(mockLLMRouter.executeCompletion.mock.calls.length).toBeGreaterThanOrEqual(3);
 
       // Verify MAP calls use -chunk suffix
       const chunkCalls = mockLLMRouter.executeCompletion.mock.calls.filter(
-        (call) => call[0] === "entities-chunk",
+        (call) => call[0] === "technologies-chunk",
       );
       expect(chunkCalls.length).toBeGreaterThanOrEqual(2);
 
       // Verify REDUCE call uses -reduce suffix
       const reduceCallIndex = mockLLMRouter.executeCompletion.mock.calls.findIndex(
-        (call) => call[0] === "entities-reduce",
+        (call) => call[0] === "technologies-reduce",
       );
       expect(reduceCallIndex).toBeGreaterThanOrEqual(0);
 
@@ -190,11 +190,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
       // First chunk returns valid result, second chunk returns null
       (mockLLMRouter.executeCompletion as jest.Mock)
-        .mockResolvedValueOnce({ entities: [{ name: "Entity1", description: "Test" }] })
+        .mockResolvedValueOnce({ technologies: [{ name: "Entity1", description: "Test" }] })
         .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({ entities: [{ name: "Entity1", description: "Final" }] });
+        .mockResolvedValueOnce({ technologies: [{ name: "Entity1", description: "Final" }] });
 
-      await (generator as any).generateAndRecordDataForCategory("entities", summaries);
+      await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
       // Should still proceed to REDUCE with the one valid result
       expect(mockAppSummaryRepository.updateAppSummary).toHaveBeenCalled();
@@ -212,7 +212,7 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       // All chunks return null
       (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(null);
 
-      await (generator as any).generateAndRecordDataForCategory("entities", summaries);
+      await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
       // Should not call updateAppSummary
       expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
@@ -229,11 +229,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
 
       // MAP phase succeeds, REDUCE phase fails
       (mockLLMRouter.executeCompletion as jest.Mock)
-        .mockResolvedValueOnce({ entities: [{ name: "Entity1", description: "Test" }] })
-        .mockResolvedValueOnce({ entities: [{ name: "Entity2", description: "Test" }] })
+        .mockResolvedValueOnce({ technologies: [{ name: "Entity1", description: "Test" }] })
+        .mockResolvedValueOnce({ technologies: [{ name: "Entity2", description: "Test" }] })
         .mockResolvedValueOnce(null); // REDUCE fails
 
-      await (generator as any).generateAndRecordDataForCategory("entities", summaries);
+      await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
       expect(mockAppSummaryRepository.updateAppSummary).not.toHaveBeenCalled();
       expect(logging.logOneLineWarning).toHaveBeenCalledWith(

@@ -77,8 +77,21 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
       // Create mock response that matches the partial schema
       const mockResponse = {
         appDescription: "Test application",
-        technologies: [{ name: "TypeScript", version: "5.7.3" }],
-        entities: [{ name: "User", description: "User entity" }],
+        technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
+        boundedContexts: [
+          {
+            name: "UserContext",
+            description: "User bounded context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [{ name: "User", description: "User entity" }],
+              },
+            ],
+          },
+        ],
       };
 
       (mockLLMRouter.executeCompletion as any).mockResolvedValue(mockResponse);
@@ -102,7 +115,6 @@ describe("InsightsFromRawCodeGenerator - Type Inference", () => {
           llmProvider: "Mock LLM Provider",
           appDescription: "Test application",
           technologies: mockResponse.technologies,
-          entities: mockResponse.entities,
         }),
       );
     });

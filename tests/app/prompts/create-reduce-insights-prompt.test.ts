@@ -7,9 +7,9 @@ describe("createReduceInsightsPrompt", () => {
   describe("Factory Function", () => {
     it("should create a valid PromptDefinition", () => {
       const schema = z.object({
-        entities: z.array(z.object({ name: z.string() })),
+        technologies: z.array(z.object({ name: z.string() })),
       });
-      const result = createReduceInsightsPrompt("entities", "entities", schema);
+      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(result).toHaveProperty("label", "Reduce Insights");
       expect(result).toHaveProperty("contentDesc");
@@ -29,11 +29,11 @@ describe("createReduceInsightsPrompt", () => {
     });
 
     it("should include categoryKey in instructions", () => {
-      const schema = z.object({ entities: z.array(z.string()) });
-      const result = createReduceInsightsPrompt("entities", "entities", schema);
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(result.instructions).toHaveLength(1);
-      expect(result.instructions[0]).toContain("entities");
+      expect(result.instructions[0]).toContain("technologies");
     });
 
     it("should use the provided schema as responseSchema", () => {
@@ -51,36 +51,34 @@ describe("createReduceInsightsPrompt", () => {
     });
 
     it("should use BASE_PROMPT_TEMPLATE", () => {
-      const schema = z.object({ entities: z.array(z.string()) });
-      const result = createReduceInsightsPrompt("entities", "entities", schema);
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(result.template).toBe(BASE_PROMPT_TEMPLATE);
     });
 
     it("should use FRAGMENTED_DATA as dataBlockHeader", () => {
-      const schema = z.object({ entities: z.array(z.string()) });
-      const result = createReduceInsightsPrompt("entities", "entities", schema);
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(result.dataBlockHeader).toBe("FRAGMENTED_DATA");
     });
 
     it("should not wrap content in code blocks", () => {
-      const schema = z.object({ entities: z.array(z.string()) });
-      const result = createReduceInsightsPrompt("entities", "entities", schema);
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(result.wrapInCodeBlock).toBe(false);
     });
   });
 
   describe("Integration with appSummaryCategorySchemas", () => {
+    // Note: aggregates, entities, and repositories are now nested within boundedContexts
     const categories = [
       "appDescription",
       "technologies",
       "businessProcesses",
       "boundedContexts",
-      "aggregates",
-      "entities",
-      "repositories",
       "potentialMicroservices",
     ] as const;
 
@@ -99,8 +97,8 @@ describe("createReduceInsightsPrompt", () => {
 
   describe("Type Safety", () => {
     it("should preserve schema type in the returned definition", () => {
-      const entitiesSchema = z.object({
-        entities: z.array(
+      const technologiesSchema = z.object({
+        technologies: z.array(
           z.object({
             name: z.string(),
             description: z.string(),
@@ -108,13 +106,13 @@ describe("createReduceInsightsPrompt", () => {
         ),
       });
 
-      const result = createReduceInsightsPrompt("entities", "entities", entitiesSchema);
+      const result = createReduceInsightsPrompt("technologies", "technologies", technologiesSchema);
 
       // The responseSchema should be usable for parsing
       const testData = {
-        entities: [
-          { name: "User", description: "User entity" },
-          { name: "Order", description: "Order entity" },
+        technologies: [
+          { name: "Java", description: "Java language" },
+          { name: "MongoDB", description: "NoSQL database" },
         ],
       };
 
@@ -124,12 +122,12 @@ describe("createReduceInsightsPrompt", () => {
 
     it("should reject invalid data with the schema", () => {
       const schema = z.object({
-        entities: z.array(z.object({ name: z.string() })),
+        technologies: z.array(z.object({ name: z.string() })),
       });
 
-      const result = createReduceInsightsPrompt("entities", "entities", schema);
+      const result = createReduceInsightsPrompt("technologies", "technologies", schema);
 
-      const invalidData = { entities: "not an array" };
+      const invalidData = { technologies: "not an array" };
       const parseResult = result.responseSchema.safeParse(invalidData);
       expect(parseResult.success).toBe(false);
     });
@@ -161,21 +159,21 @@ describe("createReduceInsightsPrompt", () => {
 
   describe("Immutability", () => {
     it("should return a new object each time", () => {
-      const schema = z.object({ entities: z.array(z.string()) });
+      const schema = z.object({ technologies: z.array(z.string()) });
 
-      const result1 = createReduceInsightsPrompt("entities", "entities", schema);
-      const result2 = createReduceInsightsPrompt("entities", "entities", schema);
+      const result1 = createReduceInsightsPrompt("technologies", "technologies", schema);
+      const result2 = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(result1).not.toBe(result2);
       expect(result1).toEqual(result2);
     });
 
     it("should not share mutable state between calls", () => {
-      const schema1 = z.object({ entities: z.array(z.string()) });
-      const schema2 = z.object({ technologies: z.array(z.string()) });
+      const schema1 = z.object({ technologies: z.array(z.string()) });
+      const schema2 = z.object({ businessProcesses: z.array(z.string()) });
 
-      const result1 = createReduceInsightsPrompt("entities", "entities", schema1);
-      const result2 = createReduceInsightsPrompt("technologies", "technologies", schema2);
+      const result1 = createReduceInsightsPrompt("technologies", "technologies", schema1);
+      const result2 = createReduceInsightsPrompt("businessProcesses", "businessProcesses", schema2);
 
       expect(result1.responseSchema).toBe(schema1);
       expect(result2.responseSchema).toBe(schema2);

@@ -686,8 +686,8 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
 
   describe("type preservation through call chain", () => {
     test("should maintain type information from schema through response", async () => {
-      const entitySchema = z.object({
-        entities: z.array(
+      const technologiesSchema = z.object({
+        technologies: z.array(
           z.object({
             name: z.string(),
             description: z.string(),
@@ -696,9 +696,9 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
       });
 
       const mockData = {
-        entities: [
-          { name: "User", description: "User entity" },
-          { name: "Product", description: "Product entity" },
+        technologies: [
+          { name: "TypeScript", description: "Typed JavaScript" },
+          { name: "Node.js", description: "JavaScript runtime" },
         ],
       };
 
@@ -706,7 +706,7 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
 
       const result = await testLLM.executeCompletionPrimary("test prompt", testContext, {
         outputFormat: LLMOutputFormat.JSON,
-        jsonSchema: entitySchema,
+        jsonSchema: technologiesSchema,
       });
 
       expect(result.status).toBe(LLMResponseStatus.COMPLETED);
@@ -718,8 +718,8 @@ describe("Abstract LLM Type Safety with InferResponseType", () => {
         !Array.isArray(result.generated)
       ) {
         const data = result.generated as Record<string, any>;
-        expect(data.entities).toBeDefined();
-        expect(data.entities[0].name).toBe("User");
+        expect(data.technologies).toBeDefined();
+        expect(data.technologies[0].name).toBe("TypeScript");
       }
     });
 

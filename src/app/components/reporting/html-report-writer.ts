@@ -84,7 +84,10 @@ export interface PreparedHtmlReportData {
         name: string;
         description: string;
         entities: string[];
-        repository?: string;
+        repository: {
+          name: string;
+          description: string;
+        };
       }[];
       entities: {
         name: string;
@@ -99,7 +102,10 @@ export interface PreparedHtmlReportData {
       name: string;
       description: string;
       entities: string[];
-      repository?: string;
+      repository: {
+        name: string;
+        description: string;
+      };
     }[];
     entities: {
       name: string;

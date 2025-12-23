@@ -325,7 +325,7 @@ describe("AppSummaryRepositoryImpl", () => {
       const fieldNames = [
         "appDescription",
         "technologies",
-        "entities",
+        "technologies",
         "llmProvider",
       ] as (keyof AppSummaryRecord)[];
 
@@ -340,7 +340,6 @@ describe("AppSummaryRepositoryImpl", () => {
             _id: 0,
             appDescription: 1,
             technologies: 1,
-            entities: 1,
             llmProvider: 1,
           },
         },

@@ -75,7 +75,7 @@ describe("AppSummaryRepositoryImpl - Partial Updates", () => {
       const setOperation = update as { $set: PartialAppSummaryRecord };
       expect(setOperation.$set).toHaveProperty("projectName");
       expect(setOperation.$set).toHaveProperty("appDescription");
-      expect(setOperation.$set).not.toHaveProperty("entities");
+      expect(setOperation.$set).not.toHaveProperty("technologies");
       expect(setOperation.$set).not.toHaveProperty("boundedContexts");
     });
 
@@ -146,7 +146,7 @@ describe("AppSummaryRepositoryImpl - Partial Updates", () => {
       const setOperation = update as { $set: PartialAppSummaryRecord };
       expect(setOperation.$set).toHaveProperty("appDescription");
       expect(setOperation.$set).toHaveProperty("technologies");
-      expect(setOperation.$set).toHaveProperty("entities");
+      expect(setOperation.$set).toHaveProperty("technologies");
       expect(setOperation.$set).toHaveProperty("llmProvider");
     });
   });
@@ -191,8 +191,9 @@ describe("AppSummaryRepositoryImpl - Partial Updates", () => {
       const [, update] = mockCollection.updateOne.mock.calls[0];
       const setOperation = update as { $set: PartialAppSummaryRecord };
       expect(setOperation.$set).toHaveProperty("technologies");
-      expect(setOperation.$set).not.toHaveProperty("entities");
+      // Should not have categories that weren't provided in the partial update
       expect(setOperation.$set).not.toHaveProperty("boundedContexts");
+      expect(setOperation.$set).not.toHaveProperty("potentialMicroservices");
     });
   });
 
@@ -245,24 +246,19 @@ describe("AppSummaryRepositoryImpl - Partial Updates", () => {
         appDescription: "Full description",
         llmProvider: "openai",
         technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
-        entities: [{ name: "User", description: "User entity" }],
-        aggregates: [
-          {
-            name: "Order",
-            description: "Order aggregate",
-            entities: ["OrderItem", "Payment"],
-            repository: "OrderRepository",
-          },
-        ],
-        repositories: [
-          {
-            name: "UserRepo",
-            description: "User repository",
-            aggregate: "UserAggregate",
-          },
-        ],
         boundedContexts: [
-          { name: "Auth", description: "Authentication context", aggregates: ["UserAggregate"] },
+          {
+            name: "Auth",
+            description: "Authentication context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate",
+                repository: { name: "AuthRepository", description: "Auth repository" },
+                entities: [{ name: "User", description: "User entity" }],
+              },
+            ],
+          },
         ],
         businessProcesses: [
           {
@@ -284,9 +280,6 @@ describe("AppSummaryRepositoryImpl - Partial Updates", () => {
             ],
           },
         ],
-        fileTypes: [{ name: "TypeScript", description: "TS files" }],
-        dbInteractions: [{ name: "Postgres", description: "Main database" }],
-        procsAndTriggers: [{ name: "sp_users", description: "User stored proc" }],
       };
 
       mockCollection.updateOne.mockResolvedValue({} as any);

@@ -30,14 +30,12 @@ describe("insightsTuningConfig", () => {
 
 describe("summaryCategoriesConfig", () => {
   it("should have all required category configurations", () => {
+    // Note: aggregates, entities, and repositories are now nested within boundedContexts
     const categories: AppSummaryCategoryEnum[] = [
       "appDescription",
       "technologies",
       "businessProcesses",
       "boundedContexts",
-      "aggregates",
-      "entities",
-      "repositories",
       "potentialMicroservices",
     ];
 

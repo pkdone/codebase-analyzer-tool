@@ -9,67 +9,58 @@ describe("DomainModelDataProvider", () => {
     provider = new DomainModelDataProvider();
   });
 
-  describe("getDomainModelData", () => {
-    it("should correctly group aggregates using explicit aggregates array from bounded contexts", () => {
+  describe("getDomainModelData with hierarchical bounded contexts", () => {
+    it("should correctly extract hierarchical bounded context data with repository at aggregate level", () => {
       const categorizedData = [
         {
           category: "boundedContexts",
-          label: "Bounded Contexts",
+          label: "Domain Model",
           data: [
             {
               name: "Order Management",
               description: "Handles order lifecycle and processing",
-              aggregates: ["OrderAggregate", "PaymentAggregate"],
+              aggregates: [
+                {
+                  name: "OrderAggregate",
+                  description: "Order aggregate description",
+                  repository: {
+                    name: "OrderRepository",
+                    description: "Persists order data",
+                  },
+                  entities: [
+                    { name: "Order", description: "Order entity" },
+                    { name: "OrderItem", description: "Order item entity" },
+                  ],
+                },
+                {
+                  name: "PaymentAggregate",
+                  description: "Payment aggregate description",
+                  repository: {
+                    name: "PaymentRepository",
+                    description: "Persists payment data",
+                  },
+                  entities: [{ name: "Payment", description: "Payment entity" }],
+                },
+              ],
             },
             {
               name: "Inventory",
               description: "Manages inventory and stock levels",
-              aggregates: ["InventoryAggregate"],
+              aggregates: [
+                {
+                  name: "InventoryAggregate",
+                  description: "Inventory aggregate description",
+                  repository: {
+                    name: "InventoryRepository",
+                    description: "Persists inventory data",
+                  },
+                  entities: [
+                    { name: "InventoryItem", description: "Inventory item entity" },
+                    { name: "StockLevel", description: "Stock level entity" },
+                  ],
+                },
+              ],
             },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "aggregates",
-          label: "Aggregates",
-          data: [
-            {
-              name: "OrderAggregate",
-              description: "Order aggregate description",
-              entities: ["Order", "OrderItem"],
-              repository: "OrderRepository",
-            },
-            {
-              name: "PaymentAggregate",
-              description: "Payment aggregate description",
-              entities: ["Payment"],
-              repository: "PaymentRepository",
-            },
-            {
-              name: "InventoryAggregate",
-              description: "Inventory aggregate description",
-              entities: ["InventoryItem", "StockLevel"],
-              repository: "InventoryRepository",
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "entities",
-          label: "Entities",
-          data: [
-            { name: "Order", description: "Order entity" },
-            { name: "OrderItem", description: "Order item entity" },
-            { name: "Payment", description: "Payment entity" },
-            { name: "InventoryItem", description: "Inventory item entity" },
-            { name: "StockLevel", description: "Stock level entity" },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "repositories",
-          label: "Repositories",
-          data: [
-            { name: "OrderRepository", description: "Order repository" },
-            { name: "PaymentRepository", description: "Payment repository" },
-            { name: "InventoryRepository", description: "Inventory repository" },
           ] as AppSummaryNameDescArray,
         },
       ];
@@ -87,61 +78,55 @@ describe("DomainModelDataProvider", () => {
       expect(orderContext!.entities.map((e) => e.name)).toEqual(
         expect.arrayContaining(["Order", "OrderItem", "Payment"]),
       );
-      expect(orderContext!.repositories).toHaveLength(2);
+      expect(orderContext!.repositories).toHaveLength(2); // OrderRepository, PaymentRepository
       expect(orderContext!.repositories.map((r) => r.name)).toEqual(
         expect.arrayContaining(["OrderRepository", "PaymentRepository"]),
       );
+
+      // Check aggregate has repository as a child
+      const orderAggregate = orderContext!.aggregates.find((a) => a.name === "OrderAggregate");
+      expect(orderAggregate).toBeDefined();
+      expect(orderAggregate!.repository).toEqual({
+        name: "OrderRepository",
+        description: "Persists order data",
+      });
 
       // Check Inventory bounded context
       const inventoryContext = result.boundedContexts.find((bc) => bc.name === "Inventory");
       expect(inventoryContext).toBeDefined();
       expect(inventoryContext!.aggregates).toHaveLength(1);
       expect(inventoryContext!.aggregates[0].name).toBe("InventoryAggregate");
+      expect(inventoryContext!.aggregates[0].repository.name).toBe("InventoryRepository");
       expect(inventoryContext!.entities).toHaveLength(2); // InventoryItem, StockLevel
       expect(inventoryContext!.repositories).toHaveLength(1);
       expect(inventoryContext!.repositories[0].name).toBe("InventoryRepository");
     });
 
-    it("should derive entities from aggregate relationships", () => {
+    it("should flatten aggregates with entity names as string array and repository as object", () => {
       const categorizedData = [
         {
           category: "boundedContexts",
-          label: "Bounded Contexts",
+          label: "Domain Model",
           data: [
             {
               name: "User Management",
               description: "Handles user accounts",
-              aggregates: ["UserAggregate"],
+              aggregates: [
+                {
+                  name: "UserAggregate",
+                  description: "User aggregate",
+                  repository: {
+                    name: "UserRepository",
+                    description: "User repository",
+                  },
+                  entities: [
+                    { name: "User", description: "User entity" },
+                    { name: "UserProfile", description: "User profile entity" },
+                    { name: "UserPreferences", description: "User preferences entity" },
+                  ],
+                },
+              ],
             },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "aggregates",
-          label: "Aggregates",
-          data: [
-            {
-              name: "UserAggregate",
-              description: "User aggregate",
-              entities: ["User", "UserProfile", "UserPreferences"],
-              repository: "UserRepository",
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "entities",
-          label: "Entities",
-          data: [
-            { name: "User", description: "User entity" },
-            { name: "UserProfile", description: "User profile entity" },
-            { name: "UserPreferences", description: "User preferences entity" },
-            { name: "UnrelatedEntity", description: "Entity not linked to any aggregate" },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "repositories",
-          label: "Repositories",
-          data: [
-            { name: "UserRepository", description: "User repository" },
           ] as AppSummaryNameDescArray,
         },
       ];
@@ -149,50 +134,43 @@ describe("DomainModelDataProvider", () => {
       const result = provider.getDomainModelData(categorizedData);
 
       const userContext = result.boundedContexts[0];
-      // Should only include entities that are in the aggregate's entities array
+      // Aggregates should have entity names as string[]
+      expect(userContext.aggregates[0].entities).toEqual([
+        "User",
+        "UserProfile",
+        "UserPreferences",
+      ]);
+      // Aggregates should have repository as object
+      expect(userContext.aggregates[0].repository).toEqual({
+        name: "UserRepository",
+        description: "User repository",
+      });
+
+      // Entities should be full objects
       expect(userContext.entities).toHaveLength(3);
       expect(userContext.entities.map((e) => e.name)).toEqual(
         expect.arrayContaining(["User", "UserProfile", "UserPreferences"]),
       );
-      // UnrelatedEntity should not be included
-      expect(userContext.entities.map((e) => e.name)).not.toContain("UnrelatedEntity");
+
+      // Repositories should be extracted from aggregates
+      expect(userContext.repositories).toHaveLength(1);
+      expect(userContext.repositories[0]).toEqual({
+        name: "UserRepository",
+        description: "User repository",
+      });
     });
 
     it("should handle bounded context with empty aggregates array", () => {
       const categorizedData = [
         {
           category: "boundedContexts",
-          label: "Bounded Contexts",
+          label: "Domain Model",
           data: [
             {
               name: "Empty Context",
               description: "A context with no aggregates",
               aggregates: [],
             },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "aggregates",
-          label: "Aggregates",
-          data: [
-            {
-              name: "SomeAggregate",
-              description: "An aggregate",
-              entities: ["SomeEntity"],
-              repository: "SomeRepository",
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "entities",
-          label: "Entities",
-          data: [{ name: "SomeEntity", description: "Some entity" }] as AppSummaryNameDescArray,
-        },
-        {
-          category: "repositories",
-          label: "Repositories",
-          data: [
-            { name: "SomeRepository", description: "Some repository" },
           ] as AppSummaryNameDescArray,
         },
       ];
@@ -208,262 +186,199 @@ describe("DomainModelDataProvider", () => {
     it("should handle missing bounded contexts data gracefully", () => {
       const categorizedData = [
         {
-          category: "aggregates",
-          label: "Aggregates",
-          data: [
-            {
-              name: "OrderAggregate",
-              description: "Order aggregate",
-              entities: ["Order"],
-              repository: "OrderRepository",
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "entities",
-          label: "Entities",
-          data: [{ name: "Order", description: "Order entity" }] as AppSummaryNameDescArray,
-        },
-        {
-          category: "repositories",
-          label: "Repositories",
-          data: [
-            { name: "OrderRepository", description: "Order repository" },
-          ] as AppSummaryNameDescArray,
+          category: "technologies",
+          label: "Technologies",
+          data: [{ name: "Java", description: "Java language" }] as AppSummaryNameDescArray,
         },
       ];
 
       const result = provider.getDomainModelData(categorizedData);
 
       expect(result.boundedContexts).toHaveLength(0);
-      // All aggregates, entities, and repositories should still be returned at top level
-      expect(result.aggregates).toHaveLength(1);
-      expect(result.entities).toHaveLength(1);
-      expect(result.repositories).toHaveLength(1);
+      expect(result.aggregates).toHaveLength(0);
+      expect(result.entities).toHaveLength(0);
+      expect(result.repositories).toHaveLength(0);
     });
 
-    it("should handle bounded context without aggregates property (legacy data)", () => {
+    it("should flatten all aggregates, entities, and repositories from multiple bounded contexts", () => {
       const categorizedData = [
         {
           category: "boundedContexts",
-          label: "Bounded Contexts",
-          data: [
-            {
-              name: "Legacy Context",
-              description: "A context without aggregates property",
-              // No aggregates property - simulating legacy data
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "aggregates",
-          label: "Aggregates",
-          data: [
-            {
-              name: "SomeAggregate",
-              description: "An aggregate",
-              entities: ["SomeEntity"],
-              repository: "SomeRepository",
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "entities",
-          label: "Entities",
-          data: [{ name: "SomeEntity", description: "Some entity" }] as AppSummaryNameDescArray,
-        },
-        {
-          category: "repositories",
-          label: "Repositories",
-          data: [
-            { name: "SomeRepository", description: "Some repository" },
-          ] as AppSummaryNameDescArray,
-        },
-      ];
-
-      const result = provider.getDomainModelData(categorizedData);
-
-      const legacyContext = result.boundedContexts[0];
-      // Should handle missing aggregates property gracefully
-      expect(legacyContext.aggregates).toHaveLength(0);
-      expect(legacyContext.entities).toHaveLength(0);
-      expect(legacyContext.repositories).toHaveLength(0);
-    });
-
-    it("should link repositories via aggregates", () => {
-      const categorizedData = [
-        {
-          category: "boundedContexts",
-          label: "Bounded Contexts",
+          label: "Domain Model",
           data: [
             {
               name: "Sales",
               description: "Sales context",
-              aggregates: ["CustomerAggregate", "OrderAggregate"],
+              aggregates: [
+                {
+                  name: "CustomerAggregate",
+                  description: "Customer aggregate",
+                  repository: {
+                    name: "CustomerRepository",
+                    description: "Customer repository",
+                  },
+                  entities: [{ name: "Customer", description: "Customer entity" }],
+                },
+                {
+                  name: "OrderAggregate",
+                  description: "Order aggregate",
+                  repository: {
+                    name: "OrderRepository",
+                    description: "Order repository",
+                  },
+                  entities: [{ name: "Order", description: "Order entity" }],
+                },
+              ],
             },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "aggregates",
-          label: "Aggregates",
-          data: [
             {
-              name: "CustomerAggregate",
-              description: "Customer aggregate",
-              entities: ["Customer"],
-              repository: "CustomerRepository",
+              name: "Inventory",
+              description: "Inventory context",
+              aggregates: [
+                {
+                  name: "StockAggregate",
+                  description: "Stock aggregate",
+                  repository: {
+                    name: "StockRepository",
+                    description: "Stock repository",
+                  },
+                  entities: [{ name: "Stock", description: "Stock entity" }],
+                },
+              ],
             },
-            {
-              name: "OrderAggregate",
-              description: "Order aggregate",
-              entities: ["Order"],
-              repository: "OrderRepository",
-            },
-            {
-              name: "UnrelatedAggregate",
-              description: "Unrelated aggregate",
-              entities: ["Unrelated"],
-              repository: "UnrelatedRepository",
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "entities",
-          label: "Entities",
-          data: [
-            { name: "Customer", description: "Customer entity" },
-            { name: "Order", description: "Order entity" },
-            { name: "Unrelated", description: "Unrelated entity" },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "repositories",
-          label: "Repositories",
-          data: [
-            { name: "CustomerRepository", description: "Customer repository" },
-            { name: "OrderRepository", description: "Order repository" },
-            { name: "UnrelatedRepository", description: "Unrelated repository" },
           ] as AppSummaryNameDescArray,
         },
       ];
 
       const result = provider.getDomainModelData(categorizedData);
 
-      const salesContext = result.boundedContexts[0];
-      expect(salesContext.repositories).toHaveLength(2);
-      expect(salesContext.repositories.map((r) => r.name)).toEqual(
-        expect.arrayContaining(["CustomerRepository", "OrderRepository"]),
+      // Top-level should contain all items from all contexts
+      expect(result.aggregates).toHaveLength(3);
+      expect(result.aggregates.map((a) => a.name)).toEqual(
+        expect.arrayContaining(["CustomerAggregate", "OrderAggregate", "StockAggregate"]),
       );
-      // UnrelatedRepository should not be included
-      expect(salesContext.repositories.map((r) => r.name)).not.toContain("UnrelatedRepository");
+
+      expect(result.entities).toHaveLength(3);
+      expect(result.entities.map((e) => e.name)).toEqual(
+        expect.arrayContaining(["Customer", "Order", "Stock"]),
+      );
+
+      expect(result.repositories).toHaveLength(3);
+      expect(result.repositories.map((r) => r.name)).toEqual(
+        expect.arrayContaining(["CustomerRepository", "OrderRepository", "StockRepository"]),
+      );
     });
 
-    it("should extract repositories from aggregates when no repositories category exists", () => {
+    it("should deduplicate entities that appear in multiple aggregates", () => {
       const categorizedData = [
         {
           category: "boundedContexts",
-          label: "Bounded Contexts",
+          label: "Domain Model",
           data: [
             {
-              name: "Test Context",
-              description: "Test context",
-              aggregates: ["TestAggregate"],
+              name: "Context With Shared Entity",
+              description: "A context where entity appears in multiple aggregates",
+              aggregates: [
+                {
+                  name: "AggregateA",
+                  description: "Aggregate A",
+                  repository: {
+                    name: "RepositoryA",
+                    description: "Repository A",
+                  },
+                  entities: [
+                    { name: "SharedEntity", description: "Shared entity" },
+                    { name: "EntityA", description: "Entity A" },
+                  ],
+                },
+                {
+                  name: "AggregateB",
+                  description: "Aggregate B",
+                  repository: {
+                    name: "RepositoryB",
+                    description: "Repository B",
+                  },
+                  entities: [
+                    { name: "SharedEntity", description: "Shared entity" },
+                    { name: "EntityB", description: "Entity B" },
+                  ],
+                },
+              ],
             },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "aggregates",
-          label: "Aggregates",
-          data: [
-            {
-              name: "TestAggregate",
-              description: "Test aggregate",
-              entities: ["TestEntity"],
-              repository: "TestRepository",
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "entities",
-          label: "Entities",
-          data: [{ name: "TestEntity", description: "Test entity" }] as AppSummaryNameDescArray,
-        },
-        // No repositories category
-      ];
-
-      const result = provider.getDomainModelData(categorizedData);
-
-      // Repositories should be extracted from aggregates
-      expect(result.repositories).toHaveLength(1);
-      expect(result.repositories[0].name).toBe("TestRepository");
-      expect(result.repositories[0].description).toBe("Repository for TestAggregate");
-
-      // Bounded context should also get the repository
-      const testContext = result.boundedContexts[0];
-      expect(testContext.repositories).toHaveLength(1);
-      expect(testContext.repositories[0].name).toBe("TestRepository");
-    });
-
-    it("should return all data at top level regardless of bounded context grouping", () => {
-      const categorizedData = [
-        {
-          category: "boundedContexts",
-          label: "Bounded Contexts",
-          data: [
-            {
-              name: "Context A",
-              description: "Context A description",
-              aggregates: ["AggregateA"],
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "aggregates",
-          label: "Aggregates",
-          data: [
-            {
-              name: "AggregateA",
-              description: "Aggregate A",
-              entities: ["EntityA"],
-              repository: "RepositoryA",
-            },
-            {
-              name: "AggregateB",
-              description: "Aggregate B not in any context",
-              entities: ["EntityB"],
-              repository: "RepositoryB",
-            },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "entities",
-          label: "Entities",
-          data: [
-            { name: "EntityA", description: "Entity A" },
-            { name: "EntityB", description: "Entity B" },
-          ] as AppSummaryNameDescArray,
-        },
-        {
-          category: "repositories",
-          label: "Repositories",
-          data: [
-            { name: "RepositoryA", description: "Repository A" },
-            { name: "RepositoryB", description: "Repository B" },
           ] as AppSummaryNameDescArray,
         },
       ];
 
       const result = provider.getDomainModelData(categorizedData);
 
-      // Top-level should contain all items regardless of context grouping
-      expect(result.aggregates).toHaveLength(2);
-      expect(result.entities).toHaveLength(2);
-      expect(result.repositories).toHaveLength(2);
+      // Entities should be deduplicated
+      const context = result.boundedContexts[0];
+      expect(context.entities).toHaveLength(3); // SharedEntity, EntityA, EntityB
+      expect(context.entities.filter((e) => e.name === "SharedEntity")).toHaveLength(1);
 
-      // Context A should only have AggregateA and its related items
-      const contextA = result.boundedContexts[0];
-      expect(contextA.aggregates).toHaveLength(1);
-      expect(contextA.aggregates[0].name).toBe("AggregateA");
+      // Top-level entities should also be deduplicated
+      expect(result.entities).toHaveLength(3);
+      expect(result.entities.filter((e) => e.name === "SharedEntity")).toHaveLength(1);
+    });
+
+    it("should handle aggregates with empty entities array", () => {
+      const categorizedData = [
+        {
+          category: "boundedContexts",
+          label: "Domain Model",
+          data: [
+            {
+              name: "Context With Empty Aggregate",
+              description: "A context with aggregate that has no entities",
+              aggregates: [
+                {
+                  name: "EmptyAggregate",
+                  description: "An aggregate with no entities",
+                  repository: {
+                    name: "EmptyRepository",
+                    description: "Empty repository",
+                  },
+                  entities: [],
+                },
+              ],
+            },
+          ] as AppSummaryNameDescArray,
+        },
+      ];
+
+      const result = provider.getDomainModelData(categorizedData);
+
+      const context = result.boundedContexts[0];
+      expect(context.aggregates).toHaveLength(1);
+      expect(context.aggregates[0].entities).toEqual([]);
+      expect(context.aggregates[0].repository).toEqual({
+        name: "EmptyRepository",
+        description: "Empty repository",
+      });
+      expect(context.entities).toHaveLength(0);
+      expect(context.repositories).toHaveLength(1);
+    });
+
+    it("should handle bounded context without aggregates property", () => {
+      const categorizedData = [
+        {
+          category: "boundedContexts",
+          label: "Domain Model",
+          data: [
+            {
+              name: "Minimal Context",
+              description: "A context without aggregates property",
+              // No aggregates property at all
+            },
+          ] as AppSummaryNameDescArray,
+        },
+      ];
+
+      const result = provider.getDomainModelData(categorizedData);
+
+      const context = result.boundedContexts[0];
+      expect(context.aggregates).toHaveLength(0);
+      expect(context.entities).toHaveLength(0);
+      expect(context.repositories).toHaveLength(0);
     });
   });
 });

@@ -48,9 +48,19 @@ describe("AppSummaryRepository Integration Tests", () => {
           { name: "Node.ts", description: "JavaScript runtime for server-side development" },
           { name: "MongoDB", description: "NoSQL document database" },
         ],
-        entities: [
-          { name: "User", description: "User management entity" },
-          { name: "Product", description: "Product catalog entity" },
+        boundedContexts: [
+          {
+            name: "UserManagement",
+            description: "User management bounded context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [{ name: "User", description: "User entity" }],
+              },
+            ],
+          },
         ],
         businessProcesses: [
           {
@@ -157,7 +167,20 @@ describe("AppSummaryRepository Integration Tests", () => {
         appDescription: "Initial description",
         llmProvider: "claude",
         technologies: [{ name: "JavaScript", description: "Dynamic language" }],
-        entities: [{ name: "User", description: "User management" }],
+        boundedContexts: [
+          {
+            name: "UserManagement",
+            description: "User management bounded context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [{ name: "User", description: "User management" }],
+              },
+            ],
+          },
+        ],
       };
 
       await appSummariesRepository.createOrReplaceAppSummary(initialRecord);
@@ -188,12 +211,13 @@ describe("AppSummaryRepository Integration Tests", () => {
       expect(technologiesField).toHaveLength(2);
       expect(technologiesField![0].name).toBe("TypeScript");
 
-      const entitiesField = await appSummariesRepository.getProjectAppSummaryField(
+      // Verify boundedContexts remains unchanged
+      const boundedContextsField = await appSummariesRepository.getProjectAppSummaryField(
         testProjectName,
-        "entities",
+        "boundedContexts",
       );
-      expect(entitiesField).toHaveLength(1); // Should remain unchanged
-      expect(entitiesField![0].name).toBe("User");
+      expect(boundedContextsField).toHaveLength(1);
+      expect(boundedContextsField![0].name).toBe("UserManagement");
     }, 30000);
 
     it("should handle empty updates object", async () => {
@@ -231,9 +255,31 @@ describe("AppSummaryRepository Integration Tests", () => {
           { name: "Node.ts", description: "JavaScript runtime" },
           { name: "MongoDB", description: "NoSQL database" },
         ],
-        entities: [
-          { name: "User", description: "User management entity" },
-          { name: "Product", description: "Product catalog entity" },
+        boundedContexts: [
+          {
+            name: "UserManagement",
+            description: "User management bounded context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [{ name: "User", description: "User management entity" }],
+              },
+            ],
+          },
+          {
+            name: "ProductCatalog",
+            description: "Product catalog bounded context",
+            aggregates: [
+              {
+                name: "ProductAggregate",
+                description: "Product aggregate",
+                repository: { name: "ProductRepository", description: "Product repository" },
+                entities: [{ name: "Product", description: "Product catalog entity" }],
+              },
+            ],
+          },
         ],
         businessProcesses: [
           {
@@ -271,10 +317,6 @@ describe("AppSummaryRepository Integration Tests", () => {
               { operation: "Create Order", method: "POST", description: "Create new order" },
             ],
           },
-        ],
-        repositories: [
-          { name: "UserRepository", description: "Data access for users", aggregate: "User" },
-          { name: "OrderRepository", description: "Data access for orders", aggregate: "Order" },
         ],
       };
 
@@ -329,12 +371,12 @@ describe("AppSummaryRepository Integration Tests", () => {
       expect(technologies).toHaveLength(3);
       expect(technologies![0].name).toBe("TypeScript");
 
-      const entities = await appSummariesRepository.getProjectAppSummaryField(
+      const boundedContexts = await appSummariesRepository.getProjectAppSummaryField(
         testProjectName,
-        "entities",
+        "boundedContexts",
       );
-      expect(entities).toHaveLength(2);
-      expect(entities![0].name).toBe("User");
+      expect(boundedContexts).toHaveLength(2);
+      expect(boundedContexts![0].name).toBe("UserManagement");
     }, 30000);
 
     it("should return null for non-existent field", async () => {
@@ -354,7 +396,7 @@ describe("AppSummaryRepository Integration Tests", () => {
         "appDescription",
         "llmProvider",
         "technologies",
-        "entities",
+        "technologies",
       ] as (keyof AppSummaryRecord)[];
       const result = await appSummariesRepository.getProjectAppSummaryFields(
         testProjectName,
@@ -366,15 +408,13 @@ describe("AppSummaryRepository Integration Tests", () => {
       expect(result!.appDescription).toBe("Comprehensive test application");
       expect(result!.llmProvider).toBe("openai");
       expect(result!.technologies).toHaveLength(3);
-      expect(result!.entities).toHaveLength(2);
 
       // Should only contain the requested fields (order not guaranteed by MongoDB)
       const keys = Object.keys(result!);
-      expect(keys).toHaveLength(4);
+      expect(keys).toHaveLength(3);
       expect(keys).toContain("appDescription");
       expect(keys).toContain("llmProvider");
       expect(keys).toContain("technologies");
-      expect(keys).toContain("entities");
     }, 30000);
 
     it("should return null for empty field names array", async () => {
@@ -412,7 +452,7 @@ describe("AppSummaryRepository Integration Tests", () => {
         "appDescription",
         "llmProvider",
         "technologies",
-        "entities",
+        "technologies",
       ] as (keyof AppSummaryRecord)[];
       const result = await appSummariesRepository.getProjectAppSummaryFields(
         `partial-${testProjectName}`,
@@ -424,7 +464,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       expect(result!.appDescription).toBe("Partial record");
       expect(result!.llmProvider).toBe("claude");
       expect(result!.technologies).toBeUndefined();
-      expect(result!.entities).toBeUndefined();
+      expect(result!.technologies).toBeUndefined();
 
       // Clean up
       await mongoClient
@@ -459,7 +499,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       const fields = [
         "appDescription",
         "technologies",
-        "entities",
+        "technologies",
         "businessProcesses",
       ] as (keyof AppSummaryRecord)[];
       const result = await appSummariesRepository.getProjectAppSummaryFields(
@@ -471,7 +511,7 @@ describe("AppSummaryRepository Integration Tests", () => {
       expect(result).not.toBeNull();
       expect(result!.appDescription).toBeDefined();
       expect(result!.technologies).toBeDefined();
-      expect(result!.entities).toBeDefined();
+      expect(result!.technologies).toBeDefined();
       expect(result!.businessProcesses).toBeDefined();
 
       // Should not include llmProvider (not requested)

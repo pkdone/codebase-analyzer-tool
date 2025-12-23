@@ -73,9 +73,9 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should infer correct type for entities category", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       const mockResponse = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity with profile data" },
           { name: "Order", description: "Order entity with transaction details" },
         ],
@@ -89,10 +89,10 @@ describe("completion-executor type inference improvements", () => {
 
       expect(result).not.toBeNull();
       if (result) {
-        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
-        expect(Array.isArray(typed.entities)).toBe(true);
-        expect(typed.entities[0].name).toBe("User");
-        expect(typed.entities[1].name).toBe("Order");
+        const typed: z.infer<AppSummaryCategorySchemas["technologies"]> = result;
+        expect(Array.isArray(typed.technologies)).toBe(true);
+        expect(typed.technologies[0].name).toBe("User");
+        expect(typed.technologies[1].name).toBe("Order");
       }
     });
 
@@ -145,10 +145,23 @@ describe("completion-executor type inference improvements", () => {
       }
     });
 
-    it("should infer correct type for aggregates category", async () => {
-      const category: AppSummaryCategoryEnum = "aggregates";
+    it("should infer correct type for boundedContexts category", async () => {
+      const category: AppSummaryCategoryEnum = "boundedContexts";
       const mockResponse = {
-        aggregates: [{ name: "UserAggregate", description: "Aggregates user-related entities" }],
+        boundedContexts: [
+          {
+            name: "UserContext",
+            description: "User bounded context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "Aggregates user-related entities",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [{ name: "User", description: "User entity" }],
+              },
+            ],
+          },
+        ],
       };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
@@ -159,31 +172,39 @@ describe("completion-executor type inference improvements", () => {
 
       expect(result).not.toBeNull();
       if (result) {
-        const typed: z.infer<AppSummaryCategorySchemas["aggregates"]> = result;
-        expect(typed.aggregates[0].name).toBe("UserAggregate");
+        const typed: z.infer<AppSummaryCategorySchemas["boundedContexts"]> = result;
+        expect(typed.boundedContexts[0].name).toBe("UserContext");
       }
     });
 
-    it("should infer correct type for repositories category", async () => {
-      const category: AppSummaryCategoryEnum = "repositories";
+    it("should infer correct type for businessProcesses category", async () => {
+      const category: AppSummaryCategoryEnum = "businessProcesses";
       const mockResponse = {
-        repositories: [
-          { name: "UserRepository", description: "Manages user data persistence" },
-          { name: "OrderRepository", description: "Manages order data persistence" },
+        businessProcesses: [
+          {
+            name: "UserRegistration",
+            description: "Handles user registration",
+            keyBusinessActivities: [],
+          },
+          {
+            name: "OrderProcessing",
+            description: "Handles order processing",
+            keyBusinessActivities: [],
+          },
         ],
       };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
-        "* file1.ts: Repository implementations",
+        "* file1.ts: Business process implementations",
       ]);
 
       expect(result).not.toBeNull();
       if (result) {
-        const typed: z.infer<AppSummaryCategorySchemas["repositories"]> = result;
-        expect(typed.repositories).toHaveLength(2);
-        expect(typed.repositories[0].name).toBe("UserRepository");
+        const typed: z.infer<AppSummaryCategorySchemas["businessProcesses"]> = result;
+        expect(typed.businessProcesses).toHaveLength(2);
+        expect(typed.businessProcesses[0].name).toBe("UserRegistration");
       }
     });
 
@@ -264,9 +285,9 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should support destructuring without explicit casts", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       const mockResponse = {
-        entities: [
+        technologies: [
           { name: "User", description: "User entity" },
           { name: "Order", description: "Order entity" },
         ],
@@ -280,9 +301,9 @@ describe("completion-executor type inference improvements", () => {
 
       // Destructuring should work without casts
       if (result) {
-        const { entities } = result;
-        expect(entities).toHaveLength(2);
-        expect(entities[0].name).toBe("User");
+        const { technologies } = result;
+        expect(technologies).toHaveLength(2);
+        expect(technologies[0].name).toBe("User");
       }
     });
   });
@@ -354,10 +375,10 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should preserve types when using partialAnalysisNote", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       const partialNote = "This is a partial analysis";
       const mockResponse = {
-        entities: [{ name: "Entity1", description: "Description" }],
+        technologies: [{ name: "Entity1", description: "Description" }],
       };
 
       mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(mockResponse);
@@ -371,8 +392,8 @@ describe("completion-executor type inference improvements", () => {
 
       // Type should be preserved regardless of options
       if (result) {
-        const typed: z.infer<AppSummaryCategorySchemas["entities"]> = result;
-        expect(typed.entities[0].name).toBe("Entity1");
+        const typed: z.infer<AppSummaryCategorySchemas["technologies"]> = result;
+        expect(typed.technologies[0].name).toBe("Entity1");
       }
     });
   });
@@ -408,8 +429,8 @@ describe("completion-executor type inference improvements", () => {
         technologies: [{ name: "Tech", description: "Desc" }],
       });
 
-      await testCategoryInference("entities", {
-        entities: [{ name: "Entity", description: "Desc" }],
+      await testCategoryInference("technologies", {
+        technologies: [{ name: "Entity", description: "Desc" }],
       });
     });
 
@@ -499,9 +520,9 @@ describe("completion-executor type inference improvements", () => {
     });
 
     it("should work with spread operator without casts", async () => {
-      const category: AppSummaryCategoryEnum = "entities";
+      const category: AppSummaryCategoryEnum = "technologies";
       const mockResponse = {
-        entities: [
+        technologies: [
           { name: "Entity1", description: "Desc1" },
           { name: "Entity2", description: "Desc2" },
         ],
@@ -515,10 +536,10 @@ describe("completion-executor type inference improvements", () => {
 
       // Spread operator should work without cast
       if (result) {
-        const entityNames = result.entities.map((e) => e.name);
+        const entityNames = result.technologies.map((e) => e.name);
         expect(entityNames).toEqual(["Entity1", "Entity2"]);
 
-        const spreadEntities = [...result.entities];
+        const spreadEntities = [...result.technologies];
         expect(spreadEntities).toHaveLength(2);
       }
     });

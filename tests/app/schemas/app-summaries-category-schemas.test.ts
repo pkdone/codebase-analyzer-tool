@@ -7,10 +7,10 @@ import {
   technologiesSchema,
   businessProcessesSchema,
   boundedContextsSchema,
-  boundedContextSchema,
-  aggregatesSchema,
-  entitiesSchema,
-  repositoriesSchema,
+  hierarchicalBoundedContextSchema,
+  nestedAggregateSchema,
+  nestedEntitySchema,
+  nestedRepositorySchema,
   potentialMicroservicesSchema,
 } from "../../../src/app/schemas/app-summaries.schema";
 
@@ -31,10 +31,14 @@ describe("appSummaryCategorySchemas", () => {
       expect(appSummaryCategorySchemas.technologies).toBe(technologiesSchema);
       expect(appSummaryCategorySchemas.businessProcesses).toBe(businessProcessesSchema);
       expect(appSummaryCategorySchemas.boundedContexts).toBe(boundedContextsSchema);
-      expect(appSummaryCategorySchemas.aggregates).toBe(aggregatesSchema);
-      expect(appSummaryCategorySchemas.entities).toBe(entitiesSchema);
-      expect(appSummaryCategorySchemas.repositories).toBe(repositoriesSchema);
       expect(appSummaryCategorySchemas.potentialMicroservices).toBe(potentialMicroservicesSchema);
+    });
+
+    it("should not include aggregates, entities, or repositories as separate categories", () => {
+      // These are now nested within boundedContexts
+      expect(AppSummaryCategories.options).not.toContain("aggregates");
+      expect(AppSummaryCategories.options).not.toContain("entities");
+      expect(AppSummaryCategories.options).not.toContain("repositories");
     });
   });
 
@@ -58,15 +62,6 @@ describe("appSummaryCategorySchemas", () => {
 
       // boundedContexts has 'boundedContexts' key
       expect(appSummaryCategorySchemas.boundedContexts.shape).toHaveProperty("boundedContexts");
-
-      // aggregates has 'aggregates' key
-      expect(appSummaryCategorySchemas.aggregates.shape).toHaveProperty("aggregates");
-
-      // entities has 'entities' key
-      expect(appSummaryCategorySchemas.entities.shape).toHaveProperty("entities");
-
-      // repositories has 'repositories' key
-      expect(appSummaryCategorySchemas.repositories.shape).toHaveProperty("repositories");
 
       // potentialMicroservices has 'potentialMicroservices' key
       expect(appSummaryCategorySchemas.potentialMicroservices.shape).toHaveProperty(
@@ -97,34 +92,7 @@ describe("appSummaryCategorySchemas", () => {
       expect(validData.technologies[0].name).toBe("TypeScript");
     });
 
-    it("should infer correct type for entities", () => {
-      type InferredType = z.infer<AppSummaryCategorySchemas["entities"]>;
-
-      const validData: InferredType = {
-        entities: [{ name: "User", description: "Represents a user in the system" }],
-      };
-      expect(validData.entities).toHaveLength(1);
-      expect(validData.entities[0].name).toBe("User");
-    });
-
-    it("should infer correct type for aggregates", () => {
-      type InferredType = z.infer<AppSummaryCategorySchemas["aggregates"]>;
-
-      const validData: InferredType = {
-        aggregates: [
-          {
-            name: "OrderAggregate",
-            description: "Handles order-related business logic",
-            entities: ["Order", "OrderItem"],
-            repository: "OrderRepository",
-          },
-        ],
-      };
-      expect(validData.aggregates).toHaveLength(1);
-      expect(validData.aggregates[0].entities).toContain("Order");
-    });
-
-    it("should infer correct type for boundedContexts with aggregates array", () => {
+    it("should infer correct type for hierarchical boundedContexts", () => {
       type InferredType = z.infer<AppSummaryCategorySchemas["boundedContexts"]>;
 
       const validData: InferredType = {
@@ -132,13 +100,26 @@ describe("appSummaryCategorySchemas", () => {
           {
             name: "Order Management",
             description: "Handles order lifecycle and processing",
-            aggregates: ["OrderAggregate", "PaymentAggregate"],
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Handles order business logic",
+                repository: {
+                  name: "OrderRepository",
+                  description: "Persists order data",
+                },
+                entities: [
+                  { name: "Order", description: "Order entity" },
+                  { name: "OrderItem", description: "Order item entity" },
+                ],
+              },
+            ],
           },
         ],
       };
       expect(validData.boundedContexts).toHaveLength(1);
-      expect(validData.boundedContexts[0].aggregates).toContain("OrderAggregate");
-      expect(validData.boundedContexts[0].aggregates).toContain("PaymentAggregate");
+      expect(validData.boundedContexts[0].aggregates[0].entities).toHaveLength(2);
+      expect(validData.boundedContexts[0].aggregates[0].repository.name).toBe("OrderRepository");
     });
 
     it("should infer correct type for potentialMicroservices", () => {
@@ -192,39 +173,46 @@ describe("appSummaryCategorySchemas", () => {
       expect(result.success).toBe(false);
     });
 
-    it("should validate valid entities data with optional fields", () => {
-      const result = appSummaryCategorySchemas.entities.safeParse({
-        entities: [
+    it("should validate hierarchical bounded context with all nested elements", () => {
+      const result = appSummaryCategorySchemas.boundedContexts.safeParse({
+        boundedContexts: [
           {
-            name: "User",
-            description: "User entity description",
-            relatedEntities: ["Order", "Profile"], // Optional field
+            name: "Order Management",
+            description: "Handles order lifecycle",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate root",
+                repository: {
+                  name: "OrderRepository",
+                  description: "Repository for orders",
+                },
+                entities: [
+                  { name: "Order", description: "Order entity" },
+                  { name: "OrderItem", description: "Order item entity" },
+                ],
+              },
+            ],
           },
         ],
       });
       expect(result.success).toBe(true);
     });
 
-    it("should validate bounded context with aggregates array", () => {
+    it("should reject aggregate missing required repository", () => {
       const result = appSummaryCategorySchemas.boundedContexts.safeParse({
         boundedContexts: [
           {
             name: "Order Management",
             description: "Handles order lifecycle",
-            aggregates: ["OrderAggregate", "PaymentAggregate"],
-          },
-        ],
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject bounded context missing required aggregates array", () => {
-      const result = appSummaryCategorySchemas.boundedContexts.safeParse({
-        boundedContexts: [
-          {
-            name: "Order Management",
-            description: "Handles order lifecycle",
-            // Missing aggregates array
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate root",
+                // Missing repository
+                entities: [],
+              },
+            ],
           },
         ],
       });
@@ -245,28 +233,103 @@ describe("appSummaryCategorySchemas", () => {
     });
   });
 
-  describe("boundedContextSchema", () => {
-    it("should have required aggregates array field", () => {
-      expect(boundedContextSchema.shape).toHaveProperty("aggregates");
+  describe("hierarchicalBoundedContextSchema", () => {
+    it("should have required aggregates field (repository is now at aggregate level)", () => {
+      expect(hierarchicalBoundedContextSchema.shape).toHaveProperty("aggregates");
+      // repository is now at aggregate level, not bounded context level
+      expect(hierarchicalBoundedContextSchema.shape).not.toHaveProperty("repository");
     });
 
-    it("should validate a complete bounded context", () => {
-      const result = boundedContextSchema.safeParse({
+    it("should validate a complete hierarchical bounded context", () => {
+      const result = hierarchicalBoundedContextSchema.safeParse({
         name: "Order Management",
         description: "Handles order lifecycle and processing workflows",
-        aggregates: ["OrderAggregate", "PaymentAggregate", "ShippingAggregate"],
+        aggregates: [
+          {
+            name: "OrderAggregate",
+            description: "Root aggregate for orders",
+            repository: {
+              name: "OrderRepository",
+              description: "Persists order aggregate data",
+            },
+            entities: [
+              { name: "Order", description: "The main order entity" },
+              { name: "OrderItem", description: "Line items in an order" },
+            ],
+          },
+        ],
       });
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.aggregates).toHaveLength(3);
+        expect(result.data.aggregates).toHaveLength(1);
+        expect(result.data.aggregates[0].entities).toHaveLength(2);
+        expect(result.data.aggregates[0].repository.name).toBe("OrderRepository");
       }
     });
+  });
 
-    it("should reject bounded context with invalid aggregates type", () => {
-      const result = boundedContextSchema.safeParse({
-        name: "Order Management",
-        description: "Handles order lifecycle",
-        aggregates: "OrderAggregate", // Should be an array
+  describe("nestedAggregateSchema", () => {
+    it("should validate aggregate with repository and entities", () => {
+      const result = nestedAggregateSchema.safeParse({
+        name: "OrderAggregate",
+        description: "Aggregate for order management",
+        repository: {
+          name: "OrderRepository",
+          description: "Repository for order aggregate",
+        },
+        entities: [
+          { name: "Order", description: "Order entity" },
+          { name: "OrderItem", description: "Order item entity" },
+        ],
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("should validate aggregate with empty entities", () => {
+      const result = nestedAggregateSchema.safeParse({
+        name: "EmptyAggregate",
+        description: "Aggregate with no entities",
+        repository: {
+          name: "EmptyRepository",
+          description: "Repository for empty aggregate",
+        },
+        entities: [],
+      });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("nestedEntitySchema", () => {
+    it("should validate entity with optional relatedEntities", () => {
+      const result = nestedEntitySchema.safeParse({
+        name: "Order",
+        description: "Order entity description",
+        relatedEntities: ["OrderItem", "Customer"],
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("should validate entity without relatedEntities", () => {
+      const result = nestedEntitySchema.safeParse({
+        name: "Order",
+        description: "Order entity description",
+      });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("nestedRepositorySchema", () => {
+    it("should validate repository", () => {
+      const result = nestedRepositorySchema.safeParse({
+        name: "OrderRepository",
+        description: "Repository for order persistence",
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject repository with missing description", () => {
+      const result = nestedRepositorySchema.safeParse({
+        name: "OrderRepository",
       });
       expect(result.success).toBe(false);
     });

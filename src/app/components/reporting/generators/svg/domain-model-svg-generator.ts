@@ -555,7 +555,7 @@ export class DomainModelSvgGenerator {
         const repositoryX = repositoriesStartX + index * spacing;
         // Find corresponding aggregate
         const aggregateIndex = context.aggregates.findIndex(
-          (agg) => agg.repository === repository.name,
+          (agg) => agg.repository.name === repository.name,
         );
         if (aggregateIndex >= 0) {
           const aggregateX = aggregatesStartX + aggregateIndex * spacing;

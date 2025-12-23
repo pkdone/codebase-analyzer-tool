@@ -34,8 +34,16 @@ describe("File Summarizer Type Safety - Post Fix", () => {
     test("should infer correct type for TypeScript files", async () => {
       const mockSummary = {
         purpose: "Defines user management logic",
-        entities: ["User", "UserService"],
-        keyFunctions: ["createUser", "deleteUser"],
+        internalReferences: ["User", "UserService"],
+        publicMethods: [
+          {
+            name: "createUser",
+            purpose: "Creates a new user",
+            returnType: "void",
+            description: "",
+          },
+          { name: "deleteUser", purpose: "Deletes a user", returnType: "void", description: "" },
+        ],
       };
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockSummary as any);
@@ -49,7 +57,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       expect(result).toBeDefined();
       expect(result.purpose).toBe("Defines user management logic");
-      expect(result.entities).toEqual(["User", "UserService"]);
+      expect(result.internalReferences).toEqual(["User", "UserService"]);
 
       // Verify the router was called with correct schema
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
@@ -65,7 +73,16 @@ describe("File Summarizer Type Safety - Post Fix", () => {
     test("should infer correct type for JavaScript files", async () => {
       const mockSummary = {
         purpose: "Utility functions for string manipulation",
-        keyFunctions: ["capitalize", "trim", "slugify"],
+        publicMethods: [
+          {
+            name: "capitalize",
+            purpose: "Capitalizes a string",
+            returnType: "string",
+            description: "",
+          },
+          { name: "trim", purpose: "Trims whitespace", returnType: "string", description: "" },
+          { name: "slugify", purpose: "Converts to slug", returnType: "string", description: "" },
+        ],
       };
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockSummary as any);
@@ -79,14 +96,18 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       expect(result).toBeDefined();
       expect(result.purpose).toBe("Utility functions for string manipulation");
-      expect(result.keyFunctions).toEqual(["capitalize", "trim", "slugify"]);
+      expect(result.publicMethods).toHaveLength(3);
+      expect(result.publicMethods?.[0]?.name).toBe("capitalize");
     });
 
     test("should infer correct type for Python files", async () => {
       const mockSummary = {
         purpose: "Data processing module",
-        entities: ["DataProcessor", "DataValidator"],
-        keyFunctions: ["process_data", "validate_data"],
+        internalReferences: ["DataProcessor", "DataValidator"],
+        publicMethods: [
+          { name: "process_data", purpose: "Processes data", returnType: "None", description: "" },
+          { name: "validate_data", purpose: "Validates data", returnType: "bool", description: "" },
+        ],
       };
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockSummary as any);
@@ -100,7 +121,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       expect(result).toBeDefined();
       expect(result.purpose).toBe("Data processing module");
-      expect(result.entities).toEqual(["DataProcessor", "DataValidator"]);
+      expect(result.internalReferences).toEqual(["DataProcessor", "DataValidator"]);
     });
 
     test("should infer correct type for JSON files", async () => {
@@ -160,18 +181,22 @@ describe("File Summarizer Type Safety - Post Fix", () => {
       expect(result.purpose).toBe("Simple utility file");
 
       // Optional fields should be undefined
-      expect(result.entities).toBeUndefined();
-      expect(result.keyFunctions).toBeUndefined();
+      expect(result.internalReferences).toBeUndefined();
+      expect(result.publicMethods).toBeUndefined();
     });
 
     test("should handle summaries with all optional fields present", async () => {
       const mockFullSummary: PartialSourceSummaryType = {
         purpose: "Complete summary",
-        entities: ["Entity1"],
-        keyFunctions: ["func1"],
-        externalDependencies: ["dep1"],
-        internalDependencies: ["./internal"],
-        technologyStack: ["Node.js"],
+        name: "Complete",
+        kind: "CLASS",
+        namespace: "com.example",
+        implementation: "Complete implementation",
+        internalReferences: ["./internal"],
+        externalReferences: ["dep1"],
+        publicMethods: [
+          { name: "func1", purpose: "Function 1", returnType: "void", description: "" },
+        ],
       };
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockFullSummary as any);
@@ -185,11 +210,10 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       expect(result).toBeDefined();
       expect(result.purpose).toBe("Complete summary");
-      expect(result.entities).toEqual(["Entity1"]);
-      expect(result.keyFunctions).toEqual(["func1"]);
-      expect(result.externalDependencies).toEqual(["dep1"]);
-      expect(result.internalDependencies).toEqual(["./internal"]);
-      expect(result.technologyStack).toEqual(["Node.js"]);
+      expect(result.name).toBe("Complete");
+      expect(result.internalReferences).toEqual(["./internal"]);
+      expect(result.externalReferences).toEqual(["dep1"]);
+      expect(result.publicMethods).toHaveLength(1);
     });
   });
 
@@ -271,8 +295,10 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       const mockSummary = {
         purpose: "Test file",
-        entities: ["TestEntity"],
-        keyFunctions: ["testFunction"],
+        internalReferences: ["TestEntity"],
+        publicMethods: [
+          { name: "testFunction", purpose: "Test function", returnType: "void", description: "" },
+        ],
       };
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockSummary as any);
@@ -287,14 +313,15 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       // TypeScript should know the shape of result without assertions
       expect(result.purpose).toBe("Test file");
-      expect(result.entities).toEqual(["TestEntity"]);
-      expect(result.keyFunctions).toEqual(["testFunction"]);
+      expect(result.internalReferences).toEqual(["TestEntity"]);
+      expect(result.publicMethods).toHaveLength(1);
+      expect(result.publicMethods?.[0]?.name).toBe("testFunction");
 
       // These should work without type assertions
-      const entities = result.entities;
-      if (entities && Array.isArray(entities) && entities.length > 0) {
-        const firstEntity: string = entities[0];
-        expect(firstEntity).toBe("TestEntity");
+      const refs = result.internalReferences;
+      if (refs && Array.isArray(refs) && refs.length > 0) {
+        const firstRef: string = refs[0];
+        expect(firstRef).toBe("TestEntity");
       }
     });
 
@@ -383,7 +410,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
     test("should return PartialSourceSummaryType", async () => {
       const mockSummary: PartialSourceSummaryType = {
         purpose: "Validates return type",
-        entities: ["Entity1", "Entity2"],
+        internalReferences: ["Entity1", "Entity2"],
       };
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockSummary as any);
@@ -410,9 +437,9 @@ describe("File Summarizer Type Safety - Post Fix", () => {
       const result = await summarizeFile(mockLLMRouter, "test.ts", "ts", "content");
 
       expect(result.purpose).toBe("Minimal summary");
-      expect(result.entities).toBeUndefined();
-      expect(result.keyFunctions).toBeUndefined();
-      expect(result.externalDependencies).toBeUndefined();
+      expect(result.internalReferences).toBeUndefined();
+      expect(result.publicMethods).toBeUndefined();
+      expect(result.externalReferences).toBeUndefined();
     });
   });
 });

@@ -1,11 +1,8 @@
 import {
-  aggregatesSchema,
   appDescriptionSchema,
   boundedContextsSchema,
   businessProcessesSchema,
-  entitiesSchema,
   potentialMicroservicesSchema,
-  repositoriesSchema,
   technologiesSchema,
 } from "../../../schemas/app-summaries.schema";
 import { APP_SUMMARY_PROMPT_FRAGMENTS } from "./app-summaries.fragments";
@@ -28,6 +25,9 @@ export interface AppSummaryConfigEntry {
  * Note: The `instructions` field contains the specific instruction text that will be used
  * in the PromptDefinition. The PromptDefinition's contentDesc field will be set to a
  * generic value like "a set of source file summaries".
+ *
+ * Note: aggregates, entities, and repositories are now captured within the boundedContexts
+ * category as a hierarchical structure to ensure naming consistency across domain elements.
  */
 export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
   appDescription: {
@@ -61,44 +61,20 @@ export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
     responseSchema: businessProcessesSchema,
   },
   boundedContexts: {
-    label: "Bounded Contexts",
+    label: "Domain Model",
     instructions: [
       buildInstructionBlock(
         "Instructions",
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities, including the list of aggregate names that are exclusively contained within each bounded context`,
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
+1. One or more aggregates that enforce business rules and maintain consistency
+2. For each aggregate, include:
+   - A repository that provides persistence for that aggregate
+   - The domain entities it manages with their descriptions and relationships
+
+This hierarchical structure ensures consistent naming across all domain elements within each bounded context`,
       ),
     ] as const,
     responseSchema: boundedContextsSchema,
-  },
-  aggregates: {
-    label: "Aggregates",
-    instructions: [
-      buildInstructionBlock(
-        "Instructions",
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain Driven Design aggregates that enforce business rules and maintain consistency, including their associated domain entities and repositories`,
-      ),
-    ] as const,
-    responseSchema: aggregatesSchema,
-  },
-  entities: {
-    label: "Entities",
-    instructions: [
-      buildInstructionBlock(
-        "Instructions",
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design entities that represent core business concepts and contain business logic`,
-      ),
-    ] as const,
-    responseSchema: entitiesSchema,
-  },
-  repositories: {
-    label: "Repositories",
-    instructions: [
-      buildInstructionBlock(
-        "Instructions",
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain Driven Design repositories that provide access to aggregate persistence, each associated with a specific aggregate`,
-      ),
-    ] as const,
-    responseSchema: repositoriesSchema,
   },
   potentialMicroservices: {
     label: "Potential Microservices",

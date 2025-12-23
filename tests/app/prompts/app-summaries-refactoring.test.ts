@@ -22,20 +22,23 @@ describe("App Summaries Refactoring", () => {
     it("should have proper instruction constants for refactored categories", () => {
       // Test a few specific categories that were refactored
       const technologiesConfig = appSummaryPromptMetadata.technologies;
-      const aggregatesConfig = appSummaryPromptMetadata.aggregates;
-      const entitiesConfig = appSummaryPromptMetadata.entities;
+      const boundedContextsConfig = appSummaryPromptMetadata.boundedContexts;
+      const potentialMicroservicesConfig = appSummaryPromptMetadata.potentialMicroservices;
 
       // Verify that contentDesc is generic
       expect(technologiesConfig.contentDesc).toContain("a set of source file summaries");
-      expect(aggregatesConfig.contentDesc).toContain("a set of source file summaries");
-      expect(entitiesConfig.contentDesc).toContain("a set of source file summaries");
+      expect(boundedContextsConfig.contentDesc).toContain("a set of source file summaries");
+      expect(potentialMicroservicesConfig.contentDesc).toContain("a set of source file summaries");
 
       // Verify instructions contain the specific instruction text
       expect(technologiesConfig.instructions[0]).toContain(
         "key external and host platform technologies",
       );
-      expect(aggregatesConfig.instructions[0]).toContain("Domain Driven Design aggregates");
-      expect(entitiesConfig.instructions[0]).toContain("Domain-Driven Design entities");
+      // boundedContexts now contains hierarchical domain model with aggregates, entities, and repositories
+      expect(boundedContextsConfig.instructions[0]).toContain(
+        "Domain-Driven Design Bounded Contexts",
+      );
+      expect(potentialMicroservicesConfig.instructions[0]).toContain("microservices");
     });
   });
 

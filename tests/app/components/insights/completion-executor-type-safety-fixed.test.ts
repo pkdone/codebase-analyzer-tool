@@ -29,39 +29,39 @@ describe("Completion Executor Type Safety - Post Fix", () => {
   });
 
   describe("Category-Specific Type Inference", () => {
-    test("should infer correct type for entities category", async () => {
-      const mockEntitiesData = {
-        entities: [
-          { name: "User", type: "class", description: "User entity" },
-          { name: "Product", type: "class", description: "Product entity" },
+    test("should infer correct type for technologies category", async () => {
+      const mockTechnologiesData = {
+        technologies: [
+          { name: "TypeScript", description: "Typed JavaScript" },
+          { name: "Node.js", description: "JavaScript runtime" },
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockEntitiesData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(mockTechnologiesData as any);
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         ["file1.ts", "file2.ts"],
       );
 
       expect(result).toBeDefined();
-      expect(result).toHaveProperty("entities");
+      expect(result).toHaveProperty("technologies");
 
       // Type should be properly inferred without casts
       if (result) {
-        expect(Array.isArray(result.entities)).toBe(true);
-        expect(result.entities).toHaveLength(2);
-        expect(result.entities[0].name).toBe("User");
+        expect(Array.isArray(result.technologies)).toBe(true);
+        expect(result.technologies).toHaveLength(2);
+        expect(result.technologies[0].name).toBe("TypeScript");
       }
 
       // Verify the router was called with correct parameters
       expect(mockLLMRouter.executeCompletion).toHaveBeenCalledWith(
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         expect.any(String),
         expect.objectContaining({
           outputFormat: LLMOutputFormat.JSON,
-          jsonSchema: appSummaryCategorySchemas[AppSummaryCategories.enum.entities],
+          jsonSchema: appSummaryCategorySchemas[AppSummaryCategories.enum.technologies],
         }),
       );
     });
@@ -69,8 +69,30 @@ describe("Completion Executor Type Safety - Post Fix", () => {
     test("should infer correct type for boundedContexts category", async () => {
       const mockBoundedContextsData = {
         boundedContexts: [
-          { name: "UserManagement", description: "Handles user operations" },
-          { name: "ProductCatalog", description: "Manages products" },
+          {
+            name: "UserManagement",
+            description: "Handles user operations",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [{ name: "User", description: "User entity" }],
+              },
+            ],
+          },
+          {
+            name: "ProductCatalog",
+            description: "Manages products",
+            aggregates: [
+              {
+                name: "ProductAggregate",
+                description: "Product aggregate",
+                repository: { name: "ProductRepository", description: "Product repository" },
+                entities: [{ name: "Product", description: "Product entity" }],
+              },
+            ],
+          },
         ],
       };
 
@@ -92,29 +114,51 @@ describe("Completion Executor Type Safety - Post Fix", () => {
       }
     });
 
-    test("should infer correct type for aggregates category", async () => {
-      const mockAggregatesData = {
-        aggregates: [
-          { name: "OrderAggregate", description: "Order aggregate root" },
-          { name: "UserAggregate", description: "User aggregate root" },
+    test("should infer correct type for boundedContexts with aggregates", async () => {
+      const mockBoundedContextsData = {
+        boundedContexts: [
+          {
+            name: "OrderContext",
+            description: "Order bounded context",
+            aggregates: [
+              {
+                name: "OrderAggregate",
+                description: "Order aggregate root",
+                repository: { name: "OrderRepository", description: "Order repository" },
+                entities: [{ name: "Order", description: "Order entity" }],
+              },
+            ],
+          },
+          {
+            name: "UserContext",
+            description: "User bounded context",
+            aggregates: [
+              {
+                name: "UserAggregate",
+                description: "User aggregate root",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [{ name: "User", description: "User entity" }],
+              },
+            ],
+          },
         ],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockAggregatesData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(mockBoundedContextsData as any);
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
-        AppSummaryCategories.enum.aggregates,
+        AppSummaryCategories.enum.boundedContexts,
         ["file1.ts", "file2.ts"],
       );
 
       expect(result).toBeDefined();
-      expect(result).toHaveProperty("aggregates");
+      expect(result).toHaveProperty("boundedContexts");
 
       if (result) {
-        expect(Array.isArray(result.aggregates)).toBe(true);
-        expect(result.aggregates).toHaveLength(2);
-        expect(result.aggregates[0].name).toBe("OrderAggregate");
+        expect(Array.isArray(result.boundedContexts)).toBe(true);
+        expect(result.boundedContexts).toHaveLength(2);
+        expect(result.boundedContexts[0].name).toBe("OrderContext");
       }
     });
 
@@ -155,7 +199,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
 
       await executeInsightCompletion(
         mockLLMRouter,
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         ["file1.ts"],
         { taskCategory: "custom-entities" },
       );
@@ -176,7 +220,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
 
       await executeInsightCompletion(
         mockLLMRouter,
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         ["file1.ts"],
         { partialAnalysisNote: "This is a partial analysis." },
       );
@@ -194,7 +238,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         ["file1.ts"],
       );
 
@@ -206,7 +250,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         ["file1.ts"],
       );
 
@@ -215,20 +259,20 @@ describe("Completion Executor Type Safety - Post Fix", () => {
 
     test("should handle empty source file summaries", async () => {
       const mockData = {
-        entities: [],
+        technologies: [],
       };
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockData as any);
 
       const result = await executeInsightCompletion(
         mockLLMRouter,
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         [],
       );
 
       expect(result).toBeDefined();
       if (result) {
-        expect(result.entities).toEqual([]);
+        expect(result.technologies).toEqual([]);
       }
     });
   });
@@ -238,16 +282,16 @@ describe("Completion Executor Type Safety - Post Fix", () => {
       // This test verifies that the fix allows us to remove the eslint-disable comments
       // The type should be properly inferred from the schema without requiring unsafe casts
 
-      const mockEntitiesData = {
-        entities: [{ name: "Entity", description: "Test" }],
+      const mockTechnologiesData = {
+        technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
       };
 
-      mockLLMRouter.executeCompletion.mockResolvedValue(mockEntitiesData as any);
+      mockLLMRouter.executeCompletion.mockResolvedValue(mockTechnologiesData as any);
 
       // This function call should now have proper type inference
       const result = await executeInsightCompletion(
         mockLLMRouter,
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         ["file1.ts"],
       );
 
@@ -257,8 +301,8 @@ describe("Completion Executor Type Safety - Post Fix", () => {
 
       // This should work without type assertions
       if (result) {
-        // TypeScript should know that result.entities exists
-        const entities = result.entities;
+        // TypeScript should know that result.technologies exists
+        const entities = result.technologies;
         expect(Array.isArray(entities)).toBe(true);
       }
     });
@@ -266,7 +310,20 @@ describe("Completion Executor Type Safety - Post Fix", () => {
     test("should preserve type information through generic function", async () => {
       // Test that the generic parameter C is properly preserved
       const mockData = {
-        boundedContexts: [{ name: "Context", description: "Test context" }],
+        boundedContexts: [
+          {
+            name: "Context",
+            description: "Test context",
+            aggregates: [
+              {
+                name: "TestAggregate",
+                description: "Test aggregate",
+                repository: { name: "TestRepository", description: "Test repository" },
+                entities: [{ name: "TestEntity", description: "Test entity" }],
+              },
+            ],
+          },
+        ],
       };
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockData as any);
@@ -292,9 +349,9 @@ describe("Completion Executor Type Safety - Post Fix", () => {
     test("should use correct schema for each category", () => {
       // Verify that each category has a proper schema defined
       const categories = [
-        AppSummaryCategories.enum.entities,
+        AppSummaryCategories.enum.technologies,
         AppSummaryCategories.enum.boundedContexts,
-        AppSummaryCategories.enum.aggregates,
+        AppSummaryCategories.enum.boundedContexts,
         AppSummaryCategories.enum.technologies,
       ];
 
@@ -312,7 +369,7 @@ describe("Completion Executor Type Safety - Post Fix", () => {
 
       mockLLMRouter.executeCompletion.mockResolvedValue(mockData as any);
 
-      await executeInsightCompletion(mockLLMRouter, AppSummaryCategories.enum.entities, [
+      await executeInsightCompletion(mockLLMRouter, AppSummaryCategories.enum.technologies, [
         "file1.ts",
       ]);
 

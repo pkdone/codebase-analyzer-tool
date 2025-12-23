@@ -8,26 +8,11 @@ describe("AppSummaryCategoriesProvider", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock report sections - include AdvancedDataSection with custom rendering
-    const mockSections = [
-      {
-        getName: () => "file-types",
-        isStandardSection: () => true,
-      },
-      {
-        getName: () => "database",
-        isStandardSection: () => true,
-      },
-      {
-        getName: () => "advanced-data",
-        isStandardSection: () => false, // This section has custom rendering
-      },
-    ];
-    categoriesDataProvider = new AppSummaryCategoriesProvider(mockSections as any);
+    categoriesDataProvider = new AppSummaryCategoriesProvider();
   });
 
   describe("getStandardSectionData", () => {
-    it("should return categorized data for all valid categories excluding appDescription", () => {
+    it("should return categorized data for all valid categories excluding appDescription and boundedContexts", () => {
       // Arrange
       const mockAppSummaryData: Partial<AppSummaryRecordWithId> = {
         technologies: [
@@ -42,22 +27,17 @@ describe("AppSummaryCategoriesProvider", () => {
           },
         ],
         boundedContexts: [
-          { name: "User Management", description: "Handles user operations", aggregates: ["User"] },
-        ],
-        aggregates: [
           {
-            name: "User",
-            description: "User aggregate",
-            entities: ["UserProfile"],
-            repository: "UserRepository",
-          },
-        ],
-        entities: [{ name: "User", description: "User entity" }],
-        repositories: [
-          {
-            name: "UserRepository",
-            description: "Repository for user data",
-            aggregate: "User",
+            name: "User Management",
+            description: "Handles user operations",
+            aggregates: [
+              {
+                name: "User",
+                description: "User aggregate",
+                repository: { name: "UserRepository", description: "User repository" },
+                entities: [{ name: "User", description: "User entity" }],
+              },
+            ],
           },
         ],
         potentialMicroservices: [
@@ -76,25 +56,18 @@ describe("AppSummaryCategoriesProvider", () => {
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
-      // Assert
-      expect(result).toHaveLength(7); // All categories except those with custom sections (appDescription, billOfMaterials, codeQualitySummary, scheduledJobsSummary, moduleCoupling, uiTechnologyAnalysis)
+      // Assert - should include technologies, businessProcesses, potentialMicroservices
+      // but NOT appDescription or boundedContexts (which has dedicated visualization)
+      expect(result).toHaveLength(3);
 
       // Verify that categories with custom sections are not included
       const categoryNames = result.map((r) => r.category);
       expect(categoryNames).not.toContain("appDescription");
-      expect(categoryNames).not.toContain("billOfMaterials");
-      expect(categoryNames).not.toContain("codeQualitySummary");
-      expect(categoryNames).not.toContain("scheduledJobsSummary");
-      expect(categoryNames).not.toContain("moduleCoupling");
-      expect(categoryNames).not.toContain("uiTechnologyAnalysis");
+      expect(categoryNames).not.toContain("boundedContexts"); // Has dedicated domain model visualization
 
-      // Verify that all generic categories are included
+      // Verify that all standard categories are included
       expect(categoryNames).toContain("technologies");
       expect(categoryNames).toContain("businessProcesses");
-      expect(categoryNames).toContain("boundedContexts");
-      expect(categoryNames).toContain("aggregates");
-      expect(categoryNames).toContain("entities");
-      expect(categoryNames).toContain("repositories");
       expect(categoryNames).toContain("potentialMicroservices");
     });
 
@@ -109,9 +82,6 @@ describe("AppSummaryCategoriesProvider", () => {
         technologies: mockTechnologies,
         businessProcesses: [],
         boundedContexts: [],
-        aggregates: [],
-        entities: [],
-        repositories: [],
         potentialMicroservices: [],
       };
 
@@ -133,9 +103,6 @@ describe("AppSummaryCategoriesProvider", () => {
         technologies: undefined,
         businessProcesses: undefined,
         boundedContexts: undefined,
-        aggregates: undefined,
-        entities: undefined,
-        repositories: undefined,
         potentialMicroservices: undefined,
       };
 
@@ -156,9 +123,6 @@ describe("AppSummaryCategoriesProvider", () => {
         technologies: "invalid data",
         businessProcesses: 123,
         boundedContexts: null,
-        aggregates: {},
-        entities: false,
-        repositories: undefined,
         potentialMicroservices: "not an array",
       } as unknown as AppSummaryRecordWithId;
 
@@ -177,9 +141,6 @@ describe("AppSummaryCategoriesProvider", () => {
         technologies: [{ name: "Test", description: "Test tech" }],
         businessProcesses: [],
         boundedContexts: [],
-        aggregates: [],
-        entities: [],
-        repositories: [],
         potentialMicroservices: [],
       };
 
@@ -199,18 +160,16 @@ describe("AppSummaryCategoriesProvider", () => {
       });
     });
 
-    it("should correctly filter out appDescription from categories", () => {
-      // Arrange - Verify the enum contains appDescription
+    it("should correctly filter out appDescription and boundedContexts from categories", () => {
+      // Arrange - Verify the enum contains appDescription and boundedContexts
       const allCategories = AppSummaryCategories.options;
       expect(allCategories).toContain("appDescription");
+      expect(allCategories).toContain("boundedContexts");
 
       const mockAppSummaryData: Partial<AppSummaryRecordWithId> = {
         technologies: [],
         businessProcesses: [],
         boundedContexts: [],
-        aggregates: [],
-        entities: [],
-        repositories: [],
         potentialMicroservices: [],
       };
 
@@ -219,12 +178,20 @@ describe("AppSummaryCategoriesProvider", () => {
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
-      // Assert - categories with custom sections should not be in results
+      // Assert - appDescription and boundedContexts should not be in results
       const categoryNames = result.map((r) => r.category);
       expect(categoryNames).not.toContain("appDescription");
-      // billOfMaterials, codeQualitySummary, scheduledJobsSummary, moduleCoupling, uiTechnologyAnalysis
-      // are no longer in AppSummaryCategories, so they won't appear anyway
-      expect(result.length).toBe(allCategories.length - 1); // All categories minus appDescription
+      expect(categoryNames).not.toContain("boundedContexts");
+      // Should have all categories minus appDescription and boundedContexts
+      expect(result.length).toBe(allCategories.length - 2);
+    });
+
+    it("should not include aggregates, entities, or repositories as separate categories", () => {
+      // These are now nested within boundedContexts
+      const allCategories = AppSummaryCategories.options;
+      expect(allCategories).not.toContain("aggregates");
+      expect(allCategories).not.toContain("entities");
+      expect(allCategories).not.toContain("repositories");
     });
   });
 });

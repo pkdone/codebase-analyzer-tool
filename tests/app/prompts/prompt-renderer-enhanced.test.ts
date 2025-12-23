@@ -164,7 +164,7 @@ describe("Prompt Renderer", () => {
   describe("Reduce Insights Use Case with Factory", () => {
     it("should properly render reduce insights prompt created via factory", () => {
       const categorySchema = z.object({
-        entities: z.array(
+        technologies: z.array(
           z.object({
             name: z.string(),
             description: z.string(),
@@ -173,10 +173,14 @@ describe("Prompt Renderer", () => {
       });
 
       // Use the factory to create a typed prompt definition
-      const reducePrompt = createReduceInsightsPrompt("entities", "entities", categorySchema);
+      const reducePrompt = createReduceInsightsPrompt(
+        "technologies",
+        "technologies",
+        categorySchema,
+      );
 
       const partialData = {
-        entities: [{ name: "Entity1", description: "Desc1" }],
+        technologies: [{ name: "TypeScript", description: "Typed JavaScript" }],
       };
 
       const result = renderPrompt(reducePrompt, {
@@ -184,14 +188,14 @@ describe("Prompt Renderer", () => {
       });
 
       // Should have categoryKey baked into the prompt definition
-      expect(result).toContain("'entities'");
+      expect(result).toContain("'technologies'");
 
       // Should use category-specific schema
-      expect(result).toContain('"entities"');
+      expect(result).toContain('"technologies"');
       expect(result).toContain('"type": "array"');
 
       // Should contain the data
-      expect(result).toContain("Entity1");
+      expect(result).toContain("TypeScript");
     });
 
     it("should work with different category keys via factory", () => {

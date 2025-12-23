@@ -62,48 +62,52 @@ describe("Utility Prompts", () => {
         entities: z.array(z.object({ name: z.string() })),
       });
 
-      const reducePrompt = createReduceInsightsPrompt("entities", "entities", schema);
+      const reducePrompt = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(reducePrompt.label).toBe("Reduce Insights");
       expect(reducePrompt.contentDesc).toContain("several JSON objects");
-      expect(reducePrompt.contentDesc).toContain("entities"); // categoryKey is baked in
+      expect(reducePrompt.contentDesc).toContain("technologies"); // categoryKey is baked in
       expect(reducePrompt.template).toBe(BASE_PROMPT_TEMPLATE);
       expect(reducePrompt.dataBlockHeader).toBe("FRAGMENTED_DATA");
       expect(reducePrompt.responseSchema).toBe(schema);
       expect(reducePrompt.instructions).toHaveLength(1);
-      expect(reducePrompt.instructions[0]).toContain("entities"); // categoryKey is baked in
+      expect(reducePrompt.instructions[0]).toContain("technologies"); // categoryKey is baked in
     });
 
     it("should render correctly with the factory-created prompt", () => {
       const responseSchema = z.object({
-        aggregates: z.array(z.object({ name: z.string() })),
+        boundedContexts: z.array(z.object({ name: z.string() })),
       });
 
-      const reducePrompt = createReduceInsightsPrompt("aggregates", "aggregates", responseSchema);
-      const testContent = '{"aggregates": [{"name": "Test"}]}';
+      const reducePrompt = createReduceInsightsPrompt(
+        "boundedContexts",
+        "boundedContexts",
+        responseSchema,
+      );
+      const testContent = '{"boundedContexts": [{"name": "Test"}]}';
 
       const rendered = renderPrompt(reducePrompt, { content: testContent });
 
       expect(rendered).toContain("Act as a senior developer analyzing the code");
       expect(rendered).toContain("FRAGMENTED_DATA:");
-      expect(rendered).toContain("'aggregates'");
+      expect(rendered).toContain("'boundedContexts'");
       expect(rendered).toContain(testContent);
       expect(rendered).not.toMatch(/\{\{[a-zA-Z]+\}\}/);
     });
 
     it("should use BASE_PROMPT_TEMPLATE", () => {
-      const schema = z.object({ entities: z.array(z.string()) });
-      const reducePrompt = createReduceInsightsPrompt("entities", "entities", schema);
+      const schema = z.object({ technologies: z.array(z.string()) });
+      const reducePrompt = createReduceInsightsPrompt("technologies", "technologies", schema);
 
       expect(reducePrompt.template).toBe(BASE_PROMPT_TEMPLATE);
     });
 
     it("should handle different category keys in factory", () => {
-      const labels = ["entities", "aggregates", "boundedContexts"];
+      const labels = ["technologies", "boundedContexts", "businessProcesses"];
       labels.forEach((categoryKey) => {
         const schema = z.object({ [categoryKey]: z.array(z.string()) });
         const reducePrompt = createReduceInsightsPrompt(
-          categoryKey as "entities" | "aggregates" | "boundedContexts",
+          categoryKey as "technologies" | "boundedContexts" | "businessProcesses",
           categoryKey,
           schema,
         );

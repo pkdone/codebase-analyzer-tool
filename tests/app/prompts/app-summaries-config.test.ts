@@ -6,14 +6,12 @@ import type { AppSummaryCategoryType } from "../../../src/app/components/insight
 describe("App Summaries Config", () => {
   describe("appSummaryConfigMap", () => {
     it("should contain all required categories", () => {
+      // Note: aggregates, entities, and repositories are now nested within boundedContexts
       const requiredCategories: AppSummaryCategoryType[] = [
         "appDescription",
         "technologies",
         "businessProcesses",
         "boundedContexts",
-        "aggregates",
-        "entities",
-        "repositories",
         "potentialMicroservices",
       ];
 
@@ -23,6 +21,13 @@ describe("App Summaries Config", () => {
         expect(appSummaryConfigMap[category].instructions).toBeTruthy();
         expect(appSummaryConfigMap[category].responseSchema).toBeDefined();
       });
+    });
+
+    it("should not contain separate aggregates, entities, or repositories categories", () => {
+      // These are now nested within boundedContexts
+      expect(appSummaryConfigMap.aggregates).toBeUndefined();
+      expect(appSummaryConfigMap.entities).toBeUndefined();
+      expect(appSummaryConfigMap.repositories).toBeUndefined();
     });
 
     it("should have non-empty labels and instructions", () => {
@@ -48,6 +53,16 @@ describe("App Summaries Config", () => {
       const labels = Object.values(appSummaryConfigMap).map((config) => config.label);
       const uniqueLabels = new Set(labels);
       expect(uniqueLabels.size).toBe(labels.length);
+    });
+
+    it("should have boundedContexts with hierarchical domain model instructions", () => {
+      const boundedContextsConfig = appSummaryConfigMap.boundedContexts;
+      expect(boundedContextsConfig).toBeDefined();
+      expect(boundedContextsConfig.label).toBe("Domain Model");
+      // Instructions should mention the hierarchical structure
+      const instructionsText = boundedContextsConfig.instructions.join(" ");
+      expect(instructionsText.toLowerCase()).toContain("repository");
+      expect(instructionsText.toLowerCase()).toContain("aggregate");
     });
   });
 
