@@ -41,7 +41,9 @@ describe("AppSummaryCategoriesProvider", () => {
             keyBusinessActivities: [],
           },
         ],
-        boundedContexts: [{ name: "User Management", description: "Handles user operations" }],
+        boundedContexts: [
+          { name: "User Management", description: "Handles user operations", aggregates: ["User"] },
+        ],
         aggregates: [
           {
             name: "User",

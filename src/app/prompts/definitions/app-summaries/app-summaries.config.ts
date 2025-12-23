@@ -65,7 +65,7 @@ export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
     instructions: [
       buildInstructionBlock(
         "Instructions",
-        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities and their models`,
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities, including the list of aggregate names that are exclusively contained within each bounded context`,
       ),
     ] as const,
     responseSchema: boundedContextsSchema,

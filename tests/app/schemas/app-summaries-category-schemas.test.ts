@@ -7,6 +7,7 @@ import {
   technologiesSchema,
   businessProcessesSchema,
   boundedContextsSchema,
+  boundedContextSchema,
   aggregatesSchema,
   entitiesSchema,
   repositoriesSchema,
@@ -123,6 +124,23 @@ describe("appSummaryCategorySchemas", () => {
       expect(validData.aggregates[0].entities).toContain("Order");
     });
 
+    it("should infer correct type for boundedContexts with aggregates array", () => {
+      type InferredType = z.infer<AppSummaryCategorySchemas["boundedContexts"]>;
+
+      const validData: InferredType = {
+        boundedContexts: [
+          {
+            name: "Order Management",
+            description: "Handles order lifecycle and processing",
+            aggregates: ["OrderAggregate", "PaymentAggregate"],
+          },
+        ],
+      };
+      expect(validData.boundedContexts).toHaveLength(1);
+      expect(validData.boundedContexts[0].aggregates).toContain("OrderAggregate");
+      expect(validData.boundedContexts[0].aggregates).toContain("PaymentAggregate");
+    });
+
     it("should infer correct type for potentialMicroservices", () => {
       type InferredType = z.infer<AppSummaryCategorySchemas["potentialMicroservices"]>;
 
@@ -185,6 +203,72 @@ describe("appSummaryCategorySchemas", () => {
         ],
       });
       expect(result.success).toBe(true);
+    });
+
+    it("should validate bounded context with aggregates array", () => {
+      const result = appSummaryCategorySchemas.boundedContexts.safeParse({
+        boundedContexts: [
+          {
+            name: "Order Management",
+            description: "Handles order lifecycle",
+            aggregates: ["OrderAggregate", "PaymentAggregate"],
+          },
+        ],
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject bounded context missing required aggregates array", () => {
+      const result = appSummaryCategorySchemas.boundedContexts.safeParse({
+        boundedContexts: [
+          {
+            name: "Order Management",
+            description: "Handles order lifecycle",
+            // Missing aggregates array
+          },
+        ],
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("should validate bounded context with empty aggregates array", () => {
+      const result = appSummaryCategorySchemas.boundedContexts.safeParse({
+        boundedContexts: [
+          {
+            name: "Empty Context",
+            description: "A bounded context with no aggregates yet",
+            aggregates: [],
+          },
+        ],
+      });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("boundedContextSchema", () => {
+    it("should have required aggregates array field", () => {
+      expect(boundedContextSchema.shape).toHaveProperty("aggregates");
+    });
+
+    it("should validate a complete bounded context", () => {
+      const result = boundedContextSchema.safeParse({
+        name: "Order Management",
+        description: "Handles order lifecycle and processing workflows",
+        aggregates: ["OrderAggregate", "PaymentAggregate", "ShippingAggregate"],
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.aggregates).toHaveLength(3);
+      }
+    });
+
+    it("should reject bounded context with invalid aggregates type", () => {
+      const result = boundedContextSchema.safeParse({
+        name: "Order Management",
+        description: "Handles order lifecycle",
+        aggregates: "OrderAggregate", // Should be an array
+      });
+      expect(result.success).toBe(false);
     });
   });
 

@@ -7,6 +7,11 @@ type AggregateData = AppSummaryNameDescArray[0] & {
   repository?: string;
 };
 
+// Extended interface for bounded context data with explicit aggregate names
+type BoundedContextData = AppSummaryNameDescArray[0] & {
+  aggregates?: string[];
+};
+
 export interface DomainEntity {
   name: string;
   description: string;
@@ -56,14 +61,14 @@ export class DomainModelDataProvider {
     const entitiesData = this.findCategoryData(categorizedData, "entities");
     const repositoriesData = this.findCategoryData(categorizedData, "repositories");
 
-    // Parse aggregates to extract entity and repository relationships
-    const aggregates = this.parseAggregates(aggregatesData);
-    const entities = this.parseEntities(entitiesData);
+    // Map data to domain model types
+    const aggregates = this.mapToAggregates(aggregatesData);
+    const entities = this.mapToEntities(entitiesData);
 
     // Use repositories from separate category if available, otherwise extract from aggregates
     const repositories =
       repositoriesData.length > 0
-        ? this.parseRepositories(repositoriesData)
+        ? this.mapToRepositories(repositoriesData)
         : this.extractRepositoriesFromAggregates(aggregates);
 
     // Group aggregates, entities, and repositories by bounded context
@@ -98,11 +103,10 @@ export class DomainModelDataProvider {
   }
 
   /**
-   * Parse aggregates data to extract entity and repository relationships
+   * Map aggregates data to DomainAggregate objects
    */
-  private parseAggregates(aggregatesData: AppSummaryNameDescArray): DomainAggregate[] {
+  private mapToAggregates(aggregatesData: AppSummaryNameDescArray): DomainAggregate[] {
     return aggregatesData.map((item) => {
-      // Use structured data instead of regex parsing
       const aggregateItem = item as AggregateData;
       const entities = aggregateItem.entities ?? [];
       const repository = aggregateItem.repository ?? "";
@@ -117,9 +121,9 @@ export class DomainModelDataProvider {
   }
 
   /**
-   * Parse repositories data
+   * Map repositories data to DomainEntity objects
    */
-  private parseRepositories(repositoriesData: AppSummaryNameDescArray): DomainEntity[] {
+  private mapToRepositories(repositoriesData: AppSummaryNameDescArray): DomainEntity[] {
     return repositoriesData.map((item) => ({
       name: item.name,
       description: item.description,
@@ -145,9 +149,9 @@ export class DomainModelDataProvider {
   }
 
   /**
-   * Parse entities data
+   * Map entities data to DomainEntity objects
    */
-  private parseEntities(entitiesData: AppSummaryNameDescArray): DomainEntity[] {
+  private mapToEntities(entitiesData: AppSummaryNameDescArray): DomainEntity[] {
     return entitiesData.map((item) => ({
       name: item.name,
       description: item.description,
@@ -155,7 +159,9 @@ export class DomainModelDataProvider {
   }
 
   /**
-   * Group aggregates, entities, and repositories by bounded context
+   * Group aggregates, entities, and repositories by bounded context using explicit relationships.
+   * Uses the aggregates array from each bounded context to determine which aggregates belong to it,
+   * then derives entities from those aggregates.
    */
   private groupByBoundedContext(
     boundedContextsData: AppSummaryNameDescArray,
@@ -164,15 +170,17 @@ export class DomainModelDataProvider {
     repositories: DomainEntity[],
   ): DomainBoundedContext[] {
     return boundedContextsData.map((context) => {
-      // Find aggregates that belong to this context
-      const contextAggregates = aggregates.filter((aggregate) =>
-        this.isAggregateInContext(aggregate, context),
-      );
+      const bcData = context as BoundedContextData;
+      const aggregateNames = bcData.aggregates ?? [];
 
-      // Find entities that belong to this context
-      const contextEntities = entities.filter((entity) => this.isEntityInContext(entity, context));
+      // Match aggregates by name from the explicit list
+      const contextAggregates = aggregates.filter((agg) => aggregateNames.includes(agg.name));
 
-      // Find repositories that belong to this context (based on aggregates in context)
+      // Get entities from matched aggregates
+      const contextEntityNames = new Set(contextAggregates.flatMap((agg) => agg.entities));
+      const contextEntities = entities.filter((e) => contextEntityNames.has(e.name));
+
+      // Get repositories from matched aggregates
       const contextRepositories = this.getRepositoriesForAggregates(
         contextAggregates,
         repositories,
@@ -200,161 +208,5 @@ export class DomainModelDataProvider {
       .filter((repo) => repo?.trim());
 
     return allRepositories.filter((repository) => repositoryNames.includes(repository.name));
-  }
-
-  /**
-   * Determine if an aggregate belongs to a bounded context
-   */
-  private isAggregateInContext(
-    aggregate: DomainAggregate,
-    context: { name: string; description: string },
-  ): boolean {
-    const contextNameLower = context.name.toLowerCase();
-    const aggregateNameLower = aggregate.name.toLowerCase();
-    const contextDescLower = context.description.toLowerCase();
-    const aggregateDescLower = aggregate.description.toLowerCase();
-
-    // TODO: fix hardcodings
-
-    // Improved heuristics for better matching
-    if (contextNameLower.includes("storefront")) {
-      // Storefront context should include customer-facing aggregates
-      return (
-        aggregateNameLower.includes("customer") ||
-        aggregateNameLower.includes("shopping") ||
-        aggregateNameLower.includes("cart") ||
-        aggregateNameLower.includes("purchaseorder")
-      );
-    }
-
-    if (contextNameLower.includes("order processing")) {
-      // Order Processing context should include order workflow aggregates
-      return (
-        aggregateNameLower.includes("purchaseorder") ||
-        aggregateNameLower.includes("supplierorder") ||
-        aggregateNameLower.includes("processmanager")
-      );
-    }
-
-    if (contextNameLower.includes("supplier")) {
-      // Supplier context should include supplier-related aggregates
-      return aggregateNameLower.includes("supplier") || aggregateNameLower.includes("inventory");
-    }
-
-    if (contextNameLower.includes("customer relations")) {
-      // Customer Relations context should include communication aggregates
-      return aggregateNameLower.includes("customer") || aggregateNameLower.includes("notification");
-    }
-
-    if (contextNameLower.includes("administration")) {
-      // Administration context should include management aggregates
-      return aggregateNameLower.includes("admin") || aggregateNameLower.includes("management");
-    }
-
-    // Fallback to original logic
-    return (
-      contextDescLower.includes(aggregateNameLower) ||
-      aggregateDescLower.includes(contextNameLower) ||
-      this.hasSemanticRelationship(aggregate, context)
-    );
-  }
-
-  /**
-   * Determine if an entity belongs to a bounded context
-   */
-  private isEntityInContext(
-    entity: DomainEntity,
-    context: { name: string; description: string },
-  ): boolean {
-    const contextNameLower = context.name.toLowerCase();
-    const entityNameLower = entity.name.toLowerCase();
-    const contextDescLower = context.description.toLowerCase();
-    const entityDescLower = entity.description.toLowerCase();
-
-    return (
-      contextDescLower.includes(entityNameLower) ||
-      entityDescLower.includes(contextNameLower) ||
-      this.hasSemanticRelationship(entity, context)
-    );
-  }
-
-  /**
-   * Check for semantic relationships between domain objects and contexts
-   */
-  private hasSemanticRelationship(
-    domainObject: { name: string; description: string },
-    context: { name: string; description: string },
-  ): boolean {
-    // Extract key terms from names and descriptions
-    const domainTerms = this.extractKeyTerms(domainObject.name, domainObject.description);
-    const contextTerms = this.extractKeyTerms(context.name, context.description);
-
-    // Check for overlapping terms
-    const overlap = domainTerms.filter((term) => contextTerms.includes(term));
-    return overlap.length > 0;
-  }
-
-  /**
-   * Extract key terms from text for semantic matching
-   */
-  private extractKeyTerms(name: string, description: string): string[] {
-    const text = `${name} ${description}`.toLowerCase();
-
-    // Extract meaningful words (3+ characters, not common words)
-    const commonWords = new Set([
-      "the",
-      "and",
-      "or",
-      "but",
-      "in",
-      "on",
-      "at",
-      "to",
-      "for",
-      "of",
-      "with",
-      "by",
-      "is",
-      "are",
-      "was",
-      "were",
-      "be",
-      "been",
-      "being",
-      "have",
-      "has",
-      "had",
-      "do",
-      "does",
-      "did",
-      "will",
-      "would",
-      "could",
-      "should",
-      "may",
-      "might",
-      "this",
-      "that",
-      "these",
-      "those",
-      "a",
-      "an",
-      "as",
-      "if",
-      "when",
-      "where",
-      "how",
-      "why",
-      "what",
-      "which",
-      "who",
-      "whom",
-      "whose",
-    ]);
-
-    return text
-      .split(/\W+/)
-      .filter((word) => word.length >= 3 && !commonWords.has(word))
-      .slice(0, 10); // Limit to most relevant terms
   }
 }

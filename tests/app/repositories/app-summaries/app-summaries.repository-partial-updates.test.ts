@@ -261,7 +261,9 @@ describe("AppSummaryRepositoryImpl - Partial Updates", () => {
             aggregate: "UserAggregate",
           },
         ],
-        boundedContexts: [{ name: "Auth", description: "Authentication context" }],
+        boundedContexts: [
+          { name: "Auth", description: "Authentication context", aggregates: ["UserAggregate"] },
+        ],
         businessProcesses: [
           {
             name: "Login",

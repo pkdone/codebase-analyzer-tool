@@ -104,14 +104,33 @@ export const businessProcessesSchema = z
   .passthrough();
 
 /**
+ * Schema for individual bounded context with aggregates
+ */
+export const boundedContextSchema = baseNameDescSchema
+  .extend({
+    name: baseNameDescSchema.shape.name.describe(
+      "The name of the domain-driven design Bounded Context.",
+    ),
+    description: baseNameDescSchema.shape.description.describe(
+      "A detailed description of the bounded context and its business capabilities in at least 5 sentences.",
+    ),
+    aggregates: z
+      .array(z.string())
+      .describe(
+        "A list of 'logical' domain-driven design aggregate names that are exclusively contained within this bounded context.",
+      ),
+  })
+  .passthrough();
+
+/**
  * Schema for bounded contexts in the application
  */
 export const boundedContextsSchema = z
   .object({
     boundedContexts: z
-      .array(nameDescSchema)
+      .array(boundedContextSchema)
       .describe(
-        "A list of domain-driven design Bounded Contexts that define explicit boundaries around related business capabilities and their models.",
+        "A list of domain-driven design Bounded Contexts that define explicit boundaries around related business capabilities, including the aggregates they contain.",
       ),
   })
   .passthrough();
