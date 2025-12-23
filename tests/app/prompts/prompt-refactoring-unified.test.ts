@@ -94,7 +94,9 @@ describe("Prompt Refactoring - Unified Configuration", () => {
       const rendered = renderPrompt(appDescriptionMetadata, { content: testSummaries });
 
       // Should contain the instruction text
-      expect(rendered).toContain(APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESCRIPTION);
+      expect(rendered).toContain(
+        "a detailed description of the application's purpose and implementation",
+      );
       // Should contain the content
       expect(rendered).toContain(testSummaries);
     });
@@ -103,16 +105,7 @@ describe("Prompt Refactoring - Unified Configuration", () => {
   describe("Fragment Organization", () => {
     it("should have APP_SUMMARY_FRAGMENTS as a separate export", () => {
       expect(APP_SUMMARY_PROMPT_FRAGMENTS).toBeDefined();
-      expect(APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESCRIPTION).toBeDefined();
       expect(APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST).toBeDefined();
-    });
-
-    it("should use APP_SUMMARY_FRAGMENTS in app summary configs", () => {
-      const appDescriptionConfig = appSummaryConfigMap.appDescription;
-      const firstInstruction = appDescriptionConfig.instructions[0];
-
-      // Should use the fragment from APP_SUMMARY_FRAGMENTS
-      expect(firstInstruction).toContain(APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESCRIPTION);
     });
   });
 

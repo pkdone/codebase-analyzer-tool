@@ -33,7 +33,10 @@ export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
   appDescription: {
     label: "Application Description",
     instructions: [
-      buildInstructionBlock("Instructions", APP_SUMMARY_PROMPT_FRAGMENTS.DETAILED_DESCRIPTION),
+      buildInstructionBlock(
+        "Instructions",
+        "a detailed description of the application's purpose and implementation",
+      ),
     ] as const,
     responseSchema: appDescriptionSchema,
   },

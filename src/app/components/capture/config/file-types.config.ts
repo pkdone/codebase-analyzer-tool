@@ -145,7 +145,7 @@ export const getCanonicalFileType = (filepath: string, type: string): CanonicalF
   const extension = type.toLowerCase();
 
   // 1. Check exact filename matches first (fastest lookup)
-  if (Object.hasOwn(FILENAME_TO_TYPE_MAP, filename)) { 
+  if (Object.hasOwn(FILENAME_TO_TYPE_MAP, filename)) {
     return FILENAME_TO_TYPE_MAP[filename];
   }
 
