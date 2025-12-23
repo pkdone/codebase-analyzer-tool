@@ -128,7 +128,7 @@ describe("file-summarizer sourceConfigMap integration", () => {
         const shape = schema.shape;
 
         // Code files should have public methods and integration points
-        expect(shape).toHaveProperty("publicMethods");
+        expect(shape).toHaveProperty("publicFunctions");
         expect(shape).toHaveProperty("integrationPoints");
       }
     });

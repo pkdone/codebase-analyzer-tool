@@ -59,7 +59,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
     "jakarta.persistence.Table"
   ],
   "publicConstants": [],
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "associateSavingsAccount",
       "purpose": "This static factory method creates an AccountAssociations instance that establishes a relationship between a loan account and a linked savings account. It serves as a controlled way to create associations where a loan is the primary account and a savings account is the linked account. The method encapsulates the business logic for this specific type of association by setting the appropriate fields and leaving others as null. This approach ensures that only valid association combinations are created and maintains data integrity. The method supports the business requirement of linking savings accounts to loans for purposes such as automatic repayments or collateral arrangements.",
@@ -153,7 +153,7 @@ describe("JsonProcessor.parseAndValidate - Mismatched Delimiters Integration Tes
       expect(result.success).toBe(true);
       if (result.success) {
         expect((result.data as any).name).toBe("AccountAssociations");
-        expect((result.data as any).publicMethods).toHaveLength(4);
+        expect((result.data as any).publicFunctions).toHaveLength(4);
       }
     });
   });

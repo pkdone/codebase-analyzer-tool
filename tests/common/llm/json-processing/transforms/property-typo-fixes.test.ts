@@ -4,7 +4,7 @@ describe("fixCommonPropertyNameTypos", () => {
   describe("fixing type_ to type", () => {
     it("should fix type_ to type", () => {
       const input = {
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             type_: "string",
@@ -16,7 +16,7 @@ describe("fixCommonPropertyNameTypos", () => {
       const result = fixCommonPropertyNameTypos(input);
 
       expect(result).toEqual({
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             type: "string",

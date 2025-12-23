@@ -7,7 +7,7 @@ import { LLMSanitizerConfig } from "../../../../common/llm/config/llm-module-con
  *
  * These property names are specific to the sourceSummarySchema:
  * - purpose, name, description, implementation (top-level source summary fields)
- * - parameters, returnType, type (publicMethods fields)
+ * - parameters, returnType, type (publicFunctions fields)
  * - codeSmells, references (other schema fields)
  */
 
@@ -64,8 +64,11 @@ export const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
   purpo: "purpose",
   descript: "description",
   retur: "return",
-  metho: "methods",
-  method: "methods",
+  metho: "functions",
+  method: "functions",
+  functi: "functions",
+  functio: "functions",
+  function: "functions",
   constan: "constants",
   consta: "constants",
   databas: "database",
@@ -145,9 +148,12 @@ export const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
   internReferences: "internalReferences",
   internalRefs: "internalReferences",
   internalRef: "internalReferences",
-  publMethods: "publicMethods",
-  publicMeth: "publicMethods",
-  publicMeths: "publicMethods",
+  publMethods: "publicFunctions",
+  publicMeth: "publicFunctions",
+  publicMeths: "publicFunctions",
+  publFunctions: "publicFunctions",
+  publicFunc: "publicFunctions",
+  publicFuncs: "publicFunctions",
   _publicConstants: "publicConstants",
   publConstants: "publicConstants",
   publicConst: "publicConstants",
@@ -160,8 +166,10 @@ export const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
   qualityMetrics: "codeQualityMetrics",
   codeMetrics: "codeQualityMetrics",
   codeQuality: "codeQualityMetrics",
-  ethods: "publicMethods",
-  thods: "publicMethods",
+  ethods: "publicFunctions",
+  thods: "publicFunctions",
+  unctions: "publicFunctions",
+  nctions: "publicFunctions",
   nstants: "publicConstants",
   stants: "publicConstants",
   ants: "publicConstants",
@@ -240,7 +248,8 @@ export const PROPERTY_TYPO_CORRECTIONS: Readonly<Record<string, string>> = {
   internalReferences_: "internalReferences",
   externalReferences_: "externalReferences",
   publicConstants_: "publicConstants",
-  publicMethods_: "publicMethods",
+  publicMethods_: "publicFunctions",
+  publicFunctions_: "publicFunctions",
   integrationPoints_: "integrationPoints",
   databaseIntegration_: "databaseIntegration",
   dataInputFields_: "dataInputFields",
@@ -281,7 +290,7 @@ export const KNOWN_PROPERTIES: readonly string[] = [
   "internalreferences",
   "externalreferences",
   "publicconstants",
-  "publicmethods",
+  "publicfunctions",
   "integrationpoints",
   "databaseintegration",
   "codequalitymetrics",
@@ -294,10 +303,10 @@ export const KNOWN_PROPERTIES: readonly string[] = [
 export const NUMERIC_PROPERTIES: readonly string[] = [
   "cyclomaticcomplexity",
   "linesofcode",
-  "totalmethods",
+  "totalfunctions",
   "averagecomplexity",
   "maxcomplexity",
-  "averagemethodlength",
+  "averagefunctionlength",
   "complexity",
   "lines",
   "total",

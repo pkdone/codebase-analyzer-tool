@@ -35,7 +35,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
       const mockSummary = {
         purpose: "Defines user management logic",
         internalReferences: ["User", "UserService"],
-        publicMethods: [
+        publicFunctions: [
           {
             name: "createUser",
             purpose: "Creates a new user",
@@ -73,7 +73,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
     test("should infer correct type for JavaScript files", async () => {
       const mockSummary = {
         purpose: "Utility functions for string manipulation",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "capitalize",
             purpose: "Capitalizes a string",
@@ -96,15 +96,15 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       expect(result).toBeDefined();
       expect(result.purpose).toBe("Utility functions for string manipulation");
-      expect(result.publicMethods).toHaveLength(3);
-      expect(result.publicMethods?.[0]?.name).toBe("capitalize");
+      expect(result.publicFunctions).toHaveLength(3);
+      expect(result.publicFunctions?.[0]?.name).toBe("capitalize");
     });
 
     test("should infer correct type for Python files", async () => {
       const mockSummary = {
         purpose: "Data processing module",
         internalReferences: ["DataProcessor", "DataValidator"],
-        publicMethods: [
+        publicFunctions: [
           { name: "process_data", purpose: "Processes data", returnType: "None", description: "" },
           { name: "validate_data", purpose: "Validates data", returnType: "bool", description: "" },
         ],
@@ -182,7 +182,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       // Optional fields should be undefined
       expect(result.internalReferences).toBeUndefined();
-      expect(result.publicMethods).toBeUndefined();
+      expect(result.publicFunctions).toBeUndefined();
     });
 
     test("should handle summaries with all optional fields present", async () => {
@@ -194,7 +194,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
         implementation: "Complete implementation",
         internalReferences: ["./internal"],
         externalReferences: ["dep1"],
-        publicMethods: [
+        publicFunctions: [
           { name: "func1", purpose: "Function 1", returnType: "void", description: "" },
         ],
       };
@@ -213,7 +213,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
       expect(result.name).toBe("Complete");
       expect(result.internalReferences).toEqual(["./internal"]);
       expect(result.externalReferences).toEqual(["dep1"]);
-      expect(result.publicMethods).toHaveLength(1);
+      expect(result.publicFunctions).toHaveLength(1);
     });
   });
 
@@ -296,7 +296,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
       const mockSummary = {
         purpose: "Test file",
         internalReferences: ["TestEntity"],
-        publicMethods: [
+        publicFunctions: [
           { name: "testFunction", purpose: "Test function", returnType: "void", description: "" },
         ],
       };
@@ -314,8 +314,8 @@ describe("File Summarizer Type Safety - Post Fix", () => {
       // TypeScript should know the shape of result without assertions
       expect(result.purpose).toBe("Test file");
       expect(result.internalReferences).toEqual(["TestEntity"]);
-      expect(result.publicMethods).toHaveLength(1);
-      expect(result.publicMethods?.[0]?.name).toBe("testFunction");
+      expect(result.publicFunctions).toHaveLength(1);
+      expect(result.publicFunctions?.[0]?.name).toBe("testFunction");
 
       // These should work without type assertions
       const refs = result.internalReferences;
@@ -438,7 +438,7 @@ describe("File Summarizer Type Safety - Post Fix", () => {
 
       expect(result.purpose).toBe("Minimal summary");
       expect(result.internalReferences).toBeUndefined();
-      expect(result.publicMethods).toBeUndefined();
+      expect(result.publicFunctions).toBeUndefined();
       expect(result.externalReferences).toBeUndefined();
     });
   });

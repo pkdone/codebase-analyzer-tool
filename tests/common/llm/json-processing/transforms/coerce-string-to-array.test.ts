@@ -97,7 +97,7 @@ describe("coerceStringToArray", () => {
     it("should convert string parameters field to empty array", () => {
       const input = {
         name: "TestClass",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "basicLoanDetails",
             parameters:
@@ -109,8 +109,8 @@ describe("coerceStringToArray", () => {
 
       const result = coerceStringToArray(input, config);
 
-      expect(Array.isArray((result as any).publicMethods[0].parameters)).toBe(true);
-      expect((result as any).publicMethods[0].parameters).toEqual([]);
+      expect(Array.isArray((result as any).publicFunctions[0].parameters)).toBe(true);
+      expect((result as any).publicFunctions[0].parameters).toEqual([]);
     });
 
     it("should convert parameters string at any nesting level", () => {
@@ -177,7 +177,7 @@ describe("coerceStringToArray", () => {
     it("should leave array parameters unchanged", () => {
       const input = {
         name: "TestClass",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             parameters: [
@@ -191,10 +191,10 @@ describe("coerceStringToArray", () => {
 
       const result = coerceStringToArray(input, config);
 
-      expect(Array.isArray((result as any).publicMethods[0].parameters)).toBe(true);
-      expect((result as any).publicMethods[0].parameters).toHaveLength(2);
-      expect((result as any).publicMethods[0].parameters[0].name).toBe("param1");
-      expect((result as any).publicMethods[0].parameters[1].name).toBe("param2");
+      expect(Array.isArray((result as any).publicFunctions[0].parameters)).toBe(true);
+      expect((result as any).publicFunctions[0].parameters).toHaveLength(2);
+      expect((result as any).publicFunctions[0].parameters[0].name).toBe("param1");
+      expect((result as any).publicFunctions[0].parameters[1].name).toBe("param2");
     });
 
     it("should leave empty arrays unchanged", () => {
@@ -357,7 +357,7 @@ describe("coerceStringToArray", () => {
     it("should handle methods without parameters field", () => {
       const input = {
         name: "TestClass",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             returnType: "void",
@@ -367,7 +367,7 @@ describe("coerceStringToArray", () => {
 
       const result = coerceStringToArray(input);
 
-      expect("parameters" in (result as any).publicMethods[0]).toBe(false);
+      expect("parameters" in (result as any).publicFunctions[0]).toBe(false);
     });
   });
 

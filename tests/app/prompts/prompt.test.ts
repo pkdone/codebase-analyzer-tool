@@ -138,7 +138,7 @@ public abstract class AddressEJB implements EntityBean {
         expect(jsonSchema.properties.name).toBeDefined();
         expect(jsonSchema.properties.kind).toBeDefined();
         expect(jsonSchema.properties.namespace).toBeDefined();
-        expect(jsonSchema.properties.publicMethods).toBeDefined();
+        expect(jsonSchema.properties.publicFunctions).toBeDefined();
         expect(jsonSchema.properties.databaseIntegration).toBeDefined();
         expect(jsonSchema.properties.integrationPoints).toBeDefined();
       }

@@ -107,7 +107,7 @@ describe("schema-format-transforms", () => {
 
     it("should handle nested objects", () => {
       const input = {
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             linesOfCode: "10",
@@ -119,7 +119,7 @@ describe("schema-format-transforms", () => {
       const result = coerceNumericProperties(input, mockConfig);
 
       expect(result).toEqual({
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             linesOfCode: 10,

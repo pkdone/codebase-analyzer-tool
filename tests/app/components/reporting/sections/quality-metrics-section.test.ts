@@ -60,15 +60,15 @@ describe("QualityMetricsSection", () => {
         buildFiles: [],
       };
       const mockCodeQualitySummary = {
-        topComplexMethods: [],
+        topComplexFunctions: [],
         commonCodeSmells: [],
         overallStatistics: {
-          totalMethods: 0,
+          totalFunctions: 0,
           averageComplexity: 0,
           highComplexityCount: 0,
           veryHighComplexityCount: 0,
-          averageMethodLength: 0,
-          longMethodCount: 0,
+          averageFunctionLength: 0,
+          longFunctionCount: 0,
         },
       };
       const mockScheduledJobsSummary = {

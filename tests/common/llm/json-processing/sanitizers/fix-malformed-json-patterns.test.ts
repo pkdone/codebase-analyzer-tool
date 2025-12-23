@@ -36,7 +36,7 @@ describe("fixMalformedJsonPatterns", () => {
   describe("Pattern: Corrupted property names", () => {
     it("should fix corrupted property name with extra text", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name":aus": "testMethod"
     }
@@ -72,7 +72,7 @@ describe("fixMalformedJsonPatterns", () => {
   describe("Pattern: Missing property name with single character", () => {
     it("should fix missing property name with single character before quote", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       y"name": "testMethod"
     }
@@ -158,7 +158,7 @@ unquoted.package.ClassB",
   describe("Pattern 66: Malformed property names with extra characters", () => {
     it("should fix name:sem: pattern", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name":sem": "clientNonPersonConstitutionOptions",
       "type": "Collection<CodeValueData>"
@@ -175,7 +175,7 @@ unquoted.package.ClassB",
 
     it("should fix name:sem: with value", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name":sem": "firstname",
       "type": "String"
@@ -213,7 +213,7 @@ trib
 
     it("should remove stray text 'cmethod'", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "isChargeRefund"
     }
@@ -231,7 +231,7 @@ cmethod
 
     it("should remove _ADDITIONAL_PROPERTIES", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "testMethod"
     }
@@ -249,7 +249,7 @@ _ADDITIONAL_PROPERTIES
 
     it("should fix trailing comma", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "returnType": "void",
     }
@@ -345,7 +345,7 @@ tribal-council-leader-thought
 
     it('should fix name": pattern', () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
 name": "testMethod",
       "returnType": "void"
@@ -410,7 +410,7 @@ to.loan.transaction.LoanForeClosurePostBusinessEvent",
 
     it("should fix error case from ClientData.java", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name":sem": "clientNonPersonConstitutionOptions",
       "type": "Collection<CodeValueData>"
@@ -430,7 +430,7 @@ to.loan.transaction.LoanForeClosurePostBusinessEvent",
 
     it("should fix error case from TransferWritePlatformServiceJpaRepositoryImpl.java", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "transferClientBetweenGroups"
     },
@@ -463,7 +463,7 @@ propertyName": "com.example.POST",
 
     it("should fix error case from CalendarFrequencyType.java", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
 name": "isInvalid",
       "purpose": "This is a convenience method"
@@ -499,7 +499,7 @@ tribal-council-leader-thought
 
     it("should fix error case from LoanStatusChecker.java", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "returnType": "void",
     }
@@ -516,7 +516,7 @@ tribal-council-leader-thought
 
     it("should fix error case from ThitsaWorksCreditBureauIntegrationWritePlatformService.java", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "extractUniqueId"
     },
@@ -534,16 +534,16 @@ se": "This method acts as a generic",
       // Verify JSON is parseable and the truncated property is fixed
       expect(() => JSON.parse(result.content)).not.toThrow();
       const parsed = JSON.parse(result.content);
-      expect(parsed.publicMethods[1]).toBeDefined();
+      expect(parsed.publicFunctions[1]).toBeDefined();
       // The truncated property should be fixed to "name"
-      expect(parsed.publicMethods[1].name ?? parsed.publicMethods[1].se).toBeDefined();
+      expect(parsed.publicFunctions[1].name ?? parsed.publicFunctions[1].se).toBeDefined();
     });
 
     it("should fix error case from AccountingProcessorForSharesFactory.java", () => {
       const input = `{
   "externalReferences": [],
 e"publicConstants": [],
-  "publicMethods": []
+  "publicFunctions": []
 }`;
 
       const result = fixMalformedJsonPatterns(input);
@@ -582,7 +582,7 @@ e"publicConstants": [],
   describe("Pattern 54: Malformed parameter objects with corrupted property names", () => {
     it("should fix malformed parameter object with corrupted property name", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "testMethod",
       "parameters": [
@@ -604,12 +604,12 @@ e"publicConstants": [],
       expect(() => JSON.parse(result.content)).not.toThrow();
       // Verify the malformed pattern is gone
       const parsed = JSON.parse(result.content);
-      expect(parsed.publicMethods[0].parameters[0]).toBeDefined();
+      expect(parsed.publicFunctions[0].parameters[0]).toBeDefined();
     });
 
     it("should fix multiple malformed parameter objects", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "testMethod",
       "parameters": [
@@ -633,7 +633,7 @@ e"publicConstants": [],
       // The pattern should produce valid JSON
       expect(() => JSON.parse(result.content)).not.toThrow();
       const parsed = JSON.parse(result.content);
-      expect(parsed.publicMethods[0].parameters).toHaveLength(2);
+      expect(parsed.publicFunctions[0].parameters).toHaveLength(2);
     });
   });
 
@@ -670,7 +670,7 @@ e"publicConstants": [],
   describe("Pattern: Missing colon after property name", () => {
     it("should fix missing colon: name value -> name: value", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name "command",
       "type": "JsonCommand"
@@ -707,7 +707,7 @@ e"publicConstants": [],
   describe("Pattern: Corrupted property names", () => {
     it("should fix corrupted property name: name:g: -> name:", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name":g": "paymentTypeId",
       "type": "Long"
@@ -863,7 +863,7 @@ e"publicConstants": [],
   ],
 there are more methods, but I will stop here
   "codeQualityMetrics": {
-    "totalMethods": 30
+    "totalFunctions": 30
   }
 }`;
 
@@ -983,7 +983,7 @@ package org.example;`;
     it("should remove different binary corruption markers", () => {
       const input = `{
   "name": "TestClass",
-  <x_bin_42>publicMethods": []
+  <x_bin_42>publicFunctions": []
 }`;
 
       const result = fixMalformedJsonPatterns(input);
@@ -996,7 +996,7 @@ package org.example;`;
   describe("Pattern 86: Fix wrong quote characters", () => {
     it("should fix non-ASCII quotes like ʻlinesOfCode", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       ʻlinesOfCode": 3
     }
@@ -1035,7 +1035,7 @@ package org.example;`;
   describe("Pattern 89: Malformed JSON in string values", () => {
     it("should escape unescaped quotes in description strings", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "testMethod",
       "description": "This method uses "quotes" in the description.",
@@ -1056,7 +1056,7 @@ package org.example;`;
   describe("Pattern: Duplicate property names in descriptions", () => {
     it("should fix duplicate property name in description", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "tearDown",
       "purpose": "purpose": "This method is executed after each test case"
@@ -1074,7 +1074,7 @@ package org.example;`;
 
     it("should fix duplicate property name in any property field", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "testMethod",
       "description": "description": "This is a test method"
@@ -1182,7 +1182,7 @@ t    "org.apache.fineract.organisation.provisioning.serialization.ProvisioningCr
     "jakarta.persistence.Column"
   ],
 a  "publicConstants": [],
-  "publicMethods": []
+  "publicFunctions": []
 }`;
 
       const result = fixMalformedJsonPatterns(input);
@@ -1235,7 +1235,7 @@ g    "org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepo
   describe("Pattern 92: Corrupted property values with extra text after commas", () => {
     it("should remove extra text 'a' after property value", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "testMethod",
       "cyclomaticComplexity": 3, a
@@ -1321,7 +1321,7 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
 
     it("should remove markdown list marker with different spacing", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     * "testMethod",
     "anotherMethod"
   ]
@@ -1433,7 +1433,7 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
 
     it("should handle extra_thoughts after array", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     "org.example.Method"
   ]
     extra_thoughts: "some thoughts"
@@ -1442,7 +1442,7 @@ e"org.apache.fineract.interoperation.data.InteropTransactionsData",
       const result = fixMalformedJsonPatterns(input);
 
       expect(result.changed).toBe(true);
-      expect(result.content).toContain('"publicMethods": [');
+      expect(result.content).toContain('"publicFunctions": [');
       // Note: Pattern 16b removes extra_thoughts: blocks, which may happen after Pattern 50 adds the comma
       // The important thing is that the JSON is valid after processing
       expect(() => JSON.parse(result.content)).not.toThrow();

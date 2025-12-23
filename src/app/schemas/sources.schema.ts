@@ -199,16 +199,16 @@ export const dataInputFieldSchema = z
   .passthrough();
 
 /**
- * Schema for public methods
+ * Schema for public functions/methods
  */
-export const publicMethodSchema = z
+export const publicFunctionSchema = z
   .object({
-    name: z.string().default("").describe("The name of the method/function."),
+    name: z.string().default("").describe("The name of the function/method."),
     purpose: z
       .string()
       .default("")
       .describe(
-        "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences.",
+        "Detailed purpose of the function/method and what business logic decisions it makes (where relevant), in at least 5 sentences.",
       ),
     parameters: z
       .array(
@@ -220,12 +220,12 @@ export const publicMethodSchema = z
           .passthrough(),
       )
       .optional()
-      .describe("List parameters of the method/function."),
-    returnType: z.string().default("").describe("The return type of the method/function."),
+      .describe("List parameters of the function/method."),
+    returnType: z.string().default("").describe("The return type of the function/method."),
     description: z
       .string()
       .default("")
-      .describe("Detailed description of how the method/function is implementated."),
+      .describe("Detailed description of how the function/method is implemented."),
     cyclomaticComplexity: z
       .number()
       .optional()
@@ -235,7 +235,9 @@ export const publicMethodSchema = z
     linesOfCode: z
       .number()
       .optional()
-      .describe("Number of lines of code in this method (excluding comments and blank lines)"),
+      .describe(
+        "Number of lines of code in this function/method (excluding comments and blank lines)",
+      ),
     codeSmells: z
       .preprocess((val) => normalizeEnumArray(val, CODE_SMELL_VALUES), z.any())
       .pipe(z.array(z.union([z.enum(CODE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)])))
@@ -305,10 +307,13 @@ export const integrationEndpointSchema = z
  */
 export const codeQualityMetricsSchema = z
   .object({
-    totalMethods: z.number().describe("Total number of methods in the file"),
+    totalFunctions: z.number().describe("Total number of functions/methods in the file"),
     averageComplexity: z.number().optional().describe("Average cyclomatic complexity"),
     maxComplexity: z.number().optional().describe("Maximum cyclomatic complexity found"),
-    averageMethodLength: z.number().optional().describe("Average lines of code per method"),
+    averageFunctionLength: z
+      .number()
+      .optional()
+      .describe("Average lines of code per function/method"),
     fileSmells: z
       .preprocess((val) => normalizeEnumArray(val, FILE_SMELL_VALUES), z.any())
       .pipe(z.array(z.union([z.enum(FILE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)])))
@@ -403,10 +408,10 @@ export const sourceSummarySchema = z
       .array(publicConstantSchema)
       .optional()
       .describe("A list of public constants defined."),
-    publicMethods: z
-      .array(publicMethodSchema)
+    publicFunctions: z
+      .array(publicFunctionSchema)
       .optional()
-      .describe("A list of public methods/functions)."),
+      .describe("A list of public functions/methods."),
     databaseIntegration: databaseIntegrationSchema
       .optional()
       .describe("Information about how the file interacts with a database."),

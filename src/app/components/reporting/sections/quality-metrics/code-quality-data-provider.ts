@@ -24,14 +24,14 @@ export class CodeQualityDataProvider {
    */
   async getCodeQualitySummary(projectName: string): Promise<CodeQualityAggregationResult> {
     // Execute all three aggregations in parallel
-    const [topComplexMethods, commonCodeSmells, overallStatistics] = await Promise.all([
-      this.sourcesRepository.getTopComplexMethods(projectName, 10),
+    const [topComplexFunctions, commonCodeSmells, overallStatistics] = await Promise.all([
+      this.sourcesRepository.getTopComplexFunctions(projectName, 10),
       this.sourcesRepository.getCodeSmellStatistics(projectName),
       this.sourcesRepository.getCodeQualityStatistics(projectName),
     ]);
 
     return {
-      topComplexMethods,
+      topComplexFunctions,
       commonCodeSmells,
       overallStatistics,
     };

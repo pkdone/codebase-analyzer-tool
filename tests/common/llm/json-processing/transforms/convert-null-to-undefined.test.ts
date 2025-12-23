@@ -310,10 +310,10 @@ describe("convertNullToUndefined", () => {
           },
         ],
         codeQualitySummary: {
-          topComplexMethods: [],
+          topComplexFunctions: [],
           commonCodeSmells: [],
           overallStatistics: {
-            totalMethods: 145,
+            totalFunctions: 145,
             averageComplexity: 3.8,
             highComplexityCount: null, // Another possible null value
           },

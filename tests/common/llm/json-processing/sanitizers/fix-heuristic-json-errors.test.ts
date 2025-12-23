@@ -4,7 +4,7 @@ describe("fixHeuristicJsonErrors", () => {
   describe("Pattern 0: Property name typos (trailing underscores)", () => {
     it("should fix property names ending with single underscore", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "testMethod",
       "type_": "string",
@@ -20,8 +20,8 @@ describe("fixHeuristicJsonErrors", () => {
       expect(result.content).not.toContain('"type_":');
       expect(() => JSON.parse(result.content)).not.toThrow();
       const parsed = JSON.parse(result.content);
-      expect(parsed.publicMethods[0]).toHaveProperty("type");
-      expect(parsed.publicMethods[0]).not.toHaveProperty("type_");
+      expect(parsed.publicFunctions[0]).toHaveProperty("type");
+      expect(parsed.publicFunctions[0]).not.toHaveProperty("type_");
     });
 
     it("should fix multiple property names with trailing underscores", () => {
@@ -186,7 +186,7 @@ so    "connectionInfo": "n/a"
   describe("Pattern 8: Missing opening quotes before property names", () => {
     it("should fix missing opening quote before cyclomaticComplexity", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "testMethod",
       "description": "Test description",
@@ -224,7 +224,7 @@ so    "connectionInfo": "n/a"
     it("should fix missing opening quote before cyclomaticComplexity after quoted description", () => {
       // This matches the exact scenario from error log response-error-2025-12-01T16-29-45-524Z.log
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "saleActiveLoanToExternalAssetOwnerAndBuybackADayLater",
       "purpose": "Tests the standard 'happy path' scenario",
@@ -252,7 +252,7 @@ so    "connectionInfo": "n/a"
   describe("Pattern 9: Corrupted text like },ce or e-12,", () => {
     it("should remove corrupted text },ce", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "method1",
       "codeSmells": []
@@ -275,7 +275,7 @@ so    "connectionInfo": "n/a"
     it("should remove corrupted text },ce after method object (exact error log scenario)", () => {
       // This matches the exact scenario from error log response-error-2025-12-01T16-29-45-524Z.log line 140
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "saleIsDeclinedWhenLoanIsCancelled",
       "purpose": "Tests the scenario where a pending loan sale is automatically declined",
@@ -303,7 +303,7 @@ so    "connectionInfo": "n/a"
 
     it("should remove corrupted text e-12,", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "method1",
       "codeSmells": []
@@ -326,7 +326,7 @@ e-12,
     it("should remove corrupted text e-12, and orphaned codeSmells property (exact error log scenario)", () => {
       // This matches the exact scenario from error logs response-error-2025-12-01T16-30-40-763Z.log and response-error-2025-12-01T16-33-47-367Z.log
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "validateAndReject",
       "purpose": "This method handles the rejection",
@@ -354,14 +354,14 @@ e-12,
       expect(result.content).not.toMatch(/},\s*\n\s*"codeSmells"/);
       expect(() => JSON.parse(result.content)).not.toThrow();
       const parsed = JSON.parse(result.content);
-      expect(parsed.publicMethods.length).toBe(2);
+      expect(parsed.publicFunctions.length).toBe(2);
     });
   });
 
   describe("Pattern 10: to be continued... text", () => {
     it("should remove 'to be continued...' text", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "method1",
       "codeSmells": []
@@ -383,7 +383,7 @@ to be continued...
 
     it("should remove 'to be conti...' text (truncated)", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "method1",
       "codeSmells": []
@@ -752,14 +752,14 @@ the    "connectionInfo": "n/a"
   "name": "TestClass",
   "kind": "CLASS",
 Next, I will analyze the methods in this class.
-  "publicMethods": []
+  "publicFunctions": []
 }`;
 
         const result = fixHeuristicJsonErrors(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain("Next, I will");
-        expect(result.content).toContain('"publicMethods"');
+        expect(result.content).toContain('"publicFunctions"');
         expect(() => JSON.parse(result.content)).not.toThrow();
       });
 
@@ -768,14 +768,14 @@ Next, I will analyze the methods in this class.
   "name": "TestClass",
   "kind": "CLASS",
 Let me continue analyzing the remaining methods.
-  "publicMethods": []
+  "publicFunctions": []
 }`;
 
         const result = fixHeuristicJsonErrors(input);
 
         expect(result.changed).toBe(true);
         expect(result.content).not.toContain("Let me continue");
-        expect(result.content).toContain('"publicMethods"');
+        expect(result.content).toContain('"publicFunctions"');
         expect(() => JSON.parse(result.content)).not.toThrow();
       });
 

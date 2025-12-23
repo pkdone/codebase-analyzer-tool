@@ -13,7 +13,7 @@ import {
   ProjectedTopLevelJavaClassDependencies,
   SourceRecord,
   ProjectedFileAndLineStats,
-  ProjectedTopComplexMethod,
+  ProjectedTopComplexFunction,
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
 } from "./sources.model";
@@ -376,29 +376,29 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
   }
 
   /**
-   * Get top N most complex methods across the project using aggregation pipeline
+   * Get top N most complex functions/methods across the project using aggregation pipeline
    */
-  async getTopComplexMethods(
+  async getTopComplexFunctions(
     projectName: string,
     limit = 10,
-  ): Promise<ProjectedTopComplexMethod[]> {
+  ): Promise<ProjectedTopComplexFunction[]> {
     const pipeline = [
       {
         $match: {
           projectName,
-          "summary.publicMethods": { $exists: true, $ne: [] },
+          "summary.publicFunctions": { $exists: true, $ne: [] },
         },
       },
-      { $unwind: "$summary.publicMethods" },
+      { $unwind: "$summary.publicFunctions" },
       {
         $match: {
-          "summary.publicMethods.cyclomaticComplexity": { $exists: true },
+          "summary.publicFunctions.cyclomaticComplexity": { $exists: true },
         },
       },
       {
         $set: {
           namespace: { $ifNull: ["$summary.namespace", "$filepath"] },
-          complexity: "$summary.publicMethods.cyclomaticComplexity",
+          complexity: "$summary.publicFunctions.cyclomaticComplexity",
         },
       },
       { $sort: { complexity: -1 } },
@@ -406,15 +406,15 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       {
         $project: {
           _id: 0,
-          methodName: { $concat: ["$namespace", "::", "$summary.publicMethods.name"] },
+          functionName: { $concat: ["$namespace", "::", "$summary.publicFunctions.name"] },
           filePath: "$filepath",
-          linesOfCode: { $ifNull: ["$summary.publicMethods.linesOfCode", 0] },
-          codeSmells: { $ifNull: ["$summary.publicMethods.codeSmells", []] },
+          linesOfCode: { $ifNull: ["$summary.publicFunctions.linesOfCode", 0] },
+          codeSmells: { $ifNull: ["$summary.publicFunctions.codeSmells", []] },
           complexity: 1,
         },
       },
     ];
-    return await this.collection.aggregate<ProjectedTopComplexMethod>(pipeline).toArray();
+    return await this.collection.aggregate<ProjectedTopComplexFunction>(pipeline).toArray();
   }
 
   /**
@@ -429,19 +429,19 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       },
       {
         $facet: {
-          methodSmells: [
-            { $match: { "summary.publicMethods": { $exists: true, $ne: [] } } },
-            { $unwind: "$summary.publicMethods" },
+          functionSmells: [
+            { $match: { "summary.publicFunctions": { $exists: true, $ne: [] } } },
+            { $unwind: "$summary.publicFunctions" },
             {
               $match: {
-                "summary.publicMethods.codeSmells": { $exists: true, $ne: [] },
+                "summary.publicFunctions.codeSmells": { $exists: true, $ne: [] },
               },
             },
-            { $unwind: "$summary.publicMethods.codeSmells" },
+            { $unwind: "$summary.publicFunctions.codeSmells" },
             {
               $group: {
                 _id: {
-                  smell: "$summary.publicMethods.codeSmells",
+                  smell: "$summary.publicFunctions.codeSmells",
                   file: "$filepath",
                 },
               },
@@ -481,7 +481,7 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       },
       {
         $project: {
-          allSmells: { $concatArrays: ["$methodSmells", "$fileSmells"] },
+          allSmells: { $concatArrays: ["$functionSmells", "$fileSmells"] },
         },
       },
       { $unwind: "$allSmells" },
@@ -526,33 +526,37 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
           projectName,
         },
       },
-      { $unwind: "$summary.publicMethods" },
+      { $unwind: "$summary.publicFunctions" },
       {
         $match: {
-          "summary.publicMethods.cyclomaticComplexity": { $exists: true },
+          "summary.publicFunctions.cyclomaticComplexity": { $exists: true },
         },
       },
       {
         $group: {
           _id: null,
-          totalMethods: { $sum: 1 },
-          totalComplexity: { $sum: "$summary.publicMethods.cyclomaticComplexity" },
+          totalFunctions: { $sum: 1 },
+          totalComplexity: { $sum: "$summary.publicFunctions.cyclomaticComplexity" },
           totalLinesOfCode: {
-            $sum: { $ifNull: ["$summary.publicMethods.linesOfCode", 0] },
+            $sum: { $ifNull: ["$summary.publicFunctions.linesOfCode", 0] },
           },
           highComplexityCount: {
             $sum: {
-              $cond: [{ $gt: ["$summary.publicMethods.cyclomaticComplexity", 10] }, 1, 0],
+              $cond: [{ $gt: ["$summary.publicFunctions.cyclomaticComplexity", 10] }, 1, 0],
             },
           },
           veryHighComplexityCount: {
             $sum: {
-              $cond: [{ $gt: ["$summary.publicMethods.cyclomaticComplexity", 20] }, 1, 0],
+              $cond: [{ $gt: ["$summary.publicFunctions.cyclomaticComplexity", 20] }, 1, 0],
             },
           },
-          longMethodCount: {
+          longFunctionCount: {
             $sum: {
-              $cond: [{ $gt: [{ $ifNull: ["$summary.publicMethods.linesOfCode", 0] }, 50] }, 1, 0],
+              $cond: [
+                { $gt: [{ $ifNull: ["$summary.publicFunctions.linesOfCode", 0] }, 50] },
+                1,
+                0,
+              ],
             },
           },
         },
@@ -560,16 +564,16 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       {
         $project: {
           _id: 0,
-          totalMethods: 1,
+          totalFunctions: 1,
           averageComplexity: {
-            $round: [{ $divide: ["$totalComplexity", "$totalMethods"] }, 2],
+            $round: [{ $divide: ["$totalComplexity", "$totalFunctions"] }, 2],
           },
           highComplexityCount: 1,
           veryHighComplexityCount: 1,
-          averageMethodLength: {
-            $round: [{ $divide: ["$totalLinesOfCode", "$totalMethods"] }, 2],
+          averageFunctionLength: {
+            $round: [{ $divide: ["$totalLinesOfCode", "$totalFunctions"] }, 2],
           },
-          longMethodCount: 1,
+          longFunctionCount: 1,
         },
       },
     ];
@@ -578,12 +582,12 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       .toArray();
     return (
       results[0] ?? {
-        totalMethods: 0,
+        totalFunctions: 0,
         averageComplexity: 0,
         highComplexityCount: 0,
         veryHighComplexityCount: 0,
-        averageMethodLength: 0,
-        longMethodCount: 0,
+        averageFunctionLength: 0,
+        longFunctionCount: 0,
       }
     );
   }

@@ -7,7 +7,7 @@ import {
   ProjectedFileTypesCountAndLines,
   ProjectedTopLevelJavaClassDependencies,
   ProjectedFileAndLineStats,
-  ProjectedTopComplexMethod,
+  ProjectedTopComplexFunction,
   ProjectedCodeSmellStatistic,
   ProjectedCodeQualityStatistics,
   SourceRecord,
@@ -104,9 +104,12 @@ export interface SourcesRepository {
   getProjectIntegrationPoints(projectName: string): Promise<ProjectedIntegrationPointFields[]>;
 
   /**
-   * Get top N most complex methods across the project using aggregation pipeline
+   * Get top N most complex functions/methods across the project using aggregation pipeline
    */
-  getTopComplexMethods(projectName: string, limit: number): Promise<ProjectedTopComplexMethod[]>;
+  getTopComplexFunctions(
+    projectName: string,
+    limit: number,
+  ): Promise<ProjectedTopComplexFunction[]>;
 
   /**
    * Get code smell statistics using aggregation pipeline

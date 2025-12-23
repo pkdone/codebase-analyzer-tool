@@ -60,12 +60,12 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       getTopComplexMethods: jest.fn().mockResolvedValue([]),
       getCodeSmellStatistics: jest.fn().mockResolvedValue([]),
       getCodeQualityStatistics: jest.fn().mockResolvedValue({
-        totalMethods: 0,
+        totalFunctions: 0,
         averageComplexity: 0,
         highComplexityCount: 0,
         veryHighComplexityCount: 0,
-        averageMethodLength: 0,
-        longMethodCount: 0,
+        averageFunctionLength: 0,
+        longFunctionCount: 0,
       }),
     } as unknown as jest.Mocked<SourcesRepository>;
 

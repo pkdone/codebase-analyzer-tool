@@ -162,7 +162,7 @@ describe("Data-driven Prompt System", () => {
         "internalReferences",
         "externalReferences",
         "publicConstants",
-        "publicMethods",
+        "publicFunctions",
         "databaseIntegration",
         "integrationPoints",
         "codeQualityMetrics",

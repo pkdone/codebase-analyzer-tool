@@ -94,8 +94,8 @@ export interface BomDependency {
 
 // Interface for code quality summary information
 export interface CodeQualitySummary {
-  topComplexMethods: {
-    methodName: string;
+  topComplexFunctions: {
+    functionName: string;
     filePath: string;
     complexity: number;
     linesOfCode: number;
@@ -107,12 +107,12 @@ export interface CodeQualitySummary {
     affectedFiles: number;
   }[];
   overallStatistics: {
-    totalMethods: number;
+    totalFunctions: number;
     averageComplexity: number;
     highComplexityCount: number;
     veryHighComplexityCount: number;
-    averageMethodLength: number;
-    longMethodCount: number;
+    averageFunctionLength: number;
+    longFunctionCount: number;
   };
 }
 

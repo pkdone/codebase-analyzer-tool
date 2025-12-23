@@ -116,7 +116,7 @@ describe("File Handler Configuration", () => {
         internalReferences: [],
         externalReferences: [],
         publicConstants: [],
-        publicMethods: [],
+        publicFunctions: [],
         databaseIntegration: { mechanism: "NONE", description: "No database", codeExample: "n/a" },
       };
 

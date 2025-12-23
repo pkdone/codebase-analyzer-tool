@@ -103,15 +103,15 @@ describe("Null Handling Integration", () => {
           },
         ],
         codeQualitySummary: {
-          topComplexMethods: [],
+          topComplexFunctions: [],
           commonCodeSmells: [],
           overallStatistics: {
-            totalMethods: 145,
+            totalFunctions: 145,
             averageComplexity: 3.8,
             highComplexityCount: 2,
             veryHighComplexityCount: 0,
-            averageMethodLength: 12,
-            longMethodCount: 0,
+            averageFunctionLength: 12,
+            longFunctionCount: 0,
           },
         },
       });
@@ -123,15 +123,15 @@ describe("Null Handling Integration", () => {
         billOfMaterials: z.array(bomDependencySchema).optional(),
         codeQualitySummary: z
           .object({
-            topComplexMethods: z.array(z.unknown()),
+            topComplexFunctions: z.array(z.unknown()),
             commonCodeSmells: z.array(z.unknown()),
             overallStatistics: z.object({
-              totalMethods: z.number(),
+              totalFunctions: z.number(),
               averageComplexity: z.number(),
               highComplexityCount: z.number(),
               veryHighComplexityCount: z.number(),
-              averageMethodLength: z.number(),
-              longMethodCount: z.number(),
+              averageFunctionLength: z.number(),
+              longFunctionCount: z.number(),
             }),
           })
           .optional(),

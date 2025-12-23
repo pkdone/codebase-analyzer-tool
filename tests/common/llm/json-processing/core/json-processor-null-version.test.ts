@@ -19,7 +19,7 @@ describe("JsonProcessor Integration Tests", () => {
   ],
   "eferences": [],
   "publicConstants": [],
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "getCardNumber",
       "purpose": "This method is an accessor designed to retrieve the credit card number associated with the EJB instance. It serves as a standard getter, providing read-only access to the cardNumber property of the credit card entity. Clients call this method to obtain the unique identifier of the credit card. The business logic decision is to expose this sensitive piece of data to local clients, assuming they are trusted components within the same application. It encapsulates the underlying data storage, returning a string representation of the number.",
@@ -145,10 +145,10 @@ describe("JsonProcessor Integration Tests", () => {
   },
   "integrationPoints": [],
   "codeQualityMetrics": {
-    "totalMethods": 9,
+    "totalFunctions": 9,
     "averageComplexity": 1,
     "maxComplexity": 1,
-    "averageMethodLength": 1,
+    "averageFunctionLength": 1,
     "fileSmells": []
   }
 }`;
@@ -185,7 +185,7 @@ describe("JsonProcessor Integration Tests", () => {
   "internalReferences": ["com.sun.j2ee.blueprints.creditcard.ejb.CreditCard"],
   "externalReferences": ["javax.ejb.EJBLocalObject"],
   "publicConstants": [],
-  "publicMethods": []
+  "publicFunctions": []
 }`;
 
       const result = processJson(
@@ -214,7 +214,7 @@ describe("JsonProcessor Integration Tests", () => {
   "externalReferences": ["javax.ejb.EJBLocalObject"],
   "eferences": [],
   "publicConstants": [],
-  "publicMethods": []
+  "publicFunctions": []
 }`;
 
       const result = processJson(

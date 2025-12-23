@@ -66,28 +66,28 @@ For files that interact with a database, you MUST extract and provide ALL of the
       - Otherwise, if the code does not use a database => mechanism: 'NONE'
 
 __Code Quality Metrics__
-Code Quality Analysis (REQUIRED for all code files and for all public methods)
-For each public method/function you identify, you MUST estimate and provide:
-  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+Code Quality Analysis (REQUIRED for all code files and for all public functions/methods)
+For each public function/method you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
   * linesOfCode: Count actual lines of code (exclude blank lines and comments)
   * codeSmells: Identify any of these common code smells present. Allowed labels:
-    - 'LONG METHOD' - method has > 50 lines of code
-    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'LONG METHOD' - function/method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - function/method has > 5 parameters
     - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
     - 'DUPLICATE CODE' - similar logic repeated in multiple places
     - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
     - 'DEEP NESTING' - more than 3-4 levels of nesting
     - 'DEAD CODE' - unreachable or commented-out code
-    - 'OTHER' - some other method-level smell
+    - 'OTHER' - some other function/method-level smell
 For file-level codeQualityMetrics, provide:
-  * totalMethods: Count of all methods in the file
-  * averageComplexity: Average of all method complexities
+  * totalFunctions: Count of all functions/methods in the file
+  * averageComplexity: Average of all function/method complexities
   * maxComplexity: Highest complexity score in the file
-  * averageMethodLength: Average lines of code per method
+  * averageFunctionLength: Average lines of code per function/method
   * fileSmells: File-level smells. Allowed labels:
-    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
-    - 'TOO MANY METHODS' - class has > 20 public methods
-    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'GOD CLASS' - class has > 20 functions/methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public functions/methods
+    - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
     - 'OTHER' - some other file-level smell.
@@ -174,7 +174,7 @@ The JSON response must follow this JSON schema:
       },
       "description": "A list of public constants defined."
     },
-    "publicMethods": {
+    "publicFunctions": {
       "type": "array",
       "items": {
         "type": "object",
@@ -182,12 +182,12 @@ The JSON response must follow this JSON schema:
           "name": {
             "type": "string",
             "default": "",
-            "description": "The name of the method/function."
+            "description": "The name of the function/method."
           },
           "purpose": {
             "type": "string",
             "default": "",
-            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+            "description": "Detailed purpose of the function/method and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
             "type": "array",
@@ -209,17 +209,17 @@ The JSON response must follow this JSON schema:
               ],
               "additionalProperties": true
             },
-            "description": "List parameters of the method/function."
+            "description": "List parameters of the function/method."
           },
           "returnType": {
             "type": "string",
             "default": "",
-            "description": "The return type of the method/function."
+            "description": "The return type of the function/method."
           },
           "description": {
             "type": "string",
             "default": "",
-            "description": "Detailed description of how the method/function is implementated."
+            "description": "Detailed description of how the function/method is implemented."
           },
           "cyclomaticComplexity": {
             "type": "number",
@@ -227,7 +227,7 @@ The JSON response must follow this JSON schema:
           },
           "linesOfCode": {
             "type": "number",
-            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+            "description": "Number of lines of code in this function/method (excluding comments and blank lines)"
           },
           "codeSmells": {
             "allOf": [
@@ -267,7 +267,7 @@ The JSON response must follow this JSON schema:
         },
         "additionalProperties": true
       },
-      "description": "A list of public methods/functions)."
+      "description": "A list of public functions/methods."
     },
     "databaseIntegration": {
       "type": "object",
@@ -560,9 +560,9 @@ The JSON response must follow this JSON schema:
     "codeQualityMetrics": {
       "type": "object",
       "properties": {
-        "totalMethods": {
+        "totalFunctions": {
           "type": "number",
-          "description": "Total number of methods in the file"
+          "description": "Total number of functions/methods in the file"
         },
         "averageComplexity": {
           "type": "number",
@@ -572,9 +572,9 @@ The JSON response must follow this JSON schema:
           "type": "number",
           "description": "Maximum cyclomatic complexity found"
         },
-        "averageMethodLength": {
+        "averageFunctionLength": {
           "type": "number",
-          "description": "Average lines of code per method"
+          "description": "Average lines of code per function/method"
         },
         "fileSmells": {
           "allOf": [
@@ -606,7 +606,7 @@ The JSON response must follow this JSON schema:
         }
       },
       "required": [
-        "totalMethods"
+        "totalFunctions"
       ],
       "additionalProperties": true,
       "description": "File-level code quality metrics and analysis"
@@ -1141,28 +1141,28 @@ For files that interact with a database, you MUST extract and provide ALL of the
     (note, JMS and JNDI are not related to interacting with a database)
 
 __Code Quality Metrics__
-Code Quality Analysis (REQUIRED for all code files and for all public methods)
-For each public method/function you identify, you MUST estimate and provide:
-  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+Code Quality Analysis (REQUIRED for all code files and for all public functions/methods)
+For each public function/method you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
   * linesOfCode: Count actual lines of code (exclude blank lines and comments)
   * codeSmells: Identify any of these common code smells present. Allowed labels:
-    - 'LONG METHOD' - method has > 50 lines of code
-    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'LONG METHOD' - function/method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - function/method has > 5 parameters
     - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
     - 'DUPLICATE CODE' - similar logic repeated in multiple places
     - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
     - 'DEEP NESTING' - more than 3-4 levels of nesting
     - 'DEAD CODE' - unreachable or commented-out code
-    - 'OTHER' - some other method-level smell
+    - 'OTHER' - some other function/method-level smell
 For file-level codeQualityMetrics, provide:
-  * totalMethods: Count of all methods in the file
-  * averageComplexity: Average of all method complexities
+  * totalFunctions: Count of all functions/methods in the file
+  * averageComplexity: Average of all function/method complexities
   * maxComplexity: Highest complexity score in the file
-  * averageMethodLength: Average lines of code per method
+  * averageFunctionLength: Average lines of code per function/method
   * fileSmells: File-level smells. Allowed labels:
-    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
-    - 'TOO MANY METHODS' - class has > 20 public methods
-    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'GOD CLASS' - class has > 20 functions/methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public functions/methods
+    - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
     - 'OTHER' - some other file-level smell.
@@ -1249,7 +1249,7 @@ The JSON response must follow this JSON schema:
       },
       "description": "A list of public constants defined."
     },
-    "publicMethods": {
+    "publicFunctions": {
       "type": "array",
       "items": {
         "type": "object",
@@ -1257,12 +1257,12 @@ The JSON response must follow this JSON schema:
           "name": {
             "type": "string",
             "default": "",
-            "description": "The name of the method/function."
+            "description": "The name of the function/method."
           },
           "purpose": {
             "type": "string",
             "default": "",
-            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+            "description": "Detailed purpose of the function/method and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
             "type": "array",
@@ -1284,17 +1284,17 @@ The JSON response must follow this JSON schema:
               ],
               "additionalProperties": true
             },
-            "description": "List parameters of the method/function."
+            "description": "List parameters of the function/method."
           },
           "returnType": {
             "type": "string",
             "default": "",
-            "description": "The return type of the method/function."
+            "description": "The return type of the function/method."
           },
           "description": {
             "type": "string",
             "default": "",
-            "description": "Detailed description of how the method/function is implementated."
+            "description": "Detailed description of how the function/method is implemented."
           },
           "cyclomaticComplexity": {
             "type": "number",
@@ -1302,7 +1302,7 @@ The JSON response must follow this JSON schema:
           },
           "linesOfCode": {
             "type": "number",
-            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+            "description": "Number of lines of code in this function/method (excluding comments and blank lines)"
           },
           "codeSmells": {
             "allOf": [
@@ -1342,7 +1342,7 @@ The JSON response must follow this JSON schema:
         },
         "additionalProperties": true
       },
-      "description": "A list of public methods/functions)."
+      "description": "A list of public functions/methods."
     },
     "databaseIntegration": {
       "type": "object",
@@ -1635,9 +1635,9 @@ The JSON response must follow this JSON schema:
     "codeQualityMetrics": {
       "type": "object",
       "properties": {
-        "totalMethods": {
+        "totalFunctions": {
           "type": "number",
-          "description": "Total number of methods in the file"
+          "description": "Total number of functions/methods in the file"
         },
         "averageComplexity": {
           "type": "number",
@@ -1647,9 +1647,9 @@ The JSON response must follow this JSON schema:
           "type": "number",
           "description": "Maximum cyclomatic complexity found"
         },
-        "averageMethodLength": {
+        "averageFunctionLength": {
           "type": "number",
-          "description": "Average lines of code per method"
+          "description": "Average lines of code per function/method"
         },
         "fileSmells": {
           "allOf": [
@@ -1681,7 +1681,7 @@ The JSON response must follow this JSON schema:
         }
       },
       "required": [
-        "totalMethods"
+        "totalFunctions"
       ],
       "additionalProperties": true,
       "description": "File-level code quality metrics and analysis"
@@ -1734,7 +1734,7 @@ __References and Dependencies__
 A list of the internal references to other modules used by this source file (by using \`require\` or \`import\` keywords) belonging to the same application referenced by the code in this source file (do not include external or 3rd party modules/libraries in the list of internal references)
 A list of the external references to other external modules/libraries used by this source file (by using \`require\` or \`import\` keywords), which do not belong to this same application that this source file is part of
 A list of any exported constants or configuration values defined in this file
-A list of any exported functions or procedures defined in this file
+A list of its public functions/methods (if any) - for each public function/method, include the function's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation
 
 __Integration Points__
 A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:
@@ -1799,28 +1799,28 @@ For files that interact with a database, you MUST extract and provide ALL of the
       - Otherwise, if the code does not use a database => mechanism: 'NONE'
 
 __Code Quality Metrics__
-Code Quality Analysis (REQUIRED for all code files and for all public methods)
-For each public method/function you identify, you MUST estimate and provide:
-  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+Code Quality Analysis (REQUIRED for all code files and for all public functions/methods)
+For each public function/method you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
   * linesOfCode: Count actual lines of code (exclude blank lines and comments)
   * codeSmells: Identify any of these common code smells present. Allowed labels:
-    - 'LONG METHOD' - method has > 50 lines of code
-    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'LONG METHOD' - function/method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - function/method has > 5 parameters
     - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
     - 'DUPLICATE CODE' - similar logic repeated in multiple places
     - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
     - 'DEEP NESTING' - more than 3-4 levels of nesting
     - 'DEAD CODE' - unreachable or commented-out code
-    - 'OTHER' - some other method-level smell
+    - 'OTHER' - some other function/method-level smell
 For file-level codeQualityMetrics, provide:
-  * totalMethods: Count of all methods in the file
-  * averageComplexity: Average of all method complexities
+  * totalFunctions: Count of all functions/methods in the file
+  * averageComplexity: Average of all function/method complexities
   * maxComplexity: Highest complexity score in the file
-  * averageMethodLength: Average lines of code per method
+  * averageFunctionLength: Average lines of code per function/method
   * fileSmells: File-level smells. Allowed labels:
-    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
-    - 'TOO MANY METHODS' - class has > 20 public methods
-    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'GOD CLASS' - class has > 20 functions/methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public functions/methods
+    - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
     - 'OTHER' - some other file-level smell.
@@ -1907,7 +1907,7 @@ The JSON response must follow this JSON schema:
       },
       "description": "A list of public constants defined."
     },
-    "publicMethods": {
+    "publicFunctions": {
       "type": "array",
       "items": {
         "type": "object",
@@ -1915,12 +1915,12 @@ The JSON response must follow this JSON schema:
           "name": {
             "type": "string",
             "default": "",
-            "description": "The name of the method/function."
+            "description": "The name of the function/method."
           },
           "purpose": {
             "type": "string",
             "default": "",
-            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+            "description": "Detailed purpose of the function/method and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
             "type": "array",
@@ -1942,17 +1942,17 @@ The JSON response must follow this JSON schema:
               ],
               "additionalProperties": true
             },
-            "description": "List parameters of the method/function."
+            "description": "List parameters of the function/method."
           },
           "returnType": {
             "type": "string",
             "default": "",
-            "description": "The return type of the method/function."
+            "description": "The return type of the function/method."
           },
           "description": {
             "type": "string",
             "default": "",
-            "description": "Detailed description of how the method/function is implementated."
+            "description": "Detailed description of how the function/method is implemented."
           },
           "cyclomaticComplexity": {
             "type": "number",
@@ -1960,7 +1960,7 @@ The JSON response must follow this JSON schema:
           },
           "linesOfCode": {
             "type": "number",
-            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+            "description": "Number of lines of code in this function/method (excluding comments and blank lines)"
           },
           "codeSmells": {
             "allOf": [
@@ -2000,7 +2000,7 @@ The JSON response must follow this JSON schema:
         },
         "additionalProperties": true
       },
-      "description": "A list of public methods/functions)."
+      "description": "A list of public functions/methods."
     },
     "databaseIntegration": {
       "type": "object",
@@ -2293,9 +2293,9 @@ The JSON response must follow this JSON schema:
     "codeQualityMetrics": {
       "type": "object",
       "properties": {
-        "totalMethods": {
+        "totalFunctions": {
           "type": "number",
-          "description": "Total number of methods in the file"
+          "description": "Total number of functions/methods in the file"
         },
         "averageComplexity": {
           "type": "number",
@@ -2305,9 +2305,9 @@ The JSON response must follow this JSON schema:
           "type": "number",
           "description": "Maximum cyclomatic complexity found"
         },
-        "averageMethodLength": {
+        "averageFunctionLength": {
           "type": "number",
-          "description": "Average lines of code per method"
+          "description": "Average lines of code per function/method"
         },
         "fileSmells": {
           "allOf": [
@@ -2339,7 +2339,7 @@ The JSON response must follow this JSON schema:
         }
       },
       "required": [
-        "totalMethods"
+        "totalFunctions"
       ],
       "additionalProperties": true,
       "description": "File-level code quality metrics and analysis"
@@ -2685,28 +2685,28 @@ For files that interact with a database, you MUST extract and provide ALL of the
       - Otherwise, if the code does not use a database => mechanism: 'NONE'
 
 __Code Quality Metrics__
-Code Quality Analysis (REQUIRED for all code files and for all public methods)
-For each public method/function you identify, you MUST estimate and provide:
-  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+Code Quality Analysis (REQUIRED for all code files and for all public functions/methods)
+For each public function/method you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
   * linesOfCode: Count actual lines of code (exclude blank lines and comments)
   * codeSmells: Identify any of these common code smells present. Allowed labels:
-    - 'LONG METHOD' - method has > 50 lines of code
-    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'LONG METHOD' - function/method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - function/method has > 5 parameters
     - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
     - 'DUPLICATE CODE' - similar logic repeated in multiple places
     - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
     - 'DEEP NESTING' - more than 3-4 levels of nesting
     - 'DEAD CODE' - unreachable or commented-out code
-    - 'OTHER' - some other method-level smell
+    - 'OTHER' - some other function/method-level smell
 For file-level codeQualityMetrics, provide:
-  * totalMethods: Count of all methods in the file
-  * averageComplexity: Average of all method complexities
+  * totalFunctions: Count of all functions/methods in the file
+  * averageComplexity: Average of all function/method complexities
   * maxComplexity: Highest complexity score in the file
-  * averageMethodLength: Average lines of code per method
+  * averageFunctionLength: Average lines of code per function/method
   * fileSmells: File-level smells. Allowed labels:
-    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
-    - 'TOO MANY METHODS' - class has > 20 public methods
-    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'GOD CLASS' - class has > 20 functions/methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public functions/methods
+    - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
     - 'OTHER' - some other file-level smell
@@ -2714,7 +2714,7 @@ Cyclomatic complexity (Python):
 - Start at 1; +1 for each if / elif / for / while / except / finally / with (when it controls resource flow) / comprehension 'for' / ternary / logical operator (and/or) in a condition / match case arm
 - +1 for each additional 'if' inside a comprehension
 For each public function/method capture: cyclomaticComplexity, linesOfCode, and codeSmells
-File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMethodLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY').
+File-level metrics: totalFunctions, averageComplexity, maxComplexity, averageFunctionLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY').
 
 The JSON response must follow this JSON schema:
 \`\`\`json
@@ -2798,7 +2798,7 @@ The JSON response must follow this JSON schema:
       },
       "description": "A list of public constants defined."
     },
-    "publicMethods": {
+    "publicFunctions": {
       "type": "array",
       "items": {
         "type": "object",
@@ -2806,12 +2806,12 @@ The JSON response must follow this JSON schema:
           "name": {
             "type": "string",
             "default": "",
-            "description": "The name of the method/function."
+            "description": "The name of the function/method."
           },
           "purpose": {
             "type": "string",
             "default": "",
-            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+            "description": "Detailed purpose of the function/method and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
             "type": "array",
@@ -2833,17 +2833,17 @@ The JSON response must follow this JSON schema:
               ],
               "additionalProperties": true
             },
-            "description": "List parameters of the method/function."
+            "description": "List parameters of the function/method."
           },
           "returnType": {
             "type": "string",
             "default": "",
-            "description": "The return type of the method/function."
+            "description": "The return type of the function/method."
           },
           "description": {
             "type": "string",
             "default": "",
-            "description": "Detailed description of how the method/function is implementated."
+            "description": "Detailed description of how the function/method is implemented."
           },
           "cyclomaticComplexity": {
             "type": "number",
@@ -2851,7 +2851,7 @@ The JSON response must follow this JSON schema:
           },
           "linesOfCode": {
             "type": "number",
-            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+            "description": "Number of lines of code in this function/method (excluding comments and blank lines)"
           },
           "codeSmells": {
             "allOf": [
@@ -2891,7 +2891,7 @@ The JSON response must follow this JSON schema:
         },
         "additionalProperties": true
       },
-      "description": "A list of public methods/functions)."
+      "description": "A list of public functions/methods."
     },
     "databaseIntegration": {
       "type": "object",
@@ -3184,9 +3184,9 @@ The JSON response must follow this JSON schema:
     "codeQualityMetrics": {
       "type": "object",
       "properties": {
-        "totalMethods": {
+        "totalFunctions": {
           "type": "number",
-          "description": "Total number of methods in the file"
+          "description": "Total number of functions/methods in the file"
         },
         "averageComplexity": {
           "type": "number",
@@ -3196,9 +3196,9 @@ The JSON response must follow this JSON schema:
           "type": "number",
           "description": "Maximum cyclomatic complexity found"
         },
-        "averageMethodLength": {
+        "averageFunctionLength": {
           "type": "number",
-          "description": "Average lines of code per method"
+          "description": "Average lines of code per function/method"
         },
         "fileSmells": {
           "allOf": [
@@ -3230,7 +3230,7 @@ The JSON response must follow this JSON schema:
         }
       },
       "required": [
-        "totalMethods"
+        "totalFunctions"
       ],
       "additionalProperties": true,
       "description": "File-level code quality metrics and analysis"
@@ -3284,7 +3284,7 @@ __References and Dependencies__
 A list of the internal references to other Ruby source files in the same project that this file depends on (only include paths required via require or require_relative that clearly belong to this same application; exclude Ruby standard library and external gem dependencies)
 A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)
 A list of public (non-internal) constants it defines (if any) – for each constant include its name, value (redact secrets), and a short type/role description
-A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals
+A list of its public functions/methods (if any) – for each function/method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals
 
 __Integration Points__
 A list of integration points this file defines or consumes – for each integration include: mechanism type, name, description, and relevant details. Look for:
@@ -3338,28 +3338,28 @@ For files that interact with a database, you MUST extract and provide ALL of the
       - Otherwise, if the code does not use a database => mechanism: 'NONE'
 
 __Code Quality Metrics__
-Code Quality Analysis (REQUIRED for all code files and for all public methods)
-For each public method/function you identify, you MUST estimate and provide:
-  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+Code Quality Analysis (REQUIRED for all code files and for all public functions/methods)
+For each public function/method you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
   * linesOfCode: Count actual lines of code (exclude blank lines and comments)
   * codeSmells: Identify any of these common code smells present. Allowed labels:
-    - 'LONG METHOD' - method has > 50 lines of code
-    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    - 'LONG METHOD' - function/method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - function/method has > 5 parameters
     - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
     - 'DUPLICATE CODE' - similar logic repeated in multiple places
     - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
     - 'DEEP NESTING' - more than 3-4 levels of nesting
     - 'DEAD CODE' - unreachable or commented-out code
-    - 'OTHER' - some other method-level smell
+    - 'OTHER' - some other function/method-level smell
 For file-level codeQualityMetrics, provide:
-  * totalMethods: Count of all methods in the file
-  * averageComplexity: Average of all method complexities
+  * totalFunctions: Count of all functions/methods in the file
+  * averageComplexity: Average of all function/method complexities
   * maxComplexity: Highest complexity score in the file
-  * averageMethodLength: Average lines of code per method
+  * averageFunctionLength: Average lines of code per function/method
   * fileSmells: File-level smells. Allowed labels:
-    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
-    - 'TOO MANY METHODS' - class has > 20 public methods
-    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'GOD CLASS' - class has > 20 functions/methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public functions/methods
+    - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
     - 'OTHER' - some other file-level smell.
@@ -3446,7 +3446,7 @@ The JSON response must follow this JSON schema:
       },
       "description": "A list of public constants defined."
     },
-    "publicMethods": {
+    "publicFunctions": {
       "type": "array",
       "items": {
         "type": "object",
@@ -3454,12 +3454,12 @@ The JSON response must follow this JSON schema:
           "name": {
             "type": "string",
             "default": "",
-            "description": "The name of the method/function."
+            "description": "The name of the function/method."
           },
           "purpose": {
             "type": "string",
             "default": "",
-            "description": "Detailed purpose of the method/function and what business logic decisions it makes (where relevant), in at least 5 sentences."
+            "description": "Detailed purpose of the function/method and what business logic decisions it makes (where relevant), in at least 5 sentences."
           },
           "parameters": {
             "type": "array",
@@ -3481,17 +3481,17 @@ The JSON response must follow this JSON schema:
               ],
               "additionalProperties": true
             },
-            "description": "List parameters of the method/function."
+            "description": "List parameters of the function/method."
           },
           "returnType": {
             "type": "string",
             "default": "",
-            "description": "The return type of the method/function."
+            "description": "The return type of the function/method."
           },
           "description": {
             "type": "string",
             "default": "",
-            "description": "Detailed description of how the method/function is implementated."
+            "description": "Detailed description of how the function/method is implemented."
           },
           "cyclomaticComplexity": {
             "type": "number",
@@ -3499,7 +3499,7 @@ The JSON response must follow this JSON schema:
           },
           "linesOfCode": {
             "type": "number",
-            "description": "Number of lines of code in this method (excluding comments and blank lines)"
+            "description": "Number of lines of code in this function/method (excluding comments and blank lines)"
           },
           "codeSmells": {
             "allOf": [
@@ -3539,7 +3539,7 @@ The JSON response must follow this JSON schema:
         },
         "additionalProperties": true
       },
-      "description": "A list of public methods/functions)."
+      "description": "A list of public functions/methods."
     },
     "databaseIntegration": {
       "type": "object",
@@ -3832,9 +3832,9 @@ The JSON response must follow this JSON schema:
     "codeQualityMetrics": {
       "type": "object",
       "properties": {
-        "totalMethods": {
+        "totalFunctions": {
           "type": "number",
-          "description": "Total number of methods in the file"
+          "description": "Total number of functions/methods in the file"
         },
         "averageComplexity": {
           "type": "number",
@@ -3844,9 +3844,9 @@ The JSON response must follow this JSON schema:
           "type": "number",
           "description": "Maximum cyclomatic complexity found"
         },
-        "averageMethodLength": {
+        "averageFunctionLength": {
           "type": "number",
-          "description": "Average lines of code per method"
+          "description": "Average lines of code per function/method"
         },
         "fileSmells": {
           "allOf": [
@@ -3878,7 +3878,7 @@ The JSON response must follow this JSON schema:
         }
       },
       "required": [
-        "totalMethods"
+        "totalFunctions"
       ],
       "additionalProperties": true,
       "description": "File-level code quality metrics and analysis"

@@ -24,7 +24,7 @@ describe("file-summarizer Type Safety", () => {
         internalReferences: ["com.example.other.Class"],
         externalReferences: ["java.util.List", "java.util.Map"],
         publicConstants: [{ name: "CONSTANT", value: "value", type: "String" }],
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             purpose: "Method purpose with sufficient detail for validation requirements.",
@@ -39,7 +39,7 @@ describe("file-summarizer Type Safety", () => {
         },
         integrationPoints: [],
         codeQualityMetrics: {
-          totalMethods: 5,
+          totalFunctions: 5,
           averageComplexity: 3.2,
           maxComplexity: 8,
         },
@@ -176,7 +176,7 @@ describe("file-summarizer Type Safety", () => {
       // Java schema should have these specific fields
       expect(shape).toHaveProperty("name");
       expect(shape).toHaveProperty("namespace");
-      expect(shape).toHaveProperty("publicMethods");
+      expect(shape).toHaveProperty("publicFunctions");
     });
 
     it("should use SQL schema for .sql files", async () => {

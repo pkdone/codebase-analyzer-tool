@@ -78,7 +78,7 @@ export class DatabaseInitializer {
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, "summary.publicMethods": 1 },
+        spec: { projectName: 1, "summary.publicFunctions": 1 },
       },
       {
         collection: this.sourcesCollection,
@@ -86,7 +86,7 @@ export class DatabaseInitializer {
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, "summary.publicMethods": 1 },
+        spec: { projectName: 1, "summary.publicFunctions": 1 },
       },
       {
         collection: this.sourcesCollection,

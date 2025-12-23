@@ -43,7 +43,7 @@ describe("file-summarizer Partial Types", () => {
         purpose: "Defines database schema with sufficient detail for validation.",
         implementation: "Creates tables and stored procedures with sufficient detail.",
         tables: [{ name: "users", fields: "id, name, email" }],
-        // Note: No 'name', 'namespace', 'publicMethods', etc. - only SQL fields
+        // Note: No 'name', 'namespace', 'publicFunctions', etc. - only SQL fields
       };
 
       const mockRouter = createMockLLMRouter(mockSQLResponse);
@@ -60,7 +60,7 @@ describe("file-summarizer Partial Types", () => {
       expect(result.tables).toBeDefined();
 
       // Fields not in the SQL schema should not be present
-      expect(result.publicMethods).toBeUndefined();
+      expect(result.publicFunctions).toBeUndefined();
       expect(result.namespace).toBeUndefined();
     });
 
@@ -81,7 +81,7 @@ describe("file-summarizer Partial Types", () => {
       // All other fields should be undefined
       expect(result.name).toBeUndefined();
       expect(result.namespace).toBeUndefined();
-      expect(result.publicMethods).toBeUndefined();
+      expect(result.publicFunctions).toBeUndefined();
       expect(result.tables).toBeUndefined();
     });
   });
@@ -91,7 +91,7 @@ describe("file-summarizer Partial Types", () => {
       const mockJSResponse: PartialSourceSummaryType = {
         purpose: "JavaScript module purpose with sufficient detail for validation.",
         implementation: "JavaScript implementation with sufficient detail for validation.",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testFunction",
             purpose: "Function purpose with sufficient detail for validation requirements.",
@@ -109,8 +109,8 @@ describe("file-summarizer Partial Types", () => {
         "function test() {}",
       );
 
-      expect(result.publicMethods).toBeDefined();
-      expect(Array.isArray(result.publicMethods)).toBe(true);
+      expect(result.publicFunctions).toBeDefined();
+      expect(Array.isArray(result.publicFunctions)).toBe(true);
     });
 
     it("should correctly handle Maven POM files with dependencies only", async () => {

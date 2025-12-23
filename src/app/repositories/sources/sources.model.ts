@@ -138,11 +138,11 @@ export interface ProjectedFileAndLineStats {
 }
 
 /**
- * Interface representing a top complex method projection
+ * Interface representing a top complex function/method projection
  */
-export interface ProjectedTopComplexMethod {
+export interface ProjectedTopComplexFunction {
   readonly [key: string]: unknown; // Allow passthrough to satisfy zod 'passthrough' expectation
-  readonly methodName: string;
+  readonly functionName: string;
   readonly filePath: string;
   readonly complexity: number;
   readonly linesOfCode: number;
@@ -164,12 +164,12 @@ export interface ProjectedCodeSmellStatistic {
  */
 export interface ProjectedCodeQualityStatistics {
   readonly [key: string]: unknown; // Passthrough compatibility
-  readonly totalMethods: number;
+  readonly totalFunctions: number;
   readonly averageComplexity: number;
   readonly highComplexityCount: number;
   readonly veryHighComplexityCount: number;
-  readonly averageMethodLength: number;
-  readonly longMethodCount: number;
+  readonly averageFunctionLength: number;
+  readonly longFunctionCount: number;
 }
 /**
  * Generate JSON schema for source file records

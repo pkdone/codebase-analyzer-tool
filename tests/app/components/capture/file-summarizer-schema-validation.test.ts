@@ -115,7 +115,7 @@ describe("File Summarizer - Schema Validation Improvements", () => {
           operationType: ["READ", "WRITE", "DDL"],
           codeExample: "@Repository interface UserRepository extends JpaRepository<User, Long> {}",
         },
-        publicMethods: [
+        publicFunctions: [
           {
             name: "findUserById",
             purpose:
@@ -138,8 +138,8 @@ describe("File Summarizer - Schema Validation Improvements", () => {
 
       expect(result).toEqual(responseWithNestedObjects);
       expect(result.databaseIntegration?.mechanism).toBe("JPA");
-      expect(result.publicMethods).toHaveLength(1);
-      expect(result.publicMethods?.[0].name).toBe("findUserById");
+      expect(result.publicFunctions).toHaveLength(1);
+      expect(result.publicFunctions?.[0].name).toBe("findUserById");
     });
 
     test("should accept response with partial nested object when not in picked schema", async () => {
@@ -224,7 +224,7 @@ describe("File Summarizer - Schema Validation Improvements", () => {
         kind: "CLASS",
         internalReferences: ["com.example.internal.Dependency"],
         externalReferences: ["org.springframework.stereotype.Component"],
-        publicMethods: [
+        publicFunctions: [
           {
             name: "execute",
             purpose: "Executes the main business logic with proper error handling and validation",
@@ -258,7 +258,7 @@ describe("File Summarizer - Schema Validation Improvements", () => {
       expect(result.implementation).toBeDefined();
       expect(result.name).toBe("CompleteClass");
       expect(result.namespace).toBe("com.example.CompleteClass");
-      expect(result.publicMethods).toHaveLength(1);
+      expect(result.publicFunctions).toHaveLength(1);
       expect(result.databaseIntegration?.mechanism).toBe("NONE");
     });
 
@@ -270,7 +270,7 @@ describe("File Summarizer - Schema Validation Improvements", () => {
         purpose: "Purpose text",
         implementation: "Implementation text",
         // Additional fields beyond the picked schema are accepted
-        publicMethods: [
+        publicFunctions: [
           {
             name: "validMethod",
             returnType: "void",

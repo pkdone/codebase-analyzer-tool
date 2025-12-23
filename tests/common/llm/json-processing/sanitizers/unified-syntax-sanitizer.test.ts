@@ -99,7 +99,7 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should fix unquoted property names in method objects", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       name: "insertDirectCampaignIntoSmsOutboundTable",
       purpose: "Processes a triggered SMS campaign",
@@ -640,7 +640,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("Block 6: Fix missing colons between property names and values", () => {
     it('should fix missing colon like "name" "value" -> "name": "value"', () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name" "repaymentDate",
       "type": "LocalDate"
@@ -673,7 +673,7 @@ describe("unifiedSyntaxSanitizer", () => {
   describe("Block 7: Fix missing opening quote after property name", () => {
     it('should fix missing opening quote like "name "value" -> "name": "value"', () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name "getMeetingIntervalFromFrequency",
       "purpose": "Test"
@@ -906,7 +906,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
 
     it("should fix unquoted property names in method objects", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       name: "insertDirectCampaignIntoSmsOutboundTable",
       purpose: "Processes a triggered SMS campaign",
@@ -928,7 +928,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
   describe("truncated property names (2-character)", () => {
     it("should fix 2-character truncated property name", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "getMobileNo",
       se": "This method provides read-only access to the client's mobile number.",
@@ -952,7 +952,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
 
     it("should fix other 2-character truncations", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       me": "testMethod",
       pu": "Test purpose",
@@ -975,7 +975,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
 
     it('should fix truncated property name without delimiter (e.g., },se":)', () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "linesOfCode": 1,
       "codeSmells": [],
@@ -1001,7 +1001,7 @@ se": "This method provides read-only access to the client's mobile number.",
   describe("property name typo corrections", () => {
     it("should fix nameprobably typo to name", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "name": "createDatatableEntry",
       "parameters": [
@@ -1027,7 +1027,7 @@ se": "This method provides read-only access to the client's mobile number.",
 
     it("should fix namelikely typo to name", () => {
       const input = `{
-  "publicMethods": [
+  "publicFunctions": [
     {
       "namelikely": "testMethod",
       "purpose": "Test purpose"
@@ -1066,14 +1066,14 @@ a  "publicConstants": []
       const input = `{
   "name": "TestClass",
   "purpose": "Test",
-b  "publicMethods": []
+b  "publicFunctions": []
 }`;
 
       const result = unifiedSyntaxSanitizer(input);
 
       expect(result.changed).toBe(true);
-      expect(result.content).toContain('"publicMethods": []');
-      expect(result.content).not.toContain('b  "publicMethods"');
+      expect(result.content).toContain('"publicFunctions": []');
+      expect(result.content).not.toContain('b  "publicFunctions"');
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });
@@ -1179,7 +1179,7 @@ b  "publicMethods": []
   "name": "TestClass",
   "purpose": "Test",
 AI-generated content. Review and use carefully. Content may be inaccurate.
-  "publicMethods": []
+  "publicFunctions": []
 }`;
 
       const result = unifiedSyntaxSanitizer(input);

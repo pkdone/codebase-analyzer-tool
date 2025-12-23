@@ -51,7 +51,7 @@ describe("sourceConfigMap.responseSchema", () => {
             "internalReferences",
             "externalReferences",
             "publicConstants",
-            "publicMethods",
+            "publicFunctions",
             "databaseIntegration",
             "integrationPoints",
             "codeQualityMetrics",
@@ -128,7 +128,7 @@ describe("sourceConfigMap.responseSchema", () => {
         internalReferences: ["com.example.other"],
         externalReferences: ["java.util.List"],
         publicConstants: [],
-        publicMethods: [],
+        publicFunctions: [],
         databaseIntegration: {
           mechanism: "JPA",
           description: "Uses JPA for persistence",
@@ -136,7 +136,7 @@ describe("sourceConfigMap.responseSchema", () => {
         },
         integrationPoints: [],
         codeQualityMetrics: {
-          totalMethods: 5,
+          totalFunctions: 5,
         },
       };
 

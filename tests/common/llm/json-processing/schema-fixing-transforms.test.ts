@@ -292,7 +292,7 @@ describe("Schema Fixing Transforms", () => {
       const response = JSON.stringify({
         name: "SavingsAccountHelper",
         kind: "CLASS",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "addChargesForSavings",
             parameters: [
@@ -318,7 +318,7 @@ describe("Schema Fixing Transforms", () => {
       const schema = z.object({
         name: z.string(),
         kind: z.string(),
-        publicMethods: z.array(
+        publicFunctions: z.array(
           z.object({
             name: z.string(),
             parameters: z.array(
@@ -340,7 +340,7 @@ describe("Schema Fixing Transforms", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        const methods = result.data.publicMethods as Record<string, unknown>[];
+        const methods = result.data.publicFunctions as Record<string, unknown>[];
         const method = methods[0];
         const parameters = method.parameters as Record<string, unknown>[];
         const param = parameters[1];
@@ -351,7 +351,7 @@ describe("Schema Fixing Transforms", () => {
 
     it("fixes type_ to type in nested parameter objects", () => {
       const response = JSON.stringify({
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             parameters: [
@@ -369,7 +369,7 @@ describe("Schema Fixing Transforms", () => {
       });
 
       const schema = z.object({
-        publicMethods: z.array(
+        publicFunctions: z.array(
           z.object({
             name: z.string(),
             parameters: z.array(
@@ -390,7 +390,7 @@ describe("Schema Fixing Transforms", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        const methods = result.data.publicMethods as Record<string, unknown>[];
+        const methods = result.data.publicFunctions as Record<string, unknown>[];
         const method = methods[0];
         const parameters = method.parameters as Record<string, unknown>[];
         expect(parameters[0].type).toBe("String");
@@ -401,7 +401,7 @@ describe("Schema Fixing Transforms", () => {
 
     it("fixes name_ to name in parameter objects", () => {
       const response = JSON.stringify({
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             parameters: [
@@ -415,7 +415,7 @@ describe("Schema Fixing Transforms", () => {
       });
 
       const schema = z.object({
-        publicMethods: z.array(
+        publicFunctions: z.array(
           z.object({
             name: z.string(),
             parameters: z.array(
@@ -436,7 +436,7 @@ describe("Schema Fixing Transforms", () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        const methods = result.data.publicMethods as Record<string, unknown>[];
+        const methods = result.data.publicFunctions as Record<string, unknown>[];
         const method = methods[0];
         const parameters = method.parameters as Record<string, unknown>[];
         expect(parameters[0].name).toBe("param1");
@@ -639,7 +639,7 @@ describe("Schema Fixing Transforms", () => {
     it("should convert string parameters field to empty array", () => {
       const response = JSON.stringify({
         name: "TestClass",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "basicLoanDetails",
             parameters:
@@ -658,7 +658,7 @@ describe("Schema Fixing Transforms", () => {
       // Schema expects parameters to be array, not string (will fail validation initially, triggering transform)
       const schema = z.object({
         name: z.string(),
-        publicMethods: z.array(
+        publicFunctions: z.array(
           z.object({
             name: z.string(),
             parameters: z.array(z.unknown()),
@@ -681,17 +681,17 @@ describe("Schema Fixing Transforms", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         const data = result.data;
-        expect(Array.isArray(data.publicMethods[0].parameters)).toBe(true);
-        expect(data.publicMethods[0].parameters).toEqual([]);
-        expect(Array.isArray(data.publicMethods[1].parameters)).toBe(true);
-        expect(data.publicMethods[1].parameters).toEqual([]);
+        expect(Array.isArray(data.publicFunctions[0].parameters)).toBe(true);
+        expect(data.publicFunctions[0].parameters).toEqual([]);
+        expect(Array.isArray(data.publicFunctions[1].parameters)).toBe(true);
+        expect(data.publicFunctions[1].parameters).toEqual([]);
       }
     });
 
     it("should leave array parameters unchanged", () => {
       const response = JSON.stringify({
         name: "TestClass",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             parameters: [
@@ -712,16 +712,16 @@ describe("Schema Fixing Transforms", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         const data = result.data;
-        expect(Array.isArray(data.publicMethods[0].parameters)).toBe(true);
-        expect(data.publicMethods[0].parameters).toHaveLength(2);
-        expect(data.publicMethods[0].parameters[0].name).toBe("param1");
+        expect(Array.isArray(data.publicFunctions[0].parameters)).toBe(true);
+        expect(data.publicFunctions[0].parameters).toHaveLength(2);
+        expect(data.publicFunctions[0].parameters[0].name).toBe("param1");
       }
     });
 
     it("should handle methods without parameters field", () => {
       const response = JSON.stringify({
         name: "TestClass",
-        publicMethods: [
+        publicFunctions: [
           {
             name: "testMethod",
             returnType: "void",
@@ -738,7 +738,7 @@ describe("Schema Fixing Transforms", () => {
       expect(result.success).toBe(true);
       if (result.success) {
         const data = result.data;
-        expect("parameters" in data.publicMethods[0]).toBe(false);
+        expect("parameters" in data.publicFunctions[0]).toBe(false);
       }
     });
   });

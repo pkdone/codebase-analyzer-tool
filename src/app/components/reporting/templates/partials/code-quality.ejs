@@ -15,9 +15,9 @@
   </thead>
   <tbody>
     <tr>
-      <td>Total Methods Analyzed</td>
-      <td class="numeric"><%= codeQualitySummary.overallStatistics.totalMethods %></td>
-      <td>Total number of methods analyzed across the codebase</td>
+      <td>Total Functions/Methods Analyzed</td>
+      <td class="numeric"><%= codeQualitySummary.overallStatistics.totalFunctions %></td>
+      <td>Total number of functions/methods analyzed across the codebase</td>
     </tr>
     <tr>
       <td>Average Complexity</td>
@@ -25,34 +25,34 @@
       <td>Average cyclomatic complexity (1-10: simple, 11-20: moderate, >20: complex)</td>
     </tr>
     <tr>
-      <td>High Complexity Methods</td>
+      <td>High Complexity Functions/Methods</td>
       <td class="numeric"><%= codeQualitySummary.overallStatistics.highComplexityCount %></td>
-      <td>Methods with complexity > 10 (candidate for refactoring)</td>
+      <td>Functions/methods with complexity > 10 (candidate for refactoring)</td>
     </tr>
     <tr>
       <td>Very High Complexity</td>
       <td class="numeric"><%= codeQualitySummary.overallStatistics.veryHighComplexityCount %></td>
-      <td>Methods with complexity > 20 (high priority for refactoring)</td>
+      <td>Functions/methods with complexity > 20 (high priority for refactoring)</td>
     </tr>
     <tr>
-      <td>Average Method Length</td>
-      <td class="numeric"><%= codeQualitySummary.overallStatistics.averageMethodLength %> LOC</td>
-      <td>Average lines of code per method</td>
+      <td>Average Function/Method Length</td>
+      <td class="numeric"><%= codeQualitySummary.overallStatistics.averageFunctionLength %> LOC</td>
+      <td>Average lines of code per function/method</td>
     </tr>
     <tr>
-      <td>Long Methods</td>
-      <td class="numeric"><%= codeQualitySummary.overallStatistics.longMethodCount %></td>
-      <td>Methods with > 50 lines of code</td>
+      <td>Long Functions/Methods</td>
+      <td class="numeric"><%= codeQualitySummary.overallStatistics.longFunctionCount %></td>
+      <td>Functions/methods with > 50 lines of code</td>
     </tr>
   </tbody>
 </table>
 
-<h3>Top 10 Most Complex Methods</h3>
-<p>These methods have the highest cyclomatic complexity and should be prioritized for refactoring.</p>
+<h3>Top 10 Most Complex Functions/Methods</h3>
+<p>These functions/methods have the highest cyclomatic complexity and should be prioritized for refactoring.</p>
 <table>
   <thead>
     <tr>
-      <th class="col-wide">Method Name</th>
+      <th class="col-wide">Function/Method Name</th>
       <th class="col-medium">File Path</th>
       <th class="col-small numeric">Complexity</th>
       <th class="col-small numeric">Lines</th>
@@ -60,16 +60,16 @@
     </tr>
   </thead>
   <tbody>
-    <% codeQualitySummary.topComplexMethods.forEach(method => { %>
+    <% codeQualitySummary.topComplexFunctions.forEach(func => { %>
     <tr>
-      <td><code><%= method.methodName %></code></td>
-      <td><code><%= method.filePath %></code></td>
-      <td class="numeric"><%= method.complexity %></td>
-      <td class="numeric"><%= method.linesOfCode %></td>
+      <td><code><%= func.functionName %></code></td>
+      <td><code><%= func.filePath %></code></td>
+      <td class="numeric"><%= func.complexity %></td>
+      <td class="numeric"><%= func.linesOfCode %></td>
       <td>
-        <% if (method.codeSmells && method.codeSmells.length > 0) { %>
+        <% if (func.codeSmells && func.codeSmells.length > 0) { %>
           <ul>
-            <% method.codeSmells.forEach(smell => { %>
+            <% func.codeSmells.forEach(smell => { %>
               <li><%= smell %></li>
             <% }); %>
           </ul>

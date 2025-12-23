@@ -15,7 +15,7 @@ describe("Python prompt metadata schema", () => {
       internalReferences: true,
       externalReferences: true,
       publicConstants: true,
-      publicMethods: true,
+      publicFunctions: true,
       databaseIntegration: true,
       integrationPoints: true,
       codeQualityMetrics: true,

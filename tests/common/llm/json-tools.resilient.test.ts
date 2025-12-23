@@ -119,7 +119,7 @@ describe("json-tools resilient parsing", () => {
   it("parses realistic large-ish response subset", () => {
     const large = `{
       "purpose": "This class is a JUnit 5 test suite designed to verify the functionality",
-      "publicMethods": [
+      "publicFunctions": [
         { "name": "testCreateNewDataSourceFor_ShouldUseNormalConfiguration_WhenInAllMode" }
       ]
     }`;
@@ -130,7 +130,7 @@ describe("json-tools resilient parsing", () => {
     );
     expect(result.success).toBe(true);
     if (result.success) {
-      expect((result.data as any).publicMethods[0].name).toContain("UseNormalConfiguration");
+      expect((result.data as any).publicFunctions[0].name).toContain("UseNormalConfiguration");
     }
   });
 

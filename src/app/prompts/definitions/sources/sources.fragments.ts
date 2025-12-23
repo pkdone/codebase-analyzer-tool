@@ -52,28 +52,29 @@ export const SOURCES_PROMPT_FRAGMENTS = {
   },
 
   CODE_QUALITY: {
-    INTRO: "Code Quality Analysis (REQUIRED for all code files and for all public methods)",
-    METHOD_METRICS: `For each public method/function you identify, you MUST estimate and provide:
-  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple method with no branches = 1. Add 1 for each decision point.
+    INTRO:
+      "Code Quality Analysis (REQUIRED for all code files and for all public functions/methods)",
+    FUNCTION_METRICS: `For each public function/method you identify, you MUST estimate and provide:
+  * cyclomaticComplexity: Estimate the cyclomatic complexity by counting decision points (if, else, for, while, case, catch, &&, ||, ?:). A simple function with no branches = 1. Add 1 for each decision point.
   * linesOfCode: Count actual lines of code (exclude blank lines and comments)
   * codeSmells: Identify any of these common code smells present. Allowed labels:`,
-    METHOD_SMELLS: `    - 'LONG METHOD' - method has > 50 lines of code
-    - 'LONG PARAMETER LIST' - method has > 5 parameters
+    FUNCTION_SMELLS: `    - 'LONG METHOD' - function/method has > 50 lines of code
+    - 'LONG PARAMETER LIST' - function/method has > 5 parameters
     - 'COMPLEX CONDITIONAL' - deeply nested if/else or complex boolean expressions
     - 'DUPLICATE CODE' - similar logic repeated in multiple places
     - 'MAGIC NUMBERS' - hardcoded numeric values without explanation
     - 'DEEP NESTING' - more than 3-4 levels of nesting
     - 'DEAD CODE' - unreachable or commented-out code
-    - 'OTHER' - some other method-level smell`,
+    - 'OTHER' - some other function/method-level smell`,
     FILE_METRICS: `For file-level codeQualityMetrics, provide:
-  * totalMethods: Count of all methods in the file
-  * averageComplexity: Average of all method complexities
+  * totalFunctions: Count of all functions/methods in the file
+  * averageComplexity: Average of all function/method complexities
   * maxComplexity: Highest complexity score in the file
-  * averageMethodLength: Average lines of code per method
+  * averageFunctionLength: Average lines of code per function/method
   * fileSmells: File-level smells. Allowed labels:
-    - 'GOD CLASS' - class has > 20 methods or > 500 lines of code
-    - 'TOO MANY METHODS' - class has > 20 public methods
-    - 'FEATURE ENVY' - methods heavily use data from other classes
+    - 'GOD CLASS' - class has > 20 functions/methods or > 500 lines of code
+    - 'TOO MANY METHODS' - class has > 20 public functions/methods
+    - 'FEATURE ENVY' - functions/methods heavily use data from other classes
     - 'DATA CLASS' - class only contains fields and getters/setters
     - 'LARGE FILE' - class file exceeds 500 lines of code
     - 'OTHER' - some other file-level smell`,
@@ -183,7 +184,8 @@ export const SOURCES_PROMPT_FRAGMENTS = {
       "A list of the external references to other external modules/libraries used by this source file (by using `require` or `import` keywords), which do not belong to this same application that this source file is part of",
     PUBLIC_CONSTANTS:
       "A list of any exported constants or configuration values defined in this file",
-    PUBLIC_FUNCTIONS: "A list of any exported functions or procedures defined in this file",
+    PUBLIC_FUNCTIONS:
+      "A list of its public functions/methods (if any) - for each public function/method, include the function's name, its purpose in detail, a list of its parameters, its return type and a very detailed description of its implementation",
     INTEGRATION_INSTRUCTIONS: `  * REST APIs (mechanism: 'REST'):
     - Express route definitions (app.get, app.post, app.put, app.delete, router.use)
     - Fastify route definitions (fastify.get, fastify.post, etc.)
@@ -305,7 +307,7 @@ export const SOURCES_PROMPT_FRAGMENTS = {
 - Start at 1; +1 for each if / elif / for / while / except / finally / with (when it controls resource flow) / comprehension 'for' / ternary / logical operator (and/or) in a condition / match case arm
 - +1 for each additional 'if' inside a comprehension
 For each public function/method capture: cyclomaticComplexity, linesOfCode, and codeSmells
-File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMethodLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY')`,
+File-level metrics: totalFunctions, averageComplexity, maxComplexity, averageFunctionLength, fileSmells (e.g. 'LARGE FILE', 'TOO MANY METHODS', 'GOD CLASS', 'FEATURE ENVY')`,
   },
 
   RUBY_SPECIFIC: {
@@ -315,8 +317,8 @@ File-level metrics: totalMethods, averageComplexity, maxComplexity, averageMetho
       "A list of the external references to gem / third-party libraries it depends on (as required via require / require_relative) that are NOT part of this application's own code (exclude Ruby standard library modules)",
     PUBLIC_CONSTANTS:
       "A list of public (non-internal) constants it defines (if any) – for each constant include its name, value (redact secrets), and a short type/role description",
-    PUBLIC_METHODS:
-      "A list of its public methods (if any) – for each method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals",
+    PUBLIC_FUNCTIONS:
+      "A list of its public functions/methods (if any) – for each function/method include: name, purpose (in detail), its parameters (with names), what it returns (describe the value; Ruby is dynamically typed so describe the shape / meaning), and a very detailed description of how it is implemented / key logic / important guards or conditionals",
     KIND_OVERRIDE: "Its kind ('class', 'module', or 'enum')",
     INTEGRATION_INSTRUCTIONS: `  * REST APIs (mechanism: 'REST'):
     - Rails controller actions (routes.rb get/post/put/delete/patch, controller action methods)
@@ -521,8 +523,8 @@ export const COMPOSITES = {
   /** Pre-composed code quality analysis instructions including metrics and code smells */
   CODE_QUALITY: [
     SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.INTRO,
-    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_METRICS,
-    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.METHOD_SMELLS,
+    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FUNCTION_METRICS,
+    SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FUNCTION_SMELLS,
     SOURCES_PROMPT_FRAGMENTS.CODE_QUALITY.FILE_METRICS,
   ] as const,
 

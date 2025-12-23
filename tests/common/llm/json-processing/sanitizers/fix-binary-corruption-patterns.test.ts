@@ -60,7 +60,7 @@ describe("fixBinaryCorruptionPatterns", () => {
 
   describe("stray text before opening braces", () => {
     it("should not handle stray text before braces (moved to removeInvalidPrefixes)", () => {
-      const input = `  "publicMethods": [
+      const input = `  "publicFunctions": [
     {
       "name": "test"
     },
@@ -80,7 +80,7 @@ describe("fixBinaryCorruptionPatterns", () => {
 
   describe("combined scenarios", () => {
     it("should fix binary corruption markers only", () => {
-      const input = `  "publicMethods": [
+      const input = `  "publicFunctions": [
     {
       "cyclomaticComplexity": 1,
       <y_bin_305>OfCode": 1,
@@ -154,7 +154,7 @@ describe("fixBinaryCorruptionPatterns", () => {
     });
 
     it("should not handle stray text before braces (moved to removeInvalidPrefixes)", () => {
-      const input = `  "publicMethods": [
+      const input = `  "publicFunctions": [
     {
       "name": "test1"
     },
