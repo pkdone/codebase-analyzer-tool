@@ -66,7 +66,7 @@ export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
       buildInstructionBlock(
         "Instructions",
         `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of Domain-Driven Design Bounded Contexts that define explicit boundaries around related business capabilities. For each bounded context, include:
-1. One or more aggregates that enforce business rules and maintain consistency
+1. Its aggregates that enforce business rules and maintain consistency
 2. For each aggregate, include:
    - A repository that provides persistence for that aggregate
    - The domain entities it manages with their descriptions and relationships

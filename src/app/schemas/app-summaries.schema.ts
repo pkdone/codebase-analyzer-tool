@@ -188,7 +188,7 @@ export const boundedContextsSchema = z
     boundedContexts: z
       .array(hierarchicalBoundedContextSchema)
       .describe(
-        "A list of domain-driven design Bounded Contexts, each containing its aggregates with their repositories and entities in a hierarchical structure.",
+        "A list of domain-driven design Bounded Contexts, where each Bounded Context contains its aggregates, with each aggregate holding it repository and entities, in a hierarchical structure.",
       ),
   })
   .passthrough();
