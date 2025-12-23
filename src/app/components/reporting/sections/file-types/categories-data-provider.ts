@@ -31,9 +31,10 @@ export class AppSummaryCategoriesProvider {
   getStandardSectionData(
     appSummaryData: Pick<AppSummaryRecordWithId, AppSummaryCategoryType>,
   ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
-    // Exclude appDescription & boundedContexts which have decicated visualizations
+    // Exclude appDescription which is rendered separately in the overview section
+    // Note: boundedContexts is included here because the DomainModelDataProvider needs it
     const standardCategoryKeys = AppSummaryCategories.options.filter(
-      (key): key is AppSummaryCategoryType => key !== "appDescription" && key !== "boundedContexts",
+      (key): key is AppSummaryCategoryType => key !== "appDescription",
     );
     return standardCategoryKeys.map((category: AppSummaryCategoryType) => {
       const config = promptRegistry.appSummaries[category];

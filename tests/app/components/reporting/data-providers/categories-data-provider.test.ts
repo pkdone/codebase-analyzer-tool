@@ -12,7 +12,7 @@ describe("AppSummaryCategoriesProvider", () => {
   });
 
   describe("getStandardSectionData", () => {
-    it("should return categorized data for all valid categories excluding appDescription and boundedContexts", () => {
+    it("should return categorized data for all valid categories excluding appDescription", () => {
       // Arrange
       const mockAppSummaryData: Partial<AppSummaryRecordWithId> = {
         technologies: [
@@ -56,18 +56,19 @@ describe("AppSummaryCategoriesProvider", () => {
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
-      // Assert - should include technologies, businessProcesses, potentialMicroservices
-      // but NOT appDescription or boundedContexts (which has dedicated visualization)
-      expect(result).toHaveLength(3);
+      // Assert - should include technologies, businessProcesses, boundedContexts, potentialMicroservices
+      // but NOT appDescription (which is rendered separately in the overview section)
+      expect(result).toHaveLength(4);
 
-      // Verify that categories with custom sections are not included
+      // Verify that appDescription is not included (it has a dedicated section)
       const categoryNames = result.map((r) => r.category);
       expect(categoryNames).not.toContain("appDescription");
-      expect(categoryNames).not.toContain("boundedContexts"); // Has dedicated domain model visualization
 
       // Verify that all standard categories are included
+      // boundedContexts is included because DomainModelDataProvider needs it
       expect(categoryNames).toContain("technologies");
       expect(categoryNames).toContain("businessProcesses");
+      expect(categoryNames).toContain("boundedContexts");
       expect(categoryNames).toContain("potentialMicroservices");
     });
 
@@ -160,7 +161,7 @@ describe("AppSummaryCategoriesProvider", () => {
       });
     });
 
-    it("should correctly filter out appDescription and boundedContexts from categories", () => {
+    it("should correctly filter out only appDescription from categories", () => {
       // Arrange - Verify the enum contains appDescription and boundedContexts
       const allCategories = AppSummaryCategories.options;
       expect(allCategories).toContain("appDescription");
@@ -178,12 +179,13 @@ describe("AppSummaryCategoriesProvider", () => {
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
-      // Assert - appDescription and boundedContexts should not be in results
+      // Assert - only appDescription should not be in results (it has a dedicated overview section)
+      // boundedContexts IS included because DomainModelDataProvider needs it
       const categoryNames = result.map((r) => r.category);
       expect(categoryNames).not.toContain("appDescription");
-      expect(categoryNames).not.toContain("boundedContexts");
-      // Should have all categories minus appDescription and boundedContexts
-      expect(result.length).toBe(allCategories.length - 2);
+      expect(categoryNames).toContain("boundedContexts");
+      // Should have all categories minus appDescription only
+      expect(result.length).toBe(allCategories.length - 1);
     });
 
     it("should not include aggregates, entities, or repositories as separate categories", () => {
