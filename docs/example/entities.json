@@ -1,91 +1,42 @@
 [
   {
     "name": "ShoppingCart",
-    "description": "The ShoppingCart entity represents a user's shopping cart in an e-commerce application. It encapsulates the logic for managing items in the cart, including adding, updating, and removing items. The entity also calculates the subtotal and total item count, which are essential for checkout processes. It interacts with other components, such as the catalog, to retrieve item details and ensure data consistency. Additionally, it supports localization by allowing the cart to adapt to different regional settings, enhancing the user experience.",
-    "relatedEntities": [
-      "CartItem",
-      "Catalog",
-      "Customer"
-    ]
+    "description": "The ShoppingCart entity represents a user's shopping cart in an e-commerce application. It encapsulates the logic for managing items in the cart, including adding, updating, and removing items. The entity also calculates the subtotal and total item count, which are essential for checkout processes. It interacts with other components, such as the catalog, to retrieve item details and ensure data consistency. Additionally, it supports localization by allowing the cart to adapt to different regional settings, enhancing the user experience."
   },
   {
     "name": "PurchaseOrder",
-    "description": "The PurchaseOrder entity represents an order placed by a user in the application. It encapsulates details such as user information, shipping and billing addresses, line items, and payment details. The entity provides methods to manage the lifecycle of an order, including creation, modification, and retrieval. It also integrates with other components, such as inventory and supplier systems, to ensure order fulfillment. Additionally, it supports XML serialization and deserialization, enabling seamless integration with external systems.",
-    "relatedEntities": [
-      "LineItem",
-      "Customer",
-      "Inventory",
-      "SupplierOrder"
-    ]
+    "description": "The PurchaseOrder entity represents an order placed by a user in the application. It encapsulates details such as user information, shipping and billing addresses, line items, and payment details. The entity provides methods to manage the lifecycle of an order, including creation, modification, and retrieval. It also integrates with other components, such as inventory and supplier systems, to ensure order fulfillment. Additionally, it supports XML serialization and deserialization, enabling seamless integration with external systems."
   },
   {
     "name": "Customer",
-    "description": "The Customer entity represents a user in the application, encapsulating their account, profile, and contact information. It provides methods to manage customer data, such as creating and updating accounts, retrieving profile preferences, and handling authentication. The entity integrates with other components, such as the shopping cart and order system, to provide a personalized user experience. Additionally, it supports container-managed relationships to link related entities like credit card and address details. This design ensures modularity and reusability in managing customer data.",
-    "relatedEntities": [
-      "Account",
-      "Profile",
-      "ContactInfo",
-      "CreditCard"
-    ]
+    "description": "The Customer entity represents a user in the application, encapsulating their account, profile, and contact information. It provides methods to manage customer data, such as creating and updating accounts, retrieving profile preferences, and handling authentication. The entity integrates with other components, such as the shopping cart and order system, to provide a personalized user experience. Additionally, it supports container-managed relationships to link related entities like credit card and address details. This design ensures modularity and reusability in managing customer data."
   },
   {
     "name": "Inventory",
-    "description": "The Inventory entity represents the stock of items available in the supplier system. It manages the state and behavior of inventory items, including their unique identifiers and quantities. The entity provides methods to update inventory levels, such as reducing quantities when items are sold. It integrates with other components, such as order fulfillment and supplier systems, to ensure accurate stock management. Additionally, it supports container-managed persistence, allowing the EJB container to handle database interactions seamlessly.",
-    "relatedEntities": [
-      "SupplierOrder",
-      "PurchaseOrder"
-    ]
+    "description": "The Inventory entity represents the stock of items available in the supplier system. It manages the state and behavior of inventory items, including their unique identifiers and quantities. The entity provides methods to update inventory levels, such as reducing quantities when items are sold. It integrates with other components, such as order fulfillment and supplier systems, to ensure accurate stock management. Additionally, it supports container-managed persistence, allowing the EJB container to handle database interactions seamlessly."
   },
   {
     "name": "LineItem",
-    "description": "The LineItem entity represents an individual item within an order or transaction. It encapsulates details such as the product ID, quantity, unit price, and total cost. The entity provides methods to calculate the total cost based on the quantity and unit price, ensuring accurate order summaries. It integrates with other components, such as the purchase order and inventory systems, to maintain consistency. Additionally, it supports XML serialization and deserialization, enabling structured data exchange with external systems.",
-    "relatedEntities": [
-      "PurchaseOrder",
-      "Inventory",
-      "Product"
-    ]
+    "description": "The LineItem entity represents an individual item within an order or transaction. It encapsulates details such as the product ID, quantity, unit price, and total cost. The entity provides methods to calculate the total cost based on the quantity and unit price, ensuring accurate order summaries. It integrates with other components, such as the purchase order and inventory systems, to maintain consistency. Additionally, it supports XML serialization and deserialization, enabling structured data exchange with external systems."
   },
   {
     "name": "Profile",
-    "description": "The Profile entity represents a user's preferences and settings within the application. It encapsulates details such as preferred language, favorite categories, and display preferences. The entity provides methods to retrieve and update these preferences, ensuring a personalized user experience. It integrates with other components, such as the customer and shopping cart systems, to apply user-specific configurations. Additionally, it supports container-managed persistence, allowing the EJB container to handle database interactions efficiently.",
-    "relatedEntities": [
-      "Customer",
-      "ShoppingCart"
-    ]
+    "description": "The Profile entity represents a user's preferences and settings within the application. It encapsulates details such as preferred language, favorite categories, and display preferences. The entity provides methods to retrieve and update these preferences, ensuring a personalized user experience. It integrates with other components, such as the customer and shopping cart systems, to apply user-specific configurations. Additionally, it supports container-managed persistence, allowing the EJB container to handle database interactions efficiently."
   },
   {
     "name": "SupplierOrder",
-    "description": "The SupplierOrder entity represents an order sent to a supplier for fulfillment. It encapsulates details such as order ID, order date, shipping information, and line items. The entity provides methods to manage the lifecycle of supplier orders, including creation, modification, and retrieval. It integrates with other components, such as inventory and purchase order systems, to ensure seamless order processing. Additionally, it supports XML serialization and deserialization, enabling structured data exchange with external systems.",
-    "relatedEntities": [
-      "PurchaseOrder",
-      "Inventory",
-      "LineItem"
-    ]
+    "description": "The SupplierOrder entity represents an order sent to a supplier for fulfillment. It encapsulates details such as order ID, order date, shipping information, and line items. The entity provides methods to manage the lifecycle of supplier orders, including creation, modification, and retrieval. It integrates with other components, such as inventory and purchase order systems, to ensure seamless order processing. Additionally, it supports XML serialization and deserialization, enabling structured data exchange with external systems."
   },
   {
     "name": "Account",
-    "description": "The Account entity represents a user's account in the application, managing their status, contact information, and associated credit card details. It provides methods to create, update, and retrieve account data, ensuring proper integration with the underlying database. The entity also supports container-managed relationships to link related entities, such as contact information and credit card details. This design ensures modularity and reusability in managing user accounts within the application.",
-    "relatedEntities": [
-      "Customer",
-      "ContactInfo",
-      "CreditCard"
-    ]
+    "description": "The Account entity represents a user's account in the application, managing their status, contact information, and associated credit card details. It provides methods to create, update, and retrieve account data, ensuring proper integration with the underlying database. The entity also supports container-managed relationships to link related entities, such as contact information and credit card details. This design ensures modularity and reusability in managing user accounts within the application."
   },
   {
     "name": "CreditCard",
-    "description": "The CreditCard entity represents a user's payment method in the application. It encapsulates details such as card number, expiry date, and card type. The entity provides methods to manage credit card data, including creation, retrieval, and validation. It integrates with other components, such as the account and purchase order systems, to facilitate secure transactions. Additionally, it supports XML serialization and deserialization, enabling structured data exchange with external systems.",
-    "relatedEntities": [
-      "Account",
-      "PurchaseOrder"
-    ]
+    "description": "The CreditCard entity represents a user's payment method in the application. It encapsulates details such as card number, expiry date, and card type. The entity provides methods to manage credit card data, including creation, retrieval, and validation. It integrates with other components, such as the account and purchase order systems, to facilitate secure transactions. Additionally, it supports XML serialization and deserialization, enabling structured data exchange with external systems."
   },
   {
     "name": "ContactInfo",
-    "description": "The ContactInfo entity represents a user's contact details, including their name, address, email, and phone number. It provides methods to manage and retrieve contact information, ensuring data consistency across the application. The entity integrates with other components, such as the account and customer systems, to provide a unified view of user data. Additionally, it supports XML serialization and deserialization, enabling structured data exchange with external systems.",
-    "relatedEntities": [
-      "Account",
-      "Customer",
-      "Address"
-    ]
+    "description": "The ContactInfo entity represents a user's contact details, including their name, address, email, and phone number. It provides methods to manage and retrieve contact information, ensuring data consistency across the application. The entity integrates with other components, such as the account and customer systems, to provide a unified view of user data. Additionally, it supports XML serialization and deserialization, enabling structured data exchange with external systems."
   }
 ]

@@ -119,12 +119,6 @@ export const nestedEntitySchema = z
       .describe(
         "A detailed description of the entity and its business purpose in at least 3 sentences.",
       ),
-    relatedEntities: z
-      .array(z.string())
-      .describe(
-        "A list of names of other entities within the same bounded context that this entity relates to.",
-      )
-      .optional(),
   })
   .passthrough();
 

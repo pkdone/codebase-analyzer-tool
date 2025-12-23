@@ -300,16 +300,7 @@ describe("appSummaryCategorySchemas", () => {
   });
 
   describe("nestedEntitySchema", () => {
-    it("should validate entity with optional relatedEntities", () => {
-      const result = nestedEntitySchema.safeParse({
-        name: "Order",
-        description: "Order entity description",
-        relatedEntities: ["OrderItem", "Customer"],
-      });
-      expect(result.success).toBe(true);
-    });
-
-    it("should validate entity without relatedEntities", () => {
+    it("should validate entity with name and description", () => {
       const result = nestedEntitySchema.safeParse({
         name: "Order",
         description: "Order entity description",

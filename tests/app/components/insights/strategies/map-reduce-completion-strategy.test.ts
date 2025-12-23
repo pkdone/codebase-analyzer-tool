@@ -833,7 +833,7 @@ describe("MapReduceCompletionStrategy", () => {
         technologies: [{ name: "User", description: "User entity" }],
       };
       const partialResult2 = {
-        technologies: [] as { name: string; description: string; relatedEntities?: string[] }[],
+        technologies: [] as { name: string; description: string }[],
       };
       const consolidatedResult = {
         technologies: [{ name: "User", description: "User entity" }],
