@@ -312,9 +312,6 @@ export const appSummarySchema = z
  *
  * Use this mapping when you need TypeScript to infer the correct return type
  * based on a category key, rather than getting a generic z.ZodType.
- *
- * Note: aggregates, entities, and repositories have been removed as they are
- * now nested within boundedContexts for consistency.
  */
 export const appSummaryCategorySchemas = {
   appDescription: appDescriptionSchema,
