@@ -12,21 +12,21 @@ import { ArchitectureSvgGenerator } from "../../components/reporting/generators/
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { CodeStructureDataProvider } from "../../components/reporting/sections/code-structure/code-structure-data-provider";
-import { AppStatisticsDataProvider } from "../../components/reporting/sections/advanced-data/app-statistics-data-provider";
+import { AppStatisticsDataProvider } from "../../components/reporting/sections/quality-metrics/app-statistics-data-provider";
 import { AppSummaryCategoriesProvider } from "../../components/reporting/sections/file-types/categories-data-provider";
-import { DomainModelDataProvider } from "../../components/reporting/sections/advanced-data/domain-model-data-provider";
-import { BomDataProvider } from "../../components/reporting/sections/advanced-data/bom-data-provider";
-import { CodeQualityDataProvider } from "../../components/reporting/sections/advanced-data/code-quality-data-provider";
-import { JobDataProvider } from "../../components/reporting/sections/advanced-data/job-data-provider";
-import { ModuleCouplingDataProvider } from "../../components/reporting/sections/advanced-data/module-coupling-data-provider";
-import { UiDataProvider } from "../../components/reporting/sections/advanced-data/ui-data-provider";
+import { DomainModelDataProvider } from "../../components/reporting/sections/visualizations/domain-model-data-provider";
+import { BomDataProvider } from "../../components/reporting/sections/quality-metrics/bom-data-provider";
+import { CodeQualityDataProvider } from "../../components/reporting/sections/quality-metrics/code-quality-data-provider";
+import { JobDataProvider } from "../../components/reporting/sections/quality-metrics/job-data-provider";
+import { ModuleCouplingDataProvider } from "../../components/reporting/sections/quality-metrics/module-coupling-data-provider";
+import { UiDataProvider } from "../../components/reporting/sections/quality-metrics/ui-data-provider";
 import AppReportGenerator from "../../components/reporting/app-report-generator";
 import { FileTypesSection } from "../../components/reporting/sections/file-types/file-types-section";
 import { DatabaseSection } from "../../components/reporting/sections/database/database-section";
 import { IntegrationPointsSection } from "../../components/reporting/sections/integration-points/integration-points-section";
 import { CodeStructureSection } from "../../components/reporting/sections/code-structure/code-structure-section";
-import { EnhancedUiSection } from "../../components/reporting/sections/enhanced-ui/enhanced-ui-section";
-import { AdvancedDataSection } from "../../components/reporting/sections/advanced-data/advanced-data-section";
+import { VisualizationsSection } from "../../components/reporting/sections/visualizations/visualizations-section";
+import { QualityMetricsSection } from "../../components/reporting/sections/quality-metrics/quality-metrics-section";
 
 /**
  * Register reporting-related components in the DI container.
@@ -79,6 +79,6 @@ export function registerReportingComponents(): void {
   container.registerSingleton("ReportSection", DatabaseSection);
   container.registerSingleton("ReportSection", IntegrationPointsSection);
   container.registerSingleton("ReportSection", CodeStructureSection);
-  container.registerSingleton("ReportSection", EnhancedUiSection);
-  container.registerSingleton("ReportSection", AdvancedDataSection);
+  container.registerSingleton("ReportSection", VisualizationsSection);
+  container.registerSingleton("ReportSection", QualityMetricsSection);
 }

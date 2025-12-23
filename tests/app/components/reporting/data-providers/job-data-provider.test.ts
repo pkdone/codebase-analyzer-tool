@@ -2,7 +2,7 @@ import "reflect-metadata";
 import {
   extractTriggerType,
   TRIGGER_TYPE_PATTERNS,
-} from "../../../../../src/app/components/reporting/sections/advanced-data/job-trigger-parser";
+} from "../../../../../src/app/components/reporting/sections/quality-metrics/job-trigger-parser";
 
 describe("job-data-provider", () => {
   describe("TRIGGER_TYPE_PATTERNS", () => {

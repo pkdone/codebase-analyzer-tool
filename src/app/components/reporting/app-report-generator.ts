@@ -2,7 +2,7 @@ import { injectable, inject, injectAll } from "tsyringe";
 import { reportingTokens, repositoryTokens } from "../../di/tokens";
 import { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-writer";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
-import { AppStatisticsDataProvider } from "./sections/advanced-data/app-statistics-data-provider";
+import { AppStatisticsDataProvider } from "./sections/quality-metrics/app-statistics-data-provider";
 import { AppSummaryCategoriesProvider } from "./sections/file-types/categories-data-provider";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { ReportData } from "./report-gen.types";

@@ -10,7 +10,7 @@ import type {
   DomainBoundedContext,
   DomainAggregate,
   DomainEntity,
-} from "../../sections/advanced-data/domain-model-data-provider";
+} from "../../sections/visualizations/domain-model-data-provider";
 
 export interface DomainDiagramSvgOptions {
   width?: number;

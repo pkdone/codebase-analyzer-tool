@@ -1,14 +1,14 @@
 import "reflect-metadata";
-import { AdvancedDataSection } from "../../../../../src/app/components/reporting/sections/advanced-data/advanced-data-section";
-import { BomDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/bom-data-provider";
-import { CodeQualityDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/code-quality-data-provider";
-import { JobDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/job-data-provider";
-import { ModuleCouplingDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/module-coupling-data-provider";
-import { UiDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/ui-data-provider";
+import { QualityMetricsSection } from "../../../../../src/app/components/reporting/sections/quality-metrics/quality-metrics-section";
+import { BomDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/bom-data-provider";
+import { CodeQualityDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/code-quality-data-provider";
+import { JobDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/job-data-provider";
+import { ModuleCouplingDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/module-coupling-data-provider";
+import { UiDataProvider } from "../../../../../src/app/components/reporting/sections/quality-metrics/ui-data-provider";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
 
-describe("AdvancedDataSection", () => {
-  let section: AdvancedDataSection;
+describe("QualityMetricsSection", () => {
+  let section: QualityMetricsSection;
   let mockBomDataProvider: jest.Mocked<BomDataProvider>;
   let mockCodeQualityDataProvider: jest.Mocked<CodeQualityDataProvider>;
   let mockJobDataProvider: jest.Mocked<JobDataProvider>;
@@ -36,7 +36,7 @@ describe("AdvancedDataSection", () => {
       getUiTechnologyAnalysis: jest.fn(),
     } as unknown as jest.Mocked<UiDataProvider>;
 
-    section = new AdvancedDataSection(
+    section = new QualityMetricsSection(
       mockBomDataProvider,
       mockCodeQualityDataProvider,
       mockJobDataProvider,
@@ -47,12 +47,12 @@ describe("AdvancedDataSection", () => {
 
   describe("getName", () => {
     it("should return the correct section name", () => {
-      expect(section.getName()).toBe("advanced-data");
+      expect(section.getName()).toBe("quality-metrics");
     });
   });
 
   describe("getData", () => {
-    it("should fetch all advanced data fields", async () => {
+    it("should fetch all quality metrics data fields", async () => {
       const mockBillOfMaterials = {
         dependencies: [{ name: "lib", versions: ["1.0"], hasConflict: false, locations: [] }],
         totalDependencies: 1,
@@ -155,7 +155,7 @@ describe("AdvancedDataSection", () => {
   });
 
   describe("prepareJsonData", () => {
-    it("should prepare JSON data for all advanced sections", () => {
+    it("should prepare JSON data for all quality metrics sections", () => {
       const mockSectionData = {
         billOfMaterials: [],
         codeQualitySummary: null,

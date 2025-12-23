@@ -12,10 +12,10 @@ import type { ReportData } from "../../report-gen.types";
 import { SECTION_NAMES } from "../../reporting.constants";
 
 /**
- * Report section for advanced/optional data (BOM, code quality, scheduled jobs, module coupling, UI analysis).
+ * Report section for quality metrics data (BOM, code quality, scheduled jobs, module coupling, UI analysis).
  */
 @injectable()
-export class AdvancedDataSection implements ReportSection {
+export class QualityMetricsSection implements ReportSection {
   constructor(
     @inject(reportingTokens.BomDataProvider) private readonly bomDataProvider: BomDataProvider,
     @inject(reportingTokens.CodeQualityDataProvider)
@@ -27,11 +27,7 @@ export class AdvancedDataSection implements ReportSection {
   ) {}
 
   getName(): string {
-    return SECTION_NAMES.ADVANCED_DATA;
-  }
-
-  isStandardSection(): boolean {
-    return false; // This section has custom rendering for BOM, code quality, etc.
+    return SECTION_NAMES.QUALITY_METRICS;
   }
 
   async getData(projectName: string): Promise<Partial<ReportData>> {

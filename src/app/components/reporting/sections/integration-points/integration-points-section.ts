@@ -23,10 +23,6 @@ export class IntegrationPointsSection implements ReportSection {
     return SECTION_NAMES.INTEGRATION_POINTS;
   }
 
-  isStandardSection(): boolean {
-    return true;
-  }
-
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const integrationPoints =
       await this.integrationPointsDataProvider.getIntegrationPoints(projectName);

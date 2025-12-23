@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
-import { DomainModelDataProvider } from "../advanced-data/domain-model-data-provider";
+import { DomainModelDataProvider } from "./domain-model-data-provider";
 import { FlowchartSvgGenerator } from "../../generators/svg/flowchart-svg-generator";
 import { DomainModelSvgGenerator } from "../../generators/svg/domain-model-svg-generator";
 import { ArchitectureSvgGenerator } from "../../generators/svg/architecture-svg-generator";
@@ -38,10 +38,10 @@ type MicroserviceData = AppSummaryNameDescArray[0] & {
 };
 
 /**
- * Report section for enhanced UI visualizations (flowcharts, domain diagrams, architecture diagrams).
+ * Report section for visualizations (flowcharts, domain diagrams, architecture diagrams).
  */
 @injectable()
-export class EnhancedUiSection implements ReportSection {
+export class VisualizationsSection implements ReportSection {
   constructor(
     @inject(reportingTokens.DomainModelDataProvider)
     private readonly domainModelDataProvider: DomainModelDataProvider,
@@ -54,11 +54,7 @@ export class EnhancedUiSection implements ReportSection {
   ) {}
 
   getName(): string {
-    return SECTION_NAMES.ENHANCED_UI;
-  }
-
-  isStandardSection(): boolean {
-    return true; // This section uses standard rendering
+    return SECTION_NAMES.VISUALIZATIONS;
   }
 
   async getData(_projectName: string): Promise<Partial<ReportData>> {

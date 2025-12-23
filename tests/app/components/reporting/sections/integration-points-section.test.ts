@@ -21,12 +21,6 @@ describe("IntegrationPointsSection", () => {
     });
   });
 
-  describe("isStandardSection", () => {
-    it("should return true", () => {
-      expect(section.isStandardSection()).toBe(true);
-    });
-  });
-
   describe("getData", () => {
     it("should fetch integration points from the provider", async () => {
       const mockIntegrationPoints = [

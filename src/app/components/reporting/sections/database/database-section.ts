@@ -23,10 +23,6 @@ export class DatabaseSection implements ReportSection {
     return SECTION_NAMES.DATABASE;
   }
 
-  isStandardSection(): boolean {
-    return true; // This section uses standard rendering
-  }
-
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const [dbInteractions, procsAndTriggers] = await Promise.all([
       this.databaseDataProvider.getDatabaseInteractions(projectName),

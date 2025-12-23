@@ -29,10 +29,6 @@ export class FileTypesSection implements ReportSection {
     return SECTION_NAMES.FILE_TYPES;
   }
 
-  isStandardSection(): boolean {
-    return true; // This section uses standard rendering
-  }
-
   async getData(projectName: string): Promise<Partial<ReportData>> {
     const fileTypesData =
       await this.sourcesRepository.getProjectFileTypesCountAndLines(projectName);

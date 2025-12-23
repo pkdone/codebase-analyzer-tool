@@ -18,12 +18,12 @@ describe("reporting.constants", () => {
       expect(SECTION_NAMES.CODE_STRUCTURE).toBe("code-structure");
     });
 
-    it("should have ADVANCED_DATA", () => {
-      expect(SECTION_NAMES.ADVANCED_DATA).toBe("advanced-data");
+    it("should have QUALITY_METRICS", () => {
+      expect(SECTION_NAMES.QUALITY_METRICS).toBe("quality-metrics");
     });
 
-    it("should have ENHANCED_UI", () => {
-      expect(SECTION_NAMES.ENHANCED_UI).toBe("enhanced-ui");
+    it("should have VISUALIZATIONS", () => {
+      expect(SECTION_NAMES.VISUALIZATIONS).toBe("visualizations");
     });
   });
 

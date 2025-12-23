@@ -16,14 +16,6 @@ export interface ReportSection {
   getName(): string;
 
   /**
-   * Indicates whether this section uses standard tabular rendering.
-   * If false, this section has custom rendering logic and should be excluded
-   * from the generic category table loop.
-   * @default true
-   */
-  isStandardSection(): boolean;
-
-  /**
    * Fetch and process data needed for this section.
    * This method is responsible for all data fetching operations.
    * @param projectName The name of the project

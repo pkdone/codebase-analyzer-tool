@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/advanced-data/domain-model-data-provider";
+import { DomainModelDataProvider } from "../../../../../src/app/components/reporting/sections/visualizations/domain-model-data-provider";
 import type { AppSummaryNameDescArray } from "../../../../../src/app/repositories/app-summaries/app-summaries.model";
 
 describe("DomainModelDataProvider", () => {
