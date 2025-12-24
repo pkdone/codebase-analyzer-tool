@@ -17,6 +17,7 @@
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@types/ejs": "^3.1.5",
+    "@types/graphlib": "^2.1.12",
     "@types/jest": "^29.5.14",
     "@types/mock-fs": "^4.13.4",
     "@types/node": "^22.8.7",
@@ -37,6 +38,7 @@
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "fast-glob": "^3.3.3",
+    "graphlib": "^2.1.8",
     "mongodb": "^6.13.0",
     "openai": "^4.70.2",
     "p-limit": "^3.1.0",

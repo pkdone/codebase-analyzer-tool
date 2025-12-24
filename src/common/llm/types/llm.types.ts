@@ -215,8 +215,9 @@ export type InferResponseType<TOptions extends LLMCompletionOptions> = TOptions 
  * Type-safe completion options for JSON output with a schema.
  * Used for discriminated union pattern to enable better type narrowing.
  */
-export interface JsonCompletionOptions<S extends z.ZodType = z.ZodType>
-  extends LLMCompletionOptions<S> {
+export interface JsonCompletionOptions<
+  S extends z.ZodType = z.ZodType,
+> extends LLMCompletionOptions<S> {
   outputFormat: LLMOutputFormat.JSON;
   jsonSchema: S;
 }

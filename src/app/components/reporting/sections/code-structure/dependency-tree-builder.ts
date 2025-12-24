@@ -1,3 +1,4 @@
+import { Graph } from "graphlib";
 import type {
   ProjectedTopLevelJavaClassDependencies,
   HierarchicalTopLevelJavaClassDependencies,
@@ -5,6 +6,11 @@ import type {
   JavaClassDependency,
 } from "../../../../repositories/sources/sources.model";
 import { logOneLineWarning } from "../../../../../common/utils/logging";
+
+/**
+ * Maximum depth for dependency tree traversal to prevent excessive depth in pathological cases.
+ */
+const MAX_TRAVERSAL_DEPTH = 50;
 
 /**
  * Utility functions for transforming flat dependency structures into hierarchical trees.
@@ -32,12 +38,15 @@ export function convertToHierarchical(
     };
   }
 
-  // Build hierarchical structure starting from root's references
+  // Build a directed graph from the flat dependencies
+  const graph = buildDependencyGraph(dependencyMap);
+
+  // Build hierarchical structure starting from root's references using DFS
   const hierarchicalDependencies = buildHierarchicalDependencies(
     rootDependency.references,
+    graph,
     dependencyMap,
-    new Set([flatClassData.namespace]), // Start visited set with root to avoid self cycles while allowing shared children across branches
-    1, // Start at level 1 for direct dependencies
+    new Set([flatClassData.namespace]), // Start visited set with root to avoid self cycles
   );
 
   return {
@@ -47,191 +56,110 @@ export function convertToHierarchical(
 }
 
 /**
- * Iteratively builds hierarchical dependencies from references using a fully iterative approach.
- * Uses two passes: discovery phase to find all nodes, then assembly phase using reverse
- * topological order (leaf nodes first) to build the tree without recursion.
+ * Builds a directed graph from the dependency map using graphlib.
+ */
+function buildDependencyGraph(dependencyMap: Map<string, JavaClassDependency>): Graph {
+  const graph = new Graph({ directed: true });
+
+  for (const [namespace, dep] of dependencyMap) {
+    graph.setNode(namespace, dep);
+    for (const ref of dep.references) {
+      graph.setEdge(namespace, ref);
+    }
+  }
+
+  return graph;
+}
+
+/**
+ * Builds hierarchical dependencies from references using DFS traversal with path-based cycle detection.
+ * Shared nodes can appear under multiple branches (diamond pattern is allowed),
+ * but cycles within a single path are avoided.
  */
 function buildHierarchicalDependencies(
   references: readonly string[],
+  graph: Graph,
   dependencyMap: Map<string, JavaClassDependency>,
-  visited: Set<string>,
-  currentLevel: number,
+  rootVisited: Set<string>,
 ): HierarchicalJavaClassDependency[] {
-  interface DiscoveryWorkItem {
-    namespace: string;
-    level: number;
-    visitedSet: Set<string>;
-  }
-
-  // Track nodes and their parent-child relationships
-  interface NodeInfo {
-    namespace: string;
-    originalLevel: number | undefined;
-    children: string[];
-  }
-
-  const allNodes = new Map<string, NodeInfo>();
-  const discoveryStack: DiscoveryWorkItem[] = [];
-
-  // Initialize stack with root references
-  for (const refNamespace of references) {
-    if (visited.has(refNamespace)) {
-      continue;
+  /**
+   * Recursively builds a hierarchical node for the given namespace.
+   * @param namespace - The namespace to build a node for
+   * @param pathVisited - Set of namespaces already visited in the current path (for cycle detection)
+   * @param depth - Current depth in the traversal
+   * @returns The hierarchical node, or null if this would create a cycle
+   */
+  function buildNode(
+    namespace: string,
+    pathVisited: Set<string>,
+    depth: number,
+  ): HierarchicalJavaClassDependency | null {
+    // Cycle detection: skip if already in the current path
+    if (pathVisited.has(namespace)) {
+      return null;
     }
 
-    const visitedSet = new Set(visited);
-    visitedSet.add(refNamespace);
-
-    discoveryStack.push({
-      namespace: refNamespace,
-      level: currentLevel,
-      visitedSet,
-    });
-  }
-
-  // === PHASE 1: Discovery - populate allNodes with all nodes and their children ===
-  const ITERATIVE_MAX_DEPTH = 50;
-
-  while (discoveryStack.length > 0) {
-    const workItem = discoveryStack.pop();
-    if (!workItem) continue;
-
-    const dependency = dependencyMap.get(workItem.namespace);
-
-    // Create node info for this namespace if not already exists
-    let nodeInfo = allNodes.get(workItem.namespace);
-    if (!nodeInfo) {
-      nodeInfo = {
-        namespace: workItem.namespace,
-        originalLevel: dependency?.level,
-        children: [],
-      };
-      allNodes.set(workItem.namespace, nodeInfo);
-    }
-
-    // Apply depth limit to prevent infinite loops
-    if (workItem.level >= ITERATIVE_MAX_DEPTH) {
+    // Depth limit to prevent excessive depth
+    if (depth >= MAX_TRAVERSAL_DEPTH) {
       logOneLineWarning(
-        `Maximum depth of ${ITERATIVE_MAX_DEPTH} reached in buildHierarchicalDependencies for ${workItem.namespace}. Not processing children to prevent excessive depth.`,
+        `Maximum depth of ${MAX_TRAVERSAL_DEPTH} reached for ${namespace}. Not processing children.`,
       );
-      continue;
+      const dep = dependencyMap.get(namespace);
+      return {
+        namespace,
+        originalLevel: dep?.level,
+      };
     }
 
-    // If this node has children, add them to the stack and track them
-    if (dependency && dependency.references.length > 0) {
-      for (const refNamespace of dependency.references) {
-        if (workItem.visitedSet.has(refNamespace)) {
-          continue;
-        }
+    // Get dependency info for original level
+    const dep = dependencyMap.get(namespace);
 
-        // Add to children list
-        if (!nodeInfo.children.includes(refNamespace)) {
-          nodeInfo.children.push(refNamespace);
-        }
+    // Get children from graph (successors)
+    // Note: graphlib's successors() returns undefined for non-existent nodes,
+    // but @types/graphlib incorrectly types it as `void | string[]` instead of `undefined | string[]`
+    const children = (graph.successors(namespace) as string[] | undefined) ?? [];
 
-        // Create node info for child if not already exists
-        if (!allNodes.has(refNamespace)) {
-          const childDependency = dependencyMap.get(refNamespace);
-          allNodes.set(refNamespace, {
-            namespace: refNamespace,
-            originalLevel: childDependency?.level,
-            children: [],
-          });
-        }
+    // Add current node to path for child traversal
+    const newPathVisited = new Set(pathVisited);
+    newPathVisited.add(namespace);
 
-        const childVisitedSet = new Set(workItem.visitedSet);
-        childVisitedSet.add(refNamespace);
-
-        discoveryStack.push({
-          namespace: refNamespace,
-          level: workItem.level + 1,
-          visitedSet: childVisitedSet,
-        });
-      }
-    }
-  }
-
-  // === PHASE 2: Assembly - build tree iteratively using reverse topological order ===
-  // Process leaf nodes first (nodes with no unprocessed children), then their parents
-
-  const processedNodes = new Map<string, HierarchicalJavaClassDependency>();
-
-  // Track how many unprocessed children each node has
-  const pendingChildCount = new Map<string, number>();
-  for (const [namespace, nodeInfo] of allNodes) {
-    pendingChildCount.set(namespace, nodeInfo.children.length);
-  }
-
-  // Build reverse adjacency: for each node, which nodes have it as a child?
-  const parents = new Map<string, string[]>();
-  for (const [namespace, nodeInfo] of allNodes) {
-    for (const child of nodeInfo.children) {
-      const childParents = parents.get(child) ?? [];
-      childParents.push(namespace);
-      parents.set(child, childParents);
-    }
-  }
-
-  // Start with leaf nodes (nodes with no children)
-  const readyToProcess: string[] = [];
-  for (const [namespace, count] of pendingChildCount) {
-    if (count === 0) {
-      readyToProcess.push(namespace);
-    }
-  }
-
-  // Process nodes in reverse topological order
-  while (readyToProcess.length > 0) {
-    const namespace = readyToProcess.pop();
-    if (namespace === undefined) continue;
-    const nodeInfo = allNodes.get(namespace);
-    if (!nodeInfo) continue;
-
-    // Build the node - all children are already processed
+    // Build child nodes recursively
     const childNodes: HierarchicalJavaClassDependency[] = [];
-    for (const childNamespace of nodeInfo.children) {
-      const childNode = processedNodes.get(childNamespace);
+    for (const child of children) {
+      const childNode = buildNode(child, newPathVisited, depth + 1);
       if (childNode) {
         childNodes.push(childNode);
       }
     }
 
-    // Create final node with proper readonly properties
-    const result: HierarchicalJavaClassDependency =
-      childNodes.length > 0
-        ? {
-            namespace: nodeInfo.namespace,
-            originalLevel: nodeInfo.originalLevel,
-            dependencies: childNodes,
-          }
-        : {
-            namespace: nodeInfo.namespace,
-            originalLevel: nodeInfo.originalLevel,
-          };
-
-    processedNodes.set(namespace, result);
-
-    // Decrement pending count for all parents and add ready ones to queue
-    const nodeParents = parents.get(namespace) ?? [];
-    for (const parent of nodeParents) {
-      const currentCount = pendingChildCount.get(parent) ?? 0;
-      const newCount = currentCount - 1;
-      pendingChildCount.set(parent, newCount);
-      if (newCount === 0) {
-        readyToProcess.push(parent);
-      }
+    // Return node with dependencies only if there are children
+    if (childNodes.length > 0) {
+      return {
+        namespace,
+        originalLevel: dep?.level,
+        dependencies: childNodes,
+      };
     }
+
+    return {
+      namespace,
+      originalLevel: dep?.level,
+    };
   }
 
-  // Build root-level nodes from processed results
-  const hierarchicalDeps: HierarchicalJavaClassDependency[] = [];
+  // Build hierarchical nodes for each root reference
+  const result: HierarchicalJavaClassDependency[] = [];
   for (const refNamespace of references) {
-    if (visited.has(refNamespace)) continue;
-    const node = processedNodes.get(refNamespace);
+    // Skip references already visited (e.g., root itself)
+    if (rootVisited.has(refNamespace)) {
+      continue;
+    }
+
+    const node = buildNode(refNamespace, rootVisited, 1);
     if (node) {
-      hierarchicalDeps.push(node);
+      result.push(node);
     }
   }
 
-  return hierarchicalDeps;
+  return result;
 }
