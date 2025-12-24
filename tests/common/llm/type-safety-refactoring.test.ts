@@ -306,7 +306,7 @@ describe("Type Safety Refactoring - Simplified Generic Approach", () => {
       });
 
       expect(result).not.toBeNull();
-      if (result && result.type === "success") {
+      if (result?.type === "success") {
         // TypeScript should narrow to the success variant
         const data: string = result.data;
         expect(data).toBe("Operation completed");

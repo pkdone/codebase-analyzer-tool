@@ -365,7 +365,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
       });
 
       expect(result).not.toBeNull();
-      if (result && result.type === "text") {
+      if (result?.type === "text") {
         // TypeScript should narrow to the text variant
         expect(result.content).toBe("Hello");
         // This would cause a compile error if narrowing didn't work:
