@@ -403,14 +403,36 @@ function extractLargestJsonSpanInternal(input: string): string {
       const sliced = input.slice(start, endIndex + 1).trim();
       const trimmedInput = input.trim();
 
-      if (sliced === trimmedInput || (sliced.length > trimmedInput.length * 0.95 && start < 10)) {
+      // Check if sliced is exactly the same as trimmed input - no extraction needed
+      if (sliced === trimmedInput) {
         continue;
       }
 
-      if (
+      // Check if the extracted span is a complete, balanced JSON structure
+      const isCompleteJsonStructure =
         (sliced.startsWith("{") && sliced.endsWith("}")) ||
-        (sliced.startsWith("[") && sliced.endsWith("]"))
-      ) {
+        (sliced.startsWith("[") && sliced.endsWith("]"));
+
+      if (isCompleteJsonStructure) {
+        // Check if there's trailing garbage after the valid JSON
+        // (extra closing delimiters, text, etc.)
+        // We check what comes after endIndex in the original input
+        const afterValidJson = input.slice(endIndex + 1).trim();
+        const hasTrailingGarbage = afterValidJson.length > 0;
+
+        // If we have trailing garbage (like extra `}` or `]`), extract the valid JSON
+        // But only if this is the FIRST candidate (outermost structure)
+        // We must NOT extract nested objects - always prefer outer structure
+        if (hasTrailingGarbage && isFirstCandidate) {
+          return sliced;
+        }
+
+        // For very similar lengths without trailing garbage, skip extraction
+        // unless there's a meaningful difference (not just whitespace)
+        if (sliced.length > trimmedInput.length * 0.95 && start < 10) {
+          continue;
+        }
+
         if (isFirstCandidate) {
           // If first candidate is complete, return it immediately
           return sliced;
