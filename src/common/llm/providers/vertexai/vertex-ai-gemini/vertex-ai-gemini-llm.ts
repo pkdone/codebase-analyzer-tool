@@ -127,6 +127,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
       const errMsg = formatError(error).toLowerCase() || "";
       if (error instanceof GoogleApiError && error.code === 429) return true;
       if (error instanceof ClientError && errMsg.includes("429 too many requests")) return true;
+      if (error instanceof ClientError && errMsg.includes("499 client closed request")) return true;
 
       if (
         errMsg.includes("reason given: recitation") ||
