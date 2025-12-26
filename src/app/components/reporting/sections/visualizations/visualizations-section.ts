@@ -63,14 +63,13 @@ export class VisualizationsSection implements ReportSection {
     return Promise.resolve({});
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async prepareHtmlData(
     baseData: ReportData,
     _sectionData: Partial<ReportData>,
     _htmlDir: string,
   ): Promise<Partial<PreparedHtmlReportData> | null> {
     // Generate business processes flowcharts
-    const businessProcessesFlowchartSvgs = this.generateBusinessProcessesFlowcharts(
+    const businessProcessesFlowchartSvgs = await this.generateBusinessProcessesFlowcharts(
       baseData.categorizedData,
     );
 
@@ -78,16 +77,18 @@ export class VisualizationsSection implements ReportSection {
     const domainModelData = this.domainModelDataProvider.getDomainModelData(
       baseData.categorizedData,
     );
-    const contextDiagramSvgs = this.domainModelSvgGenerator.generateMultipleContextDiagramsSvg(
-      domainModelData.boundedContexts,
-    );
+    const contextDiagramSvgs =
+      await this.domainModelSvgGenerator.generateMultipleContextDiagramsSvg(
+        domainModelData.boundedContexts,
+      );
 
     // Extract microservices data and generate architecture diagram
     const microservicesData = this.extractMicroservicesData(baseData.categorizedData);
-    const architectureDiagramSvg = this.architectureSvgGenerator.generateArchitectureDiagramSvg(
-      microservicesData,
-      baseData.integrationPoints,
-    );
+    const architectureDiagramSvg =
+      await this.architectureSvgGenerator.generateArchitectureDiagramSvg(
+        microservicesData,
+        baseData.integrationPoints,
+      );
 
     return {
       businessProcessesFlowchartSvgs,
@@ -106,13 +107,13 @@ export class VisualizationsSection implements ReportSection {
   /**
    * Generate flowchart SVGs for business processes
    */
-  private generateBusinessProcessesFlowcharts(
+  private async generateBusinessProcessesFlowcharts(
     categorizedData: {
       category: string;
       label: string;
       data: AppSummaryNameDescArray;
     }[],
-  ): string[] {
+  ): Promise<string[]> {
     const businessProcessesCategory = categorizedData.find(
       (category) => category.category === "businessProcesses",
     );

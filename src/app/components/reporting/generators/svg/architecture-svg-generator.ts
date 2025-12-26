@@ -1,5 +1,12 @@
-import { injectable } from "tsyringe";
-import { escapeXml, sanitizeId, createSvgHeader, generateEmptyDiagram } from "./svg-utils";
+import { inject, injectable } from "tsyringe";
+import { reportingTokens } from "../../../../di/tokens";
+import { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import {
+  escapeMermaidLabel,
+  generateNodeId,
+  buildStyleDefinitions,
+  applyStyle,
+} from "../mermaid/mermaid-definition-builders";
 import type { IntegrationPointInfo } from "../../report-gen.types";
 
 export interface Microservice {
@@ -25,159 +32,126 @@ export interface Microservice {
 export interface ArchitectureDiagramSvgOptions {
   width?: number;
   height?: number;
-  padding?: number;
-  fontSize?: number;
-  fontFamily?: string;
-  serviceSpacing?: number;
 }
 
 /**
- * Generates SVG diagrams for microservices architecture.
- * Creates component-style diagrams showing microservices and their integration points.
+ * Generates SVG diagrams for microservices architecture using Mermaid.
+ * Creates component-style diagrams showing microservices and their relationships.
  */
 @injectable()
 export class ArchitectureSvgGenerator {
   private readonly defaultOptions: Required<ArchitectureDiagramSvgOptions> = {
-    width: 1100,
-    height: 900,
-    padding: 60,
-    fontSize: 16,
-    fontFamily: "system-ui, -apple-system, sans-serif",
-    serviceSpacing: 350,
+    width: 1400,
+    height: 500,
   };
+
+  constructor(
+    @inject(reportingTokens.MermaidRenderer)
+    private readonly mermaidRenderer: MermaidRenderer,
+  ) {}
 
   /**
    * Generate SVG diagram for microservices architecture
    */
-  generateArchitectureDiagramSvg(
+  async generateArchitectureDiagramSvg(
     microservices: Microservice[],
-    integrationPoints: IntegrationPointInfo[],
+    _integrationPoints: IntegrationPointInfo[],
     options: ArchitectureDiagramSvgOptions = {},
-  ): string {
+  ): Promise<string> {
     const opts = { ...this.defaultOptions, ...options };
 
     if (microservices.length === 0) {
-      return generateEmptyDiagram(
-        opts.width,
-        opts.height,
-        "No microservices architecture defined",
-        opts.fontFamily,
-        opts.fontSize,
+      return this.generateEmptyDiagram("No microservices architecture defined");
+    }
+
+    // Build mermaid definition
+    const mermaidDefinition = this.buildArchitectureDiagramDefinition(microservices);
+
+    // Calculate dynamic dimensions based on content - ensure enough width for text
+    const maxNameLength = Math.max(...microservices.map((s) => s.name.length));
+    const widthPerService = Math.max(180, maxNameLength * 12);
+    const servicesPerRow = Math.min(microservices.length, 4);
+    const rows = Math.ceil(microservices.length / servicesPerRow);
+    const dynamicWidth = Math.max(opts.width, servicesPerRow * widthPerService + 100);
+    const dynamicHeight = Math.max(opts.height, rows * 100 + 150);
+
+    // Render to SVG using mermaid-cli
+    const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
+      width: dynamicWidth,
+      height: dynamicHeight,
+      backgroundColor: "#f8f9fa",
+    });
+
+    return svg;
+  }
+
+  /**
+   * Build the Mermaid diagram definition for microservices architecture
+   */
+  private buildArchitectureDiagramDefinition(microservices: Microservice[]): string {
+    // Use flowchart TB (top-bottom) with horizontal subgraph for better text display
+    const lines: string[] = ["flowchart TB"];
+
+    // Add style definitions
+    lines.push(buildStyleDefinitions());
+
+    // Create a subgraph for services (no label)
+    lines.push('    subgraph services[" "]');
+
+    // Group services into rows for grid layout
+    const servicesPerRow = 3;
+    const rows: string[][] = [];
+
+    for (let i = 0; i < microservices.length; i += servicesPerRow) {
+      rows.push(
+        microservices.slice(i, i + servicesPerRow).map((s, idx) => {
+          return generateNodeId(s.name, i + idx);
+        }),
       );
     }
 
-    // Calculate dimensions based on number of services
-    const totalWidth = Math.max(
-      opts.width,
-      microservices.length * opts.serviceSpacing + opts.padding * 2,
-    );
-    const totalHeight = opts.height;
-
-    // Generate SVG content
-    const svgContent = this.buildArchitectureDiagramSvg(
-      microservices,
-      integrationPoints,
-      totalWidth,
-      totalHeight,
-      opts,
-    );
-
-    return svgContent;
-  }
-
-  /**
-   * Create SVG header with definitions (architecture-specific color)
-   */
-  private createArchitectureSvgHeader(width: number, height: number): string {
-    return createSvgHeader(width, height, "#00ED64");
-  }
-
-  /**
-   * Build the complete SVG markup for an architecture diagram
-   */
-  private buildArchitectureDiagramSvg(
-    microservices: Microservice[],
-    _integrationPoints: IntegrationPointInfo[],
-    width: number,
-    height: number,
-    options: Required<ArchitectureDiagramSvgOptions>,
-  ): string {
-    // Calculate grid layout
-    const servicesPerRow = 3; // 3 services per row
-    const rows = Math.ceil(microservices.length / servicesPerRow);
-    const horizontalSpacing = (width - options.padding * 2) / servicesPerRow;
-    const verticalSpacing = (height - options.padding * 2) / rows;
-
-    // Generate service nodes in grid layout
-    const serviceNodes: string[] = [];
-
+    // Declare all service nodes
     microservices.forEach((service, index) => {
-      const row = Math.floor(index / servicesPerRow);
-      const col = index % servicesPerRow;
-
-      const x = options.padding + col * horizontalSpacing + horizontalSpacing / 2;
-      const y = options.padding + row * verticalSpacing + verticalSpacing / 2;
-
-      serviceNodes.push(this.createServiceNode(service, x, y, options));
+      const serviceId = generateNodeId(service.name, index);
+      lines.push(`        ${serviceId}["${escapeMermaidLabel(service.name)}"]`);
     });
 
-    // Combine all SVG elements
-    const svgElements = [
-      this.createArchitectureSvgHeader(width, height),
-      ...serviceNodes,
-      "</svg>",
-    ];
+    // Create invisible horizontal links within each row to keep them on the same level
+    rows.forEach((row) => {
+      if (row.length > 1) {
+        // Link all items in the row horizontally with invisible links
+        for (let i = 0; i < row.length - 1; i++) {
+          lines.push(`        ${row[i]} ~~~ ${row[i + 1]}`);
+        }
+      }
+    });
 
-    return svgElements.join("\n");
+    // Create invisible vertical links between rows
+    for (let i = 0; i < rows.length - 1; i++) {
+      // Connect first item of current row to first item of next row
+      lines.push(`        ${rows[i][0]} ~~~ ${rows[i + 1][0]}`);
+    }
+
+    lines.push("    end");
+
+    // Style the subgraph to be invisible (matches background)
+    lines.push("    style services fill:transparent,stroke:transparent,stroke-width:0");
+
+    // Apply styles to service nodes
+    microservices.forEach((service, index) => {
+      const serviceId = generateNodeId(service.name, index);
+      lines.push(applyStyle(serviceId, "service"));
+    });
+
+    return lines.join("\n");
   }
 
   /**
-   * Create a microservice node
+   * Generate an empty diagram placeholder
    */
-  private createServiceNode(
-    service: Microservice,
-    x: number,
-    y: number,
-    options: Required<ArchitectureDiagramSvgOptions>,
-  ): string {
-    const nodeWidth = 320; // Moderate block size
-    const nodeHeight = 200; // Moderate block size
-    const rectX = x - nodeWidth / 2;
-    const rectY = y - nodeHeight / 2;
-
-    // Create service box
-    const serviceBox = `
-      <rect
-        x="${rectX}"
-        y="${rectY}"
-        width="${nodeWidth}"
-        height="${nodeHeight}"
-        rx="12"
-        ry="12"
-        fill="#ffffff"
-        stroke="#00684A"
-        stroke-width="3"
-      />`;
-
-    // Create service title only (much larger font)
-    const serviceTitle = `
-      <text
-        x="${x}"
-        y="${y}"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        font-family="${options.fontFamily}"
-        font-size="${options.fontSize + 5}"
-        font-weight="700"
-        fill="#001e2b"
-      >
-        ${escapeXml(service.name)}
-      </text>`;
-
-    return `
-      <g id="service-${sanitizeId(service.name)}">
-        ${serviceBox}
-        ${serviceTitle}
-      </g>`;
+  private generateEmptyDiagram(message: string): string {
+    return `<svg width="400" height="100" xmlns="http://www.w3.org/2000/svg" style="background-color: #f8f9fa; border-radius: 8px;">
+      <text x="200" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#8b95a1">${message}</text>
+    </svg>`;
   }
 }

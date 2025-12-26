@@ -1,5 +1,12 @@
-import { injectable } from "tsyringe";
-import { escapeXml, wrapText, createSvgHeader, generateEmptyDiagram } from "./svg-utils";
+import { inject, injectable } from "tsyringe";
+import { reportingTokens } from "../../../../di/tokens";
+import { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import {
+  escapeMermaidLabel,
+  generateNodeId,
+  buildStyleDefinitions,
+  applyStyle,
+} from "../mermaid/mermaid-definition-builders";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -15,191 +22,103 @@ export interface BusinessProcess {
 export interface FlowchartSvgOptions {
   width?: number;
   height?: number;
-  nodeWidth?: number;
-  nodeHeight?: number;
-  padding?: number;
-  fontSize?: number;
-  fontFamily?: string;
 }
 
 /**
- * Generates SVG flowcharts for business processes.
+ * Generates SVG flowcharts for business processes using Mermaid.
  * Creates sequential flow diagrams showing key business activities as connected nodes.
  */
 @injectable()
 export class FlowchartSvgGenerator {
   private readonly defaultOptions: Required<FlowchartSvgOptions> = {
     width: 800,
-    height: 400,
-    nodeWidth: 150,
-    nodeHeight: 60,
-    padding: 40,
-    fontSize: 12,
-    fontFamily: "system-ui, -apple-system, sans-serif",
+    height: 200,
   };
+
+  constructor(
+    @inject(reportingTokens.MermaidRenderer)
+    private readonly mermaidRenderer: MermaidRenderer,
+  ) {}
 
   /**
    * Generate SVG flowchart for a single business process
    */
-  generateFlowchartSvg(process: BusinessProcess, options: FlowchartSvgOptions = {}): string {
+  async generateFlowchartSvg(
+    process: BusinessProcess,
+    options: FlowchartSvgOptions = {},
+  ): Promise<string> {
     const opts = { ...this.defaultOptions, ...options };
     const activities = process.keyBusinessActivities;
 
     if (activities.length === 0) {
-      return generateEmptyDiagram(
-        opts.width,
-        opts.height,
-        "No business activities defined",
-        opts.fontFamily,
-        opts.fontSize,
-      );
+      return this.generateEmptyDiagram("No business activities defined");
     }
 
-    // Calculate dimensions based on number of activities
-    const nodeSpacing = 200;
-    const totalWidth = Math.max(opts.width, activities.length * nodeSpacing + opts.padding * 2);
-    const totalHeight = opts.nodeHeight + opts.padding * 2; // Compact height based on node height
+    // Build mermaid definition
+    const mermaidDefinition = this.buildFlowchartDefinition(activities);
 
-    // Generate SVG content
-    const svgContent = this.buildFlowchartSvg(activities, totalWidth, totalHeight, opts);
+    // Render to SVG using mermaid-cli
+    const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
+      width: Math.max(opts.width, activities.length * 200),
+      height: opts.height,
+      backgroundColor: "#f8f9fa",
+    });
 
-    return svgContent;
+    return svg;
   }
 
   /**
    * Generate SVG flowcharts for multiple business processes
    */
-  generateMultipleFlowchartsSvg(
+  async generateMultipleFlowchartsSvg(
     processes: BusinessProcess[],
     options: FlowchartSvgOptions = {},
-  ): string[] {
-    return processes.map((process) => this.generateFlowchartSvg(process, options));
+  ): Promise<string[]> {
+    const results: string[] = [];
+    for (const process of processes) {
+      const svg = await this.generateFlowchartSvg(process, options);
+      results.push(svg);
+    }
+    return results;
   }
 
   /**
-   * Build the complete SVG markup for a flowchart
+   * Build the Mermaid flowchart definition for activities
    */
-  private buildFlowchartSvg(
-    activities: BusinessProcessActivity[],
-    width: number,
-    height: number,
-    options: Required<FlowchartSvgOptions>,
-  ): string {
-    const nodeSpacing = 200;
-    const startX = options.padding + options.nodeWidth / 2; // Account for node centering
-    const centerY = height / 2;
+  private buildFlowchartDefinition(activities: BusinessProcessActivity[]): string {
+    const lines: string[] = ["graph LR"];
 
-    // Generate nodes and connections
-    const nodes: string[] = [];
-    const connections: string[] = [];
+    // Add style definitions
+    lines.push(buildStyleDefinitions());
+
+    // Create nodes and connections
+    const nodeIds: string[] = [];
 
     activities.forEach((activity, index) => {
-      const x = startX + index * nodeSpacing;
-      const nodeId = `node-${index}`;
+      const nodeId = generateNodeId(activity.activity, index);
+      nodeIds.push(nodeId);
 
-      // Create node
-      nodes.push(this.createFlowchartNode(nodeId, x, centerY, activity.activity, options));
+      // Add node definition with rectangular shape
+      lines.push(`    ${nodeId}["${escapeMermaidLabel(activity.activity)}"]`);
 
-      // Create connection to next node
-      if (index < activities.length - 1) {
-        const nextX = startX + (index + 1) * nodeSpacing;
-        connections.push(
-          this.createConnection(
-            x + options.nodeWidth / 2, // Start from right edge of current node
-            centerY,
-            nextX - options.nodeWidth / 2, // End at left edge of next node
-            centerY,
-          ),
-        );
-      }
+      // Apply style
+      lines.push(applyStyle(nodeId, "process"));
     });
 
-    // Combine all SVG elements
-    const svgElements = [createSvgHeader(width, height), ...connections, ...nodes, "</svg>"];
+    // Add connections between consecutive nodes
+    for (let i = 0; i < nodeIds.length - 1; i++) {
+      lines.push(`    ${nodeIds[i]} --> ${nodeIds[i + 1]}`);
+    }
 
-    return svgElements.join("\n");
+    return lines.join("\n");
   }
 
   /**
-   * Create a flowchart node (rectangle with text)
+   * Generate an empty diagram placeholder
    */
-  private createFlowchartNode(
-    id: string,
-    x: number,
-    y: number,
-    text: string,
-    options: Required<FlowchartSvgOptions>,
-  ): string {
-    const rectX = x - options.nodeWidth / 2;
-    const rectY = y - options.nodeHeight / 2;
-
-    // Wrap text to fit within node width
-    const wrappedText = wrapText(text, options.nodeWidth, options.fontSize);
-    const lineHeight = options.fontSize * 1.2;
-    const totalTextHeight = (wrappedText.length - 1) * lineHeight;
-    const startY = y - totalTextHeight / 2 + options.fontSize * 0.3; // Better vertical centering
-
-    return `
-      <g id="${id}">
-        <rect
-          x="${rectX}"
-          y="${rectY}"
-          width="${options.nodeWidth}"
-          height="${options.nodeHeight}"
-          rx="8"
-          ry="8"
-          fill="#ffffff"
-          stroke="#00684A"
-          stroke-width="2"
-        />
-        ${wrappedText
-          .map(
-            (line, index) => `
-        <text
-          x="${x}"
-          y="${startY + index * lineHeight}"
-          text-anchor="middle"
-          font-family="${options.fontFamily}"
-          font-size="${options.fontSize}"
-          font-weight="500"
-          fill="#001e2b"
-        >
-          ${escapeXml(line)}
-        </text>`,
-          )
-          .join("")}
-      </g>`;
-  }
-
-  /**
-   * Create a connection arrow between nodes
-   */
-  private createConnection(x1: number, y1: number, x2: number, y2: number): string {
-    const arrowLength = 10;
-    const arrowAngle = Math.PI / 6; // 30 degrees
-
-    // Calculate arrow head points
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    const arrowX1 = x2 - arrowLength * Math.cos(angle - arrowAngle);
-    const arrowY1 = y2 - arrowLength * Math.sin(angle - arrowAngle);
-    const arrowX2 = x2 - arrowLength * Math.cos(angle + arrowAngle);
-    const arrowY2 = y2 - arrowLength * Math.sin(angle + arrowAngle);
-
-    return `
-      <g>
-        <line
-          x1="${x1}"
-          y1="${y1}"
-          x2="${x2}"
-          y2="${y2}"
-          stroke="#00684A"
-          stroke-width="2"
-          marker-end="url(#arrowhead)"
-        />
-        <polygon
-          points="${x2},${y2} ${arrowX1},${arrowY1} ${arrowX2},${arrowY2}"
-          fill="#00684A"
-        />
-      </g>`;
+  private generateEmptyDiagram(message: string): string {
+    return `<svg width="400" height="100" xmlns="http://www.w3.org/2000/svg" style="background-color: #f8f9fa; border-radius: 8px;">
+      <text x="200" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#8b95a1">${message}</text>
+    </svg>`;
   }
 }

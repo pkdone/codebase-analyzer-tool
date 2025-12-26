@@ -5,7 +5,7 @@
 </p>
 
 <h3>Overall Statistics</h3>
-<table>
+<table class="data-table">
   <thead>
     <tr>
       <th class="col-medium">Metric</th>
@@ -49,7 +49,7 @@
 
 <h3>Top 10 Most Complex Functions/Methods</h3>
 <p>These functions/methods have the highest cyclomatic complexity and should be prioritized for refactoring.</p>
-<table>
+<table class="data-table">
   <thead>
     <tr>
       <th class="col-wide">Function/Method Name</th>
@@ -62,8 +62,18 @@
   <tbody>
     <% codeQualitySummary.topComplexFunctions.forEach(func => { %>
     <tr>
-      <td><code><%= func.functionName %></code></td>
-      <td><code><%= func.filePath %></code></td>
+      <td>
+        <details class="expandable-path">
+          <summary><%= func.functionName.split('::').pop() || func.functionName.split('.').pop() %></summary>
+          <code><%= func.functionName %></code>
+        </details>
+      </td>
+      <td>
+        <details class="expandable-path">
+          <summary><%= func.filePath.split('/').pop() %></summary>
+          <code><%= func.filePath %></code>
+        </details>
+      </td>
       <td class="numeric"><%= func.complexity %></td>
       <td class="numeric"><%= func.linesOfCode %></td>
       <td>
@@ -84,7 +94,7 @@
 
 <h3>Most Common Code Smells</h3>
 <p>Frequently occurring code quality issues across the codebase.</p>
-<table>
+<table class="data-table">
   <thead>
     <tr>
       <th class="col-wide">Code Smell Type</th>

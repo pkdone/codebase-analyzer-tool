@@ -178,10 +178,11 @@ table.data-table {
 .data-table th {
   background-color: var(--table-header-bg);
   color: var(--header-text);
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .data-table tr:nth-child(even) {
@@ -198,6 +199,7 @@ table.data-table {
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: var(--spacing-md);
   margin-top: var(--spacing-md);
+  align-items: stretch;
 }
 
 .info-card {
@@ -208,6 +210,7 @@ table.data-table {
   box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
+  height: 100%; /* Ensure card fills grid cell height */
 }
 
 .info-card h3 {
@@ -280,6 +283,26 @@ table.data-table {
 
 .badge-success {
   background-color: #28a745;
+  color: white;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.badge-high {
+  background-color: #fd7e14;
   color: white;
 }
 
@@ -469,25 +492,7 @@ a:hover svg {
   min-width: 120px;
 }
 
-.coupling-very-high { 
-  background: #dc3545; 
-  color: white;
-}
-
-.coupling-high { 
-  background: #fd7e14; 
-  color: white;
-}
-
-.coupling-medium { 
-  background: #ffc107; 
-  color: #333;
-}
-
-.coupling-low { 
-  background: #28a745; 
-  color: white;
-}
+/* Coupling badge styles removed - now uses unified badge-* classes */
 
 .card-code {
   margin-top: auto; /* Pushes code block to the bottom */
@@ -532,6 +537,42 @@ a:hover svg {
   font-weight: 700;
   color: var(--text-color);
   line-height: 1.4;
+}
+
+/* --- Expandable Paths (for long file/function names in tables) --- */
+.expandable-path {
+  margin: 0;
+}
+
+.expandable-path summary {
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+  color: var(--link-color);
+  cursor: pointer;
+  list-style: none;
+}
+
+.expandable-path summary::-webkit-details-marker {
+  display: none;
+}
+
+.expandable-path summary::before {
+  content: "▸ ";
+  color: #999;
+}
+
+.expandable-path[open] summary::before {
+  content: "▾ ";
+}
+
+.expandable-path code {
+  display: block;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: var(--table-row-stripe);
+  border-radius: 3px;
+  font-size: 0.85em;
+  word-break: break-all;
 }
 
 /* --- Legacy table styles (for compatibility) --- */

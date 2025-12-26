@@ -76,8 +76,13 @@
       </thead>
       <tbody>
         <% uiData.topScriptletFiles.forEach(function(file) { %>
-          <tr class="<%= file.totalScriptletBlocks > 20 ? 'very-high-debt' : (file.totalScriptletBlocks > 10 ? 'high-debt' : '') %>">
-            <td class="file-path" title="<%= file.filePath %>"><%= file.filePath %></td>
+          <tr>
+            <td class="file-path">
+              <details class="expandable-path">
+                <summary><%= file.filePath.split('/').pop() %></summary>
+                <code><%= file.filePath %></code>
+              </details>
+            </td>
             <td class="metric-count"><%= file.scriptletCount %></td>
             <td class="metric-count"><%= file.expressionCount %></td>
             <td class="metric-count"><%= file.declarationCount %></td>
@@ -188,24 +193,15 @@
   .alert { padding: 0.75rem 1rem; margin: 0.5rem 0; border-radius: 4px; }
   .alert-warning { background: #fff3cd; border: 1px solid #ffc107; color: #856404; }
   
-  .frameworks-table th, .scriptlets-table th, .taglibs-table th { background: #f0f0f0; }
   .framework-name { font-weight: bold; color: #2c5aa0; }
-  .file-path { font-family: monospace; font-size: 0.9em; max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-path { font-family: monospace; font-size: 0.9em; }
   .metric-count { text-align: center; }
   .total-count { text-align: center; font-size: 1.1em; }
   .tag-prefix code { background: #f4f4f4; padding: 2px 4px; border-radius: 3px; }
   .tag-uri { font-size: 0.9em; color: #666; }
   .usage-count { text-align: center; }
   
-  .high-debt { background: #fff3cd; }
-  .very-high-debt { background: #f8d7da; }
-  
-  .badge { padding: 0.25rem 0.5rem; border-radius: 3px; font-size: 0.85rem; font-weight: normal; }
-  .badge-danger { background: #dc3545; color: white; }
-  .badge-warning { background: #ffc107; color: #212529; }
-  .badge-info { background: #17a2b8; color: white; }
-  .badge-success { background: #28a745; color: white; }
-  .badge-secondary { background: #6c757d; color: white; }
+  /* Badge styles moved to global style.css */
   
   .ui-insights { background: #e7f3ff; padding: 1rem; border-radius: 4px; margin-top: 1rem; }
   .ui-insights ul { margin: 0.5rem 0 0 1rem; }
@@ -216,6 +212,14 @@
   details summary { font-weight: bold; }
   details ul { margin-top: 0.5rem; padding-left: 1.5rem; }
   details li { font-size: 0.9em; }
+  
+  /* Expandable file paths */
+  .expandable-path { margin: 0; }
+  .expandable-path summary { font-family: monospace; font-size: 0.9em; color: var(--link-color, #00684A); cursor: pointer; list-style: none; }
+  .expandable-path summary::-webkit-details-marker { display: none; }
+  .expandable-path summary::before { content: "▸ "; color: #999; }
+  .expandable-path[open] summary::before { content: "▾ "; }
+  .expandable-path code { display: block; margin-top: 4px; padding: 4px 8px; background: #f4f4f4; border-radius: 3px; font-size: 0.85em; word-break: break-all; }
 </style>
 
 

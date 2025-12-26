@@ -71,7 +71,8 @@ export type LLMToken = keyof typeof llmTokens;
 export const reportingTokens = {
   HtmlReportWriter: Symbol("HtmlReportWriter"),
   JsonReportWriter: Symbol("JsonReportWriter"),
-  DependencyTreePngGenerator: Symbol("DependencyTreePngGenerator"),
+  MermaidRenderer: Symbol("MermaidRenderer"),
+  DependencyTreeSvgGenerator: Symbol("DependencyTreeSvgGenerator"),
   PieChartGenerator: Symbol("PieChartGenerator"),
   FlowchartSvgGenerator: Symbol("FlowchartSvgGenerator"),
   DomainModelSvgGenerator: Symbol("DomainModelSvgGenerator"),

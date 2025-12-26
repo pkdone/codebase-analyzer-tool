@@ -1,24 +1,24 @@
 import "reflect-metadata";
 import { CodeStructureSection } from "../../../../../src/app/components/reporting/sections/code-structure/code-structure-section";
 import { CodeStructureDataProvider } from "../../../../../src/app/components/reporting/sections/code-structure/code-structure-data-provider";
-import { DependencyTreePngGenerator } from "../../../../../src/app/components/reporting/generators/png/dependency-tree-png-generator";
+import { DependencyTreeSvgGenerator } from "../../../../../src/app/components/reporting/generators/svg/dependency-tree-svg-generator";
 import type { ReportData } from "../../../../../src/app/components/reporting/report-gen.types";
 
 describe("CodeStructureSection", () => {
   let section: CodeStructureSection;
   let mockCodeStructureDataProvider: jest.Mocked<CodeStructureDataProvider>;
-  let mockPngGenerator: jest.Mocked<DependencyTreePngGenerator>;
+  let mockSvgGenerator: jest.Mocked<DependencyTreeSvgGenerator>;
 
   beforeEach(() => {
     mockCodeStructureDataProvider = {
       getTopLevelJavaClasses: jest.fn(),
     } as unknown as jest.Mocked<CodeStructureDataProvider>;
 
-    mockPngGenerator = {
-      generateHierarchicalDependencyTreePng: jest.fn().mockResolvedValue("class-tree.png"),
-    } as unknown as jest.Mocked<DependencyTreePngGenerator>;
+    mockSvgGenerator = {
+      generateHierarchicalDependencyTreeSvg: jest.fn().mockResolvedValue("class-tree.svg"),
+    } as unknown as jest.Mocked<DependencyTreeSvgGenerator>;
 
-    section = new CodeStructureSection(mockCodeStructureDataProvider, mockPngGenerator);
+    section = new CodeStructureSection(mockCodeStructureDataProvider, mockSvgGenerator);
   });
 
   describe("getName", () => {
@@ -48,7 +48,7 @@ describe("CodeStructureSection", () => {
   });
 
   describe("prepareHtmlData", () => {
-    it("should generate PNG files and create table view model", async () => {
+    it("should generate SVG files and create table view model", async () => {
       const mockClasses = [
         {
           namespace: "com.example.Class1",
@@ -68,7 +68,7 @@ describe("CodeStructureSection", () => {
       expect(result).toBeDefined();
       expect(result?.topLevelJavaClasses).toEqual(mockClasses);
       expect(result?.topLevelJavaClassesTableViewModel).toBeDefined();
-      expect(mockPngGenerator.generateHierarchicalDependencyTreePng).toHaveBeenCalled();
+      expect(mockSvgGenerator.generateHierarchicalDependencyTreeSvg).toHaveBeenCalled();
     });
   });
 

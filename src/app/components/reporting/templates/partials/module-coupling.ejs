@@ -38,16 +38,16 @@
         let couplingClass = '';
         if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.7) {
           couplingLevel = 'Very High';
-          couplingClass = 'coupling-very-high';
+          couplingClass = 'badge-danger';
         } else if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.4) {
           couplingLevel = 'High';
-          couplingClass = 'coupling-high';
+          couplingClass = 'badge-high';
         } else if (coupling.referenceCount >= couplingStats.highestCouplingCount * 0.2) {
           couplingLevel = 'Medium';
-          couplingClass = 'coupling-medium';
+          couplingClass = 'badge-warning';
         } else {
           couplingLevel = 'Low';
-          couplingClass = 'coupling-low';
+          couplingClass = 'badge-success';
         }
       %>
         <tr>
@@ -71,10 +71,10 @@
   <div class="note-box">
     <h4>Coupling Level Guide:</h4>
     <ul>
-      <li><span class="badge coupling-very-high">Very High</span> - Strong coupling, consider keeping in same service</li>
-      <li><span class="badge coupling-high">High</span> - Significant coupling, requires careful design if separated</li>
-      <li><span class="badge coupling-medium">Medium</span> - Moderate coupling, separation feasible with clear interfaces</li>
-      <li><span class="badge coupling-low">Low</span> - Weak coupling, good candidate for separation</li>
+      <li><span class="badge badge-danger">Very High</span> - Strong coupling, consider keeping in same service</li>
+      <li><span class="badge badge-high">High</span> - Significant coupling, requires careful design if separated</li>
+      <li><span class="badge badge-warning">Medium</span> - Moderate coupling, separation feasible with clear interfaces</li>
+      <li><span class="badge badge-success">Low</span> - Weak coupling, good candidate for separation</li>
     </ul>
   </div>
 <% } else { %>

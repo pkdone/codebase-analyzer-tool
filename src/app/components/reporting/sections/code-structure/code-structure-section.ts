@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { CodeStructureDataProvider } from "./code-structure-data-provider";
-import { DependencyTreePngGenerator } from "../../generators/png/dependency-tree-png-generator";
+import { DependencyTreeSvgGenerator } from "../../generators/svg/dependency-tree-svg-generator";
 import { TableViewModel } from "../../view-models/table-view-model";
 import { htmlReportConstants } from "../../html-report.constants";
 import { reportSectionsConfig } from "../../report-sections.config";
@@ -21,8 +21,8 @@ export class CodeStructureSection implements ReportSection {
   constructor(
     @inject(reportingTokens.CodeStructureDataProvider)
     private readonly codeStructureDataProvider: CodeStructureDataProvider,
-    @inject(reportingTokens.DependencyTreePngGenerator)
-    private readonly pngGenerator: DependencyTreePngGenerator,
+    @inject(reportingTokens.DependencyTreeSvgGenerator)
+    private readonly svgGenerator: DependencyTreeSvgGenerator,
   ) {}
 
   getName(): string {
@@ -33,6 +33,59 @@ export class CodeStructureSection implements ReportSection {
     const topLevelJavaClasses =
       await this.codeStructureDataProvider.getTopLevelJavaClasses(projectName);
     return { topLevelJavaClasses };
+  }
+
+  async prepareHtmlData(
+    _baseData: ReportData,
+    sectionData: Partial<ReportData>,
+    htmlDir: string,
+  ): Promise<Partial<PreparedHtmlReportData> | null> {
+    const topLevelJavaClasses = sectionData.topLevelJavaClasses ?? [];
+
+    const svgDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
+
+    // Generate SVG files for each top-level Java class and create hyperlinks
+    const topLevelJavaClassesDisplayData = await Promise.all(
+      topLevelJavaClasses.map(async (classData) => {
+        // Generate SVG file for this class's dependency tree
+        const svgFileName = await this.svgGenerator.generateHierarchicalDependencyTreeSvg(
+          classData.namespace,
+          classData.dependencies,
+          svgDir,
+        );
+
+        // Create hyperlink to the SVG file
+        const svgRelativePath = htmlReportConstants.paths.DEPENDENCY_TREES_DIR + svgFileName;
+        const classpathLink = htmlReportConstants.html.LINK_TEMPLATE(
+          svgRelativePath,
+          classData.namespace,
+        );
+
+        // Count total dependencies from hierarchical structure
+        const dependencyCount = this.countUniqueDependencies(classData.dependencies);
+
+        return {
+          [htmlReportConstants.columnHeaders.CLASSPATH]: classpathLink,
+          [htmlReportConstants.columnHeaders.DEPENDENCIES_COUNT]: dependencyCount,
+        };
+      }),
+    );
+
+    return {
+      topLevelJavaClasses,
+      topLevelJavaClassesTableViewModel: new TableViewModel(topLevelJavaClassesDisplayData),
+    };
+  }
+
+  prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
+    const topLevelJavaClasses = sectionData.topLevelJavaClasses ?? [];
+
+    return [
+      {
+        filename: reportSectionsConfig.jsonDataFiles.topLevelJavaClasses,
+        data: topLevelJavaClasses,
+      },
+    ];
   }
 
   /**
@@ -60,60 +113,5 @@ export class CodeStructureSection implements ReportSection {
     }
 
     return uniqueClasspaths.size;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  async prepareHtmlData(
-    _baseData: ReportData,
-    sectionData: Partial<ReportData>,
-    htmlDir: string,
-  ): Promise<Partial<PreparedHtmlReportData> | null> {
-    const topLevelJavaClasses = sectionData.topLevelJavaClasses ?? [];
-
-    const pngDir = path.join(htmlDir, htmlReportConstants.directories.DEPENDENCY_TREES);
-
-    // Generate PNG files for each top-level Java class and create hyperlinks
-    const topLevelJavaClassesDisplayData = await Promise.all(
-      topLevelJavaClasses.map(async (classData) => {
-        // Generate PNG file for this class's dependency tree
-        const pngFileName = await this.pngGenerator.generateHierarchicalDependencyTreePng(
-          classData.namespace,
-          classData.dependencies,
-          pngDir,
-        );
-
-        // Create hyperlink to the PNG file
-        const pngRelativePath = htmlReportConstants.paths.DEPENDENCY_TREES_DIR + pngFileName;
-        const classpathLink = htmlReportConstants.html.LINK_TEMPLATE(
-          pngRelativePath,
-          classData.namespace,
-        );
-
-        // Count total dependencies from hierarchical structure
-        const dependencyCount = this.countUniqueDependencies(classData.dependencies);
-
-        return {
-          [htmlReportConstants.columnHeaders.CLASSPATH]: classpathLink,
-          [htmlReportConstants.columnHeaders.DEPENDENCIES_COUNT]: dependencyCount,
-        };
-      }),
-    );
-
-    return {
-      topLevelJavaClasses,
-      topLevelJavaClassesTableViewModel: new TableViewModel(topLevelJavaClassesDisplayData),
-    };
-  }
-
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  prepareJsonData(_baseData: ReportData, sectionData: Partial<ReportData>): PreparedJsonData[] {
-    const topLevelJavaClasses = sectionData.topLevelJavaClasses ?? [];
-
-    return [
-      {
-        filename: reportSectionsConfig.jsonDataFiles.topLevelJavaClasses,
-        data: topLevelJavaClasses,
-      },
-    ];
   }
 }
