@@ -1,5 +1,3 @@
-// EnvVars import removed as it's no longer needed after making manifests declarative
-
 import { z } from "zod";
 
 /**

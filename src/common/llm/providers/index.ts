@@ -1,6 +1,5 @@
 /**
  * Static registry of all available LLM provider manifests.
- * This replaces the filesystem-based dynamic discovery with an explicit, maintainable registry.
  */
 
 import { LLMProviderManifest } from "./llm-provider.types";

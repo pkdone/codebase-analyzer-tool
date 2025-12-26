@@ -54,6 +54,23 @@ describe("Dependency Registration", () => {
       expect(container.isRegistered(coreTokens.MongoDBConnectionManager)).toBe(true);
     });
 
+    it("should complete bootstrap without registerLLMProviders (removed vestigial function)", async () => {
+      // This test verifies that bootstrapContainer works correctly after removing
+      // the vestigial registerLLMProviders function. The bootstrap should complete
+      // successfully and initialize LLM components via initializeAndRegisterLLMComponents
+      // when LLM environment variables are available.
+      await bootstrapContainer();
+
+      // Verify bootstrap completed successfully
+      expect(container.isRegistered(coreTokens.EnvVars)).toBe(true);
+      expect(container.isRegistered(coreTokens.MongoDBConnectionManager)).toBe(true);
+      expect(container.isRegistered(taskTokens.CodebaseQueryTask)).toBe(true);
+
+      // Note: LLMRouter registration depends on LLMModelFamily being registered,
+      // which only happens when LLM env vars are available. The bootstrap process
+      // should handle this gracefully without requiring registerLLMProviders.
+    });
+
     it("should register MongoDB dependencies when required", async () => {
       await bootstrapContainer();
 

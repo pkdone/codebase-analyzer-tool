@@ -11,10 +11,6 @@ import { isInStringAt } from "../utils/parser-context-utils";
 const DIAGNOSTIC_TRUNCATION_LENGTH = 30;
 
 /**
- * Regex patterns for concatenation chain sanitization are now imported from constants
- */
-
-/**
  * Unified sanitizer that fixes property names, property assignment syntax, and value syntax issues.
  *
  * This sanitizer combines the functionality of six separate sanitizers:

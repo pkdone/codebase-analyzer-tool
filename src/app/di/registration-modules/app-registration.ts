@@ -80,8 +80,6 @@ function registerRepositories(): void {
  */
 function registerComponents(): void {
   // Register LLM strategies and pipeline components (always register since they may be needed)
-  // Note: FallbackStrategy and PromptAdaptationStrategy are now pure functions, not classes,
-  // so they don't need to be registered in the DI container
   container.registerSingleton(llmTokens.RetryStrategy, RetryStrategy);
   container.registerSingleton(llmTokens.LLMExecutionPipeline, LLMExecutionPipeline);
 

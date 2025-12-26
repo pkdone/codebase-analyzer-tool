@@ -3,7 +3,6 @@ import { container } from "tsyringe";
 import {
   registerBaseEnvDependencies,
   registerLlmEnvDependencies,
-  registerLLMProviders,
   registerMongoDBDependencies,
   registerAppDependencies,
 } from "./registration-modules";
@@ -20,7 +19,6 @@ export async function bootstrapContainer(): Promise<void> {
   // they're only instantiated when actually needed
   registerLlmEnvDependencies();
   registerBaseEnvDependencies();
-  registerLLMProviders();
   initializeAndRegisterLLMComponents();
   registerMongoDBDependencies();
   await connectAndRegisterMongoClient();

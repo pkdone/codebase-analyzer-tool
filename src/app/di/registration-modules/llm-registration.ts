@@ -5,17 +5,6 @@ import { EnvVars } from "../../env/env.types";
 import { llmTokens, coreTokens } from "../tokens";
 
 /**
- * Register LLM provider management services in the DI container.
- *
- * This module handles the registration of LLM provider management services.
- * The LLM module is now standalone and instantiated via factory functions.
- */
-export function registerLLMProviders(): void {
-  // LLM module is now instantiated via factory, no individual service registration needed
-  console.log("LLM services ready for initialization");
-}
-
-/**
  * Initializes and registers LLM components.
  * This function should be called during application bootstrap after registering dependencies.
  */

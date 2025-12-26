@@ -110,11 +110,6 @@ export default abstract class BaseOpenAILLM extends AbstractLLM {
   }
 
   /**
-   * Type guard to check if parameters are for embedding requests
-   */
-  // Removed parameter shape type guards; explicit build methods remove need for runtime discrimination.
-
-  /**
    * Invoke the actuall LLM's embedding API directly.
    */
   private async invokeEmbeddingsLLM(params: OpenAI.EmbeddingCreateParams) {
