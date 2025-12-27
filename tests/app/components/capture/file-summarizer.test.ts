@@ -270,7 +270,7 @@ CRITICAL JSON FORMAT REQUIREMENTS:
 {{contentWrapper}}{{content}}{{contentWrapper}}`,
         dataBlockHeader: "CODE",
         wrapInCodeBlock: true,
-      } as (typeof fileTypePromptMetadata)["default"]; // satisfy typing
+      } as unknown as (typeof fileTypePromptMetadata)["default"]; // Type assertion for mock object
     };
 
     // Since LLMRouter is a default export class, we don't use mockImplementation

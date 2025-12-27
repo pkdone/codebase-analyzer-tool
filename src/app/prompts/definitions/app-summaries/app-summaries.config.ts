@@ -10,12 +10,17 @@ import { buildInstructionBlock } from "../instruction-utils";
 import { z } from "zod";
 
 /**
- * Configuration entry for an app summary prompt definition
+ * Configuration entry for an app summary prompt definition.
+ *
+ * This interface is generic over the schema type S to preserve specific Zod schema types
+ * through the type system, enabling better type inference for downstream consumers.
+ *
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface AppSummaryConfigEntry {
+export interface AppSummaryConfigEntry<S extends z.ZodType = z.ZodType> {
   label: string;
   instructions: readonly string[];
-  responseSchema: z.ZodType;
+  responseSchema: S;
 }
 
 /**
@@ -28,8 +33,12 @@ export interface AppSummaryConfigEntry {
  *
  * Note: aggregates, entities, and repositories are now captured within the boundedContexts
  * category as a hierarchical structure to ensure naming consistency across domain elements.
+ *
+ * The `satisfies` pattern validates that the object conforms to the Record structure
+ * while preserving the literal types of each entry (including specific Zod schema types).
+ * This enables TypeScript to infer the exact schema type for each category key.
  */
-export const appSummaryConfigMap: Record<string, AppSummaryConfigEntry> = {
+export const appSummaryConfigMap = {
   appDescription: {
     label: "Application Description",
     instructions: [
@@ -86,4 +95,10 @@ This hierarchical structure ensures consistent naming across all domain elements
     ] as const,
     responseSchema: potentialMicroservicesSchema,
   },
-} as const;
+} as const satisfies Record<string, AppSummaryConfigEntry>;
+
+/**
+ * Type alias for the appSummaryConfigMap that preserves specific schema types for each category.
+ * Use this type when you need compile-time access to the exact schema for a specific category.
+ */
+export type AppSummaryConfigMap = typeof appSummaryConfigMap;

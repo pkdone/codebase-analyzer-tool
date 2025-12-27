@@ -60,10 +60,29 @@ export async function summarizeFile(
       sanitizerConfig: getSchemaSpecificSanitizerConfig(),
     } as const;
 
-    // Execute completion with the file-type-specific schema.
-    // The schema is z.ZodType, so we explicitly cast the response as PartialSourceSummaryType
-    // which accurately represents the union of all possible returned fields.
-    // The type assertion is safe because the schema is derived from sourceSummarySchema.pick().
+    /**
+     * Execute completion with the file-type-specific schema.
+     *
+     * TYPE ASSERTION RATIONALE:
+     * The cast to `PartialSourceSummaryType | null` is necessary because TypeScript cannot
+     * narrow the schema type through the dynamic runtime lookup `sourceConfigMap[canonicalFileType]`.
+     * When canonicalFileType is a runtime variable, TypeScript resolves the schema to the union
+     * of all possible schemas across all file types, resulting in an inferred return type of
+     * `unknown | null` from executeCompletion.
+     *
+     * This assertion is TYPE-SAFE because:
+     * 1. All schemas in sourceConfigMap are created via `sourceSummarySchema.pick(...)`,
+     *    making them strict subsets of SourceSummaryType.
+     * 2. PartialSourceSummaryType is `Partial<SourceSummaryType>`, which is a supertype
+     *    of all possible picked schemas.
+     * 3. The LLM router validates the response against the specific schema at runtime,
+     *    ensuring the data structure matches before reaching this cast.
+     *
+     * Alternative approaches considered:
+     * - Generic function with file type parameter: Would require extensive call-site changes
+     *   and still need runtime validation
+     * - Type guard function: Would add runtime overhead for pure type system limitation
+     */
     const response = (await llmRouter.executeCompletion(
       filepath,
       renderedPrompt,

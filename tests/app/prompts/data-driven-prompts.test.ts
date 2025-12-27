@@ -30,9 +30,10 @@ describe("Data-driven Prompt System", () => {
     it("should have consistent structure between config and generated metadata", () => {
       Object.entries(sourceConfigMap).forEach(([fileType, config]) => {
         const metadata = fileTypePromptMetadata[fileType as keyof typeof fileTypePromptMetadata];
+        const configWithOptionals = config as { hasComplexSchema?: boolean };
 
         expect(metadata.contentDesc).toContain(config.contentDesc); // Check that contentDesc is used in intro template
-        expect(metadata.hasComplexSchema).toBe(config.hasComplexSchema ?? true);
+        expect(metadata.hasComplexSchema).toBe(configWithOptionals.hasComplexSchema ?? true);
         expect(metadata.template).toBeDefined(); // Template is assigned in generatePromptMetadata
         expect(metadata.instructions).toEqual(config.instructions);
       });
@@ -78,7 +79,8 @@ describe("Data-driven Prompt System", () => {
 
     it("should have consistent structure between config and generated metadata", () => {
       Object.entries(appSummaryConfigMap).forEach(([category, config]) => {
-        const metadata = appSummaryPromptMetadata[category];
+        const metadata =
+          appSummaryPromptMetadata[category as keyof typeof appSummaryPromptMetadata];
 
         expect(metadata.label).toBe(config.label);
         expect(metadata.contentDesc).toContain("a set of source file summaries"); // Generic description
@@ -221,14 +223,11 @@ describe("Data-driven Prompt System", () => {
     });
 
     it("should have all required categories in app summary configuration", () => {
-      const expectedCategories = [
+      const expectedCategories: (keyof typeof appSummaryConfigMap)[] = [
         "appDescription",
         "technologies",
         "businessProcesses",
         "boundedContexts",
-        "boundedContexts",
-        "technologies",
-        "businessProcesses",
         "potentialMicroservices",
       ];
 

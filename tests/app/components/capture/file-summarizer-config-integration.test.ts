@@ -174,7 +174,8 @@ describe("file-summarizer sourceConfigMap integration", () => {
       // Most file types default to hasComplexSchema: true (or undefined which defaults to true)
       // Only explicit false values need to be checked
       for (const fileType of CANONICAL_FILE_TYPES) {
-        const hasComplexSchema = sourceConfigMap[fileType].hasComplexSchema;
+        const configEntry = sourceConfigMap[fileType] as { hasComplexSchema?: boolean };
+        const hasComplexSchema = configEntry.hasComplexSchema;
         // Should be undefined (defaults to true) or a boolean
         expect(hasComplexSchema === undefined || typeof hasComplexSchema === "boolean").toBe(true);
       }

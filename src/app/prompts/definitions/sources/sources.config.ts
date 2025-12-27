@@ -8,11 +8,16 @@ import { sourceSummarySchema } from "../../../schemas/sources.schema";
  * Configuration entry for a source prompt definition.
  * Each entry directly includes the responseSchema using sourceSummarySchema.pick(),
  * making the schemas explicit and type-safe.
+ *
+ * This interface is generic over the schema type S to preserve specific Zod schema types
+ * through the type system, enabling better type inference for downstream consumers.
+ *
+ * @template S - The Zod schema type for validating the LLM response. Defaults to z.ZodType for backward compatibility.
  */
-export interface SourceConfigEntry {
+export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
   contentDesc: string;
   hasComplexSchema?: boolean; // Defaults to true when undefined
-  responseSchema: z.ZodType;
+  responseSchema: S;
   instructions: readonly string[];
 }
 
@@ -20,8 +25,12 @@ export interface SourceConfigEntry {
  * Centralized configuration for all source prompt definitions.
  * This replaces the individual prompt definition files with a data-driven approach.
  * Each entry directly defines its responseSchema using sourceSummarySchema.pick().
+ *
+ * The `satisfies` pattern validates that the object conforms to the Record structure
+ * while preserving the literal types of each entry (including specific Zod schema types).
+ * This enables TypeScript to infer the exact schema type for each file type key.
  */
-export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
+export const sourceConfigMap = {
   java: {
     contentDesc: "JVM code",
     responseSchema: sourceSummarySchema.pick({
@@ -635,4 +644,10 @@ export const sourceConfigMap: Record<CanonicalFileType, SourceConfigEntry> = {
       ),
     ] as const,
   },
-};
+} as const satisfies Record<CanonicalFileType, SourceConfigEntry>;
+
+/**
+ * Type alias for the sourceConfigMap that preserves specific schema types for each file type.
+ * Use this type when you need compile-time access to the exact schema for a specific file type.
+ */
+export type SourceConfigMap = typeof sourceConfigMap;

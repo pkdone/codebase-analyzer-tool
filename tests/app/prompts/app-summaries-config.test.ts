@@ -25,9 +25,11 @@ describe("App Summaries Config", () => {
 
     it("should not contain separate aggregates, entities, or repositories categories", () => {
       // These are now nested within boundedContexts
-      expect(appSummaryConfigMap.aggregates).toBeUndefined();
-      expect(appSummaryConfigMap.entities).toBeUndefined();
-      expect(appSummaryConfigMap.repositories).toBeUndefined();
+      // Use type assertion to check for properties that should not exist
+      const configAsRecord = appSummaryConfigMap as Record<string, unknown>;
+      expect(configAsRecord.aggregates).toBeUndefined();
+      expect(configAsRecord.entities).toBeUndefined();
+      expect(configAsRecord.repositories).toBeUndefined();
     });
 
     it("should have non-empty labels and instructions", () => {

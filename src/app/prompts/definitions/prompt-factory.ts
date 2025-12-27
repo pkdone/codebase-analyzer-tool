@@ -5,11 +5,30 @@ import { z } from "zod";
  * Generic configuration entry that must have at least a label.
  * responseSchema is optional because some configs (like sources) build it dynamically.
  * Specific config types can extend this interface.
+ *
+ * This interface is generic over the schema type S to preserve specific Zod schema types
+ * through the type system, enabling better type inference for downstream consumers.
+ *
+ * @template S - The Zod schema type. Defaults to z.ZodType for backward compatibility.
  */
-interface BaseConfigEntry {
+interface BaseConfigEntry<S extends z.ZodType = z.ZodType> {
   label?: string;
-  responseSchema?: z.ZodType;
+  responseSchema?: S;
 }
+
+/**
+ * Helper type to extract the schema type from a config entry.
+ * Returns z.ZodType if responseSchema is undefined.
+ */
+type ExtractSchemaType<T> = T extends { responseSchema: infer S extends z.ZodType } ? S : z.ZodType;
+
+/**
+ * Mapped type that transforms a config map into a record of PromptDefinitions
+ * while preserving the specific schema type for each key.
+ */
+type PromptMetadataResult<TConfigMap extends Record<string, BaseConfigEntry>> = {
+  [K in keyof TConfigMap]: PromptDefinition<ExtractSchemaType<TConfigMap[K]>>;
+};
 
 /**
  * Options for creating prompt metadata from a configuration map.
@@ -46,16 +65,20 @@ interface CreatePromptMetadataOptions<TConfig extends BaseConfigEntry> {
  * Generic factory function to create prompt metadata from a configuration map.
  * This eliminates duplication between sources and app-summaries prompt generation.
  *
+ * The return type uses a mapped type (PromptMetadataResult) to preserve the specific
+ * schema type for each key in the config map. This enables better type inference
+ * for downstream consumers when accessing prompt definitions by key.
+ *
  * @param configMap - The configuration map (e.g., sourceConfigMap, appSummaryConfigMap)
  * @param template - The template string to use for all prompts
  * @param options - Optional builders for schema, contentDesc, and instructions
  * @returns A record mapping keys to PromptDefinition objects with preserved schema types
  */
-export function createPromptMetadata<TKey extends string, TConfig extends BaseConfigEntry>(
-  configMap: Record<TKey, TConfig>,
+export function createPromptMetadata<TConfigMap extends Record<string, BaseConfigEntry>>(
+  configMap: TConfigMap,
   template: string,
-  options: CreatePromptMetadataOptions<TConfig> = {},
-): Record<TKey, PromptDefinition> {
+  options: CreatePromptMetadataOptions<TConfigMap[keyof TConfigMap]> = {},
+): PromptMetadataResult<TConfigMap> {
   const {
     schemaBuilder,
     contentDescBuilder,
@@ -66,7 +89,7 @@ export function createPromptMetadata<TKey extends string, TConfig extends BaseCo
 
   return Object.fromEntries(
     Object.entries(configMap).map(([key, config]) => {
-      const typedConfig = config as TConfig;
+      const typedConfig = config as TConfigMap[keyof TConfigMap];
       const configWithHasComplexSchema = typedConfig as { hasComplexSchema?: boolean };
       const definition: PromptDefinition = {
         label: typedConfig.label,
@@ -90,5 +113,5 @@ export function createPromptMetadata<TKey extends string, TConfig extends BaseCo
 
       return [key, definition];
     }),
-  ) as Record<TKey, PromptDefinition>;
+  ) as PromptMetadataResult<TConfigMap>;
 }

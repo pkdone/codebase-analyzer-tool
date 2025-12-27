@@ -58,11 +58,26 @@ export async function executeInsightCompletion<C extends AppSummaryCategoryEnum>
     if (options.partialAnalysisNote) renderParams.partialAnalysisNote = options.partialAnalysisNote;
     const renderedPrompt = renderPrompt(config, renderParams);
 
-    // Schema lookup uses the category type to get the correct schema.
-    // Type assertion is required here because TypeScript cannot infer through the
-    // dynamic lookup of appSummaryCategorySchemas[category] to the return type.
-    // This is a safe cast as the schema and return type are guaranteed to match
-    // by the AppSummaryCategorySchemas type definition.
+    /**
+     * Schema lookup uses the category type to get the correct schema.
+     *
+     * TYPE ASSERTION RATIONALE:
+     * Although `appSummaryCategorySchemas` is defined with `as const` to preserve specific
+     * schema types, TypeScript cannot infer through the dynamic lookup when `category`
+     * is a generic parameter `C extends AppSummaryCategoryEnum`. The compiler sees the
+     * lookup result as the union of all possible schemas, not the specific schema for C.
+     *
+     * This assertion to `z.infer<AppSummaryCategorySchemas[C]> | null` is TYPE-SAFE because:
+     * 1. The AppSummaryCategorySchemas type maps each category key to its exact schema.
+     * 2. The generic parameter C is constrained to valid category keys.
+     * 3. The runtime lookup `appSummaryCategorySchemas[category]` returns the exact
+     *    schema corresponding to C, and the LLM router validates against it.
+     * 4. The return type declaration `z.infer<AppSummaryCategorySchemas[C]>` matches
+     *    exactly what the schema will validate.
+     *
+     * This is a TypeScript limitation with indexed access on generic parameters,
+     * not a design flaw. The types are correct; the compiler just cannot prove it.
+     */
     const schema = appSummaryCategorySchemas[category];
     return (await llmRouter.executeCompletion(taskCategory, renderedPrompt, {
       outputFormat: LLMOutputFormat.JSON,
