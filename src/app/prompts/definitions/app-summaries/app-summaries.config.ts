@@ -2,6 +2,7 @@ import {
   appDescriptionSchema,
   boundedContextsSchema,
   businessProcessesSchema,
+  inferredArchitectureSchema,
   potentialMicroservicesSchema,
   technologiesSchema,
 } from "../../../schemas/app-summaries.schema";
@@ -94,6 +95,40 @@ This hierarchical structure ensures consistent naming across all domain elements
       ),
     ] as const,
     responseSchema: potentialMicroservicesSchema,
+  },
+  inferredArchitecture: {
+    label: "Inferred Architecture",
+    instructions: [
+      buildInstructionBlock(
+        "Instructions",
+        `${APP_SUMMARY_PROMPT_FRAGMENTS.CONCISE_LIST} of BUSINESS DOMAIN components inferred from the codebase.
+
+IMPORTANT: Identify components by their BUSINESS CAPABILITY, not by their technical layer.
+
+CORRECT examples of business components:
+- "Loan Manager" (manages loan lifecycle)
+- "Customer Service" (handles customer data and operations)
+- "Payment Processor" (processes payments and transactions)
+- "Invoice Generator" (creates and manages invoices)
+- "Account Manager" (manages user accounts)
+- "Order Fulfillment" (handles order processing)
+
+INCORRECT examples (do NOT use these technical layer names):
+- "Web Presentation Layer" ❌
+- "Service Layer" ❌
+- "Data Access Layer (DAO)" ❌
+- "Business Logic Layer" ❌
+- "Database Logic Layer" ❌
+- "Batch Processing Layer" ❌
+
+For each business component, describe its domain responsibilities and what business function it serves.
+
+Also identify:
+1. External systems that internal components actively depend on (databases, message queues, external APIs, caches). ONLY include external systems that have at least one dependency relationship with an internal component.
+2. Directed dependency relationships between all business components and external systems. Every external dependency listed MUST have at least one "from" relationship from an internal component.`,
+      ),
+    ] as const,
+    responseSchema: inferredArchitectureSchema,
   },
 } as const satisfies Record<string, AppSummaryConfigEntry>;
 

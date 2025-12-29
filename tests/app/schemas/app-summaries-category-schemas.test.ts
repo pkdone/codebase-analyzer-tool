@@ -12,6 +12,7 @@ import {
   nestedEntitySchema,
   nestedRepositorySchema,
   potentialMicroservicesSchema,
+  inferredArchitectureSchema,
 } from "../../../src/app/schemas/app-summaries.schema";
 
 describe("appSummaryCategorySchemas", () => {
@@ -32,6 +33,7 @@ describe("appSummaryCategorySchemas", () => {
       expect(appSummaryCategorySchemas.businessProcesses).toBe(businessProcessesSchema);
       expect(appSummaryCategorySchemas.boundedContexts).toBe(boundedContextsSchema);
       expect(appSummaryCategorySchemas.potentialMicroservices).toBe(potentialMicroservicesSchema);
+      expect(appSummaryCategorySchemas.inferredArchitecture).toBe(inferredArchitectureSchema);
     });
 
     it("should not include aggregates, entities, or repositories as separate categories", () => {
@@ -66,6 +68,11 @@ describe("appSummaryCategorySchemas", () => {
       // potentialMicroservices has 'potentialMicroservices' key
       expect(appSummaryCategorySchemas.potentialMicroservices.shape).toHaveProperty(
         "potentialMicroservices",
+      );
+
+      // inferredArchitecture has 'inferredArchitecture' key
+      expect(appSummaryCategorySchemas.inferredArchitecture.shape).toHaveProperty(
+        "inferredArchitecture",
       );
     });
   });
@@ -138,6 +145,25 @@ describe("appSummaryCategorySchemas", () => {
       };
       expect(validData.potentialMicroservices).toHaveLength(1);
       expect(validData.potentialMicroservices[0].name).toBe("UserService");
+    });
+
+    it("should infer correct type for inferredArchitecture", () => {
+      type InferredType = z.infer<AppSummaryCategorySchemas["inferredArchitecture"]>;
+
+      const validData: InferredType = {
+        inferredArchitecture: {
+          internalComponents: [{ name: "Order Manager", description: "Handles order operations" }],
+          externalDependencies: [
+            { name: "PostgreSQL", type: "Database", description: "Primary database" },
+          ],
+          dependencies: [
+            { from: "Order Manager", to: "PostgreSQL", description: "Persists order data" },
+          ],
+        },
+      };
+      expect(validData.inferredArchitecture.internalComponents).toHaveLength(1);
+      expect(validData.inferredArchitecture.externalDependencies).toHaveLength(1);
+      expect(validData.inferredArchitecture.dependencies).toHaveLength(1);
     });
   });
 

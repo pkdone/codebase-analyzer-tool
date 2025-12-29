@@ -1,7 +1,11 @@
 import { injectable } from "tsyringe";
 import { z } from "zod";
 import { promptRegistry } from "../../../../prompts/prompt-registry";
-import { AppSummaryCategories, nameDescSchema } from "../../../../schemas/app-summaries.schema";
+import {
+  AppSummaryCategories,
+  nameDescSchema,
+  inferredArchitectureSchema,
+} from "../../../../schemas/app-summaries.schema";
 import type { AppSummaryCategoryType } from "../../../insights/insights.types";
 import type {
   AppSummaryNameDescArray,
@@ -11,12 +15,22 @@ import type {
 // Zod schema for validating AppSummaryNameDescArray
 const appSummaryNameDescArraySchema = z.array(nameDescSchema);
 
+// Schema for the inner inferredArchitecture object (unwrapped from the wrapper)
+const inferredArchitectureInnerSchema = inferredArchitectureSchema.shape.inferredArchitecture;
+
 /**
  * Type guard to check if a value is an AppSummaryNameDescArray
  * Uses Zod schema validation for robust type checking.
  */
 function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
   return appSummaryNameDescArraySchema.safeParse(data).success;
+}
+
+/**
+ * Type guard to check if a value is a valid inferred architecture object
+ */
+function isInferredArchitectureData(data: unknown): boolean {
+  return inferredArchitectureInnerSchema.safeParse(data).success;
 }
 
 /**
@@ -40,7 +54,18 @@ export class AppSummaryCategoriesProvider {
       const config = promptRegistry.appSummaries[category];
       const label = config.label ?? category;
       const fieldData = appSummaryData[category];
-      const data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];
+
+      // Handle inferredArchitecture specially - it's an object, not an array
+      // Wrap it in an array so it can be processed by VisualizationsSection
+      let data: AppSummaryNameDescArray;
+      if (category === "inferredArchitecture") {
+        data = isInferredArchitectureData(fieldData)
+          ? ([fieldData] as unknown as AppSummaryNameDescArray)
+          : [];
+      } else {
+        data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];
+      }
+
       console.log(`Generated ${label} table`);
       return {
         category,

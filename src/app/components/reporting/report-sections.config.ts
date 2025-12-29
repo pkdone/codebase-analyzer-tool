@@ -17,6 +17,7 @@ export const reportSectionsConfig = {
     "businessProcesses",
     "boundedContexts",
     "potentialMicroservices",
+    "inferredArchitecture",
   ],
 
   /**

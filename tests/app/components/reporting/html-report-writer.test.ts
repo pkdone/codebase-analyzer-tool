@@ -126,6 +126,10 @@ describe("HtmlReportWriter", () => {
     microservicesData: [],
     architectureDiagramSvg: "",
 
+    // Current/Inferred Architecture data
+    inferredArchitectureData: null,
+    currentArchitectureDiagramSvg: "",
+
     // Table view models for enhanced sections
 
     // Asset content to be embedded inline

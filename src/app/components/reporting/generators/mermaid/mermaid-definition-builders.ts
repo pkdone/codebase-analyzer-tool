@@ -146,7 +146,9 @@ export function buildStyleDefinitions(): string {
     classDef service fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
     classDef process fill:#ffffff,stroke:#00684A,stroke-width:2px,color:#001e2b
     classDef dependency fill:#f8f9fa,stroke:#6c757d,stroke-width:1px,color:#001e2b
-    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b`;
+    classDef rootDependency fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#001e2b
+    classDef internalComponent fill:#e8f5e8,stroke:#00684A,stroke-width:2px,color:#001e2b
+    classDef externalComponent fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#001e2b`;
 }
 
 /**

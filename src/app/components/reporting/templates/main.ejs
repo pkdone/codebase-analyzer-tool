@@ -11,8 +11,9 @@
     <nav class="tabs">
       <button class="tab-button active" data-target="tab-overview">Overview</button>
       <button class="tab-button" data-target="tab-business">Business Processes</button>
-      <button class="tab-button" data-target="tab-domain">Domain Model</button>
+      <button class="tab-button" data-target="tab-current-arch">Current Architecture</button>
       <button class="tab-button" data-target="tab-arch">Future Architecture</button>
+      <button class="tab-button" data-target="tab-domain">Domain Model</button>
       <button class="tab-button" data-target="tab-quality">Code Quality</button>
       <button class="tab-button" data-target="tab-ui">UI Analysis</button>
       <button class="tab-button" data-target="tab-db">Database Integrations</button>
@@ -51,12 +52,16 @@
       <% } %>
     </div>
 
-    <div id="tab-domain" class="tab-content">
-      <% if (domainModelData && domainModelData.boundedContexts.length > 0) { %>
-        <%- include('partials/domain-model-diagrams', { 
-          domainModelData: domainModelData,
-          contextDiagramSvgs: contextDiagramSvgs
+    <div id="tab-current-arch" class="tab-content">
+      <% if (inferredArchitectureData && inferredArchitectureData.internalComponents && inferredArchitectureData.internalComponents.length > 0) { %>
+        <%- include('partials/current-architecture', { 
+          inferredArchitectureData: inferredArchitectureData,
+          currentArchitectureDiagramSvg: currentArchitectureDiagramSvg
         }) %>
+      <% } else { %>
+        <div class="note-box">
+          <p>No inferred architecture data available. Run the insights generation task with the <code>inferredArchitecture</code> category to populate this section.</p>
+        </div>
       <% } %>
     </div>
 
@@ -66,6 +71,15 @@
           microservicesData: microservicesData,
           architectureDiagramSvg: architectureDiagramSvg,
           integrationPointsTableViewModel: integrationPointsTableViewModel
+        }) %>
+      <% } %>
+    </div>
+
+    <div id="tab-domain" class="tab-content">
+      <% if (domainModelData && domainModelData.boundedContexts.length > 0) { %>
+        <%- include('partials/domain-model-diagrams', { 
+          domainModelData: domainModelData,
+          contextDiagramSvgs: contextDiagramSvgs
         }) %>
       <% } %>
     </div>

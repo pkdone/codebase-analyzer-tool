@@ -10,6 +10,7 @@ import { PieChartGenerator } from "../../components/reporting/generators/png/pie
 import { FlowchartSvgGenerator } from "../../components/reporting/generators/svg/flowchart-svg-generator";
 import { DomainModelSvgGenerator } from "../../components/reporting/generators/svg/domain-model-svg-generator";
 import { ArchitectureSvgGenerator } from "../../components/reporting/generators/svg/architecture-svg-generator";
+import { CurrentArchitectureSvgGenerator } from "../../components/reporting/generators/svg/current-architecture-svg-generator";
 import { DatabaseReportDataProvider } from "../../components/reporting/sections/database/database-report-data-provider";
 import { IntegrationPointsDataProvider } from "../../components/reporting/sections/integration-points/integration-points-data-provider";
 import { CodeStructureDataProvider } from "../../components/reporting/sections/code-structure/code-structure-data-provider";
@@ -52,6 +53,10 @@ export function registerReportingComponents(): void {
   container.registerSingleton(reportingTokens.FlowchartSvgGenerator, FlowchartSvgGenerator);
   container.registerSingleton(reportingTokens.DomainModelSvgGenerator, DomainModelSvgGenerator);
   container.registerSingleton(reportingTokens.ArchitectureSvgGenerator, ArchitectureSvgGenerator);
+  container.registerSingleton(
+    reportingTokens.CurrentArchitectureSvgGenerator,
+    CurrentArchitectureSvgGenerator,
+  );
   container.registerSingleton(
     reportingTokens.DatabaseReportDataProvider,
     DatabaseReportDataProvider,

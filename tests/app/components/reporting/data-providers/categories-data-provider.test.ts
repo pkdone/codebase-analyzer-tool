@@ -56,9 +56,9 @@ describe("AppSummaryCategoriesProvider", () => {
         mockAppSummaryData as AppSummaryRecordWithId,
       );
 
-      // Assert - should include technologies, businessProcesses, boundedContexts, potentialMicroservices
+      // Assert - should include technologies, businessProcesses, boundedContexts, potentialMicroservices, inferredArchitecture
       // but NOT appDescription (which is rendered separately in the overview section)
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(5);
 
       // Verify that appDescription is not included (it has a dedicated section)
       const categoryNames = result.map((r) => r.category);
@@ -70,6 +70,7 @@ describe("AppSummaryCategoriesProvider", () => {
       expect(categoryNames).toContain("businessProcesses");
       expect(categoryNames).toContain("boundedContexts");
       expect(categoryNames).toContain("potentialMicroservices");
+      expect(categoryNames).toContain("inferredArchitecture");
     });
 
     it("should return valid data for categories with data", () => {

@@ -138,6 +138,14 @@ export interface PreparedHtmlReportData {
   }[];
   architectureDiagramSvg: string;
 
+  // Current/Inferred Architecture data
+  inferredArchitectureData: {
+    internalComponents: { name: string; description: string }[];
+    externalDependencies: { name: string; type: string; description: string }[];
+    dependencies: { from: string; to: string; description: string }[];
+  } | null;
+  currentArchitectureDiagramSvg: string;
+
   // Table view models for enhanced sections
 
   // Asset content to be embedded inline

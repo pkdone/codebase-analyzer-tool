@@ -77,6 +77,7 @@ export const reportingTokens = {
   FlowchartSvgGenerator: Symbol("FlowchartSvgGenerator"),
   DomainModelSvgGenerator: Symbol("DomainModelSvgGenerator"),
   ArchitectureSvgGenerator: Symbol("ArchitectureSvgGenerator"),
+  CurrentArchitectureSvgGenerator: Symbol("CurrentArchitectureSvgGenerator"),
   DatabaseReportDataProvider: Symbol("DatabaseReportDataProvider"),
   CodeStructureDataProvider: Symbol("CodeStructureDataProvider"),
   AppStatisticsDataProvider: Symbol("AppStatisticsDataProvider"),

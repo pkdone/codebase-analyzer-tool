@@ -11,6 +11,7 @@ export const AppSummaryCategories = z.enum([
   "businessProcesses",
   "boundedContexts",
   "potentialMicroservices",
+  "inferredArchitecture",
 ]);
 
 // Base schema for common name-description pattern
@@ -283,6 +284,90 @@ export const potentialMicroservicesSchema = z
   })
   .passthrough();
 
+// =============================================================================
+// Inferred Architecture Schemas
+// These schemas define the structure for business components inferred from
+// the codebase and their external dependencies.
+// =============================================================================
+
+/**
+ * Schema for a dependency relationship between components
+ */
+export const componentDependencySchema = z
+  .object({
+    from: z.string().describe("The name of the source business component."),
+    to: z.string().describe("The name of the target business component or external system."),
+    description: z.string().describe("A brief description of the dependency relationship."),
+  })
+  .passthrough();
+
+/**
+ * Schema for an inferred internal business component.
+ * These should be BUSINESS DOMAIN components (e.g., "Loan Manager", "Customer Service",
+ * "Order Processor", "Payment Handler"), NOT technical layers (e.g., NOT "Web Layer",
+ * "Service Layer", "DAO Layer", "Presentation Layer").
+ */
+export const inferredComponentSchema = z
+  .object({
+    name: z
+      .string()
+      .describe(
+        "The name of a business domain component that handles a specific business capability (e.g., 'Loan Manager', 'Customer Service', 'Invoice Processor'). Do NOT use technical layer names like 'Web Layer', 'Service Layer', 'DAO', or 'Presentation Layer'.",
+      ),
+    description: z
+      .string()
+      .describe(
+        "A detailed description of the business capabilities and domain responsibilities this component handles, in at least 3 sentences. Focus on WHAT business function it serves, not HOW it is technically implemented.",
+      ),
+  })
+  .passthrough();
+
+/**
+ * Schema for an external dependency (database, queue, API, etc.)
+ * Only include external dependencies that have at least one internal component depending on them.
+ */
+export const externalDependencyComponentSchema = z
+  .object({
+    name: z.string().describe("The name of the external system or technology."),
+    type: z.string().describe("The type (e.g., Database, Message Queue, External API, Cache)."),
+    description: z
+      .string()
+      .describe(
+        "A brief description of how it is used by the application. Only include if at least one internal component depends on it.",
+      ),
+  })
+  .passthrough();
+
+/**
+ * Schema for the complete inferred architecture insight.
+ * Internal components should represent BUSINESS capabilities, not technical layers.
+ */
+export const inferredArchitectureSchema = z
+  .object({
+    inferredArchitecture: z
+      .object({
+        internalComponents: z
+          .array(inferredComponentSchema)
+          .describe(
+            "Business domain components inferred from the codebase. These should represent business capabilities (e.g., 'Loan Manager', 'Account Service', 'Payment Processor'), NOT technical architecture layers (avoid names like 'Web Layer', 'Service Layer', 'DAO Layer').",
+          ),
+        externalDependencies: z
+          .array(externalDependencyComponentSchema)
+          .describe(
+            "External systems the application depends on (databases, queues, APIs, etc.). ONLY include external systems that have at least one internal component depending on them - do not list orphaned external dependencies with no connections.",
+          ),
+        dependencies: z
+          .array(componentDependencySchema)
+          .describe(
+            "Directed relationships showing how business components depend on each other and on external systems. Every external dependency MUST appear as a 'to' target in at least one relationship.",
+          ),
+      })
+      .describe(
+        "The inferred business architecture of the application, focusing on domain components rather than technical layers.",
+      ),
+  })
+  .passthrough();
+
 /**
  * Schema for full application summary of categories
  * Note: aggregates, entities, and repositories are now nested within boundedContexts
@@ -296,6 +381,7 @@ export const appSummarySchema = z
     technologies: technologiesSchema.shape.technologies.optional(),
     boundedContexts: boundedContextsSchema.shape.boundedContexts.optional(),
     potentialMicroservices: potentialMicroservicesSchema.shape.potentialMicroservices.optional(),
+    inferredArchitecture: inferredArchitectureSchema.shape.inferredArchitecture.optional(),
   })
   .passthrough();
 
@@ -313,6 +399,7 @@ export const appSummaryCategorySchemas = {
   businessProcesses: businessProcessesSchema,
   boundedContexts: boundedContextsSchema,
   potentialMicroservices: potentialMicroservicesSchema,
+  inferredArchitecture: inferredArchitectureSchema,
 } as const;
 
 /**
@@ -332,3 +419,11 @@ export type NestedEntity = z.infer<typeof nestedEntitySchema>;
 export type NestedAggregate = z.infer<typeof nestedAggregateSchema>;
 export type NestedRepository = z.infer<typeof nestedRepositorySchema>;
 export type HierarchicalBoundedContext = z.infer<typeof hierarchicalBoundedContextSchema>;
+
+/**
+ * Inferred types from inferred architecture schemas
+ */
+export type InferredComponent = z.infer<typeof inferredComponentSchema>;
+export type ExternalDependencyComponent = z.infer<typeof externalDependencyComponentSchema>;
+export type ComponentDependency = z.infer<typeof componentDependencySchema>;
+export type InferredArchitecture = z.infer<typeof inferredArchitectureSchema>;

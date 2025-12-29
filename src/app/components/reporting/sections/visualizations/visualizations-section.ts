@@ -5,6 +5,10 @@ import { DomainModelDataProvider } from "./domain-model-data-provider";
 import { FlowchartSvgGenerator } from "../../generators/svg/flowchart-svg-generator";
 import { DomainModelSvgGenerator } from "../../generators/svg/domain-model-svg-generator";
 import { ArchitectureSvgGenerator } from "../../generators/svg/architecture-svg-generator";
+import {
+  CurrentArchitectureSvgGenerator,
+  type InferredArchitectureData,
+} from "../../generators/svg/current-architecture-svg-generator";
 import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
@@ -37,6 +41,24 @@ type MicroserviceData = AppSummaryNameDescArray[0] & {
   }[];
 };
 
+// Extended interface for inferred architecture category data
+interface InferredArchitectureCategoryData {
+  internalComponents?: {
+    name: string;
+    description: string;
+  }[];
+  externalDependencies?: {
+    name: string;
+    type: string;
+    description: string;
+  }[];
+  dependencies?: {
+    from: string;
+    to: string;
+    description: string;
+  }[];
+}
+
 /**
  * Report section for visualizations (flowcharts, domain diagrams, architecture diagrams).
  */
@@ -51,6 +73,8 @@ export class VisualizationsSection implements ReportSection {
     private readonly domainModelSvgGenerator: DomainModelSvgGenerator,
     @inject(reportingTokens.ArchitectureSvgGenerator)
     private readonly architectureSvgGenerator: ArchitectureSvgGenerator,
+    @inject(reportingTokens.CurrentArchitectureSvgGenerator)
+    private readonly currentArchitectureSvgGenerator: CurrentArchitectureSvgGenerator,
   ) {}
 
   getName(): string {
@@ -90,12 +114,21 @@ export class VisualizationsSection implements ReportSection {
         baseData.integrationPoints,
       );
 
+    // Extract inferred architecture data and generate current architecture diagram
+    const inferredArchitectureData = this.extractInferredArchitectureData(baseData.categorizedData);
+    const currentArchitectureDiagramSvg =
+      await this.currentArchitectureSvgGenerator.generateCurrentArchitectureDiagramSvg(
+        inferredArchitectureData,
+      );
+
     return {
       businessProcessesFlowchartSvgs,
       domainModelData,
       contextDiagramSvgs,
       microservicesData,
       architectureDiagramSvg,
+      inferredArchitectureData,
+      currentArchitectureDiagramSvg,
     };
   }
 
@@ -182,5 +215,45 @@ export class VisualizationsSection implements ReportSection {
         operations: microserviceItem.operations ?? [],
       };
     });
+  }
+
+  /**
+   * Extract inferred architecture data from categorized data
+   */
+  private extractInferredArchitectureData(
+    categorizedData: {
+      category: string;
+      label: string;
+      data: AppSummaryNameDescArray;
+    }[],
+  ): InferredArchitectureData | null {
+    const inferredArchitectureCategory = categorizedData.find(
+      (category) => category.category === "inferredArchitecture",
+    );
+
+    if (!inferredArchitectureCategory || inferredArchitectureCategory.data.length === 0) {
+      return null;
+    }
+
+    // The data array contains a single item with the architecture structure
+    const archData = inferredArchitectureCategory
+      .data[0] as unknown as InferredArchitectureCategoryData;
+
+    return {
+      internalComponents: (archData.internalComponents ?? []).map((c) => ({
+        name: c.name,
+        description: c.description,
+      })),
+      externalDependencies: (archData.externalDependencies ?? []).map((d) => ({
+        name: d.name,
+        type: d.type,
+        description: d.description,
+      })),
+      dependencies: (archData.dependencies ?? []).map((dep) => ({
+        from: dep.from,
+        to: dep.to,
+        description: dep.description,
+      })),
+    };
   }
 }
