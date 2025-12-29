@@ -6,6 +6,9 @@ import {
   generateNodeId,
   buildStyleDefinitions,
   applyStyle,
+  DIAGRAM_STYLES,
+  generateEmptyDiagramSvg,
+  buildMermaidInitDirective,
 } from "../mermaid/mermaid-definition-builders";
 
 export interface BusinessProcessActivity {
@@ -61,7 +64,7 @@ export class FlowchartSvgGenerator {
     const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
       width: Math.max(opts.width, activities.length * 200),
       height: opts.height,
-      backgroundColor: "#f8f9fa",
+      backgroundColor: DIAGRAM_STYLES.backgroundColor,
     });
 
     return svg;
@@ -86,7 +89,7 @@ export class FlowchartSvgGenerator {
    * Build the Mermaid flowchart definition for activities
    */
   private buildFlowchartDefinition(activities: BusinessProcessActivity[]): string {
-    const lines: string[] = ["graph LR"];
+    const lines: string[] = [buildMermaidInitDirective(), "graph LR"];
 
     // Add style definitions
     lines.push(buildStyleDefinitions());
@@ -117,8 +120,6 @@ export class FlowchartSvgGenerator {
    * Generate an empty diagram placeholder
    */
   private generateEmptyDiagram(message: string): string {
-    return `<svg width="400" height="100" xmlns="http://www.w3.org/2000/svg" style="background-color: #f8f9fa; border-radius: 8px;">
-      <text x="200" y="50" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#8b95a1">${message}</text>
-    </svg>`;
+    return generateEmptyDiagramSvg(message);
   }
 }

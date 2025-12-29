@@ -4,6 +4,39 @@
  */
 
 /**
+ * Shared styling constants for SVG diagrams.
+ */
+export const DIAGRAM_STYLES = {
+  /** Background color for rendered Mermaid diagrams */
+  backgroundColor: "#F0F3F2",
+  /** Padding around the diagram content within the SVG canvas */
+  diagramPadding: 30,
+  /** Font family for empty diagram placeholders */
+  emptyDiagramFontFamily: "system-ui, sans-serif",
+  /** Font size for empty diagram placeholder text */
+  emptyDiagramFontSize: "14",
+  /** Text color for empty diagram placeholder messages */
+  emptyDiagramTextColor: "#8b95a1",
+} as const;
+
+/**
+ * Generate the Mermaid init directive for consistent diagram configuration.
+ * This adds padding around the diagram content.
+ */
+export function buildMermaidInitDirective(): string {
+  return `%%{init: {'flowchart': {'diagramPadding': ${DIAGRAM_STYLES.diagramPadding}}}}%%`;
+}
+
+/**
+ * Generate an empty diagram SVG placeholder with consistent styling.
+ */
+export function generateEmptyDiagramSvg(message: string): string {
+  return `<svg width="400" height="100" xmlns="http://www.w3.org/2000/svg" style="background-color: ${DIAGRAM_STYLES.backgroundColor}; border-radius: 8px;">
+      <text x="200" y="50" text-anchor="middle" font-family="${DIAGRAM_STYLES.emptyDiagramFontFamily}" font-size="${DIAGRAM_STYLES.emptyDiagramFontSize}" fill="${DIAGRAM_STYLES.emptyDiagramTextColor}">${message}</text>
+    </svg>`;
+}
+
+/**
  * Escape special characters in Mermaid node labels.
  * Mermaid uses certain characters for syntax, so we need to escape them.
  */
