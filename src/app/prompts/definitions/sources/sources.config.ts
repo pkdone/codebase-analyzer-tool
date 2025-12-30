@@ -624,6 +624,118 @@ export const sourceConfigMap = {
       ),
     ] as const,
   },
+  c: {
+    contentDesc: "C source code",
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicFunctions: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
+    instructions: [
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        SOURCES_PROMPT_FRAGMENTS.BASE.MODULE,
+        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
+        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.INTERNAL_REFS,
+        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.EXTERNAL_REFS,
+        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.PUBLIC_CONSTANTS,
+        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.PUBLIC_FUNCTIONS,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        COMPOSITES.DB_INTEGRATION,
+        SOURCES_PROMPT_FRAGMENTS.C_SPECIFIC.DB_MECHANISM_MAPPING,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+        COMPOSITES.CODE_QUALITY,
+      ),
+    ] as const,
+  },
+  cpp: {
+    contentDesc: "C++ source code",
+    responseSchema: sourceSummarySchema.pick({
+      name: true,
+      kind: true,
+      namespace: true,
+      purpose: true,
+      implementation: true,
+      internalReferences: true,
+      externalReferences: true,
+      publicConstants: true,
+      publicFunctions: true,
+      databaseIntegration: true,
+      integrationPoints: true,
+      codeQualityMetrics: true,
+    }),
+    instructions: [
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        SOURCES_PROMPT_FRAGMENTS.BASE.CLASS,
+        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.KIND_OVERRIDE,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
+        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.INTERNAL_REFS,
+        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.EXTERNAL_REFS,
+        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.PUBLIC_CONSTANTS,
+        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.PUBLIC_METHODS,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.INTEGRATION_POINTS,
+        SOURCES_PROMPT_FRAGMENTS.INTEGRATION_POINTS.INTRO,
+        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.INTEGRATION_INSTRUCTIONS,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.DATABASE_INTEGRATION_ANALYSIS,
+        COMPOSITES.DB_INTEGRATION,
+        SOURCES_PROMPT_FRAGMENTS.CPP_SPECIFIC.DB_MECHANISM_MAPPING,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.CODE_QUALITY_METRICS,
+        COMPOSITES.CODE_QUALITY,
+      ),
+    ] as const,
+  },
+  makefile: {
+    contentDesc: "C/C++ build configuration (CMake or Makefile)",
+    responseSchema: sourceSummarySchema.pick({
+      purpose: true,
+      implementation: true,
+      dependencies: true,
+    }),
+    instructions: [
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.BASIC_INFO,
+        SOURCES_PROMPT_FRAGMENTS.COMMON.PURPOSE,
+        SOURCES_PROMPT_FRAGMENTS.COMMON.IMPLEMENTATION,
+      ),
+      buildInstructionBlock(
+        INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS,
+        SOURCES_PROMPT_FRAGMENTS.DEPENDENCY_EXTRACTION.MAKEFILE,
+      ),
+    ] as const,
+  },
   default: {
     contentDesc: "source files",
     responseSchema: sourceSummarySchema.pick({

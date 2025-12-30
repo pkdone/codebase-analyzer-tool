@@ -54,6 +54,12 @@ describe("file-types.config", () => {
       expect(CANONICAL_FILE_TYPES).toContain("python-setup");
       expect(CANONICAL_FILE_TYPES).toContain("python-poetry");
     });
+
+    it("should have C and C++ file types", () => {
+      expect(CANONICAL_FILE_TYPES).toContain("c");
+      expect(CANONICAL_FILE_TYPES).toContain("cpp");
+      expect(CANONICAL_FILE_TYPES).toContain("makefile");
+    });
   });
 
   describe("CanonicalFileType", () => {
@@ -137,6 +143,46 @@ describe("file-types.config", () => {
       expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
       expect(EXTENSION_TO_TYPE_MAP.ts).toBe("javascript");
       expect(EXTENSION_TO_TYPE_MAP.py).toBe("python");
+    });
+
+    it("should match C language extension mappings correctly", () => {
+      expect(EXTENSION_TO_TYPE_MAP.c).toBe("c");
+      expect(EXTENSION_TO_TYPE_MAP.h).toBe("c");
+    });
+
+    it("should match C++ language extension mappings correctly", () => {
+      expect(EXTENSION_TO_TYPE_MAP.cpp).toBe("cpp");
+      expect(EXTENSION_TO_TYPE_MAP.cxx).toBe("cpp");
+      expect(EXTENSION_TO_TYPE_MAP.cc).toBe("cpp");
+      expect(EXTENSION_TO_TYPE_MAP.hpp).toBe("cpp");
+      expect(EXTENSION_TO_TYPE_MAP.hh).toBe("cpp");
+      expect(EXTENSION_TO_TYPE_MAP.hxx).toBe("cpp");
+    });
+
+    it("should match C/C++ build file filename mappings correctly", () => {
+      expect(FILENAME_TO_TYPE_MAP["cmakelists.txt"]).toBe("makefile");
+      expect(FILENAME_TO_TYPE_MAP.makefile).toBe("makefile");
+      expect(FILENAME_TO_TYPE_MAP.gnumakefile).toBe("makefile");
+    });
+
+    it("should match Autotools config file filename mappings correctly", () => {
+      expect(FILENAME_TO_TYPE_MAP["configure.ac"]).toBe("makefile");
+      expect(FILENAME_TO_TYPE_MAP["configure.in"]).toBe("makefile");
+    });
+
+    it("should match Makefile.* patterns correctly via rules", () => {
+      // Test pattern-based rules for Makefile variants
+      const makefileRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("makefile.am", "am"));
+      expect(makefileRule?.type).toBe("makefile");
+
+      const makefileInRule = FILE_TYPE_MAPPING_RULES.find((r) => r.test("makefile.in", "in"));
+      expect(makefileInRule?.type).toBe("makefile");
+
+      // Ensure non-makefile files don't match the rule
+      const nonMakefileRule = FILE_TYPE_MAPPING_RULES.find(
+        (r) => r.type === "makefile" && r.test("somefile.am", "am"),
+      );
+      expect(nonMakefileRule).toBeUndefined();
     });
 
     it("should prioritize filename mappings over extension mappings", () => {

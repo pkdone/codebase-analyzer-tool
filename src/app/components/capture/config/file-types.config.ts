@@ -1,43 +1,12 @@
-import { z } from "zod";
 import path from "node:path";
+import {
+  CANONICAL_FILE_TYPES,
+  type CanonicalFileType,
+  canonicalFileTypeSchema,
+} from "./canonical-file-types";
 
-/**
- * Supported file types for metadata configuration.
- * Defined as a constant tuple to enable both runtime iteration and compile-time type safety.
- * This is the source of truth for canonical file types in the application.
- * The Zod schema `canonicalFileTypeSchema` is derived from this array.
- */
-export const CANONICAL_FILE_TYPES = [
-  "java",
-  "javascript",
-  "sql",
-  "xml",
-  "jsp",
-  "markdown",
-  "csharp",
-  "ruby",
-  "maven",
-  "gradle",
-  "ant",
-  "npm",
-  "python",
-  "dotnet-proj",
-  "nuget",
-  "ruby-bundler",
-  "python-pip",
-  "python-setup",
-  "python-poetry",
-  "shell-script",
-  "batch-script",
-  "jcl",
-  "default",
-] as const;
-
-/** Inferred TypeScript type for canonical file types */
-export type CanonicalFileType = (typeof CANONICAL_FILE_TYPES)[number];
-
-/** Zod enum schema for canonical file types */
-export const canonicalFileTypeSchema = z.enum(CANONICAL_FILE_TYPES);
+// Re-export canonical file types from the single source of truth module
+export { CANONICAL_FILE_TYPES, type CanonicalFileType, canonicalFileTypeSchema };
 
 /**
  * Map of exact filename matches to canonical file types.
@@ -60,6 +29,12 @@ export const FILENAME_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> =
   "gemfile.lock": "ruby-bundler",
   pipfile: "python-pip",
   "pipfile.lock": "python-pip",
+  // C/C++ build files (CMake, Make, Autotools)
+  "cmakelists.txt": "makefile",
+  makefile: "makefile",
+  gnumakefile: "makefile",
+  "configure.ac": "makefile",
+  "configure.in": "makefile",
 } as const;
 
 /**
@@ -94,6 +69,16 @@ export const EXTENSION_TO_TYPE_MAP: Readonly<Record<string, CanonicalFileType>> 
   bat: "batch-script",
   cmd: "batch-script",
   jcl: "jcl",
+  // C language
+  c: "c",
+  h: "c",
+  // C++ language
+  cpp: "cpp",
+  cxx: "cpp",
+  cc: "cpp",
+  hpp: "cpp",
+  hh: "cpp",
+  hxx: "cpp",
 } as const;
 
 /**
@@ -130,6 +115,11 @@ export const FILE_TYPE_MAPPING_RULES: readonly FileTypeRule[] = [
   {
     test: (filename) => filename === "changelog" || filename.startsWith("changelog."),
     type: "markdown",
+  },
+  // C/C++ build file patterns (Makefile.am, Makefile.in, etc.)
+  {
+    test: (filename) => filename.startsWith("makefile."),
+    type: "makefile",
   },
 
   // Default rule (always matches, must be last)

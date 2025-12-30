@@ -27,6 +27,9 @@ describe("File Handler Configuration", () => {
         "jsp",
         "markdown",
         "csharp",
+        "c",
+        "cpp",
+        "makefile",
       ];
 
       for (const type of expectedPromptTypes) {
@@ -37,7 +40,8 @@ describe("File Handler Configuration", () => {
     test("should have correct number of mappings", () => {
       // Updated expected count from 8 to 19 after addition of build tool file type metadata mappings
       // Updated to 23 after addition of Python source code prompt metadata
-      expect(Object.keys(fileTypePromptMetadata).length).toBe(23);
+      // Updated to 26 after addition of C, C++, and makefile support
+      expect(Object.keys(fileTypePromptMetadata).length).toBe(26);
     });
 
     test("should have valid Zod schemas for each file type", () => {

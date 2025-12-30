@@ -353,6 +353,88 @@ File-level metrics: totalFunctions, averageComplexity, maxComplexity, averageFun
     ]),
   },
 
+  C_SPECIFIC: {
+    INTERNAL_REFS:
+      'A list of #include directives for project headers (quoted includes like #include "myheader.h") belonging to this same application (do not include system headers or third-party library headers)',
+    EXTERNAL_REFS:
+      "A list of #include directives for system and library headers (angle bracket includes like #include <stdio.h>, <stdlib.h>, <string.h>, <pthread.h>) that are external to this application",
+    PUBLIC_CONSTANTS:
+      "A list of public constants including #define macros, const variables, and enum values (name, value, and purpose)",
+    PUBLIC_FUNCTIONS:
+      "A list of function definitions (not just declarations) - for each function include: name, purpose in detail, parameters (name and type), return type, and a very detailed description of its implementation",
+    INTEGRATION_INSTRUCTIONS: `  * Socket programming (mechanism: 'OTHER' - describe as 'TCP/IP Sockets' or 'UDP Sockets'):
+    - BSD socket API: socket(), bind(), listen(), accept(), connect(), send(), recv(), sendto(), recvfrom()
+    - Include socket type (SOCK_STREAM for TCP, SOCK_DGRAM for UDP) and role (server/client)
+  * HTTP client libraries (mechanism: 'REST'):
+    - libcurl usage: curl_easy_init(), curl_easy_setopt(), curl_easy_perform()
+    - Include URL patterns and HTTP methods if identifiable
+  * IPC mechanisms (mechanism: 'OTHER' - describe specific IPC type):
+    - Pipes: pipe(), mkfifo(), popen()
+    - Shared memory: shmget(), shmat(), shmdt(), shmctl()
+    - Message queues: msgget(), msgsnd(), msgrcv()
+    - Semaphores: semget(), semop()
+  * RPC (mechanism: 'OTHER' - describe as 'Sun RPC' or 'ONC RPC'):
+    - RPC client/server implementations using rpcgen or XDR`,
+    DB_MECHANISM_MAPPING: createDbMechanismInstructions([
+      "      - Uses ODBC API (SQLConnect, SQLDriverConnect, SQLExecDirect, SQLFetch, SQLBindCol) => mechanism: 'DRIVER'",
+      "      - Uses MySQL C API (mysql_init, mysql_real_connect, mysql_query, mysql_store_result) => mechanism: 'DRIVER'",
+      "      - Uses PostgreSQL libpq (PQconnectdb, PQexec, PQgetvalue, PQclear) => mechanism: 'DRIVER'",
+      "      - Uses SQLite3 C API (sqlite3_open, sqlite3_exec, sqlite3_prepare_v2, sqlite3_step) => mechanism: 'DRIVER'",
+      "      - Uses Oracle OCI (OCIInitialize, OCILogon, OCIStmtExecute) => mechanism: 'DRIVER'",
+      "      - Uses MongoDB C driver (mongoc_client_t, mongoc_collection_find_with_opts, mongoc_cursor_next) => mechanism: 'MQL'",
+      "      - Uses embedded SQL (EXEC SQL ... END-EXEC) => mechanism: 'SQL'",
+      "      - Contains inline SQL strings in sprintf/snprintf for query building => mechanism: 'SQL'",
+      "      - Uses Berkeley DB (db_create, DB->open, DB->get, DB->put) => mechanism: 'DRIVER'",
+    ]),
+  },
+
+  CPP_SPECIFIC: {
+    INTERNAL_REFS:
+      'A list of #include directives for project headers (quoted includes like #include "myclass.hpp") belonging to this same application (do not include system headers, STL, or third-party library headers)',
+    EXTERNAL_REFS:
+      "A list of #include directives for system, STL, and library headers (angle bracket includes like #include <vector>, <string>, <iostream>, <boost/...>, <Qt...>) that are external to this application",
+    PUBLIC_CONSTANTS:
+      "A list of public constants including constexpr variables, const variables, #define macros, and enum/enum class values (name, value, and purpose)",
+    PUBLIC_METHODS:
+      "A list of public methods - for each method include: name, purpose in detail, parameters (name and type), return type, const/virtual/static qualifiers, and a very detailed description of its implementation",
+    KIND_OVERRIDE: "Its kind ('class', 'struct', 'enum', 'union', or 'namespace')",
+    INTEGRATION_INSTRUCTIONS: `  * Socket programming (mechanism: 'OTHER' - describe as 'TCP/IP Sockets'):
+    - BSD socket API or C++ wrappers: socket(), bind(), listen(), accept(), connect()
+    - Boost.Asio: boost::asio::ip::tcp::socket, async_read, async_write
+  * HTTP client libraries (mechanism: 'REST'):
+    - libcurl (C++ wrapper or direct): curl_easy_init(), CURLOPT_URL
+    - C++ REST SDK (cpprestsdk): web::http::client::http_client
+    - Boost.Beast: beast::http::request, beast::http::response
+  * Qt networking (mechanism: 'REST' or 'WEBSOCKET'):
+    - QNetworkAccessManager, QNetworkRequest, QNetworkReply
+    - QTcpSocket, QUdpSocket, QWebSocket
+  * gRPC (mechanism: 'GRPC'):
+    - grpc::Server, grpc::ServerBuilder
+    - grpc::Channel, grpc::ClientContext, stub classes
+  * Messaging (mechanism varies):
+    - ZeroMQ (zmq::socket_t, zmq::message_t) => 'OTHER' (describe as 'ZeroMQ')
+    - RabbitMQ C++ client => 'RABBITMQ-QUEUE' or 'RABBITMQ-EXCHANGE'
+    - Kafka (librdkafka): rd_kafka_t, rd_kafka_produce => 'KAFKA-TOPIC'`,
+    DB_MECHANISM_MAPPING: createDbMechanismInstructions([
+      "      - Uses ODBC API (SQLConnect, SQLDriverConnect, SQLExecDirect) => mechanism: 'DRIVER'",
+      "      - Uses MySQL Connector/C++ (sql::mysql::MySQL_Driver, sql::Connection) => mechanism: 'DRIVER'",
+      "      - Uses PostgreSQL libpqxx (pqxx::connection, pqxx::work, pqxx::result) => mechanism: 'DRIVER'",
+      "      - Uses SQLite3 (sqlite3_open, sqlite3_exec) or SQLiteCpp wrapper => mechanism: 'DRIVER'",
+      "      - Uses SOCI library (soci::session, soci::statement) => mechanism: 'ORM'",
+      "      - Uses Qt SQL module (QSqlDatabase, QSqlQuery, QSqlTableModel) => mechanism: 'DRIVER'",
+      "      - Uses ODB ORM (odb::database, odb::transaction, persistent classes) => mechanism: 'ORM'",
+      "      - Uses sqlpp11 (sqlpp::connection, query builders) => mechanism: 'ORM'",
+      "      - Contains inline SQL strings => mechanism: 'SQL'",
+      "      - Uses Redis client (hiredis, redis-plus-plus) => mechanism: 'REDIS'",
+      "      - Uses MongoDB C++ driver (mongocxx::client, mongocxx::collection) => mechanism: 'MQL'",
+    ]),
+  },
+
+  MAKEFILE_SPECIFIC: {
+    BUILD_TARGETS: "Identify the main build targets and their purposes",
+    COMPILER_FLAGS: "Note compiler and linker flags that indicate dependencies or features",
+  },
+
   SQL_SPECIFIC: {
     TABLE_LIST:
       "A list of the tables (if any) it defines - for each table, include the names of the table's fields, if known",
@@ -503,6 +585,35 @@ You MUST analyze and provide the following JSP metrics in the jspMetrics object:
   * version (version constraint, remove ^ and ~ prefixes)
   * scope ('compile' for dependencies, 'test' for dev-dependencies)
   * groupId (use 'pypi' as standard groupId)`,
+    MAKEFILE: `A comprehensive list of dependencies from this C/C++ build configuration file. Handle CMake, Makefile, and Autotools syntax:
+
+  FOR CMAKE (CMakeLists.txt):
+  * find_package(PackageName VERSION) - extract package name, version, and REQUIRED/OPTIONAL
+  * target_link_libraries(target PRIVATE|PUBLIC lib1 lib2) - extract linked library names
+  * FetchContent_Declare(name GIT_REPOSITORY url GIT_TAG tag) - extract external project name and version/tag
+  * ExternalProject_Add() - extract external project dependencies
+  * pkg_check_modules(PREFIX REQUIRED pkg1 pkg2) - extract pkg-config package names
+  * find_library(VAR NAMES libname) - extract library being searched
+
+  FOR MAKEFILE (Makefile, GNUmakefile, Makefile.am):
+  * LIBS or LDLIBS variables - extract library names (strip -l prefix, e.g., -lpthread -> pthread)
+  * LDFLAGS with -l flags - extract library dependencies
+  * pkg-config calls in shell commands - extract package names
+  * Direct .a or .so references - extract library names
+
+  FOR AUTOTOOLS (configure.ac, configure.in):
+  * PKG_CHECK_MODULES(PREFIX, package >= version) - extract package name and version constraint
+  * AC_CHECK_LIB(library, function) - extract library name
+  * AC_CHECK_HEADERS([header.h]) - note as header dependency (optional: include if relevant)
+  * AC_SEARCH_LIBS(function, libraries) - extract library names from the list
+  * AM_PATH_* macros (e.g., AM_PATH_PYTHON) - extract package requirements
+  * AX_* macros from autoconf-archive - extract relevant dependencies
+
+  For each dependency provide:
+  * name: library or package name
+  * version: version if specified (or null if not available)
+  * scope: 'compile' for linked libraries, 'test' for test-only dependencies
+  * groupId: use 'system' for system libraries, 'pkg-config' for PKG_CHECK_MODULES packages, or 'autoconf' for AC_CHECK_* macros`,
   },
 } as const;
 

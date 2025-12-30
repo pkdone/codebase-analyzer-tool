@@ -16,6 +16,7 @@ import {
   normalizeEnumArray,
   DEFAULT_INVALID_VALUE,
 } from "../../common/schema/schema-utils";
+import { canonicalFileTypeSchema } from "../components/capture/config/canonical-file-types";
 
 /**
  * Schema for database integration information
@@ -438,38 +439,9 @@ export const sourceSummarySchema = z
   .passthrough();
 
 /**
- * Schema for source file metadata
- * Note: We define the canonical file type enum here to avoid circular dependency issues
- * with file-types.config.ts. The values must match CANONICAL_FILE_TYPES in that file.
+ * Schema for source file metadata.
+ * Uses canonicalFileTypeSchema imported from the single source of truth module.
  */
-const CANONICAL_FILE_TYPES = [
-  "java",
-  "javascript",
-  "sql",
-  "xml",
-  "jsp",
-  "markdown",
-  "csharp",
-  "ruby",
-  "maven",
-  "gradle",
-  "ant",
-  "npm",
-  "python",
-  "dotnet-proj",
-  "nuget",
-  "ruby-bundler",
-  "python-pip",
-  "python-setup",
-  "python-poetry",
-  "shell-script",
-  "batch-script",
-  "jcl",
-  "default",
-] as const;
-
-const canonicalFileTypeSchema = z.enum(CANONICAL_FILE_TYPES);
-
 export const sourceSchema = z
   .object({
     projectName: z.string().describe("The name of the project this source file belongs to."),
