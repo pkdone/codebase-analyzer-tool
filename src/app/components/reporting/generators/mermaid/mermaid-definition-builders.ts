@@ -67,41 +67,6 @@ export function generateNodeId(text: string, index: number): string {
 }
 
 /**
- * Build a simple flowchart node definition with a rectangular shape.
- */
-export function buildRectNode(id: string, label: string): string {
-  return `    ${id}["${escapeMermaidLabel(label)}"]`;
-}
-
-/**
- * Build a rounded rectangle node (for entities).
- */
-export function buildRoundedNode(id: string, label: string): string {
-  return `    ${id}("${escapeMermaidLabel(label)}")`;
-}
-
-/**
- * Build a stadium-shaped node (pill shape, for aggregates).
- */
-export function buildStadiumNode(id: string, label: string): string {
-  return `    ${id}(["${escapeMermaidLabel(label)}"])`;
-}
-
-/**
- * Build a circle node (for repositories).
- */
-export function buildCircleNode(id: string, label: string): string {
-  return `    ${id}(("${escapeMermaidLabel(label)}"))`;
-}
-
-/**
- * Build a hexagon node (for bounded contexts).
- */
-export function buildHexagonNode(id: string, label: string): string {
-  return `    ${id}{{"${escapeMermaidLabel(label)}"}}`;
-}
-
-/**
  * Build an arrow connection between two nodes.
  */
 export function buildArrow(fromId: string, toId: string, label?: string): string {
@@ -119,18 +84,6 @@ export function buildDashedArrow(fromId: string, toId: string, label?: string): 
     return `    ${fromId} -.->|"${escapeMermaidLabel(label)}"| ${toId}`;
   }
   return `    ${fromId} -.-> ${toId}`;
-}
-
-/**
- * Build a subgraph block.
- */
-export function buildSubgraph(id: string, label: string, content: string[]): string {
-  const lines = [
-    `    subgraph ${id}["${escapeMermaidLabel(label)}"]`,
-    ...content.map((line) => `    ${line}`),
-    "    end",
-  ];
-  return lines.join("\n");
 }
 
 /**

@@ -10,7 +10,6 @@ import {
   generateEmptyDiagramSvg,
   buildMermaidInitDirective,
 } from "../mermaid/mermaid-definition-builders";
-import type { IntegrationPointInfo } from "../../report-gen.types";
 
 export interface Microservice {
   name: string;
@@ -58,7 +57,6 @@ export class ArchitectureSvgGenerator {
    */
   async generateArchitectureDiagramSvg(
     microservices: Microservice[],
-    _integrationPoints: IntegrationPointInfo[],
     options: ArchitectureDiagramSvgOptions = {},
   ): Promise<string> {
     const opts = { ...this.defaultOptions, ...options };

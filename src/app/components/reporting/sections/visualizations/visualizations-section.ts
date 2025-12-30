@@ -74,10 +74,7 @@ export class VisualizationsSection implements ReportSection {
     // Extract microservices data and generate architecture diagram
     const microservicesData = this.extractMicroservicesData(baseData.categorizedData);
     const architectureDiagramSvg =
-      await this.architectureSvgGenerator.generateArchitectureDiagramSvg(
-        microservicesData,
-        baseData.integrationPoints,
-      );
+      await this.architectureSvgGenerator.generateArchitectureDiagramSvg(microservicesData);
 
     // Extract inferred architecture data and generate current architecture diagram
     const inferredArchitectureData = this.extractInferredArchitectureData(baseData.categorizedData);
