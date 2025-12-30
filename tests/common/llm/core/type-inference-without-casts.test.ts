@@ -5,6 +5,7 @@ import {
   LLMModelQuality,
   ResolvedLLMModelMetadata,
   LLMOutputFormat,
+  ShutdownBehavior,
 } from "../../../../src/common/llm/types/llm.types";
 import { z } from "zod";
 import LLMRouter from "../../../../src/common/llm/llm-router";
@@ -84,7 +85,7 @@ describe("Type Inference Without Casts - LLM Router and AbstractLLM", () => {
         TEST_PRIMARY_COMPLETION: mockPrimaryCompletionModelMetadata,
       })),
       close: jest.fn(async () => {}),
-      needsForcedShutdown: jest.fn(() => false),
+      getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
     } as jest.Mocked<LLMProvider>;
 
     // Create mock manifest

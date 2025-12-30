@@ -41,6 +41,9 @@ export type TaskToken = keyof typeof taskTokens;
 // Capture module tokens
 export const captureTokens = {
   CodebaseToDBLoader: Symbol("CodebaseToDBLoader"),
+  FileSummarizerService: Symbol("FileSummarizerService"),
+  PromptRegistry: Symbol("PromptRegistry"),
+  SourceConfigMap: Symbol("SourceConfigMap"),
 } as const;
 
 export type CaptureToken = keyof typeof captureTokens;

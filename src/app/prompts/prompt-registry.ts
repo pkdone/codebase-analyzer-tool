@@ -99,3 +99,9 @@ export const promptRegistry = Object.freeze({
   sources: sourcePrompts,
   codebaseQuery: codebaseQueryPrompt,
 } as const);
+
+/**
+ * Type for the prompt registry object.
+ * Used for dependency injection and type-safe access to prompts.
+ */
+export type PromptRegistry = typeof promptRegistry;

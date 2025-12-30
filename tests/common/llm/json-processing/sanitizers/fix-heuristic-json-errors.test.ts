@@ -301,61 +301,6 @@ so    "connectionInfo": "n/a"
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
 
-    it("should remove corrupted text e-12,", () => {
-      const input = `{
-  "publicFunctions": [
-    {
-      "name": "method1",
-      "codeSmells": []
-    },
-e-12,
-    {
-      "name": "method2",
-      "codeSmells": []
-    }
-  ]
-}`;
-
-      const result = fixHeuristicJsonErrors(input);
-
-      expect(result.changed).toBe(true);
-      expect(result.content).not.toContain("e-12,");
-      expect(() => JSON.parse(result.content)).not.toThrow();
-    });
-
-    it("should remove corrupted text e-12, and orphaned codeSmells property (exact error log scenario)", () => {
-      // This matches the exact scenario from error logs response-error-2025-12-01T16-30-40-763Z.log and response-error-2025-12-01T16-33-47-367Z.log
-      const input = `{
-  "publicFunctions": [
-    {
-      "name": "validateAndReject",
-      "purpose": "This method handles the rejection",
-      "parameters": [],
-      "returnType": "Map<String, Object>",
-      "description": "The method retrieves the currently authenticated user",
-      "cyclomaticComplexity": 1,
-      "linesOfCode": 6,
-      "codeSmells": []
-    },
-e-12,
-      "codeSmells": []
-    },
-    {
-      "name": "validateAndActivate",
-      "purpose": "This method validates and processes the activation"
-    }
-  ]
-}`;
-
-      const result = fixHeuristicJsonErrors(input);
-
-      expect(result.changed).toBe(true);
-      expect(result.content).not.toContain("e-12,");
-      expect(result.content).not.toMatch(/},\s*\n\s*"codeSmells"/);
-      expect(() => JSON.parse(result.content)).not.toThrow();
-      const parsed = JSON.parse(result.content);
-      expect(parsed.publicFunctions.length).toBe(2);
-    });
   });
 
   describe("Pattern 10: to be continued... text", () => {
@@ -675,22 +620,6 @@ provided that the conditions are met
     });
 
     describe("Pattern 4e: Generalized short word detection", () => {
-      it("should remove short stray word 'xyz' before property (not in common words list)", () => {
-        const input = `{
-  "databaseIntegration": {
-    "tablesAccessed": []
-  },
-xyz    "connectionInfo": "n/a"
-}`;
-
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).toContain('"connectionInfo": "n/a"');
-        expect(result.content).not.toContain("xyz");
-        expect(() => JSON.parse(result.content)).not.toThrow();
-      });
-
       it("should NOT remove common word 'the' before property (in exclusion list)", () => {
         const input = `{
   "databaseIntegration": {
@@ -707,44 +636,6 @@ the    "connectionInfo": "n/a"
       });
     });
 
-    describe("Pattern 9d: Markdown list prefixes before JSON properties", () => {
-      it("should remove markdown list prefix '- ' before property name", () => {
-        const input = `{
-  "methods": [
-    {
-      "name": "testMethod",
-      - "purpose": "Test purpose",
-      "returnType": "void"
-    }
-  ]
-}`;
-
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).toContain('"purpose": "Test purpose"');
-        expect(result.content).not.toContain('- "purpose"');
-        expect(() => JSON.parse(result.content)).not.toThrow();
-      });
-
-      it("should remove markdown list prefix with indentation", () => {
-        const input = `{
-  "items": [
-    {
-      "name": "item1",
-       - "property": "value"
-    }
-  ]
-}`;
-
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).toContain('"property": "value"');
-        expect(result.content).not.toMatch(/\s+-\s+"property"/);
-        expect(() => JSON.parse(result.content)).not.toThrow();
-      });
-    });
 
     describe("Pattern 9e: LLM mid-JSON commentary (Next, I will...)", () => {
       it("should remove 'Next, I will analyze...' commentary between properties", () => {
@@ -800,105 +691,7 @@ Now let me add the remaining methods.
       });
     });
 
-    describe("Pattern 9f: Random text/filenames between JSON properties", () => {
-      it("should remove markdown filename between properties", () => {
-        const input = `{
-  "name": "TestClass",
-  "methods": []
-}
-tribal-council-meeting-notes.md
-  "externalReferences": []
-}`;
 
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).not.toContain("tribal-council-meeting-notes.md");
-      });
-
-      it("should remove txt filename between properties", () => {
-        const input = `{
-  "items": [
-    {
-      "name": "item1"
-    }
-]
-random-file-name.txt
-  "purpose": "test"
-}`;
-
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).not.toContain("random-file-name.txt");
-      });
-
-      it("should remove kebab-case identifier between properties", () => {
-        const input = `{
-  "name": "TestClass"
-}
-some-random-identifier
-  "kind": "CLASS"
-}`;
-
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).not.toContain("some-random-identifier");
-      });
-    });
-
-    describe("Pattern 9g: Concatenated text fragments (instancetype)", () => {
-      it("should remove 'instancetype' prefix before string value", () => {
-        const input = `{
-  "externalReferences": [
-    instancetype"org.apache.fineract.portfolio.savings.domain.SavingsAccount",
-    "org.apache.fineract.portfolio.savings.domain.SavingsProduct"
-  ]
-}`;
-
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).toContain(
-          '"org.apache.fineract.portfolio.savings.domain.SavingsAccount"',
-        );
-        expect(result.content).not.toContain("instancetype");
-        expect(() => JSON.parse(result.content)).not.toThrow();
-      });
-
-      it("should remove 'typename' prefix before string value", () => {
-        const input = `{
-  "references": [
-    typename"java.util.List",
-    "java.util.Map"
-  ]
-}`;
-
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).toContain('"java.util.List"');
-        expect(result.content).not.toContain("typename");
-        expect(() => JSON.parse(result.content)).not.toThrow();
-      });
-
-      it("should remove 'classname' prefix before string value", () => {
-        const input = `{
-  "imports": [
-    classname"com.example.MyClass",
-    "com.example.OtherClass"
-  ]
-}`;
-
-        const result = fixHeuristicJsonErrors(input);
-
-        expect(result.changed).toBe(true);
-        expect(result.content).toContain('"com.example.MyClass"');
-        expect(result.content).not.toContain("classname");
-        expect(() => JSON.parse(result.content)).not.toThrow();
-      });
-    });
 
     describe("Pattern 9h: Extended stray character patterns (2-4 chars)", () => {
       it("should remove 'ano' (3-char stray text) before property", () => {

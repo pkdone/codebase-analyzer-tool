@@ -12,6 +12,7 @@ import {
   LLMModelQuality,
   ResolvedLLMModelMetadata,
   LLMOutputFormat,
+  ShutdownBehavior,
 } from "../../../../src/common/llm/types/llm.types";
 import type { LLMProviderManifest } from "../../../../src/common/llm/providers/llm-provider.types";
 import type { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
@@ -88,7 +89,7 @@ describe("LLMRouter Function Overloads - Type Safety Tests", () => {
         GPT_EMBEDDINGS_ADA002: mockEmbeddingModelMetadata,
       })),
       close: jest.fn(),
-      needsForcedShutdown: jest.fn(() => false),
+      getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
     } as unknown as LLMProvider;
 
     (mockProvider.executeCompletionPrimary as any).mockResolvedValue({

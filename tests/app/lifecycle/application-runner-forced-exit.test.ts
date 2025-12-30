@@ -1,8 +1,10 @@
 /**
  * Tests for application runner's handling of forced exit when LLM provider requires it.
  * These tests verify that the application correctly handles the process.exit() call
- * when the LLM provider signals it needs forced shutdown.
+ * when the LLM provider signals it needs forced shutdown via ShutdownBehavior enum.
  */
+
+import { ShutdownBehavior } from "../../../src/common/llm/types/llm.types";
 
 describe("Application Runner Forced Exit", () => {
   let originalProcessExit: typeof process.exit;
@@ -22,17 +24,17 @@ describe("Application Runner Forced Exit", () => {
     jest.clearAllMocks();
   });
 
-  it("should call process.exit() when LLM provider signals forced shutdown needed", async () => {
+  it("should call process.exit() when LLM provider returns REQUIRES_PROCESS_EXIT", async () => {
     // Mock LLMRouter that needs forced shutdown
     const mockLLMRouter = {
       shutdown: jest.fn().mockResolvedValue(undefined),
-      providerNeedsForcedShutdown: jest.fn().mockReturnValue(true),
+      getProviderShutdownBehavior: jest.fn().mockReturnValue(ShutdownBehavior.REQUIRES_PROCESS_EXIT),
     };
 
     // Simulate the application runner logic
     const simulateApplicationRunnerShutdown = async (llmRouter: typeof mockLLMRouter) => {
       await llmRouter.shutdown();
-      if (llmRouter.providerNeedsForcedShutdown()) {
+      if (llmRouter.getProviderShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
         process.exit(0);
       }
     };
@@ -44,24 +46,24 @@ describe("Application Runner Forced Exit", () => {
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         expect(mockLLMRouter.shutdown).toHaveBeenCalled();
-        expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalled();
+        expect(mockLLMRouter.getProviderShutdownBehavior).toHaveBeenCalled();
         expect(processExitMock).toHaveBeenCalledWith(0);
         resolve();
       }, 100);
     });
   });
 
-  it("should NOT call process.exit() when LLM provider does not signal forced shutdown", async () => {
-    // Mock LLMRouter that doesn't need forced shutdown
+  it("should NOT call process.exit() when LLM provider returns GRACEFUL", async () => {
+    // Mock LLMRouter that supports graceful shutdown
     const mockLLMRouter = {
       shutdown: jest.fn().mockResolvedValue(undefined),
-      providerNeedsForcedShutdown: jest.fn().mockReturnValue(false),
+      getProviderShutdownBehavior: jest.fn().mockReturnValue(ShutdownBehavior.GRACEFUL),
     };
 
     // Simulate the application runner logic
     const simulateApplicationRunnerShutdown = async (llmRouter: typeof mockLLMRouter) => {
       await llmRouter.shutdown();
-      if (llmRouter.providerNeedsForcedShutdown()) {
+      if (llmRouter.getProviderShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
         process.exit(0);
       }
     };
@@ -73,7 +75,7 @@ describe("Application Runner Forced Exit", () => {
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         expect(mockLLMRouter.shutdown).toHaveBeenCalled();
-        expect(mockLLMRouter.providerNeedsForcedShutdown).toHaveBeenCalled();
+        expect(mockLLMRouter.getProviderShutdownBehavior).toHaveBeenCalled();
         expect(processExitMock).not.toHaveBeenCalled();
         resolve();
       }, 100);
@@ -84,14 +86,14 @@ describe("Application Runner Forced Exit", () => {
     // Mock LLMRouter that throws during shutdown
     const mockLLMRouter = {
       shutdown: jest.fn().mockRejectedValue(new Error("Shutdown failed")),
-      providerNeedsForcedShutdown: jest.fn().mockReturnValue(false),
+      getProviderShutdownBehavior: jest.fn().mockReturnValue(ShutdownBehavior.GRACEFUL),
     };
 
     // Simulate the application runner logic with error handling
     const simulateApplicationRunnerShutdown = async (llmRouter: typeof mockLLMRouter) => {
       try {
         await llmRouter.shutdown();
-        if (llmRouter.providerNeedsForcedShutdown()) {
+        if (llmRouter.getProviderShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
           process.exit(0);
         }
       } catch (error) {

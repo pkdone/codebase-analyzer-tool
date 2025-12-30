@@ -6,6 +6,7 @@ import {
   ResolvedLLMModelMetadata,
   LLMCompletionOptions,
   BoundLLMFunction,
+  ShutdownBehavior,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
@@ -83,24 +84,25 @@ export default class LLMRouter {
   }
 
   /**
-   * Check if the underlying provider needs a forced shutdown.
+   * Get the shutdown behavior required by the underlying provider.
+   * Returns an enum value indicating how the provider should be shut down.
    */
-  providerNeedsForcedShutdown(): boolean {
-    return this.activeLlmProvider.needsForcedShutdown();
+  getProviderShutdownBehavior(): ShutdownBehavior {
+    return this.activeLlmProvider.getShutdownBehavior();
   }
 
   /**
    * Shutdown method for graceful shutdown.
    * Closes the LLM provider.
    *
-   * Note: After calling shutdown(), consumers should check `providerNeedsForcedShutdown()`
+   * Note: After calling shutdown(), consumers should check `getProviderShutdownBehavior()`
    * and handle forced process termination if needed. This allows the consuming application
    * to control process lifecycle rather than having the library terminate the process.
    *
    * Example:
    * ```typescript
    * await llmRouter.shutdown();
-   * if (llmRouter.providerNeedsForcedShutdown()) {
+   * if (llmRouter.getProviderShutdownBehavior() === ShutdownBehavior.REQUIRES_PROCESS_EXIT) {
    *   // Handle forced termination (e.g., call process.exit(0))
    * }
    * ```

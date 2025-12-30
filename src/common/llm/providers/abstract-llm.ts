@@ -15,6 +15,7 @@ import {
   LLMOutputFormat,
   LLMFunction,
   LLMEmbeddingFunction,
+  ShutdownBehavior,
 } from "../types/llm.types";
 import {
   LLMImplSpecificResponseSummary,
@@ -173,10 +174,12 @@ export default abstract class AbstractLLM implements LLMProvider {
   }
 
   /**
-   * Whether the LLM provider needs to be forcefully shut down.
+   * Get the shutdown behavior for this provider.
+   * Default behavior is graceful shutdown - subclasses can override for providers
+   * that require special shutdown handling (e.g., Vertex AI with gRPC).
    */
-  needsForcedShutdown(): boolean {
-    return false;
+  getShutdownBehavior(): ShutdownBehavior {
+    return ShutdownBehavior.GRACEFUL;
   }
 
   /**

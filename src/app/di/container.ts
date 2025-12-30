@@ -5,6 +5,7 @@ import {
   registerLlmEnvDependencies,
   registerMongoDBDependencies,
   registerAppDependencies,
+  registerCaptureDependencies,
 } from "./registration-modules";
 import { connectAndRegisterMongoClient } from "./registration-modules/mongodb-registration";
 import { initializeAndRegisterLLMComponents } from "./registration-modules/llm-registration";
@@ -22,6 +23,7 @@ export async function bootstrapContainer(): Promise<void> {
   initializeAndRegisterLLMComponents();
   registerMongoDBDependencies();
   await connectAndRegisterMongoClient();
+  registerCaptureDependencies();
   registerAppDependencies();
 }
 

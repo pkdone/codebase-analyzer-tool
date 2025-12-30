@@ -1,5 +1,4 @@
 import { injectable } from "tsyringe";
-import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
 import type {
   NestedAggregate,
   NestedEntity,
@@ -9,92 +8,24 @@ import {
   isCategorizedDataNameDescArray,
   type CategorizedDataItem,
 } from "../file-types/categories-data-provider";
+import type {
+  DomainEntity,
+  DomainRepository,
+  DomainAggregate,
+  DomainBoundedContext,
+  DomainModelData,
+  HierarchicalBoundedContextData,
+} from "./domain-model.types";
+import { isHierarchicalBoundedContextDataArray } from "./domain-model.guards";
 
-/**
- * Interface for domain entity (flattened for reporting)
- */
-export interface DomainEntity {
-  name: string;
-  description: string;
-}
-
-/**
- * Interface for domain repository (flattened for reporting)
- */
-export interface DomainRepository {
-  name: string;
-  description: string;
-}
-
-/**
- * Interface for domain aggregate (flattened for reporting)
- * Note: entities is now a string[] of names for backwards compatibility with SVG generator
- * Repository is now a direct child of aggregate
- */
-export interface DomainAggregate {
-  name: string;
-  description: string;
-  entities: string[];
-  repository: DomainRepository;
-}
-
-/**
- * Interface for domain bounded context (for reporting)
- */
-export interface DomainBoundedContext {
-  name: string;
-  description: string;
-  aggregates: DomainAggregate[];
-  entities: DomainEntity[];
-  repositories: DomainRepository[];
-}
-
-/**
- * Interface for the complete domain model data structure
- */
-export interface DomainModelData {
-  boundedContexts: DomainBoundedContext[];
-  aggregates: DomainAggregate[];
-  entities: DomainEntity[];
-  repositories: DomainRepository[];
-}
-
-/**
- * Interface for hierarchical bounded context data from the new schema
- * Repository is now at the aggregate level, not bounded context level
- * Note: aggregates is optional in practice even though the schema requires it,
- * because .passthrough() allows flexibility and test data may omit it
- */
-interface HierarchicalBoundedContextData {
-  name: string;
-  description: string;
-  aggregates?: NestedAggregate[];
-}
-
-/**
- * Type guard to check if data is a valid array of hierarchical bounded context data.
- * Validates the structure at runtime.
- * Accepts data that has name and description (basic structure) even if aggregates is missing,
- * since the schema uses .passthrough() which allows flexibility.
- */
-function isHierarchicalBoundedContextDataArray(data: AppSummaryNameDescArray): boolean {
-  if (!Array.isArray(data)) {
-    return false;
-  }
-  // Validate each item - use a more lenient check that allows missing aggregates
-  // since .passthrough() allows extra properties and aggregates might be optional in practice
-  return data.every((item) => {
-    // Check basic structure (name and description are required)
-    if (typeof item.name !== "string" || typeof item.description !== "string") {
-      return false;
-    }
-    // If aggregates exists, validate it's an array
-    if ("aggregates" in item && !Array.isArray(item.aggregates)) {
-      return false;
-    }
-    return true;
-  });
-}
+// Re-export types for consumers
+export type {
+  DomainEntity,
+  DomainRepository,
+  DomainAggregate,
+  DomainBoundedContext,
+  DomainModelData,
+} from "./domain-model.types";
 
 /**
  * Data provider for domain model information.

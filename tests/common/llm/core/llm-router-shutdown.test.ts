@@ -2,6 +2,7 @@ import LLMRouter from "../../../../src/common/llm/llm-router";
 import { LLMModuleConfig } from "../../../../src/common/llm/config/llm-module-config.types";
 import { LLMExecutionPipeline } from "../../../../src/common/llm/llm-execution-pipeline";
 import { LLMErrorLogger } from "../../../../src/common/llm/tracking/llm-error-logger";
+import { ShutdownBehavior } from "../../../../src/common/llm/types/llm.types";
 
 // Mock the manifest loader to avoid actual provider instantiation
 jest.mock("../../../../src/common/llm/utils/manifest-loader");
@@ -66,8 +67,8 @@ describe("LLMRouter Shutdown Behavior", () => {
           return "test";
         }
         async close() {}
-        needsForcedShutdown() {
-          return true; // This provider needs forced shutdown
+        getShutdownBehavior() {
+          return ShutdownBehavior.REQUIRES_PROCESS_EXIT;
         }
       } as any,
     };
@@ -108,7 +109,7 @@ describe("LLMRouter Shutdown Behavior", () => {
     expect(processExitMock).not.toHaveBeenCalled();
   });
 
-  it("should signal forced shutdown requirement via providerNeedsForcedShutdown()", async () => {
+  it("should return REQUIRES_PROCESS_EXIT for providers that need forced shutdown", async () => {
     const mockManifest = {
       providerName: "Test Provider Forced",
       modelFamily: "test-forced",
@@ -149,8 +150,8 @@ describe("LLMRouter Shutdown Behavior", () => {
           return "test-forced";
         }
         async close() {}
-        needsForcedShutdown() {
-          return true;
+        getShutdownBehavior() {
+          return ShutdownBehavior.REQUIRES_PROCESS_EXIT;
         }
       } as any,
     };
@@ -184,16 +185,16 @@ describe("LLMRouter Shutdown Behavior", () => {
     const errorLogger = new LLMErrorLogger(config.errorLogging);
     const router = new LLMRouter(config, pipeline, errorLogger);
 
-    // Check that forced shutdown is signaled
-    expect(router.providerNeedsForcedShutdown()).toBe(true);
+    // Check that forced shutdown is signaled via enum
+    expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.REQUIRES_PROCESS_EXIT);
 
     await router.shutdown();
 
-    // Even after shutdown, the flag should still indicate forced shutdown needed
-    expect(router.providerNeedsForcedShutdown()).toBe(true);
+    // Even after shutdown, the behavior should still indicate forced shutdown needed
+    expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.REQUIRES_PROCESS_EXIT);
   });
 
-  it("should return false for providerNeedsForcedShutdown() when provider doesn't need it", async () => {
+  it("should return GRACEFUL for providers that support graceful shutdown", async () => {
     const mockManifest = {
       providerName: "Test Provider No Forced",
       modelFamily: "test-no-forced",
@@ -234,8 +235,8 @@ describe("LLMRouter Shutdown Behavior", () => {
           return "test-no-forced";
         }
         async close() {}
-        needsForcedShutdown() {
-          return false;
+        getShutdownBehavior() {
+          return ShutdownBehavior.GRACEFUL;
         }
       } as any,
     };
@@ -269,6 +270,6 @@ describe("LLMRouter Shutdown Behavior", () => {
     const errorLogger = new LLMErrorLogger(config.errorLogging);
     const router = new LLMRouter(config, pipeline, errorLogger);
 
-    expect(router.providerNeedsForcedShutdown()).toBe(false);
+    expect(router.getProviderShutdownBehavior()).toBe(ShutdownBehavior.GRACEFUL);
   });
 });

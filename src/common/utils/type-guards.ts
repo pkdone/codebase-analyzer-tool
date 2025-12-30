@@ -21,13 +21,3 @@ export function isDefined<T>(value: T | null | undefined): value is T {
 export function isJsonObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-
-/**
- * Type guard to check if a value is a valid JSON array.
- *
- * @param value - The value to check
- * @returns true if value is an array
- */
-export function isJsonArray(value: unknown): value is unknown[] {
-  return Array.isArray(value);
-}

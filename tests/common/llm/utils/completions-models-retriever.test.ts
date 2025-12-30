@@ -15,6 +15,7 @@ import {
   LLMPurpose,
   LLMOutputFormat,
   LLMFunctionResponse,
+  ShutdownBehavior,
 } from "../../../../src/common/llm/types/llm.types";
 
 describe("completions-models-retriever", () => {
@@ -39,7 +40,7 @@ describe("completions-models-retriever", () => {
         getModelFamily: jest.fn(() => "test-family"),
         getModelsMetadata: jest.fn(() => ({})),
         close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-        needsForcedShutdown: jest.fn(() => false),
+        getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
       };
 
       const candidates = buildCompletionCandidates(mockLLM);
@@ -70,7 +71,7 @@ describe("completions-models-retriever", () => {
         getModelFamily: jest.fn(() => "test-family"),
         getModelsMetadata: jest.fn(() => ({})),
         close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-        needsForcedShutdown: jest.fn(() => false),
+        getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
       };
 
       const candidates = buildCompletionCandidates(mockLLM);
@@ -108,7 +109,7 @@ describe("completions-models-retriever", () => {
         getModelFamily: jest.fn(() => "test-family"),
         getModelsMetadata: jest.fn(() => ({})),
         close: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-        needsForcedShutdown: jest.fn(() => false),
+        getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
       };
 
       const candidates = buildCompletionCandidates(mockLLM);

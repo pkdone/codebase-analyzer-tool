@@ -11,7 +11,7 @@ import {
 import * as aiplatform from "@google-cloud/aiplatform";
 const { helpers } = aiplatform;
 import { llmConfig } from "../../../config/llm.config";
-import { LLMCompletionOptions, LLMOutputFormat } from "../../../types/llm.types";
+import { LLMCompletionOptions, LLMOutputFormat, ShutdownBehavior } from "../../../types/llm.types";
 import { logOneLineWarning, logOneLineError } from "../../../../utils/logging";
 import { formatError } from "../../../../utils/error-formatters";
 import AbstractLLM from "../../abstract-llm";
@@ -77,10 +77,11 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
   }
 
   /**
-   * Whether the LLM provider needs to be forcefully shut down.
+   * Get the shutdown behavior for this provider.
+   * Vertex AI requires process exit due to gRPC connection limitations in the SDK.
    */
-  override needsForcedShutdown(): boolean {
-    return true;
+  override getShutdownBehavior(): ShutdownBehavior {
+    return ShutdownBehavior.REQUIRES_PROCESS_EXIT;
   }
 
   /**

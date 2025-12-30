@@ -1,14 +1,4 @@
 import { JsonProcessingError } from "./json-processing.errors";
-import { z } from "zod";
-
-/**
- * Result type for JsonValidator operations. This discriminated union allows callers
- * to handle validation success and failure cases without relying on thrown exceptions
- * or callback patterns.
- */
-export type JsonValidatorResult<T> =
-  | { success: true; data: T }
-  | { success: false; issues: z.ZodIssue[] };
 
 /**
  * Result type for JsonProcessor operations. This discriminated union provides rich

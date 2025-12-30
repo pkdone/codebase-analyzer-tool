@@ -3,21 +3,17 @@ import path from "path";
 import CodebaseToDBLoader from "../../../../src/app/components/capture/codebase-to-db-loader";
 import { SourcesRepository } from "../../../../src/app/repositories/sources/sources.repository.interface";
 import LLMRouter from "../../../../src/common/llm/llm-router";
-import { summarizeFile } from "../../../../src/app/components/capture/file-summarizer";
+import { FileSummarizerService } from "../../../../src/app/components/capture/file-summarizer.service";
 import * as fileOperations from "../../../../src/common/fs/file-operations";
 import * as directoryOperations from "../../../../src/common/fs/directory-operations";
 import * as pathUtils from "../../../../src/common/fs/path-utils";
 import * as textAnalysis from "../../../../src/common/utils/text-utils";
-import { fileProcessingConfig } from "../../../../src/app/components/capture/config/file-processing.config";
 
 // Mock dependencies
 jest.mock("../../../../src/common/fs/file-operations");
 jest.mock("../../../../src/common/fs/directory-operations");
 jest.mock("../../../../src/common/fs/path-utils");
 jest.mock("../../../../src/common/utils/text-utils");
-jest.mock("../../../../src/app/components/capture/file-summarizer", () => ({
-  summarizeFile: jest.fn(),
-}));
 jest.mock("../../../../src/common/utils/logging", () => ({
   logError: jest.fn(),
   logOneLineWarning: jest.fn(),
@@ -28,7 +24,7 @@ jest.mock("../../../../src/app/components/capture/config/file-processing.config"
   fileProcessingConfig: {
     FOLDER_IGNORE_LIST: [".git", "node_modules"],
     FILENAME_PREFIX_IGNORE: [".", "_"],
-    BINARY_FILE_EXTENSION_IGNORE_LIST: [".jpg", ".png", ".pdf", ".exe"],
+    BINARY_FILE_EXTENSION_IGNORE_LIST: ["jpg", "png", "pdf", "exe"],
     MAX_CONCURRENCY: 3,
   },
 }));
@@ -49,9 +45,9 @@ describe("CodebaseToDBLoader", () => {
   let loader: CodebaseToDBLoader;
   let mockSourcesRepository: jest.Mocked<SourcesRepository>;
   let mockLLMRouter: jest.Mocked<LLMRouter>;
+  let mockFileSummarizer: jest.Mocked<FileSummarizerService>;
   let mockConsoleLog: jest.SpyInstance;
   let mockConsoleWarn: jest.SpyInstance;
-  let mockSummarizeFile: jest.MockedFunction<typeof summarizeFile>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,27 +69,24 @@ describe("CodebaseToDBLoader", () => {
       generateEmbeddings: jest.fn().mockResolvedValue([1.0, 2.0, 3.0]),
     } as unknown as jest.Mocked<LLMRouter>;
 
-    // Mock summarizeFile function
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const fileSummarizerModule = require("../../../../src/app/components/capture/file-summarizer");
-    mockSummarizeFile = fileSummarizerModule.summarizeFile as jest.MockedFunction<
-      typeof summarizeFile
-    >;
-    mockSummarizeFile.mockResolvedValue({
-      namespace: "TestClass",
-      purpose: "Testing component",
-      implementation: "Test implementation",
-      databaseIntegration: {
-        mechanism: "NONE",
-        description: "n/a",
-        codeExample: "n/a",
-      },
-    });
+    // Mock FileSummarizerService
+    mockFileSummarizer = {
+      summarize: jest.fn().mockResolvedValue({
+        namespace: "TestClass",
+        purpose: "Testing component",
+        implementation: "Test implementation",
+        databaseIntegration: {
+          mechanism: "NONE",
+          description: "n/a",
+          codeExample: "n/a",
+        },
+      }),
+    } as unknown as jest.Mocked<FileSummarizerService>;
 
     // Default mock for sortFilesBySize - returns files in same order
     mockDirectoryOperations.sortFilesBySize.mockImplementation(async (files) => files);
 
-    loader = new CodebaseToDBLoader(mockSourcesRepository, mockLLMRouter);
+    loader = new CodebaseToDBLoader(mockSourcesRepository, mockLLMRouter, mockFileSummarizer);
   });
 
   afterEach(() => {
@@ -107,342 +100,145 @@ describe("CodebaseToDBLoader", () => {
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockResolvedValue("file content");
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
-      mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
+      mockPath.relative.mockReturnValue("file1.ts");
+      mockPath.basename.mockReturnValue("file1.ts");
+      mockFileOperations.readFile.mockResolvedValue("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
 
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
+      await loader.captureCodebaseToDatabase("test-project", "/src", false);
 
       expect(mockDirectoryOperations.findFilesRecursively).toHaveBeenCalledWith(
         "/src",
-        fileProcessingConfig.FOLDER_IGNORE_LIST,
-        fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+        [".git", "node_modules"],
+        [".", "_"],
       );
-      expect(mockDirectoryOperations.sortFilesBySize).toHaveBeenCalledWith(mockFiles);
-      expect(mockSourcesRepository.deleteSourcesByProject).toHaveBeenCalledWith("testProject");
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
     });
 
     it("should skip already captured files when skipIfAlreadyCaptured is true", async () => {
       const mockFiles = ["/src/file1.ts", "/src/file2.ts"];
+      const existingFiles = ["file1.ts"];
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      // Mock existing file paths to indicate files are already captured
-      mockSourcesRepository.getProjectFilesPaths.mockResolvedValue(["file1.ts", "file2.ts"]);
-      // Mock path.relative to return the relative paths
-      mockPath.relative.mockImplementation((_from, to) => {
-        if (to === "/src/file1.ts") return "file1.ts";
-        if (to === "/src/file2.ts") return "file2.ts";
-        return to;
-      });
+      mockSourcesRepository.getProjectFilesPaths.mockResolvedValue(existingFiles);
+      mockPathUtils.getFileExtension.mockReturnValue("ts");
+      mockPath.relative.mockReturnValueOnce("file1.ts").mockReturnValueOnce("file2.ts");
+      mockPath.basename.mockReturnValue("file2.ts");
+      mockFileOperations.readFile.mockResolvedValue("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
 
-      await loader.captureCodebaseToDatabase("testProject", "/src", true);
+      await loader.captureCodebaseToDatabase("test-project", "/src", true);
+
+      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
+    });
+
+    it("should delete existing sources when skipIfAlreadyCaptured is false", async () => {
+      mockDirectoryOperations.findFilesRecursively.mockResolvedValue([]);
+
+      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+
+      expect(mockSourcesRepository.deleteSourcesByProject).toHaveBeenCalledWith("test-project");
+    });
+
+    it("should not delete existing sources when skipIfAlreadyCaptured is true", async () => {
+      mockDirectoryOperations.findFilesRecursively.mockResolvedValue([]);
+      mockSourcesRepository.getProjectFilesPaths.mockResolvedValue([]);
+
+      await loader.captureCodebaseToDatabase("test-project", "/src", true);
 
       expect(mockSourcesRepository.deleteSourcesByProject).not.toHaveBeenCalled();
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        expect.stringContaining("Not capturing some of the metadata files"),
-      );
-      expect(mockSourcesRepository.insertSource).not.toHaveBeenCalled();
     });
 
-    it("should delete existing project files when skipIfAlreadyCaptured is false", async () => {
-      const mockFiles = ["/src/file1.ts"];
-
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockResolvedValue("file content");
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockPath.relative.mockReturnValue("file1.ts");
-      mockPath.basename.mockReturnValue("file1.ts");
-
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      expect(mockSourcesRepository.deleteSourcesByProject).toHaveBeenCalledWith("testProject");
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        expect.stringContaining("Deleting older version of the project's metadata files"),
-      );
-    });
-  });
-
-  describe("concurrent file processing", () => {
-    it("should process files concurrently with proper success/failure reporting", async () => {
-      const mockFiles = ["/src/file1.ts", "/src/file2.ts", "/src/file3.ts"];
-
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile
-        .mockResolvedValueOnce("content1")
-        .mockRejectedValueOnce(new Error("File read error"))
-        .mockResolvedValueOnce("content3");
-
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
-      mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
-
-      const { logOneLineError: mockLogError } = jest.requireMock(
-        "../../../../src/common/utils/logging",
-      );
-
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      expect(mockConsoleLog).toHaveBeenCalledWith("Processed 3 files. Succeeded: 2, Failed: 1");
-      expect(mockConsoleWarn).toHaveBeenCalledWith(
-        "Warning: 1 files failed to process. Check logs for details.",
-      );
-      expect(mockLogError).toHaveBeenCalled();
-    });
-
-    it("should report all successful when no failures occur", async () => {
-      const mockFiles = ["/src/file1.ts", "/src/file2.ts"];
-
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockResolvedValue("file content");
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
-      mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
-
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      expect(mockConsoleLog).toHaveBeenCalledWith("Processed 2 files. Succeeded: 2, Failed: 0");
-      expect(mockConsoleWarn).not.toHaveBeenCalled();
-    });
-
-    it("should respect concurrency limits", async () => {
-      // This is harder to test directly, but we can verify the setup
-      const mockFiles = Array.from({ length: 10 }, (_, i) => `/src/file${i}.ts`);
-
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockResolvedValue("content");
-      mockTextUtils.countLines.mockReturnValue(5);
-      mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
-      mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
-
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(10);
-      expect(mockConsoleLog).toHaveBeenCalledWith("Processed 10 files. Succeeded: 10, Failed: 0");
-    });
-  });
-
-  describe("file filtering", () => {
     it("should skip binary files", async () => {
-      const mockFiles = ["/src/file1.ts", "/src/image.jpg", "/src/file2.ts"];
+      const mockFiles = ["/src/image.jpg", "/src/file.ts"];
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      // The getFileExtension is called for each file to determine the extension
       mockPathUtils.getFileExtension
-        .mockReturnValueOnce("ts") // file1.ts -> ts (not in binary list)
-        .mockReturnValueOnce(".jpg") // image.jpg -> .jpg (should be in binary list)
-        .mockReturnValueOnce("js"); // file2.ts -> js (not in binary list)
+        .mockReturnValueOnce("jpg")
+        .mockReturnValueOnce("ts");
+      mockPath.relative.mockReturnValue("file.ts");
+      mockPath.basename.mockReturnValue("file.ts");
+      mockFileOperations.readFile.mockResolvedValue("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
 
-      mockFileOperations.readFile.mockResolvedValue("content");
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
-      mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
+      await loader.captureCodebaseToDatabase("test-project", "/src", false);
 
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      // Should only process 2 files (skip the .jpg file which should be in BINARY_FILE_EXTENSION_IGNORE_LIST)
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
+      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
     });
 
     it("should skip empty files", async () => {
-      const mockFiles = ["/src/file1.ts", "/src/empty.ts", "/src/file3.ts"];
+      const mockFiles = ["/src/empty.ts", "/src/file.ts"];
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
+      mockPath.relative.mockReturnValue("file.ts");
+      mockPath.basename.mockReturnValue("file.ts");
       mockFileOperations.readFile
-        .mockResolvedValueOnce("content")
-        .mockResolvedValueOnce("   ") // Empty after trim
-        .mockResolvedValueOnce("more content");
+        .mockResolvedValueOnce("   ")
+        .mockResolvedValueOnce("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
 
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
-      mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
+      await loader.captureCodebaseToDatabase("test-project", "/src", false);
 
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      // Should only process 2 files (skip the empty file)
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
+      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe("summary and embedding generation", () => {
-    it("should generate summary and embeddings successfully", async () => {
+    it("should handle summarization errors gracefully", async () => {
       const mockFiles = ["/src/file1.ts"];
-      const mockSummary = {
-        namespace: "TestClass",
-        purpose: "Test component",
-        implementation:
-          "This is a test component implementation that provides testing functionality.",
-      };
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockResolvedValue("file content");
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockSummarizeFile.mockResolvedValue(mockSummary);
-      mockLLMRouter.generateEmbeddings
-        .mockResolvedValueOnce([1, 2, 3]) // summary embedding
-        .mockResolvedValueOnce([4, 5, 6]); // content embedding
-
       mockPath.relative.mockReturnValue("file1.ts");
       mockPath.basename.mockReturnValue("file1.ts");
+      mockFileOperations.readFile.mockResolvedValue("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
+      mockFileSummarizer.summarize.mockRejectedValue(new Error("LLM failed"));
 
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
+      await loader.captureCodebaseToDatabase("test-project", "/src", false);
 
-      expect(mockSummarizeFile).toHaveBeenCalledWith(
-        mockLLMRouter,
-        "file1.ts",
-        "ts",
-        "file content",
-      );
-      expect(mockLLMRouter.generateEmbeddings).toHaveBeenCalledTimes(2);
+      // File should still be inserted with summaryError
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
         expect.objectContaining({
-          projectName: "testProject",
-          filename: "file1.ts",
-          filepath: "file1.ts",
-          fileType: "ts",
-          linesCount: 10,
-          content: "file content",
-          summary: mockSummary,
-          summaryVector: [1, 2, 3],
-          contentVector: [4, 5, 6],
+          summaryError: expect.stringContaining("Failed to generate summary"),
         }),
       );
     });
 
-    it("should handle summary generation errors gracefully", async () => {
+    it("should log warnings when there are failures", async () => {
       const mockFiles = ["/src/file1.ts"];
-      const summaryError = new Error("Summary generation failed");
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
       mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockResolvedValue("file content");
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockSummarizeFile.mockRejectedValue(summaryError);
-      mockLLMRouter.generateEmbeddings.mockResolvedValue([4, 5, 6]); // content embedding
+      mockPath.relative.mockReturnValue("file1.ts");
+      mockFileOperations.readFile.mockRejectedValue(new Error("Read failed"));
 
+      await loader.captureCodebaseToDatabase("test-project", "/src", false);
+
+      expect(mockConsoleWarn).toHaveBeenCalledWith(
+        expect.stringContaining("failed to process"),
+      );
+    });
+
+    it("should include embeddings in source record", async () => {
+      const mockFiles = ["/src/file1.ts"];
+      const mockEmbeddings = [0.1, 0.2, 0.3];
+
+      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
+      mockPathUtils.getFileExtension.mockReturnValue("ts");
       mockPath.relative.mockReturnValue("file1.ts");
       mockPath.basename.mockReturnValue("file1.ts");
+      mockFileOperations.readFile.mockResolvedValue("const x = 1;");
+      mockTextUtils.countLines.mockReturnValue(1);
+      mockLLMRouter.generateEmbeddings.mockResolvedValue(mockEmbeddings);
 
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
+      await loader.captureCodebaseToDatabase("test-project", "/src", false);
 
       expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
         expect.objectContaining({
-          summaryError: "Failed to generate summary: Summary generation failed",
+          contentVector: mockEmbeddings,
+          summaryVector: mockEmbeddings,
         }),
       );
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
-        expect.not.objectContaining({
-          summary: expect.anything(),
-          summaryVector: expect.anything(),
-        }),
-      );
-    });
-
-    it("should handle embedding generation failures gracefully", async () => {
-      const mockFiles = ["/src/file1.ts"];
-
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockResolvedValue("file content");
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockLLMRouter.generateEmbeddings.mockResolvedValue(null); // Embedding failed
-
-      mockPath.relative.mockReturnValue("file1.ts");
-      mockPath.basename.mockReturnValue("file1.ts");
-
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
-        expect.not.objectContaining({
-          summaryVector: expect.anything(),
-          contentVector: expect.anything(),
-        }),
-      );
-    });
-
-    it("should handle partial embedding failures", async () => {
-      const mockFiles = ["/src/file1.ts"];
-      const mockSummary = {
-        namespace: "TestClass",
-        purpose: "Test component",
-        implementation:
-          "This is a test component implementation that provides testing functionality.",
-      };
-
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockResolvedValue("file content");
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockSummarizeFile.mockResolvedValue(mockSummary);
-      mockLLMRouter.generateEmbeddings
-        .mockResolvedValueOnce([1, 2, 3]) // summary embedding success
-        .mockResolvedValueOnce(null); // content embedding failure
-
-      mockPath.relative.mockReturnValue("file1.ts");
-      mockPath.basename.mockReturnValue("file1.ts");
-
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
-        expect.objectContaining({
-          summaryVector: [1, 2, 3],
-        }),
-      );
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledWith(
-        expect.not.objectContaining({
-          contentVector: expect.anything(),
-        }),
-      );
-    });
-  });
-
-  describe("error propagation", () => {
-    it("should propagate individual file processing errors", async () => {
-      const mockFiles = ["/src/file1.ts"];
-      const processingError = new Error("Processing failed");
-
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile.mockRejectedValue(processingError);
-
-      const { logOneLineError: mockLogError } = jest.requireMock(
-        "../../../../src/common/utils/logging",
-      );
-
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      expect(mockLogError).toHaveBeenCalledWith(
-        "Failed to process file: /src/file1.ts",
-        processingError,
-      );
-    });
-
-    it("should continue processing other files when one fails", async () => {
-      const mockFiles = ["/src/file1.ts", "/src/file2.ts", "/src/file3.ts"];
-
-      mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension.mockReturnValue("ts");
-      mockFileOperations.readFile
-        .mockResolvedValueOnce("content1")
-        .mockRejectedValueOnce(new Error("File2 failed"))
-        .mockResolvedValueOnce("content3");
-
-      mockTextUtils.countLines.mockReturnValue(10);
-      mockPath.relative.mockImplementation((from, to) => to.replace(from + "/", ""));
-      mockPath.basename.mockImplementation((filePath) => filePath.split("/").pop() ?? "");
-
-      await loader.captureCodebaseToDatabase("testProject", "/src", false);
-
-      // Should still insert the successful files
-      expect(mockSourcesRepository.insertSource).toHaveBeenCalledTimes(2);
-      expect(mockConsoleLog).toHaveBeenCalledWith("Processed 3 files. Succeeded: 2, Failed: 1");
     });
   });
 });

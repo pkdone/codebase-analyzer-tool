@@ -8,6 +8,7 @@ import {
   LLMModelQuality,
   ResolvedLLMModelMetadata,
   LLMOutputFormat,
+  ShutdownBehavior,
 } from "../../../src/common/llm/types/llm.types";
 import LLMRouter from "../../../src/common/llm/llm-router";
 import { createMockErrorLogger } from "../helpers/llm/mock-error-logger";
@@ -88,7 +89,7 @@ describe("Type Safety Refactoring - Simplified Generic Approach", () => {
         TEST_PRIMARY_COMPLETION: mockPrimaryCompletionModelMetadata,
       })),
       close: jest.fn(async () => {}),
-      needsForcedShutdown: jest.fn(() => false),
+      getShutdownBehavior: jest.fn(() => ShutdownBehavior.GRACEFUL),
     } as jest.Mocked<LLMProvider>;
 
     // Create mock manifest

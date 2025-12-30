@@ -35,7 +35,11 @@ export interface LLMProvider {
   getModelFamily(): string;
   getModelsMetadata(): Readonly<Record<string, ResolvedLLMModelMetadata>>;
   close(): Promise<void>;
-  needsForcedShutdown(): boolean;
+  /**
+   * Get the shutdown behavior required by this provider.
+   * Used by the application lifecycle to determine how to clean up.
+   */
+  getShutdownBehavior(): ShutdownBehavior;
 }
 
 /**
@@ -46,6 +50,18 @@ export const LLMModelQuality = {
   SECONDARY: "secondary",
 } as const;
 export type LLMModelQuality = (typeof LLMModelQuality)[keyof typeof LLMModelQuality];
+
+/**
+ * Enum to define the shutdown behavior required by an LLM provider.
+ * This abstracts provider-specific shutdown requirements from the consuming code.
+ */
+export const ShutdownBehavior = {
+  /** Provider can be shut down gracefully via close() method */
+  GRACEFUL: "graceful",
+  /** Provider requires process.exit() due to SDK limitations (e.g., gRPC connections) */
+  REQUIRES_PROCESS_EXIT: "requires_process_exit",
+} as const;
+export type ShutdownBehavior = (typeof ShutdownBehavior)[keyof typeof ShutdownBehavior];
 
 /**
  * Types to define the status types statistics
