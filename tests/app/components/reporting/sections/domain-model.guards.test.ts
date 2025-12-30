@@ -116,4 +116,3 @@ describe("domain-model.guards", () => {
     });
   });
 });
-

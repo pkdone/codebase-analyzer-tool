@@ -49,7 +49,9 @@ export const propertyNameFixer: SanitizerStrategy = {
         const mergedName = allParts.join("");
         hasChanges = true;
         if (diagnostics.length < MAX_DIAGNOSTICS) {
-          diagnostics.push(`Merged concatenated property name: ${allParts.join('" + "')} -> ${mergedName}`);
+          diagnostics.push(
+            `Merged concatenated property name: ${allParts.join('" + "')} -> ${mergedName}`,
+          );
         }
         return `"${mergedName}":`;
       },
@@ -68,7 +70,10 @@ export const propertyNameFixer: SanitizerStrategy = {
           const lowerPropertyName = propertyNameStr.toLowerCase();
           const propertyNameStart = offset + whitespaceStr.length;
 
-          if (propertyNameStart > 0 && sanitized[propertyNameStart - 1] === DELIMITERS.DOUBLE_QUOTE) {
+          if (
+            propertyNameStart > 0 &&
+            sanitized[propertyNameStart - 1] === DELIMITERS.DOUBLE_QUOTE
+          ) {
             return match;
           }
 
@@ -96,7 +101,9 @@ export const propertyNameFixer: SanitizerStrategy = {
 
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Fixed property name with missing opening quote: ${propertyNameStr}" -> "${fixedName}"`);
+            diagnostics.push(
+              `Fixed property name with missing opening quote: ${propertyNameStr}" -> "${fixedName}"`,
+            );
           }
           return `${whitespaceStr}"${fixedName}":`;
         },
@@ -133,8 +140,15 @@ export const propertyNameFixer: SanitizerStrategy = {
 
           if (!fixedName) {
             const shortNameMappings: Record<string, string> = {
-              e: "name", n: "name", m: "name", me: "name", na: "name",
-              pu: "purpose", de: "description", ty: "type", va: "value",
+              e: "name",
+              n: "name",
+              m: "name",
+              me: "name",
+              na: "name",
+              pu: "purpose",
+              de: "description",
+              ty: "type",
+              va: "value",
             };
             fixedName = shortNameMappings[lowerShortName];
           }
@@ -256,7 +270,9 @@ export const propertyNameFixer: SanitizerStrategy = {
 
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Fixed missing colon: "${propertyNameStr}" "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`);
+            diagnostics.push(
+              `Fixed missing colon: "${propertyNameStr}" "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
+            );
           }
           return `"${propertyNameStr}": "${valueStr}"`;
         },
@@ -317,7 +333,9 @@ export const propertyNameFixer: SanitizerStrategy = {
         const fixedName = PROPERTY_NAME_MAPPINGS[lowerPropertyName];
         hasChanges = true;
         if (diagnostics.length < MAX_DIAGNOSTICS) {
-          diagnostics.push(`Fixed truncated property name: ${propertyName as string} -> ${fixedName}`);
+          diagnostics.push(
+            `Fixed truncated property name: ${propertyName as string} -> ${fixedName}`,
+          );
         }
         return `${whitespace}"${fixedName}"`;
       }
@@ -329,7 +347,8 @@ export const propertyNameFixer: SanitizerStrategy = {
     sanitized = sanitized.replace(
       trailingUnderscorePattern,
       (match, quotedNameWithUnderscore, colonWithWhitespace, offset: number) => {
-        const quotedNameStr = typeof quotedNameWithUnderscore === "string" ? quotedNameWithUnderscore : "";
+        const quotedNameStr =
+          typeof quotedNameWithUnderscore === "string" ? quotedNameWithUnderscore : "";
         const colonStr = typeof colonWithWhitespace === "string" ? colonWithWhitespace : "";
 
         if (isInStringAt(offset, sanitized)) {
@@ -342,7 +361,9 @@ export const propertyNameFixer: SanitizerStrategy = {
         const fixedName = `"${fixedNameContent}"`;
         hasChanges = true;
         if (diagnostics.length < MAX_DIAGNOSTICS) {
-          diagnostics.push(`Fixed trailing underscore in property name: ${quotedNameStr} -> ${fixedName}`);
+          diagnostics.push(
+            `Fixed trailing underscore in property name: ${quotedNameStr} -> ${fixedName}`,
+          );
         }
         return `${fixedName}${colonStr}`;
       },
@@ -363,7 +384,9 @@ export const propertyNameFixer: SanitizerStrategy = {
       fixedName = fixedName.replace(/_+$/, "");
       hasChanges = true;
       if (diagnostics.length < MAX_DIAGNOSTICS) {
-        diagnostics.push(`Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`);
+        diagnostics.push(
+          `Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`,
+        );
       }
       return `"${fixedName}"`;
     });
@@ -408,16 +431,20 @@ export const propertyNameFixer: SanitizerStrategy = {
 
         // Known short property names that commonly have embedded text
         const knownShortPropertyNames = ["name", "type", "value", "id", "key", "kind", "text"];
-        const isKnownPropertyName = knownShortPropertyNames.includes(propertyNamePartStr.toLowerCase());
+        const isKnownPropertyName = knownShortPropertyNames.includes(
+          propertyNamePartStr.toLowerCase(),
+        );
 
         // Check if embedded part matches the value, or if it's a known property name
-        const embeddedMatchesValue = embeddedPartStr === valueStr || 
-          embeddedPartStr.toLowerCase() === valueStr.toLowerCase();
+        const embeddedMatchesValue =
+          embeddedPartStr === valueStr || embeddedPartStr.toLowerCase() === valueStr.toLowerCase();
 
         if (embeddedMatchesValue || isKnownPropertyName) {
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Fixed property with embedded value: "${propertyNamePartStr} ${embeddedPartStr}" -> "${propertyNamePartStr}"`);
+            diagnostics.push(
+              `Fixed property with embedded value: "${propertyNamePartStr} ${embeddedPartStr}" -> "${propertyNamePartStr}"`,
+            );
           }
           return `"${propertyNamePartStr}": "${valueStr}"`;
         }
@@ -437,7 +464,10 @@ export const propertyNameFixer: SanitizerStrategy = {
         const lowerPropertyName = propertyNameStr.toLowerCase();
 
         const propertyStartOffset = offset + delimiterStr.length + whitespaceStr.length;
-        if (propertyStartOffset > 0 && sanitized[propertyStartOffset - 1] === DELIMITERS.DOUBLE_QUOTE) {
+        if (
+          propertyStartOffset > 0 &&
+          sanitized[propertyStartOffset - 1] === DELIMITERS.DOUBLE_QUOTE
+        ) {
           return match;
         }
 
@@ -446,13 +476,24 @@ export const propertyNameFixer: SanitizerStrategy = {
         }
 
         let isValidContext = false;
-        if (/[{,}\],]/.test(delimiterStr) || delimiterStr === "\n" || delimiterStr === "" || offset === 0) {
+        if (
+          /[{,}\],]/.test(delimiterStr) ||
+          delimiterStr === "\n" ||
+          delimiterStr === "" ||
+          offset === 0
+        ) {
           isValidContext = true;
         }
 
         if (!isValidContext && offset > 0) {
           const charBefore = sanitized[offset - 1];
-          if (charBefore === "," || charBefore === "}" || charBefore === "]" || charBefore === "\n" || charBefore === "{") {
+          if (
+            charBefore === "," ||
+            charBefore === "}" ||
+            charBefore === "]" ||
+            charBefore === "\n" ||
+            charBefore === "{"
+          ) {
             isValidContext = true;
           }
         }
@@ -486,4 +527,3 @@ export const propertyNameFixer: SanitizerStrategy = {
     };
   },
 };
-

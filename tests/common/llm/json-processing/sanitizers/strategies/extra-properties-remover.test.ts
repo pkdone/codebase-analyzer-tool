@@ -60,4 +60,3 @@ describe("extraPropertiesRemover", () => {
     expect(result.diagnostics.length).toBeGreaterThan(0);
   });
 });
-

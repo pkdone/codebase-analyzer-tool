@@ -78,4 +78,3 @@ describe("propertyNameFixer", () => {
     expect(result.diagnostics.length).toBeGreaterThan(0);
   });
 });
-

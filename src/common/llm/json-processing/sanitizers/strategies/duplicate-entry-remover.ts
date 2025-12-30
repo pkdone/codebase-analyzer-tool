@@ -72,7 +72,9 @@ export const duplicateEntryRemover: SanitizerStrategy = {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           // Preserve proper delimiter (convert ] to just ] without comma)
           const cleanDelimiter = delimiterStr.includes("]") ? "]" : delimiterStr;
-          diagnostics.push(`Removed duplicate entry starting with "${prefix}" after "${validEntry}"`);
+          diagnostics.push(
+            `Removed duplicate entry starting with "${prefix}" after "${validEntry}"`,
+          );
           return `"${validEntry}"${cleanDelimiter}`;
         }
 
@@ -87,4 +89,3 @@ export const duplicateEntryRemover: SanitizerStrategy = {
     };
   },
 };
-

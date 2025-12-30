@@ -57,7 +57,8 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
       (match, quotedProperty, propertyName, whitespaceAfter, offset: number) => {
         const quotedPropStr = typeof quotedProperty === "string" ? quotedProperty : "";
         const propNameStr = typeof propertyName === "string" ? propertyName : "";
-        const wsAfter = typeof whitespaceAfter === "string" && whitespaceAfter ? whitespaceAfter : " ";
+        const wsAfter =
+          typeof whitespaceAfter === "string" && whitespaceAfter ? whitespaceAfter : " ";
 
         if (offset > 0) {
           const beforeMatch = sanitized.substring(Math.max(0, offset - 20), offset);
@@ -157,7 +158,8 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
               /"\s*$/.test(contextBefore) || /[}\],\]]\s*$/.test(contextBefore);
             if (!hasPropertyNamePattern && !contextBefore.trim().endsWith('"')) {
               const trimmedContext = contextBefore.trim();
-              const isInObjectOrArray = /[{]\s*$/.test(trimmedContext) || trimmedContext.includes("[");
+              const isInObjectOrArray =
+                /[{]\s*$/.test(trimmedContext) || trimmedContext.includes("[");
               if (!isInObjectOrArray) {
                 return match;
               }
@@ -215,7 +217,9 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
 
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Fixed missing quotes around property value: "${propertyNameStr}":${valueStr}"`);
+            diagnostics.push(
+              `Fixed missing quotes around property value: "${propertyNameStr}":${valueStr}"`,
+            );
           }
           return `"${propertyNameStr}": "${valueStr}"${delimiterStr}`;
         }
@@ -263,7 +267,9 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
 
         hasChanges = true;
         if (diagnostics.length < MAX_DIAGNOSTICS) {
-          diagnostics.push(`Fixed unquoted string value: "${propertyNameStr}": ${unquotedValueStr}`);
+          diagnostics.push(
+            `Fixed unquoted string value: "${propertyNameStr}": ${unquotedValueStr}`,
+          );
         }
 
         const colonIndex = match.indexOf(":");
@@ -283,4 +289,3 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
     };
   },
 };
-

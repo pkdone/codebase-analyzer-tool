@@ -95,7 +95,9 @@ export const arrayElementFixer: SanitizerStrategy = {
               hasChanges = true;
               foundReplacement = true;
               if (diagnostics.length < MAX_DIAGNOSTICS) {
-                diagnostics.push(`Fixed truncated package name in array: ${unquotedValueStr} -> ${fixedValue}`);
+                diagnostics.push(
+                  `Fixed truncated package name in array: ${unquotedValueStr} -> ${fixedValue}`,
+                );
               }
               break;
             }
@@ -103,7 +105,9 @@ export const arrayElementFixer: SanitizerStrategy = {
           if (!foundReplacement) {
             hasChanges = true;
             if (diagnostics.length < MAX_DIAGNOSTICS) {
-              diagnostics.push(`Fixed missing opening quote in array element: ${unquotedValueStr}"`);
+              diagnostics.push(
+                `Fixed missing opening quote in array element: ${unquotedValueStr}"`,
+              );
             }
           }
           return `${prefixStr}${whitespaceStr}"${fixedValue}"${terminatorStr}`;
@@ -143,7 +147,9 @@ export const arrayElementFixer: SanitizerStrategy = {
 
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Fixed missing opening quote in array element (newline): ${unquotedValueStr}"`);
+            diagnostics.push(
+              `Fixed missing opening quote in array element (newline): ${unquotedValueStr}"`,
+            );
           }
           return `${newlinePrefixStr}"${fixedValue}"${terminatorStr}`;
         }
@@ -170,12 +176,15 @@ export const arrayElementFixer: SanitizerStrategy = {
 
         const prefixWordsToRemove = ["from", "stop", "package", "import"];
         const lowerPrefixWord = prefixWordStr.toLowerCase();
-        const isInArray = prefixStr === "[" || prefixStr.startsWith(",") || isInArrayContextAt(offset, sanitized);
+        const isInArray =
+          prefixStr === "[" || prefixStr.startsWith(",") || isInArrayContextAt(offset, sanitized);
 
         if (isInArray && prefixWordsToRemove.includes(lowerPrefixWord)) {
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Removed prefix word '${prefixWordStr}' before quoted string in array`);
+            diagnostics.push(
+              `Removed prefix word '${prefixWordStr}' before quoted string in array`,
+            );
           }
           return `${prefixStr}${whitespaceStr}"${quotedValueStr}"${terminatorStr}`;
         }
@@ -189,7 +198,8 @@ export const arrayElementFixer: SanitizerStrategy = {
     while (previousUnquotedArray !== sanitized) {
       previousUnquotedArray = sanitized;
 
-      const unquotedArrayElementPattern = /(\n\s*)([A-Z][A-Z0-9_]{3,})(\s*\n\s*\]|\s*\]|\s*,|\s*\n)/g;
+      const unquotedArrayElementPattern =
+        /(\n\s*)([A-Z][A-Z0-9_]{3,})(\s*\n\s*\]|\s*\]|\s*,|\s*\n)/g;
       sanitized = sanitized.replace(
         unquotedArrayElementPattern,
         (match, newlinePrefix, element, terminator, offset: number) => {
@@ -212,8 +222,7 @@ export const arrayElementFixer: SanitizerStrategy = {
             const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
             const beforeTrimmed = beforeMatch.trim();
             // Only add comma if not after [ and not already after a comma
-            const needsCommaBefore =
-              !beforeTrimmed.endsWith("[") && !beforeTrimmed.endsWith(",");
+            const needsCommaBefore = !beforeTrimmed.endsWith("[") && !beforeTrimmed.endsWith(",");
             const commaBefore = needsCommaBefore ? "," : "";
 
             if (terminatorStr.trim().startsWith("]")) {
@@ -252,7 +261,9 @@ export const arrayElementFixer: SanitizerStrategy = {
 
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Added missing comma between array elements: "${value1Str}" "${value2Str}"`);
+            diagnostics.push(
+              `Added missing comma between array elements: "${value1Str}" "${value2Str}"`,
+            );
           }
           return `"${value1Str}", "${value2Str}"${terminatorStr}`;
         }
@@ -272,12 +283,16 @@ export const arrayElementFixer: SanitizerStrategy = {
         }
 
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        const isInArray = terminatorStr.includes("]") || terminatorStr.includes(",") || isInArrayContextAt(offset, sanitized);
+        const isInArray =
+          terminatorStr.includes("]") ||
+          terminatorStr.includes(",") ||
+          isInArrayContextAt(offset, sanitized);
 
         if (isInArray) {
           const value1Str = typeof value1 === "string" ? value1 : "";
           const value2Str = typeof value2 === "string" ? value2 : "";
-          const newlineWhitespaceStr = typeof newlineWhitespace === "string" ? newlineWhitespace : "";
+          const newlineWhitespaceStr =
+            typeof newlineWhitespace === "string" ? newlineWhitespace : "";
 
           if (!terminatorStr.startsWith(",") && !terminatorStr.startsWith("]")) {
             hasChanges = true;
@@ -299,4 +314,3 @@ export const arrayElementFixer: SanitizerStrategy = {
     };
   },
 };
-

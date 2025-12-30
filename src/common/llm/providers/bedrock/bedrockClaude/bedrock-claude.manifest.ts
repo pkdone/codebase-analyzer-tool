@@ -4,8 +4,8 @@ import BedrockClaudeLLM from "./bedrock-claude-llm";
 import { LLMPurpose } from "../../../types/llm.types";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
 import {
-  BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
-  AWS_EMBEDDINGS_TITAN_V1,
+  createTitanEmbeddingsConfig,
+  createBedrockEnvSchema,
 } from "../common/bedrock-models.constants";
 import { llmConfig } from "../../../config/llm.config";
 import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
@@ -29,20 +29,12 @@ export const AWS_COMPLETIONS_CLAUDE_SONNET_V45 = "AWS_COMPLETIONS_CLAUDE_SONNET_
 export const bedrockClaudeProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Claude",
   modelFamily: BEDROCK_CLAUDE_FAMILY,
-  envSchema: z.object({
-    [BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY]: z.string().min(1),
+  envSchema: createBedrockEnvSchema({
     [BEDROCK_CLAUDE_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
     [BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
   }),
   models: {
-    embeddings: {
-      modelKey: AWS_EMBEDDINGS_TITAN_V1,
-      name: "Titan Embeddings v1",
-      urnEnvKey: BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
-      purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 1024,
-      maxTotalTokens: 8192,
-    },
+    embeddings: createTitanEmbeddingsConfig(),
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_CLAUDE_OPUS_V45,
       name: "Claude Opus 4.5",

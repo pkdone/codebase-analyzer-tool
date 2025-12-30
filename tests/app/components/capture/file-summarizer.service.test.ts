@@ -112,11 +112,16 @@ describe("FileSummarizerService", () => {
       const error = new Error("LLM failed");
       (mockLLMRouter.executeCompletion as jest.Mock).mockRejectedValue(error);
 
-      await expect(service.summarize("test.js", "js", "const x = 1;")).rejects.toThrow("LLM failed");
+      await expect(service.summarize("test.js", "js", "const x = 1;")).rejects.toThrow(
+        "LLM failed",
+      );
     });
 
     it("should use correct schema from source config map", async () => {
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue({ name: "Test", purpose: "Test" });
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue({
+        name: "Test",
+        purpose: "Test",
+      });
 
       await service.summarize("test.js", "js", "const x = 1;");
 

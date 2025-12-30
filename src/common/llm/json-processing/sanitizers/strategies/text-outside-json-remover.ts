@@ -51,7 +51,8 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
           hasChanges = true;
           const valueStr = typeof value === "string" ? value : "";
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            const truncated = strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
+            const truncated =
+              strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
             diagnostics.push(`Removed descriptive text: "${valueStr}" + "${truncated}"`);
           }
           return `"${valueStr}",`;
@@ -119,7 +120,8 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         if (looksLikeDescriptiveText) {
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            const displayText = strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
+            const displayText =
+              strayTextStr.length > 50 ? `${strayTextStr.substring(0, 47)}...` : strayTextStr;
             diagnostics.push(`Removed text after JSON structure: "${displayText}"`);
           }
           return closingBraceStr;
@@ -220,10 +222,7 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
         const corruptedTextStr = typeof corruptedText === "string" ? corruptedText : "";
 
         // Check if it looks like corrupted text (short alphabetic strings or numbers with dashes)
-        if (
-          /^[a-z]{1,4}$/i.test(corruptedTextStr) ||
-          /^\d{1,3}(-\d+)?$/.test(corruptedTextStr)
-        ) {
+        if (/^[a-z]{1,4}$/i.test(corruptedTextStr) || /^\d{1,3}(-\d+)?$/.test(corruptedTextStr)) {
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
             diagnostics.push(`Removed corrupted text: '${corruptedTextStr}'`);
@@ -263,4 +262,3 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
     };
   },
 };
-

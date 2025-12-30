@@ -53,4 +53,3 @@ describe("invalidLiteralFixer", () => {
     expect(result.diagnostics[0]).toContain("undefined");
   });
 });
-

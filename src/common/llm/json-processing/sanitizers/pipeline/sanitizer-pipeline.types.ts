@@ -67,4 +67,3 @@ export const DEFAULT_PIPELINE_CONFIG: Required<PipelineConfig> = {
   maxDiagnosticsPerStrategy: 20,
   continueOnError: true,
 } as const;
-

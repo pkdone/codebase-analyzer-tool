@@ -22,4 +22,3 @@ export function registerCaptureDependencies(): void {
   // Register the FileSummarizerService
   container.register(captureTokens.FileSummarizerService, { useClass: FileSummarizerService });
 }
-

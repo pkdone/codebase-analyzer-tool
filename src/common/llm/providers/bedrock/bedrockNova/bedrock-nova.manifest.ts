@@ -4,8 +4,8 @@ import { LLMPurpose } from "../../../types/llm.types";
 import { BEDROCK_COMMON_ERROR_PATTERNS } from "../common/bedrock-error-patterns";
 import { z } from "zod";
 import {
-  BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
-  AWS_EMBEDDINGS_TITAN_V1,
+  createTitanEmbeddingsConfig,
+  createBedrockEnvSchema,
 } from "../common/bedrock-models.constants";
 import { defaultBedrockProviderConfig } from "../common/bedrock-defaults.config";
 
@@ -23,20 +23,12 @@ const AWS_COMPLETIONS_NOVA_PRO_V1 = "AWS_COMPLETIONS_NOVA_PRO_V1";
 export const bedrockNovaProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Nova",
   modelFamily: BEDROCK_NOVA_FAMILY,
-  envSchema: z.object({
-    [BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY]: z.string().min(1),
+  envSchema: createBedrockEnvSchema({
     [BEDROCK_NOVA_COMPLETIONS_MODEL_PRIMARY_KEY]: z.string().min(1),
     [BEDROCK_NOVA_COMPLETIONS_MODEL_SECONDARY_KEY]: z.string().min(1),
   }),
   models: {
-    embeddings: {
-      modelKey: AWS_EMBEDDINGS_TITAN_V1,
-      name: "Titan Embeddings v1",
-      urnEnvKey: BEDROCK_TITAN_EMBEDDINGS_MODEL_KEY,
-      purpose: LLMPurpose.EMBEDDINGS,
-      dimensions: 1024,
-      maxTotalTokens: 8192,
-    },
+    embeddings: createTitanEmbeddingsConfig(),
     primaryCompletion: {
       modelKey: AWS_COMPLETIONS_NOVA_PRO_V1,
       name: "Nova Pro",

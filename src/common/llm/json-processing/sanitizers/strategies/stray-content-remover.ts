@@ -52,7 +52,9 @@ export const strayContentRemover: SanitizerStrategy = {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Removed stray character "${strayChar}" before property "${propertyNameStr}"`);
+            diagnostics.push(
+              `Removed stray character "${strayChar}" before property "${propertyNameStr}"`,
+            );
           }
           return `${delimiterStr}${whitespaceStr}"${propertyNameStr}":`;
         }
@@ -76,7 +78,9 @@ export const strayContentRemover: SanitizerStrategy = {
         const terminatorStr = typeof terminator === "string" ? terminator : "";
         hasChanges = true;
         if (diagnostics.length < MAX_DIAGNOSTICS) {
-          diagnostics.push(`Removed stray character "${strayChar}" before value: "${propertyNameStr}"`);
+          diagnostics.push(
+            `Removed stray character "${strayChar}" before value: "${propertyNameStr}"`,
+          );
         }
         return `"${propertyNameStr}": "${valueStr}"${terminatorStr}`;
       },
@@ -99,7 +103,9 @@ export const strayContentRemover: SanitizerStrategy = {
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           hasChanges = true;
           if (diagnostics.length < MAX_DIAGNOSTICS) {
-            diagnostics.push(`Removed stray character "${strayChar}" for numeric property: "${propertyNameStr}"`);
+            diagnostics.push(
+              `Removed stray character "${strayChar}" for numeric property: "${propertyNameStr}"`,
+            );
           }
           return `"${propertyNameStr}": null${terminatorStr}`;
         }
@@ -184,7 +190,15 @@ export const strayContentRemover: SanitizerStrategy = {
     const commentMarkerPattern = /([}\],]|\n|^)(\s*)\*(\s+)"([a-zA-Z_$][^"]+)"(\s*[,:])/g;
     sanitized = sanitized.replace(
       commentMarkerPattern,
-      (match, delimiter, whitespaceBefore, whitespaceAfter, propertyName, terminator, offset: number) => {
+      (
+        match,
+        delimiter,
+        whitespaceBefore,
+        whitespaceAfter,
+        propertyName,
+        terminator,
+        offset: number,
+      ) => {
         if (isInStringAt(offset, sanitized)) {
           return match;
         }
@@ -233,4 +247,3 @@ export const strayContentRemover: SanitizerStrategy = {
     };
   },
 };
-

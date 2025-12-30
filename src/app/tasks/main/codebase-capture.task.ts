@@ -3,41 +3,44 @@ import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
 import type LLMStats from "../../../common/llm/tracking/llm-stats";
 import type LLMRouter from "../../../common/llm/llm-router";
-import { Task } from "../task.types";
 import type { EnvVars } from "../../env/env.types";
 import { DatabaseInitializer } from "../../components/database/database-initializer";
 import { databaseConfig } from "../../components/database/database.config";
 import { llmTokens, coreTokens } from "../../di/tokens";
 import { captureTokens } from "../../di/tokens";
-import { clearDirectory } from "../../../common/fs/directory-operations";
-import { outputConfig } from "../../components/reporting/config/output.config";
+import { BaseAnalysisTask } from "../base-analysis-task";
 
 /**
  * Task to capture the codebase.
+ * Extends BaseAnalysisTask to share the common lifecycle pattern.
  */
 @injectable()
-export class CodebaseCaptureTask implements Task {
+export class CodebaseCaptureTask extends BaseAnalysisTask {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStats) private readonly llmStats: LLMStats,
+    @inject(llmTokens.LLMStats) llmStats: LLMStats,
+    @inject(coreTokens.ProjectName) projectName: string,
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(coreTokens.DatabaseInitializer)
     private readonly databaseInitializer: DatabaseInitializer,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
-    @inject(coreTokens.ProjectName) private readonly projectName: string,
     @inject(captureTokens.CodebaseToDBLoader)
     private readonly codebaseToDBLoader: CodebaseToDBLoader,
-  ) {}
+  ) {
+    super(llmStats, projectName);
+  }
 
-  /**
-   * Execute the task with standard LLM stats reporting wrapper.
-   */
-  async execute(): Promise<void> {
-    console.log(`Processing source files for project: ${this.projectName}`);
-    this.llmStats.displayLLMStatusSummary();
-    await clearDirectory(outputConfig.OUTPUT_DIR);
+  protected getStartMessage(): string {
+    return "Processing source files for project";
+  }
+
+  protected getFinishMessage(): string {
+    return "Finished processing source files for the project";
+  }
+
+  protected async runAnalysis(): Promise<void> {
     const vectorDimensions =
       this.llmRouter.getEmbeddingModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
     await this.databaseInitializer.initializeDatabaseSchema(vectorDimensions);
@@ -46,8 +49,5 @@ export class CodebaseCaptureTask implements Task {
       this.env.CODEBASE_DIR_PATH,
       this.env.SKIP_ALREADY_PROCESSED_FILES,
     );
-    console.log(`Finished processing source files for the project`);
-    console.log("Summary of LLM invocations outcomes:");
-    this.llmStats.displayLLMStatusDetails();
   }
 }

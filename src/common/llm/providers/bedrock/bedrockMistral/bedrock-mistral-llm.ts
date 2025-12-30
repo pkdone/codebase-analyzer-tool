@@ -1,5 +1,4 @@
-import BaseBedrockLLM from "../common/base-bedrock-llm";
-import { buildStandardMessagesArray } from "../utils/bedrock-request-builders";
+import StandardMessagesBedrockLLM from "../common/standard-messages-bedrock-llm";
 import { z } from "zod";
 
 /**
@@ -27,15 +26,9 @@ const MistralCompletionResponseSchema = z.object({
 
 /**
  * Class for the AWS Bedrock Mistral LLMs.
+ * Extends StandardMessagesBedrockLLM which provides the common request body building logic.
  */
-export default class BedrockMistralLLM extends BaseBedrockLLM {
-  /**
-   * Build the request body object for Mistral completions using standard messages format.
-   */
-  protected override buildCompletionRequestBody(modelKey: string, prompt: string) {
-    return buildStandardMessagesArray(prompt, modelKey, this.llmModelsMetadata);
-  }
-
+export default class BedrockMistralLLM extends StandardMessagesBedrockLLM {
   /**
    * Get the provider-specific response extraction configuration.
    */

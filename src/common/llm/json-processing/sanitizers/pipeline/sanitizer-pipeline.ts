@@ -68,10 +68,7 @@ export function executePipeline(
 
       // Collect diagnostics up to the limit
       if (result.diagnostics.length > 0) {
-        const limitedDiagnostics = result.diagnostics.slice(
-          0,
-          opts.maxDiagnosticsPerStrategy,
-        );
+        const limitedDiagnostics = result.diagnostics.slice(0, opts.maxDiagnosticsPerStrategy);
         for (const diag of limitedDiagnostics) {
           allDiagnostics.push(`[${strategy.name}] ${diag}`);
         }
@@ -91,9 +88,10 @@ export function executePipeline(
   return {
     content: currentContent,
     changed: hasChanges,
-    ...(hasChanges && appliedStrategies.length > 0 && {
-      description: `Applied: ${appliedStrategies.join(", ")}`,
-    }),
+    ...(hasChanges &&
+      appliedStrategies.length > 0 && {
+        description: `Applied: ${appliedStrategies.join(", ")}`,
+      }),
     ...(allDiagnostics.length > 0 && {
       diagnostics: allDiagnostics,
     }),
@@ -132,4 +130,3 @@ export function toSanitizerResult(
     diagnostics: pipelineResult.diagnostics,
   };
 }
-

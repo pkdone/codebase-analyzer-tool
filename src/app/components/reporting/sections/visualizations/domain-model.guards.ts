@@ -31,4 +31,3 @@ export function isHierarchicalBoundedContextDataArray(data: AppSummaryNameDescAr
     return true;
   });
 }
-

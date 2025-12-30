@@ -153,9 +153,7 @@ describe("CodebaseToDBLoader", () => {
       const mockFiles = ["/src/image.jpg", "/src/file.ts"];
 
       mockDirectoryOperations.findFilesRecursively.mockResolvedValue(mockFiles);
-      mockPathUtils.getFileExtension
-        .mockReturnValueOnce("jpg")
-        .mockReturnValueOnce("ts");
+      mockPathUtils.getFileExtension.mockReturnValueOnce("jpg").mockReturnValueOnce("ts");
       mockPath.relative.mockReturnValue("file.ts");
       mockPath.basename.mockReturnValue("file.ts");
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
@@ -214,9 +212,7 @@ describe("CodebaseToDBLoader", () => {
 
       await loader.captureCodebaseToDatabase("test-project", "/src", false);
 
-      expect(mockConsoleWarn).toHaveBeenCalledWith(
-        expect.stringContaining("failed to process"),
-      );
+      expect(mockConsoleWarn).toHaveBeenCalledWith(expect.stringContaining("failed to process"));
     });
 
     it("should include embeddings in source record", async () => {

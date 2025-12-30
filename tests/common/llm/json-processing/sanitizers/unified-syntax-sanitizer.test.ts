@@ -306,7 +306,9 @@ describe("unifiedSyntaxSanitizer", () => {
 
       expect(result.changed).toBe(true);
       expect(result.content).toBe('{"field": null}');
-      expect(result.diagnostics?.some((d: string) => d.includes("Converted undefined to null"))).toBe(true);
+      expect(
+        result.diagnostics?.some((d: string) => d.includes("Converted undefined to null")),
+      ).toBe(true);
     });
 
     it("should handle undefined values with whitespace", () => {

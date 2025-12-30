@@ -300,7 +300,6 @@ so    "connectionInfo": "n/a"
       expect(result.content).not.toContain("},ce");
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
-
   });
 
   describe("Pattern 10: to be continued... text", () => {
@@ -636,7 +635,6 @@ the    "connectionInfo": "n/a"
       });
     });
 
-
     describe("Pattern 9e: LLM mid-JSON commentary (Next, I will...)", () => {
       it("should remove 'Next, I will analyze...' commentary between properties", () => {
         const input = `{
@@ -690,8 +688,6 @@ Now let me add the remaining methods.
         expect(() => JSON.parse(result.content)).not.toThrow();
       });
     });
-
-
 
     describe("Pattern 9h: Extended stray character patterns (2-4 chars)", () => {
       it("should remove 'ano' (3-char stray text) before property", () => {

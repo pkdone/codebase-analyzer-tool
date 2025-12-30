@@ -13,4 +13,3 @@ export { strayContentRemover } from "./stray-content-remover";
 export { duplicateEntryRemover } from "./duplicate-entry-remover";
 export { textOutsideJsonRemover } from "./text-outside-json-remover";
 export { extraPropertiesRemover } from "./extra-properties-remover";
-

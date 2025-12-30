@@ -83,4 +83,3 @@ export const concatenationFixer: SanitizerStrategy = {
     };
   },
 };
-

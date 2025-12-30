@@ -28,7 +28,9 @@ describe("Application Runner Forced Exit", () => {
     // Mock LLMRouter that needs forced shutdown
     const mockLLMRouter = {
       shutdown: jest.fn().mockResolvedValue(undefined),
-      getProviderShutdownBehavior: jest.fn().mockReturnValue(ShutdownBehavior.REQUIRES_PROCESS_EXIT),
+      getProviderShutdownBehavior: jest
+        .fn()
+        .mockReturnValue(ShutdownBehavior.REQUIRES_PROCESS_EXIT),
     };
 
     // Simulate the application runner logic

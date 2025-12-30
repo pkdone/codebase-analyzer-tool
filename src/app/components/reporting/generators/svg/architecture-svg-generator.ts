@@ -1,15 +1,14 @@
 import { inject, injectable } from "tsyringe";
 import { reportingTokens } from "../../../../di/tokens";
-import { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
 import {
   escapeMermaidLabel,
   generateNodeId,
   buildStyleDefinitions,
   applyStyle,
-  DIAGRAM_STYLES,
-  generateEmptyDiagramSvg,
   buildMermaidInitDirective,
 } from "../mermaid/mermaid-definition-builders";
+import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
 
 export interface Microservice {
   name: string;
@@ -31,26 +30,26 @@ export interface Microservice {
   }[];
 }
 
-export interface ArchitectureDiagramSvgOptions {
-  width?: number;
-  height?: number;
-}
+export type ArchitectureDiagramSvgOptions = BaseDiagramOptions;
 
 /**
  * Generates SVG diagrams for microservices architecture using Mermaid.
  * Creates component-style diagrams showing microservices and their relationships.
+ * Extends BaseMermaidGenerator to share common rendering functionality.
  */
 @injectable()
-export class ArchitectureSvgGenerator {
-  private readonly defaultOptions: Required<ArchitectureDiagramSvgOptions> = {
+export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureDiagramSvgOptions> {
+  protected readonly defaultOptions: Required<ArchitectureDiagramSvgOptions> = {
     width: 1400,
     height: 500,
   };
 
   constructor(
     @inject(reportingTokens.MermaidRenderer)
-    private readonly mermaidRenderer: MermaidRenderer,
-  ) {}
+    mermaidRenderer: MermaidRenderer,
+  ) {
+    super(mermaidRenderer);
+  }
 
   /**
    * Generate SVG diagram for microservices architecture
@@ -59,7 +58,7 @@ export class ArchitectureSvgGenerator {
     microservices: Microservice[],
     options: ArchitectureDiagramSvgOptions = {},
   ): Promise<string> {
-    const opts = { ...this.defaultOptions, ...options };
+    const opts = this.mergeOptions(options);
 
     if (microservices.length === 0) {
       return this.generateEmptyDiagram("No microservices architecture defined");
@@ -76,14 +75,7 @@ export class ArchitectureSvgGenerator {
     const dynamicWidth = Math.max(opts.width, servicesPerRow * widthPerService + 100);
     const dynamicHeight = Math.max(opts.height, rows * 100 + 150);
 
-    // Render to SVG using mermaid-cli
-    const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
-      width: dynamicWidth,
-      height: dynamicHeight,
-      backgroundColor: DIAGRAM_STYLES.backgroundColor,
-    });
-
-    return svg;
+    return this.renderDiagram(mermaidDefinition, dynamicWidth, dynamicHeight);
   }
 
   /**
@@ -145,12 +137,5 @@ export class ArchitectureSvgGenerator {
     });
 
     return lines.join("\n");
-  }
-
-  /**
-   * Generate an empty diagram placeholder
-   */
-  private generateEmptyDiagram(message: string): string {
-    return generateEmptyDiagramSvg(message);
   }
 }

@@ -126,12 +126,9 @@ describe("sanitizer-pipeline", () => {
         }),
       };
 
-      const result = executePipeline(
-        [errorStrategy, workingStrategy],
-        "test",
-        undefined,
-        { continueOnError: true },
-      );
+      const result = executePipeline([errorStrategy, workingStrategy], "test", undefined, {
+        continueOnError: true,
+      });
 
       expect(result.content).toBe("test-fixed");
       expect(result.appliedStrategies).toEqual(["WorkingStrategy"]);
@@ -209,4 +206,3 @@ describe("sanitizer-pipeline", () => {
     });
   });
 });
-

@@ -64,4 +64,3 @@ export interface HierarchicalBoundedContextData {
   description: string;
   aggregates?: import("../../../../schemas/app-summaries.schema").NestedAggregate[];
 }
-

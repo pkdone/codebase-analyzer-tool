@@ -17,4 +17,3 @@ export {
   createEmptyResult,
   toSanitizerResult,
 } from "./sanitizer-pipeline";
-

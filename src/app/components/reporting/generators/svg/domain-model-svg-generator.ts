@@ -1,13 +1,11 @@
 import { inject, injectable } from "tsyringe";
 import { reportingTokens } from "../../../../di/tokens";
-import { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
 import {
   escapeMermaidLabel,
   generateNodeId,
   buildStyleDefinitions,
   applyStyle,
-  DIAGRAM_STYLES,
-  generateEmptyDiagramSvg,
   buildMermaidInitDirective,
 } from "../mermaid/mermaid-definition-builders";
 import type {
@@ -15,27 +13,28 @@ import type {
   DomainAggregate,
   DomainEntity,
 } from "../../sections/visualizations/domain-model-data-provider";
+import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
 
-export interface DomainDiagramSvgOptions {
-  width?: number;
-  height?: number;
-}
+export type DomainDiagramSvgOptions = BaseDiagramOptions;
 
 /**
  * Generates SVG diagrams for domain models using Mermaid.
  * Creates hierarchical diagrams showing bounded contexts with their aggregates, entities, and repositories.
+ * Extends BaseMermaidGenerator to share common rendering functionality.
  */
 @injectable()
-export class DomainModelSvgGenerator {
-  private readonly defaultOptions: Required<DomainDiagramSvgOptions> = {
+export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramSvgOptions> {
+  protected readonly defaultOptions: Required<DomainDiagramSvgOptions> = {
     width: 1200,
     height: 600,
   };
 
   constructor(
     @inject(reportingTokens.MermaidRenderer)
-    private readonly mermaidRenderer: MermaidRenderer,
-  ) {}
+    mermaidRenderer: MermaidRenderer,
+  ) {
+    super(mermaidRenderer);
+  }
 
   /**
    * Generate SVG diagram for a single bounded context
@@ -44,7 +43,7 @@ export class DomainModelSvgGenerator {
     context: DomainBoundedContext,
     options: DomainDiagramSvgOptions = {},
   ): Promise<string> {
-    const opts = { ...this.defaultOptions, ...options };
+    const opts = this.mergeOptions(options);
 
     if (context.aggregates.length === 0 && context.entities.length === 0) {
       return this.generateEmptyDiagram("No domain model elements defined");
@@ -59,14 +58,7 @@ export class DomainModelSvgGenerator {
     const dynamicWidth = Math.max(opts.width, nodeCount * 180);
     const dynamicHeight = Math.max(opts.height, 400);
 
-    // Render to SVG using mermaid-cli
-    const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
-      width: dynamicWidth,
-      height: dynamicHeight,
-      backgroundColor: DIAGRAM_STYLES.backgroundColor,
-    });
-
-    return svg;
+    return this.renderDiagram(mermaidDefinition, dynamicWidth, dynamicHeight);
   }
 
   /**
@@ -178,12 +170,5 @@ export class DomainModelSvgGenerator {
       }
     }
     return undefined;
-  }
-
-  /**
-   * Generate an empty diagram placeholder
-   */
-  private generateEmptyDiagram(message: string): string {
-    return generateEmptyDiagramSvg(message);
   }
 }

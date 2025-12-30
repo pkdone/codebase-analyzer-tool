@@ -180,59 +180,50 @@ export class DomainModelDataProvider {
   }
 
   /**
-   * Flatten all aggregates from all bounded contexts
+   * Generic helper to flatten domain items from bounded contexts.
+   * Deduplicates items by name and extracts them using the provided extractor function.
+   *
+   * @param contexts - Array of bounded contexts to flatten from
+   * @param extractor - Function to extract the specific item array from each context
+   * @returns Deduplicated array of domain items
    */
-  private flattenAggregates(boundedContexts: DomainBoundedContext[]): DomainAggregate[] {
-    const aggregates: DomainAggregate[] = [];
+  private flattenDomainItems<T extends { name: string }>(
+    contexts: DomainBoundedContext[],
+    extractor: (ctx: DomainBoundedContext) => T[],
+  ): T[] {
+    const items: T[] = [];
     const seenNames = new Set<string>();
 
-    for (const context of boundedContexts) {
-      for (const aggregate of context.aggregates) {
-        if (!seenNames.has(aggregate.name)) {
-          seenNames.add(aggregate.name);
-          aggregates.push(aggregate);
+    for (const context of contexts) {
+      for (const item of extractor(context)) {
+        if (!seenNames.has(item.name)) {
+          seenNames.add(item.name);
+          items.push(item);
         }
       }
     }
 
-    return aggregates;
+    return items;
+  }
+
+  /**
+   * Flatten all aggregates from all bounded contexts
+   */
+  private flattenAggregates(boundedContexts: DomainBoundedContext[]): DomainAggregate[] {
+    return this.flattenDomainItems(boundedContexts, (ctx) => ctx.aggregates);
   }
 
   /**
    * Flatten all entities from all bounded contexts
    */
   private flattenEntities(boundedContexts: DomainBoundedContext[]): DomainEntity[] {
-    const entities: DomainEntity[] = [];
-    const seenNames = new Set<string>();
-
-    for (const context of boundedContexts) {
-      for (const entity of context.entities) {
-        if (!seenNames.has(entity.name)) {
-          seenNames.add(entity.name);
-          entities.push(entity);
-        }
-      }
-    }
-
-    return entities;
+    return this.flattenDomainItems(boundedContexts, (ctx) => ctx.entities);
   }
 
   /**
    * Flatten all repositories from all bounded contexts
    */
   private flattenRepositories(boundedContexts: DomainBoundedContext[]): DomainRepository[] {
-    const repositories: DomainRepository[] = [];
-    const seenNames = new Set<string>();
-
-    for (const context of boundedContexts) {
-      for (const repository of context.repositories) {
-        if (!seenNames.has(repository.name)) {
-          seenNames.add(repository.name);
-          repositories.push(repository);
-        }
-      }
-    }
-
-    return repositories;
+    return this.flattenDomainItems(boundedContexts, (ctx) => ctx.repositories);
   }
 }

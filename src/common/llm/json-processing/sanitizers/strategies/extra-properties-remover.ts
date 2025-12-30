@@ -49,7 +49,10 @@ export const extraPropertiesRemover: SanitizerStrategy = {
       previousUnquoted = sanitized;
       const matches: { start: number; end: number; delimiter: string }[] = [];
       let match;
-      const pattern = new RegExp(unquotedExtraPropertyPattern.source, unquotedExtraPropertyPattern.flags);
+      const pattern = new RegExp(
+        unquotedExtraPropertyPattern.source,
+        unquotedExtraPropertyPattern.flags,
+      );
       while ((match = pattern.exec(sanitized)) !== null) {
         const numericOffset = match.index;
         if (isInStringAt(numericOffset, sanitized)) {
@@ -312,4 +315,3 @@ export const extraPropertiesRemover: SanitizerStrategy = {
     };
   },
 };
-

@@ -1,46 +1,48 @@
 import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import { outputConfig } from "../../components/reporting/config/output.config";
-import { clearDirectory } from "../../../common/fs/directory-operations";
 import { PromptFileInsightsGenerator } from "../../components/insights/generators/prompt-file-insights-generator";
 import type LLMStats from "../../../common/llm/tracking/llm-stats";
-import { Task } from "../task.types";
 import type { EnvVars } from "../../env/env.types";
-import { llmTokens } from "../../di/tokens";
-import { insightsTokens } from "../../di/tokens";
-import { coreTokens } from "../../di/tokens";
+import { llmTokens, insightsTokens, coreTokens } from "../../di/tokens";
+import { BaseAnalysisTask } from "../base-analysis-task";
 
 /**
  * Task to generate file-based insights from prompt files in the input/requirements directory.
  * This task uses a file-driven workflow that bypasses the database-centric approach.
+ * Extends BaseAnalysisTask to share the common lifecycle pattern.
  */
 @injectable()
-export class FileBasedInsightsGenerationTask implements Task {
+export class FileBasedInsightsGenerationTask extends BaseAnalysisTask {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(llmTokens.LLMStats) private readonly llmStats: LLMStats,
+    @inject(llmTokens.LLMStats) llmStats: LLMStats,
+    @inject(coreTokens.ProjectName) projectName: string,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
     @inject(insightsTokens.PromptFileInsightsGenerator)
     private readonly insightsFileGenerator: PromptFileInsightsGenerator,
-    @inject(coreTokens.ProjectName) private readonly projectName: string,
-  ) {}
+  ) {
+    super(llmStats, projectName);
+  }
 
-  /**
-   * Execute the task with standard LLM stats reporting wrapper.
-   */
-  async execute(): Promise<void> {
-    console.log(`Generating insights for project: ${this.projectName}`);
-    this.llmStats.displayLLMStatusSummary();
-    await clearDirectory(outputConfig.OUTPUT_DIR);
+  protected getStartMessage(): string {
+    return "Generating insights for project";
+  }
+
+  protected getFinishMessage(): string {
+    return "Finished generating insights for the project";
+  }
+
+  protected async runAnalysis(): Promise<void> {
     await this.insightsFileGenerator.generateInsightsToFiles(
       this.env.CODEBASE_DIR_PATH,
       this.env.LLM,
     );
-    console.log(`Finished generating insights for the project`);
-    console.log("Summary of LLM invocations outcomes:");
-    this.llmStats.displayLLMStatusDetails();
-    console.log(`View generated results in the 'file://${outputConfig.OUTPUT_DIR}' folder`);
+  }
+
+  protected override getPostAnalysisMessage(): string | null {
+    return `View generated results in the 'file://${outputConfig.OUTPUT_DIR}' folder`;
   }
 }

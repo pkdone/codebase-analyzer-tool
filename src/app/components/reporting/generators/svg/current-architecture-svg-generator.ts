@@ -1,15 +1,14 @@
 import { inject, injectable } from "tsyringe";
 import { reportingTokens } from "../../../../di/tokens";
-import { MermaidRenderer } from "../mermaid/mermaid-renderer";
+import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
 import {
   escapeMermaidLabel,
   generateNodeId,
   buildStyleDefinitions,
   applyStyle,
-  DIAGRAM_STYLES,
-  generateEmptyDiagramSvg,
   buildArrow,
 } from "../mermaid/mermaid-definition-builders";
+import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
 
 /**
  * Represents an internal business component inferred from the codebase.
@@ -46,27 +45,27 @@ export interface InferredArchitectureData {
   dependencies: InferredComponentDependency[];
 }
 
-export interface CurrentArchitectureDiagramSvgOptions {
-  width?: number;
-  height?: number;
-}
+export type CurrentArchitectureDiagramSvgOptions = BaseDiagramOptions;
 
 /**
  * Generates SVG diagrams for the current/inferred architecture using Mermaid.
  * Creates component-style diagrams showing internal business components and
  * their relationships to external dependencies.
+ * Extends BaseMermaidGenerator to share common rendering functionality.
  */
 @injectable()
-export class CurrentArchitectureSvgGenerator {
-  private readonly defaultOptions: Required<CurrentArchitectureDiagramSvgOptions> = {
+export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<CurrentArchitectureDiagramSvgOptions> {
+  protected readonly defaultOptions: Required<CurrentArchitectureDiagramSvgOptions> = {
     width: 1600,
     height: 800,
   };
 
   constructor(
     @inject(reportingTokens.MermaidRenderer)
-    private readonly mermaidRenderer: MermaidRenderer,
-  ) {}
+    mermaidRenderer: MermaidRenderer,
+  ) {
+    super(mermaidRenderer);
+  }
 
   /**
    * Generate SVG diagram for the inferred/current architecture.
@@ -75,7 +74,7 @@ export class CurrentArchitectureSvgGenerator {
     architectureData: InferredArchitectureData | null,
     options: CurrentArchitectureDiagramSvgOptions = {},
   ): Promise<string> {
-    const opts = { ...this.defaultOptions, ...options };
+    const opts = this.mergeOptions(options);
 
     if (!architectureData || architectureData.internalComponents.length === 0) {
       return this.generateEmptyDiagram("No inferred architecture data available");
@@ -98,14 +97,7 @@ export class CurrentArchitectureSvgGenerator {
     // Height: based on number of vertical nodes
     const dynamicHeight = Math.max(opts.height, maxVerticalNodes * 120 + 200);
 
-    // Render to SVG using mermaid-cli
-    const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
-      width: dynamicWidth,
-      height: dynamicHeight,
-      backgroundColor: DIAGRAM_STYLES.backgroundColor,
-    });
-
-    return svg;
+    return this.renderDiagram(mermaidDefinition, dynamicWidth, dynamicHeight);
   }
 
   /**
@@ -169,12 +161,5 @@ export class CurrentArchitectureSvgGenerator {
     });
 
     return lines.join("\n");
-  }
-
-  /**
-   * Generate an empty diagram placeholder.
-   */
-  private generateEmptyDiagram(message: string): string {
-    return generateEmptyDiagramSvg(message);
   }
 }
