@@ -3,7 +3,7 @@ import {
   CANONICAL_FILE_TYPES,
   type CanonicalFileType,
   canonicalFileTypeSchema,
-} from "./canonical-file-types";
+} from "../../../config/canonical-file-types";
 
 // Re-export canonical file types from the single source of truth module
 export { CANONICAL_FILE_TYPES, type CanonicalFileType, canonicalFileTypeSchema };

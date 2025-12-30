@@ -10,7 +10,7 @@ import {
   formatDirectoryAsMarkdown,
   type DirectoryFormattingConfig,
 } from "../../../../common/utils/directory-to-markdown";
-import { fileProcessingConfig } from "../../../components/capture/config/file-processing.config";
+import { fileProcessingConfig } from "../../../config/file-processing.config";
 import type { EnvVars } from "../../../env/env.types";
 import { logOneLineError, logOneLineWarning } from "../../../../common/utils/logging";
 import { renderPrompt } from "../../../prompts/prompt-renderer";

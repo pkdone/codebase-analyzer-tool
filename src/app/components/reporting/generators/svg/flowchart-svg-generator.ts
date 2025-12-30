@@ -4,12 +4,11 @@ import { MermaidRenderer } from "../mermaid/mermaid-renderer";
 import {
   escapeMermaidLabel,
   generateNodeId,
-  buildStyleDefinitions,
-  applyStyle,
   DIAGRAM_STYLES,
   generateEmptyDiagramSvg,
   buildMermaidInitDirective,
 } from "../mermaid/mermaid-definition-builders";
+import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
 
 export interface BusinessProcessActivity {
   activity: string;

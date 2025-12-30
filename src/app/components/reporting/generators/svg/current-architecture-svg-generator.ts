@@ -4,10 +4,9 @@ import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
 import {
   escapeMermaidLabel,
   generateNodeId,
-  buildStyleDefinitions,
-  applyStyle,
   buildArrow,
 } from "../mermaid/mermaid-definition-builders";
+import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
 import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
 
 /**

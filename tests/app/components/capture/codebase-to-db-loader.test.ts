@@ -20,7 +20,7 @@ jest.mock("../../../../src/common/utils/logging", () => ({
   logOneLineError: jest.fn(),
 }));
 
-jest.mock("../../../../src/app/components/capture/config/file-processing.config", () => ({
+jest.mock("../../../../src/app/config/file-processing.config", () => ({
   fileProcessingConfig: {
     FOLDER_IGNORE_LIST: [".git", "node_modules"],
     FILENAME_PREFIX_IGNORE: [".", "_"],

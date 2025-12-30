@@ -5,7 +5,7 @@ import {
 import { findFilesRecursively } from "../../../src/common/fs/directory-operations";
 import { getFileExtension } from "../../../src/common/fs/path-utils";
 import { readFile } from "../../../src/common/fs/file-operations";
-import { fileProcessingConfig } from "../../../src/app/components/capture/config/file-processing.config";
+import { fileProcessingConfig } from "../../../src/app/config/file-processing.config";
 
 // Mock dependencies
 jest.mock("../../../src/common/fs/directory-operations");

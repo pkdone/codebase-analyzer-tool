@@ -1,5 +1,7 @@
 /**
- * File processing configuration with readonly arrays for immutability
+ * File processing configuration with readonly arrays for immutability.
+ * This is an application-wide configuration used by multiple components
+ * (capture, insights) for consistent file handling rules.
  */
 export const fileProcessingConfig = {
   FOLDER_IGNORE_LIST: [
@@ -137,3 +139,4 @@ export const fileProcessingConfig = {
   ] as const satisfies readonly string[],
   MAX_CONCURRENCY: 50,
 } as const;
+

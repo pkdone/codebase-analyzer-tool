@@ -3,11 +3,8 @@ import path from "path";
 import { writeFile } from "../../../../../common/fs/file-operations";
 import { reportingTokens } from "../../../../di/tokens";
 import { MermaidRenderer } from "../mermaid/mermaid-renderer";
-import {
-  escapeMermaidLabel,
-  buildStyleDefinitions,
-  applyStyle,
-} from "../mermaid/mermaid-definition-builders";
+import { escapeMermaidLabel } from "../mermaid/mermaid-definition-builders";
+import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
 import type { HierarchicalJavaClassDependency } from "../../../../repositories/sources/sources.model";
 import { logOneLineWarning } from "../../../../../common/utils/logging";
 

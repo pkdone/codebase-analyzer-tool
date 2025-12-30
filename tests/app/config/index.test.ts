@@ -1,5 +1,5 @@
 import { databaseConfig } from "../../../src/app/components/database/database.config";
-import { fileProcessingConfig } from "../../../src/app/components/capture/config/file-processing.config";
+import { fileProcessingConfig } from "../../../src/app/config/file-processing.config";
 import { EXTENSION_TO_TYPE_MAP } from "../../../src/app/components/capture/config/file-types.config";
 import { outputConfig } from "../../../src/app/components/reporting/config/output.config";
 

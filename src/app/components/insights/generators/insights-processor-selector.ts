@@ -10,7 +10,7 @@ import {
   formatDirectoryAsMarkdown,
   type DirectoryFormattingConfig,
 } from "../../../../common/utils/directory-to-markdown";
-import { fileProcessingConfig } from "../../capture/config/file-processing.config";
+import { fileProcessingConfig } from "../../../config/file-processing.config";
 import { llmProviderConfig } from "../../../../common/llm/config/llm.config";
 
 /**

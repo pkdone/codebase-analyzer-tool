@@ -4,10 +4,9 @@ import type { MermaidRenderer } from "../mermaid/mermaid-renderer";
 import {
   escapeMermaidLabel,
   generateNodeId,
-  buildStyleDefinitions,
-  applyStyle,
   buildMermaidInitDirective,
 } from "../mermaid/mermaid-definition-builders";
+import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
 import type {
   DomainBoundedContext,
   DomainAggregate,
