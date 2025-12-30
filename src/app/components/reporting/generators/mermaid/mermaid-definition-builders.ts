@@ -77,16 +77,6 @@ export function buildArrow(fromId: string, toId: string, label?: string): string
 }
 
 /**
- * Build a dashed arrow connection between two nodes.
- */
-export function buildDashedArrow(fromId: string, toId: string, label?: string): string {
-  if (label) {
-    return `    ${fromId} -.->|"${escapeMermaidLabel(label)}"| ${toId}`;
-  }
-  return `    ${fromId} -.-> ${toId}`;
-}
-
-/**
  * Build style definitions for nodes.
  * Uses Mermaid's classDef syntax for consistent styling.
  */
