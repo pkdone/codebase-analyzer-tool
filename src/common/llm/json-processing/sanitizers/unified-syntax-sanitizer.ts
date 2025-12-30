@@ -156,9 +156,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const concatenatedPattern = /"([^"]+)"\s*\+\s*"([^"]+)"(\s*\+\s*"[^"]+")*\s*:/g;
     sanitized = sanitized.replace(
       concatenatedPattern,
-      (_match, firstPart, secondPart, additionalParts, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (_match, firstPart, secondPart, additionalParts, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return _match;
         }
         const allParts: string[] = [firstPart as string, secondPart as string];
@@ -186,12 +185,11 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       const missingOpeningQuotePattern = /(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)"\s*:/g;
       sanitized = sanitized.replace(
         missingOpeningQuotePattern,
-        (match, whitespace, propertyName, offset: unknown) => {
-          const numericOffset = typeof offset === "number" ? offset : 0;
+        (match, whitespace, propertyName, offset: number) => {
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const lowerPropertyName = propertyNameStr.toLowerCase();
-          const propertyNameStart = numericOffset + whitespaceStr.length;
+          const propertyNameStart = offset + whitespaceStr.length;
 
           if (
             propertyNameStart > 0 &&
@@ -201,11 +199,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
           }
 
           let isAfterPropertyBoundary = false;
-          if (numericOffset > 0) {
-            const beforeMatch = sanitized.substring(
-              Math.max(0, numericOffset - 200),
-              numericOffset,
-            );
+          if (offset > 0) {
+            const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
             isAfterPropertyBoundary =
               /[}\],]\s*$/.test(beforeMatch) || /[}\],]\s*\n\s*$/.test(beforeMatch);
           }
@@ -250,20 +245,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /([},])(\s*\n?\s*)([a-z]{1,2})"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       veryShortPropertyNamePattern,
-      (match, delimiter, whitespace, shortName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, shortName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
         // Enhanced to handle cases where delimiter is on previous line (comma + newline)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isAfterPropertyBoundary =
           /[}\],]\s*$/.test(beforeMatch) ||
           /[}\],]\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isAfterPropertyBoundary) {
           const shortNameStr = typeof shortName === "string" ? shortName : "";
@@ -333,15 +327,14 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const veryShortPropertyNameNewlinePattern = /(\n\s+)([a-z]{1,2})"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       veryShortPropertyNameNewlinePattern,
-      (match, newlineWhitespace, shortName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, newlineWhitespace, shortName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
         // If we're on a new line with indentation and have a short property name pattern, we're likely in an object
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         // More lenient - just check if we're after some JSON structure (comma, brace, bracket, or newline)
         const isAfterPropertyValue =
           /"\s*[,}]\s*$/.test(beforeMatch) ||
@@ -351,7 +344,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
           /,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
           /{\s*\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isAfterPropertyValue) {
           const shortNameStr = typeof shortName === "string" ? shortName : "";
@@ -415,19 +408,18 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     // Pass 2b.1: Fix truncated property names without delimiter (e.g., `},se":` or `},\nse":` -> `}, "name":`)
     sanitized = sanitized.replace(
       truncatedPropertyWithoutDelimiterPattern,
-      (match, delimiter, whitespace, shortName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, shortName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isAfterPropertyBoundary =
           /[}\],]\s*$/.test(beforeMatch) ||
           /[}\],]\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isAfterPropertyBoundary) {
           const shortNameStr = typeof shortName === "string" ? shortName : "";
@@ -489,20 +481,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([^",\n{[\]]+?)(\s*[,}])/g;
     sanitized = sanitized.replace(
       unquotedPropertyNamePattern,
-      (match, prefix, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /]\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -553,20 +544,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\[|\{)/g;
     sanitized = sanitized.replace(
       unquotedPropertyNameWithArrayPattern,
-      (match, prefix, propertyName, bracket, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, propertyName, bracket, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context (including nested objects in arrays)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /]\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -602,20 +592,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([^"]+)"(\s*[,}])/g;
     sanitized = sanitized.replace(
       unquotedPropertyNameWithQuotedValuePattern,
-      (match, prefix, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context (including nested objects in arrays)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /]\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -654,25 +643,21 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       const missingClosingQuoteAndColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s+"([^"]+)"/g;
       sanitized = sanitized.replace(
         missingClosingQuoteAndColonPattern,
-        (match, propertyName, value, offset: unknown) => {
-          const numericOffset = typeof offset === "number" ? offset : 0;
+        (match, propertyName, value, offset: number) => {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const valueStr = typeof value === "string" ? value : "";
 
-          if (isInStringAt(numericOffset, sanitized)) {
+          if (isInStringAt(offset, sanitized)) {
             return match;
           }
 
-          if (numericOffset > 0) {
-            const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+          if (offset > 0) {
+            const beforeMatch = sanitized.substring(Math.max(0, offset - 50), offset);
             const isAfterPropertyBoundary =
               /[}\],][\s\n]*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
 
-            if (!isAfterPropertyBoundary && numericOffset > 20) {
-              const largerContext = sanitized.substring(
-                Math.max(0, numericOffset - 200),
-                numericOffset,
-              );
+            if (!isAfterPropertyBoundary && offset > 20) {
+              const largerContext = sanitized.substring(Math.max(0, offset - 200), offset);
               let quoteCount = 0;
               let escape = false;
               for (const char of largerContext) {
@@ -725,13 +710,12 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const trailingUnderscorePattern = /("[\w]+_")(\s*:)/g;
     sanitized = sanitized.replace(
       trailingUnderscorePattern,
-      (match, quotedNameWithUnderscore, colonWithWhitespace, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, quotedNameWithUnderscore, colonWithWhitespace, offset: number) => {
         const quotedNameStr =
           typeof quotedNameWithUnderscore === "string" ? quotedNameWithUnderscore : "";
         const colonStr = typeof colonWithWhitespace === "string" ? colonWithWhitespace : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -750,11 +734,10 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     // Generic pattern 2: Fix double (or more) underscores (e.g., "property__name": -> "property_name":)
     // Match quoted property names containing double underscores anywhere in the name
     const doubleUnderscorePattern = /("[\w]*__+[\w]*")/g;
-    sanitized = sanitized.replace(doubleUnderscorePattern, (match, quotedName, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
+    sanitized = sanitized.replace(doubleUnderscorePattern, (match, quotedName, offset: number) => {
       const quotedNameStr = typeof quotedName === "string" ? quotedName : "";
 
-      if (isInStringAt(numericOffset, sanitized)) {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -775,11 +758,10 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const quotedPropertyPattern = /"([^"]+)"\s*:/g;
     sanitized = sanitized.replace(
       quotedPropertyPattern,
-      (match, propertyName: unknown, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, propertyName: unknown, offset: number) => {
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -809,8 +791,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const unquotedPropertyPattern = /([{,}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$.-]*)\s*:/g;
     sanitized = sanitized.replace(
       unquotedPropertyPattern,
-      (match, delimiter, whitespace, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, delimiter, whitespace, propertyName, offset: number) => {
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -818,7 +799,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
 
         // Skip if already quoted (check character before the delimiter+whitespace+property)
         // The offset points to the start of the match (delimiter), so we need to check further back
-        const propertyStartOffset = numericOffset + delimiterStr.length + whitespaceStr.length;
+        const propertyStartOffset = offset + delimiterStr.length + whitespaceStr.length;
         if (
           propertyStartOffset > 0 &&
           sanitized[propertyStartOffset - 1] === DELIMITERS.DOUBLE_QUOTE
@@ -827,7 +808,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
         }
 
         // Skip if inside a string literal
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -840,15 +821,15 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
           /[{,}\],]/.test(delimiterStr) ||
           delimiterStr === "\n" ||
           delimiterStr === "" ||
-          numericOffset === 0
+          offset === 0
         ) {
           isValidContext = true;
         }
 
         // If we matched a delimiter like }, ], or , followed by whitespace and a property name, it's valid
         // The pattern already ensures we have a delimiter, so we can trust it
-        if (!isValidContext && numericOffset > 0) {
-          const charBefore = sanitized[numericOffset - 1];
+        if (!isValidContext && offset > 0) {
+          const charBefore = sanitized[offset - 1];
           // Check if we're after a valid delimiter (comma, closing brace/bracket, or newline)
           if (
             charBefore === "," ||
@@ -894,19 +875,18 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const missingQuoteInArrayPattern = /(\[|,\s*)(\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       missingQuoteInArrayPattern,
-      (match, prefix, whitespace, unquotedValue, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, prefix, whitespace, unquotedValue, terminator, offset: number) => {
         const prefixStr = typeof prefix === "string" ? prefix : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inStringCheck = false;
@@ -982,18 +962,17 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const missingQuoteInArrayNewlinePattern = /(\n\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       missingQuoteInArrayNewlinePattern,
-      (match, newlinePrefix, unquotedValue, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, newlinePrefix, unquotedValue, terminator, offset: number) => {
         const newlinePrefixStr = typeof newlinePrefix === "string" ? newlinePrefix : "";
         const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context by scanning backwards
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inStringCheck = false;
@@ -1069,20 +1048,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const wordDirectlyBeforeQuotePattern = /(\[|,\s*)(\s*)([a-zA-Z]+)"([^"]+)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       wordBeforeQuotedStringInArrayPattern,
-      (match, prefix, whitespace, prefixWord, quotedValue, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, prefix, whitespace, prefixWord, quotedValue, terminator, offset: number) => {
         const prefixStr = typeof prefix === "string" ? prefix : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const prefixWordStr = typeof prefixWord === "string" ? prefixWord : "";
         const quotedValueStr = typeof quotedValue === "string" ? quotedValue : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inStringCheck = false;
@@ -1144,20 +1122,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     // Also handle case where word is directly concatenated to quote (no space): `stop"org...`
     sanitized = sanitized.replace(
       wordDirectlyBeforeQuotePattern,
-      (match, prefix, whitespace, prefixWord, quotedValue, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, prefix, whitespace, prefixWord, quotedValue, terminator, offset: number) => {
         const prefixStr = typeof prefix === "string" ? prefix : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const prefixWordStr = typeof prefixWord === "string" ? prefixWord : "";
         const quotedValueStr = typeof quotedValue === "string" ? quotedValue : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inStringCheck = false;
@@ -1222,23 +1199,22 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /([{,]\s*|\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([[{])/g;
     sanitized = sanitized.replace(
       unquotedPropertyBeforeStructurePattern,
-      (match, prefix, propertyName, structureStart, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, prefix, propertyName, structureStart, offset: number) => {
         const prefixStr = typeof prefix === "string" ? prefix : "";
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const structureStartStr = typeof structureStart === "string" ? structureStart : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const lowerPropertyName = propertyNameStr.toLowerCase();
@@ -1274,13 +1250,12 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const corruptedNumericPattern = /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*_(\d+)(\s*[,}\]]|,|$)/g;
     sanitized = sanitized.replace(
       corruptedNumericPattern,
-      (match, propertyName, digits, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, propertyName, digits, terminator, offset: number) => {
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const digitsStr = typeof digits === "string" ? digits : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1304,25 +1279,24 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const assignmentPattern = /("([^"]+)")\s*:=\s*(\s*)/g;
     sanitized = sanitized.replace(
       assignmentPattern,
-      (match, quotedProperty, propertyName, whitespaceAfter, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, quotedProperty, propertyName, whitespaceAfter, offset: number) => {
         const quotedPropStr = typeof quotedProperty === "string" ? quotedProperty : "";
         const propNameStr = typeof propertyName === "string" ? propertyName : "";
         const wsAfter =
           typeof whitespaceAfter === "string" && whitespaceAfter ? whitespaceAfter : " ";
 
-        if (numericOffset > 0) {
-          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 20), numericOffset);
+        if (offset > 0) {
+          const beforeMatch = sanitized.substring(Math.max(0, offset - 20), offset);
           const isPropertyContext =
-            /[{,\]]\s*$/.test(beforeMatch) || /\n\s*$/.test(beforeMatch) || numericOffset <= 20;
+            /[{,\]]\s*$/.test(beforeMatch) || /\n\s*$/.test(beforeMatch) || offset <= 20;
 
           if (!isPropertyContext) {
             return match;
           }
         }
 
-        if (numericOffset > 0) {
-          const beforeMatch = sanitized.substring(0, numericOffset);
+        if (offset > 0) {
+          const beforeMatch = sanitized.substring(0, offset);
           let quoteCount = 0;
           let escape = false;
           for (const char of beforeMatch) {
@@ -1351,12 +1325,11 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const strayMinusBeforeColonPattern = /("([^"]+)")\s*:-\s*/g;
     sanitized = sanitized.replace(
       strayMinusBeforeColonPattern,
-      (match, quotedProperty, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, quotedProperty, propertyName, offset: number) => {
         const quotedPropStr = typeof quotedProperty === "string" ? quotedProperty : "";
 
-        if (numericOffset > 0) {
-          const beforeMatch = sanitized.substring(0, numericOffset);
+        if (offset > 0) {
+          const beforeMatch = sanitized.substring(0, offset);
           let quoteCount = 0;
           let escape = false;
           for (const char of beforeMatch) {
@@ -1398,21 +1371,17 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
 
       sanitized = sanitized.replace(
         strayTextBetweenColonAndValuePattern,
-        (match, propertyName, strayText, value, offset: unknown) => {
-          const numericOffset = typeof offset === "number" ? offset : 0;
+        (match, propertyName, strayText, value, offset: number) => {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const strayTextStr = typeof strayText === "string" ? strayText : "";
           const valueStr = typeof value === "string" ? value : "";
 
-          if (isInStringAt(numericOffset, sanitized)) {
+          if (isInStringAt(offset, sanitized)) {
             return match;
           }
 
-          if (numericOffset > 0) {
-            const contextBefore = sanitized.substring(
-              Math.max(0, numericOffset - 50),
-              numericOffset,
-            );
+          if (offset > 0) {
+            const contextBefore = sanitized.substring(Math.max(0, offset - 50), offset);
             const hasPropertyNamePattern =
               /"\s*$/.test(contextBefore) || /[}\],\]]\s*$/.test(contextBefore);
             if (!hasPropertyNamePattern && !contextBefore.trim().endsWith('"')) {
@@ -1494,12 +1463,11 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
 
     sanitized = sanitized.replace(
       missingOpeningQuoteBeforeValuePattern,
-      (match, propertyName, unquotedValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, propertyName, unquotedValue, offset: number) => {
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1529,13 +1497,12 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /"([a-zA-Z_$][a-zA-Z0-9_$.]*)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_.]+)"\s*([,}])/g;
     sanitized = sanitized.replace(
       missingOpeningQuoteInValuePattern,
-      (match, propertyName, valueWithoutQuote, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, propertyName, valueWithoutQuote, terminator, offset: number) => {
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const valueStr = typeof valueWithoutQuote === "string" ? valueWithoutQuote : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1573,14 +1540,13 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
 
     sanitized = sanitized.replace(
       unquotedStringValuePattern,
-      (match, propertyName, unquotedValue, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, propertyName, unquotedValue, terminator, offset: number) => {
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const unquotedValueStr = typeof unquotedValue === "string" ? unquotedValue.trim() : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
 
         // Skip if inside a string literal
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1660,10 +1626,9 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
 
     sanitized = sanitized.replace(
       escapedQuoteFollowedByUnescapedPattern,
-      (match, _escapedQuote, after, offset: unknown, string: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, _escapedQuote, after, offset: number, string: unknown) => {
         const stringStr = typeof string === "string" ? string : sanitized;
-        const contextBefore = stringStr.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const contextBefore = stringStr.substring(Math.max(0, offset - 500), offset);
 
         const isInStringValue =
           /:\s*"[^"]*`/.test(contextBefore) ||
@@ -1688,19 +1653,18 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"(\s*[,}])/g;
     sanitized = sanitized.replace(
       propertyNameWithTextBeforeColonPattern,
-      (match, propertyName, textBeforeColon, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, textBeforeColon, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -1730,19 +1694,18 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const missingColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+"([^"]+)"(\s*[,}])/g;
     sanitized = sanitized.replace(
       missingColonPattern,
-      (match, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -1772,19 +1735,18 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"([^"]+)"(\s*[,}])/g;
     sanitized = sanitized.replace(
       missingOpeningQuoteAfterPropertyPattern,
-      (match, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -1821,15 +1783,14 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
         /(\n\s*)([A-Z][A-Z0-9_]{3,})(\s*\n\s*\]|\s*\]|\s*,|\s*\n)/g;
       sanitized = sanitized.replace(
         unquotedArrayElementPattern,
-        (match, newlinePrefix, element, terminator, offset: unknown) => {
-          const numericOffset = typeof offset === "number" ? offset : 0;
-          if (isInStringAt(numericOffset, sanitized)) {
+        (match, newlinePrefix, element, terminator, offset: number) => {
+          if (isInStringAt(offset, sanitized)) {
             return match;
           }
 
           // Check if we're in an array context by scanning backwards
           // Look for an opening bracket [ before this position and verify we're still in that array
-          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+          const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
           let bracketDepth = 0;
           let inStringCheck = false;
           let escapeCheck = false;
@@ -1911,14 +1872,13 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       const unquotedArrayElementPattern2 = /(\[|,\s*)(\s*)([A-Z][A-Z0-9_]{3,})(\s*)(\]|,|\n)/g;
       sanitized = sanitized.replace(
         unquotedArrayElementPattern2,
-        (match, prefix, whitespace, element, whitespace2, terminator, offset: unknown) => {
-          const numericOffset = typeof offset === "number" ? offset : 0;
-          if (isInStringAt(numericOffset, sanitized)) {
+        (match, prefix, whitespace, element, whitespace2, terminator, offset: number) => {
+          if (isInStringAt(offset, sanitized)) {
             return match;
           }
 
           // Check if we're in an array context
-          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+          const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
           let bracketDepth = 0;
           let inStringCheck = false;
           let escapeCheck = false;
@@ -1990,20 +1950,19 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /([}\],]|\n|^)(\s*)([a-zA-Z])\s+"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       strayCharBeforePropertyPattern,
-      (match, delimiter, whitespace, strayChar, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayChar, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /]\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
@@ -2029,9 +1988,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])\s*"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
     sanitized = sanitized.replace(
       strayCharBeforeQuotedValuePattern,
-      (match, propertyName, strayChar, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, strayChar, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -2056,9 +2014,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])(\s*[,}\]]|[,}\]]|$)/g;
     sanitized = sanitized.replace(
       strayCharBeforeCommaPattern,
-      (match, propertyName, strayChar, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, strayChar, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -2104,9 +2061,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     // Pattern 1: Remove AI-generated content warnings
     const aiWarningPattern =
       /AI-generated\s+content\.\s+Review\s+and\s+use\s+carefully\.\s+Content\s+may\s+be\s+inaccurate\./gi;
-    sanitized = sanitized.replace(aiWarningPattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(aiWarningPattern, (match, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
       hasChanges = true;
@@ -2122,9 +2078,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     const extraTextPattern = /(\n|^)(\s*)(extra_text=[^\n]*)(\s*\n)/g;
     sanitized = sanitized.replace(
       extraTextPattern,
-      (match, delimiter, _whitespace, _strayText, newline, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, _whitespace, _strayText, newline, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
@@ -2148,9 +2103,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
     for (const { pattern, description } of strayTextPatterns) {
       sanitized = sanitized.replace(
         pattern,
-        (match, delimiter, _whitespace, _strayText, newline, offset: unknown) => {
-          const numericOffset = typeof offset === "number" ? offset : 0;
-          if (isInStringAt(numericOffset, sanitized)) {
+        (match, delimiter, _whitespace, _strayText, newline, offset: number) => {
+          if (isInStringAt(offset, sanitized)) {
             return match;
           }
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
@@ -2171,14 +2125,13 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /"([^"]+)"(\s*)\n(\s*)"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
     sanitized = sanitized.replace(
       missingCommaAfterArrayElementPattern,
-      (match, value1, _whitespace1, newlineWhitespace, value2, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value1, _whitespace1, newlineWhitespace, value2, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context by scanning backwards
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inStringCheck = false;
@@ -2248,9 +2201,8 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
       /"([^"]+)"(\s+)"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
     sanitized = sanitized.replace(
       missingCommaAfterArrayElementSameLinePattern,
-      (match, value1, whitespace, value2, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value1, whitespace, value2, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -2258,7 +2210,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
 
         // Simplified check: if terminator contains ], we're definitely in an array
         // Also check the context before to see if we're in an array
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
 
         // Check if we're in an array by looking for [ before this position
         let bracketDepth = 0;
@@ -2348,15 +2300,14 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
         whitespaceAfter,
         propertyName,
         terminator,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context (including arrays)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2364,7 +2315,7 @@ export const unifiedSyntaxSanitizer: Sanitizer = (
           /\[\s*$/.test(beforeMatch) ||
           /\[\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";

@@ -17,8 +17,8 @@ import type {
   ProjectedFileTypesCountAndLines,
   HierarchicalTopLevelJavaClassDependencies,
 } from "../../repositories/sources/sources.model";
-import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
 import type { TableViewModel } from "./view-models/table-view-model";
+import type { CategorizedDataItem } from "./sections/file-types/categories-data-provider";
 
 export interface PreparedHtmlReportData {
   appStats: AppStatistics;
@@ -27,7 +27,7 @@ export interface PreparedHtmlReportData {
   categorizedData: {
     category: string;
     label: string;
-    data: AppSummaryNameDescArray;
+    data: CategorizedDataItem;
     tableViewModel: TableViewModel;
   }[];
   integrationPoints: IntegrationPointInfo[];

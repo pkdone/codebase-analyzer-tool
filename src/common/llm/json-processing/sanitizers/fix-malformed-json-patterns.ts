@@ -48,9 +48,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // Pattern: Corrupted entries like _MODULE",
     sanitized = sanitized.replace(
       /([}\],])\s*\n\s*_MODULE"\s*,?\s*\n/g,
-      (match, delimiter, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
         hasChanges = true;
@@ -75,17 +74,16 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         extraChar,
         propertyWithQuote,
         _propertyName,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context (after delimiter, newline, or start)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -110,19 +108,18 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayCharBeforeQuotePattern = /([,[]\s*\n?\s*)([a-z])("([^"]+)"\s*,)/g;
     sanitized = sanitized.replace(
       strayCharBeforeQuotePattern,
-      (match, prefix, strayChar, quotedString, _stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, strayChar, quotedString, _stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context (after comma, bracket, newline, or start)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isArrayContext =
           /[,[]\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
           /^\s*$/.test(beforeMatch) ||
-          numericOffset < 100;
+          offset < 100;
 
         if (isArrayContext) {
           hasChanges = true;
@@ -148,9 +145,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([{,]\s*)([a-z])"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       singleCharBeforePropertyQuoteEarlyPattern,
-      (match, prefix, extraChar, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, extraChar, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -171,14 +167,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const arPrefixEarlyPattern = /([}\],]|\n|^)(\s*)ar"([^"]+)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       arPrefixEarlyPattern,
-      (match, delimiter, whitespace, stringValue, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, stringValue, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -207,9 +202,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const missingPropertyNameWithBraceEarlyPattern = /\{\s*([_][A-Z_]+)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       missingPropertyNameWithBraceEarlyPattern,
-      (match, fragment, _value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, fragment, _value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -230,15 +224,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const extraCharBeforeBracePattern = /([}\],]|\n|^)(\s*)([a-z])\s*{/g;
     sanitized = sanitized.replace(
       extraCharBeforeBracePattern,
-      (match, delimiter, whitespace, extraChar, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, extraChar, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -260,15 +253,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)•\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
       bulletPointBeforePropertyPattern,
-      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -293,13 +285,12 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const missingPropertyNameBeforeColonPattern2 = /([{,]\s+)"\s*:\s*"([^"]{20,})"/g;
     sanitized = sanitized.replace(
       missingPropertyNameBeforeColonPattern2,
-      (match, prefix, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -324,13 +315,12 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
     sanitized = sanitized.replace(
       missingPropertyNameBeforeColonPattern,
-      (match, prefix, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -368,16 +358,15 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         strayText,
         propertyWithQuote,
         _propertyName,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -402,9 +391,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z]+)\s*":(\s*[,}])/g;
     sanitized = sanitized.replace(
       corruptedPropertyNamePattern,
-      (match, propertyName, extraText, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, extraText, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -425,9 +413,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const corruptedValuePattern = /"([^"]+)"\s*:\s*_CODE`(\d+)(\s*[,}])/g;
     sanitized = sanitized.replace(
       corruptedValuePattern,
-      (match, propertyName, digits, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, digits, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -449,15 +436,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // First, try to find and remove the property with its value
     sanitized = sanitized.replace(
       /([}\],]|\n|^)(\s*)(extra_code_analysis:)\s*{/g,
-      (match, delimiter, whitespace, invalidProp, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, invalidProp, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Find the matching closing brace
         let braceCount = 1;
-        let i = numericOffset + match.length;
+        let i = offset + match.length;
         let foundClosing = false;
 
         while (i < sanitized.length && braceCount > 0) {
@@ -500,7 +486,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
           const commaMatch = /^\s*,?\s*/.exec(afterBlock);
           const commaLength = commaMatch ? commaMatch[0].length : 0;
           sanitized =
-            sanitized.substring(0, numericOffset) +
+            sanitized.substring(0, offset) +
             delimiterStr +
             whitespaceStr +
             sanitized.substring(endIndex + commaLength);
@@ -531,16 +517,15 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const missingOpeningQuotePattern = /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       missingOpeningQuotePattern,
-      (match, delimiter, whitespace, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -566,14 +551,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const nonAsciiInArrayPattern = /([}\],]|\n|^)(\s*)([^\x00-\x7F]+)"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       nonAsciiInArrayPattern,
-      (match, delimiter, whitespace, _nonAscii, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, _nonAscii, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inString = false;
@@ -627,14 +611,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const spaceBeforeQuotePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"([^"]+)"/g;
     sanitized = sanitized.replace(
       spaceBeforeQuotePattern,
-      (match, propertyName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if this looks like a property name followed by a value
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 50), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -660,14 +643,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const missingCommaAfterArrayElementPattern = /"([^"]+)"\s*\n\s*"([^"]+)"\s*:/g;
     sanitized = sanitized.replace(
       missingCommaAfterArrayElementPattern,
-      (match, value1, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value1, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context and value1 should be followed by a comma
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray = /\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
         const value1Str = typeof value1 === "string" ? value1 : "";
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
@@ -690,9 +672,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const malformedPropertyColonQuotePattern = /"([^"]+)"\s*:\s*([a-z]{2,10})"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       malformedPropertyColonQuotePattern,
-      (match, propertyName, insertedWord, actualValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, insertedWord, actualValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -701,7 +682,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const actualValueStr = typeof actualValue === "string" ? actualValue : "";
 
         // Check if this looks like a malformed property where a word got inserted
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -735,19 +716,18 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         strayChar,
         propertyWithQuote,
         _propertyName,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context (after delimiter, newline, or start)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isValidContext =
           /[}\],]\s*$/.test(beforeMatch) ||
           /^\s*$/.test(beforeMatch) ||
-          numericOffset < 100 ||
+          offset < 100 ||
           /,\s*\n\s*$/.test(beforeMatch);
 
         // Also check if we're in an array context (after a comma in an array)
@@ -811,14 +791,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayTextBeforeStringPattern = /([}\],]|\n|^)(\s*)([a-z]{2,10})"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextBeforeStringPattern,
-      (match, delimiter, whitespace, strayText, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayText, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray = /\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
 
         if (isInArray) {
@@ -845,14 +824,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const singleStrayCharBeforeArrayStringPattern = /(\n)([a-z])(\s+)"([^"]+)"\s*(,|\])/g;
     sanitized = sanitized.replace(
       singleStrayCharBeforeArrayStringPattern,
-      (match, newline, strayChar, whitespace, stringValue, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, newline, strayChar, whitespace, stringValue, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context by scanning backwards
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inString = false;
@@ -917,16 +895,15 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const malformedObjectPattern = /([}\],]|\n|^)(\s*){([a-zA-Z_$][a-zA-Z0-9_$]*)}\s*([,}\]]|$)/g;
     sanitized = sanitized.replace(
       malformedObjectPattern,
-      (match, delimiter, whitespace, invalidProp, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, invalidProp, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -948,9 +925,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayTextAfterBraceCommaPattern = /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g;
     sanitized = sanitized.replace(
       strayTextAfterBraceCommaPattern,
-      (match, delimiter, strayText, nextToken, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, strayText, nextToken, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -977,16 +953,15 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-z\s]{1,20})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       strayTextBeforePropertyNamePattern,
-      (match, delimiter, whitespace, strayText, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayText, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -1014,9 +989,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /(\])\s*\n\s*(extra_text|extra_thoughts|extra_code_analysis)\s*:/g;
     sanitized = sanitized.replace(
       missingCommaAfterArrayExtraTextPattern,
-      (match, closingBracket, extraText, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, closingBracket, extraText, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1036,9 +1010,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const invalidPropertyPattern = /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+)\s*=\s*"[^"]*"\s*,?\s*\n/g;
     sanitized = sanitized.replace(
       invalidPropertyPattern,
-      (match, delimiter, whitespace, invalidProp, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, invalidProp, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1060,9 +1033,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /(\n\s*)(semantically-similar-code-detection-results|extra_thoughts|extra_code_analysis|extra_notes|extra_info):\s*([\s\S]*?)(?=\n\s*"[a-zA-Z]|\n\s*[}\]]|$)/gi;
     sanitized = sanitized.replace(
       yamlBlockPattern,
-      (match, newlinePrefix, blockName, _blockContent, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, newlinePrefix, blockName, _blockContent, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1083,9 +1055,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /(\n\s*)(extra_text|extra_info|extra_notes)\s*=\s*"(\s*"[a-zA-Z])/gi;
     sanitized = sanitized.replace(
       extraTextEqualPattern,
-      (match, newlinePrefix, _attrName, jsonStart, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, newlinePrefix, _attrName, jsonStart, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1106,9 +1077,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\]])\s*,\s*\n\s*([a-z\s]{5,100}?)(?:\.\.\.|I will|stop here|for brevity|so many|methods|I'll|truncated)[^"]*\n\s*([{"])/gi;
     sanitized = sanitized.replace(
       truncatedTextPattern,
-      (match, delimiter, strayText, nextToken, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, strayText, nextToken, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1147,9 +1117,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\]])\s*,\s*\n\s*([a-z\s]{5,50}?)(?:\.\.\.|I will|stop here|for brevity|so many|methods|I'll|truncated)[^"]*"([^"]*)"\s*,/gi;
     sanitized = sanitized.replace(
       truncatedTextAtEndPattern,
-      (match, delimiter, strayText, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, strayText, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1183,9 +1152,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-zA-Z0-9\-_.]{10,100})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       hostnameBeforePropertyPattern,
-      (match, delimiter, whitespace, hostname, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, hostname, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1219,9 +1187,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /"([^"]+)"\s*:\s*`:([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       malformedPropertyBacktickPattern,
-      (match, propertyName, insertedWord, actualValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, insertedWord, actualValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1230,7 +1197,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const actualValueStr = typeof actualValue === "string" ? actualValue : "";
 
         // Check if this looks like a malformed property
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -1260,14 +1227,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /((\s*\n|,\s*\n|\[\s*\n)(\s*))([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,/g;
     sanitized = sanitized.replace(
       missingOpeningQuoteInArrayPattern,
-      (match, fullPrefix, _newlinePart, whitespace, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, fullPrefix, _newlinePart, whitespace, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
 
         // Check if we're after a comma and newline (common in arrays)
         // This is the most reliable indicator - arrays in JSON are often formatted with newlines
@@ -1317,7 +1283,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         // Also verify we're not matching already-quoted strings (check if there's a quote immediately before the string value)
         // The pattern matches unquoted strings, so check the character right before the string value starts
         const stringValueStart =
-          numericOffset +
+          offset +
           (typeof fullPrefix === "string" ? fullPrefix.length : 0) +
           (typeof whitespace === "string" ? whitespace.length : 0);
         const charBeforeString = sanitized.charAt(stringValueStart - 1);
@@ -1351,14 +1317,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([[\s,]\s*)([a-z]{1,10})"([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,/g;
     sanitized = sanitized.replace(
       strayTextBeforeMissingQuotePattern,
-      (match, prefix, strayText, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, strayText, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inString = false;
@@ -1414,14 +1379,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /("([^"]+)"\s*,?\s*\n\s*)([a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9_])"\s*,?\s*(\n|])/g;
     sanitized = sanitized.replace(
       missingCommaAndQuotePattern,
-      (match, prefix, _prevValue, stringValue, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, _prevValue, stringValue, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inString = false;
@@ -1479,14 +1443,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayCharAtLineStartPattern = /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z0-9_.]+)")/g;
     sanitized = sanitized.replace(
       strayCharAtLineStartPattern,
-      (match, delimiter, whitespace, strayChar, quotedString, _stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayChar, quotedString, _stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -1541,14 +1504,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       malformedPropertyValuePattern,
-      (match, propertyName, _insertedWord, actualValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, _insertedWord, actualValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -1573,9 +1535,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const placeholderPattern = /([}\],]|\n|^)(\s*)_[A-Z_]+_(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
       placeholderPattern,
-      (match, before, _whitespace, placeholder, _whitespaceAfter, after, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, before, _whitespace, placeholder, _whitespaceAfter, after, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1601,9 +1562,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const pythonTripleQuotesPattern = /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+\s*=\s*)?"(""|""")/g;
     sanitized = sanitized.replace(
       pythonTripleQuotesPattern,
-      (match, delimiter, whitespace, _extraText, _quotes, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, _extraText, _quotes, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -1632,14 +1592,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayTextAfterBracePattern = /([}])\s*([a-zA-Z0-9\-_]{5,100})(\s*)$/g;
     sanitized = sanitized.replace(
       strayTextAfterBracePattern,
-      (match, brace, strayText, _whitespace, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, brace, strayText, _whitespace, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if this is at the end of the JSON (last closing brace)
-        const afterMatch = sanitized.substring(numericOffset + match.length);
+        const afterMatch = sanitized.substring(offset + match.length);
         if (afterMatch.trim().length === 0) {
           hasChanges = true;
           const braceStr = typeof brace === "string" ? brace : "";
@@ -1660,14 +1619,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],])\s*\n\s*([a-z]+)\.([a-z]+)\.([a-z.]+)"\s*,?\s*\n/g;
     sanitized = sanitized.replace(
       missingCommaAndQuoteBeforeArrayItemPattern,
-      (match, delimiter, prefix, middle, suffix, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, prefix, middle, suffix, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray = /\[\s*$/.test(beforeMatch) || /,\s*\n\s*$/.test(beforeMatch);
 
         if (isInArray) {
@@ -1690,14 +1648,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const truncatedPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,3})"\s*:\s*"([^"]{20,})/g;
     sanitized = sanitized.replace(
       truncatedPropertyNamePattern,
-      (match, delimiter, whitespace, truncated, valueStart, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, truncated, valueStart, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if this looks like a truncated property name followed by a long value
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -1728,14 +1685,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const extraClosingBracketsPattern = /([}\]])\s*\n\s*(\]\s*\n\s*){2,}([}\]]|$)/g;
     sanitized = sanitized.replace(
       extraClosingBracketsPattern,
-      (match, before, _brackets, after, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, before, _brackets, after, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context (not inside a string)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isInArray = /\[\s*$/.test(beforeMatch);
 
         // Only remove if we're NOT in an array (where brackets are valid)
@@ -1759,14 +1715,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const malformedPropertyColonQuotePattern2 = /"([^"]+)"\s*:\s*([a-z]{1,10})"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       malformedPropertyColonQuotePattern2,
-      (match, propertyName, insertedWord, actualValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, insertedWord, actualValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -1793,14 +1748,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([^,}\]]+)/g;
     sanitized = sanitized.replace(
       missingOpeningQuoteOnPropertyPattern,
-      (match, delimiter, whitespace, propertyName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -1836,17 +1790,16 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         strayChar,
         propertyWithQuote,
         _propertyName,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -1869,16 +1822,15 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const markdownListMarkerPattern = /([}\],]|\n|^)(\s*)\*\s*("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
       markdownListMarkerPattern,
-      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -1901,14 +1853,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const minusSignBeforeArrayElementPattern = /([}\],]|\n|^)(\s*)-\s*("([^"]+)"\s*,)/g;
     sanitized = sanitized.replace(
       minusSignBeforeArrayElementPattern,
-      (match, delimiter, whitespace, quotedElement, _elementValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, quotedElement, _elementValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -1935,14 +1886,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\[|{)/g;
     sanitized = sanitized.replace(
       missingQuotesOnPropertyPattern,
-      (match, delimiter, whitespace, propertyName, valueStart, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyName, valueStart, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -1970,14 +1920,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const malformedPropertyExtraColonPattern = /"([^"]+)"\s*:\s*([a-z]{1,10})"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       malformedPropertyExtraColonPattern,
-      (match, propertyName, insertedWord, actualValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, insertedWord, actualValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -2003,14 +1952,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /(})\s*\n\s*([a-z\s]{10,200}?)(?:\.\.\.|I will|stop here|for brevity|so many|methods|I'll|truncated|there are|but the response)[^}]*$/i;
     sanitized = sanitized.replace(
       truncatedTextAfterFinalBracePattern,
-      (match, closingBrace, strayText, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, closingBrace, strayText, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if this is at the end of the JSON (last closing brace)
-        const afterMatch = sanitized.substring(numericOffset + match.length);
+        const afterMatch = sanitized.substring(offset + match.length);
         if (afterMatch.trim().length === 0) {
           const strayTextStr = typeof strayText === "string" ? strayText : "";
           const isTruncatedText =
@@ -2046,17 +1994,16 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)\*\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
       asteriskBeforePropertyPattern,
-      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyWithQuote, _propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isValidContext =
           /[}\],]\s*$/.test(beforeMatch) ||
           /^\s*$/.test(beforeMatch) ||
-          numericOffset < 200 ||
+          offset < 200 ||
           /,\s*\n\s*$/.test(beforeMatch);
 
         if (isValidContext) {
@@ -2078,15 +2025,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // ===== Pattern 14: Remove stray dashes after commas/array delimiters =====
     // Pattern: `],-` -> `],` or `,-` -> `,`
     const strayDashPattern = /([}\],])\s*-\s*([,}\]]|\n|$)/g;
-    sanitized = sanitized.replace(strayDashPattern, (match, delimiter, after, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(strayDashPattern, (match, delimiter, after, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
-      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+      const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
       const isValidContext =
-        /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+        /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
       if (isValidContext) {
         hasChanges = true;
@@ -2109,14 +2055,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const missingColonWithSpacePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"([^"]+)"(\s*[,}])/g;
     sanitized = sanitized.replace(
       missingColonPattern,
-      (match, propertyName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if this looks like a property name followed by a value (not two array elements)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2180,14 +2125,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // Also handle missing colon with space before closing quote: `"name "value"` -> `"name": "value"`
     sanitized = sanitized.replace(
       missingColonWithSpacePattern,
-      (match, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if this looks like a property name followed by a value
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2216,13 +2160,12 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-z])"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       typoInPropertyNamePattern,
-      (match, propertyName, typoChar, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, typoChar, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2249,14 +2192,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const stopBeforeStringPattern = /([}\],]|\n|^)(\s*)stop"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       stopBeforeStringPattern,
-      (match, delimiter, whitespace, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -2285,14 +2227,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayCharAtEndOfStringPattern = /"([^"]+)([>\]}])(\s*[,}\]]|\s*\n)/g;
     sanitized = sanitized.replace(
       strayCharAtEndOfStringPattern,
-      (match, stringValue, strayChar, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, stringValue, strayChar, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context (property value or array element)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValueContext =
           /:\s*$/.test(beforeMatch) || /,\s*$/.test(beforeMatch) || /\[\s*$/.test(beforeMatch);
 
@@ -2318,14 +2259,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayCharOnOwnLinePattern = /([}\],]|\n|^)(\s+)([a-z])\s*\n\s*([{"])/g;
     sanitized = sanitized.replace(
       strayCharOnOwnLinePattern,
-      (match, delimiter, whitespace, strayChar, nextToken, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayChar, nextToken, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isValidContext =
           /[}\],]\s*$/.test(beforeMatch) ||
           /^\s*$/.test(beforeMatch) ||
@@ -2353,14 +2293,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([A-Z][a-zA-Z0-9_./]+)"\s*,/g;
     sanitized = sanitized.replace(
       missingQuoteAndCommaBeforeStringPattern,
-      (match, delimiter, whitespace, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -2390,14 +2329,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+[A-Z]"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       malformedPropertyNameWithSpacePattern,
-      (match, propertyName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -2424,9 +2362,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const nonAsciiInStringValuePattern = /"([^"]*)([^\x00-\x7F]+)([^"]*)"/g;
     sanitized = sanitized.replace(
       nonAsciiInStringValuePattern,
-      (match, before, _nonAscii, after, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, before, _nonAscii, after, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -2455,14 +2392,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const malformedPropertyStructurePattern = /"([^"]+)"\s*:\s*([a-z])"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       malformedPropertyStructurePattern,
-      (match, propertyName, strayChar, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, strayChar, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 
@@ -2487,14 +2423,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayTextAfterArrayElementPattern = /"([^"]+)"\s*,\s*\n\s*([a-z_]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextAfterArrayElementPattern,
-      (match, value, strayText, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value, strayText, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -2527,9 +2462,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\]])\s*,\s*\n\s*(there are|but the response|getting too long|I will stop|I'll stop|for brevity)[^}]*\n\s*([{"])/gi;
     sanitized = sanitized.replace(
       explanatoryTextBreakingJsonPattern,
-      (match, delimiter, _explanatoryStart, nextToken, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, _explanatoryStart, nextToken, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -2549,14 +2483,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayCharBeforeClosingBracePattern = /([}\],]|\n|^)(\s+)([a-z])\s+([}])/g;
     sanitized = sanitized.replace(
       strayCharBeforeClosingBracePattern,
-      (match, delimiter, whitespace, strayChar, closingBrace, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayChar, closingBrace, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context (after property value or array element)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isValidContext =
           /"\s*$/.test(beforeMatch) ||
           /,\s*$/.test(beforeMatch) ||
@@ -2586,14 +2519,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]*\.)([a-zA-Z][a-zA-Z0-9_.]*)"\s*,/g;
     sanitized = sanitized.replace(
       missingQuoteWithStrayTextPattern,
-      (match, delimiter, whitespace, strayPrefix, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayPrefix, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -2625,14 +2557,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-zA-Z][a-zA-Z0-9_.]*\s+)"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
       strayTextBeforeQuotedStringPattern,
-      (match, delimiter, whitespace, strayPrefix, stringValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayPrefix, stringValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -2661,14 +2592,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const missingPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,3}|_[A-Z_]+)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       missingPropertyNamePattern,
-      (match, delimiter, whitespace, fragment, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, fragment, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context (after comma, newline, or opening brace)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 300), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 300), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2715,14 +2645,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayCharInPropertyValuePattern = /"([^"]+)"\s*,\s*_(\s*"[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
     sanitized = sanitized.replace(
       strayCharInPropertyValuePattern,
-      (match, value, nextProperty, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, value, nextProperty, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array or object context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArrayOrObject =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -2750,14 +2679,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       missingQuotesOnPropertyNamePattern,
-      (match, delimiter, whitespace, propertyName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context (not in an array of strings)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2827,14 +2755,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_.]+)"\s*([,}])/g;
     sanitized = sanitized.replace(
       missingQuotesOnPropertyValuePattern,
-      (match, delimiter, whitespace, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2876,14 +2803,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-z])"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       strayCharBeforePropertyNamePattern,
-      (match, delimiter, whitespace, strayChar, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, strayChar, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2912,14 +2838,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayCharInPropertyNamePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-z]{1,10})"\s*:/g;
     sanitized = sanitized.replace(
       strayCharInPropertyNamePattern,
-      (match, propertyName, strayText, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, strayText, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -2947,9 +2872,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const malformedPropertyStartPattern = /\{-\s*"([^"]+)"\s*:/g;
     sanitized = sanitized.replace(
       malformedPropertyStartPattern,
-      (match, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -2972,14 +2896,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       missingQuotesOnPropertyWithStringPattern,
-      (match, delimiter, whitespace, propertyName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -3016,14 +2939,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const truncatedTextMarkerPattern = /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([^,}]+),(_[A-Z_]+)/g;
     sanitized = sanitized.replace(
       truncatedTextMarkerPattern,
-      (match, propertyName, value, truncationMarker, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, truncationMarker, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -3052,14 +2974,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const stringArrayPattern = /"([^"]+)"\s*:\s*"(\[\])"/g;
     sanitized = sanitized.replace(
       stringArrayPattern,
-      (match, propertyName, _arrayString, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, _arrayString, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -3087,14 +3008,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const malformedPropertyNamePattern = /"([^"]+)":([a-z]{1,5})":\s*("?[^"]*"?)/g;
     sanitized = sanitized.replace(
       malformedPropertyNamePattern,
-      (match, propertyName, extraText, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, extraText, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -3120,9 +3040,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // ===== Pattern 67: Fix stray text patterns =====
     // Pattern: `{.json` -> `{`
     const strayJsonPattern = /\{\.json(\s*\n|\s*$)/g;
-    sanitized = sanitized.replace(strayJsonPattern, (match, newlineOrSpace, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(strayJsonPattern, (match, newlineOrSpace, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
       hasChanges = true;
@@ -3142,9 +3061,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)(trib|cmethod|e"publicConstants"|tribal-council-leader-thought)(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
       strayTextPattern,
-      (match, before, _whitespace, strayText, _whitespaceAfter, after, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, before, _whitespace, strayText, _whitespaceAfter, after, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
         hasChanges = true;
@@ -3162,9 +3080,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const underscoreStrayPattern = /([}\],]|\n|^)(\s*)(_[A-Z_]+)(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
       underscoreStrayPattern,
-      (match, before, _whitespace, strayText, _whitespaceAfter, after, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, before, _whitespace, strayText, _whitespaceAfter, after, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
         hasChanges = true;
@@ -3182,9 +3099,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const trailingUnderscorePattern = /("([^"]+)":\s*"([^"]+)",)\s*_(\s*[}\],]|\s*\n)/g;
     sanitized = sanitized.replace(
       trailingUnderscorePattern,
-      (match, propertyValue, _propertyName, _value, after, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyValue, _propertyName, _value, after, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
         hasChanges = true;
@@ -3204,9 +3120,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const trailingCommaPattern = /,\s*([}\]])/g;
     sanitized = sanitized.replace(
       trailingCommaPattern,
-      (match, closingDelimiter, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, closingDelimiter, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
         hasChanges = true;
@@ -3228,15 +3143,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
     sanitized = sanitized.replace(
       missingOpeningQuoteBeforePropertyPattern,
-      (match, delimiter, whitespace, optionalQuote, propertyName, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, optionalQuote, propertyName, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context (object) or array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const hasQuote = optionalQuote === '"';
@@ -3332,18 +3245,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // This handles cases where the LLM includes actual Java code in the JSON response
     // Match package statement followed by one or more import statements
     const duplicateImportPattern = /(package\s+[a-zA-Z0-9_.]+;\s*\n(?:\s*import\s+[^;]+;\s*\n)+)/g;
-    sanitized = sanitized.replace(duplicateImportPattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(duplicateImportPattern, (match, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
       // Check if this is inside a string value (shouldn't be removed if it's part of a string)
-      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
-      const afterMatch = sanitized.substring(
-        numericOffset + match.length,
-        numericOffset + match.length + 100,
-      );
+      const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
+      const afterMatch = sanitized.substring(offset + match.length, offset + match.length + 100);
 
       // If it's between quotes, it's part of a string value, don't remove
       if (/"[^"]*$/.test(beforeMatch) && /^[^"]*"/.test(afterMatch)) {
@@ -3362,9 +3271,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const strayTextAtEndPattern = /([}\],])\s*\n\s*(trib[a-z-]*)(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
       strayTextAtEndPattern,
-      (match, delimiter, strayText, _whitespace, after, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, strayText, _whitespace, after, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -3386,9 +3294,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const dashQuotePropertyPattern = /([}\],]|\n|^)(\s*)-\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       dashQuotePropertyPattern,
-      (match, delimiter, whitespace, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -3397,9 +3304,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const delimiterRegex = /[}\],]/;
         const contextStart = delimiterRegex.test(delimiterStr)
-          ? Math.max(0, numericOffset - delimiterStr.length - 300)
-          : Math.max(0, numericOffset - 200);
-        const beforeMatch = sanitized.substring(contextStart, numericOffset);
+          ? Math.max(0, offset - delimiterStr.length - 300)
+          : Math.max(0, offset - 200);
+        const beforeMatch = sanitized.substring(contextStart, offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -3429,14 +3336,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)("?)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       missingQuoteBeforePropertyNamePattern,
-      (match, delimiter, whitespace, optionalQuote, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, optionalQuote, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         // Check for property context: after { or , (with optional whitespace/newline)
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
@@ -3477,9 +3383,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       malformedParameterPattern,
-      (match, propertyName, unquotedValue, quotedValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, unquotedValue, quotedValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -3504,14 +3409,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\d+|true|false|null)(\s*[,}])/g;
     sanitized = sanitized.replace(
       missingQuotesOnPropertyWithNumericPattern,
-      (match, delimiter, whitespace, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -3543,14 +3447,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const duplicatedPropertyNamePattern = /"([a-zA-Z_$]+)\1([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       duplicatedPropertyNamePattern,
-      (match, duplicatedPrefix, rest, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, duplicatedPrefix, rest, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -3580,14 +3483,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const asteriskBeforePropertyPattern75 = /(\n\s*)\*\s("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
       asteriskBeforePropertyPattern75,
-      (match, prefix, propertyWithQuote, _propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, propertyWithQuote, _propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context (after a comma, closing brace, or newline)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
@@ -3616,9 +3518,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const missingQuoteOnValuePattern76 = /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"(\s*[,}])/g;
     sanitized = sanitized.replace(
       missingQuoteOnValuePattern76,
-      (match, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -3641,9 +3542,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const corruptedAssignmentPattern78 = /"([^"]+)"\s*:\s*([a-zA-Z]+)"\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
       corruptedAssignmentPattern78,
-      (match, propertyName, corruptedPart, value, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, corruptedPart, value, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -3675,10 +3575,9 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const typoInPropertyNamePattern79 = /"([^"]+)\s+([a-zA-Z]+)"\s*:\s*"/g;
     sanitized = sanitized.replace(
       typoInPropertyNamePattern79,
-      (match, propertyPart, extraWord, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, propertyPart, extraWord, offset: number) => {
         // Property names are not inside string values, so we should NOT be in a string
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -3742,14 +3641,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],])\s*\n\s*([a-z][a-z\s,]+(?:but|and|or|the|a|an|is|are|was|were|will|would|should|could|can|may|might|this|that|these|those|here|there)[a-z\s,]*?)\s*\n\s*([{[]|")/gi;
     sanitized = sanitized.replace(
       strayTextPattern81,
-      (match, delimiter, strayText, nextChar, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, strayText, nextChar, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context (after delimiter)
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isAfterDelimiter = /[}\],]\s*\n\s*$/.test(beforeMatch);
 
         if (isAfterDelimiter) {
@@ -3773,22 +3671,21 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const missingColonAfterPropertyPattern815 = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+(\[|\{)/g;
     sanitized = sanitized.replace(
       missingColonAfterPropertyPattern815,
-      (match, propertyName, bracket, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
+      (match, propertyName, bracket, offset: number) => {
         const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
         const bracketStr = typeof bracket === "string" ? bracket : "";
 
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) ||
           /}\s*,\s*\n\s*$/.test(beforeMatch) ||
           /\n\s*$/.test(beforeMatch) ||
-          numericOffset < 200;
+          offset < 200;
 
         if (isPropertyContext) {
           hasChanges = true;
@@ -3863,9 +3760,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const binaryCorruptionPattern = /<x_bin_\d+>([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
     sanitized = sanitized.replace(
       binaryCorruptionPattern,
-      (match, propertyPart, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyPart, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
         hasChanges = true;
@@ -3880,9 +3776,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
 
     // Also handle standalone markers
     const binaryCorruptionPatternStandalone = /<x_bin_\d+>/g;
-    sanitized = sanitized.replace(binaryCorruptionPatternStandalone, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    sanitized = sanitized.replace(binaryCorruptionPatternStandalone, (match, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
       hasChanges = true;
@@ -3898,9 +3793,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const wrongQuotePattern = /([ʻ''""])([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       wrongQuotePattern,
-      (match, wrongQuote, propertyName, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, wrongQuote, propertyName, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
         hasChanges = true;
@@ -3922,14 +3816,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /(\[|,\s*|\n\s*)(\s*)([a-z]{1,5})"((?:[a-z]+\.|\.)[a-z]+\.[a-z]+[^"]*)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       missingOpeningQuoteInArrayPattern87,
-      (match, prefix, whitespace, prefixText, packageName, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, whitespace, prefixText, packageName, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inStringCheck = false;
@@ -4010,14 +3903,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /(\[|,\s*|\n\s*)(\s*)(_[A-Z_]+)\s*=\s*"([^"]+)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       invalidPropertyInArrayPattern,
-      (match, prefix, _whitespace, invalidProp, _value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, prefix, _whitespace, invalidProp, _value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         let bracketDepth = 0;
         let braceDepth = 0;
         let inStringCheck = false;
@@ -4104,14 +3996,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"\1"\s*:\s*"([^"]*)"(\s*[,}])/g;
     sanitized = sanitized.replace(
       duplicatePropertyInDescriptionPattern,
-      (match, propertyName, value, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext = /[{,]\s*$/.test(beforeMatch) || /\n\s*$/.test(beforeMatch);
 
         if (isPropertyContext) {
@@ -4149,15 +4040,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         _secondValue,
         _additionalProps,
         terminator,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext = /[{,]\s*$/.test(beforeMatch) || /\n\s*$/.test(beforeMatch);
 
         if (isPropertyContext) {
@@ -4321,15 +4211,14 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         quotedString,
         _stringValue,
         terminator,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context - look for array patterns
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
         // Simple check: if we see a comma+newline or quoted string+comma+newline before us,
         // we're likely in an array (this pattern is very specific to arrays anyway)
         const hasArrayPattern =
@@ -4366,9 +4255,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const corruptedPropertyValuePattern = /"([^"]+)"\s*:\s*([^,}]+)\s*,\s*([a-z])\s*([,}\]]|\n)/g;
     sanitized = sanitized.replace(
       corruptedPropertyValuePattern,
-      (match, propertyName, value, extraText, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, propertyName, value, extraText, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -4399,14 +4287,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     const markdownListInArrayPattern = /([}\],]|\n|^)(\s*)\*\s+("([^"]+)"\s*,)/g;
     sanitized = sanitized.replace(
       markdownListInArrayPattern,
-      (match, delimiter, whitespace, quotedElement, _elementValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, quotedElement, _elementValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in an array context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
         const isInArray =
           /\[\s*$/.test(beforeMatch) ||
           /,\s*\n\s*$/.test(beforeMatch) ||
@@ -4435,9 +4322,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /"([^"]+)"\s*,?\s*([A-Z][A-Z0-9_.-]{5,50})"\s*([,}\]]|\n|$)/g;
     sanitized = sanitized.replace(
       strayTextAfterStringPattern,
-      (match, stringValue, strayText, terminator, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, stringValue, strayText, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
@@ -4457,7 +4343,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
             );
           }
           // Ensure there's a comma if we're in an array context
-          const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 200), numericOffset);
+          const beforeMatch = sanitized.substring(Math.max(0, offset - 200), offset);
           const isInArray =
             /\[\s*$/.test(beforeMatch) ||
             /,\s*\n\s*$/.test(beforeMatch) ||
@@ -4484,17 +4370,16 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         configText,
         propertyWithQuote,
         _propertyName,
-        offset: unknown,
+        offset: number,
       ) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a valid context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isValidContext =
-          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || numericOffset < 100;
+          /[}\],]\s*$/.test(beforeMatch) || /^\s*$/.test(beforeMatch) || offset < 100;
 
         if (isValidContext) {
           hasChanges = true;
@@ -4523,14 +4408,13 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       /([}\],]|\n|^)(\s*)([a-z]{2,4})"\s*:\s*"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
       truncatedPropertyWithFragmentPattern,
-      (match, delimiter, whitespace, fragment, propertyValue, offset: unknown) => {
-        const numericOffset = typeof offset === "number" ? offset : 0;
-        if (isInStringAt(numericOffset, sanitized)) {
+      (match, delimiter, whitespace, fragment, propertyValue, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
           return match;
         }
 
         // Check if we're in a property context
-        const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 100), numericOffset);
+        const beforeMatch = sanitized.substring(Math.max(0, offset - 100), offset);
         const isPropertyContext =
           /[{,]\s*$/.test(beforeMatch) || /}\s*,\s*\n\s*$/.test(beforeMatch);
 

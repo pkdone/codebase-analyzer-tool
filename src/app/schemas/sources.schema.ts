@@ -41,7 +41,7 @@ export const databaseIntegrationSchema = z
       .optional()
       .describe("List of tables, collections, or entities being accessed by this code"),
     operationType: z
-      .preprocess((val) => normalizeEnumArray(val, OPERATION_TYPE_VALUES), z.any())
+      .preprocess((val) => normalizeEnumArray(val, OPERATION_TYPE_VALUES), z.unknown())
       .pipe(z.array(z.union([z.enum(OPERATION_TYPE_VALUES), z.literal(DEFAULT_INVALID_VALUE)])))
       .optional()
       .describe("Array of database operation types performed - only the listed values are valid."),
@@ -240,7 +240,7 @@ export const publicFunctionSchema = z
         "Number of lines of code in this function/method (excluding comments and blank lines)",
       ),
     codeSmells: z
-      .preprocess((val) => normalizeEnumArray(val, CODE_SMELL_VALUES), z.any())
+      .preprocess((val) => normalizeEnumArray(val, CODE_SMELL_VALUES), z.unknown())
       .pipe(z.array(z.union([z.enum(CODE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)])))
       .optional()
       .describe("List of code smells detected - only the listed values are valid"),
@@ -316,7 +316,7 @@ export const codeQualityMetricsSchema = z
       .optional()
       .describe("Average lines of code per function/method"),
     fileSmells: z
-      .preprocess((val) => normalizeEnumArray(val, FILE_SMELL_VALUES), z.any())
+      .preprocess((val) => normalizeEnumArray(val, FILE_SMELL_VALUES), z.unknown())
       .pipe(z.array(z.union([z.enum(FILE_SMELL_VALUES), z.literal(DEFAULT_INVALID_VALUE)])))
       .optional()
       .describe("File-level code smells - only the listed values are valid"),

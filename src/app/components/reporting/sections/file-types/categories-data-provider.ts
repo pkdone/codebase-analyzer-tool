@@ -24,11 +24,49 @@ const inferredArchitectureInnerSchema = inferredArchitectureSchema.shape.inferre
 type InferredArchitectureInner = z.infer<typeof inferredArchitectureInnerSchema>;
 
 /**
+ * Union type for categorized data that accommodates both standard name-description arrays
+ * and inferred architecture data structures.
+ */
+export type CategorizedDataItem = AppSummaryNameDescArray | InferredArchitectureInner[];
+
+/**
  * Type guard to check if a value is an AppSummaryNameDescArray
  * Uses Zod schema validation for robust type checking.
  */
 function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArray {
   return appSummaryNameDescArraySchema.safeParse(data).success;
+}
+
+/**
+ * Type guard to check if a value is InferredArchitectureInner[]
+ */
+function isInferredArchitectureInnerArray(data: unknown): data is InferredArchitectureInner[] {
+  if (!Array.isArray(data)) {
+    return false;
+  }
+  if (data.length === 0) {
+    return true; // Empty array is valid
+  }
+  // Check if the first element matches the inferred architecture schema
+  return inferredArchitectureInnerSchema.safeParse(data[0]).success;
+}
+
+/**
+ * Type guard to check if categorized data item is AppSummaryNameDescArray
+ */
+export function isCategorizedDataNameDescArray(
+  data: CategorizedDataItem,
+): data is AppSummaryNameDescArray {
+  return isAppSummaryNameDescArray(data);
+}
+
+/**
+ * Type guard to check if categorized data item is InferredArchitectureInner[]
+ */
+export function isCategorizedDataInferredArchitecture(
+  data: CategorizedDataItem,
+): data is InferredArchitectureInner[] {
+  return isInferredArchitectureInnerArray(data);
 }
 
 /**
@@ -44,16 +82,13 @@ function parseInferredArchitectureData(data: unknown): InferredArchitectureInner
  * Wraps the validated inferred architecture data in an array for compatibility with
  * the categorizedData interface. The VisualizationsSection will use its own type guard
  * to validate the structure when extracting the data.
- *
- * Note: This cast is necessary because AppSummaryNameDescArray expects {name, description}[]
- * but inferredArchitecture has a different structure. The downstream code handles this safely.
  */
 function wrapInferredArchitectureAsArray(
   validatedData: InferredArchitectureInner,
-): AppSummaryNameDescArray {
+): InferredArchitectureInner[] {
   // The data is validated by Zod schema; we wrap it in an array for interface compatibility
   // The consuming code (VisualizationsSection) validates this structure with its own type guard
-  return [validatedData] as unknown as AppSummaryNameDescArray;
+  return [validatedData];
 }
 
 /**
@@ -67,7 +102,7 @@ export class AppSummaryCategoriesProvider {
    */
   getStandardSectionData(
     appSummaryData: Pick<AppSummaryRecordWithId, AppSummaryCategoryType>,
-  ): { category: string; label: string; data: AppSummaryNameDescArray }[] {
+  ): { category: string; label: string; data: CategorizedDataItem }[] {
     // Exclude appDescription which is rendered separately in the overview section
     // Note: boundedContexts is included here because the DomainModelDataProvider needs it
     const standardCategoryKeys = AppSummaryCategories.options.filter(
@@ -80,7 +115,7 @@ export class AppSummaryCategoriesProvider {
 
       // Handle inferredArchitecture specially - it's an object, not an array
       // Wrap it in an array so it can be processed by VisualizationsSection
-      let data: AppSummaryNameDescArray;
+      let data: CategorizedDataItem;
       if (category === "inferredArchitecture") {
         const parsedArchData = parseInferredArchitectureData(fieldData);
         data = parsedArchData !== null ? wrapInferredArchitectureAsArray(parsedArchData) : [];

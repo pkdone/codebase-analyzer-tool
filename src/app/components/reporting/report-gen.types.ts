@@ -1,11 +1,11 @@
 import { procedureTriggerSchema } from "../../schemas/sources.schema";
 import { COMPLEXITY_VALUES, COMPLEXITY_VALUES_SET } from "../../schemas/sources.enums";
-import type { AppSummaryNameDescArray } from "../../repositories/app-summaries/app-summaries.model";
 import type {
   ProjectedFileTypesCountAndLines,
   HierarchicalTopLevelJavaClassDependencies,
 } from "../../repositories/sources/sources.model";
 import type { TypeOf } from "zod";
+import type { CategorizedDataItem } from "./sections/file-types/categories-data-provider";
 
 // Complexity type derived from the al enum definition
 export type Complexity = (typeof COMPLEXITY_VALUES)[number];
@@ -26,14 +26,20 @@ export interface ProcsAndTriggers {
     low: number;
     medium: number;
     high: number;
-    list: (ProcedureTrigger & { path: string; type: string; functionName: string })[];
+    list: (ProcedureTrigger & { path: string; type: string; functionName: string } & Record<
+        string,
+        unknown
+      >)[];
   };
   trigs: {
     total: number;
     low: number;
     medium: number;
     high: number;
-    list: (ProcedureTrigger & { path: string; type: string; functionName: string })[];
+    list: (ProcedureTrigger & { path: string; type: string; functionName: string } & Record<
+        string,
+        unknown
+      >)[];
   };
 }
 
@@ -48,7 +54,7 @@ export interface AppStatistics {
 }
 
 // Interface representing database integration information
-export interface DatabaseIntegrationInfo {
+export interface DatabaseIntegrationInfo extends Record<string, unknown> {
   readonly path: string;
   readonly mechanism: string;
   readonly name?: string;
@@ -64,7 +70,7 @@ export interface DatabaseIntegrationInfo {
 }
 
 // Interface representing integration point information (APIs, queues, topics, SOAP, etc.)
-export interface IntegrationPointInfo {
+export interface IntegrationPointInfo extends Record<string, unknown> {
   readonly namespace: string;
   readonly filepath: string;
   readonly mechanism: string;
@@ -179,7 +185,7 @@ export interface UiTechnologyAnalysis {
 export interface ReportData {
   appStats: AppStatistics;
   fileTypesData: ProjectedFileTypesCountAndLines[];
-  categorizedData: { category: string; label: string; data: AppSummaryNameDescArray }[];
+  categorizedData: { category: string; label: string; data: CategorizedDataItem }[];
   integrationPoints: IntegrationPointInfo[];
   dbInteractions: DatabaseIntegrationInfo[];
   procsAndTriggers: ProcsAndTriggers;

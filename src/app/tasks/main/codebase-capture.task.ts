@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { injectable, inject } from "tsyringe";
 import CodebaseToDBLoader from "../../components/capture/codebase-to-db-loader";
 import type LLMStats from "../../../common/llm/tracking/llm-stats";
+import type LLMRouter from "../../../common/llm/llm-router";
 import { Task } from "../task.types";
 import type { EnvVars } from "../../env/env.types";
 import { DatabaseInitializer } from "../../components/database/database-initializer";
@@ -21,6 +22,7 @@ export class CodebaseCaptureTask implements Task {
    */
   constructor(
     @inject(llmTokens.LLMStats) private readonly llmStats: LLMStats,
+    @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
     @inject(coreTokens.DatabaseInitializer)
     private readonly databaseInitializer: DatabaseInitializer,
     @inject(coreTokens.EnvVars) private readonly env: EnvVars,
@@ -36,9 +38,9 @@ export class CodebaseCaptureTask implements Task {
     console.log(`Processing source files for project: ${this.projectName}`);
     this.llmStats.displayLLMStatusSummary();
     await clearDirectory(outputConfig.OUTPUT_DIR);
-    await this.databaseInitializer.initializeDatabaseSchema(
-      databaseConfig.DEFAULT_VECTOR_DIMENSIONS,
-    );
+    const vectorDimensions =
+      this.llmRouter.getEmbeddingModelDimensions() ?? databaseConfig.DEFAULT_VECTOR_DIMENSIONS;
+    await this.databaseInitializer.initializeDatabaseSchema(vectorDimensions);
     await this.codebaseToDBLoader.captureCodebaseToDatabase(
       this.projectName,
       this.env.CODEBASE_DIR_PATH,

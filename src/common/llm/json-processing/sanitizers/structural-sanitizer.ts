@@ -155,16 +155,15 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
 
   // Pattern 2: Remove introductory text before opening braces
   const genericPrefixPattern = /(^|\n|\r)\s*([a-zA-Z_]{2,20})\s*[:]?\s*\{/g;
-  sanitized = sanitized.replace(genericPrefixPattern, (match, prefix, word, offset: unknown) => {
-    const numericOffset = typeof offset === "number" ? offset : 0;
+  sanitized = sanitized.replace(genericPrefixPattern, (match, prefix, word, offset: number) => {
     const wordStr = typeof word === "string" ? word : "";
 
-    if (isInStringAt(numericOffset, sanitized)) {
+    if (isInStringAt(offset, sanitized)) {
       return match;
     }
 
-    const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 50), numericOffset);
-    const isAfterValidDelimiter = /[}\],]\s*$/.test(beforeMatch) || numericOffset < 100;
+    const beforeMatch = sanitized.substring(Math.max(0, offset - 50), offset);
+    const isAfterValidDelimiter = /[}\],]\s*$/.test(beforeMatch) || offset < 100;
 
     if (isAfterValidDelimiter && wordStr.length > 3) {
       const lowerWord = wordStr.toLowerCase();
@@ -203,9 +202,8 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
     /([}\],]|\n|^)(\s*)([\w\u0080-\uFFFF$]{1,})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
   sanitized = sanitized.replace(
     strayTextPattern,
-    (match, delimiter, whitespace, strayText, propertyName, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    (match, delimiter, whitespace, strayText, propertyName, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -239,9 +237,8 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
   const missingOpeningBracePattern = /(}\s*,\s*\n\s*)([_])([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
   sanitized = sanitized.replace(
     missingOpeningBracePattern,
-    (match, prefix, strayChar, propertyName, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    (match, prefix, strayChar, propertyName, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -252,7 +249,7 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
       // Check if this looks like a missing opening brace situation
       // The pattern is: close object }, newline, possibly a stray char, then property name with missing leading quote
       // We need to verify we're in an array context by looking at the broader context
-      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+      const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
       // A simpler check: look for an opening bracket without matching closer before the match
       const hasOpenArray =
         beforeMatch.includes("[") && beforeMatch.lastIndexOf("[") > beforeMatch.lastIndexOf("]");
@@ -275,9 +272,8 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
   const missingBraceAndQuotePattern = /(}\s*,\s*\n\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
   sanitized = sanitized.replace(
     missingBraceAndQuotePattern,
-    (match, prefix, propertyName, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    (match, prefix, propertyName, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -285,7 +281,7 @@ function removeInvalidPrefixesInternal(jsonString: string, diagnostics: string[]
       const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
 
       // Verify we're in an array context
-      const beforeMatch = sanitized.substring(Math.max(0, numericOffset - 500), numericOffset);
+      const beforeMatch = sanitized.substring(Math.max(0, offset - 500), offset);
       // A simpler check: look for an opening bracket without matching closer before the match
       const hasOpenArray =
         beforeMatch.includes("[") && beforeMatch.lastIndexOf("[") > beforeMatch.lastIndexOf("]");
@@ -504,9 +500,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
 
   sanitized = sanitized.replace(
     truncationMarkerPattern,
-    (match, optionalComma, _whitespaceBefore, marker, _whitespaceAfter, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    (match, optionalComma, _whitespaceBefore, marker, _whitespaceAfter, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -528,9 +523,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
   const incompleteStringPattern = /"([^"]*?)(\.\.\.|\[\.\.\.\]|\(truncated\))(\s*)\n(\s*)([}\]])/g;
   sanitized = sanitized.replace(
     incompleteStringPattern,
-    (_match, stringContent, _marker, _whitespace1, whitespace2, delimiter, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    (_match, stringContent, _marker, _whitespace1, whitespace2, delimiter, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return _match;
       }
 
@@ -561,10 +555,9 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
       _whitespace2,
       whitespace3,
       delimiter,
-      offset: unknown,
+      offset: number,
     ) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+      if (isInStringAt(offset, sanitized)) {
         return _match;
       }
 
@@ -590,9 +583,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
     /([}\],]|\n|^)(\s*)(_TRUNCATED_|_INPUT_TOKEN_COUNT_|_DOC_GENERATION_TRUNCATED_)(\s*)([}\],]|\n|$)/gi;
   sanitized = sanitized.replace(
     underscoreTruncatedPattern,
-    (match, before, _whitespace, marker, _whitespace2, after, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    (match, before, _whitespace, marker, _whitespace2, after, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -618,9 +610,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
     /([}\]])\s*\n\s*(Please\s+(?:provide|note|ensure|make|check|review)|Here\s+(?:is|are)|Note\s*:|The\s+(?:JSON|response|output|above)|This\s+(?:JSON|response|output)|I\s+(?:have|will|shall)|Make\s+sure|Ensure\s+that|Remember\s+to)[^{}[\]]*$/gi;
   sanitized = sanitized.replace(
     llmInstructionAfterJsonPattern,
-    (match, delimiter, _instruction, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    (match, delimiter, _instruction, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -640,9 +631,8 @@ function removeTruncationMarkersInternal(jsonString: string, diagnostics: string
     /([}\]])\s*\n\s*\{\s*"\$schema"\s*:|([}\]])\s*\n\s*\{\s*"type"\s*:\s*"(?:object|array|string|number)"/g;
   sanitized = sanitized.replace(
     extraJsonAfterMainPattern,
-    (match, delimiter1, delimiter2, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-      if (isInStringAt(numericOffset, sanitized)) {
+    (match, delimiter1, delimiter2, offset: number) => {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 

@@ -3,7 +3,10 @@ import { reportingTokens, repositoryTokens } from "../../di/tokens";
 import { HtmlReportWriter, type PreparedHtmlReportData } from "./html-report-writer";
 import { JsonReportWriter, type PreparedJsonData } from "./json-report-writer";
 import { AppStatisticsDataProvider } from "./sections/quality-metrics/app-statistics-data-provider";
-import { AppSummaryCategoriesProvider } from "./sections/file-types/categories-data-provider";
+import {
+  AppSummaryCategoriesProvider,
+  isCategorizedDataNameDescArray,
+} from "./sections/file-types/categories-data-provider";
 import type { AppSummariesRepository } from "../../repositories/app-summaries/app-summaries.repository.interface";
 import type { ReportData } from "./report-gen.types";
 import { TableViewModel, type DisplayableTableRow } from "./view-models/table-view-model";
@@ -161,11 +164,22 @@ export default class AppReportGenerator {
       {},
     );
 
-    // Add categorized data view models
-    const categorizedDataWithViewModels = reportData.categorizedData.map((category) => ({
-      ...category,
-      tableViewModel: new TableViewModel(category.data as DisplayableTableRow[]),
-    }));
+    // Add categorized data view models (only for name-desc arrays, not inferred architecture)
+    const categorizedDataWithViewModels = reportData.categorizedData.map((category) => {
+      if (isCategorizedDataNameDescArray(category.data)) {
+        return {
+          ...category,
+          data: category.data,
+          tableViewModel: new TableViewModel(category.data as DisplayableTableRow[]),
+        };
+      }
+      // For inferred architecture, don't create a table view model
+      return {
+        ...category,
+        data: category.data,
+        tableViewModel: new TableViewModel([]),
+      };
+    });
 
     return {
       ...mergedHtmlData,

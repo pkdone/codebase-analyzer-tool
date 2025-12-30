@@ -9,7 +9,6 @@ import {
   CurrentArchitectureSvgGenerator,
   type InferredArchitectureData,
 } from "../../generators/svg/current-architecture-svg-generator";
-import type { AppSummaryNameDescArray } from "../../../../repositories/app-summaries/app-summaries.model";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-gen.types";
@@ -19,6 +18,11 @@ import {
   extractMicroserviceFields,
   isInferredArchitectureCategoryData,
 } from "./visualizations-type-guards";
+import {
+  isCategorizedDataNameDescArray,
+  isCategorizedDataInferredArchitecture,
+  type CategorizedDataItem,
+} from "../file-types/categories-data-provider";
 
 /**
  * Report section for visualizations (flowcharts, domain diagrams, architecture diagrams).
@@ -105,14 +109,18 @@ export class VisualizationsSection implements ReportSection {
     categorizedData: {
       category: string;
       label: string;
-      data: AppSummaryNameDescArray;
+      data: CategorizedDataItem;
     }[],
   ): Promise<string[]> {
     const businessProcessesCategory = categorizedData.find(
       (category) => category.category === "businessProcesses",
     );
 
-    if (!businessProcessesCategory || businessProcessesCategory.data.length === 0) {
+    if (
+      !businessProcessesCategory ||
+      !isCategorizedDataNameDescArray(businessProcessesCategory.data) ||
+      businessProcessesCategory.data.length === 0
+    ) {
       return [];
     }
 
@@ -133,7 +141,7 @@ export class VisualizationsSection implements ReportSection {
     categorizedData: {
       category: string;
       label: string;
-      data: AppSummaryNameDescArray;
+      data: CategorizedDataItem;
     }[],
   ): {
     name: string;
@@ -158,7 +166,11 @@ export class VisualizationsSection implements ReportSection {
       (category) => category.category === "potentialMicroservices",
     );
 
-    if (!microservicesCategory || microservicesCategory.data.length === 0) {
+    if (
+      !microservicesCategory ||
+      !isCategorizedDataNameDescArray(microservicesCategory.data) ||
+      microservicesCategory.data.length === 0
+    ) {
       return [];
     }
 
@@ -182,14 +194,18 @@ export class VisualizationsSection implements ReportSection {
     categorizedData: {
       category: string;
       label: string;
-      data: AppSummaryNameDescArray;
+      data: CategorizedDataItem;
     }[],
   ): InferredArchitectureData | null {
     const inferredArchitectureCategory = categorizedData.find(
       (category) => category.category === "inferredArchitecture",
     );
 
-    if (!inferredArchitectureCategory || inferredArchitectureCategory.data.length === 0) {
+    if (
+      !inferredArchitectureCategory ||
+      !isCategorizedDataInferredArchitecture(inferredArchitectureCategory.data) ||
+      inferredArchitectureCategory.data.length === 0
+    ) {
       return null;
     }
 
@@ -201,16 +217,16 @@ export class VisualizationsSection implements ReportSection {
     }
 
     return {
-      internalComponents: (rawData.internalComponents ?? []).map((c) => ({
+      internalComponents: rawData.internalComponents.map((c) => ({
         name: c.name,
         description: c.description,
       })),
-      externalDependencies: (rawData.externalDependencies ?? []).map((d) => ({
+      externalDependencies: rawData.externalDependencies.map((d) => ({
         name: d.name,
         type: d.type,
         description: d.description,
       })),
-      dependencies: (rawData.dependencies ?? []).map((dep) => ({
+      dependencies: rawData.dependencies.map((dep) => ({
         from: dep.from,
         to: dep.to,
         description: dep.description,

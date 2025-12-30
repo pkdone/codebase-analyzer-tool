@@ -246,13 +246,11 @@ function removeTrailingCommasInternal(input: string): SanitizerResult {
 
   sanitized = sanitized.replace(
     trailingCommaPattern,
-    (match, _comma, _whitespace, delimiter, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-
+    (match, _comma, _whitespace, delimiter, offset: number) => {
       // Check if we're inside a string literal by counting quotes before this position
       let inString = false;
       let escaped = false;
-      for (let i = 0; i < numericOffset; i++) {
+      for (let i = 0; i < offset; i++) {
         const char = sanitized[i];
         if (escaped) {
           escaped = false;
@@ -533,16 +531,15 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
 
     sanitized = sanitized.replace(
       corruptedPatternWithValue,
-      (match, braceComma, newline, indent, strayText, quotedValue, commaAfter, offset: unknown) => {
+      (match, braceComma, newline, indent, strayText, quotedValue, commaAfter, offset: number) => {
         const braceCommaStr = typeof braceComma === "string" ? braceComma : "";
         const newlineStr = typeof newline === "string" ? newline : "";
         const indentStr = typeof indent === "string" ? indent : "";
         const strayTextStr = typeof strayText === "string" ? strayText : "";
         const quotedValueStr = typeof quotedValue === "string" ? quotedValue : "";
         const commaAfterStr = typeof commaAfter === "string" ? commaAfter : "";
-        const numericOffset = typeof offset === "number" ? offset : 0;
 
-        const isLikelyArrayContext = isInArrayContext(numericOffset, sanitized);
+        const isLikelyArrayContext = isInArrayContext(offset, sanitized);
         const jsonKeywords = ["true", "false", "null", "undefined"];
         const isStrayTextValid = jsonKeywords.includes(strayTextStr.toLowerCase());
 
@@ -575,7 +572,7 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
         strayText,
         quotedPropertyName,
         colonAfter,
-        offset: unknown,
+        offset: number,
       ) => {
         const braceCommaStr = typeof braceComma === "string" ? braceComma : "";
         const newlineStr = typeof newline === "string" ? newline : "";
@@ -584,9 +581,8 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
         const quotedPropertyNameStr =
           typeof quotedPropertyName === "string" ? quotedPropertyName : "";
         const colonAfterStr = typeof colonAfter === "string" ? colonAfter : "";
-        const numericOffset = typeof offset === "number" ? offset : 0;
 
-        const isLikelyArrayContext = isInArrayContext(numericOffset, sanitized);
+        const isLikelyArrayContext = isInArrayContext(offset, sanitized);
         const jsonKeywords = ["true", "false", "null", "undefined"];
         const isStrayTextValid = jsonKeywords.includes(strayTextStr.toLowerCase());
 
@@ -611,13 +607,12 @@ function fixMissingArrayObjectBracesInternal(input: string): SanitizerResult {
 
     sanitized = sanitized.replace(
       truncatedElementPattern,
-      (match, closingBraceComma, whitespace, wordValue, offset: unknown) => {
+      (match, closingBraceComma, whitespace, wordValue, offset: number) => {
         const closingBraceCommaStr = typeof closingBraceComma === "string" ? closingBraceComma : "";
         const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
         const wordValueStr = typeof wordValue === "string" ? wordValue : "";
-        const numericOffset = typeof offset === "number" ? offset : 0;
 
-        const isLikelyArrayContext = isInArrayContext(numericOffset, sanitized);
+        const isLikelyArrayContext = isInArrayContext(offset, sanitized);
 
         if (isLikelyArrayContext) {
           hasChanges = true;

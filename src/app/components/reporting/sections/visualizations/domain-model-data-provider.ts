@@ -5,6 +5,10 @@ import type {
   NestedEntity,
   NestedRepository,
 } from "../../../../schemas/app-summaries.schema";
+import {
+  isCategorizedDataNameDescArray,
+  type CategorizedDataItem,
+} from "../file-types/categories-data-provider";
 
 /**
  * Interface for domain entity (flattened for reporting)
@@ -56,12 +60,41 @@ export interface DomainModelData {
 }
 
 /**
- * Type for hierarchical bounded context data from the new schema
+ * Interface for hierarchical bounded context data from the new schema
  * Repository is now at the aggregate level, not bounded context level
+ * Note: aggregates is optional in practice even though the schema requires it,
+ * because .passthrough() allows flexibility and test data may omit it
  */
-type HierarchicalBoundedContextData = AppSummaryNameDescArray[0] & {
+interface HierarchicalBoundedContextData {
+  name: string;
+  description: string;
   aggregates?: NestedAggregate[];
-};
+}
+
+/**
+ * Type guard to check if data is a valid array of hierarchical bounded context data.
+ * Validates the structure at runtime.
+ * Accepts data that has name and description (basic structure) even if aggregates is missing,
+ * since the schema uses .passthrough() which allows flexibility.
+ */
+function isHierarchicalBoundedContextDataArray(data: AppSummaryNameDescArray): boolean {
+  if (!Array.isArray(data)) {
+    return false;
+  }
+  // Validate each item - use a more lenient check that allows missing aggregates
+  // since .passthrough() allows extra properties and aggregates might be optional in practice
+  return data.every((item) => {
+    // Check basic structure (name and description are required)
+    if (typeof item.name !== "string" || typeof item.description !== "string") {
+      return false;
+    }
+    // If aggregates exists, validate it's an array
+    if ("aggregates" in item && !Array.isArray(item.aggregates)) {
+      return false;
+    }
+    return true;
+  });
+}
 
 /**
  * Data provider for domain model information.
@@ -79,13 +112,33 @@ export class DomainModelDataProvider {
     categorizedData: {
       category: string;
       label: string;
-      data: AppSummaryNameDescArray;
+      data: CategorizedDataItem;
     }[],
   ): DomainModelData {
     // Find the boundedContexts category data
     const boundedContextsCategory = categorizedData.find((c) => c.category === "boundedContexts");
-    const hierarchicalContexts = (boundedContextsCategory?.data ??
-      []) as HierarchicalBoundedContextData[];
+    if (!boundedContextsCategory || !isCategorizedDataNameDescArray(boundedContextsCategory.data)) {
+      // Return empty structure if boundedContexts data is not available or wrong type
+      return {
+        boundedContexts: [],
+        aggregates: [],
+        entities: [],
+        repositories: [],
+      };
+    }
+
+    // Validate the data structure using type guard
+    if (!isHierarchicalBoundedContextDataArray(boundedContextsCategory.data)) {
+      // Return empty structure if data doesn't match expected structure
+      return {
+        boundedContexts: [],
+        aggregates: [],
+        entities: [],
+        repositories: [],
+      };
+    }
+
+    const hierarchicalContexts = boundedContextsCategory.data as HierarchicalBoundedContextData[];
 
     // Transform hierarchical data into flattened domain model structure
     const boundedContexts = this.transformHierarchicalContexts(hierarchicalContexts);

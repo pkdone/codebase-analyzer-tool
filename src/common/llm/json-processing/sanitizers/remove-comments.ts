@@ -34,11 +34,9 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
     // Pattern 1: Remove multi-line comments /* ... */
     // Use non-greedy match to handle multiple comments
     const multiLineCommentPattern = /\/\*[\s\S]*?\*\//g;
-    sanitized = sanitized.replace(multiLineCommentPattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-
+    sanitized = sanitized.replace(multiLineCommentPattern, (match, offset: number) => {
       // Don't remove if we're inside a string
-      if (isInStringAt(numericOffset, sanitized)) {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -54,11 +52,9 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
     // Match from // to end of line, but not if // is inside a string
     // Also match the newline after the comment if it's at the start of a line
     const singleLineCommentPattern = /\/\/.*(?:\n|$)/g;
-    sanitized = sanitized.replace(singleLineCommentPattern, (match, offset: unknown) => {
-      const numericOffset = typeof offset === "number" ? offset : 0;
-
+    sanitized = sanitized.replace(singleLineCommentPattern, (match, offset: number) => {
       // Don't remove if we're inside a string
-      if (isInStringAt(numericOffset, sanitized)) {
+      if (isInStringAt(offset, sanitized)) {
         return match;
       }
 
@@ -69,7 +65,7 @@ export const removeComments: Sanitizer = (input: string): SanitizerResult => {
       }
       // If comment is at the start of the string, remove it completely
       // Otherwise, replace with newline to preserve structure
-      if (numericOffset === 0) {
+      if (offset === 0) {
         return "";
       }
       // If the match ends with newline, keep it; otherwise return empty

@@ -2,7 +2,7 @@ import { injectable, inject } from "tsyringe";
 import type { ReportSection } from "../report-section.interface";
 import { reportingTokens } from "../../../../di/tokens";
 import { DatabaseReportDataProvider } from "./database-report-data-provider";
-import { TableViewModel, type DisplayableTableRow } from "../../view-models/table-view-model";
+import { TableViewModel } from "../../view-models/table-view-model";
 import { reportSectionsConfig } from "../../report-sections.config";
 import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
@@ -48,15 +48,11 @@ export class DatabaseSection implements ReportSection {
     }
 
     // Create view model for database interactions
-    const dbInteractionsTableViewModel = new TableViewModel(
-      dbInteractions as unknown as DisplayableTableRow[],
-    );
+    const dbInteractionsTableViewModel = new TableViewModel(dbInteractions);
 
     // Create view model for stored procedures and triggers
     const combinedProcsTrigsList = [...procsAndTriggers.procs.list, ...procsAndTriggers.trigs.list];
-    const procsAndTriggersTableViewModel = new TableViewModel(
-      combinedProcsTrigsList as unknown as DisplayableTableRow[],
-    );
+    const procsAndTriggersTableViewModel = new TableViewModel(combinedProcsTrigsList);
 
     return {
       dbInteractions,
