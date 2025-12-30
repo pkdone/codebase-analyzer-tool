@@ -1,10 +1,12 @@
 import { LLMError, LLMErrorCode } from "../../../../src/common/llm/types/llm-errors.types";
+import { AppError } from "../../../../src/common/errors/app-error";
 
 /**
- * Tests for LLM error class, specifically testing the simplified error hierarchy with code enum.
+ * Tests for LLM error class, specifically testing the unified error hierarchy with code enum.
+ * LLMError now extends AppError for consistent error handling across the application.
  * These tests verify that errors can be properly created with different codes and chained using the cause property.
  */
-describe("LLM Error Class - Simplified Error Hierarchy", () => {
+describe("LLM Error Class - Unified Error Hierarchy", () => {
   describe("LLMError with BAD_RESPONSE_CONTENT code", () => {
     it("should create error without cause", () => {
       const error = new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Bad content", {
@@ -279,6 +281,48 @@ describe("LLM Error Class - Simplified Error Hierarchy", () => {
       expect(contentError.code === LLMErrorCode.BAD_RESPONSE_CONTENT).toBe(true);
       expect(configError.code === LLMErrorCode.BAD_CONFIGURATION).toBe(true);
       expect(contentError.code === LLMErrorCode.BAD_CONFIGURATION).toBe(false);
+    });
+  });
+
+  describe("AppError inheritance", () => {
+    it("should extend AppError for unified error hierarchy", () => {
+      const error = new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Test error");
+
+      expect(error instanceof AppError).toBe(true);
+      expect(error instanceof Error).toBe(true);
+    });
+
+    it("should have proper stack trace through AppError", () => {
+      const error = new LLMError(LLMErrorCode.BAD_CONFIGURATION, "Config error");
+
+      expect(error.stack).toBeDefined();
+      expect(error.stack).toContain("LLMError");
+    });
+
+    it("should maintain error name as LLMError", () => {
+      const error = new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Test error");
+
+      // AppError sets name to constructor.name
+      expect(error.name).toBe("LLMError");
+    });
+
+    it("should support cause property through AppError", () => {
+      const originalError = new Error("Original error");
+      const llmError = new LLMError(
+        LLMErrorCode.BAD_RESPONSE_CONTENT,
+        "Wrapped error",
+        { data: "test" },
+        { cause: originalError },
+      );
+
+      expect(llmError.cause).toBe(originalError);
+    });
+
+    it("should be part of the same hierarchy as DatabaseError", () => {
+      // Both LLMError and DatabaseError extend AppError, creating a unified hierarchy
+      const error = new LLMError(LLMErrorCode.BAD_CONFIGURATION, "Config error");
+
+      expect(error instanceof AppError).toBe(true);
     });
   });
 });

@@ -4,15 +4,6 @@ import { readFile } from "../fs/file-operations";
 import { formatFilesAsMarkdownCodeBlocksWithPath, type FileLike } from "./markdown-formatter";
 
 /**
- * Configuration interface for directory formatting operations.
- */
-export interface DirectoryFormattingConfig {
-  readonly folderIgnoreList: readonly string[];
-  readonly filenameIgnorePrefix: string;
-  readonly binaryFileExtensionIgnoreList: readonly string[];
-}
-
-/**
  * Regex pattern to match trailing slash at end of string
  */
 const TRAILING_SLASH_PATTERN = /\/$/;
@@ -20,12 +11,16 @@ const TRAILING_SLASH_PATTERN = /\/$/;
 /**
  * Format the directory contents as markdown code blocks
  * @param dirPath - The path to the directory
- * @param config - Configuration for directory formatting (ignore lists, etc.)
+ * @param folderIgnoreList - List of folder names to ignore during traversal
+ * @param filenameIgnorePrefix - Prefix for filenames to ignore
+ * @param binaryFileExtensionIgnoreList - List of binary file extensions to skip
  * @returns Promise resolving to formatted content containing all source files as markdown code blocks
  */
 export async function formatDirectoryAsMarkdown(
   dirPath: string,
-  config: DirectoryFormattingConfig,
+  folderIgnoreList: readonly string[],
+  filenameIgnorePrefix: string,
+  binaryFileExtensionIgnoreList: readonly string[],
 ): Promise<string> {
   // Remove trailing slashes from the directory path
   const srcDirPath = dirPath.replace(TRAILING_SLASH_PATTERN, "");
@@ -33,15 +28,15 @@ export async function formatDirectoryAsMarkdown(
   // Find all source files recursively with ignore rules applied
   const srcFilepaths = await findFilesRecursively(
     srcDirPath,
-    config.folderIgnoreList,
-    config.filenameIgnorePrefix,
+    folderIgnoreList,
+    filenameIgnorePrefix,
   );
 
   // Merge all source files into markdown code blocks
   const codeBlocksContent = await mergeSourceFilesIntoMarkdownCodeblock(
     srcFilepaths,
     srcDirPath,
-    config.binaryFileExtensionIgnoreList,
+    binaryFileExtensionIgnoreList,
   );
 
   return codeBlocksContent;

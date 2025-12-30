@@ -4,7 +4,7 @@ const fileTypePromptMetadata = promptRegistry.sources;
 import { PromptDefinition } from "../../../../src/app/prompts/prompt.types";
 import { FILE_TYPE_MAPPING_RULES } from "../../../../src/app/components/capture/config/file-types.config";
 import { sourceSummarySchema } from "../../../../src/app/schemas/sources.schema";
-import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer";
+import { SourceSummaryType } from "../../../../src/app/components/capture/file-summarizer.service";
 
 describe("File Handler Configuration", () => {
   beforeEach(() => {

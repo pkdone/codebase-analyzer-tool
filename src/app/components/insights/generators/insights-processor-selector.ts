@@ -6,10 +6,7 @@ import LLMRouter from "../../../../common/llm/llm-router";
 import type { EnvVars } from "../../../env/env.types";
 import type InsightsFromDBGenerator from "./db-insights-generator";
 import type InsightsFromRawCodeGenerator from "./raw-code-insights-generator";
-import {
-  formatDirectoryAsMarkdown,
-  type DirectoryFormattingConfig,
-} from "../../../../common/utils/directory-to-markdown";
+import { formatDirectoryAsMarkdown } from "../../../../common/utils/directory-to-markdown";
 import { fileProcessingConfig } from "../../../config/file-processing.config";
 import { llmProviderConfig } from "../../../../common/llm/config/llm.config";
 
@@ -35,14 +32,11 @@ export class InsightsProcessorSelector {
   async selectInsightsProcessor(): Promise<InsightsFromDBGenerator | InsightsFromRawCodeGenerator> {
     const manifest = this.llmRouter.getLLMManifest();
     const primaryCompletionTokens = manifest.models.primaryCompletion.maxTotalTokens;
-    const config: DirectoryFormattingConfig = {
-      folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
-      filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-      binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
-    };
     const codeBlocksContent = await formatDirectoryAsMarkdown(
       this.envVars.CODEBASE_DIR_PATH,
-      config,
+      fileProcessingConfig.FOLDER_IGNORE_LIST,
+      fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+      fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
     );
     const codeBlockContentTokensEstimate =
       codeBlocksContent.length / llmProviderConfig.AVERAGE_CHARS_PER_TOKEN;

@@ -6,10 +6,7 @@ import { repositoryTokens } from "../../../di/tokens";
 import { llmTokens } from "../../../di/tokens";
 import { coreTokens } from "../../../di/tokens";
 import type { IInsightsProcessor } from "./insights-processor.interface";
-import {
-  formatDirectoryAsMarkdown,
-  type DirectoryFormattingConfig,
-} from "../../../../common/utils/directory-to-markdown";
+import { formatDirectoryAsMarkdown } from "../../../../common/utils/directory-to-markdown";
 import { fileProcessingConfig } from "../../../config/file-processing.config";
 import type { EnvVars } from "../../../env/env.types";
 import { logOneLineError, logOneLineWarning } from "../../../../common/utils/logging";
@@ -51,12 +48,12 @@ export default class InsightsFromRawCodeGenerator implements IInsightsProcessor 
    * Generate insights from raw code and store in the database
    */
   async generateAndStoreInsights(): Promise<void> {
-    const config: DirectoryFormattingConfig = {
-      folderIgnoreList: fileProcessingConfig.FOLDER_IGNORE_LIST,
-      filenameIgnorePrefix: fileProcessingConfig.FILENAME_PREFIX_IGNORE,
-      binaryFileExtensionIgnoreList: fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
-    };
-    const codeBlocksContent = await formatDirectoryAsMarkdown(this.env.CODEBASE_DIR_PATH, config);
+    const codeBlocksContent = await formatDirectoryAsMarkdown(
+      this.env.CODEBASE_DIR_PATH,
+      fileProcessingConfig.FOLDER_IGNORE_LIST,
+      fileProcessingConfig.FILENAME_PREFIX_IGNORE,
+      fileProcessingConfig.BINARY_FILE_EXTENSION_IGNORE_LIST,
+    );
     await this.generateDataForAllCategories(codeBlocksContent);
   }
 
