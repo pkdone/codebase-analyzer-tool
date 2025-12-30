@@ -19,6 +19,11 @@ const appSummaryNameDescArraySchema = z.array(nameDescSchema);
 const inferredArchitectureInnerSchema = inferredArchitectureSchema.shape.inferredArchitecture;
 
 /**
+ * Type for the inferred architecture data extracted from Zod schema.
+ */
+type InferredArchitectureInner = z.infer<typeof inferredArchitectureInnerSchema>;
+
+/**
  * Type guard to check if a value is an AppSummaryNameDescArray
  * Uses Zod schema validation for robust type checking.
  */
@@ -27,10 +32,28 @@ function isAppSummaryNameDescArray(data: unknown): data is AppSummaryNameDescArr
 }
 
 /**
- * Type guard to check if a value is a valid inferred architecture object
+ * Type guard to check if a value is a valid inferred architecture object.
+ * Returns the parsed data if valid, or null if invalid.
  */
-function isInferredArchitectureData(data: unknown): boolean {
-  return inferredArchitectureInnerSchema.safeParse(data).success;
+function parseInferredArchitectureData(data: unknown): InferredArchitectureInner | null {
+  const result = inferredArchitectureInnerSchema.safeParse(data);
+  return result.success ? result.data : null;
+}
+
+/**
+ * Wraps the validated inferred architecture data in an array for compatibility with
+ * the categorizedData interface. The VisualizationsSection will use its own type guard
+ * to validate the structure when extracting the data.
+ *
+ * Note: This cast is necessary because AppSummaryNameDescArray expects {name, description}[]
+ * but inferredArchitecture has a different structure. The downstream code handles this safely.
+ */
+function wrapInferredArchitectureAsArray(
+  validatedData: InferredArchitectureInner,
+): AppSummaryNameDescArray {
+  // The data is validated by Zod schema; we wrap it in an array for interface compatibility
+  // The consuming code (VisualizationsSection) validates this structure with its own type guard
+  return [validatedData] as unknown as AppSummaryNameDescArray;
 }
 
 /**
@@ -59,9 +82,8 @@ export class AppSummaryCategoriesProvider {
       // Wrap it in an array so it can be processed by VisualizationsSection
       let data: AppSummaryNameDescArray;
       if (category === "inferredArchitecture") {
-        data = isInferredArchitectureData(fieldData)
-          ? ([fieldData] as unknown as AppSummaryNameDescArray)
-          : [];
+        const parsedArchData = parseInferredArchitectureData(fieldData);
+        data = parsedArchData !== null ? wrapInferredArchitectureAsArray(parsedArchData) : [];
       } else {
         data = isAppSummaryNameDescArray(fieldData) ? fieldData : [];
       }

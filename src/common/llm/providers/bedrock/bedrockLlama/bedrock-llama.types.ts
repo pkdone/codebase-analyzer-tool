@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LLMProviderSpecificConfig } from "../../llm-provider.types";
+import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
 
 /**
  * Zod schema for Bedrock Llama provider-specific configuration.
@@ -20,4 +20,14 @@ export const BedrockLlamaProviderConfigSchema = z.object({
  */
 export interface BedrockLlamaProviderConfig extends LLMProviderSpecificConfig {
   maxGenLenCap: number;
+}
+
+/**
+ * Type guard to check if a config is a valid BedrockLlamaProviderConfig.
+ * Uses Zod schema validation for robust type checking.
+ */
+export function isBedrockLlamaProviderConfig(
+  config: LLMProviderSpecificConfig,
+): config is BedrockLlamaProviderConfig {
+  return BedrockLlamaProviderConfigSchema.safeParse(config).success;
 }

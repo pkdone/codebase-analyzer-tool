@@ -24,9 +24,12 @@ describe("BedrockLlamaLLM", () => {
     expect(fileContent).toContain("providerSpecificConfig");
     expect(fileContent).toContain("maxGenLenCap");
 
-    // Verify it's used in the calculation (now uses config.maxGenLenCap)
+    // Verify it's used in the calculation (uses this.providerSpecificConfig.maxGenLenCap after type guard)
     expect(fileContent).toContain("Math.min(maxCompletionTokens");
-    expect(fileContent).toContain("config.maxGenLenCap");
+    expect(fileContent).toContain("this.providerSpecificConfig.maxGenLenCap");
+
+    // Verify type guard is used for type-safe config access
+    expect(fileContent).toContain("isBedrockLlamaProviderConfig");
   });
 
   it("should not have a hardcoded BEDROCK_LLAMA_MAX_GEN_LEN_CAP constant", () => {

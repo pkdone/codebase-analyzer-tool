@@ -1,7 +1,7 @@
 import { llmConfig } from "../../../config/llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { z } from "zod";
-import { BedrockLlamaProviderConfig } from "./bedrock-llama.types";
+import { isBedrockLlamaProviderConfig } from "./bedrock-llama.types";
 
 /**
  * Configuration constants for AWS Bedrock Llama models.
@@ -44,12 +44,12 @@ ${LLAMA_HEADER_START_TOKEN}${llmConfig.LLM_ROLE_USER}${LLAMA_HEADER_END_TOKEN}${
       top_p: llmConfig.DEFAULT_TOP_P_LOWEST,
     };
 
-    // Type-safe check for maxGenLenCap without features array
-    const config = this.providerSpecificConfig as BedrockLlamaProviderConfig;
-    if ("maxGenLenCap" in config && config.maxGenLenCap) {
+    // Use type guard for type-safe access to maxGenLenCap
+    if (isBedrockLlamaProviderConfig(this.providerSpecificConfig)) {
       const maxCompletionTokens =
-        this.llmModelsMetadata[modelKey].maxCompletionTokens ?? config.maxGenLenCap;
-      bodyObj.max_gen_len = Math.min(maxCompletionTokens, config.maxGenLenCap);
+        this.llmModelsMetadata[modelKey].maxCompletionTokens ??
+        this.providerSpecificConfig.maxGenLenCap;
+      bodyObj.max_gen_len = Math.min(maxCompletionTokens, this.providerSpecificConfig.maxGenLenCap);
     }
 
     return bodyObj;

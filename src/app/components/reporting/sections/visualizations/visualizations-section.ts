@@ -14,50 +14,11 @@ import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-gen.types";
 import { SECTION_NAMES } from "../../reporting.constants";
-
-// Extended interfaces for business process and microservice data
-type BusinessProcessData = AppSummaryNameDescArray[0] & {
-  keyBusinessActivities?: {
-    activity: string;
-    description: string;
-  }[];
-};
-
-type MicroserviceData = AppSummaryNameDescArray[0] & {
-  entities?: {
-    name: string;
-    description: string;
-    attributes?: string[];
-  }[];
-  endpoints?: {
-    path: string;
-    method: string;
-    description: string;
-  }[];
-  operations?: {
-    operation: string;
-    method: string;
-    description: string;
-  }[];
-};
-
-// Extended interface for inferred architecture category data
-interface InferredArchitectureCategoryData {
-  internalComponents?: {
-    name: string;
-    description: string;
-  }[];
-  externalDependencies?: {
-    name: string;
-    type: string;
-    description: string;
-  }[];
-  dependencies?: {
-    from: string;
-    to: string;
-    description: string;
-  }[];
-}
+import {
+  extractKeyBusinessActivities,
+  extractMicroserviceFields,
+  isInferredArchitectureCategoryData,
+} from "./visualizations-type-guards";
 
 /**
  * Report section for visualizations (flowcharts, domain diagrams, architecture diagrams).
@@ -155,11 +116,11 @@ export class VisualizationsSection implements ReportSection {
       return [];
     }
 
-    // Convert AppSummaryNameDescArray to BusinessProcess format
+    // Convert AppSummaryNameDescArray to BusinessProcess format using type guard
     const businessProcesses = businessProcessesCategory.data.map((item) => ({
       name: item.name,
       description: item.description,
-      keyBusinessActivities: (item as BusinessProcessData).keyBusinessActivities ?? [],
+      keyBusinessActivities: extractKeyBusinessActivities(item) ?? [],
     }));
 
     return this.flowchartSvgGenerator.generateMultipleFlowchartsSvg(businessProcesses);
@@ -202,17 +163,14 @@ export class VisualizationsSection implements ReportSection {
     }
 
     return microservicesCategory.data.map((item) => {
-      const microserviceItem = item as MicroserviceData;
+      // Use type guard to safely extract microservice-specific fields
+      const microserviceFields = extractMicroserviceFields(item);
       return {
         name: item.name,
         description: item.description,
-        entities: (microserviceItem.entities ?? []).map((entity) => ({
-          name: entity.name,
-          description: entity.description,
-          attributes: entity.attributes ?? [],
-        })),
-        endpoints: microserviceItem.endpoints ?? [],
-        operations: microserviceItem.operations ?? [],
+        entities: microserviceFields.entities,
+        endpoints: microserviceFields.endpoints,
+        operations: microserviceFields.operations,
       };
     });
   }
@@ -236,20 +194,23 @@ export class VisualizationsSection implements ReportSection {
     }
 
     // The data array contains a single item with the architecture structure
-    const archData = inferredArchitectureCategory
-      .data[0] as unknown as InferredArchitectureCategoryData;
+    // Use type guard to validate the structure before accessing properties
+    const rawData = inferredArchitectureCategory.data[0];
+    if (!isInferredArchitectureCategoryData(rawData)) {
+      return null;
+    }
 
     return {
-      internalComponents: (archData.internalComponents ?? []).map((c) => ({
+      internalComponents: (rawData.internalComponents ?? []).map((c) => ({
         name: c.name,
         description: c.description,
       })),
-      externalDependencies: (archData.externalDependencies ?? []).map((d) => ({
+      externalDependencies: (rawData.externalDependencies ?? []).map((d) => ({
         name: d.name,
         type: d.type,
         description: d.description,
       })),
-      dependencies: (archData.dependencies ?? []).map((dep) => ({
+      dependencies: (rawData.dependencies ?? []).map((dep) => ({
         from: dep.from,
         to: dep.to,
         description: dep.description,

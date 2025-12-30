@@ -24,6 +24,20 @@ import { coreTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 
 /**
+ * Type guard to check if aggregation result matches ProjectedFileAndLineStats structure.
+ */
+function isProjectedFileAndLineStats(data: unknown): data is ProjectedFileAndLineStats {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "fileCount" in data &&
+    typeof data.fileCount === "number" &&
+    "linesOfCode" in data &&
+    typeof data.linesOfCode === "number"
+  );
+}
+
+/**
  * MongoDB implementation of the Sources repository
  */
 @injectable()
@@ -262,7 +276,9 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
       },
     ];
     const results = await this.collection.aggregate<ProjectedFileAndLineStats>(pipeline).toArray();
-    const stats = results[0] as ProjectedFileAndLineStats | undefined;
+    // Use type guard to validate aggregation result structure
+    const rawStats = results[0];
+    const stats = isProjectedFileAndLineStats(rawStats) ? rawStats : undefined;
     return {
       fileCount: stats?.fileCount ?? 0,
       linesOfCode: stats?.linesOfCode ?? 0,

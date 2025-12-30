@@ -282,6 +282,42 @@ describe("SourcesRepositoryImpl", () => {
         // Should return default values when destructuring finds undefined
         expect(result).toEqual({ fileCount: 0, linesOfCode: 0 });
       });
+
+      it("should handle malformed aggregation result with type guard validation", async () => {
+        const projectName = "test-project";
+        // Mock with malformed result that doesn't match ProjectedFileAndLineStats
+        const malformedResults = [{ wrongField: "bad data", anotherField: 123 }];
+        mockAggregationCursor.toArray.mockResolvedValue(malformedResults);
+
+        const result = await repository.getProjectFileAndLineStats(projectName);
+
+        // Type guard should reject malformed data and return defaults
+        expect(result).toEqual({ fileCount: 0, linesOfCode: 0 });
+      });
+
+      it("should handle aggregation result with missing fileCount field", async () => {
+        const projectName = "test-project";
+        // Mock with result missing fileCount
+        const partialResults = [{ linesOfCode: 1500 }];
+        mockAggregationCursor.toArray.mockResolvedValue(partialResults);
+
+        const result = await repository.getProjectFileAndLineStats(projectName);
+
+        // Type guard should reject partial data and return defaults
+        expect(result).toEqual({ fileCount: 0, linesOfCode: 0 });
+      });
+
+      it("should handle aggregation result with wrong types", async () => {
+        const projectName = "test-project";
+        // Mock with result having wrong types
+        const wrongTypeResults = [{ fileCount: "not a number", linesOfCode: "also wrong" }];
+        mockAggregationCursor.toArray.mockResolvedValue(wrongTypeResults);
+
+        const result = await repository.getProjectFileAndLineStats(projectName);
+
+        // Type guard should reject wrong types and return defaults
+        expect(result).toEqual({ fileCount: 0, linesOfCode: 0 });
+      });
     });
 
     describe("getProjectFileTypesCountAndLines", () => {

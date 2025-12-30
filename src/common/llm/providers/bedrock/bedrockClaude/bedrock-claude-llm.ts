@@ -5,17 +5,11 @@ import {
   AWS_COMPLETIONS_CLAUDE_SONNET_V45,
 } from "./bedrock-claude.manifest";
 import { z } from "zod";
-import type { LLMProviderSpecificConfig } from "../../llm-provider.types";
-
-/**
- * Type-safe configuration interface for Claude provider
- */
-interface ClaudeProviderConfig extends LLMProviderSpecificConfig {
-  apiVersion: string;
-  temperature?: number;
-  topK?: number;
-  anthropicBetaFlags?: string[];
-}
+import {
+  isBedrockClaudeProviderConfig,
+  type BedrockClaudeProviderConfig,
+} from "./bedrock-claude.types";
+import { LLMError, LLMErrorCode } from "../../../types/llm-errors.types";
 
 /**
  * Zod schema for Claude completion response validation
@@ -40,7 +34,15 @@ export default class BedrockClaudeLLM extends BaseBedrockLLM {
    */
   protected override buildCompletionRequestBody(modelKey: string, prompt: string) {
     // Bedrock providers don't support JSON mode options
-    const config = this.providerSpecificConfig as ClaudeProviderConfig;
+    // Use type guard to validate configuration at runtime
+    if (!isBedrockClaudeProviderConfig(this.providerSpecificConfig)) {
+      throw new LLMError(
+        LLMErrorCode.BAD_CONFIGURATION,
+        "Invalid Bedrock Claude provider configuration - missing required apiVersion",
+      );
+    }
+
+    const config: BedrockClaudeProviderConfig = this.providerSpecificConfig;
 
     const baseParams = {
       anthropic_version: config.apiVersion,
