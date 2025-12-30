@@ -1,5 +1,6 @@
 import { Sanitizer, SanitizerResult } from "./sanitizers-types";
 import { SANITIZATION_STEP } from "../constants/sanitization-steps.config";
+import { isInStringAt, isInArrayContext } from "../utils/parser-context-utils";
 
 /**
  * Post-processing sanitizer that fixes advanced JSON structure issues.
@@ -39,74 +40,6 @@ export const fixJsonStructure: Sanitizer = (input: string): SanitizerResult => {
   let hasChanges = false;
   const diagnostics: string[] = [];
   let finalContent = trimmed;
-
-  // Helper function to check if we're inside a string at a given position
-  const isInStringAt = (position: number, content: string): boolean => {
-    let inString = false;
-    let escaped = false;
-    for (let i = 0; i < position; i++) {
-      const char = content[i];
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-      if (char === "\\") {
-        escaped = true;
-      } else if (char === '"') {
-        inString = !inString;
-      }
-    }
-    return inString;
-  };
-
-  // Helper function to check if we're in an array context
-  const isInArrayContext = (matchIndex: number, content: string): boolean => {
-    const beforeMatch = content.substring(Math.max(0, matchIndex - 500), matchIndex);
-    let openBraces = 0;
-    let inString = false;
-    let escapeNext = false;
-    let foundOpeningBracket = false;
-    let braceDepthAtBracket = 0;
-
-    for (let i = beforeMatch.length - 1; i >= 0; i--) {
-      const char = beforeMatch[i];
-      if (escapeNext) {
-        escapeNext = false;
-        continue;
-      }
-      if (char === "\\") {
-        escapeNext = true;
-        continue;
-      }
-      if (char === '"') {
-        inString = !inString;
-        continue;
-      }
-      if (!inString) {
-        if (char === "{") {
-          openBraces++;
-        } else if (char === "}") {
-          openBraces--;
-        } else if (char === "[") {
-          if (!foundOpeningBracket) {
-            foundOpeningBracket = true;
-            braceDepthAtBracket = openBraces;
-          }
-          // If we found the array and we're at the same or lower brace depth, we're in array context
-          if (openBraces <= braceDepthAtBracket) {
-            break;
-          }
-        } else if (char === "]") {
-          // Track closing brackets to ensure we're still in the array
-          // (not needed for the logic but helps with correctness)
-        }
-      }
-    }
-
-    // We're in array context if we found an opening bracket and current brace depth
-    // is at or below the depth when we entered the array
-    return foundOpeningBracket && openBraces <= braceDepthAtBracket;
-  };
 
   // Post-processing pass 1: Fix dangling properties
   // Pattern: "propertyName " (with space inside quotes) followed by comma, closing brace, or newline

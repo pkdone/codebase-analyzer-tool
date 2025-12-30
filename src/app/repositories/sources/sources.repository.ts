@@ -1,4 +1,4 @@
-import { MongoClient, Sort, Document, OptionalId, Collection } from "mongodb";
+import { MongoClient, Sort, Document } from "mongodb";
 import { Double } from "bson";
 import { SourcesRepository } from "./sources.repository.interface";
 import {
@@ -19,7 +19,7 @@ import {
 } from "./sources.model";
 import { databaseConfig } from "../../components/database/database.config";
 import { logOneLineError } from "../../../common/utils/logging";
-import { logMongoValidationErrorIfPresent } from "../../../common/mongodb/mdb-error-utils";
+import { BaseRepository } from "../base/base-repository";
 import { coreTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 
@@ -41,9 +41,10 @@ function isProjectedFileAndLineStats(data: unknown): data is ProjectedFileAndLin
  * MongoDB implementation of the Sources repository
  */
 @injectable()
-export default class SourcesRepositoryImpl implements SourcesRepository {
-  protected readonly collection: Collection<SourceRecordWithId>;
-
+export default class SourcesRepositoryImpl
+  extends BaseRepository<SourceRecordWithId>
+  implements SourcesRepository
+{
   /**
    * Constructor.
    */
@@ -51,20 +52,14 @@ export default class SourcesRepositoryImpl implements SourcesRepository {
     @inject(coreTokens.MongoClient) mongoClient: MongoClient,
     @inject(coreTokens.DatabaseName) dbName: string,
   ) {
-    const db = mongoClient.db(dbName);
-    this.collection = db.collection<SourceRecordWithId>(databaseConfig.SOURCES_COLLECTION_NAME);
+    super(mongoClient, dbName, databaseConfig.SOURCES_COLLECTION_NAME);
   }
 
   /**
    * Insert a source file record into the database
    */
   async insertSource(sourceFileData: SourceRecord): Promise<void> {
-    try {
-      await this.collection.insertOne(sourceFileData as OptionalId<SourceRecordWithId>);
-    } catch (error: unknown) {
-      logMongoValidationErrorIfPresent(error);
-      throw error;
-    }
+    await this.safeInsert(sourceFileData as SourceRecordWithId);
   }
 
   /**

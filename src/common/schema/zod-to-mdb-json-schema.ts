@@ -3,7 +3,8 @@ import { ignoreOverride } from "zod-to-json-schema";
 import { ObjectId, Decimal128 } from "bson";
 import { ZodType, ZodTypeDef } from "zod";
 import { zodToJsonSchema, Options, JsonSchema7Type } from "zod-to-json-schema";
-import { isJsonObject } from "../utils/type-guards";
+
+import { traverseAndModifySchema } from "./schema-traversal";
 
 /**
  * Recursively traverse a JSON Schema object and replace unsupported keywords for MongoDB.
@@ -12,28 +13,21 @@ import { isJsonObject } from "../utils/type-guards";
  * - Removal of `default` keyword (MongoDB doesn't support `default` in $jsonSchema)
  */
 function sanitizeMongoUnsupportedKeywords(schema: unknown): unknown {
-  if (Array.isArray(schema)) {
-    return schema.map((item) => sanitizeMongoUnsupportedKeywords(item));
-  }
-  if (isJsonObject(schema)) {
-    const sanitized: Record<string, unknown> = {};
-
-    for (const [key, value] of Object.entries(schema)) {
+  return traverseAndModifySchema(schema, {
+    transformKey: (key, value, obj) => {
       if (key === "const") {
         // Only add enum if enum not already defined to avoid overwriting
-        if (!Object.hasOwn(sanitized, "enum")) {
-          sanitized.enum = [value];
+        if (!Object.hasOwn(obj, "enum")) {
+          return { key: "enum", value: [value] };
         }
         // Skip adding const to sanitized object
-      } else if (key === "default") {
-        // Skip default keyword - MongoDB doesn't support it in $jsonSchema validation
-      } else {
-        sanitized[key] = sanitizeMongoUnsupportedKeywords(value);
+        return null;
       }
-    }
-    return sanitized;
-  }
-  return schema;
+      // For other keys, keep them as-is (return original key and value)
+      return { key, value };
+    },
+    removeKeys: ["default"], // Remove default keyword
+  });
 }
 
 export const zBsonObjectId = z.instanceof(ObjectId).describe("bson:objectId");

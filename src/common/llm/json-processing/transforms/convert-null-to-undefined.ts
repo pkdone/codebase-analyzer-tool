@@ -17,60 +17,26 @@
  * - Preserves all other values unchanged, including Date, RegExp, and other built-in objects
  * - Handles circular references safely
  */
+import { deepMapObject } from "../utils/object-traversal";
+
 export function convertNullToUndefined(
   value: unknown,
   _config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
   visited = new WeakSet<object>(),
 ): unknown {
-  // Handle primitive null
-  if (value === null) {
-    return undefined;
-  }
-
-  // Handle primitives and functions
-  if (typeof value !== "object") {
-    return value;
-  }
-
-  // Prevent infinite recursion on circular references
-  if (visited.has(value)) {
-    return value;
-  }
-  visited.add(value);
-
-  // Handle arrays
-  if (Array.isArray(value)) {
-    return value.map((item) => convertNullToUndefined(item, _config, visited));
-  }
-
-  // Preserve special built-in objects (Date, RegExp, etc.) as-is
-  // Only process plain objects from JSON.parse
-  if (value.constructor !== Object) {
-    return value;
-  }
-
-  // Handle plain objects
-  const result: Record<string | symbol, unknown> = {};
-
-  // Handle string keys
-  for (const [key, val] of Object.entries(value)) {
-    const converted = convertNullToUndefined(val, _config, visited);
-    // Only set the property if the converted value is not undefined
-    // This ensures that null values are truly omitted from the object
-    if (converted !== undefined) {
-      result[key] = converted;
-    }
-  }
-
-  // Handle symbol keys (preserve them as-is)
-  const symbols = Object.getOwnPropertySymbols(value);
-  for (const sym of symbols) {
-    const val = (value as Record<symbol, unknown>)[sym];
-    const converted = convertNullToUndefined(val, _config, visited);
-    if (converted !== undefined) {
-      result[sym] = converted;
-    }
-  }
-
-  return result;
+  return deepMapObject(
+    value,
+    (val) => {
+      // Convert null to undefined
+      if (val === null) {
+        return undefined;
+      }
+      return val;
+    },
+    {
+      // Omit properties with undefined values
+      shouldInclude: (_key, val) => val !== undefined,
+    },
+    visited,
+  );
 }

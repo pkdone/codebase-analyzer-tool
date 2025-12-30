@@ -17,64 +17,29 @@
  * - Preserves all other values unchanged
  * - Handles symbol keys and preserves them
  */
+import { deepMapObject } from "../utils/object-traversal";
+
 export function fixCommonPropertyNameTypos(
   value: unknown,
   _config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
   visited = new WeakSet<object>(),
 ): unknown {
-  // Handle primitives and null
-  if (value === null || typeof value !== "object") {
-    return value;
-  }
-
-  // Prevent infinite recursion on circular references
-  if (visited.has(value)) {
-    return value;
-  }
-  visited.add(value);
-
-  // Handle arrays
-  if (Array.isArray(value)) {
-    return value.map((item) => fixCommonPropertyNameTypos(item, _config, visited));
-  }
-
-  // Preserve special built-in objects (Date, RegExp, etc.) as-is
-  // Only process plain objects from JSON.parse
-  if (value.constructor !== Object) {
-    return value;
-  }
-
-  // Handle plain objects
-  const obj = value as Record<string | symbol, unknown>;
-  const result: Record<string | symbol, unknown> = {};
-
-  // Process string keys
-  for (const [key, val] of Object.entries(obj)) {
-    let processedKey = key;
-    let processedValue = val;
-
-    // Fix property names ending with underscore
-    if (typeof key === "string" && key.endsWith("_") && key.length > 1) {
-      const correctKey = key.slice(0, -1);
-      // Only rename if the correct property name doesn't already exist
-      if (!(correctKey in obj)) {
-        processedKey = correctKey;
-      }
-    }
-
-    // Recursively process nested objects and arrays
-    processedValue = fixCommonPropertyNameTypos(val, _config, visited);
-
-    result[processedKey] = processedValue;
-  }
-
-  // Handle symbol keys (preserve them as-is)
-  const symbols = Object.getOwnPropertySymbols(obj);
-  for (const sym of symbols) {
-    const symObj = obj as Record<symbol, unknown>;
-    const resultSym = result as Record<symbol, unknown>;
-    resultSym[sym] = fixCommonPropertyNameTypos(symObj[sym], _config, visited);
-  }
-
-  return result;
+  return deepMapObject(
+    value,
+    (val) => val, // No value transformation, only key transformation
+    {
+      transformKey: (key, _val, obj) => {
+        // Fix property names ending with underscore
+        if (key.endsWith("_") && key.length > 1) {
+          const correctKey = key.slice(0, -1);
+          // Only rename if the correct property name doesn't already exist
+          if (!(correctKey in obj)) {
+            return correctKey;
+          }
+        }
+        return key;
+      },
+    },
+    visited,
+  );
 }

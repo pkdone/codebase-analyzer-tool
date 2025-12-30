@@ -1,6 +1,6 @@
 import { ZodType, ZodTypeDef } from "zod";
 import { zodToJsonSchema, Options, JsonSchema7Type } from "zod-to-json-schema";
-import { isJsonObject } from "../../utils/type-guards";
+import { traverseAndModifySchema } from "../../schema/schema-traversal";
 
 /**
  * Recursively removes unsupported keywords from JSON Schema.
@@ -14,23 +14,9 @@ export function sanitizeSchemaForProvider(
   schema: unknown,
   unsupportedKeywords: string[] = ["const"],
 ): unknown {
-  if (Array.isArray(schema)) {
-    return schema.map((item) => sanitizeSchemaForProvider(item, unsupportedKeywords));
-  }
-
-  if (isJsonObject(schema)) {
-    const sanitized: Record<string, unknown> = {};
-    const schemaObj = schema;
-
-    for (const [key, value] of Object.entries(schemaObj)) {
-      if (unsupportedKeywords.includes(key)) continue;
-      sanitized[key] = sanitizeSchemaForProvider(value, unsupportedKeywords);
-    }
-
-    return sanitized;
-  }
-
-  return schema;
+  return traverseAndModifySchema(schema, {
+    removeKeys: unsupportedKeywords,
+  });
 }
 
 /**

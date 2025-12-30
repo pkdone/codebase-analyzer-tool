@@ -1,8 +1,8 @@
 import { AppSummariesRepository } from "./app-summaries.repository.interface";
 import { AppSummaryRecordWithId, PartialAppSummaryRecord } from "./app-summaries.model";
 import { databaseConfig } from "../../components/database/database.config";
-import { logMongoValidationErrorIfPresent } from "../../../common/mongodb/mdb-error-utils";
-import { MongoClient, Collection } from "mongodb";
+import { BaseRepository } from "../base/base-repository";
+import { MongoClient } from "mongodb";
 import { coreTokens } from "../../di/tokens";
 import { inject, injectable } from "tsyringe";
 
@@ -10,9 +10,10 @@ import { inject, injectable } from "tsyringe";
  * MongoDB implementation of the App Summary repository
  */
 @injectable()
-export default class AppSummariesRepositoryImpl implements AppSummariesRepository {
-  protected readonly collection: Collection<AppSummaryRecordWithId>;
-
+export default class AppSummariesRepositoryImpl
+  extends BaseRepository<AppSummaryRecordWithId>
+  implements AppSummariesRepository
+{
   /**
    * Constructor.
    */
@@ -20,10 +21,7 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
     @inject(coreTokens.MongoClient) mongoClient: MongoClient,
     @inject(coreTokens.DatabaseName) dbName: string,
   ) {
-    const db = mongoClient.db(dbName);
-    this.collection = db.collection<AppSummaryRecordWithId>(
-      databaseConfig.SUMMARIES_COLLECTION_NAME,
-    );
+    super(mongoClient, dbName, databaseConfig.SUMMARIES_COLLECTION_NAME);
   }
 
   /**
@@ -32,28 +30,18 @@ export default class AppSummariesRepositoryImpl implements AppSummariesRepositor
    * preserving any existing fields not included in the partial record.
    */
   async createOrReplaceAppSummary(record: PartialAppSummaryRecord): Promise<void> {
-    try {
-      await this.collection.updateOne(
-        { projectName: record.projectName },
-        { $set: record },
-        { upsert: true },
-      );
-    } catch (error: unknown) {
-      logMongoValidationErrorIfPresent(error);
-      throw error;
-    }
+    await this.safeUpdate(
+      { projectName: record.projectName } as Partial<AppSummaryRecordWithId>,
+      { $set: record },
+      { upsert: true },
+    );
   }
 
   /**
    * Update an existing app summary record
    */
   async updateAppSummary(projectName: string, updates: PartialAppSummaryRecord): Promise<void> {
-    try {
-      await this.collection.updateOne({ projectName }, { $set: updates });
-    } catch (error: unknown) {
-      logMongoValidationErrorIfPresent(error);
-      throw error;
-    }
+    await this.safeUpdate({ projectName } as Partial<AppSummaryRecordWithId>, { $set: updates });
   }
 
   /**

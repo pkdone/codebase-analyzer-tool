@@ -21,62 +21,61 @@
  * - Skips transformation if no arrayPropertyNames are configured
  */
 
+import { deepMap } from "../utils/object-traversal";
+
 export function coerceStringToArray(
   value: unknown,
   config?: import("../../config/llm-module-config.types").LLMSanitizerConfig,
   visited = new WeakSet<object>(),
 ): unknown {
-  // Handle primitives and null
-  if (value === null || typeof value !== "object") {
-    return value;
-  }
-
-  // Prevent infinite recursion on circular references
-  if (visited.has(value)) {
-    return value;
-  }
-  visited.add(value);
-
-  // Handle arrays
-  if (Array.isArray(value)) {
-    return value.map((item) => coerceStringToArray(item, config, visited));
-  }
-
-  // Preserve special built-in objects (Date, RegExp, etc.) as-is
-  // Only process plain objects from JSON.parse
-  if (value.constructor !== Object) {
-    return value;
-  }
-
-  // Handle plain objects
-  const obj = value as Record<string | symbol, unknown>;
-  const result: Record<string | symbol, unknown> = {};
-
-  // Get array property names from config, or use empty array if not configured
   const arrayPropertyNames = config?.arrayPropertyNames ?? [];
 
-  // Process string keys
-  for (const [key, val] of Object.entries(obj)) {
-    let processedValue = val;
+  // Skip transformation if no array property names are configured
+  if (arrayPropertyNames.length === 0) {
+    return value;
+  }
 
-    // Convert string values to empty arrays for configured property names
-    if (typeof key === "string" && arrayPropertyNames.includes(key) && typeof val === "string") {
-      processedValue = [];
-    } else {
-      // Recursively process nested objects and arrays
-      processedValue = coerceStringToArray(val, config, visited);
+  return deepMap(value, (val) => {
+    // Handle primitives and null - return as-is
+    if (val === null || typeof val !== "object") {
+      return val;
     }
 
-    result[key] = processedValue;
-  }
+    // Handle arrays - return as-is (already processed by deepMap)
+    if (Array.isArray(val)) {
+      return val as unknown;
+    }
 
-  // Handle symbol keys (preserve them as-is)
-  const symbols = Object.getOwnPropertySymbols(obj);
-  for (const sym of symbols) {
-    const symObj = obj as Record<symbol, unknown>;
-    const resultSym = result as Record<symbol, unknown>;
-    resultSym[sym] = coerceStringToArray(symObj[sym], config, visited);
-  }
+    // Handle plain objects - transform string values for configured properties
+    if (val.constructor === Object) {
+      const obj = val as Record<string | symbol, unknown>;
+      const result: Record<string | symbol, unknown> = {};
 
-  return result;
+      // Process string keys
+      for (const [key, propVal] of Object.entries(obj)) {
+        // Convert string values to empty arrays for configured property names
+        // Check the original value before it's processed recursively
+        if (arrayPropertyNames.includes(key) && typeof propVal === "string") {
+          result[key] = [] as unknown;
+        } else {
+          // Value will be processed recursively by deepMap
+          result[key] = propVal;
+        }
+      }
+
+      // Handle symbol keys (preserve them as-is, they'll be processed by deepMap)
+      const symbols = Object.getOwnPropertySymbols(obj);
+      for (const sym of symbols) {
+        const symObj = obj as Record<symbol, unknown>;
+        const resultSym = result as Record<symbol, unknown>;
+        resultSym[sym] = symObj[sym];
+      }
+
+      // Return the object structure, deepMap will recursively process the values
+      return result;
+    }
+
+    // Preserve special built-in objects (Date, RegExp, etc.) as-is
+    return val;
+  }, visited);
 }
