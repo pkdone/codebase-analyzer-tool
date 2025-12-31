@@ -47,10 +47,7 @@ export interface SchemaTraversalRules {
  * });
  * ```
  */
-export function traverseAndModifySchema(
-  schema: unknown,
-  rules: SchemaTraversalRules,
-): unknown {
+export function traverseAndModifySchema(schema: unknown, rules: SchemaTraversalRules): unknown {
   if (Array.isArray(schema)) {
     return schema.map((item) => traverseAndModifySchema(item, rules));
   }
@@ -86,4 +83,3 @@ export function traverseAndModifySchema(
 
   return schema;
 }
-

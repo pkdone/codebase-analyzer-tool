@@ -104,7 +104,7 @@ describe("mermaid-definition-builders", () => {
 
   describe("escapeMermaidLabel", () => {
     it("should escape double quotes", () => {
-      expect(escapeMermaidLabel('text with "quotes"')).toBe('text with #quot;quotes#quot;');
+      expect(escapeMermaidLabel('text with "quotes"')).toBe("text with #quot;quotes#quot;");
     });
 
     it("should escape less than symbol", () => {
@@ -309,4 +309,3 @@ describe("mermaid-definition-builders", () => {
     });
   });
 });
-

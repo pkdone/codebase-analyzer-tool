@@ -47,4 +47,3 @@ describe("JSON Processing Configuration", () => {
     });
   });
 });
-

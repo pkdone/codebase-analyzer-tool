@@ -3,12 +3,9 @@ import { SOURCES_PROMPT_FRAGMENTS } from "../../../../../src/app/prompts/definit
 /**
  * Tests for the createDbMechanismInstructions function.
  *
- * This function was moved from src/app/prompts/utils/prompt-utils.ts to
- * src/app/prompts/definitions/sources/sources.fragments.ts as part of the
- * prompt refactoring to co-locate related code.
- *
- * The function is not exported (it's a module-private helper), so we test
- * its behavior through the DB_MECHANISM_MAPPING constants it generates.
+ * This function is now located in src/app/prompts/definitions/instruction-utils.ts
+ * as part of separating logic from data fragments. We test its behavior through
+ * the DB_MECHANISM_MAPPING constants it generates in SOURCES_PROMPT_FRAGMENTS.
  */
 describe("createDbMechanismInstructions (via DB_MECHANISM_MAPPING fragments)", () => {
   /**

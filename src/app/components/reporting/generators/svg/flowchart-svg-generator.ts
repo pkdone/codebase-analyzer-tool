@@ -62,7 +62,10 @@ export class FlowchartSvgGenerator {
 
     // Render to SVG using mermaid-cli
     const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
-      width: Math.max(opts.width, activities.length * visualizationConfig.flowchart.WIDTH_PER_ACTIVITY),
+      width: Math.max(
+        opts.width,
+        activities.length * visualizationConfig.flowchart.WIDTH_PER_ACTIVITY,
+      ),
       height: opts.height,
       backgroundColor: DIAGRAM_STYLES.backgroundColor,
     });

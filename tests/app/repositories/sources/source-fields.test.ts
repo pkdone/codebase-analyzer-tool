@@ -115,4 +115,3 @@ describe("SOURCE_FIELDS Constants", () => {
     });
   });
 });
-

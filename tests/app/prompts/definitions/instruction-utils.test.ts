@@ -2,6 +2,9 @@ import {
   INSTRUCTION_SECTION_TITLES,
   buildInstructionBlock,
   type InstructionSectionTitle,
+  createDbMechanismInstructions,
+  BASE_DB_MECHANISM_PREFIX,
+  BASE_DB_MECHANISM_SUFFIX,
 } from "../../../../src/app/prompts/definitions/instruction-utils";
 
 describe("instruction-utils", () => {
@@ -258,6 +261,165 @@ describe("instruction-utils", () => {
       expect(INSTRUCTION_SECTION_TITLES).toBeDefined();
       expect(buildInstructionBlock).toBeDefined();
       expect(Object.keys(INSTRUCTION_SECTION_TITLES).length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("createDbMechanismInstructions", () => {
+    describe("basic functionality", () => {
+      it("should combine prefix, examples, and suffix with newlines", () => {
+        const examples = [
+          "      - Example 1 => mechanism: 'TEST1'",
+          "      - Example 2 => mechanism: 'TEST2'",
+        ] as const;
+        const result = createDbMechanismInstructions(examples);
+
+        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain("Example 1");
+        expect(result).toContain("Example 2");
+        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result.split("\n").length).toBe(4); // prefix + 2 examples + suffix
+      });
+
+      it("should include additional note when provided", () => {
+        const examples = ["      - Example => mechanism: 'TEST'"] as const;
+        const additionalNote = "    (note: this is a test note)";
+        const result = createDbMechanismInstructions(examples, additionalNote);
+
+        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain("Example");
+        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result).toContain(additionalNote);
+        expect(result.split("\n").length).toBe(4); // prefix + example + suffix + note
+      });
+
+      it("should handle empty examples array", () => {
+        const examples: readonly string[] = [];
+        const result = createDbMechanismInstructions(examples);
+
+        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result.split("\n").length).toBe(2); // prefix + suffix only
+      });
+
+      it("should handle single example", () => {
+        const examples = ["      - Single example => mechanism: 'SINGLE'"] as const;
+        const result = createDbMechanismInstructions(examples);
+
+        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain("Single example");
+        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result.split("\n").length).toBe(3); // prefix + example + suffix
+      });
+
+      it("should handle multiple examples", () => {
+        const examples = [
+          "      - Example 1 => mechanism: 'TEST1'",
+          "      - Example 2 => mechanism: 'TEST2'",
+          "      - Example 3 => mechanism: 'TEST3'",
+          "      - Example 4 => mechanism: 'TEST4'",
+        ] as const;
+        const result = createDbMechanismInstructions(examples);
+
+        expect(result).toContain(BASE_DB_MECHANISM_PREFIX);
+        expect(result).toContain("Example 1");
+        expect(result).toContain("Example 2");
+        expect(result).toContain("Example 3");
+        expect(result).toContain("Example 4");
+        expect(result).toContain(BASE_DB_MECHANISM_SUFFIX);
+        expect(result.split("\n").length).toBe(6); // prefix + 4 examples + suffix
+      });
+    });
+
+    describe("edge cases", () => {
+      it("should handle examples with special characters", () => {
+        const examples = ["      - Example with 'quotes' => mechanism: 'QUOTED'"] as const;
+        const result = createDbMechanismInstructions(examples);
+
+        expect(result).toContain("Example with 'quotes'");
+        expect(result).toContain("mechanism: 'QUOTED'");
+      });
+
+      it("should handle additional note with newlines", () => {
+        const examples = ["      - Example => mechanism: 'TEST'"] as const;
+        const additionalNote = "    (note: line 1\n    line 2)";
+        const result = createDbMechanismInstructions(examples, additionalNote);
+
+        expect(result).toContain("line 1");
+        expect(result).toContain("line 2");
+      });
+
+      it("should preserve exact formatting of examples", () => {
+        const examples = ["      - Uses JDBC => mechanism: 'JDBC'"] as const;
+        const result = createDbMechanismInstructions(examples);
+
+        const lines = result.split("\n");
+        expect(lines[1]).toBe("      - Uses JDBC => mechanism: 'JDBC'");
+      });
+    });
+
+    describe("integration with constants", () => {
+      it("should use BASE_DB_MECHANISM_PREFIX constant", () => {
+        const examples = ["      - Test => mechanism: 'TEST'"] as const;
+        const result = createDbMechanismInstructions(examples);
+
+        expect(result.startsWith(BASE_DB_MECHANISM_PREFIX)).toBe(true);
+      });
+
+      it("should use BASE_DB_MECHANISM_SUFFIX constant", () => {
+        const examples = ["      - Test => mechanism: 'TEST'"] as const;
+        const result = createDbMechanismInstructions(examples);
+
+        expect(result.endsWith(BASE_DB_MECHANISM_SUFFIX)).toBe(true);
+      });
+
+      it("should place suffix after examples even with additional note", () => {
+        const examples = ["      - Test => mechanism: 'TEST'"] as const;
+        const additionalNote = "    (test note)";
+        const result = createDbMechanismInstructions(examples, additionalNote);
+
+        const lines = result.split("\n");
+        const suffixIndex = lines.indexOf(BASE_DB_MECHANISM_SUFFIX);
+        const noteIndex = lines.indexOf(additionalNote);
+
+        expect(suffixIndex).toBeLessThan(noteIndex);
+      });
+    });
+
+    describe("real-world usage patterns", () => {
+      it("should match Java DB mechanism mapping pattern", () => {
+        const examples = [
+          "      - Uses JDBC driver / JDBC API classes => mechanism: 'JDBC'",
+          "      - Uses Spring Data repositories => mechanism: 'SPRING-DATA'",
+        ] as const;
+        const additionalNote =
+          "    (note, JMS and JNDI are not related to interacting with a database)";
+        const result = createDbMechanismInstructions(examples, additionalNote);
+
+        expect(result).toContain("JDBC");
+        expect(result).toContain("SPRING-DATA");
+        expect(result).toContain("JMS and JNDI");
+        expect(result).toContain("mechanism: 'NONE'");
+      });
+
+      it("should match JavaScript DB mechanism mapping pattern", () => {
+        const examples = [
+          "      - Uses Mongoose schemas/models => mechanism: 'MONGOOSE'",
+          "      - Uses Prisma Client => mechanism: 'PRISMA'",
+        ] as const;
+        const result = createDbMechanismInstructions(examples);
+
+        expect(result).toContain("MONGOOSE");
+        expect(result).toContain("PRISMA");
+        expect(result).not.toContain("JMS and JNDI");
+      });
+
+      it("should produce consistent output for the same input", () => {
+        const examples = ["      - Test => mechanism: 'TEST'"] as const;
+        const result1 = createDbMechanismInstructions(examples);
+        const result2 = createDbMechanismInstructions(examples);
+
+        expect(result1).toBe(result2);
+      });
     });
   });
 });

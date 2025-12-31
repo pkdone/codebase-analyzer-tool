@@ -50,4 +50,3 @@ describe("Application Constants", () => {
     });
   });
 });
-

@@ -29,4 +29,3 @@ export const LLAMA_EOT_TOKEN = "<|eot_id|>";
  */
 export const LLAMA_SYSTEM_MESSAGE =
   "You are a helpful software engineering and programming assistant, and you need to answer the question given without attempting to fill in any blanks in the question";
-

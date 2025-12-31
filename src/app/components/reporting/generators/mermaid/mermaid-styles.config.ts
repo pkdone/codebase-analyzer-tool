@@ -28,4 +28,3 @@ export function buildStyleDefinitions(): string {
 export function applyStyle(nodeId: string, className: string): string {
   return `    class ${nodeId} ${className}`;
 }
-

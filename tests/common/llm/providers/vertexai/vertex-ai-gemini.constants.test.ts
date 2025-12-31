@@ -75,4 +75,3 @@ describe("Vertex AI Gemini Constants", () => {
     });
   });
 });
-

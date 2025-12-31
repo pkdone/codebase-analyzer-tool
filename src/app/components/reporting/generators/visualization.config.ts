@@ -80,4 +80,3 @@ export const visualizationConfig = {
     WIDTH_PER_ACTIVITY: 200,
   },
 } as const;
-

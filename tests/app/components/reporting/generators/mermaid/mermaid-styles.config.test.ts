@@ -123,4 +123,3 @@ describe("mermaid-styles.config", () => {
     });
   });
 });
-

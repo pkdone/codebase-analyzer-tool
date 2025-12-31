@@ -6,7 +6,11 @@ export interface DeepMapObjectOptions {
    * Transform a key before processing its value.
    * Return the new key, or null/undefined to skip the property.
    */
-  transformKey?: (key: string, value: unknown, obj: Record<string, unknown>) => string | null | undefined;
+  transformKey?: (
+    key: string,
+    value: unknown,
+    obj: Record<string, unknown>,
+  ) => string | null | undefined;
   /**
    * Determine if a property should be included in the result.
    * Return false to omit the property.
@@ -197,4 +201,3 @@ export function deepMapObject(
   }
   return result;
 }
-

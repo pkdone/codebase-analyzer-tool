@@ -110,4 +110,3 @@ ${LLAMA_HEADER_START_TOKEN}${userRole}${LLAMA_HEADER_END_TOKEN}${userPrompt}${LL
     });
   });
 });
-

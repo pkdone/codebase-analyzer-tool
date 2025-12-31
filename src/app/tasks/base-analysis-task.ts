@@ -37,17 +37,12 @@ export abstract class BaseAnalysisTask implements Task {
     console.log(`${this.getStartMessage()}: ${this.projectName}`);
     this.llmStats.displayLLMStatusSummary();
     await clearDirectory(outputConfig.OUTPUT_DIR);
-
     await this.runAnalysis();
-
     console.log(this.getFinishMessage());
     console.log("Summary of LLM invocations outcomes:");
     this.llmStats.displayLLMStatusDetails();
-
     const postMessage = this.getPostAnalysisMessage();
-    if (postMessage) {
-      console.log(postMessage);
-    }
+    if (postMessage) console.log(postMessage);
   }
 
   /**

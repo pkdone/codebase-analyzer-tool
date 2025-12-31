@@ -1,4 +1,7 @@
-import { deepMap, deepMapObject } from "../../../../../src/common/llm/json-processing/utils/object-traversal";
+import {
+  deepMap,
+  deepMapObject,
+} from "../../../../../src/common/llm/json-processing/utils/object-traversal";
 
 describe("deepMap", () => {
   describe("primitive handling", () => {
@@ -27,9 +30,15 @@ describe("deepMap", () => {
     });
 
     it("should handle nested arrays", () => {
-      const input = [[1, 2], [3, 4]];
+      const input = [
+        [1, 2],
+        [3, 4],
+      ];
       const result = deepMap(input, (v: unknown) => (typeof v === "number" ? v * 2 : v));
-      expect(result).toEqual([[2, 4], [6, 8]]);
+      expect(result).toEqual([
+        [2, 4],
+        [6, 8],
+      ]);
     });
 
     it("should handle empty arrays", () => {
@@ -117,25 +126,17 @@ describe("deepMapObject", () => {
   describe("property inclusion", () => {
     it("should omit properties when shouldInclude returns false", () => {
       const input = { a: 1, b: null, c: 2 };
-      const result = deepMapObject(
-        input,
-        (v: unknown) => (v === null ? undefined : v),
-        {
-          shouldInclude: (_key: string, val: unknown) => val !== undefined,
-        },
-      );
+      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v), {
+        shouldInclude: (_key: string, val: unknown) => val !== undefined,
+      });
       expect(result).toEqual({ a: 1, c: 2 });
     });
 
     it("should convert null to undefined and omit", () => {
       const input = { name: "foo", groupId: null, nested: { value: null } };
-      const result = deepMapObject(
-        input,
-        (v: unknown) => (v === null ? undefined : v),
-        {
-          shouldInclude: (_key: string, val: unknown) => val !== undefined,
-        },
-      );
+      const result = deepMapObject(input, (v: unknown) => (v === null ? undefined : v), {
+        shouldInclude: (_key: string, val: unknown) => val !== undefined,
+      });
       expect(result).toEqual({ name: "foo", nested: {} });
     });
   });
@@ -143,27 +144,19 @@ describe("deepMapObject", () => {
   describe("key transformation", () => {
     it("should transform keys when transformKey is provided", () => {
       const input = { type_: "string", name_: "param1", value: 123 };
-      const result = deepMapObject(
-        input,
-        (v: unknown) => v,
-        {
-          transformKey: (key: string) => (key.endsWith("_") && key.length > 1 ? key.slice(0, -1) : key),
-        },
-      );
+      const result = deepMapObject(input, (v: unknown) => v, {
+        transformKey: (key: string) =>
+          key.endsWith("_") && key.length > 1 ? key.slice(0, -1) : key,
+      });
       expect(result).toEqual({ type: "string", name: "param1", value: 123 });
     });
 
     it("should skip properties when transformKey returns null", () => {
       const input = { keep: "value", skip: "value" };
-      const result = deepMapObject(
-        input,
-        (v: unknown) => v,
-        {
-          transformKey: (key: string) => (key === "skip" ? null : key),
-        },
-      );
+      const result = deepMapObject(input, (v: unknown) => v, {
+        transformKey: (key: string) => (key === "skip" ? null : key),
+      });
       expect(result).toEqual({ keep: "value" });
     });
   });
 });
-

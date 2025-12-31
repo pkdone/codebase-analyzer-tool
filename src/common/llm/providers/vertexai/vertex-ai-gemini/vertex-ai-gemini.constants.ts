@@ -27,4 +27,3 @@ export const VERTEXAI_TERMINAL_FINISH_REASONS: readonly FinishReason[] = [
  * When set, uses the base API endpoint without regional prefix.
  */
 export const VERTEXAI_GLOBAL_LOCATION = "global";
-

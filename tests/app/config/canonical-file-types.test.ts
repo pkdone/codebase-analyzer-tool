@@ -89,4 +89,3 @@ describe("canonical-file-types", () => {
     });
   });
 });
-
