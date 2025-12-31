@@ -21,7 +21,6 @@ export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
   instructions: readonly string[];
 }
 
-
 /**
  * Centralized configuration for all source prompt definitions.
  * This replaces the individual prompt definition files with a data-driven approach.

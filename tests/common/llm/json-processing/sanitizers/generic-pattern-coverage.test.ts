@@ -397,4 +397,3 @@ _ADDITIONAL_PROPERTIES
     });
   });
 });
-

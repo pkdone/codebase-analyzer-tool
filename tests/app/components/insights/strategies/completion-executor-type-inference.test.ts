@@ -314,7 +314,9 @@ describe("completion-executor type inference improvements", () => {
     it("should return null with correct type when LLM returns err", async () => {
       const category: AppSummaryCategoryEnum = "appDescription";
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
 
       const result = await executeInsightCompletion(mockLLMRouter, category, [
         "* file1.ts: Implementation",

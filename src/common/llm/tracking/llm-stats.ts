@@ -28,7 +28,10 @@ const STATUS_DEFINITIONS: Readonly<Record<keyof LLMStatsCategoriesBase, StatusDe
     symbol: "~",
   },
   CROP: { description: "Cropping prompt due to excessive size, before resending", symbol: "-" },
-  JSON_MUTATED: { description: "LLM response was mutated to force it to be valid JSON", symbol: "#" },
+  JSON_MUTATED: {
+    description: "LLM response was mutated to force it to be valid JSON",
+    symbol: "#",
+  },
 } as const;
 
 /**

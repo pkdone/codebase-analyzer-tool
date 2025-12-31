@@ -146,7 +146,9 @@ describe("queryCodebaseWithQuestion", () => {
 
       mockLLMRouter.generateEmbeddings.mockResolvedValue(mockVector);
       mockSourcesRepository.vectorSearchProjectSourcesRawContent.mockResolvedValue(mockSourceFiles);
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No insight generated")));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
+        err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No insight generated")),
+      );
 
       // Act
       const result = await queryCodebaseWithQuestion(

@@ -10,4 +10,3 @@ export {
   mapResult,
   mapError,
 } from "./result.types";
-

@@ -37,7 +37,10 @@ export interface TextChunkingConfig {
  * console.log(`Split into ${chunks.length} chunks`);
  * ```
  */
-export function chunkTextByTokenLimit(items: readonly string[], config: TextChunkingConfig): string[][] {
+export function chunkTextByTokenLimit(
+  items: readonly string[],
+  config: TextChunkingConfig,
+): string[][] {
   const chunks: string[][] = [];
   let currentChunk: string[] = [];
   let currentTokenCount = 0;

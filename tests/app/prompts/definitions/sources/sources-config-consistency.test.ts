@@ -44,13 +44,10 @@ describe("Source Config Consistency", () => {
   }
 
   describe("Standard Code File Types", () => {
-    it.each(STANDARD_CODE_TYPES)(
-      "%s should have exactly 5 instruction blocks",
-      (fileType) => {
-        const config = sourceConfigMap[fileType];
-        expect(config.instructions).toHaveLength(5);
-      },
-    );
+    it.each(STANDARD_CODE_TYPES)("%s should have exactly 5 instruction blocks", (fileType) => {
+      const config = sourceConfigMap[fileType];
+      expect(config.instructions).toHaveLength(5);
+    });
 
     it.each(STANDARD_CODE_TYPES)(
       "%s should have instructions in the standard order",
@@ -62,33 +59,27 @@ describe("Source Config Consistency", () => {
       },
     );
 
-    it.each(STANDARD_CODE_TYPES)(
-      "%s should use commonSourceAnalysisSchema",
-      (fileType) => {
-        const config = sourceConfigMap[fileType];
+    it.each(STANDARD_CODE_TYPES)("%s should use commonSourceAnalysisSchema", (fileType) => {
+      const config = sourceConfigMap[fileType];
 
-        // Get the shape of both schemas
-        const configSchemaShape = Object.keys(
-          (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
-        );
-        const commonSchemaShape = Object.keys(
-          (commonSourceAnalysisSchema as z.ZodObject<z.ZodRawShape>).shape,
-        );
+      // Get the shape of both schemas
+      const configSchemaShape = Object.keys(
+        (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
+      );
+      const commonSchemaShape = Object.keys(
+        (commonSourceAnalysisSchema as z.ZodObject<z.ZodRawShape>).shape,
+      );
 
-        // They should have the same fields
-        expect(configSchemaShape.sort()).toEqual(commonSchemaShape.sort());
-      },
-    );
+      // They should have the same fields
+      expect(configSchemaShape.sort()).toEqual(commonSchemaShape.sort());
+    });
 
-    it.each(STANDARD_CODE_TYPES)(
-      "%s should have non-empty contentDesc",
-      (fileType) => {
-        const config = sourceConfigMap[fileType];
-        expect(config.contentDesc).toBeTruthy();
-        expect(typeof config.contentDesc).toBe("string");
-        expect(config.contentDesc.length).toBeGreaterThan(0);
-      },
-    );
+    it.each(STANDARD_CODE_TYPES)("%s should have non-empty contentDesc", (fileType) => {
+      const config = sourceConfigMap[fileType];
+      expect(config.contentDesc).toBeTruthy();
+      expect(typeof config.contentDesc).toBe("string");
+      expect(config.contentDesc.length).toBeGreaterThan(0);
+    });
   });
 
   describe("All Source Configs Validity", () => {
@@ -112,17 +103,14 @@ describe("Source Config Consistency", () => {
       expect(typeof config.responseSchema.parse).toBe("function");
     });
 
-    it.each(allConfigKeys)(
-      "%s should have all instructions with section titles",
-      (key) => {
-        const config = sourceConfigMap[key];
-        for (const instruction of config.instructions) {
-          const title = extractSectionTitle(instruction);
-          expect(title).not.toBeNull();
-          expect(title!.length).toBeGreaterThan(0);
-        }
-      },
-    );
+    it.each(allConfigKeys)("%s should have all instructions with section titles", (key) => {
+      const config = sourceConfigMap[key];
+      for (const instruction of config.instructions) {
+        const title = extractSectionTitle(instruction);
+        expect(title).not.toBeNull();
+        expect(title!.length).toBeGreaterThan(0);
+      }
+    });
   });
 
   describe("Non-Standard File Types", () => {
@@ -151,13 +139,10 @@ describe("Source Config Consistency", () => {
       "default",
     ] as const;
 
-    it.each(NON_STANDARD_TYPES)(
-      "%s should have at least 1 instruction block",
-      (fileType) => {
-        const config = sourceConfigMap[fileType];
-        expect(config.instructions.length).toBeGreaterThanOrEqual(1);
-      },
-    );
+    it.each(NON_STANDARD_TYPES)("%s should have at least 1 instruction block", (fileType) => {
+      const config = sourceConfigMap[fileType];
+      expect(config.instructions.length).toBeGreaterThanOrEqual(1);
+    });
 
     it.each(NON_STANDARD_TYPES)(
       "%s should have a specific schema (not commonSourceAnalysisSchema)",
@@ -211,17 +196,12 @@ describe("Source Config Consistency", () => {
       expect(sectionTitles).toContain(INSTRUCTION_SECTION_TITLES.SCHEDULED_JOBS);
     });
 
-    it.each(SCRIPT_TYPES)(
-      "%s should have scheduledJobs in schema",
-      (fileType) => {
-        const config = sourceConfigMap[fileType];
-        const schemaShape = Object.keys(
-          (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
-        );
+    it.each(SCRIPT_TYPES)("%s should have scheduledJobs in schema", (fileType) => {
+      const config = sourceConfigMap[fileType];
+      const schemaShape = Object.keys((config.responseSchema as z.ZodObject<z.ZodRawShape>).shape);
 
-        expect(schemaShape).toContain("scheduledJobs");
-      },
-    );
+      expect(schemaShape).toContain("scheduledJobs");
+    });
   });
 
   describe("Build Tool File Types", () => {
@@ -239,27 +219,19 @@ describe("Source Config Consistency", () => {
       "makefile",
     ] as const;
 
-    it.each(BUILD_TOOL_TYPES)(
-      "%s should have dependencies in schema",
-      (fileType) => {
-        const config = sourceConfigMap[fileType];
-        const schemaShape = Object.keys(
-          (config.responseSchema as z.ZodObject<z.ZodRawShape>).shape,
-        );
+    it.each(BUILD_TOOL_TYPES)("%s should have dependencies in schema", (fileType) => {
+      const config = sourceConfigMap[fileType];
+      const schemaShape = Object.keys((config.responseSchema as z.ZodObject<z.ZodRawShape>).shape);
 
-        expect(schemaShape).toContain("dependencies");
-      },
-    );
+      expect(schemaShape).toContain("dependencies");
+    });
 
-    it.each(BUILD_TOOL_TYPES)(
-      "%s should have References and Dependencies section",
-      (fileType) => {
-        const config = sourceConfigMap[fileType];
-        const sectionTitles = config.instructions.map(extractSectionTitle);
+    it.each(BUILD_TOOL_TYPES)("%s should have References and Dependencies section", (fileType) => {
+      const config = sourceConfigMap[fileType];
+      const sectionTitles = config.instructions.map(extractSectionTitle);
 
-        expect(sectionTitles).toContain(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS);
-      },
-    );
+      expect(sectionTitles).toContain(INSTRUCTION_SECTION_TITLES.REFERENCES_AND_DEPS);
+    });
   });
 
   describe("JSP File Type", () => {
@@ -319,28 +291,21 @@ describe("Source Config Consistency", () => {
   describe("Instruction Block Format", () => {
     const allConfigKeys = Object.keys(sourceConfigMap) as (keyof SourceConfigMap)[];
 
-    it.each(allConfigKeys)(
-      "%s instructions should follow __Title__ format",
-      (key) => {
-        const config = sourceConfigMap[key];
-        for (const instruction of config.instructions) {
-          expect(instruction).toMatch(/^__[^_]+__/);
-        }
-      },
-    );
+    it.each(allConfigKeys)("%s instructions should follow __Title__ format", (key) => {
+      const config = sourceConfigMap[key];
+      for (const instruction of config.instructions) {
+        expect(instruction).toMatch(/^__[^_]+__/);
+      }
+    });
 
-    it.each(allConfigKeys)(
-      "%s instructions should have content after title",
-      (key) => {
-        const config = sourceConfigMap[key];
-        for (const instruction of config.instructions) {
-          // After "__Title__" there should be newline and content, or just the title
-          const afterTitle = instruction.replace(/^__[^_]+__/, "");
-          // Either empty (title only) or starts with newline
-          expect(afterTitle === "" || afterTitle.startsWith("\n")).toBe(true);
-        }
-      },
-    );
+    it.each(allConfigKeys)("%s instructions should have content after title", (key) => {
+      const config = sourceConfigMap[key];
+      for (const instruction of config.instructions) {
+        // After "__Title__" there should be newline and content, or just the title
+        const afterTitle = instruction.replace(/^__[^_]+__/, "");
+        // Either empty (title only) or starts with newline
+        expect(afterTitle === "" || afterTitle.startsWith("\n")).toBe(true);
+      }
+    });
   });
 });
-

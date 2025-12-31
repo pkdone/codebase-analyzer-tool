@@ -112,7 +112,9 @@ describe("FileSummarizerService", () => {
     });
 
     it("should return err result when LLM returns err", async () => {
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
+        err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")),
+      );
 
       const result = await service.summarize("test.js", "js", "const x = 1;");
 
@@ -132,10 +134,12 @@ describe("FileSummarizerService", () => {
     });
 
     it("should use correct schema from source config map", async () => {
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok({
-        name: "Test",
-        purpose: "Test",
-      }));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
+        ok({
+          name: "Test",
+          purpose: "Test",
+        }),
+      );
 
       await service.summarize("test.js", "js", "const x = 1;");
 

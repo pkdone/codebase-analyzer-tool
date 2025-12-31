@@ -3367,7 +3367,8 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     // Fix generic stray text at end of property (e.g., LLM thought fragments)
     // Pattern: `"propertyName": [\n...],\nstrayword` -> `"propertyName": [\n...],`
     // Generic pattern catches alphanumeric stray text (2-30 chars) appearing after delimiters
-    const strayTextAtEndPattern = /([}\],])\s*\n\s*([a-zA-Z][a-zA-Z0-9_-]{1,29})(\s*)([}\],]|\n|$)/g;
+    const strayTextAtEndPattern =
+      /([}\],])\s*\n\s*([a-zA-Z][a-zA-Z0-9_-]{1,29})(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
       strayTextAtEndPattern,
       (match, delimiter, strayText, _whitespace, after, offset: number) => {

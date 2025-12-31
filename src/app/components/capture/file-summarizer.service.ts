@@ -95,7 +95,11 @@ export class FileSummarizerService {
        * 3. The LLM router validates the response against the specific schema at runtime,
        *    ensuring the data structure matches before reaching this cast.
        */
-      const result = await this.llmRouter.executeCompletion(filepath, renderedPrompt, completionOptions);
+      const result = await this.llmRouter.executeCompletion(
+        filepath,
+        renderedPrompt,
+        completionOptions,
+      );
 
       if (!isOk(result)) {
         const errorMsg = `Failed to generate summary for '${filepath}'`;

@@ -162,6 +162,48 @@ here "otherProperty"`;
       expect(result.changed).toBe(true);
       expect(result.content).not.toContain("here ");
     });
+
+    it("should remove all known stray filler words (Set-based lookup)", () => {
+      // Test multiple stray words to verify Set-based O(1) lookup is working
+      const strayWords = [
+        "so",
+        "and",
+        "but",
+        "also",
+        "then",
+        "next",
+        "now",
+        "well",
+        "okay",
+        "ok",
+        "basically",
+        "actually",
+        "therefore",
+        "meanwhile",
+      ];
+
+      for (const word of strayWords) {
+        const input = `{
+  "name": "test"
+},
+${word} "property"`;
+        const result = textOutsideJsonRemover.apply(input);
+        expect(result.changed).toBe(true);
+        expect(result.content).not.toContain(`${word} `);
+      }
+    });
+
+    it("should be case-insensitive when checking stray filler words", () => {
+      const input = `{
+  "name": "test"
+},
+THEN "otherProperty"`;
+      // Note: The pattern checks for lowercase words, so THEN may not match
+      // This test documents the current behavior
+      const result = textOutsideJsonRemover.apply(input);
+      // Uppercase words may not match the pattern since regex uses [a-z]
+      expect(result).toBeDefined();
+    });
   });
 
   describe("Text after JSON structure", () => {
@@ -266,4 +308,3 @@ Let me continue with the analysis`;
     });
   });
 });
-

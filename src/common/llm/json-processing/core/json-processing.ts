@@ -147,7 +147,7 @@ export function processJson<S extends z.ZodType = z.ZodType<Record<string, unkno
       {
         ...context,
         originalLength: content.length,
-        lastSanitizer: parseResult.steps[parseResult.steps.length - 1],
+        lastSanitizer: parseResult.steps.at(-1),
         diagnosticsCount: parseResult.diagnostics ? parseResult.diagnostics.split(" | ").length : 0,
         responseContentParseError: parseResult.error.cause,
       },

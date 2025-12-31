@@ -62,8 +62,7 @@ describe("commonSourceAnalysisSchema", () => {
         kind: "CLASS",
         namespace: "com.example.TestClass",
         purpose: "Test purpose description that is detailed and informative.",
-        implementation:
-          "Test implementation description with details about how it works.",
+        implementation: "Test implementation description with details about how it works.",
         internalReferences: ["com.example.OtherClass", "com.example.Helper"],
         externalReferences: [
           "org.springframework.context.ApplicationContext",
@@ -296,4 +295,3 @@ describe("commonSourceAnalysisSchema", () => {
     });
   });
 });
-

@@ -11,47 +11,50 @@ import { isInStringAt } from "../../utils/parser-context-utils";
 const MAX_DIAGNOSTICS = 20;
 
 /**
+ * Module-level Set for O(1) lookup of stray filler words.
+ * Only match known stray filler words that commonly appear in LLM output.
+ * This is more conservative than generic detection to avoid false positives.
+ */
+const STRAY_FILLER_WORDS = new Set([
+  "so",
+  "and",
+  "but",
+  "also",
+  "then",
+  "next",
+  "now",
+  "here",
+  "well",
+  "okay",
+  "ok",
+  "yes",
+  "no",
+  "again",
+  "finally",
+  "first",
+  "second",
+  "third",
+  "last",
+  "done",
+  "note",
+  "hint",
+  "basically",
+  "actually",
+  "thus",
+  "hence",
+  "therefore",
+  "meanwhile",
+]);
+
+/**
  * Checks if a word looks like a stray filler word that shouldn't appear before JSON properties.
- * Uses a curated list of known stray filler words rather than generic detection.
+ * Uses a curated Set of known stray filler words for O(1) lookup performance.
  *
  * @param word - The word to check
  * @returns True if the word looks like a stray filler word
  */
 function looksLikeStrayFillerWord(word: string): boolean {
-  const lowerWord = word.toLowerCase();
-  // Only match known stray filler words that commonly appear in LLM output
-  // This is more conservative than generic detection to avoid false positives
-  const strayFillerWords = [
-    "so",
-    "and",
-    "but",
-    "also",
-    "then",
-    "next",
-    "now",
-    "here",
-    "well",
-    "okay",
-    "ok",
-    "yes",
-    "no",
-    "again",
-    "finally",
-    "first",
-    "second",
-    "third",
-    "last",
-    "done",
-    "note",
-    "hint",
-    "basically",
-    "actually",
-    "thus",
-    "hence",
-    "therefore",
-    "meanwhile",
-  ];
-  return strayFillerWords.includes(lowerWord);
+  return STRAY_FILLER_WORDS.has(word.toLowerCase());
 }
 
 /**
@@ -62,10 +65,12 @@ function looksLikeStrayFillerWord(word: string): boolean {
  */
 function isLLMArtifactOrInternalProperty(propertyName: string): boolean {
   // Match patterns: extra_*, llm_*, ai_*, _*, codeSmells, or anything ending with _thoughts/_text/_notes
-  return /^(extra|llm|ai)_[a-z_]+$/i.test(propertyName) ||
-         /^_[a-z_]+$/i.test(propertyName) ||
-         /^codeSmells$/i.test(propertyName) ||
-         /_(thoughts?|text|notes?|info|reasoning|analysis)$/i.test(propertyName);
+  return (
+    /^(extra|llm|ai)_[a-z_]+$/i.test(propertyName) ||
+    /^_[a-z_]+$/i.test(propertyName) ||
+    /^codeSmells$/i.test(propertyName) ||
+    /_(thoughts?|text|notes?|info|reasoning|analysis)$/i.test(propertyName)
+  );
 }
 
 /**
@@ -191,7 +196,8 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
 
     // Pattern 4: LLM thought/metadata markers (both quoted and unquoted)
     // Generic pattern catches _llm_*, _ai_*, *_thought(s), *_reasoning, etc.
-    const llmThoughtPattern = /(}\s*)\n\s*"?(?:_?(?:llm|ai)_[a-z_]+|[a-z_]*_thoughts?|[a-z_]*_reasoning)"?\s*:.*$/si;
+    const llmThoughtPattern =
+      /(}\s*)\n\s*"?(?:_?(?:llm|ai)_[a-z_]+|[a-z_]*_thoughts?|[a-z_]*_reasoning)"?\s*:.*$/is;
     sanitized = sanitized.replace(llmThoughtPattern, (match, closingBrace, offset: number) => {
       if (isInStringAt(offset, sanitized)) {
         return match;
@@ -315,7 +321,9 @@ export const textOutsideJsonRemover: SanitizerStrategy = {
 
         hasChanges = true;
         if (diagnostics.length < MAX_DIAGNOSTICS) {
-          diagnostics.push(`Removed orphaned property '${propertyNameStr}' after corrupted structure`);
+          diagnostics.push(
+            `Removed orphaned property '${propertyNameStr}' after corrupted structure`,
+          );
         }
         return `${delimiterStr},`;
       },

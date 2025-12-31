@@ -212,7 +212,9 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       const summaries = [largeSummary, largeSummary];
 
       // All chunks return err
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
+        err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")),
+      );
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
@@ -233,7 +235,9 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       (mockLLMRouter.executeCompletion as jest.Mock)
         .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity1", description: "Test" }] }))
         .mockResolvedValueOnce(ok({ technologies: [{ name: "Entity2", description: "Test" }] }))
-        .mockResolvedValueOnce(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "REDUCE failed"))); // REDUCE fails
+        .mockResolvedValueOnce(
+          err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "REDUCE failed")),
+        ); // REDUCE fails
 
       await (generator as any).generateAndRecordDataForCategory("technologies", summaries);
 
@@ -271,9 +275,11 @@ describe("InsightsFromDBGenerator - Map-Reduce Strategy", () => {
       ]);
 
       // Mock LLM responses for all categories
-      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(ok({
-        entities: [{ name: "Entity1", description: "Test" }],
-      }));
+      (mockLLMRouter.executeCompletion as jest.Mock).mockResolvedValue(
+        ok({
+          entities: [{ name: "Entity1", description: "Test" }],
+        }),
+      );
 
       await generator.generateAndStoreInsights();
 

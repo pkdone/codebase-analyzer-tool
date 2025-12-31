@@ -199,9 +199,7 @@ describe("Result type and helper functions", () => {
     });
 
     it("should work with async functions", async () => {
-      async function fetchData(
-        shouldFail: boolean,
-      ): Promise<Result<{ data: string }>> {
+      async function fetchData(shouldFail: boolean): Promise<Result<{ data: string }>> {
         if (shouldFail) {
           return err(new Error("Fetch failed"));
         }
@@ -228,4 +226,3 @@ describe("Result type and helper functions", () => {
     });
   });
 });
-

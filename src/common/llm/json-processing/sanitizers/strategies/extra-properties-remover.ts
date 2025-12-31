@@ -66,8 +66,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
     // Pattern 2: Handle unquoted LLM artifact properties
     // Generic pattern matches extra_*, llm_*, ai_*, _* prefixed properties
-    const unquotedArtifactPropertyPattern =
-      /([,{])\s*((?:extra|llm|ai)_[a-z_]+|_[a-z_]+)\s*:\s*/gi;
+    const unquotedArtifactPropertyPattern = /([,{])\s*((?:extra|llm|ai)_[a-z_]+|_[a-z_]+)\s*:\s*/gi;
     let previousUnquoted = "";
     while (previousUnquoted !== sanitized) {
       previousUnquoted = sanitized;
@@ -229,8 +228,7 @@ export const extraPropertiesRemover: SanitizerStrategy = {
 
     // Pattern 3: Handle quoted LLM artifact properties
     // Generic pattern matches "extra_*", "llm_*", "ai_*", "_*" prefixed properties
-    const quotedArtifactPropertyPattern =
-      /([,{])\s*"((?:extra|llm|ai)_[a-z_]+|_[a-z_]+)"\s*:\s*/gi;
+    const quotedArtifactPropertyPattern = /([,{])\s*"((?:extra|llm|ai)_[a-z_]+|_[a-z_]+)"\s*:\s*/gi;
     let previousExtraProperty = "";
     while (previousExtraProperty !== sanitized) {
       previousExtraProperty = sanitized;

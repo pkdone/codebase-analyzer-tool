@@ -73,16 +73,18 @@ describe("CodebaseToDBLoader", () => {
 
     // Mock FileSummarizerService
     mockFileSummarizer = {
-      summarize: jest.fn().mockResolvedValue(ok({
-        namespace: "TestClass",
-        purpose: "Testing component",
-        implementation: "Test implementation",
-        databaseIntegration: {
-          mechanism: "NONE",
-          description: "n/a",
-          codeExample: "n/a",
-        },
-      })),
+      summarize: jest.fn().mockResolvedValue(
+        ok({
+          namespace: "TestClass",
+          purpose: "Testing component",
+          implementation: "Test implementation",
+          databaseIntegration: {
+            mechanism: "NONE",
+            description: "n/a",
+            codeExample: "n/a",
+          },
+        }),
+      ),
     } as unknown as jest.Mocked<FileSummarizerService>;
 
     // Default mock for sortFilesBySize - returns files in same order
@@ -192,7 +194,11 @@ describe("CodebaseToDBLoader", () => {
       mockPath.basename.mockReturnValue("file1.ts");
       mockFileOperations.readFile.mockResolvedValue("const x = 1;");
       mockTextUtils.countLines.mockReturnValue(1);
-      mockFileSummarizer.summarize.mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Failed to generate summary: LLM error")));
+      mockFileSummarizer.summarize.mockResolvedValue(
+        err(
+          new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Failed to generate summary: LLM error"),
+        ),
+      );
 
       await loader.captureCodebaseToDatabase("test-project", "/src", false);
 

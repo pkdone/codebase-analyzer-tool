@@ -17,6 +17,10 @@ export function convertToDisplayName(text: string): string {
 /**
  * Merges an array of string seperated by newlines unless a different sepeator specified.
  */
-export function joinArrayWithSeparators(lines: readonly string[], separator = "\n", prefix = ""): string {
+export function joinArrayWithSeparators(
+  lines: readonly string[],
+  separator = "\n",
+  prefix = "",
+): string {
   return lines.map((line) => `${prefix}${line}`).join(separator);
 }

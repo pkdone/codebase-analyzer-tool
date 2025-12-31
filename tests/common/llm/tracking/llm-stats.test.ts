@@ -102,9 +102,7 @@ describe("LLMStats", () => {
       expect(summary.FAILURE.symbol).toBe("!");
 
       expect(summary.SWITCH).toBeDefined();
-      expect(summary.SWITCH.description).toBe(
-        "Switched to fallback LLM to try to process request",
-      );
+      expect(summary.SWITCH.description).toBe("Switched to fallback LLM to try to process request");
       expect(summary.SWITCH.symbol).toBe("+");
 
       expect(summary.OVERLOAD_RETRY).toBeDefined();
@@ -197,4 +195,3 @@ describe("LLMStats", () => {
     });
   });
 });
-

@@ -65,10 +65,10 @@ export class JobDataProvider {
     }
 
     // Sort jobs by job name for consistent ordering
-    jobsList.sort((a, b) => a.jobName.localeCompare(b.jobName));
+    const sortedJobs = jobsList.toSorted((a, b) => a.jobName.localeCompare(b.jobName));
 
     return {
-      jobs: jobsList,
+      jobs: sortedJobs,
       totalJobs: jobsList.length,
       triggerTypes: Array.from(triggerTypesSet).sort(),
       jobFiles: jobFilePaths,

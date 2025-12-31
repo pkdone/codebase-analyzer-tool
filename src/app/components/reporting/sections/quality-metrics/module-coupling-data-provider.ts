@@ -62,8 +62,9 @@ export class ModuleCouplingDataProvider {
         uniqueModules.add(toModule);
 
         // Initialize coupling map structure and increment reference count
-        couplingMap[fromModule] = couplingMap[fromModule] ?? {};
-        couplingMap[fromModule][toModule] = (couplingMap[fromModule][toModule] ?? 0) + 1;
+        couplingMap[fromModule] ??= {};
+        couplingMap[fromModule][toModule] ??= 0;
+        couplingMap[fromModule][toModule]++;
       }
     }
 
@@ -92,7 +93,7 @@ export class ModuleCouplingDataProvider {
     }
 
     // Sort by reference count (descending), then by module names for consistency
-    couplings.sort((a, b) => {
+    const sortedCouplings = couplings.toSorted((a, b) => {
       if (a.referenceCount !== b.referenceCount) {
         return b.referenceCount - a.referenceCount;
       }
@@ -103,7 +104,7 @@ export class ModuleCouplingDataProvider {
     });
 
     return {
-      couplings,
+      couplings: sortedCouplings,
       totalModules: uniqueModules.size,
       totalCouplings: couplings.length,
       highestCouplingCount,

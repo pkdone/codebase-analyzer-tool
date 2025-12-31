@@ -69,7 +69,9 @@ describe("MapReduceCompletionStrategy", () => {
     it("should return null when all map phases return err", async () => {
       const category: AppSummaryCategoryEnum = "technologies";
 
-      mockLLMRouter.executeCompletion = jest.fn().mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
+      mockLLMRouter.executeCompletion = jest
+        .fn()
+        .mockResolvedValue(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "No response")));
 
       const result = await strategy.generateInsights(category, [
         "* file1.ts: purpose implementation",
@@ -89,7 +91,9 @@ describe("MapReduceCompletionStrategy", () => {
       mockLLMRouter.executeCompletion = jest
         .fn()
         .mockResolvedValueOnce(ok(mockMapResponse))
-        .mockResolvedValueOnce(err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Reduce failed"))); // Reduce returns err
+        .mockResolvedValueOnce(
+          err(new LLMError(LLMErrorCode.BAD_RESPONSE_CONTENT, "Reduce failed")),
+        ); // Reduce returns err
 
       const result = await strategy.generateInsights(category, [
         "* file1.ts: purpose implementation",

@@ -167,4 +167,3 @@ export function mapResult<T, U, E>(result: Result<T, E>, fn: (value: T) => U): R
 export function mapError<T, E, F>(result: Result<T, E>, fn: (error: E) => F): Result<T, F> {
   return result.ok ? result : err(fn(result.error));
 }
-

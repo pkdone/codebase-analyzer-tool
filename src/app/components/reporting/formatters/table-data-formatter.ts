@@ -162,7 +162,9 @@ export function formatPrimitiveValue(value: unknown): string {
  * @param row - The row data object
  * @returns An array of ProcessedTableCell for each column
  */
-export function formatRow(headers: readonly string[], row: Record<string, unknown>): ProcessedTableCell[] {
+export function formatRow(
+  headers: readonly string[],
+  row: Record<string, unknown>,
+): ProcessedTableCell[] {
   return headers.map((key) => formatCell(key, row[key]));
 }
-
