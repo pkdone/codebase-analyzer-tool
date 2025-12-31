@@ -10,7 +10,7 @@ import { clearDirectory } from "../../common/fs/directory-operations";
  * This class implements the template method pattern for tasks that:
  * 1. Log a start message
  * 2. Display LLM status summary
- * 3. Clear the output directory
+ * 3. Clear the output directory (optional, controlled by shouldClearOutputDirectory())
  * 4. Run the analysis-specific logic
  * 5. Log a finish message
  * 6. Display LLM status details
@@ -22,6 +22,7 @@ import { clearDirectory } from "../../common/fs/directory-operations";
  *
  * Optionally, subclasses can override:
  * - `getPostAnalysisMessage()`: Returns an additional message to log after stats (default: null)
+ * - `shouldClearOutputDirectory()`: Whether to clear output directory before analysis (default: true)
  */
 export abstract class BaseAnalysisTask implements Task {
   constructor(
@@ -36,13 +37,24 @@ export abstract class BaseAnalysisTask implements Task {
   async execute(): Promise<void> {
     console.log(`${this.getStartMessage()}: ${this.projectName}`);
     this.llmStats.displayLLMStatusSummary();
-    await clearDirectory(outputConfig.OUTPUT_DIR);
+    if (this.shouldClearOutputDirectory()) {
+      await clearDirectory(outputConfig.OUTPUT_DIR);
+    }
     await this.runAnalysis();
     console.log(this.getFinishMessage());
     console.log("Summary of LLM invocations outcomes:");
     this.llmStats.displayLLMStatusDetails();
     const postMessage = this.getPostAnalysisMessage();
     if (postMessage) console.log(postMessage);
+  }
+
+  /**
+   * Returns whether the output directory should be cleared before running analysis.
+   * Override this in subclasses that don't generate output files (e.g., query tasks).
+   * @returns true to clear the output directory, false to skip clearing
+   */
+  protected shouldClearOutputDirectory(): boolean {
+    return true;
   }
 
   /**

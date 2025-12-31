@@ -22,6 +22,26 @@ export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
 }
 
 /**
+ * Standard response schema for code analysis prompts.
+ * Shared by Java, JavaScript, C#, Python, Ruby, C, and C++ configurations.
+ * This schema captures the common structure needed for code file analysis.
+ */
+const STANDARD_CODE_RESPONSE_SCHEMA = sourceSummarySchema.pick({
+  name: true,
+  kind: true,
+  namespace: true,
+  purpose: true,
+  implementation: true,
+  internalReferences: true,
+  externalReferences: true,
+  publicConstants: true,
+  publicFunctions: true,
+  databaseIntegration: true,
+  integrationPoints: true,
+  codeQualityMetrics: true,
+});
+
+/**
  * Centralized configuration for all source prompt definitions.
  * This replaces the individual prompt definition files with a data-driven approach.
  * Each entry directly defines its responseSchema using sourceSummarySchema.pick().
@@ -33,20 +53,7 @@ export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
 export const sourceConfigMap = {
   java: {
     contentDesc: "JVM code",
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicFunctions: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -79,20 +86,7 @@ export const sourceConfigMap = {
   },
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicFunctions: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -125,20 +119,7 @@ export const sourceConfigMap = {
   },
   csharp: {
     contentDesc: "C# code",
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicFunctions: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -172,20 +153,7 @@ export const sourceConfigMap = {
   },
   python: {
     contentDesc: "Python code",
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicFunctions: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -220,20 +188,7 @@ export const sourceConfigMap = {
   },
   ruby: {
     contentDesc: "Ruby code",
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicFunctions: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -626,20 +581,7 @@ export const sourceConfigMap = {
   },
   c: {
     contentDesc: "C source code",
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicFunctions: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -672,20 +614,7 @@ export const sourceConfigMap = {
   },
   cpp: {
     contentDesc: "C++ source code",
-    responseSchema: sourceSummarySchema.pick({
-      name: true,
-      kind: true,
-      namespace: true,
-      purpose: true,
-      implementation: true,
-      internalReferences: true,
-      externalReferences: true,
-      publicConstants: true,
-      publicFunctions: true,
-      databaseIntegration: true,
-      integrationPoints: true,
-      codeQualityMetrics: true,
-    }),
+    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,

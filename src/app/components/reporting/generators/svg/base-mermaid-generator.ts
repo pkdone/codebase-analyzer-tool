@@ -10,6 +10,32 @@ export interface BaseDiagramOptions {
 }
 
 /**
+ * Configuration for calculating diagram dimensions based on content.
+ */
+export interface DimensionConfig {
+  /** Minimum width of the diagram */
+  minWidth: number;
+  /** Minimum height of the diagram */
+  minHeight: number;
+  /** Width to add per node/element */
+  widthPerNode?: number;
+  /** Height to add per node/element */
+  heightPerNode?: number;
+  /** Maximum allowed width */
+  maxWidth?: number;
+  /** Maximum allowed height */
+  maxHeight?: number;
+}
+
+/**
+ * Result of dimension calculation.
+ */
+export interface CalculatedDimensions {
+  width: number;
+  height: number;
+}
+
+/**
  * Abstract base class for Mermaid-based SVG generators.
  *
  * This class provides common functionality shared by all Mermaid diagram generators:
@@ -70,5 +96,31 @@ export abstract class BaseMermaidGenerator<TOptions extends BaseDiagramOptions> 
    */
   protected mergeOptions(options: TOptions): Required<TOptions> {
     return { ...this.defaultOptions, ...options };
+  }
+
+  /**
+   * Calculate dynamic diagram dimensions based on content size.
+   * Standardizes the common pattern of Math.max(default, count * multiplier)
+   * used across diagram generators for responsive sizing.
+   *
+   * @param nodeCount - Number of nodes/elements in the diagram
+   * @param config - Configuration for dimension calculation
+   * @returns Calculated width and height for the diagram
+   */
+  protected calculateDimensions(nodeCount: number, config: DimensionConfig): CalculatedDimensions {
+    const { minWidth, minHeight, widthPerNode = 0, heightPerNode = 0, maxWidth, maxHeight } = config;
+
+    let width = Math.max(minWidth, nodeCount * widthPerNode);
+    let height = Math.max(minHeight, nodeCount * heightPerNode);
+
+    // Apply maximum constraints if specified
+    if (maxWidth !== undefined) {
+      width = Math.min(width, maxWidth);
+    }
+    if (maxHeight !== undefined) {
+      height = Math.min(height, maxHeight);
+    }
+
+    return { width, height };
   }
 }

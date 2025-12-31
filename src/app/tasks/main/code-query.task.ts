@@ -3,41 +3,48 @@ import { injectable, inject } from "tsyringe";
 import { readAndFilterLines } from "../../../common/fs/file-content-utils";
 import { formatError } from "../../../common/utils/error-formatters";
 import { queryCodebaseWithQuestion } from "../../components/querying/codebase-query-processor";
-import { Task } from "../task.types";
 import { coreTokens, repositoryTokens, llmTokens } from "../../di/tokens";
 import { inputConfig } from "../../prompts/config/input.config";
 import type { SourcesRepository } from "../../repositories/sources/sources.repository.interface";
 import type LLMRouter from "../../../common/llm/llm-router";
+import type LLMStats from "../../../common/llm/tracking/llm-stats";
+import { BaseAnalysisTask } from "../base-analysis-task";
 
 /**
- * Task to query the codebase.
+ * Task to query the codebase using vector search and LLM.
+ * Extends BaseAnalysisTask to share the common lifecycle pattern.
  */
 @injectable()
-export class CodebaseQueryTask implements Task {
+export class CodebaseQueryTask extends BaseAnalysisTask {
   /**
    * Constructor with dependency injection.
    */
   constructor(
-    @inject(coreTokens.ProjectName) private readonly projectName: string,
+    @inject(llmTokens.LLMStats) llmStats: LLMStats,
+    @inject(coreTokens.ProjectName) projectName: string,
     @inject(repositoryTokens.SourcesRepository)
     private readonly sourcesRepository: SourcesRepository,
     @inject(llmTokens.LLMRouter) private readonly llmRouter: LLMRouter,
-  ) {}
+  ) {
+    super(llmStats, projectName);
+  }
 
-  /**
-   * Execute the task - queries the codebase.
-   */
-  async execute(): Promise<void> {
-    await this.queryCodebase();
+  protected getStartMessage(): string {
+    return "Performing vector search and LLM query for project";
+  }
+
+  protected getFinishMessage(): string {
+    return "Finished querying the codebase";
   }
 
   /**
-   * Queries the codebase.
+   * Query tasks don't generate output files, so skip clearing the output directory.
    */
-  private async queryCodebase(): Promise<void> {
-    console.log(
-      `Performing vector search then invoking LLM for optimal results for project: ${this.projectName}`,
-    );
+  protected override shouldClearOutputDirectory(): boolean {
+    return false;
+  }
+
+  protected async runAnalysis(): Promise<void> {
     const questions = await readAndFilterLines(inputConfig.QUESTIONS_PROMPTS_FILEPATH);
     const queryPromises = questions.map(async (question) =>
       queryCodebaseWithQuestion(this.sourcesRepository, this.llmRouter, question, this.projectName),

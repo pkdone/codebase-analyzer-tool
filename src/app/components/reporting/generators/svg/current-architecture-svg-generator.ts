@@ -91,12 +91,22 @@ export class CurrentArchitectureSvgGenerator extends BaseMermaidGenerator<Curren
       ...architectureData.externalDependencies.map((d) => d.name.length + d.type.length),
     );
     const nodeWidth = Math.max(200, maxNameLength * 10);
-    // Width: space for 2 subgraphs side by side plus padding
-    const dynamicWidth = Math.max(opts.width, nodeWidth * 2 + 400);
-    // Height: based on number of vertical nodes
-    const dynamicHeight = Math.max(opts.height, maxVerticalNodes * 120 + 200);
 
-    return this.renderDiagram(mermaidDefinition, dynamicWidth, dynamicHeight);
+    // Width: space for 2 subgraphs side by side plus padding
+    const { width } = this.calculateDimensions(2, {
+      minWidth: opts.width,
+      minHeight: 0,
+      widthPerNode: nodeWidth + 200,
+    });
+    // Height: based on number of vertical nodes
+    const { height } = this.calculateDimensions(maxVerticalNodes, {
+      minWidth: 0,
+      minHeight: opts.height,
+      heightPerNode: 120,
+    });
+    const dynamicHeight = height + 200; // Add padding for layout
+
+    return this.renderDiagram(mermaidDefinition, width, dynamicHeight);
   }
 
   /**

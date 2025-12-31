@@ -12,6 +12,7 @@ class TestAnalysisTask extends BaseAnalysisTask {
     llmStats: LLMStats,
     projectName: string,
     private readonly customPostMessage: string | null = null,
+    private readonly clearOutputDir = true,
   ) {
     super(llmStats, projectName);
   }
@@ -33,6 +34,10 @@ class TestAnalysisTask extends BaseAnalysisTask {
 
   protected override getPostAnalysisMessage(): string | null {
     return this.customPostMessage;
+  }
+
+  protected override shouldClearOutputDirectory(): boolean {
+    return this.clearOutputDir;
   }
 }
 
@@ -168,6 +173,22 @@ describe("BaseAnalysisTask", () => {
       task.runAnalysisError = new Error("Analysis failed");
 
       await expect(task.execute()).rejects.toThrow("Analysis failed");
+    });
+
+    it("should not clear output directory when shouldClearOutputDirectory returns false", async () => {
+      const task = new TestAnalysisTask(mockLlmStats, "test-project", null, false);
+
+      await task.execute();
+
+      expect(clearDirectorySpy).not.toHaveBeenCalled();
+    });
+
+    it("should still run analysis when output directory clearing is disabled", async () => {
+      const task = new TestAnalysisTask(mockLlmStats, "test-project", null, false);
+
+      await task.execute();
+
+      expect(task.runAnalysisCalled).toBe(true);
     });
   });
 });

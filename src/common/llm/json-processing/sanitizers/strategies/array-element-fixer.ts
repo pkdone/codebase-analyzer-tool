@@ -10,8 +10,14 @@ import { processingConfig } from "../../constants/json-processing.config";
 
 /**
  * Checks if position is in an array context by scanning backwards.
+ * This is a specialized implementation for array element fixing that checks
+ * if the position is DIRECTLY inside an array (not inside a nested object).
+ *
+ * Note: This differs from the general `isInArrayContextLocal` utility which checks
+ * if there's ANY containing array. This stricter check is needed to avoid
+ * incorrectly treating object properties as array elements.
  */
-function isInArrayContextAt(offset: number, content: string): boolean {
+function isInArrayContextLocal(offset: number, content: string): boolean {
   const beforeMatch = content.substring(Math.max(0, offset - 500), offset);
   let bracketDepth = 0;
   let braceDepth = 0;
@@ -82,7 +88,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           return match;
         }
 
-        const foundArray = prefixStr === "[" || isInArrayContextAt(offset, sanitized);
+        const foundArray = prefixStr === "[" || isInArrayContextLocal(offset, sanitized);
 
         if (foundArray) {
           let fixedValue = unquotedValueStr;
@@ -132,7 +138,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         const prevLineEnd = beforeMatch.trimEnd();
         const isAfterCommaOrBracket = prevLineEnd.endsWith(",") || prevLineEnd.endsWith("[");
 
-        const foundArray = isInArrayContextAt(offset, sanitized) || isAfterCommaOrBracket;
+        const foundArray = isInArrayContextLocal(offset, sanitized) || isAfterCommaOrBracket;
 
         if (foundArray) {
           let fixedValue = unquotedValueStr;
@@ -175,7 +181,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         const prefixWordsToRemove = ["from", "stop", "package", "import"];
         const lowerPrefixWord = prefixWordStr.toLowerCase();
         const isInArray =
-          prefixStr === "[" || prefixStr.startsWith(",") || isInArrayContextAt(offset, sanitized);
+          prefixStr === "[" || prefixStr.startsWith(",") || isInArrayContextLocal(offset, sanitized);
 
         if (isInArray && prefixWordsToRemove.includes(lowerPrefixWord)) {
           hasChanges = true;
@@ -209,7 +215,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           const elementStr = typeof element === "string" ? element : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-          const foundArray = terminatorStr.includes("]") || isInArrayContextAt(offset, sanitized);
+          const foundArray = terminatorStr.includes("]") || isInArrayContextLocal(offset, sanitized);
 
           if (foundArray && /^[A-Z][A-Z0-9_]+$/.test(elementStr) && elementStr.length > 3) {
             hasChanges = true;
@@ -251,7 +257,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         }
 
         const terminatorStr = typeof terminator === "string" ? terminator : "";
-        const isInArray = terminatorStr.includes("]") || isInArrayContextAt(offset, sanitized);
+        const isInArray = terminatorStr.includes("]") || isInArrayContextLocal(offset, sanitized);
 
         if (isInArray) {
           const value1Str = typeof value1 === "string" ? value1 : "";
@@ -284,7 +290,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         const isInArray =
           terminatorStr.includes("]") ||
           terminatorStr.includes(",") ||
-          isInArrayContextAt(offset, sanitized);
+          isInArrayContextLocal(offset, sanitized);
 
         if (isInArray) {
           const value1Str = typeof value1 === "string" ? value1 : "";

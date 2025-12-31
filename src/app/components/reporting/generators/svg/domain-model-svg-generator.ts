@@ -57,10 +57,13 @@ export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramS
     // Calculate dynamic dimensions based on content
     const nodeCount =
       context.aggregates.length + context.entities.length + context.repositories.length + 1;
-    const dynamicWidth = Math.max(opts.width, nodeCount * domainConfig.WIDTH_PER_NODE);
-    const dynamicHeight = Math.max(opts.height, domainConfig.MIN_HEIGHT);
+    const { width, height } = this.calculateDimensions(nodeCount, {
+      minWidth: opts.width,
+      minHeight: domainConfig.MIN_HEIGHT,
+      widthPerNode: domainConfig.WIDTH_PER_NODE,
+    });
 
-    return this.renderDiagram(mermaidDefinition, dynamicWidth, dynamicHeight);
+    return this.renderDiagram(mermaidDefinition, width, height);
   }
 
   /**
