@@ -226,7 +226,9 @@ export const arrayElementFixer: SanitizerStrategy = {
         const prefixWordsToRemove = ["from", "stop", "package", "import", "and", "or", "the", "a"];
         const lowerPrefixWord = prefixWordStr.toLowerCase();
         const isInArray =
-          prefixStr === "[" || prefixStr.startsWith(",") || isInArrayContextLocal(offset, sanitized);
+          prefixStr === "[" ||
+          prefixStr.startsWith(",") ||
+          isInArrayContextLocal(offset, sanitized);
 
         if (isInArray && prefixWordsToRemove.includes(lowerPrefixWord)) {
           hasChanges = true;
@@ -260,7 +262,8 @@ export const arrayElementFixer: SanitizerStrategy = {
           const elementStr = typeof element === "string" ? element : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
 
-          const foundArray = terminatorStr.includes("]") || isInArrayContextLocal(offset, sanitized);
+          const foundArray =
+            terminatorStr.includes("]") || isInArrayContextLocal(offset, sanitized);
 
           if (foundArray && /^[A-Z][A-Z0-9_]+$/.test(elementStr) && elementStr.length > 3) {
             hasChanges = true;
@@ -358,7 +361,8 @@ export const arrayElementFixer: SanitizerStrategy = {
 
     // Pattern 7: Generic fix for unquoted dot-separated identifiers in arrays
     // This is schema-agnostic and catches any dot-separated identifier
-    const unquotedDotSeparatedPattern = /(\[|,)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)+)(\s*[,\]])/g;
+    const unquotedDotSeparatedPattern =
+      /(\[|,)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)+)(\s*[,\]])/g;
     sanitized = sanitized.replace(
       unquotedDotSeparatedPattern,
       (match, prefix, whitespace, identifier, terminator, offset: number) => {
@@ -375,9 +379,7 @@ export const arrayElementFixer: SanitizerStrategy = {
         if (looksLikeDotSeparatedIdentifier(identifierStr)) {
           hasChanges = true;
           if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(
-              `Quoted unquoted identifier in array: ${identifierStr}`,
-            );
+            diagnostics.push(`Quoted unquoted identifier in array: ${identifierStr}`);
           }
           return `${prefixStr}${whitespaceStr}"${identifierStr}"${terminatorStr}`;
         }

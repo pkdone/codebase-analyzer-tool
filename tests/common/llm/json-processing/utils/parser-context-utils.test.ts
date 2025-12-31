@@ -116,7 +116,7 @@ describe("parser-context-utils", () => {
     });
 
     it("should limit diagnostics to maxDiagnostics", () => {
-      const content = 'a b c d e'; // 5 matches
+      const content = "a b c d e"; // 5 matches
       const result = replaceInContext(
         content,
         /[a-e]/g,
@@ -143,17 +143,11 @@ describe("parser-context-utils", () => {
 
     it("should apply context check when provided", () => {
       // Test that context check can filter replacements based on surrounding content
-      const content = 'START: item1, SKIP: item2, START: item3';
-      const result = replaceInContext(
-        content,
-        /item\d/g,
-        (match) => `[${match}]`,
-        "Wrapped item",
-        {
-          // Only replace items that appear after "START:"
-          contextCheck: (beforeMatch) => beforeMatch.trimEnd().endsWith("START:"),
-        },
-      );
+      const content = "START: item1, SKIP: item2, START: item3";
+      const result = replaceInContext(content, /item\d/g, (match) => `[${match}]`, "Wrapped item", {
+        // Only replace items that appear after "START:"
+        contextCheck: (beforeMatch) => beforeMatch.trimEnd().endsWith("START:"),
+      });
       // Only items after "START:" should be replaced
       expect(result.content).toBe("START: [item1], SKIP: item2, START: [item3]");
       expect(result.changed).toBe(true);

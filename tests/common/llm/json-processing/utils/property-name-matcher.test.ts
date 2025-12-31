@@ -324,4 +324,3 @@ describe("property-name-matcher", () => {
     });
   });
 });
-

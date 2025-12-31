@@ -108,7 +108,14 @@ export abstract class BaseMermaidGenerator<TOptions extends BaseDiagramOptions> 
    * @returns Calculated width and height for the diagram
    */
   protected calculateDimensions(nodeCount: number, config: DimensionConfig): CalculatedDimensions {
-    const { minWidth, minHeight, widthPerNode = 0, heightPerNode = 0, maxWidth, maxHeight } = config;
+    const {
+      minWidth,
+      minHeight,
+      widthPerNode = 0,
+      heightPerNode = 0,
+      maxWidth,
+      maxHeight,
+    } = config;
 
     let width = Math.max(minWidth, nodeCount * widthPerNode);
     let height = Math.max(minHeight, nodeCount * heightPerNode);

@@ -199,9 +199,20 @@ export interface LLMResponseTokensUsage {
 }
 
 /**
- * Type to define the LLM error
+ * Type representing all possible generated content types from LLM responses.
+ *
+ * This union type covers:
+ * - `string`: Raw text responses (TEXT output format)
+ * - `Record<string, unknown>`: JSON object responses
+ * - `unknown[]`: JSON array responses (e.g., from z.array() schemas)
+ * - `null`: Absence of content (error cases, empty responses)
+ *
+ * Note: `unknown[]` covers all array types including `number[]` (embeddings),
+ * `{ name: string }[]` (array of objects), etc. The generic `unknown[]` ensures
+ * type compatibility with `T extends LLMGeneratedContent` constraints when T is
+ * inferred as a specific array type from a Zod schema.
  */
-export type LLMGeneratedContent = string | Record<string, unknown> | number[] | null;
+export type LLMGeneratedContent = string | Record<string, unknown> | unknown[] | null;
 
 /**
  * Helper type to infer the response data type from LLMCompletionOptions.

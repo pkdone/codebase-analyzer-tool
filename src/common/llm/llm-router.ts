@@ -7,6 +7,7 @@ import {
   LLMCompletionOptions,
   BoundLLMFunction,
   ShutdownBehavior,
+  LLMGeneratedContent,
 } from "./types/llm.types";
 import type { LLMProvider, LLMCandidateFunction } from "./types/llm.types";
 import { LLMError, LLMErrorCode } from "./types/llm-errors.types";
@@ -230,14 +231,14 @@ export default class LLMRouter {
     modelQualityOverride?: LLMModelQuality | null,
   ): Promise<string | null>;
 
-  // Implementation signature uses a concrete union type that covers all possible returns.
+  // Implementation signature uses LLMGeneratedContent to cover all possible return types.
   // Type safety for callers is enforced by the overload signatures above.
   async executeCompletion<S extends z.ZodType>(
     resourceName: string,
     prompt: string,
     options: LLMCompletionOptions<S>,
     modelQualityOverride: LLMModelQuality | null = null,
-  ): Promise<Record<string, unknown> | unknown[] | string | null> {
+  ): Promise<LLMGeneratedContent> {
     const { candidatesToUse, candidateFunctions } = getOverriddenCompletionCandidates(
       this.completionCandidates,
       modelQualityOverride,
@@ -273,6 +274,6 @@ export default class LLMRouter {
 
     // Type safety is enforced by the function overloads at the call site.
     // The implementation returns the concrete data, and overloads provide correct types to callers.
-    return result.data as Record<string, unknown> | unknown[] | string;
+    return result.data as LLMGeneratedContent;
   }
 }

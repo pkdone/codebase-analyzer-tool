@@ -162,7 +162,9 @@ export function matchPropertyName(
       const normalizedProp = opts.caseInsensitive ? prop.toLowerCase() : prop;
 
       // Skip if length difference is too large
-      if (Math.abs(normalizedFragment.length - normalizedProp.length) > opts.maxLevenshteinDistance) {
+      if (
+        Math.abs(normalizedFragment.length - normalizedProp.length) > opts.maxLevenshteinDistance
+      ) {
         continue;
       }
 
@@ -273,4 +275,3 @@ export function inferFromShortFragment(
   // Default to first candidate if no known properties match
   return candidates[0];
 }
-
