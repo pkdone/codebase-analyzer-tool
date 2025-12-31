@@ -1,12 +1,16 @@
 /**
  * Strategy for fixing array element issues in JSON.
  * Handles missing quotes, missing commas, and stray text in arrays.
+ *
+ * This refactored version uses generic dot-notation detection instead of
+ * hardcoded package name prefixes, making it more schema-agnostic.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { processingConfig } from "../../constants/json-processing.config";
+import { looksLikeDotSeparatedIdentifier } from "../../utils/property-name-matcher";
 
 /**
  * Checks if position is in an array context by scanning backwards.
@@ -58,6 +62,29 @@ function isInArrayContextLocal(offset: number, content: string): boolean {
 }
 
 /**
+ * Attempts to fix a truncated or corrupted identifier by applying
+ * configured prefix replacements as a fallback.
+ *
+ * @param value - The potentially corrupted identifier
+ * @param prefixReplacements - Map of truncated prefixes to full prefixes
+ * @returns The fixed identifier or the original value
+ */
+function applyPrefixReplacements(
+  value: string,
+  prefixReplacements: Record<string, string>,
+): { fixed: string; wasFixed: boolean } {
+  for (const [prefix, replacement] of Object.entries(prefixReplacements)) {
+    if (value.startsWith(prefix)) {
+      return {
+        fixed: replacement + value.substring(prefix.length),
+        wasFixed: true,
+      };
+    }
+  }
+  return { fixed: value, wasFixed: false };
+}
+
+/**
  * Strategy that fixes array element issues in JSON.
  */
 export const arrayElementFixer: SanitizerStrategy = {
@@ -68,13 +95,15 @@ export const arrayElementFixer: SanitizerStrategy = {
       return { content: input, changed: false, diagnostics: [] };
     }
 
+    // Keep fallback prefix replacements for backwards compatibility
     const PACKAGE_NAME_PREFIX_REPLACEMENTS = config?.packageNamePrefixReplacements ?? {};
 
     let sanitized = input;
     const diagnostics: string[] = [];
     let hasChanges = false;
 
-    // Fix missing opening quotes in array elements
+    // Pattern 1: Fix missing opening quotes in array elements
+    // Uses generic dot-separated identifier detection
     const missingQuoteInArrayPattern = /(\[|,\s*)(\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       missingQuoteInArrayPattern,
@@ -92,21 +121,32 @@ export const arrayElementFixer: SanitizerStrategy = {
 
         if (foundArray) {
           let fixedValue = unquotedValueStr;
-          let foundReplacement = false;
-          for (const [pfx, replacement] of Object.entries(PACKAGE_NAME_PREFIX_REPLACEMENTS)) {
-            if (unquotedValueStr.startsWith(pfx)) {
-              fixedValue = replacement + unquotedValueStr.substring(pfx.length);
-              hasChanges = true;
-              foundReplacement = true;
-              if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-                diagnostics.push(
-                  `Fixed truncated package name in array: ${unquotedValueStr} -> ${fixedValue}`,
-                );
-              }
-              break;
+
+          // Strategy 1: Try prefix replacements FIRST to fix corrupted identifiers
+          // This must come before generic detection because corrupted identifiers
+          // like "orgapache.example.Class" still look like valid dot-separated identifiers
+          const result = applyPrefixReplacements(
+            unquotedValueStr,
+            PACKAGE_NAME_PREFIX_REPLACEMENTS,
+          );
+          if (result.wasFixed) {
+            fixedValue = result.fixed;
+            hasChanges = true;
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
+              diagnostics.push(
+                `Fixed truncated identifier in array: ${unquotedValueStr} -> ${fixedValue}`,
+              );
             }
-          }
-          if (!foundReplacement) {
+          } else if (looksLikeDotSeparatedIdentifier(unquotedValueStr)) {
+            // Strategy 2: Generic dot-separated identifier detection
+            hasChanges = true;
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
+              diagnostics.push(
+                `Fixed missing opening quote for identifier in array: ${unquotedValueStr}"`,
+              );
+            }
+          } else {
+            // Strategy 3: Generic fix for any unquoted array element
             hasChanges = true;
             if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
@@ -121,7 +161,7 @@ export const arrayElementFixer: SanitizerStrategy = {
       },
     );
 
-    // Fix missing opening quotes in newline-separated array elements
+    // Pattern 2: Fix missing opening quotes in newline-separated array elements
     const missingQuoteInArrayNewlinePattern = /(\n\s*)([a-zA-Z][a-zA-Z0-9_.]*)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
       missingQuoteInArrayNewlinePattern,
@@ -141,12 +181,16 @@ export const arrayElementFixer: SanitizerStrategy = {
         const foundArray = isInArrayContextLocal(offset, sanitized) || isAfterCommaOrBracket;
 
         if (foundArray) {
+          // Use generic dot-notation detection
           let fixedValue = unquotedValueStr;
-          for (const [pfx, replacement] of Object.entries(PACKAGE_NAME_PREFIX_REPLACEMENTS)) {
-            if (unquotedValueStr.startsWith(pfx)) {
-              fixedValue = replacement + unquotedValueStr.substring(pfx.length);
-              break;
-            }
+
+          // Try prefix replacements for potentially corrupted identifiers
+          const result = applyPrefixReplacements(
+            unquotedValueStr,
+            PACKAGE_NAME_PREFIX_REPLACEMENTS,
+          );
+          if (result.wasFixed) {
+            fixedValue = result.fixed;
           }
 
           hasChanges = true;
@@ -162,7 +206,7 @@ export const arrayElementFixer: SanitizerStrategy = {
       },
     );
 
-    // Fix words before quoted strings in arrays (like "from" prefix)
+    // Pattern 3: Fix words before quoted strings in arrays (like "from" prefix)
     const wordBeforeQuotedStringInArrayPattern =
       /(\[|,\s*)(\s*)([a-zA-Z]+)\s*"([^"]+)"(\s*,|\s*\])/g;
     sanitized = sanitized.replace(
@@ -178,7 +222,8 @@ export const arrayElementFixer: SanitizerStrategy = {
           return match;
         }
 
-        const prefixWordsToRemove = ["from", "stop", "package", "import"];
+        // Generic pattern: common words that shouldn't precede array elements
+        const prefixWordsToRemove = ["from", "stop", "package", "import", "and", "or", "the", "a"];
         const lowerPrefixWord = prefixWordStr.toLowerCase();
         const isInArray =
           prefixStr === "[" || prefixStr.startsWith(",") || isInArrayContextLocal(offset, sanitized);
@@ -197,7 +242,7 @@ export const arrayElementFixer: SanitizerStrategy = {
       },
     );
 
-    // Fix unquoted constants in arrays (e.g., CRM_URL_TOKEN_KEY)
+    // Pattern 4: Fix unquoted constants in arrays (e.g., CRM_URL_TOKEN_KEY)
     let previousUnquotedArray = "";
     while (previousUnquotedArray !== sanitized) {
       previousUnquotedArray = sanitized;
@@ -247,7 +292,7 @@ export const arrayElementFixer: SanitizerStrategy = {
       );
     }
 
-    // Fix missing commas between array elements (same line)
+    // Pattern 5: Fix missing commas between array elements (same line)
     const missingCommaSameLinePattern = /"([^"]+)"\s+"([^"]+)"(\s*[,\]]|\s*$)/g;
     sanitized = sanitized.replace(
       missingCommaSameLinePattern,
@@ -276,7 +321,7 @@ export const arrayElementFixer: SanitizerStrategy = {
       },
     );
 
-    // Fix missing commas between array elements (newline)
+    // Pattern 6: Fix missing commas between array elements (newline)
     const missingCommaAfterArrayElementPattern =
       /"([^"]+)"(\s*)\n(\s*)"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
     sanitized = sanitized.replace(
@@ -305,6 +350,36 @@ export const arrayElementFixer: SanitizerStrategy = {
             }
             return `"${value1Str}",${newlineWhitespaceStr}"${value2Str}"${terminatorStr}`;
           }
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 7: Generic fix for unquoted dot-separated identifiers in arrays
+    // This is schema-agnostic and catches any dot-separated identifier
+    const unquotedDotSeparatedPattern = /(\[|,)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)+)(\s*[,\]])/g;
+    sanitized = sanitized.replace(
+      unquotedDotSeparatedPattern,
+      (match, prefix, whitespace, identifier, terminator, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const prefixStr = typeof prefix === "string" ? prefix : "";
+        const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
+        const identifierStr = typeof identifier === "string" ? identifier : "";
+        const terminatorStr = typeof terminator === "string" ? terminator : "";
+
+        // Verify it's a valid dot-separated identifier
+        if (looksLikeDotSeparatedIdentifier(identifierStr)) {
+          hasChanges = true;
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
+            diagnostics.push(
+              `Quoted unquoted identifier in array: ${identifierStr}`,
+            );
+          }
+          return `${prefixStr}${whitespaceStr}"${identifierStr}"${terminatorStr}`;
         }
 
         return match;

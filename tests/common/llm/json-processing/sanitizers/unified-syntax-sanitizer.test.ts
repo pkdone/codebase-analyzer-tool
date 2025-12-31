@@ -220,7 +220,11 @@ describe("unifiedSyntaxSanitizer", () => {
 
     it("should fix single character truncations", () => {
       const input = '{e": "value"}';
-      const config = { propertyNameMappings: { e: "name" } };
+      // Single char truncations rely on COMMON_SHORT_FRAGMENTS or fallback mappings
+      const config = {
+        knownProperties: ["name", "type", "value"],
+        propertyNameMappings: { e: "name" },
+      };
       const result = unifiedSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
@@ -756,7 +760,8 @@ extractions.loanproduct.data.LoanProductBorrowerCycleVariationData",
 }`;
 
       const config = {
-        packageNamePrefixReplacements: { extractions: "org.apache.fineract.portfolio" },
+        // Use dot-terminated prefix for precise matching
+        packageNamePrefixReplacements: { "extractions.": "org.apache.fineract.portfolio." },
       };
       const result = unifiedSyntaxSanitizer(input, config);
 
@@ -781,7 +786,8 @@ extractions.loanproduct.data.LoanProductBorrowerCycleVariationData",
 }`;
 
       const config = {
-        packageNamePrefixReplacements: { extractions: "org.apache.fineract.portfolio" },
+        // Use dot-terminated prefix for precise matching
+        packageNamePrefixReplacements: { "extractions.": "org.apache.fineract.portfolio." },
       };
       const result = unifiedSyntaxSanitizer(input, config);
 
@@ -806,7 +812,8 @@ extractions.loanproduct.data.LoanProductBorrowerCycleVariationData",
 }`;
 
       const config = {
-        packageNamePrefixReplacements: { extractions: "org.apache.fineract.portfolio" },
+        // Use dot-terminated prefix for precise matching
+        packageNamePrefixReplacements: { "extractions.": "org.apache.fineract.portfolio." },
       };
       const result = unifiedSyntaxSanitizer(input, config);
 
@@ -939,16 +946,15 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      // Provide config with mappings for short truncations
+      const config = {
+        propertyNameMappings: { se: "purpose" },
+      };
+      const result = unifiedSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       // The sanitizer should fix the truncated property name
-      // "se" is mapped to "purpose" by default (PROPERTY_NAME_MAPPINGS)
-      // Verify it was fixed to a quoted property name (either "name" or "purpose")
       expect(result.content).toMatch(/"\w+":\s*"This method provides read-only access/);
-      // The important thing is that se": is fixed (either removed or replaced)
-      // If se": still exists, it means the pattern didn't match - this is acceptable
-      // as long as the JSON is valid
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
 
@@ -964,6 +970,7 @@ orgapache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationD
 }`;
 
       const config = {
+        knownProperties: ["name", "purpose", "description"],
         propertyNameMappings: { me: "name", pu: "purpose", de: "description" },
       };
       const result = unifiedSyntaxSanitizer(input, config);
@@ -987,15 +994,15 @@ se": "This method provides read-only access to the client's mobile number.",
   ]
 }`;
 
-      const result = unifiedSyntaxSanitizer(input);
+      // Provide config with mappings for short truncations
+      const config = {
+        propertyNameMappings: { se: "purpose" },
+      };
+      const result = unifiedSyntaxSanitizer(input, config);
 
       expect(result.changed).toBe(true);
       // The pattern should fix the truncated property name
-      // In this context (after },), "se" should be mapped to "name" (override)
-      // But if the override doesn't work, it will be "purpose" (default mapping)
-      // The important thing is that it's fixed to a valid quoted property name
       expect(result.content).toMatch(/,\s*"\w+":\s*"This method provides read-only access/);
-      // Verify the JSON is valid - the property name should be fixed
       expect(() => JSON.parse(result.content)).not.toThrow();
     });
   });

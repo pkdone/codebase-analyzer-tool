@@ -1,12 +1,67 @@
 /**
  * Strategy for fixing property name issues in JSON.
  * Handles missing quotes, typos, truncations, and concatenated property names.
+ *
+ * This refactored version uses dynamic property name matching instead of
+ * relying solely on hardcoded lookup tables.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { DELIMITERS, processingConfig } from "../../constants/json-processing.config";
 import { isInStringAt } from "../../utils/parser-context-utils";
+import {
+  matchPropertyName,
+  inferFromShortFragment,
+  looksLikePropertyName,
+} from "../../utils/property-name-matcher";
+
+/**
+ * Attempts to fix a property name using dynamic matching or fallback mappings.
+ *
+ * @param fragment - The potentially corrupted property name
+ * @param knownProperties - List of valid property names
+ * @param fallbackMappings - Optional hardcoded mappings for backwards compatibility
+ * @returns The fixed property name or the original fragment
+ */
+function fixPropertyName(
+  fragment: string,
+  knownProperties: readonly string[],
+  fallbackMappings?: Record<string, string>,
+): string {
+  // Skip fixing if it's already a known property
+  const lowerFragment = fragment.toLowerCase();
+  if (knownProperties.some((p) => p.toLowerCase() === lowerFragment)) {
+    return fragment;
+  }
+
+  // Strategy 1: Try dynamic matching against known properties
+  if (knownProperties.length > 0) {
+    const matchResult = matchPropertyName(fragment, knownProperties);
+    if (matchResult.matched && matchResult.confidence > 0.5) {
+      return matchResult.matched;
+    }
+  }
+
+  // Strategy 2: For very short fragments, try inference
+  if (fragment.length <= 2) {
+    const inferred = inferFromShortFragment(fragment, knownProperties);
+    if (inferred) {
+      return inferred;
+    }
+  }
+
+  // Strategy 3: Fall back to explicit mappings if provided
+  if (fallbackMappings) {
+    const mapped = fallbackMappings[fragment] ?? fallbackMappings[lowerFragment];
+    if (mapped) {
+      return mapped;
+    }
+  }
+
+  // No fix found, return original
+  return fragment;
+}
 
 /**
  * Strategy that fixes various property name issues in JSON.
@@ -19,6 +74,8 @@ export const propertyNameFixer: SanitizerStrategy = {
       return { content: input, changed: false, diagnostics: [] };
     }
 
+    // Extract configuration
+    const knownProperties = config?.knownProperties ?? [];
     const PROPERTY_NAME_MAPPINGS = config?.propertyNameMappings ?? {};
     const PROPERTY_TYPO_CORRECTIONS = config?.propertyTypoCorrections ?? {};
 
@@ -64,7 +121,6 @@ export const propertyNameFixer: SanitizerStrategy = {
         (match, whitespace, propertyName, offset: number) => {
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
-          const lowerPropertyName = propertyNameStr.toLowerCase();
           const propertyNameStart = offset + whitespaceStr.length;
 
           if (
@@ -85,15 +141,13 @@ export const propertyNameFixer: SanitizerStrategy = {
             return match;
           }
 
+          // Use dynamic matching to fix the property name
           let fixedName: string;
-          if (lowerPropertyName.endsWith("_")) {
+          if (propertyNameStr.endsWith("_")) {
             const withoutUnderscore = propertyNameStr.slice(0, -1);
-            fixedName = withoutUnderscore;
+            fixedName = fixPropertyName(withoutUnderscore, knownProperties, PROPERTY_NAME_MAPPINGS);
           } else {
-            fixedName =
-              PROPERTY_NAME_MAPPINGS[propertyNameStr] ||
-              PROPERTY_NAME_MAPPINGS[lowerPropertyName] ||
-              propertyNameStr;
+            fixedName = fixPropertyName(propertyNameStr, knownProperties, PROPERTY_NAME_MAPPINGS);
           }
 
           hasChanges = true;
@@ -126,32 +180,22 @@ export const propertyNameFixer: SanitizerStrategy = {
         if (isAfterPropertyBoundary) {
           const shortNameStr = typeof shortName === "string" ? shortName : "";
           const valueStr = typeof value === "string" ? value : "";
-          const lowerShortName = shortNameStr.toLowerCase();
 
-          let fixedName: string | undefined;
-          if (lowerShortName === "se") {
-            fixedName = "name";
-          } else {
-            fixedName = PROPERTY_NAME_MAPPINGS[lowerShortName];
-          }
+          // Use dynamic inference for short fragments
+          let fixedName = inferFromShortFragment(shortNameStr, knownProperties);
 
+          // Fallback to specific known mappings for common patterns
           if (!fixedName) {
-            const shortNameMappings: Record<string, string> = {
-              e: "name",
-              n: "name",
-              m: "name",
-              me: "name",
-              na: "name",
-              pu: "purpose",
-              de: "description",
-              ty: "type",
-              va: "value",
-            };
-            fixedName = shortNameMappings[lowerShortName];
-          }
-
-          if (!fixedName) {
-            return match;
+            const lowerShortName = shortNameStr.toLowerCase();
+            if (lowerShortName === "se") {
+              fixedName = "name";
+            } else {
+              fixedName = fixPropertyName(shortNameStr, knownProperties, PROPERTY_NAME_MAPPINGS);
+              if (fixedName === shortNameStr) {
+                // No match found, skip this replacement
+                return match;
+              }
+            }
           }
 
           hasChanges = true;
@@ -193,29 +237,34 @@ export const propertyNameFixer: SanitizerStrategy = {
 
           const lowerPropertyName = propertyNameStr.toLowerCase();
           const jsonKeywords = ["true", "false", "null", "undefined"];
-          const looksLikePropertyName =
-            /^[a-zA-Z_$][a-zA-Z0-9_$.-]*$/.test(propertyNameStr) &&
-            !jsonKeywords.includes(lowerPropertyName) &&
-            propertyNameStr.length > 1;
 
-          if (looksLikePropertyName) {
-            hasChanges = true;
-            let quotedValue = valueStr;
-            // Don't quote values that are JSON literals, numbers, or corrupted numeric values
-            if (
-              !/^(true|false|null|\d+|_\d+)$/.test(valueStr) &&
-              !valueStr.startsWith('"') &&
-              !valueStr.startsWith("[") &&
-              !valueStr.startsWith("{")
-            ) {
-              quotedValue = `"${valueStr}"`;
-            }
-
-            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-              diagnostics.push(`Fixed unquoted property name: ${propertyNameStr}: ${valueStr}`);
-            }
-            return `${prefixStr}"${propertyNameStr}": ${quotedValue}${terminatorStr}`;
+          if (!looksLikePropertyName(propertyNameStr) || jsonKeywords.includes(lowerPropertyName)) {
+            return match;
           }
+
+          // Fix the property name using dynamic matching
+          const fixedPropertyName = fixPropertyName(
+            propertyNameStr,
+            knownProperties,
+            PROPERTY_NAME_MAPPINGS,
+          );
+
+          hasChanges = true;
+          let quotedValue = valueStr;
+          // Don't quote values that are JSON literals, numbers, or corrupted numeric values
+          if (
+            !/^(true|false|null|\d+|_\d+)$/.test(valueStr) &&
+            !valueStr.startsWith('"') &&
+            !valueStr.startsWith("[") &&
+            !valueStr.startsWith("{")
+          ) {
+            quotedValue = `"${valueStr}"`;
+          }
+
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
+            diagnostics.push(`Fixed unquoted property name: ${propertyNameStr}: ${valueStr}`);
+          }
+          return `${prefixStr}"${fixedPropertyName}": ${quotedValue}${terminatorStr}`;
         }
 
         return match;
@@ -322,17 +371,18 @@ export const propertyNameFixer: SanitizerStrategy = {
       );
     }
 
-    // Pass 4: Fix truncated property names (quoted)
+    // Pass 4: Fix truncated property names (quoted) using dynamic matching
     const truncatedQuotedPattern = /(\s*)"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*(?=:|,|\})/g;
     sanitized = sanitized.replace(truncatedQuotedPattern, (match, whitespace, propertyName) => {
-      const lowerPropertyName = (propertyName as string).toLowerCase();
-      if (PROPERTY_NAME_MAPPINGS[lowerPropertyName]) {
-        const fixedName = PROPERTY_NAME_MAPPINGS[lowerPropertyName];
+      const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
+
+      // Try dynamic matching first
+      const fixedName = fixPropertyName(propertyNameStr, knownProperties, PROPERTY_NAME_MAPPINGS);
+
+      if (fixedName !== propertyNameStr) {
         hasChanges = true;
         if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-          diagnostics.push(
-            `Fixed truncated property name: ${propertyName as string} -> ${fixedName}`,
-          );
+          diagnostics.push(`Fixed truncated property name: ${propertyNameStr} -> ${fixedName}`);
         }
         return `${whitespace}"${fixedName}"`;
       }
@@ -388,7 +438,7 @@ export const propertyNameFixer: SanitizerStrategy = {
       return `"${fixedName}"`;
     });
 
-    // Pass 5c: Fix property name typos using mappings
+    // Pass 5c: Fix property name typos using typo corrections mapping
     const quotedPropertyPattern = /"([^"]+)"\s*:/g;
     sanitized = sanitized.replace(
       quotedPropertyPattern,
@@ -399,6 +449,7 @@ export const propertyNameFixer: SanitizerStrategy = {
           return match;
         }
 
+        // Check explicit typo corrections first
         if (PROPERTY_TYPO_CORRECTIONS[propertyNameStr]) {
           const fixedName = PROPERTY_TYPO_CORRECTIONS[propertyNameStr];
           hasChanges = true;
@@ -501,10 +552,12 @@ export const propertyNameFixer: SanitizerStrategy = {
             return match;
           }
 
-          const fixedName =
-            PROPERTY_NAME_MAPPINGS[propertyNameStr] ||
-            PROPERTY_NAME_MAPPINGS[lowerPropertyName] ||
-            propertyNameStr;
+          // Use dynamic matching to fix the property name
+          const fixedName = fixPropertyName(
+            propertyNameStr,
+            knownProperties,
+            PROPERTY_NAME_MAPPINGS,
+          );
 
           hasChanges = true;
           if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {

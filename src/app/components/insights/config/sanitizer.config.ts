@@ -12,288 +12,62 @@ import { LLMSanitizerConfig } from "../../../../common/llm/config/llm-module-con
  */
 
 /**
- * Mapping of truncated property name fragments to their full property names.
- * Used by sanitizers to fix cases where property names got truncated
- * in LLM responses (e.g., "purpose" -> "se", "codeSmells" -> "alues").
- */
-export const COMMON_PROPERTY_STARTS: Readonly<Record<string, string>> = {
-  se: "purpose",
-  na: "name",
-  nam: "name",
-  pu: "purpose",
-  purpos: "purpose",
-  purpo: "purpose",
-  de: "description",
-  descript: "description",
-  im: "implementation",
-  implemen: "implementation",
-  pa: "parameters",
-  re: "returnType",
-  retur: "returnType",
-  ty: "type",
-  alues: "codeSmells",
-  lues: "codeSmells",
-  ues: "codeSmells",
-  es: "codeSmells",
-  eferences: "references",
-  refere: "references",
-  refer: "references",
-} as const;
-
-/**
- * Comprehensive mapping of truncated property name fragments to their full property names.
- * This is an extended version that includes more truncation patterns beyond COMMON_PROPERTY_STARTS.
- * Used by the unified syntax sanitizer for property name fixes.
- */
-export const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
-  // === General truncations ===
-  eferences: "references",
-  refere: "references",
-  refer: "references",
-  se: "purpose",
-  nam: "name",
-  na: "name",
-  alues: "codeSmells",
-  lues: "codeSmells",
-  ues: "codeSmells",
-  es: "codeSmells",
-  integra: "integration",
-  integrat: "integration",
-  implemen: "implementation",
-  purpos: "purpose",
-  purpo: "purpose",
-  descript: "description",
-  retur: "return",
-  metho: "functions",
-  method: "functions",
-  functi: "functions",
-  functio: "functions",
-  function: "functions",
-  constan: "constants",
-  consta: "constants",
-  databas: "database",
-  qualit: "quality",
-  metric: "metrics",
-  metri: "metrics",
-  smell: "smells",
-  smel: "smells",
-  complexi: "complexity",
-  complex: "complexity",
-  averag: "average",
-  avera: "average",
-  maxim: "maximum",
-  maxi: "maximum",
-  minim: "minimum",
-  mini: "minimum",
-  lengt: "length",
-  leng: "length",
-  total: "total",
-  tota: "total",
-  clas: "class",
-  interfac: "interface",
-  interfa: "interface",
-  interf: "interface",
-  inter: "interface",
-  namespac: "namespace",
-  namespa: "namespace",
-  namesp: "namespace",
-  names: "namespace",
-  publi: "public",
-  publ: "public",
-  privat: "private",
-  priva: "private",
-  priv: "private",
-  protec: "protected",
-  prote: "protected",
-  prot: "protected",
-  stati: "static",
-  stat: "static",
-  fina: "final",
-  abstrac: "abstract",
-  abstra: "abstract",
-  abst: "abstract",
-  synchronize: "synchronized",
-  synchroniz: "synchronized",
-  synchroni: "synchronized",
-  synchron: "synchronized",
-  synchro: "synchronized",
-  synchr: "synchronized",
-  synch: "synchronized",
-  sync: "synchronized",
-  volatil: "volatile",
-  volati: "volatile",
-  volat: "volatile",
-  vola: "volatile",
-  transien: "transient",
-  transie: "transient",
-  transi: "transient",
-  trans: "transient",
-  tran: "transient",
-  nativ: "native",
-  nati: "native",
-  strictf: "strictfp",
-  strict: "strictfp",
-  stric: "strictfp",
-  stri: "strictfp",
-  e: "name",
-  n: "name",
-  m: "name",
-  am: "name",
-  me: "name",
-  extraReferences: "externalReferences",
-  exterReferences: "externalReferences",
-  externReferences: "externalReferences",
-  externalRefs: "externalReferences",
-  externalRef: "externalReferences",
-  internReferences: "internalReferences",
-  internalRefs: "internalReferences",
-  internalRef: "internalReferences",
-  publMethods: "publicFunctions",
-  publicMeth: "publicFunctions",
-  publicMeths: "publicFunctions",
-  publFunctions: "publicFunctions",
-  publicFunc: "publicFunctions",
-  publicFuncs: "publicFunctions",
-  _publicConstants: "publicConstants",
-  publConstants: "publicConstants",
-  publicConst: "publicConstants",
-  publicConsts: "publicConstants",
-  integrationPt: "integrationPoints",
-  integrationPts: "integrationPoints",
-  integPoints: "integrationPoints",
-  dbIntegration: "databaseIntegration",
-  databaseInteg: "databaseIntegration",
-  qualityMetrics: "codeQualityMetrics",
-  codeMetrics: "codeQualityMetrics",
-  codeQuality: "codeQualityMetrics",
-  ethods: "publicFunctions",
-  thods: "publicFunctions",
-  unctions: "publicFunctions",
-  nctions: "publicFunctions",
-  nstants: "publicConstants",
-  stants: "publicConstants",
-  ants: "publicConstants",
-  egrationPoints: "integrationPoints",
-  grationPoints: "integrationPoints",
-  rationPoints: "integrationPoints",
-  ationPoints: "integrationPoints",
-  ernalReferences: "internalReferences",
-  alReferences: "externalReferences",
-  aseIntegration: "databaseIntegration",
-  seIntegration: "databaseIntegration",
-  QualityMetrics: "codeQualityMetrics",
-  ameters: "parameters",
-  meters: "parameters",
-  eters: "parameters",
-  ferences: "references",
-  pu: "purpose",
-  pur: "purpose",
-  purp: "purpose",
-  de: "description",
-  des: "description",
-  desc: "description",
-  descr: "description",
-  descri: "description",
-  descrip: "description",
-  descripti: "description",
-  descriptio: "description",
-  pa: "parameters",
-  par: "parameters",
-  para: "parameters",
-  param: "parameters",
-  parame: "parameters",
-  paramet: "parameters",
-  paramete: "parameters",
-  re: "returnType",
-  ret: "returnType",
-  retu: "returnType",
-  return: "returnType",
-  returnT: "returnType",
-  returnTy: "returnType",
-  returnTyp: "returnType",
-  im: "implementation",
-  imp: "implementation",
-  impl: "implementation",
-  imple: "implementation",
-  implem: "implementation",
-  impleme: "implementation",
-  implementa: "implementation",
-  implementat: "implementation",
-  implementati: "implementation",
-  implementatio: "implementation",
-} as const;
-
-/**
- * Known property name typo corrections for quoted properties.
- * These handle trailing underscores, double underscores, and common typos.
- */
-export const PROPERTY_TYPO_CORRECTIONS: Readonly<Record<string, string>> = {
-  type_: "type",
-  name_: "name",
-  value_: "value",
-  purpose_: "purpose",
-  description_: "description",
-  parameters_: "parameters",
-  returnType_: "returnType",
-  "return a": "returnType",
-  "return ": "returnType",
-  cyclomaticComplexity_: "cyclomaticComplexity",
-  cyclometicComplexity: "cyclomaticComplexity",
-  cyclometicComplexity_: "cyclomaticComplexity",
-  linesOfCode_: "linesOfCode",
-  codeSmells_: "codeSmells",
-  implementation_: "implementation",
-  namespace_: "namespace",
-  kind_: "kind",
-  internalReferences_: "internalReferences",
-  externalReferences_: "externalReferences",
-  publicConstants_: "publicConstants",
-  publicMethods_: "publicFunctions",
-  publicFunctions_: "publicFunctions",
-  integrationPoints_: "integrationPoints",
-  databaseIntegration_: "databaseIntegration",
-  dataInputFields_: "dataInputFields",
-  codeQualityMetrics_: "codeQualityMetrics",
-  // Common LLM typos for property names
-  nameprobably: "name",
-  namelikely: "name",
-  namemaybe: "name",
-  typeprobably: "type",
-  valueprobably: "value",
-} as const;
-
-/**
  * Known property names from the sourceSummarySchema.
- * Used to validate if an unquoted identifier is likely a property name.
+ * This is the primary configuration for dynamic property name matching.
+ * The sanitizers will use prefix matching, suffix matching, and fuzzy matching
+ * to fix corrupted property names against this list.
+ *
+ * IMPORTANT: Keep this list comprehensive and up-to-date with schema changes.
  */
 export const KNOWN_PROPERTIES: readonly string[] = [
+  // Top-level source summary fields
   "name",
+  "kind",
+  "namespace",
   "purpose",
   "description",
+  "implementation",
+
+  // Reference fields
+  "internalReferences",
+  "externalReferences",
+  "references",
+
+  // Public API fields
+  "publicConstants",
+  "publicFunctions",
+  "publicMethods",
+
+  // Function/method fields
   "parameters",
-  "returntype",
-  "cyclomaticcomplexity",
-  "linesofcode",
-  "codesmells",
+  "returnType",
   "type",
   "value",
-  "returnType",
-  "cyclomaticComplexity",
-  "linesOfCode",
-  "codeSmells",
+
+  // Integration fields
+  "integrationPoints",
+  "databaseIntegration",
   "mechanism",
   "path",
   "method",
   "direction",
-  "requestbody",
-  "responsebody",
-  "internalreferences",
-  "externalreferences",
-  "publicconstants",
-  "publicfunctions",
-  "integrationpoints",
-  "databaseintegration",
-  "codequalitymetrics",
+  "requestBody",
+  "responseBody",
+
+  // Quality metrics fields
+  "codeQualityMetrics",
+  "cyclomaticComplexity",
+  "linesOfCode",
+  "codeSmells",
+  "totalFunctions",
+  "averageComplexity",
+  "maxComplexity",
+  "averageFunctionLength",
+
+  // Database integration fields
+  "tablesAccessed",
+  "operations",
+  "dataInputFields",
 ] as const;
 
 /**
@@ -316,21 +90,120 @@ export const NUMERIC_PROPERTIES: readonly string[] = [
 ] as const;
 
 /**
+ * Property names that are expected to be arrays.
+ * If any of these properties have a string value, they will be converted to an empty array.
+ */
+export const ARRAY_PROPERTY_NAMES: readonly string[] = [
+  "parameters",
+  "dependencies",
+  "references",
+  "internalReferences",
+  "externalReferences",
+  "publicConstants",
+  "publicFunctions",
+  "integrationPoints",
+  "codeSmells",
+  "tablesAccessed",
+  "operations",
+  "dataInputFields",
+] as const;
+
+/**
+ * **Legacy fallback** - Prefer using KNOWN_PROPERTIES with dynamic matching.
+ *
+ * Mapping of truncated property name fragments to their full property names.
+ * Retained for backwards compatibility with specific edge cases not handled by dynamic matching.
+ *
+ * The dynamic matcher handles most truncation patterns (e.g., "purpos" -> "purpose")
+ * automatically via prefix matching. Only add entries here for patterns that:
+ * 1. Cannot be resolved by prefix/suffix/fuzzy matching
+ * 2. Are confirmed to occur in real LLM outputs
+ */
+export const PROPERTY_NAME_MAPPINGS: Readonly<Record<string, string>> = {
+  // Edge cases where the truncation doesn't match any prefix
+  se: "purpose", // "se" could be truncated from "purpo-se" (corrupted)
+  alues: "codeSmells", // Truncated "v-alues" suffix
+  lues: "codeSmells",
+  ues: "codeSmells",
+  es: "codeSmells",
+
+  // LLM hallucination patterns (observed in real outputs)
+  ethods: "publicFunctions",
+  thods: "publicFunctions",
+  unctions: "publicFunctions",
+  nctions: "publicFunctions",
+  nstants: "publicConstants",
+  stants: "publicConstants",
+  ants: "publicConstants",
+
+  // Truncated compound property names
+  egrationPoints: "integrationPoints",
+  grationPoints: "integrationPoints",
+  rationPoints: "integrationPoints",
+  ationPoints: "integrationPoints",
+  ernalReferences: "internalReferences",
+  alReferences: "externalReferences",
+  aseIntegration: "databaseIntegration",
+  seIntegration: "databaseIntegration",
+  QualityMetrics: "codeQualityMetrics",
+
+  // Parameter field truncations
+  ameters: "parameters",
+  meters: "parameters",
+  eters: "parameters",
+  ferences: "references",
+} as const;
+
+/**
+ * **Legacy fallback** - Prefer using knownProperties with fuzzy matching.
+ *
+ * Known property name typo corrections for quoted properties.
+ * These handle specific typos that fuzzy matching might not catch or
+ * where we want deterministic corrections.
+ */
+export const PROPERTY_TYPO_CORRECTIONS: Readonly<Record<string, string>> = {
+  // Trailing underscores (common LLM artifact)
+  type_: "type",
+  name_: "name",
+  value_: "value",
+  purpose_: "purpose",
+  description_: "description",
+  parameters_: "parameters",
+  returnType_: "returnType",
+
+  // Specific observed typos
+  "return a": "returnType",
+  "return ": "returnType",
+  cyclometicComplexity: "cyclomaticComplexity",
+  cyclometicComplexity_: "cyclomaticComplexity",
+
+  // Common LLM continuation artifacts
+  nameprobably: "name",
+  namelikely: "name",
+  namemaybe: "name",
+  typeprobably: "type",
+  valueprobably: "value",
+} as const;
+
+/**
+ * **Domain-specific fallback** - Use sparingly.
+ *
  * Package name prefix replacements for fixing truncated package names.
- * Maps truncated prefixes to their full package name prefixes.
- * These are use-case specific and tied to a particular codebase structure.
+ * This is very specific to Java-style package names and the codebase being analyzed.
+ * Consider removing this in favor of generic dot-notation detection.
  */
 export const PACKAGE_NAME_PREFIX_REPLACEMENTS: Readonly<Record<string, string>> = {
-  "extractions.": "org.apache.fineract.portfolio.",
+  // Only keep essential patterns that generic detection can't handle
   "orgapache.": "org.apache.",
   "orgf.": "org.",
   "orgah.": "org.",
 } as const;
 
 /**
+ * **Domain-specific fallback** - Use sparingly.
+ *
  * Package name typo patterns for fixing common typos in package names.
- * These are use-case specific and tied to a particular codebase structure.
- * Each entry contains a regex pattern, replacement string, and description.
+ * Consider removing this in favor of generic detection.
  */
 export interface PackageNameTypoPattern {
   pattern: RegExp;
@@ -340,46 +213,27 @@ export interface PackageNameTypoPattern {
 
 export const PACKAGE_NAME_TYPO_PATTERNS: readonly PackageNameTypoPattern[] = [
   { pattern: /"orgah\./g, replacement: '"org.', description: "Fixed typo: orgah -> org" },
-  {
-    pattern: /"org\.apachefineract\./g,
-    replacement: '"org.apache.fineract.',
-    description: "Fixed missing dot: org.apachefineract -> org.apache.fineract",
-  },
-  {
-    pattern: /"orgfineract\./g,
-    replacement: '"org.apache.fineract.',
-    description: "Fixed missing package: orgfineract -> org.apache.fineract",
-  },
-  {
-    pattern: /"org\.apachefineract\./g,
-    replacement: '"org.apache.fineract.',
-    description: "Fixed missing dot: org.apachefineract -> org.apache.fineract",
-  },
-] as const;
-
-/**
- * Property names that are expected to be arrays.
- * If any of these properties have a string value, they will be converted to an empty array.
- */
-export const ARRAY_PROPERTY_NAMES: readonly string[] = [
-  "parameters",
-  "dependencies",
-  "references",
 ] as const;
 
 /**
  * Returns the schema-specific sanitizer configuration for code analysis.
  * This provides the domain-specific constants used by the LLM sanitizers
  * when processing code analysis results.
+ *
+ * The configuration prioritizes dynamic matching via knownProperties while
+ * retaining legacy mappings as fallback for edge cases.
  */
 export function getSchemaSpecificSanitizerConfig(): LLMSanitizerConfig {
   return {
-    propertyNameMappings: PROPERTY_NAME_MAPPINGS,
-    propertyTypoCorrections: PROPERTY_TYPO_CORRECTIONS,
+    // Primary configuration: dynamic matching
     knownProperties: KNOWN_PROPERTIES,
     numericProperties: NUMERIC_PROPERTIES,
+    arrayPropertyNames: ARRAY_PROPERTY_NAMES,
+
+    // Legacy fallback configuration
+    propertyNameMappings: PROPERTY_NAME_MAPPINGS,
+    propertyTypoCorrections: PROPERTY_TYPO_CORRECTIONS,
     packageNamePrefixReplacements: PACKAGE_NAME_PREFIX_REPLACEMENTS,
     packageNameTypoPatterns: [...PACKAGE_NAME_TYPO_PATTERNS],
-    arrayPropertyNames: ARRAY_PROPERTY_NAMES,
   };
 }

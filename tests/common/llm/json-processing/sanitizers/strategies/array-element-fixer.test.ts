@@ -40,12 +40,12 @@ describe("arrayElementFixer", () => {
   });
 
   it("should use package name prefix replacements from config", () => {
-    const input = '[org.example.Class"]';
+    const input = '[orgapache.example.Class"]';
     const config = {
-      packageNamePrefixReplacements: { org: "com" },
+      packageNamePrefixReplacements: { "orgapache.": "org.apache." },
     };
     const result = arrayElementFixer.apply(input, config);
-    expect(result.content).toContain("com.example.Class");
+    expect(result.content).toContain("org.apache.example.Class");
     expect(result.changed).toBe(true);
   });
 

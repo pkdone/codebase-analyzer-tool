@@ -1,12 +1,57 @@
 /**
  * Strategy for removing stray content from JSON.
  * Handles AI warnings, package name typos, stray characters, and comment markers.
+ *
+ * This refactored version uses more generic patterns for detecting stray text
+ * instead of hardcoded specific strings, making it more schema-agnostic.
  */
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
 import { processingConfig } from "../../constants/json-processing.config";
+
+/**
+ * Checks if a string looks like stray non-JSON text.
+ * Generic detection that doesn't rely on specific hardcoded words.
+ *
+ * @param text - The text to check
+ * @returns True if the text looks like stray content
+ */
+function looksLikeStrayText(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return false;
+
+  // Single characters (not followed by colon for property context)
+  if (trimmed.length === 1 && /^[a-zA-Z]$/.test(trimmed)) {
+    return true;
+  }
+
+  // Short lowercase words (2-15 chars) that aren't JSON keywords
+  if (/^[a-z][a-z0-9_-]{1,14}$/i.test(trimmed)) {
+    const jsonKeywords = ["true", "false", "null"];
+    if (!jsonKeywords.includes(trimmed.toLowerCase())) {
+      return true;
+    }
+  }
+
+  // Text that looks like a sentence fragment or comment
+  if (/^[a-z][a-z\s]{5,}$/i.test(trimmed) && trimmed.includes(" ")) {
+    return true;
+  }
+
+  // Variable assignment patterns (config-like text)
+  if (/^[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*[^\s]+$/.test(trimmed)) {
+    return true;
+  }
+
+  // YAML-like key: value patterns outside of JSON (using character class to avoid escaping)
+  if (/^[a-z][a-z0-9_-]*:\s+[^"{[]/i.test(trimmed)) {
+    return true;
+  }
+
+  return false;
+}
 
 /**
  * Strategy that removes stray content from JSON.
@@ -26,7 +71,7 @@ export const strayContentRemover: SanitizerStrategy = {
     const diagnostics: string[] = [];
     let hasChanges = false;
 
-    // Fix stray single characters before property names
+    // Pattern 1: Fix stray single characters before property names
     const strayCharBeforePropertyPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z])\s+"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
@@ -61,7 +106,7 @@ export const strayContentRemover: SanitizerStrategy = {
       },
     );
 
-    // Fix stray characters before values
+    // Pattern 2: Fix stray characters before values
     const strayCharBeforeQuotedValuePattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])\s*"([^"]+)"(\s*[,}\]]|[,}\]]|$)/g;
     sanitized = sanitized.replace(
@@ -84,7 +129,7 @@ export const strayContentRemover: SanitizerStrategy = {
       },
     );
 
-    // Fix stray characters before terminators (for numeric properties)
+    // Pattern 3: Fix stray characters before terminators (for numeric properties)
     const strayCharBeforeCommaPattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-zA-Z])(\s*[,}\]]|[,}\]]|$)/g;
     sanitized = sanitized.replace(
@@ -112,7 +157,7 @@ export const strayContentRemover: SanitizerStrategy = {
       },
     );
 
-    // Fix package name typos
+    // Pattern 4: Fix package name typos (fallback mechanism)
     for (const { pattern, replacement, description } of PACKAGE_NAME_TYPO_PATTERNS) {
       if (pattern.test(sanitized)) {
         const beforeFix = sanitized;
@@ -126,7 +171,7 @@ export const strayContentRemover: SanitizerStrategy = {
       }
     }
 
-    // Remove AI-generated content warnings
+    // Pattern 5: Remove AI-generated content warnings (generic pattern)
     const aiWarningPattern =
       /AI-generated\s+content\.\s+Review\s+and\s+use\s+carefully\.\s+Content\s+may\s+be\s+inaccurate\./gi;
     sanitized = sanitized.replace(aiWarningPattern, (match, offset: number) => {
@@ -140,11 +185,11 @@ export const strayContentRemover: SanitizerStrategy = {
       return "";
     });
 
-    // Remove extra_text stray lines
-    const extraTextPattern = /(\n|^)(\s*)(extra_text=[^\n]*)(\s*\n)/g;
+    // Pattern 6: Remove extra_text= stray lines (generic pattern for extra_* attributes)
+    const extraAttributePattern = /(\n|^)(\s*)(extra_[a-z_]+\s*=?\s*[^\n]*)(\s*\n)/gi;
     sanitized = sanitized.replace(
-      extraTextPattern,
-      (match, delimiter, _whitespace, _strayText, newline, offset: number) => {
+      extraAttributePattern,
+      (match, delimiter, _whitespace, strayText, newline, offset: number) => {
         if (isInStringAt(offset, sanitized)) {
           return match;
         }
@@ -152,39 +197,64 @@ export const strayContentRemover: SanitizerStrategy = {
         const newlineStr = typeof newline === "string" ? newline : "";
         hasChanges = true;
         if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-          diagnostics.push("Removed stray text (extra_text)");
+          const preview = typeof strayText === "string" ? strayText.substring(0, 30) : "";
+          diagnostics.push(`Removed stray text (${preview}...)`);
         }
         return `${delimiterStr}${newlineStr}`;
       },
     );
 
-    // Remove other stray text patterns
-    const strayTextPatterns = [
-      {
-        pattern: /([}\],]|\n|^)(\s*)(ovo\s+je\s+json)(\s*\n)/gi,
-        description: "Removed stray text (ovo je json)",
-      },
-    ];
+    // Pattern 7: Generic removal of stray text on its own line between JSON elements
+    // This catches patterns like "trib", "cmethod", "_ADDITIONAL_PROPERTIES"
+    const strayTextOnOwnLinePattern =
+      /([}\],])\s*\n\s*([a-zA-Z_][a-zA-Z0-9_-]{1,30})\s*\n(\s*"|\s*[}\]])/g;
+    sanitized = sanitized.replace(
+      strayTextOnOwnLinePattern,
+      (match, delimiter, strayText, continuation, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
 
-    for (const { pattern, description } of strayTextPatterns) {
-      sanitized = sanitized.replace(
-        pattern,
-        (match, delimiter, _whitespace, _strayText, newline, offset: number) => {
-          if (isInStringAt(offset, sanitized)) {
-            return match;
-          }
+        const strayTextStr = typeof strayText === "string" ? strayText : "";
+
+        // Check if it looks like stray text (not a valid JSON element)
+        if (looksLikeStrayText(strayTextStr)) {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
-          const newlineStr = typeof newline === "string" ? newline : "";
+          const continuationStr = typeof continuation === "string" ? continuation : "";
           hasChanges = true;
           if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
-            diagnostics.push(description);
+            diagnostics.push(`Removed stray text '${strayTextStr}'`);
           }
-          return `${delimiterStr}${newlineStr}`;
-        },
-      );
-    }
+          return `${delimiterStr}\n${continuationStr}`;
+        }
 
-    // Fix comment markers in JSON (like * "property":)
+        return match;
+      },
+    );
+
+    // Pattern 8: Remove YAML-like blocks embedded in JSON
+    // e.g., "semantically-similar-code-detection-results:" followed by indented YAML
+    const yamlBlockPattern =
+      /([}\],]|\n)(\s*)([a-z][a-z0-9_-]+:)\s*\n((?:\s+-\s+[^\n]+\n?)+)(\s*")/gi;
+    sanitized = sanitized.replace(
+      yamlBlockPattern,
+      (match, delimiter, _whitespace, yamlKey, _yamlContent, continuation, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+        const continuationStr = typeof continuation === "string" ? continuation : "";
+        hasChanges = true;
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
+          const keyPreview = typeof yamlKey === "string" ? yamlKey.substring(0, 30) : "";
+          diagnostics.push(`Removed YAML block: ${keyPreview}...`);
+        }
+        return `${delimiterStr}\n${continuationStr}`;
+      },
+    );
+
+    // Pattern 9: Fix comment markers in JSON (like * "property":)
     const commentMarkerPattern = /([}\],]|\n|^)(\s*)\*(\s+)"([a-zA-Z_$][^"]+)"(\s*[,:])/g;
     sanitized = sanitized.replace(
       commentMarkerPattern,
@@ -232,6 +302,35 @@ export const strayContentRemover: SanitizerStrategy = {
             return `${finalWhitespace}"${propertyNameStr}"${terminatorStr}`;
           }
           return `${delimiterStr}${finalWhitespace}"${propertyNameStr}"${terminatorStr}`;
+        }
+
+        return match;
+      },
+    );
+
+    // Pattern 10: Generic removal of sentence-like text before properties
+    // This catches LLM commentary like "there are more methods, but I will stop here"
+    const sentenceBeforePropertyPattern =
+      /([}\],])\s*\n\s*([a-z][a-z\s,.'!?-]{10,60})\s*\n(\s*"[a-zA-Z_$])/gi;
+    sanitized = sanitized.replace(
+      sentenceBeforePropertyPattern,
+      (match, delimiter, sentenceText, continuation, offset: number) => {
+        if (isInStringAt(offset, sanitized)) {
+          return match;
+        }
+
+        const sentenceStr = typeof sentenceText === "string" ? sentenceText.trim() : "";
+
+        // Check if it looks like a sentence (contains spaces, doesn't look like JSON)
+        if (sentenceStr.includes(" ") && sentenceStr.length > 10) {
+          const delimiterStr = typeof delimiter === "string" ? delimiter : "";
+          const continuationStr = typeof continuation === "string" ? continuation : "";
+          hasChanges = true;
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
+            const preview = sentenceStr.substring(0, 30);
+            diagnostics.push(`Removed LLM commentary: "${preview}..."`);
+          }
+          return `${delimiterStr}\n${continuationStr}`;
         }
 
         return match;
