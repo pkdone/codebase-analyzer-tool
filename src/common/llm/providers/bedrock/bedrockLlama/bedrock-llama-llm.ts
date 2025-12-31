@@ -2,17 +2,13 @@ import { llmConfig } from "../../../config/llm.config";
 import BaseBedrockLLM from "../common/base-bedrock-llm";
 import { z } from "zod";
 import { isBedrockLlamaProviderConfig } from "./bedrock-llama.types";
-
-/**
- * Configuration constants for AWS Bedrock Llama models.
- * Contains chat template tokens and formatting constants specific to Llama.
- */
-const LLAMA_BEGIN_TOKEN = "<|begin_of_text|>";
-const LLAMA_HEADER_START_TOKEN = "<|start_header_id|>";
-const LLAMA_HEADER_END_TOKEN = "<|end_header_id|>";
-const LLAMA_EOT_TOKEN = "<|eot_id|>";
-const LLAMA_SYSTEM_MESSAGE =
-  "You are a helpful software engineering and programming assistant, and you need to answer the question given without attempting to fill in any blanks in the question";
+import {
+  LLAMA_BEGIN_TOKEN,
+  LLAMA_HEADER_START_TOKEN,
+  LLAMA_HEADER_END_TOKEN,
+  LLAMA_EOT_TOKEN,
+  LLAMA_SYSTEM_MESSAGE,
+} from "./bedrock-llama.constants";
 
 /**
  * Zod schema for Llama completion response validation

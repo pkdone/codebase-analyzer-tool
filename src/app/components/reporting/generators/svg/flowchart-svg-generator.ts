@@ -9,6 +9,7 @@ import {
   buildMermaidInitDirective,
 } from "../mermaid/mermaid-definition-builders";
 import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
+import { visualizationConfig } from "../visualization.config";
 
 export interface BusinessProcessActivity {
   activity: string;
@@ -33,8 +34,8 @@ export interface FlowchartSvgOptions {
 @injectable()
 export class FlowchartSvgGenerator {
   private readonly defaultOptions: Required<FlowchartSvgOptions> = {
-    width: 800,
-    height: 200,
+    width: visualizationConfig.flowchart.DEFAULT_WIDTH,
+    height: visualizationConfig.flowchart.DEFAULT_HEIGHT,
   };
 
   constructor(
@@ -61,7 +62,7 @@ export class FlowchartSvgGenerator {
 
     // Render to SVG using mermaid-cli
     const svg = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
-      width: Math.max(opts.width, activities.length * 200),
+      width: Math.max(opts.width, activities.length * visualizationConfig.flowchart.WIDTH_PER_ACTIVITY),
       height: opts.height,
       backgroundColor: DIAGRAM_STYLES.backgroundColor,
     });

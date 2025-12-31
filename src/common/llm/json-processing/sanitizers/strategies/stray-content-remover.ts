@@ -6,9 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
-
-/** Maximum diagnostics to collect */
-const MAX_DIAGNOSTICS = 20;
+import { processingConfig } from "../../constants/json-processing.config";
 
 /**
  * Strategy that removes stray content from JSON.
@@ -51,7 +49,7 @@ export const strayContentRemover: SanitizerStrategy = {
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray character "${strayChar}" before property "${propertyNameStr}"`,
             );
@@ -77,7 +75,7 @@ export const strayContentRemover: SanitizerStrategy = {
         const valueStr = typeof value === "string" ? value : "";
         const terminatorStr = typeof terminator === "string" ? terminator : "";
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Removed stray character "${strayChar}" before value: "${propertyNameStr}"`,
           );
@@ -102,7 +100,7 @@ export const strayContentRemover: SanitizerStrategy = {
         if (NUMERIC_PROPERTIES.includes(lowerPropertyName)) {
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray character "${strayChar}" for numeric property: "${propertyNameStr}"`,
             );
@@ -121,7 +119,7 @@ export const strayContentRemover: SanitizerStrategy = {
         sanitized = sanitized.replace(pattern, replacement);
         if (sanitized !== beforeFix) {
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(description);
           }
         }
@@ -136,7 +134,7 @@ export const strayContentRemover: SanitizerStrategy = {
         return match;
       }
       hasChanges = true;
-      if (diagnostics.length < MAX_DIAGNOSTICS) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push("Removed AI-generated content warning");
       }
       return "";
@@ -153,7 +151,7 @@ export const strayContentRemover: SanitizerStrategy = {
         const delimiterStr = typeof delimiter === "string" ? delimiter : "";
         const newlineStr = typeof newline === "string" ? newline : "";
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push("Removed stray text (extra_text)");
         }
         return `${delimiterStr}${newlineStr}`;
@@ -178,7 +176,7 @@ export const strayContentRemover: SanitizerStrategy = {
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const newlineStr = typeof newline === "string" ? newline : "";
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(description);
           }
           return `${delimiterStr}${newlineStr}`;
@@ -220,7 +218,7 @@ export const strayContentRemover: SanitizerStrategy = {
           const propertyNameStr = typeof propertyName === "string" ? propertyName : "";
           const terminatorStr = typeof terminator === "string" ? terminator : "";
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed comment marker before property: * "${propertyNameStr}"`);
           }
 

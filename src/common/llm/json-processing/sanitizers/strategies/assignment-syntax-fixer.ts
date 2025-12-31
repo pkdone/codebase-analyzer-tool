@@ -6,9 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
-
-/** Maximum diagnostics to collect */
-const MAX_DIAGNOSTICS = 20;
+import { processingConfig } from "../../constants/json-processing.config";
 
 /**
  * Strategy that normalizes property assignment syntax in JSON.
@@ -40,7 +38,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
           const valueStr = typeof value === "string" ? value : "";
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed stray text "${strayTextStr}" directly after colon: "${propertyNameStr}":${strayTextStr}":`,
             );
@@ -91,7 +89,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
         }
 
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Fixed assignment syntax: "${propNameStr}":= -> "${propNameStr}":`);
         }
         return `${quotedPropStr}:${wsAfter}`;
@@ -127,7 +125,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
 
         hasChanges = true;
         const propNameStr = typeof propertyName === "string" ? propertyName : "";
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(`Removed stray minus sign before colon: "${propNameStr}":-`);
         }
         return `${quotedPropStr}: `;
@@ -167,7 +165,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Removed stray text "${strayTextStr}" between colon and value`);
           }
           return `"${propertyNameStr}": "${valueStr}"`;
@@ -216,7 +214,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing quotes around property value: "${propertyNameStr}":${valueStr}"`,
             );
@@ -266,7 +264,7 @@ export const assignmentSyntaxFixer: SanitizerStrategy = {
         }
 
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed unquoted string value: "${propertyNameStr}": ${unquotedValueStr}`,
           );

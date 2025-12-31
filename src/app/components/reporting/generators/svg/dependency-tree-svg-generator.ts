@@ -7,18 +7,7 @@ import { escapeMermaidLabel } from "../mermaid/mermaid-definition-builders";
 import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
 import type { HierarchicalJavaClassDependency } from "../../../../repositories/sources/sources.model";
 import { logOneLineWarning } from "../../../../../common/utils/logging";
-
-/**
- * Maximum depth for dependency tree traversal in Mermaid diagrams.
- * Prevents excessive diagram complexity and rendering issues.
- */
-const MAX_MERMAID_DEPTH = 10;
-
-/**
- * Maximum number of nodes to include in a single Mermaid diagram.
- * Prevents rendering timeout issues with large dependency trees.
- */
-const MAX_NODES_PER_DIAGRAM = 100;
+import { visualizationConfig } from "../visualization.config";
 
 /**
  * Generates SVG images showing dependency trees for Java classes using Mermaid.
@@ -45,10 +34,14 @@ export class DependencyTreeSvgGenerator {
       const filename = this.createSafeFilename(classpath);
       const filepath = path.join(outputDir, `${filename}.svg`);
 
+      const depTreeConfig = visualizationConfig.dependencyTree;
+
       // Count total nodes to determine if we need to limit depth
       const totalNodes = this.countTotalNodes(hierarchicalDependencies);
       const effectiveMaxDepth =
-        totalNodes > MAX_NODES_PER_DIAGRAM ? Math.min(MAX_MERMAID_DEPTH, 5) : MAX_MERMAID_DEPTH;
+        totalNodes > depTreeConfig.MAX_NODES_PER_DIAGRAM
+          ? Math.min(depTreeConfig.MAX_DEPTH, 5)
+          : depTreeConfig.MAX_DEPTH;
 
       // Build mermaid definition
       const mermaidDefinition = this.buildDependencyTreeDefinition(
@@ -58,14 +51,20 @@ export class DependencyTreeSvgGenerator {
       );
 
       // Calculate dynamic dimensions based on content
-      const nodeCount = Math.min(totalNodes, MAX_NODES_PER_DIAGRAM);
-      const dynamicWidth = Math.max(1200, nodeCount * 50);
-      const dynamicHeight = Math.max(800, nodeCount * 30);
+      const nodeCount = Math.min(totalNodes, depTreeConfig.MAX_NODES_PER_DIAGRAM);
+      const dynamicWidth = Math.max(
+        depTreeConfig.DEFAULT_WIDTH,
+        nodeCount * depTreeConfig.WIDTH_PER_NODE,
+      );
+      const dynamicHeight = Math.max(
+        depTreeConfig.DEFAULT_HEIGHT,
+        nodeCount * depTreeConfig.HEIGHT_PER_NODE,
+      );
 
       // Render to SVG using mermaid-cli
       const svgContent = await this.mermaidRenderer.renderToSvg(mermaidDefinition, {
-        width: Math.min(dynamicWidth, 4000),
-        height: Math.min(dynamicHeight, 4000),
+        width: Math.min(dynamicWidth, depTreeConfig.MAX_WIDTH),
+        height: Math.min(dynamicHeight, depTreeConfig.MAX_HEIGHT),
         backgroundColor: "white",
       });
 
@@ -155,17 +154,18 @@ export class DependencyTreeSvgGenerator {
     currentDepth: number,
     maxDepth: number,
   ): void {
+    const depTreeConfig = visualizationConfig.dependencyTree;
+
     if (currentDepth > maxDepth) {
       return;
     }
 
     // Limit the number of children at each level to prevent overly wide diagrams
-    const maxChildrenPerNode = 10;
-    const limitedDependencies = dependencies.slice(0, maxChildrenPerNode);
+    const limitedDependencies = dependencies.slice(0, depTreeConfig.MAX_CHILDREN_PER_NODE);
 
     for (const dep of limitedDependencies) {
       // Stop if we've reached the node limit
-      if (generatedNodes.size >= MAX_NODES_PER_DIAGRAM) {
+      if (generatedNodes.size >= depTreeConfig.MAX_NODES_PER_DIAGRAM) {
         return;
       }
 

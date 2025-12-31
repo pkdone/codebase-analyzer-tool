@@ -5,11 +5,8 @@
 
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
-import { DELIMITERS } from "../../constants/json-processing.config";
+import { DELIMITERS, processingConfig } from "../../constants/json-processing.config";
 import { isInStringAt } from "../../utils/parser-context-utils";
-
-/** Maximum diagnostics to collect */
-const MAX_DIAGNOSTICS = 20;
 
 /**
  * Strategy that fixes various property name issues in JSON.
@@ -48,7 +45,7 @@ export const propertyNameFixer: SanitizerStrategy = {
         }
         const mergedName = allParts.join("");
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Merged concatenated property name: ${allParts.join('" + "')} -> ${mergedName}`,
           );
@@ -100,7 +97,7 @@ export const propertyNameFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed property name with missing opening quote: ${propertyNameStr}" -> "${fixedName}"`,
             );
@@ -160,7 +157,7 @@ export const propertyNameFixer: SanitizerStrategy = {
           hasChanges = true;
           const delimiterStr = typeof delimiter === "string" ? delimiter : "";
           const whitespaceStr = typeof whitespace === "string" ? whitespace : "";
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Fixed truncated property name: ${shortNameStr}" -> "${fixedName}"`);
           }
           return `${delimiterStr}${whitespaceStr}"${fixedName}": "${valueStr}"`;
@@ -214,7 +211,7 @@ export const propertyNameFixer: SanitizerStrategy = {
               quotedValue = `"${valueStr}"`;
             }
 
-            if (diagnostics.length < MAX_DIAGNOSTICS) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(`Fixed unquoted property name: ${propertyNameStr}: ${valueStr}`);
             }
             return `${prefixStr}"${propertyNameStr}": ${quotedValue}${terminatorStr}`;
@@ -269,7 +266,7 @@ export const propertyNameFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing colon: "${propertyNameStr}" "${valueStr}" -> "${propertyNameStr}": "${valueStr}"`,
             );
@@ -317,7 +314,7 @@ export const propertyNameFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Fixed property name with missing colon: "${propertyNameStr} "`);
           }
           return `"${propertyNameStr}": "${valueStr}"`;
@@ -332,7 +329,7 @@ export const propertyNameFixer: SanitizerStrategy = {
       if (PROPERTY_NAME_MAPPINGS[lowerPropertyName]) {
         const fixedName = PROPERTY_NAME_MAPPINGS[lowerPropertyName];
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed truncated property name: ${propertyName as string} -> ${fixedName}`,
           );
@@ -360,7 +357,7 @@ export const propertyNameFixer: SanitizerStrategy = {
         const fixedNameContent = nameWithoutQuotes.replace(/_+$/, "");
         const fixedName = `"${fixedNameContent}"`;
         hasChanges = true;
-        if (diagnostics.length < MAX_DIAGNOSTICS) {
+        if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
           diagnostics.push(
             `Fixed trailing underscore in property name: ${quotedNameStr} -> ${fixedName}`,
           );
@@ -383,7 +380,7 @@ export const propertyNameFixer: SanitizerStrategy = {
       let fixedName = nameWithoutQuotes.replace(/__+/g, "_");
       fixedName = fixedName.replace(/_+$/, "");
       hasChanges = true;
-      if (diagnostics.length < MAX_DIAGNOSTICS) {
+      if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
         diagnostics.push(
           `Fixed double underscores in property name: ${quotedNameStr} -> "${fixedName}"`,
         );
@@ -405,7 +402,7 @@ export const propertyNameFixer: SanitizerStrategy = {
         if (PROPERTY_TYPO_CORRECTIONS[propertyNameStr]) {
           const fixedName = PROPERTY_TYPO_CORRECTIONS[propertyNameStr];
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Fixed property name typo: "${propertyNameStr}" -> "${fixedName}"`);
           }
           return `"${fixedName}":`;
@@ -441,7 +438,7 @@ export const propertyNameFixer: SanitizerStrategy = {
 
         if (embeddedMatchesValue || isKnownPropertyName) {
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed property with embedded value: "${propertyNamePartStr} ${embeddedPartStr}" -> "${propertyNamePartStr}"`,
             );
@@ -510,7 +507,7 @@ export const propertyNameFixer: SanitizerStrategy = {
             propertyNameStr;
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(`Fixed unquoted property name: ${propertyNameStr} -> "${fixedName}"`);
           }
           return `${delimiterStr}${whitespaceStr}"${fixedName}":`;

@@ -13,6 +13,7 @@ import type {
   DomainEntity,
 } from "../../sections/visualizations/domain-model-data-provider";
 import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
+import { visualizationConfig } from "../visualization.config";
 
 export type DomainDiagramSvgOptions = BaseDiagramOptions;
 
@@ -24,8 +25,8 @@ export type DomainDiagramSvgOptions = BaseDiagramOptions;
 @injectable()
 export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramSvgOptions> {
   protected readonly defaultOptions: Required<DomainDiagramSvgOptions> = {
-    width: 1200,
-    height: 600,
+    width: visualizationConfig.domainModel.DEFAULT_WIDTH,
+    height: visualizationConfig.domainModel.DEFAULT_HEIGHT,
   };
 
   constructor(
@@ -48,14 +49,16 @@ export class DomainModelSvgGenerator extends BaseMermaidGenerator<DomainDiagramS
       return this.generateEmptyDiagram("No domain model elements defined");
     }
 
+    const domainConfig = visualizationConfig.domainModel;
+
     // Build mermaid definition
     const mermaidDefinition = this.buildContextDiagramDefinition(context);
 
     // Calculate dynamic dimensions based on content
     const nodeCount =
       context.aggregates.length + context.entities.length + context.repositories.length + 1;
-    const dynamicWidth = Math.max(opts.width, nodeCount * 180);
-    const dynamicHeight = Math.max(opts.height, 400);
+    const dynamicWidth = Math.max(opts.width, nodeCount * domainConfig.WIDTH_PER_NODE);
+    const dynamicHeight = Math.max(opts.height, domainConfig.MIN_HEIGHT);
 
     return this.renderDiagram(mermaidDefinition, dynamicWidth, dynamicHeight);
   }

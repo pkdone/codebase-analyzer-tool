@@ -110,6 +110,12 @@ export const processingConfig = Object.freeze({
    * Prevents stack overflow from deeply nested structures.
    */
   MAX_RECURSION_DEPTH: 4,
+
+  /**
+   * Maximum number of diagnostic messages to collect per sanitizer strategy.
+   * Prevents excessive memory usage when processing large/malformed JSON.
+   */
+  MAX_DIAGNOSTICS_PER_STRATEGY: 20,
 });
 
 /**

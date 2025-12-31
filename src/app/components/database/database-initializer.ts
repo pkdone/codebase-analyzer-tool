@@ -5,7 +5,10 @@ import type { JsonSchema7Type } from "zod-to-json-schema";
 import { coreTokens } from "../../di/tokens";
 import { databaseConfig } from "./database.config";
 import { logOneLineError } from "../../../common/utils/logging";
-import { getJSONSchema as getSourcesJSONSchema } from "../../repositories/sources/sources.model";
+import {
+  getJSONSchema as getSourcesJSONSchema,
+  SOURCE_FIELDS,
+} from "../../repositories/sources/sources.model";
 import { getJSONSchema as getAppSummariesJSONSchema } from "../../repositories/app-summaries/app-summaries.model";
 import {
   VectorSearchFilter,
@@ -55,60 +58,63 @@ export class DatabaseInitializer {
       getAppSummariesJSONSchema(),
     );
 
-    // Data-driven index configuration
+    // Data-driven index configuration using SOURCE_FIELDS constants
     const indexConfigurations: {
       collection: Collection;
       spec: IndexSpecification;
     }[] = [
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, filepath: 1 },
+        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.FILEPATH]: 1 },
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, type: 1 },
+        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.TYPE]: 1 },
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, canonicalType: 1 },
+        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.CANONICAL_TYPE]: 1 },
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, "summary.namespace": 1 },
+        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1 },
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, "summary.publicFunctions": 1 },
+        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_PUBLIC_FUNCTIONS]: 1 },
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, "summary.integrationPoints": 1 },
+        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_INTEGRATION_POINTS]: 1 },
       },
       {
         collection: this.sourcesCollection,
-        spec: { projectName: 1, "summary.publicFunctions": 1 },
-      },
-      {
-        collection: this.sourcesCollection,
-        spec: { projectName: 1, "summary.codeQualityMetrics.fileSmells": 1 },
+        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1, [SOURCE_FIELDS.SUMMARY_PUBLIC_FUNCTIONS]: 1 },
       },
       {
         collection: this.sourcesCollection,
         spec: {
-          projectName: 1,
-          "summary.databaseIntegration": 1,
-          "summary.databaseIntegration.mechanism": 1,
+          [SOURCE_FIELDS.PROJECT_NAME]: 1,
+          [SOURCE_FIELDS.SUMMARY_CODE_QUALITY_FILE_SMELLS]: 1,
+        },
+      },
+      {
+        collection: this.sourcesCollection,
+        spec: {
+          [SOURCE_FIELDS.PROJECT_NAME]: 1,
+          [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION]: 1,
+          [SOURCE_FIELDS.SUMMARY_DB_INTEGRATION_MECHANISM]: 1,
         },
       },
 
       // Add index to optimize graphLookup performance (albeit doesn't query on projectid too)
       {
         collection: this.sourcesCollection,
-        spec: { "summary.namespace": 1 },
+        spec: { [SOURCE_FIELDS.SUMMARY_NAMESPACE]: 1 },
       },
       {
         collection: this.appSummariesCollection,
-        spec: { projectName: 1 },
+        spec: { [SOURCE_FIELDS.PROJECT_NAME]: 1 },
       },
     ];
 
@@ -219,11 +225,11 @@ export class DatabaseInitializer {
     const filters: VectorSearchFilter[] = [
       {
         type: "filter" as const,
-        path: "projectName",
+        path: SOURCE_FIELDS.PROJECT_NAME,
       },
       {
         type: "filter" as const,
-        path: "type",
+        path: SOURCE_FIELDS.TYPE,
       },
     ];
 

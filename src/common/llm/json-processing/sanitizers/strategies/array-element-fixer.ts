@@ -6,9 +6,7 @@
 import type { LLMSanitizerConfig } from "../../../config/llm-module-config.types";
 import type { SanitizerStrategy, StrategyResult } from "../pipeline/sanitizer-pipeline.types";
 import { isInStringAt } from "../../utils/parser-context-utils";
-
-/** Maximum diagnostics to collect */
-const MAX_DIAGNOSTICS = 20;
+import { processingConfig } from "../../constants/json-processing.config";
 
 /**
  * Checks if position is in an array context by scanning backwards.
@@ -94,7 +92,7 @@ export const arrayElementFixer: SanitizerStrategy = {
               fixedValue = replacement + unquotedValueStr.substring(pfx.length);
               hasChanges = true;
               foundReplacement = true;
-              if (diagnostics.length < MAX_DIAGNOSTICS) {
+              if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
                 diagnostics.push(
                   `Fixed truncated package name in array: ${unquotedValueStr} -> ${fixedValue}`,
                 );
@@ -104,7 +102,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           }
           if (!foundReplacement) {
             hasChanges = true;
-            if (diagnostics.length < MAX_DIAGNOSTICS) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(
                 `Fixed missing opening quote in array element: ${unquotedValueStr}"`,
               );
@@ -146,7 +144,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           }
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Fixed missing opening quote in array element (newline): ${unquotedValueStr}"`,
             );
@@ -181,7 +179,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
         if (isInArray && prefixWordsToRemove.includes(lowerPrefixWord)) {
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Removed prefix word '${prefixWordStr}' before quoted string in array`,
             );
@@ -215,7 +213,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
           if (foundArray && /^[A-Z][A-Z0-9_]+$/.test(elementStr) && elementStr.length > 3) {
             hasChanges = true;
-            if (diagnostics.length < MAX_DIAGNOSTICS) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(`Fixed unquoted array element: ${elementStr} -> "${elementStr}"`);
             }
 
@@ -260,7 +258,7 @@ export const arrayElementFixer: SanitizerStrategy = {
           const value2Str = typeof value2 === "string" ? value2 : "";
 
           hasChanges = true;
-          if (diagnostics.length < MAX_DIAGNOSTICS) {
+          if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
             diagnostics.push(
               `Added missing comma between array elements: "${value1Str}" "${value2Str}"`,
             );
@@ -296,7 +294,7 @@ export const arrayElementFixer: SanitizerStrategy = {
 
           if (!terminatorStr.startsWith(",") && !terminatorStr.startsWith("]")) {
             hasChanges = true;
-            if (diagnostics.length < MAX_DIAGNOSTICS) {
+            if (diagnostics.length < processingConfig.MAX_DIAGNOSTICS_PER_STRATEGY) {
               diagnostics.push(`Added missing comma after array element: "${value1Str}"`);
             }
             return `"${value1Str}",${newlineWhitespaceStr}"${value2Str}"${terminatorStr}`;

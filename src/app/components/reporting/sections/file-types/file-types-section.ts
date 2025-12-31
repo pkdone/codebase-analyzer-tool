@@ -11,6 +11,7 @@ import type { PreparedHtmlReportData } from "../../html-report-writer";
 import type { PreparedJsonData } from "../../json-report-writer";
 import type { ReportData } from "../../report-gen.types";
 import { SECTION_NAMES } from "../../reporting.constants";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
 import path from "path";
 
 /**
@@ -36,14 +37,14 @@ export class FileTypesSection implements ReportSection {
   }
 
   /**
-   * Process file types data to show "unknown" for empty file types
+   * Process file types data to show placeholder for empty file types.
    */
   private processFileTypesData(
     fileTypesData: ReportData["fileTypesData"],
   ): ReportData["fileTypesData"] {
     return fileTypesData.map((item) => ({
       ...item,
-      fileType: item.fileType || "unknown",
+      fileType: item.fileType || UNKNOWN_VALUE_PLACEHOLDER,
     }));
   }
 

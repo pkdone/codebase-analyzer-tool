@@ -1,3 +1,5 @@
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
+
 /**
  * Pattern definition for trigger type matching.
  * Each pattern has a match function and the resulting type string.
@@ -40,5 +42,5 @@ export function extractTriggerType(trigger: string): string {
 
   // Default to the first word if no pattern matches
   const firstWord = normalized.split(/[\s:,]/)[0];
-  return firstWord || "unknown";
+  return firstWord || UNKNOWN_VALUE_PLACEHOLDER;
 }

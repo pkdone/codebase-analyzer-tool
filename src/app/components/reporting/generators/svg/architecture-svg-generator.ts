@@ -8,6 +8,7 @@ import {
 } from "../mermaid/mermaid-definition-builders";
 import { buildStyleDefinitions, applyStyle } from "../mermaid/mermaid-styles.config";
 import { BaseMermaidGenerator, type BaseDiagramOptions } from "./base-mermaid-generator";
+import { visualizationConfig } from "../visualization.config";
 
 export interface Microservice {
   name: string;
@@ -39,8 +40,8 @@ export type ArchitectureDiagramSvgOptions = BaseDiagramOptions;
 @injectable()
 export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureDiagramSvgOptions> {
   protected readonly defaultOptions: Required<ArchitectureDiagramSvgOptions> = {
-    width: 1400,
-    height: 500,
+    width: visualizationConfig.architecture.DEFAULT_WIDTH,
+    height: visualizationConfig.architecture.DEFAULT_HEIGHT,
   };
 
   constructor(
@@ -66,13 +67,24 @@ export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureD
     // Build mermaid definition
     const mermaidDefinition = this.buildArchitectureDiagramDefinition(microservices);
 
+    const archConfig = visualizationConfig.architecture;
+
     // Calculate dynamic dimensions based on content - ensure enough width for text
     const maxNameLength = Math.max(...microservices.map((s) => s.name.length));
-    const widthPerService = Math.max(180, maxNameLength * 12);
-    const servicesPerRow = Math.min(microservices.length, 4);
+    const widthPerService = Math.max(
+      archConfig.MIN_WIDTH_PER_SERVICE,
+      maxNameLength * archConfig.CHAR_WIDTH_MULTIPLIER,
+    );
+    const servicesPerRow = Math.min(microservices.length, archConfig.SERVICES_PER_ROW + 1);
     const rows = Math.ceil(microservices.length / servicesPerRow);
-    const dynamicWidth = Math.max(opts.width, servicesPerRow * widthPerService + 100);
-    const dynamicHeight = Math.max(opts.height, rows * 100 + 150);
+    const dynamicWidth = Math.max(
+      opts.width,
+      servicesPerRow * widthPerService + archConfig.WIDTH_PADDING,
+    );
+    const dynamicHeight = Math.max(
+      opts.height,
+      rows * archConfig.HEIGHT_PER_ROW + archConfig.HEIGHT_PADDING,
+    );
 
     return this.renderDiagram(mermaidDefinition, dynamicWidth, dynamicHeight);
   }
@@ -81,6 +93,8 @@ export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureD
    * Build the Mermaid diagram definition for microservices architecture
    */
   private buildArchitectureDiagramDefinition(microservices: Microservice[]): string {
+    const archConfig = visualizationConfig.architecture;
+
     // Use flowchart TB (top-bottom) with horizontal subgraph for better text display
     const lines: string[] = [buildMermaidInitDirective(), "flowchart TB"];
 
@@ -91,12 +105,11 @@ export class ArchitectureSvgGenerator extends BaseMermaidGenerator<ArchitectureD
     lines.push('    subgraph services[" "]');
 
     // Group services into rows for grid layout
-    const servicesPerRow = 3;
     const rows: string[][] = [];
 
-    for (let i = 0; i < microservices.length; i += servicesPerRow) {
+    for (let i = 0; i < microservices.length; i += archConfig.SERVICES_PER_ROW) {
       rows.push(
-        microservices.slice(i, i + servicesPerRow).map((s, idx) => {
+        microservices.slice(i, i + archConfig.SERVICES_PER_ROW).map((s, idx) => {
           return generateNodeId(s.name, i + idx);
         }),
       );

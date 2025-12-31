@@ -44,15 +44,17 @@ describe("BedrockLlamaLLM", () => {
       );
     });
 
-    it("should define local LLAMA constants in the file", () => {
-      expect(fileContent).toContain("const LLAMA_BEGIN_TOKEN");
-      expect(fileContent).toContain("const LLAMA_HEADER_START_TOKEN");
-      expect(fileContent).toContain("const LLAMA_HEADER_END_TOKEN");
-      expect(fileContent).toContain("const LLAMA_EOT_TOKEN");
-      expect(fileContent).toContain("const LLAMA_SYSTEM_MESSAGE");
+    it("should import LLAMA constants from dedicated constants file", () => {
+      // Constants have been centralized into bedrock-llama.constants.ts
+      expect(fileContent).toContain('from "./bedrock-llama.constants"');
+      expect(fileContent).toContain("LLAMA_BEGIN_TOKEN");
+      expect(fileContent).toContain("LLAMA_HEADER_START_TOKEN");
+      expect(fileContent).toContain("LLAMA_HEADER_END_TOKEN");
+      expect(fileContent).toContain("LLAMA_EOT_TOKEN");
+      expect(fileContent).toContain("LLAMA_SYSTEM_MESSAGE");
     });
 
-    it("should use local LLAMA constants in buildCompletionRequestBody", () => {
+    it("should use LLAMA constants in buildCompletionRequestBody", () => {
       expect(fileContent).toContain("LLAMA_BEGIN_TOKEN");
       expect(fileContent).toContain("LLAMA_HEADER_START_TOKEN");
       expect(fileContent).toContain("LLAMA_HEADER_END_TOKEN");

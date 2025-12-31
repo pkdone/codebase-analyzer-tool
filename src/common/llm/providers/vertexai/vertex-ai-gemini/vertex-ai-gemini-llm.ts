@@ -20,18 +20,11 @@ import {
   zodToJsonSchemaWithoutMeta,
   sanitizeSchemaForProvider,
 } from "../../../utils/schema-sanitizer";
-
-// Constant for the VertexAI API endpoint base domain
-const VERTEXAI_API_ENDPOINT = "aiplatform.googleapis.com";
-
-// Constant for the finish reasons that are considered terminal and should be rejected
-const VERTEXAI_TERMINAL_FINISH_REASONS = [
-  FinishReason.BLOCKLIST,
-  FinishReason.PROHIBITED_CONTENT,
-  FinishReason.RECITATION,
-  FinishReason.SAFETY,
-  FinishReason.SPII,
-];
+import {
+  VERTEXAI_API_ENDPOINT,
+  VERTEXAI_TERMINAL_FINISH_REASONS,
+  VERTEXAI_GLOBAL_LOCATION,
+} from "./vertex-ai-gemini.constants";
 
 /**
  * Class for the GCP Vertex AI Gemini service.
@@ -62,7 +55,7 @@ export default class VertexAIGeminiLLM extends AbstractLLM {
     // For 'global' location, the API endpoint is the base domain (no region prefix)
     // For regional locations, the SDK automatically constructs '{location}-aiplatform.googleapis.com'
     const completionsApiEndpoint =
-      completionsLocation === "global" ? VERTEXAI_API_ENDPOINT : undefined;
+      completionsLocation === VERTEXAI_GLOBAL_LOCATION ? VERTEXAI_API_ENDPOINT : undefined;
     this.vertexAiApiClient = new VertexAI({
       project,
       location: completionsLocation,

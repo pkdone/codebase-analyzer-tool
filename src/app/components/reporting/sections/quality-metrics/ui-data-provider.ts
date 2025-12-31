@@ -3,6 +3,7 @@ import type { SourcesRepository } from "../../../../repositories/sources/sources
 import { repositoryTokens } from "../../../../di/tokens";
 import type { UiTechnologyAnalysis } from "../../report-gen.types";
 import { uiAnalysisConfig } from "../../config/ui-analysis.config";
+import { UNKNOWN_VALUE_PLACEHOLDER } from "../../../../../common/constants/application.constants";
 
 /**
  * Type for UI analysis summary
@@ -55,7 +56,7 @@ export class UiDataProvider {
     for (const file of frameworkFiles) {
       const framework = file.summary?.uiFramework;
       if (!framework) continue;
-      const key = `${framework.name}:${framework.version ?? "unknown"}`;
+      const key = `${framework.name}:${framework.version ?? UNKNOWN_VALUE_PLACEHOLDER}`;
 
       const existing = frameworkMap.get(key);
       if (existing) {
