@@ -1,8 +1,3 @@
-/**
- * Note: For non-simple MQL projectionss, and especially for partial projections of nested fields,
- * we need to create schemas inline using sourceRecordSchema.pick() or z.object() since MongoDB
- * projections revert to returning field types of 'unknown'.
- */
 import { z } from "zod";
 import { sourceSchema, sourceSummarySchema } from "../../schemas/sources.schema";
 import {

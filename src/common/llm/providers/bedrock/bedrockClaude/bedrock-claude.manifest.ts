@@ -21,11 +21,6 @@ const BEDROCK_CLAUDE_COMPLETIONS_MODEL_SECONDARY_KEY = "BEDROCK_CLAUDE_COMPLETIO
 export const AWS_COMPLETIONS_CLAUDE_OPUS_V45 = "AWS_COMPLETIONS_CLAUDE_OPUS_V45";
 export const AWS_COMPLETIONS_CLAUDE_SONNET_V45 = "AWS_COMPLETIONS_CLAUDE_SONNET_V45";
 
-/**
- * AWS_COMPLETIONS_CLAUDE_V40: Bedrock seems to be limiting the max model response tokens to around
- * 39k when it should be 64k, and when its over 39k an "overloaded" response is always returned.
- */
-
 export const bedrockClaudeProviderManifest: LLMProviderManifest = {
   providerName: "Bedrock Claude",
   modelFamily: BEDROCK_CLAUDE_FAMILY,

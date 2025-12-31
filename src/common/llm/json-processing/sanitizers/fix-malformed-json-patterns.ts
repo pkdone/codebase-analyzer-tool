@@ -43,7 +43,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     let hasChanges = false;
     const diagnostics: string[] = [];
 
-    // ===== Pattern 1: Fix corrupted entries like _MODULE" =====
+    // Fix corrupted entries like _MODULE"
 
     // Pattern: Corrupted entries like _MODULE",
     sanitized = sanitized.replace(
@@ -61,7 +61,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 2: Remove extra single characters before properties =====
+    // Remove extra single characters before properties
     // Pattern: `a  "integrationPoints":`, `s  "publicMethods":`, `e "externalReferences":`
     const extraCharBeforePropertyPattern =
       /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
@@ -101,7 +101,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 2b: Remove stray single characters before quoted strings in arrays =====
+    // Remove stray single characters before quoted strings in arrays
     // Pattern: `e"org.apache...` -> `"org.apache...`
     // This handles cases where a single lowercase letter appears directly before a quoted string
     // Handles both with and without newlines: `,e"string",` or `,\ne"string",`
@@ -408,7 +408,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 3: Fix corrupted property values =====
+    // Fix corrupted property values
     // Pattern: `"propertyName":_CODE`4,` -> `"propertyName": 4,`
     const corruptedValuePattern = /"([^"]+)"\s*:\s*_CODE`(\d+)(\s*[,}])/g;
     sanitized = sanitized.replace(
@@ -431,7 +431,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 4: Remove invalid property names =====
+    // Remove invalid property names
     // Pattern: `extra_code_analysis: {` -> remove this entire property block
     // First, try to find and remove the property with its value
     sanitized = sanitized.replace(
@@ -500,7 +500,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 5: Remove duplicate closing braces at the end =====
+    // Remove duplicate closing braces at the end
     // Pattern: Multiple `}` at the end of the file
     const duplicateBracesPattern = /(})\s*\n\s*(}\s*\n\s*){2,}\s*$/;
     sanitized = sanitized.replace(duplicateBracesPattern, () => {
@@ -512,7 +512,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return "}\n";
     });
 
-    // ===== Pattern 6: Fix missing quotes on property names =====
+    // Fix missing quotes on property names
     // Pattern: `name":` instead of `"name":`
     const missingOpeningQuotePattern = /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
@@ -544,7 +544,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 7: Clean non-ASCII characters from string values =====
+    // Clean non-ASCII characters from string values
     // Pattern: Bengali text like `করে"java.util.Arrays",` -> `"java.util.Arrays",`
     // This should only clean non-ASCII characters that appear outside of valid JSON string boundaries
     // eslint-disable-next-line no-control-regex
@@ -606,7 +606,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 8: Fix space before quote in property names =====
+    // Fix space before quote in property names
     // Pattern: `"name "groupId",` -> `"name": "groupId",`
     const spaceBeforeQuotePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)\s+"([^"]+)"/g;
     sanitized = sanitized.replace(
@@ -637,7 +637,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 9: Fix missing comma after array element =====
+    // Fix missing comma after array element
     // Pattern: `"value"]` -> `"value"],` (when it should be followed by another element)
     // This is handled by addMissingCommas, but we can add a specific fix here for edge cases
     const missingCommaAfterArrayElementPattern = /"([^"]+)"\s*\n\s*"([^"]+)"\s*:/g;
@@ -666,7 +666,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 10: Fix malformed property name with mixed colon/quote =====
+    // Fix malformed property name with mixed colon/quote
     // Pattern: `"name":toBe": "apiRequestBodyAsJson"` -> `"name": "apiRequestBodyAsJson"`
     // This handles cases where a short word got inserted between the colon and the quote
     const malformedPropertyColonQuotePattern = /"([^"]+)"\s*:\s*([a-z]{2,10})"\s*:\s*"([^"]+)"/g;
@@ -702,7 +702,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 11: Remove stray single characters before property names =====
+    // Remove stray single characters before property names
     // Pattern: `t      "name":` -> `      "name":`
     // Also handles: `t      "mechanism":` in arrays
     const strayCharBeforePropertyPattern =
@@ -785,7 +785,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 12: Remove stray text before string values in arrays =====
+    // Remove stray text before string values in arrays
     // Pattern: `strayText"stringValue",` -> `"stringValue",`
     // Also handles single characters like `t    "stringValue"` in arrays
     const strayTextBeforeStringPattern = /([}\],]|\n|^)(\s*)([a-z]{2,10})"([^"]+)"\s*,/g;
@@ -817,7 +817,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 12b: Remove single stray character before string values in arrays =====
+    // Remove single stray character before string values in arrays
     // Pattern: `t    "stringValue",` -> `"stringValue",`
     // This handles cases where a single character appears before a quoted string in an array
     // The pattern matches: newline + single char + whitespace + quoted string (the comma is on the previous line)
@@ -890,7 +890,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 13: Fix malformed objects with unquoted properties =====
+    // Fix malformed objects with unquoted properties
     // Pattern: `{hoge}` -> `{}` (remove invalid object)
     const malformedObjectPattern = /([}\],]|\n|^)(\s*){([a-zA-Z_$][a-zA-Z0-9_$]*)}\s*([,}\]]|$)/g;
     sanitized = sanitized.replace(
@@ -920,7 +920,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 14: Remove stray text after closing braces =====
+    // Remove stray text after closing braces
     // Pattern: `},ce` -> `},`
     const strayTextAfterBraceCommaPattern = /([}\]])\s*,\s*([a-z]{1,5})(\s*[}\]]|\s*\n\s*[{"])/g;
     sanitized = sanitized.replace(
@@ -947,7 +947,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 15: Remove stray text before property names =====
+    // Remove stray text before property names
     // Pattern: ` tribulations":` -> `"integrationPoints":` (or remove if invalid)
     const strayTextBeforePropertyNamePattern =
       /([}\],]|\n|^)(\s*)([a-z\s]{1,20})"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
@@ -981,10 +981,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 50: Add missing comma after array when extra_text: appears =====
+    // Add missing comma after array when extra_text: appears
     // Pattern: `]\n    extra_text:` -> `],\n    extra_text:`
     // This handles cases where an array ends without a comma and extra_text: appears next
-    // Must run BEFORE Pattern 16 which removes extra_text patterns
+    // Must run BEFORE the pattern that removes extra_text patterns
     const missingCommaAfterArrayExtraTextPattern =
       /(\])\s*\n\s*(extra_text|extra_thoughts|extra_code_analysis)\s*:/g;
     sanitized = sanitized.replace(
@@ -1005,7 +1005,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 16: Remove invalid property-like structures =====
+    // Remove invalid property-like structures
     // Pattern: `extra_text="  * `DatatableExportTargetParameter`..."` -> remove entire line
     const invalidPropertyPattern = /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+)\s*=\s*"[^"]*"\s*,?\s*\n/g;
     sanitized = sanitized.replace(
@@ -1025,7 +1025,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 16b: Remove YAML-like blocks embedded in JSON =====
+    // Remove YAML-like blocks embedded in JSON
     // Pattern: `semantically-similar-code-detection-results:\n  - score: 0.98\n  ...` -> remove entire block
     // This handles cases where LLM inserts YAML-like metadata blocks in the middle of JSON
     // Also handles single-line YAML-like entries: `extra_thoughts: I've identified all...`
@@ -1048,7 +1048,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 16c: Remove extra_text= style attributes embedded in JSON =====
+    // Remove extra_text= style attributes embedded in JSON
     // Pattern: `extra_text="  "externalReferences": [` -> remove the extra_text= part
     // This handles cases where LLM wraps valid JSON in an extra_text= attribute
     const extraTextEqualPattern =
@@ -1070,7 +1070,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 17: Remove truncated/explanatory text =====
+    // Remove truncated/explanatory text
     // Pattern: `},\nso many methods... I will stop here for brevity.\n  {` -> `},\n  {`
     // Also handles: `[]\n    },\nso many me"` -> `[]\n    },\n`
     const truncatedTextPattern =
@@ -1111,7 +1111,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // Pattern 17b: Handle truncated text at end of arrays/objects
+    // Handle truncated text at end of arrays/objects
     // Pattern: `[]\n    },\nso many me"` -> `[]\n    },\n`
     const truncatedTextAtEndPattern =
       /([}\]])\s*,\s*\n\s*([a-z\s]{5,50}?)(?:\.\.\.|I will|stop here|for brevity|so many|methods|I'll|truncated)[^"]*"([^"]*)"\s*,/gi;
@@ -1145,7 +1145,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 18: Remove stray text/hostnames before property names =====
+    // Remove stray text/hostnames before property names
     // Pattern: `hostname"propertyName":` -> `"propertyName":`
     // Also handles: `strayText"propertyName":` -> `"propertyName":`
     const hostnameBeforePropertyPattern =
@@ -1180,7 +1180,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 19: Fix malformed property with backtick and colon =====
+    // Fix malformed property with backtick and colon
     // Pattern: `"name":`:toBe":` -> `"name": "toBe",`
     // Also handles: `"name":`:toBe": "value"` -> `"name": "toBe",`
     const malformedPropertyBacktickPattern =
@@ -1216,7 +1216,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 20: Fix missing opening quotes in string array elements =====
+    // Fix missing opening quotes in string array elements
     // Pattern: `unquotedStringValue",` -> `"unquotedStringValue",`
     // Handles cases where strings in arrays are missing their opening quote
     // This pattern detects strings in arrays that are missing the opening quote
@@ -1310,7 +1310,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 21: Fix missing opening quotes with stray text before string in arrays =====
+    // Fix missing opening quotes with stray text before string in arrays
     // Pattern: `cv"stringValue",` -> `"stringValue",`
     // This handles cases where there's stray text (like "cv", "import", etc.) before a string missing its opening quote
     const strayTextBeforeMissingQuotePattern =
@@ -1372,7 +1372,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 22: Fix missing comma and quote for unquoted strings at end of array lines =====
+    // Fix missing comma and quote for unquoted strings at end of array lines
     // Pattern: `"stringValue",\nunquotedString"` -> `"stringValue",\n    "unquotedString",`
     // This handles cases where a string in an array is missing both the comma before it and the opening quote
     const missingCommaAndQuotePattern =
@@ -1438,7 +1438,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 25: Fix stray single characters at start of lines in arrays =====
+    // Fix stray single characters at start of lines in arrays
     // Pattern: `e    "stringValue",` -> `    "stringValue",`
     const strayCharAtLineStartPattern = /([}\],]|\n|^)(\s*)([a-z])\s+("([a-zA-Z0-9_.]+)")/g;
     sanitized = sanitized.replace(
@@ -1472,7 +1472,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 26: Fix truncated responses ending with ...] =====
+    // Fix truncated responses ending with ...]
     // Pattern: `...]` at end -> remove and close properly
     const truncatedEndPattern = /\.\.\.\s*\]\s*$/;
     sanitized = sanitized.replace(truncatedEndPattern, () => {
@@ -1498,7 +1498,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return "";
     });
 
-    // ===== Pattern 27: Fix malformed property values =====
+    // Fix malformed property values
     // Pattern: `"name":a": "value"` -> `"name": "a",` or `"name": "value"` (depending on context)
     const malformedPropertyValuePattern =
       /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*"([^"]+)"/g;
@@ -1530,7 +1530,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 28: Remove placeholder text like _INSERT_DATABASE_INTEGRATION_ =====
+    // Remove placeholder text like _INSERT_DATABASE_INTEGRATION_
     // Pattern: `_INSERT_DATABASE_INTEGRATION_` -> remove (placeholder that wasn't replaced)
     const placeholderPattern = /([}\],]|\n|^)(\s*)_[A-Z_]+_(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
@@ -1556,7 +1556,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 29: Remove Python-style triple quotes =====
+    // Remove Python-style triple quotes
     // Pattern: `extra_text="""` or `"""` -> remove (Python-style string delimiters, not JSON)
     // Note: asteriskBeforePropertyPattern is already defined earlier, so we skip duplicate declaration
     const pythonTripleQuotesPattern = /([}\],]|\n|^)(\s*)(extra_[a-zA-Z_$]+\s*=\s*)?"(""|""")/g;
@@ -1586,7 +1586,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return "";
     });
 
-    // ===== Pattern 30: Remove stray text after closing brace =====
+    // Remove stray text after closing brace
     // Pattern: `}tribal-council-assistant-v1-final-answer` -> `}`
     // Also handles: `}\nstray-text` -> `}`
     const strayTextAfterBracePattern = /([}])\s*([a-zA-Z0-9\-_]{5,100})(\s*)$/g;
@@ -1613,7 +1613,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 31: Fix missing comma and opening quote before array items =====
+    // Fix missing comma and opening quote before array items
     // Pattern: `]unquoted.string.value"` -> `], "unquoted.string.value"`
     const missingCommaAndQuoteBeforeArrayItemPattern =
       /([}\],])\s*\n\s*([a-z]+)\.([a-z]+)\.([a-z.]+)"\s*,?\s*\n/g;
@@ -1642,7 +1642,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 32: Fix truncated property names =====
+    // Fix truncated property names
     // Pattern: `se": "This test validates...` -> `"name": "This test validates...`
     // Also handles: `ce": "final String"` -> `"name": "final String"`
     const truncatedPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,3})"\s*:\s*"([^"]{20,})/g;
@@ -1679,7 +1679,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 33: Remove extra closing brackets =====
+    // Remove extra closing brackets
     // Pattern: Multiple `]` characters that shouldn't be there
     // Example: `      ]\n      ]\n      ]\n      ]\n    }` -> `    }`
     const extraClosingBracketsPattern = /([}\]])\s*\n\s*(\]\s*\n\s*){2,}([}\]]|$)/g;
@@ -1709,7 +1709,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 34: Fix malformed property with extra colon/quote =====
+    // Fix malformed property with extra colon/quote
     // Pattern: `{"name":g": "isPreMatureClosure"` -> `{"name": "isPreMatureClosure"`
     // Also handles: `{"name":toBe": "value"` -> `{"name": "value"`
     const malformedPropertyColonQuotePattern2 = /"([^"]+)"\s*:\s*([a-z]{1,10})"\s*:\s*"([^"]+)"/g;
@@ -1741,7 +1741,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 35: Fix missing opening quote on property names =====
+    // Fix missing opening quote on property names
     // Pattern: `propertyName": value` -> `"propertyName": value`
     // Also handles: `name": "value"` -> `"name": "value"`
     const missingOpeningQuoteOnPropertyPattern =
@@ -1776,7 +1776,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 36: Fix stray single character before property name =====
+    // Fix stray single character before property name
     // Pattern: `c"name": "hasError"` -> `"name": "hasError"`
     // Also handles: `e      "mechanism": "REST"` -> `      "mechanism": "REST"`
     const strayCharBeforePropertyPattern2 =
@@ -1817,7 +1817,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 37: Fix markdown list markers before property names =====
+    // Fix markdown list markers before property names
     // Pattern: `* "purpose":` -> `"purpose":`
     const markdownListMarkerPattern = /([}\],]|\n|^)(\s*)\*\s*("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
@@ -1848,7 +1848,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 39: Remove minus signs before array elements =====
+    // Remove minus signs before array elements
     // Pattern: `-"stringValue",` -> `"stringValue",`
     const minusSignBeforeArrayElementPattern = /([}\],]|\n|^)(\s*)-\s*("([^"]+)"\s*,)/g;
     sanitized = sanitized.replace(
@@ -1880,7 +1880,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 40: Fix missing quotes on property names =====
+    // Fix missing quotes on property names
     // Pattern: `propertyName: [` -> `"propertyName": [`
     const missingQuotesOnPropertyPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(\[|{)/g;
@@ -1914,7 +1914,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 41: Fix malformed property with extra colon/quote =====
+    // Fix malformed property with extra colon/quote
     // Pattern: `"name":g": "value"` -> `"name": "value"`
     // Also handles: `"name":toBe": "value"` -> `"name": "toBe",` (if toBe looks like a value)
     const malformedPropertyExtraColonPattern = /"([^"]+)"\s*:\s*([a-z]{1,10})"\s*:\s*"([^"]+)"/g;
@@ -1946,7 +1946,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 42: Remove truncated/explanatory text after final closing brace =====
+    // Remove truncated/explanatory text after final closing brace
     // Pattern: `}\nthere are more methods, but the response is too long. I will stop here.` -> `}`
     const truncatedTextAfterFinalBracePattern =
       /(})\s*\n\s*([a-z\s]{10,200}?)(?:\.\.\.|I will|stop here|for brevity|so many|methods|I'll|truncated|there are|but the response)[^}]*$/i;
@@ -1987,7 +1987,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 13: Remove asterisk before property names =====
+    // Remove asterisk before property names
     // Pattern: `* "propertyName":` -> `"propertyName":`
     // This handles markdown list item markers that shouldn't be in JSON
     const asteriskBeforePropertyPattern =
@@ -2022,7 +2022,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 14: Remove stray dashes after commas/array delimiters =====
+    // Remove stray dashes after commas/array delimiters
     // Pattern: `],-` -> `],` or `,-` -> `,`
     const strayDashPattern = /([}\],])\s*-\s*([,}\]]|\n|$)/g;
     sanitized = sanitized.replace(strayDashPattern, (match, delimiter, after, offset: number) => {
@@ -2047,7 +2047,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return match;
     });
 
-    // ===== Pattern 15: Fix missing colons after property names =====
+    // Fix missing colons after property names
     // Pattern: `"type" "JsonCommand"` -> `"type": "JsonCommand"`
     // Also handles: `"name "command",` -> `"name": "command",` (space before closing quote)
     const missingColonPattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+"([^"]+)"/g;
@@ -2154,7 +2154,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 16: Fix typos in property names like "name":a": =====
+    // Fix typos in property names like "name":a":
     // Pattern: `"name":a": "command"` -> `"name": "command"`
     const typoInPropertyNamePattern =
       /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-z])"\s*:\s*"([^"]+)"/g;
@@ -2187,7 +2187,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 43: Fix stray text "stop" before string values in arrays =====
+    // Fix stray text "stop" before string values in arrays
     // Pattern: `stop"stringValue",` -> `"stringValue",`
     const stopBeforeStringPattern = /([}\],]|\n|^)(\s*)stop"([^"]+)"\s*,/g;
     sanitized = sanitized.replace(
@@ -2221,7 +2221,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 44: Fix stray characters at end of string values =====
+    // Fix stray characters at end of string values
     // Pattern: `"GroupGeneralData>"` -> `"GroupGeneralData"`
     // Also handles: `"value>"`, `"value]"`, `"value}"` etc.
     const strayCharAtEndOfStringPattern = /"([^"]+)([>\]}])(\s*[,}\]]|\s*\n)/g;
@@ -2253,7 +2253,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 45: Fix stray single characters on their own lines =====
+    // Fix stray single characters on their own lines
     // Pattern: `    g\n    {` -> `    {`
     // Also handles: `    g\n    "property":`
     const strayCharOnOwnLinePattern = /([}\],]|\n|^)(\s+)([a-z])\s*\n\s*([{"])/g;
@@ -2286,7 +2286,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 46: Fix missing opening quotes and commas before strings =====
+    // Fix missing opening quotes and commas before strings
     // Pattern: `UnquotedStringValue",` -> `"UnquotedStringValue",`
     // Handles cases where strings in arrays are missing opening quotes
     const missingQuoteAndCommaBeforeStringPattern =
@@ -2322,7 +2322,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 47: Fix malformed property names with spaces/extra chars =====
+    // Fix malformed property names with spaces/extra chars
     // Pattern: `"propertyName A": "value"` -> `"propertyName": "value"`
     // Also handles: `"name A":`, `"property B":`
     const malformedPropertyNameWithSpacePattern =
@@ -2355,7 +2355,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 48: Fix non-ASCII characters in string values =====
+    // Fix non-ASCII characters in string values
     // Pattern: `"stringValueWithNonASCII"` -> `"stringValueWithoutNonASCII"`
     // This removes non-ASCII characters that appear in identifiers or package-like strings
     // eslint-disable-next-line no-control-regex
@@ -2386,7 +2386,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 49: Fix malformed property structures =====
+    // Fix malformed property structures
     // Pattern: `{"name": a": "groupId"` -> `{"name": "groupId"`
     // Also handles: `{"name": a": "String"` -> `{"name": "String"`
     const malformedPropertyStructurePattern = /"([^"]+)"\s*:\s*([a-z])"\s*:\s*"([^"]+)"/g;
@@ -2418,7 +2418,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 50: Fix stray text after array elements =====
+    // Fix stray text after array elements
     // Pattern: `"stringValue",\nstrayText",` -> `"stringValue",`
     const strayTextAfterArrayElementPattern = /"([^"]+)"\s*,\s*\n\s*([a-z_]+)"\s*,/g;
     sanitized = sanitized.replace(
@@ -2455,7 +2455,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 51: Fix explanatory text breaking JSON structure =====
+    // Fix explanatory text breaking JSON structure
     // Pattern: `},\nthere are more methods, but the response is getting too long. I will stop here.\n    {` ->
     //          `},\n    {`
     const explanatoryTextBreakingJsonPattern =
@@ -2477,7 +2477,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 52: Fix stray characters before closing braces =====
+    // Fix stray characters before closing braces
     // Pattern: `s    },` -> `    },`
     // Also handles: `e    },`, `a    },`, etc.
     const strayCharBeforeClosingBracePattern = /([}\],]|\n|^)(\s+)([a-z])\s+([}])/g;
@@ -2512,7 +2512,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 53: Fix missing opening quotes with stray text before strings in arrays =====
+    // Fix missing opening quotes with stray text before strings in arrays
     // Pattern: `strayPrefix.stringValue",` -> `"stringValue",`
     // Handles cases where stray text appears before a string missing its opening quote
     const missingQuoteWithStrayTextPattern =
@@ -2550,7 +2550,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // Pattern 53b: Handle stray text before already-quoted strings
+    // Handle stray text before already-quoted strings
     // Pattern: `strayPrefix "stringValue",` -> `"stringValue",`
     // Note: 'ar' prefix is handled earlier in the pipeline
     const strayTextBeforeQuotedStringPattern =
@@ -2586,7 +2586,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 54: Fix missing property names =====
+    // Fix missing property names
     // Pattern: `ce": "value"` -> `"name": "value"`
     // Also handles: `{_PARAM_TABLE":` -> `{"name": "PARAM_TABLE":`
     const missingPropertyNamePattern = /([}\],]|\n|^)(\s*)([a-z]{1,3}|_[A-Z_]+)"\s*:\s*"([^"]+)"/g;
@@ -2639,7 +2639,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 55: Fix stray characters in property values =====
+    // Fix stray characters in property values
     // Pattern: `"currentUser",_ "type":` -> `"currentUser",`
     // Also handles: `"value",_` -> `"value",`
     const strayCharInPropertyValuePattern = /"([^"]+)"\s*,\s*_(\s*"[a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
@@ -2672,7 +2672,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 56: Fix missing quotes around property names in objects =====
+    // Fix missing quotes around property names in objects
     // Pattern: `name: "undoLoanDisbursal"` -> `"name": "undoLoanDisbursal"`
     // Also handles: `type: "JsonCommand"` -> `"type": "JsonCommand"`
     const missingQuotesOnPropertyNamePattern =
@@ -2748,7 +2748,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 57: Fix missing quotes around property values =====
+    // Fix missing quotes around property values
     // Pattern: `type": "JsonCommand"` -> `"type": "JsonCommand"`
     // This handles cases where the property name has a quote but the value doesn't
     const missingQuotesOnPropertyValuePattern =
@@ -2796,7 +2796,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 58: Fix stray characters before property names =====
+    // Fix stray characters before property names
     // Pattern: `e"xternalReferences":` -> `"externalReferences":`
     // Also handles: `a"publicConstants":` -> `"publicConstants":`
     const strayCharBeforePropertyNamePattern =
@@ -2832,7 +2832,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 59: Fix stray characters in property names =====
+    // Fix stray characters in property names
     // Pattern: `"name":cha:` -> `"name":`
     // Also handles: `"name":toBe":` -> `"name":`
     const strayCharInPropertyNamePattern = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:\s*([a-z]{1,10})"\s*:/g;
@@ -2866,7 +2866,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 60: Fix malformed property syntax like `{- "name"` =====
+    // Fix malformed property syntax like `{- "name"`
     // Pattern: `{- "name":` -> `{ "name":`
     // This handles cases where there's a missing quote before the opening brace
     const malformedPropertyStartPattern = /\{-\s*"([^"]+)"\s*:/g;
@@ -2888,10 +2888,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 61: Fix missing quotes on property names with string values like `name: "value"` =====
+    // Fix missing quotes on property names with string values like `name: "value"`
     // Pattern: `name: "value"` -> `"name": "value"`
     // This handles cases where both quotes are missing around the property name and the value is a string
-    // Note: Pattern 40 already handles missing quotes when followed by [ or {
+    // Note: missing quotes when followed by [ or { are handled by an earlier pattern
     const missingQuotesOnPropertyWithStringPattern =
       /([}\],]|\n|^)(\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*"([^"]+)"/g;
     sanitized = sanitized.replace(
@@ -2932,10 +2932,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 62: Fix truncated text patterns with markers =====
+    // Fix truncated text patterns with markers
     // Pattern: `property: value,_OF_CODE` -> `property: value,`
     // This handles cases where text is truncated with patterns like `_OF_CODE`, `_CODE`, etc.
-    // Note: Pattern 17 already handles general truncated text like "so many methods..."
+    // Note: general truncated text like "so many methods..." is handled by an earlier pattern
     const truncatedTextMarkerPattern = /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*([^,}]+),(_[A-Z_]+)/g;
     sanitized = sanitized.replace(
       truncatedTextMarkerPattern,
@@ -2968,7 +2968,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 64: Fix string arrays instead of actual arrays =====
+    // Fix string arrays instead of actual arrays
     // Pattern: `"parameters": "[]"` -> `"parameters": []`
     // This handles cases where an array is represented as a string instead of an actual array
     const stringArrayPattern = /"([^"]+)"\s*:\s*"(\[\])"/g;
@@ -3001,7 +3001,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 66: Fix malformed property names with extra characters =====
+    // Fix malformed property names with extra characters
     // Pattern: `"name":sem":` -> `"name":`
     // Pattern: `"name":sem": "value"` -> `"name": "value"`
     // This handles cases where property names have extra characters like ":sem": inserted
@@ -3037,7 +3037,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 67: Fix stray text patterns =====
+    // Fix stray text patterns
     // Pattern: `{.json` -> `{`
     const strayJsonPattern = /\{\.json(\s*\n|\s*$)/g;
     sanitized = sanitized.replace(strayJsonPattern, (match, newlineOrSpace, offset: number) => {
@@ -3113,7 +3113,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 67.5: Remove trailing commas =====
+    // Remove trailing commas
     // Pattern: `"key": "value",}` -> `"key": "value"}`
     // Pattern: `"item",]` -> `"item"]`
     // This handles trailing commas before closing braces or brackets (invalid in strict JSON)
@@ -3133,7 +3133,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 68: Fix missing opening quote before property values =====
+    // Fix missing opening quote before property values
     // Pattern: `propertyName": "value"` -> `"propertyName": "value"`
     // Also handles property-like structures in arrays -> converts to just the value
     // This handles cases where property names are missing the opening quote
@@ -3240,7 +3240,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 69: Fix duplicate import statements embedded in JSON =====
+    // Fix duplicate import statements embedded in JSON
     // Pattern: Remove duplicate Java import statements that appear in JSON
     // This handles cases where the LLM includes actual Java code in the JSON response
     // Match package statement followed by one or more import statements
@@ -3266,7 +3266,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return "";
     });
 
-    // ===== Pattern 71: Fix stray text like "trib" at end of property =====
+    // Fix stray text like "trib" at end of property
     // Pattern: `"propertyName": [\n...],\ntrib` -> `"propertyName": [\n...],`
     const strayTextAtEndPattern = /([}\],])\s*\n\s*(trib[a-z-]*)(\s*)([}\],]|\n|$)/g;
     sanitized = sanitized.replace(
@@ -3286,7 +3286,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 74: Fix missing opening quote before property name =====
+    // Fix missing opening quote before property name
     // Pattern: `- "propertyName"` -> `"propertyName"`
     // Pattern: `propertyName":` -> `"propertyName":`
     // This handles cases where property names are missing the opening quote
@@ -3331,7 +3331,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
     );
 
     // Then handle the case where the property name is missing the opening quote
-    // Also handles cases where the quote is already present (from Pattern 68) but we need to fix truncations
+    // Also handles cases where the quote is already present but we need to fix truncations
     const missingQuoteBeforePropertyNamePattern =
       /([}\],]|\n|^)(\s*)("?)([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
     sanitized = sanitized.replace(
@@ -3375,7 +3375,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 54: Fix malformed parameter objects with corrupted property names =====
+    // Fix malformed parameter objects with corrupted property names
     // Pattern: Fixes cases like `"name":toBeContinued": "value"` -> `"name": "toBeContinued"`
     // This handles cases where a property name got corrupted and merged with the value
     // The pattern matches: "name":toBeContinued": "true" where "toBeContinued" is the actual value
@@ -3402,7 +3402,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 65: Fix missing quotes on property names followed by numeric or boolean values =====
+    // Fix missing quotes on property names followed by numeric or boolean values
     // Pattern: `propertyName: 14,` -> `"propertyName": 14,`
     // Also handles: `propertyName: true,` -> `"propertyName": true,`
     const missingQuotesOnPropertyWithNumericPattern =
@@ -3441,7 +3441,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 66: Fix duplicated property names =====
+    // Fix duplicated property names
     // Pattern: `prefixprefixPropertyName` -> `prefixPropertyName`
     // Handles cases where a property name prefix is duplicated
     const duplicatedPropertyNamePattern = /"([a-zA-Z_$]+)\1([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
@@ -3476,10 +3476,10 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 75: Remove asterisks before property names (enhanced) =====
+    // Remove asterisks before property names (enhanced)
     // Pattern: `* "propertyName":` -> `"propertyName":`
     // Handles cases where LLM adds asterisks before property names
-    // This is an enhanced version that handles cases Pattern 13 might miss (single space after asterisk)
+    // This is an enhanced version that handles single space after asterisk cases
     const asteriskBeforePropertyPattern75 = /(\n\s*)\*\s("([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:)/g;
     sanitized = sanitized.replace(
       asteriskBeforePropertyPattern75,
@@ -3512,7 +3512,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 76: Fix missing opening quote on property values (enhanced) =====
+    // Fix missing opening quote on property values (enhanced)
     // Pattern: `"type":JsonCommand"` -> `"type": "JsonCommand"`
     // Pattern: `"name":gsimId"` -> `"name": "gsimId"`
     const missingQuoteOnValuePattern76 = /"([^"]+)"\s*:\s*([a-zA-Z_$][a-zA-Z0-9_$]*)"(\s*[,}])/g;
@@ -3536,7 +3536,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 78: Fix corrupted property assignments =====
+    // Fix corrupted property assignments
     // Pattern: `"name":alue": "LocalDate"` -> `"name": "transferDate", "type": "LocalDate"`
     // This is a more specific case where a property name got corrupted
     const corruptedAssignmentPattern78 = /"([^"]+)"\s*:\s*([a-zA-Z]+)"\s*:\s*"([^"]+)"/g;
@@ -3569,7 +3569,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 79: Fix typos in property names =====
+    // Fix typos in property names
     // Pattern: `"type savory":` -> `"type":`
     // Handles cases where extra words are added to property names
     const typoInPropertyNamePattern79 = /"([^"]+)\s+([a-zA-Z]+)"\s*:\s*"/g;
@@ -3606,7 +3606,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 80: Convert underscores to dots in package names =====
+    // Convert underscores to dots in package names
     // Pattern: `"io_swagger.v3"` -> `"io.swagger.v3"`
     // Handles cases where underscores are used instead of dots in package names
     // Package names are always in quoted strings, so we can apply this directly
@@ -3634,7 +3634,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return match;
     });
 
-    // ===== Pattern 81: Remove stray text/comments from JSON (enhanced) =====
+    // Remove stray text/comments from JSON (enhanced)
     // Pattern: `there are more methods, but I will stop here` -> remove
     // Removes stray text that appears between JSON elements
     const strayTextPattern81 =
@@ -3665,7 +3665,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 81.5: Fix missing colon after property name =====
+    // Fix missing colon after property name
     // Pattern: `"propertyName []"` or `"propertyName {}"` -> `"propertyName": []` or `"propertyName": {}`
     // Also handles with comma: `"propertyName [],"` -> `"propertyName": [],`
     const missingColonAfterPropertyPattern815 = /"([a-zA-Z_$][a-zA-Z0-9_$]*)"\s+(\[|\{)/g;
@@ -3701,7 +3701,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 82: Remove Java code after JSON closing brace =====
+    // Remove Java code after JSON closing brace
     // Pattern: Remove Java code (package, import, class definitions) that appears after the JSON closing brace
     // This handles cases where LLMs include source code after the JSON response
     const javaCodeAfterJsonPattern =
@@ -3754,7 +3754,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       }
     }
 
-    // ===== Pattern 83: Remove binary corruption markers =====
+    // Remove binary corruption markers
     // Pattern: Remove binary corruption markers like <x_bin_151>publicConstants
     // Also handle case where marker is followed by property name without quote
     const binaryCorruptionPattern = /<x_bin_\d+>([a-zA-Z_$][a-zA-Z0-9_$]*"\s*:)/g;
@@ -3787,7 +3787,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       return "";
     });
 
-    // ===== Pattern 86: Fix wrong quote characters (non-ASCII quotes) =====
+    // Fix wrong quote characters (non-ASCII quotes)
     // Pattern: Fix non-ASCII quotes like ʻpropertyName" -> "propertyName"
     // Common wrong quotes: ʻ (U+02BB), ' (U+2018), ' (U+2019), " (U+201C), " (U+201D)
     const wrongQuotePattern = /([ʻ''""])([a-zA-Z_$][a-zA-Z0-9_$]*)"\s*:/g;
@@ -3808,7 +3808,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 87: Fix missing opening quotes in array elements =====
+    // Fix missing opening quotes in array elements
     // Pattern: Fix patterns like ax"stringValue... or prefix.stringValue... in arrays
     // This handles cases where part of the string is missing before the quote
     // Match either: [a-z]+\. (like prefix.) or \. (like .suffix)
@@ -3897,7 +3897,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 88: Remove invalid properties in arrays =====
+    // Remove invalid properties in arrays
     // Pattern: Remove invalid properties like _DOC_GEN_NOTE_LIMITED_REF_LIST_ = "..." from arrays
     const invalidPropertyInArrayPattern =
       /(\[|,\s*|\n\s*)(\s*)(_[A-Z_]+)\s*=\s*"([^"]+)"(\s*,|\s*\])/g;
@@ -3984,7 +3984,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 89: Fix malformed JSON fragments in string values =====
+    // Fix malformed JSON fragments in string values
     // Pattern: Detect and escape unescaped quotes or fix malformed JSON-like content in descriptions
     // This handles cases where descriptions contain JSON-like content that breaks parsing
     // Pattern: Look for unescaped quotes in string values that might break JSON
@@ -4076,7 +4076,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // Pattern 89: Fix unescaped quotes in description strings
+    // Fix unescaped quotes in description strings
     // Match "description": "..." and manually parse to find unescaped quotes
     // This handles malformed JSON where quotes inside strings aren't escaped
     const descriptionPropertyPattern = /"description"\s*:\s*"/g;
@@ -4195,7 +4195,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
         sanitized.substring(0, repl.start) + repl.replacement + sanitized.substring(repl.end);
     }
 
-    // ===== Pattern 90: Fix extra characters before array elements =====
+    // Fix extra characters before array elements
     // Pattern: `e    "stringValue",` `g    "stringValue",` `ax      "value",`
     // Handles cases where single or multiple characters (1-4) appear before quoted strings in arrays
     // Match ,\n or just \n as delimiter to handle both cases
@@ -4249,7 +4249,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 92: Fix corrupted property values with extra text after commas =====
+    // Fix corrupted property values with extra text after commas
     // Pattern: `"propertyName": value, a` -> `"propertyName": value,`
     // Handles cases where extra text appears after a property value and comma
     const corruptedPropertyValuePattern = /"([^"]+)"\s*:\s*([^,}]+)\s*,\s*([a-z])\s*([,}\]]|\n)/g;
@@ -4281,7 +4281,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 47: Remove markdown list markers in arrays =====
+    // Remove markdown list markers in arrays
     // Pattern: `*   "lombok.NoArgsConstructor",` -> `"lombok.NoArgsConstructor",`
     // This handles markdown list items that appear in JSON arrays
     const markdownListInArrayPattern = /([}\],]|\n|^)(\s*)\*\s+("([^"]+)"\s*,)/g;
@@ -4314,7 +4314,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 48: Remove stray text after string values =====
+    // Remove stray text after string values
     // Pattern: `"lombok.RequiredArgsConstructor",JACKSON-CORE-2.12.0.JAR"` -> `"lombok.RequiredArgsConstructor",`
     // Also handles: `"com.google.common.truth.Truth8"` after string
     // This handles cases where library names, JAR names, or other text appears after a string value
@@ -4356,7 +4356,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 49: Remove config-like text before properties =====
+    // Remove config-like text before properties
     // Pattern: `post_max_size = 20M    "propertyName":` -> `"propertyName":`
     // This handles configuration text, environment variable assignments, etc. that appear before properties
     const configTextBeforePropertyPattern =
@@ -4400,7 +4400,7 @@ export const fixMalformedJsonPatterns: Sanitizer = (input: string): SanitizerRes
       },
     );
 
-    // ===== Pattern 51: Fix truncated property names with stray text fragments =====
+    // Fix truncated property names with stray text fragments
     // Pattern: `aus": "dateFormat"` -> `"dateFormat": "dateFormat"` (or infer correct property name)
     // This handles cases where a short fragment appears before what looks like a property value
     // The fragment might be a truncated property name or stray text

@@ -83,7 +83,7 @@ export function registerReportingComponents(): void {
   container.registerSingleton(reportingTokens.UiDataProvider, UiDataProvider);
   console.log("Reporting components registered");
 
-  // Register report sections (using multi-injection pattern - not supported by helper)
+  // Register report sections using multi-injection pattern
   container.registerSingleton("ReportSection", FileTypesSection);
   container.registerSingleton("ReportSection", DatabaseSection);
   container.registerSingleton("ReportSection", IntegrationPointsSection);

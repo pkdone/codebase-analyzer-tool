@@ -13,13 +13,13 @@ import {
   ProviderInit,
 } from "../../../../src/common/llm/providers/llm-provider.types";
 import AbstractLLM from "../../../../src/common/llm/providers/abstract-llm";
-import { AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT } from "../../../../src/common/llm/providers/bedrock/bedrockLlama/bedrock-llama.manifest";
 import { createMockErrorLogger } from "../../helpers/llm/mock-error-logger";
 import { z } from "zod";
 
 // Test-only constants
 const GPT_COMPLETIONS_GPT4_32k = "GPT_COMPLETIONS_GPT4_32k";
 const GPT_EMBEDDINGS_GPT4 = "GPT_EMBEDDINGS_GPT4";
+const AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT = "AWS_COMPLETIONS_LLAMA_V31_405B_INSTRUCT";
 
 // Test models metadata for generic token extraction tests
 const testModelsMetadata: Record<string, ResolvedLLMModelMetadata> = {
