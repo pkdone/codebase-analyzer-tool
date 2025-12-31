@@ -439,6 +439,32 @@ export const sourceSummarySchema = z
   .passthrough();
 
 /**
+ * Standard response schema for code analysis prompts.
+ * Shared by Java, JavaScript, C#, Python, Ruby, C, and C++ configurations.
+ * This schema captures the common structure needed for code file analysis.
+ */
+export const commonSourceAnalysisSchema = sourceSummarySchema.pick({
+  name: true,
+  kind: true,
+  namespace: true,
+  purpose: true,
+  implementation: true,
+  internalReferences: true,
+  externalReferences: true,
+  publicConstants: true,
+  publicFunctions: true,
+  databaseIntegration: true,
+  integrationPoints: true,
+  codeQualityMetrics: true,
+});
+
+/**
+ * TypeScript type inferred from commonSourceAnalysisSchema.
+ * Use this type when working with standard code file analysis results.
+ */
+export type CommonSourceAnalysis = z.infer<typeof commonSourceAnalysisSchema>;
+
+/**
  * Schema for source file metadata.
  * Uses canonicalFileTypeSchema imported from the single source of truth module.
  */

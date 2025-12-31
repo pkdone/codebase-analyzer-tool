@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { appSummaryConfigMap } from "./definitions/app-summaries/app-summaries.config";
+import { buildReduceInsightsContentDesc } from "./definitions/app-summaries/app-summaries.fragments";
 import { sourceConfigMap } from "./definitions/sources/sources.config";
 import { BASE_PROMPT_TEMPLATE, CODEBASE_QUERY_TEMPLATE } from "./templates";
 import { createPromptMetadata } from "./definitions/prompt-factory";
@@ -74,7 +75,7 @@ export function createReduceInsightsPrompt(
 ): PromptDefinition {
   return {
     label: "Reduce Insights",
-    contentDesc: `several JSON objects, each containing a list of '${categoryKey}' generated from different parts of a codebase. Your task is to consolidate these lists into a single, de-duplicated, and coherent final JSON object. Merge similar items, remove duplicates based on semantic similarity (not just exact name matches), and ensure the final list is comprehensive and well-organized`,
+    contentDesc: buildReduceInsightsContentDesc(categoryKey),
     instructions: [`a consolidated list of '${categoryKey}'`],
     responseSchema: schema,
     template: BASE_PROMPT_TEMPLATE,

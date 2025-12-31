@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { CanonicalFileType } from "../../../components/capture/config/file-types.config";
 import { SOURCES_PROMPT_FRAGMENTS, COMPOSITES } from "./sources.fragments";
 import { INSTRUCTION_SECTION_TITLES, buildInstructionBlock } from "../instruction-utils";
-import { sourceSummarySchema } from "../../../schemas/sources.schema";
+import { sourceSummarySchema, commonSourceAnalysisSchema } from "../../../schemas/sources.schema";
 
 /**
  * Configuration entry for a source prompt definition.
@@ -21,25 +21,6 @@ export interface SourceConfigEntry<S extends z.ZodType = z.ZodType> {
   instructions: readonly string[];
 }
 
-/**
- * Standard response schema for code analysis prompts.
- * Shared by Java, JavaScript, C#, Python, Ruby, C, and C++ configurations.
- * This schema captures the common structure needed for code file analysis.
- */
-const STANDARD_CODE_RESPONSE_SCHEMA = sourceSummarySchema.pick({
-  name: true,
-  kind: true,
-  namespace: true,
-  purpose: true,
-  implementation: true,
-  internalReferences: true,
-  externalReferences: true,
-  publicConstants: true,
-  publicFunctions: true,
-  databaseIntegration: true,
-  integrationPoints: true,
-  codeQualityMetrics: true,
-});
 
 /**
  * Centralized configuration for all source prompt definitions.
@@ -53,7 +34,7 @@ const STANDARD_CODE_RESPONSE_SCHEMA = sourceSummarySchema.pick({
 export const sourceConfigMap = {
   java: {
     contentDesc: "JVM code",
-    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
+    responseSchema: commonSourceAnalysisSchema,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -86,7 +67,7 @@ export const sourceConfigMap = {
   },
   javascript: {
     contentDesc: "JavaScript/TypeScript code",
-    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
+    responseSchema: commonSourceAnalysisSchema,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -119,7 +100,7 @@ export const sourceConfigMap = {
   },
   csharp: {
     contentDesc: "C# code",
-    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
+    responseSchema: commonSourceAnalysisSchema,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -153,7 +134,7 @@ export const sourceConfigMap = {
   },
   python: {
     contentDesc: "Python code",
-    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
+    responseSchema: commonSourceAnalysisSchema,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -188,7 +169,7 @@ export const sourceConfigMap = {
   },
   ruby: {
     contentDesc: "Ruby code",
-    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
+    responseSchema: commonSourceAnalysisSchema,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -581,7 +562,7 @@ export const sourceConfigMap = {
   },
   c: {
     contentDesc: "C source code",
-    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
+    responseSchema: commonSourceAnalysisSchema,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
@@ -614,7 +595,7 @@ export const sourceConfigMap = {
   },
   cpp: {
     contentDesc: "C++ source code",
-    responseSchema: STANDARD_CODE_RESPONSE_SCHEMA,
+    responseSchema: commonSourceAnalysisSchema,
     instructions: [
       buildInstructionBlock(
         INSTRUCTION_SECTION_TITLES.BASIC_INFO,
